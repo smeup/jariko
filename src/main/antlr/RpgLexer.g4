@@ -55,7 +55,7 @@ NUMBER : ([0-9]+([.][0-9]*)?) | [.][0-9]+ ;
 SEMI : ';';
 COLON : ':';
 ID : ('*' {getCharPositionInLine()>7}? '*'? [a-zA-Z])?
-        [#@%$a-zA-Z]{getCharPositionInLine()>7}? [#@$a-zA-Z0-9_]* ;
+        [§#@%$a-zA-Z]{getCharPositionInLine()>7}? [§#@$a-zA-Z0-9_]* ;
 NEWLINE : ('\r'? '\n') -> skip;
 WS : [ \t] {getCharPositionInLine()>6}? [ \t]* -> skip ; // skip spaces, tabs
 
@@ -1490,7 +1490,7 @@ HS_OPEN_PAREN: OPEN_PAREN -> type(OPEN_PAREN);
 HS_CLOSE_PAREN: CLOSE_PAREN -> type(CLOSE_PAREN);
 HS_StringLiteralStart: ['] -> type(StringLiteralStart),pushMode(InStringMode) ;
 HS_COLON: ':' -> type(COLON);
-HS_ID: [#@%$*a-zA-Z] [&#@\-$*a-zA-Z0-9_/,\.]* -> type(ID);
+HS_ID: [§#@%$*a-zA-Z] [§&#@\-$*a-zA-Z0-9_/,\.]* -> type(ID);
 HS_WhiteSpace : [ \t]+ -> skip  ; // skip spaces, tabs, newlines
 HS_CONTINUATION: NEWLINE 
 	WORD5 [hH] ~[*] -> skip;
@@ -1499,8 +1499,8 @@ HS_EOL : NEWLINE -> type(EOL),popMode;
 fragment WORD5 : ~[\r\n]~[\r\n]~[\r\n]~[\r\n]~[\r\n];
 fragment NAME5 : NAMECHAR NAMECHAR NAMECHAR NAMECHAR NAMECHAR;
 // valid characters in symbolic names.
-fragment NAMECHAR : [A-Za-z0-9$#@_ ];
+fragment NAMECHAR : [§A-Za-z0-9$#@_ ];
 // names cannot start with _ or numbers
-fragment INITNAMECHAR : [A-Za-z$#@];
+fragment INITNAMECHAR : [§A-Za-z$#@];
 fragment WORD_WCOLON : ~[\r\n];//[a-zA-Z0-9 :*];
 fragment WORD5_WCOLON : WORD_WCOLON WORD_WCOLON WORD_WCOLON WORD_WCOLON WORD_WCOLON;
