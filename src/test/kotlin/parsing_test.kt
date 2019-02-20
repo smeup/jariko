@@ -2,7 +2,7 @@ package com.smeup.rpgparser
 
 import org.junit.Test as test
 
-class RpgParserTest {
+class RpgParserSmokeTest {
 
     @test fun parseJD_001() {
         assertCanBeParsed("JD_001")

@@ -1398,10 +1398,10 @@ GeneralIndicator: ([0][1-9] | [1-9][0-9]) ->popMode;
 FunctionKeyIndicator: [Kk][A-NP-Ya-np-y] ->popMode;
 ControlLevelIndicator: [lL][1-9] ->popMode;
 ControlLevel0Indicator: [lL][0] ->popMode;
-LastRecordIndicator: [lL][rR] -> mode(DEFAULT_MODE);
+LastRecordIndicator: [lL][rR] -> popMode;// { if (this._input.LA(1) == 10 || this._input.LA(1) == 13) _modeStack.push(DEFAULT_MODE); };
 MatchingRecordIndicator: [mM][rR] ->popMode;
 HaltIndicator: [hH][1-9] ->popMode;
-ReturnIndicator: [rR][tT] -> mode(DEFAULT_MODE);
+ReturnIndicator: [rR][tT] -> popMode;
 ExternalIndicator: [uU][1-8] ->popMode;
 OverflowIndicator: [oO][A-GVa-gv] ->popMode;
 SubroutineIndicator: [sS][rR] ->popMode;
@@ -1410,7 +1410,10 @@ OrIndicator: [oO][rR] ->popMode;
 DoubleSplatIndicator: '**';
 FirstPageIndicator: [1][pP];
 OtherTextIndicator: ~[\r\n]~[\r\n];
-NewLineIndicator: '\r'?'\n' -> popMode;
+
+// What we want to do is to ensure that we stop looking for indicators when we
+// find the end of line
+NewLineIndicator: {this._input.LA(1) == 10 || this._input.LA(1) == 13}? -> mode(DEFAULT_MODE);
 
 
 mode FIXED_CalcSpec_SQL;

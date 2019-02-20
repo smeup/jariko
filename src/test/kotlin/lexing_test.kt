@@ -2,7 +2,7 @@ package com.smeup.rpgparser
 
 import org.junit.Test as test
 
-class RpgLexerTest {
+class RpgLexerSmokeTest {
 
     @test fun lexJD_001() {
         assertCanBeLexed("JD_001")
@@ -14,5 +14,9 @@ class RpgLexerTest {
 
     @test fun lexJD_003() {
         assertCanBeLexed("JD_003")
+    }
+
+    @test fun lexJD_003_alt() {
+        assertCanBeLexed("JD_003_alt")
     }
 }

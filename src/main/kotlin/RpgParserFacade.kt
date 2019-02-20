@@ -41,6 +41,9 @@ class RpgParserFacade {
             val t = lexer.nextToken()
             tokens.add(t)
         } while (t.type != -1)
+
+        TODO: verificare abbia consumato tutto l'input
+
         return RpgLexerResult(errors, tokens)
     }
 
@@ -61,6 +64,9 @@ class RpgParserFacade {
         })
         parser.removeErrorListeners()
         val root = parser.r()
+
+        TODO: verificare abbia consumato tutto l'input
+
         return RpgParserResult(errors, root)
     }
 
