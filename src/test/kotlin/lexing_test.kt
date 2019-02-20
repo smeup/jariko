@@ -1,6 +1,5 @@
 package com.smeup.rpgparser
 
-import java.io.InputStream
 import org.junit.Test as test
 
 class RpgLexerTest {

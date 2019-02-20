@@ -15,7 +15,6 @@ enum class ErrorType {
     SEMANTIC
 }
 
-// TODO add position
 data class Error(val type: ErrorType, val message: String, val point: Point? = null)
 
 data class ParsingResult<C>(val errors: List<Error>, val root: C?) {

@@ -3,6 +3,7 @@ package com.smeup.rpgparser
 import java.io.InputStream
 import kotlin.test.assertTrue
 
+// Used only to get a class to be used for getResourceAsStream
 class Dummy
 
 fun inputStreamFor(exampleName: String) : InputStream {
@@ -16,5 +17,7 @@ fun assertCanBeLexed(exampleName: String) {
 }
 
 fun assertCanBeParsed(exampleName: String) {
-    assertTrue(RpgParserFacade().parse(inputStreamFor(exampleName)).correct)
+    val result = RpgParserFacade().parse(inputStreamFor(exampleName))
+    assertTrue(result.correct,
+            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
 }
