@@ -1,7 +1,11 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.lexing
 
+import com.smeup.rpgparser.assertCanBeLexed
 import org.junit.Test
 
+/**
+ * We just test that the original code is lexed without errors.
+ */
 class RpgLexerSmokeTest {
 
     @Test

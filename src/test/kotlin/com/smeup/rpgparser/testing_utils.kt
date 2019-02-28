@@ -52,3 +52,12 @@ fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: DataTy
     assertEquals(decimal, dataDefinition.decimal)
     assertEquals(arrayLength, dataDefinition.arrayLength)
 }
+
+fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {
+    assertEquals(expectedTokenType, token.type)
+    if (trimmed) {
+        assertEquals(expectedTokenText.trim(), token.text.trim())
+    } else {
+        assertEquals(expectedTokenText, token.text)
+    }
+}
