@@ -1,5 +1,6 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.ast
 
+import com.smeup.rpgparser.*
 import me.tomassetti.kolasu.model.children
 import org.junit.Test as test
 
@@ -14,16 +15,17 @@ class DataDefinitionTest {
 |     $code
         """.trimMargin("|")
         val rContext = assertCodeCanBeParsed(completeCode)
-        rContext.children.forEachIndexed { index, parseTree ->
-            println(parseTree.text + " [$index]")
-        }
         return rContext.toAst()
     }
 
     @test fun singleDataParsing() {
-        val cu = processDataDefinition("     D U\$FUNZ          S             10")
-        cu.children
+        val cu = processDataDefinition("D U\$FUNZ          S             10")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 10)
+    }
+
+    @test fun singleDataParsingOther() {
+        val cu = processDataDefinition("D U\$FUNZ          S             99")
+        cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 99)
     }
 
 }

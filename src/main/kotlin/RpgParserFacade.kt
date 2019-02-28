@@ -99,7 +99,7 @@ class RpgParserFacade {
 
         root.processDescendants({
             if (it.exception != null) {
-                errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.toPosition(true)))
+                errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition))
             } else if (it is ErrorNode) {
                 errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
             }
@@ -114,5 +114,7 @@ fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit,
     if (includingMe) {
         operation(this)
     }
-    this.children.filterIsInstance(ParserRuleContext::class.java).forEach { it.processDescendants(operation) }
+    if (this.children != null) {
+        this.children.filterIsInstance(ParserRuleContext::class.java).forEach { it.processDescendants(operation) }
+    }
 }

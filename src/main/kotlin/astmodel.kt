@@ -8,7 +8,7 @@ enum class DataType {
     SINGLE
 }
 
-class DataDefinition(override val name: String?,
+class DataDefinition(override val name: String,
                      val dataType: DataType,
                      val size: Int,
                      val decimal: Int = 0,
