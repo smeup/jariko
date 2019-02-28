@@ -1,30 +1,10 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.RContext
+import me.tomassetti.kolasu.model.Point
 import org.antlr.v4.runtime.*
 import java.io.InputStream
 import java.util.*
-
-data class Point(val line: Int, val charPositionInLine: Int) {
-    operator fun plus(text: String) : Point {
-        return when {
-            text.isEmpty() -> this
-            text.startsWith("\r\n") -> Point(line + 1, 0) + text.substring(2)
-            text.startsWith("\n") || text.startsWith("\r") -> Point(line + 1, 0) + text.substring(1)
-            else -> Point(line, charPositionInLine + 1) + text.substring(1)
-        }
-    }
-}
-
-data class Position(val start: Point, val end: Point)
-
-enum class ErrorType {
-    LEXICAL,
-    SYNTACTIC,
-    SEMANTIC
-}
-
-data class Error(val type: ErrorType, val message: String, val point: Point? = null)
 
 data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
     val correct : Boolean
@@ -42,7 +22,7 @@ class RpgParserFacade {
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.LEXICAL, errorMessage ?: "unspecified", point = Point(line, charPositionInLine)))
+                errors.add(Error(ErrorType.LEXICAL, errorMessage ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
             }
         })
         val tokens = LinkedList<Token>()
@@ -56,7 +36,7 @@ class RpgParserFacade {
         } while (t.type != Token.EOF)
 
         if (tokens.last.type != Token.EOF) {
-            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint))
+            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint.asPosition))
         }
 
         return RpgLexerResult(errors, tokens)
@@ -68,7 +48,7 @@ class RpgParserFacade {
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.LEXICAL, errorMessage ?: "unspecified", point = Point(line, charPositionInLine)))
+                errors.add(Error(ErrorType.LEXICAL, errorMessage ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
             }
         })
         val commonTokenStream = CommonTokenStream(lexer)
@@ -83,16 +63,10 @@ class RpgParserFacade {
 
         val lastToken = commonTokenStream.get(commonTokenStream.index())
         if (lastToken.type != Token.EOF) {
-            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint))
+            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition))
         }
 
         return RpgParserResult(errors, root)
     }
 
 }
-
-private val Token.startPoint: Point
-    get() = Point(this.line, this.charPositionInLine)
-
-private val Token.endPoint: Point
-    get() = startPoint + this.text
