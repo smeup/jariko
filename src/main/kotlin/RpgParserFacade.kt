@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.RContext
+import me.tomassetti.kolasu.mapping.toPosition
 import me.tomassetti.kolasu.model.Point
 import org.antlr.v4.runtime.*
 import java.io.InputStream
@@ -66,7 +67,21 @@ class RpgParserFacade {
             errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition))
         }
 
+        root.processDescendants({
+            if (it.exception != null) {
+                errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception", it.toPosition(true)))
+            }
+        })
+
+
         return RpgParserResult(errors, root)
     }
 
+}
+
+fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit, includingMe: Boolean = true) {
+    if (includingMe) {
+        operation(this)
+    }
+    this.children.filterIsInstance(ParserRuleContext::class.java).forEach { it.processDescendants(operation) }
 }
