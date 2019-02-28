@@ -1,5 +1,6 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.parsing
 
+import com.smeup.rpgparser.assertCanBeParsed
 import org.junit.Test
 
 class RpgParserSmokeTest {
