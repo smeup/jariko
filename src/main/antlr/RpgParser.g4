@@ -235,6 +235,9 @@ dcl_ds:  (DS_DataStructureStart identifier keyword*
 		((star_comments |directive | parm_fixed)* parm_fixed)?
 		
 	);
+
+//def_type: DEF_TYPE | DEF_TYPE_DS,
+
 dcl_ds_field: DS_SubField? identifier (datatype | identifier)? keyword* FREE_SEMI;
 end_dcl_ds: DS_DataStructureEnd identifier?;
 dcl_pr:  (DS_PrototypeStart identifier datatype? keyword* FREE_SEMI?  

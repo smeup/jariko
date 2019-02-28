@@ -4,8 +4,13 @@ import com.smeup.rpgparser.RpgParser.RContext
 import me.tomassetti.kolasu.mapping.toPosition
 import me.tomassetti.kolasu.model.Point
 import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.tree.ErrorNode
 import java.io.InputStream
 import java.util.*
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.nio.charset.StandardCharsets
+
 
 data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
     val correct : Boolean
@@ -17,9 +22,34 @@ typealias RpgLexerResult = ParsingResult<List<Token>>
 
 class RpgParserFacade {
 
+    private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80) : ANTLRInputStream {
+        val code = inputStreamToString(inputStream)
+        val lines = code.lines()
+        val longLines = lines.map { it.padEnd(threshold) }
+        val paddedCode = longLines.joinToString(System.lineSeparator())
+        return ANTLRInputStream(paddedCode.byteInputStream(StandardCharsets.UTF_8))
+    }
+
+    private fun inputStreamToString(inputStream: InputStream): String {
+        ByteArrayOutputStream().use { result ->
+            val buffer = ByteArray(1024)
+            var length: Int
+            do {
+                length = inputStream.read(buffer)
+                if (length == -1) {
+                    break
+                } else {
+                    result.write(buffer, 0, length)
+                }
+            } while (true)
+
+            return result.toString(Charsets.UTF_8.name())
+        }
+    }
+
     fun lex(inputStream: InputStream) : RpgLexerResult {
         val errors = LinkedList<Error>()
-        val lexer = RpgLexer(ANTLRInputStream(inputStream))
+        val lexer = RpgLexer(inputStreamWithLongLines(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
@@ -45,7 +75,7 @@ class RpgParserFacade {
 
     fun parse(inputStream: InputStream) : RpgParserResult {
         val errors = LinkedList<Error>()
-        val lexer = RpgLexer(ANTLRInputStream(inputStream))
+        val lexer = RpgLexer(inputStreamWithLongLines(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
@@ -69,10 +99,11 @@ class RpgParserFacade {
 
         root.processDescendants({
             if (it.exception != null) {
-                errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception", it.toPosition(true)))
+                errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.toPosition(true)))
+            } else if (it is ErrorNode) {
+                errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
             }
         })
-
 
         return RpgParserResult(errors, root)
     }

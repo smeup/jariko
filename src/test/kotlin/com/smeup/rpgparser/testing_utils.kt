@@ -30,10 +30,11 @@ fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true) : L
     }
 }
 
-fun assertCanBeParsed(exampleName: String) {
+fun assertCanBeParsed(exampleName: String) : RContext {
     val result = RpgParserFacade().parse(inputStreamFor(exampleName))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+    return result.root!!
 }
 
 fun assertCodeCanBeParsed(code: String) : RContext {
