@@ -40,3 +40,8 @@ All tests can be executed by running:
 * _gradle_, _gradlew_, and _gradlew.bat_ contain the gradle wrapper
 * _src_ contains the source code for the project and the tests
 * _out_, and _build_ contain temporary files
+
+## Credits
+
+The grammar used in this project is based on the work from Ryan Eberly. It is derived from his project [rpgleparser](https://github.com/rpgleparser/rpgleparser).
+
