@@ -4,3 +4,8 @@ out
 *.ipr
 *.iws
 build
+bin/
+.classpath
+.project
+.settings/
+.idea/
