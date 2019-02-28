@@ -5,7 +5,16 @@ import org.antlr.v4.runtime.*
 import java.io.InputStream
 import java.util.*
 
-data class Point(val line: Int, val charPositionInLine: Int)
+data class Point(val line: Int, val charPositionInLine: Int) {
+    operator fun plus(text: String) : Point {
+        return when {
+            text.isEmpty() -> this
+            text.startsWith("\r\n") -> Point(line + 1, 0) + text.substring(2)
+            text.startsWith("\n") || text.startsWith("\r") -> Point(line + 1, 0) + text.substring(1)
+            else -> Point(line, charPositionInLine + 1) + text.substring(1)
+        }
+    }
+}
 
 data class Position(val start: Point, val end: Point)
 
@@ -39,10 +48,16 @@ class RpgParserFacade {
         val tokens = LinkedList<Token>()
         do {
             val t = lexer.nextToken()
-            tokens.add(t)
-        } while (t.type != -1)
+            if (t == null) {
+                break
+            } else {
+                tokens.add(t)
+            }
+        } while (t.type != Token.EOF)
 
-        TODO: verificare abbia consumato tutto l'input
+        if (tokens.last.type != Token.EOF) {
+            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint))
+        }
 
         return RpgLexerResult(errors, tokens)
     }
@@ -56,7 +71,8 @@ class RpgParserFacade {
                 errors.add(Error(ErrorType.LEXICAL, errorMessage ?: "unspecified", point = Point(line, charPositionInLine)))
             }
         })
-        val parser = RpgParser(CommonTokenStream(lexer))
+        val commonTokenStream = CommonTokenStream(lexer)
+        val parser = RpgParser(commonTokenStream)
         parser.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.SYNTACTIC, errorMessage ?: "unspecified"))
@@ -65,9 +81,18 @@ class RpgParserFacade {
         parser.removeErrorListeners()
         val root = parser.r()
 
-        TODO: verificare abbia consumato tutto l'input
+        val lastToken = commonTokenStream.get(commonTokenStream.index())
+        if (lastToken.type != Token.EOF) {
+            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint))
+        }
 
         return RpgParserResult(errors, root)
     }
 
 }
+
+private val Token.startPoint: Point
+    get() = Point(this.line, this.charPositionInLine)
+
+private val Token.endPoint: Point
+    get() = startPoint + this.text
