@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.*
-import me.tomassetti.kolasu.model.children
 import org.junit.Test as test
 
 class DataDefinitionTest {
@@ -27,5 +26,8 @@ class DataDefinitionTest {
         val cu = processDataDefinition("D U\$FUNZ          S             99")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 99)
     }
-
+    @test fun singleDataParsingWithDecimals() {
+        val cu = processDataDefinition("D \$X              S              3  2")
+        cu.assertDataDefinitionIsPresent("\$X", DataType.SINGLE, 3, decimals = 2)
+    }
 }

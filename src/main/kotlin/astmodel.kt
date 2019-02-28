@@ -11,7 +11,7 @@ enum class DataType {
 class DataDefinition(override val name: String,
                      val dataType: DataType,
                      val size: Int,
-                     val decimal: Int = 0,
+                     val decimals: Int = 0,
                      val arrayLength: Int = 1,
                      override val position: Position?) : Node(position), Named {
 
