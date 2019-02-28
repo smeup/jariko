@@ -20,3 +20,14 @@ class RpgLexerSmokeTest {
         assertCanBeLexed("JD_003_alt")
     }
 }
+
+class RpgTokensListTest {
+
+    @test fun lexJD_001() {
+        val tokens = assertCanBeLexed("JD_001")
+        tokens.forEachIndexed { index, token ->
+            println("[$index] ${RpgLexer.VOCABULARY.getDisplayName(token.type)} ${token.text}")
+        }
+    }
+
+}

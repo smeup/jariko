@@ -27,7 +27,7 @@ LEAD_WS5_Comments :  WORD5 {getCharPositionInLine()==5}? -> channel(HIDDEN);
 	//5 position blank means FREE, unless..
 FREE_SPEC : {getCharPositionInLine()==5}? [  ] -> pushMode(OpCode),skip;
     // 6th position asterisk is a comment
-COMMENT_SPEC_FIXED : {getCharPositionInLine()==5}? .'*' -> pushMode(FIXED_CommentMode),channel(HIDDEN) ;
+COMMENT_SPEC_FIXED : {getCharPositionInLine()==5}? .'*' -> pushMode(FIXED_CommentMode), channel(HIDDEN) ;
     // X specs 
 DS_FIXED : [dD] {getCharPositionInLine()==6}? -> pushMode(FIXED_DefSpec) ; 
 FS_FIXED : [fF] {getCharPositionInLine()==6}? -> pushMode(FIXED_FileSpec) ;

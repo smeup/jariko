@@ -1,6 +1,8 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.RContext
+import org.antlr.v4.runtime.Lexer
+import org.antlr.v4.runtime.Token
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import kotlin.test.assertEquals
@@ -17,10 +19,15 @@ fun inputStreamForCode(code: String) : InputStream {
     return code.byteInputStream(StandardCharsets.UTF_8)
 }
 
-fun assertCanBeLexed(exampleName: String) {
+fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true) : List<Token> {
     val result = RpgParserFacade().lex(inputStreamFor(exampleName))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+    return if (onlyVisibleTokens) {
+        result.root!!.filter { it.channel != Lexer.HIDDEN }
+    } else {
+        result.root!!
+    }
 }
 
 fun assertCanBeParsed(exampleName: String) {

@@ -8,6 +8,14 @@ class RpgParserSmokeTest {
         assertCanBeParsed("JD_001")
     }
 
+    @test fun parseJD_001_alt() {
+        assertCanBeParsed("JD_001_alt")
+    }
+
+    @test fun parseJD_001_justdirectives() {
+        assertCanBeParsed("JD_001_justdirectives")
+    }
+
     @test fun parseJD_002() {
         assertCanBeParsed("JD_002")
     }
