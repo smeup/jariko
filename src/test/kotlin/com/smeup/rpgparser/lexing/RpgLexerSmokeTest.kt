@@ -30,11 +30,11 @@ class RpgLexerSmokeTest {
 
     @Test
     fun lexQILEGEN_POUND_PDS() {
-        assertCanBeLexed("QILEGEN.£PDS.txt")
+        assertCanBeLexed("QILEGEN.£PDS")
     }
 
     @Test
     fun lexQILEGEN_POUND_TABA_POUND_1DS() {
-        assertCanBeLexed("QILEGEN.TABA£1DS.txt")
+        assertCanBeLexed("QILEGEN.£TABA£1DS")
     }
 }
