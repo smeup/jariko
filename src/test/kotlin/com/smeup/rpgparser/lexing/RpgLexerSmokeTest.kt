@@ -27,4 +27,14 @@ class RpgLexerSmokeTest {
     fun lexJD_003_alt() {
         assertCanBeLexed("JD_003_alt")
     }
+
+    @Test
+    fun lexQILEGEN_POUND_PDS() {
+        assertCanBeLexed("QILEGEN.£PDS.txt")
+    }
+
+    @Test
+    fun lexQILEGEN_POUND_TABA_POUND_1DS() {
+        assertCanBeLexed("QILEGEN.TABA£1DS.txt")
+    }
 }
