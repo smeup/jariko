@@ -36,6 +36,8 @@ class CompilationUnit(val dataDefinitons: List<DataDefinition>, override val pos
     fun getDataDefinition(name: String) = dataDefinitons.first { it.name == name }
 }
 
+class Subroutine(override val name: String, override val position: Position? = null) : Named, Node(position)
+
 //
 // Expressions
 //
@@ -59,3 +61,4 @@ data class GreaterThanExpr(val left: Expression, val right: Expression, override
 //
 
 abstract class Statement(override val position: Position? = null) : Node(position)
+data class ExecuteSubroutine(val subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)

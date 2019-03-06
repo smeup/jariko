@@ -4,7 +4,6 @@ import com.smeup.rpgparser.DataType.*
 import com.smeup.rpgparser.RpgParser.*
 import me.tomassetti.kolasu.mapping.toPosition
 import me.tomassetti.kolasu.model.ReferenceByName
-import sun.java2d.cmm.lcms.LCMS
 
 fun RContext.toAst(considerPosition : Boolean = true) = CompilationUnit(
         this.statement().mapNotNull { it.dspec() }.map { it.toAst(considerPosition) }
@@ -132,6 +131,32 @@ private fun Parm_fixedContext.toAst(considerPosition: Boolean = true): FieldDefi
 
 fun StatementContext.toAst(considerPosition : Boolean = true): Statement {
     return when {
+        this.cspec_fixed() != null -> this.cspec_fixed().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun Cspec_fixedContext.toAst(considerPosition: Boolean = true): Statement {
+    return when {
+        this.cspec_fixed_standard() != null -> this.cspec_fixed_standard().toAst(considerPosition)
+        else -> TODO(this.text.toString())
+    }
+}
+
+private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true): Statement {
+    return when {
+        this.csEXSR() != null -> this.csEXSR().toAst(considerPosition)
+        else -> TODO(this.text.toString())
+    }
+}
+
+private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubroutine {
+    val subroutineName = this.cspec_fixed_standard_parts().factor2.text
+    require(this.cspec_fixed_standard_parts().decimalPositions.text.isBlank())
+    require(this.cspec_fixed_standard_parts().eq.text.isBlank())
+    require(this.cspec_fixed_standard_parts().hi.text.isBlank())
+    require(this.cspec_fixed_standard_parts().len.text.isBlank())
+    require(this.cspec_fixed_standard_parts().lo.text.isBlank())
+    require(this.cspec_fixed_standard_parts().result.text.isBlank())
+    return ExecuteSubroutine(ReferenceByName(subroutineName), toPosition(considerPosition))
 }
