@@ -67,25 +67,5 @@ class RpgTokensListTest {
         assertToken(RESERVED, "", tokens[24])
         assertToken(EOF, "<EOF>", tokens[25])
     }
-
-    @test fun lexQILEGEN_PDS_header() {
-        val tokens = assertCanBeLexed("QILEGEN.£PDS_header")
-        tokens.forEachIndexed { index, token ->
-            println("[$index] ${RpgLexer.VOCABULARY.getDisplayName(token.type)} ${token.text}")
-        }
-        assertToken(DIRECTIVE, "/", tokens[0])
-        assertToken(DIR_IF, "IF", tokens[1])
-        assertToken(DIR_NOT, "NOT", tokens[2])
-        assertToken(DIR_DEFINED, "DEFINED", tokens[3])
-        // LPAREN
-        assertToken(DIR_OtherText, "JPDS", tokens[5])
-        // RPAREN
-        assertToken(EOL, "", tokens[7])
-        assertToken(DIRECTIVE, "/", tokens[8])
-        assertToken(DIR_DEFINE, "DEFINE", tokens[9])
-        assertToken(DIR_OtherText, "JPDS", tokens[10])
-        assertToken(EOL, "", tokens[11])
-        assertToken(EOF, "<EOF>", tokens[12])
-    }
-
+    
 }
