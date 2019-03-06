@@ -48,6 +48,7 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
         this.identifier() != null -> this.identifier().toAst(considerPosition)
         this.bif() != null -> this.bif().toAst(considerPosition)
         this.literal() != null -> this.literal().toAst(considerPosition)
+        this.EQUAL() != null -> EqualityExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
         else -> TODO(this.text.toString())
     }
 }

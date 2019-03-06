@@ -2491,7 +2491,7 @@ argument: ID;
 
 symbolicConstants:
 SPLAT_ALL
-   | SPLAT_NONE
+   | SPLAT_NONEc
    | SPLAT_NO
    | SPLAT_YES
    | SPLAT_ILERPG
