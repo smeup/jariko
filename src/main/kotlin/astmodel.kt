@@ -7,6 +7,7 @@ import me.tomassetti.kolasu.model.Position
 
 enum class DataType {
     SINGLE,
+    BOOLEAN,
     DATA_STRUCTURE
 }
 

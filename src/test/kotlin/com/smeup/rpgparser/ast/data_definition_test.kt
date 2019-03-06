@@ -22,6 +22,11 @@ class DataDefinitionTest {
         cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 10)
     }
 
+    @test fun booleanDataParsing() {
+        val cu = processDataDefinition("D OK              S              1N")
+        cu.assertDataDefinitionIsPresent("OK", DataType.BOOLEAN, 1)
+    }
+
     @test fun singleDataParsingOther() {
         val cu = processDataDefinition("D U\$FUNZ          S             99")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 99)

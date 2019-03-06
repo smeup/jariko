@@ -1,7 +1,6 @@
 package com.smeup.rpgparser
 
-import com.smeup.rpgparser.DataType.DATA_STRUCTURE
-import com.smeup.rpgparser.DataType.SINGLE
+import com.smeup.rpgparser.DataType.*
 import com.smeup.rpgparser.RpgParser.*
 import me.tomassetti.kolasu.mapping.toPosition
 import sun.java2d.cmm.lcms.LCMS
@@ -50,13 +49,21 @@ private fun NumberContext.toAst(considerPosition : Boolean = true) : NumberLiter
     }
 }
 
-private fun DspecContext.toAst(considerPosition : Boolean = true) = DataDefinition(
-        this.ds_name().text,
-        SINGLE,
-        this.TO_POSITION().text.trim().toInt(),
-        decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
-        arrayLength = this.arrayLength(considerPosition),
-        position = this.toPosition(true))
+private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefinition {
+    val type = when (this.DATA_TYPE()?.text?.trim()) {
+        null -> SINGLE
+        "" -> SINGLE
+        "N" -> BOOLEAN
+        else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
+    }
+    return DataDefinition(
+            this.ds_name().text,
+            type,
+            this.TO_POSITION().text.trim().toInt(),
+            decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
+            arrayLength = this.arrayLength(considerPosition),
+            position = this.toPosition(true))
+}
 
 private fun Dcl_dsContext.toAst(considerPosition : Boolean = true) : DataDefinition {
     require(this.TO_POSITION().text.trim().isEmpty())
