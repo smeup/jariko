@@ -1,0 +1,17 @@
+      /IF NOT DEFINED(ЈPDS)
+      /DEFINE ЈPDS
+     D* ==============================================================
+     D* MODIFICHE Ril.  T Au Descrizione
+     D* gg/mm/aa  nn.mm i xx Breve descrizione
+     D* ==============================================================
+     V* AЈ61103A  V5R1   BMA Modificato commento
+     D*----------------------------------------------------------------
+     D* OBIETTIVO
+     D*  Copy che definisce i campi della DS che contiene
+     D*  i dati principali dello stato del programma, la definizione
+     D*  della UDS ed i suoi campi standard.
+     D*
+     D*  Va inserita in tutti i programmi, tra le specifiche I, nella
+     D*  zona delle DS, prima dei sottocampi della LDA.
+     D*----------------------------------------------------------------
+      * Variabili di contesto

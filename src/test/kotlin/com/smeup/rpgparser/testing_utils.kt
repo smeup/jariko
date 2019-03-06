@@ -67,7 +67,9 @@ fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: DataTy
 fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {
     assertEquals(expectedTokenType, token.type)
     if (trimmed) {
-        assertEquals(expectedTokenText.trim(), token.text.trim())
+        val expected = expectedTokenText.trim()
+        val actual = token.text.trim()
+        assertEquals(expected, actual, "Expected <$expected> but got <$actual>")
     } else {
         assertEquals(expectedTokenText, token.text)
     }
