@@ -1,6 +1,8 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.RpgParser.ExpressionContext
 import com.smeup.rpgparser.RpgParser.RContext
+import com.sun.org.apache.xpath.internal.operations.Bool
 import me.tomassetti.kolasu.mapping.toPosition
 import me.tomassetti.kolasu.model.Point
 import org.antlr.v4.runtime.*
@@ -8,7 +10,6 @@ import org.antlr.v4.runtime.tree.ErrorNode
 import java.io.InputStream
 import java.util.*
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.nio.charset.StandardCharsets
 
 
@@ -73,9 +74,8 @@ class RpgParserFacade {
         return RpgLexerResult(errors, tokens)
     }
 
-    fun parse(inputStream: InputStream) : RpgParserResult {
-        val errors = LinkedList<Error>()
-        val lexer = RpgLexer(inputStreamWithLongLines(inputStream))
+    private fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean) : RpgParser {
+        val lexer = RpgLexer(if (longLines) inputStreamWithLongLines(inputStream) else ANTLRInputStream(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
@@ -90,8 +90,11 @@ class RpgParserFacade {
             }
         })
         parser.removeErrorListeners()
-        val root = parser.r()
+        return parser
+    }
 
+    private fun verifyParseTree(parser: RpgParser, errors: MutableList<Error>, root: ParserRuleContext) {
+        val commonTokenStream = parser.tokenStream as CommonTokenStream
         val lastToken = commonTokenStream.get(commonTokenStream.index())
         if (lastToken.type != Token.EOF) {
             errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition))
@@ -104,8 +107,22 @@ class RpgParserFacade {
                 errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
             }
         })
+    }
 
+    fun parse(inputStream: InputStream) : RpgParserResult {
+        val errors = LinkedList<Error>()
+        val parser = createParser(inputStream, errors, longLines = true)
+        val root = parser.r()
+        verifyParseTree(parser, errors, root)
         return RpgParserResult(errors, root)
+    }
+
+    fun parseExpression(inputStream: InputStream) : ParsingResult<ExpressionContext> {
+        val errors = LinkedList<Error>()
+        val parser = createParser(inputStream, errors, longLines = false)
+        val root = parser.expression()
+        verifyParseTree(parser, errors, root)
+        return ParsingResult(errors, root)
     }
 
 }
