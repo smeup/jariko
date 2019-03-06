@@ -37,11 +37,16 @@ class DataDefinitionTest {
         cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 10, arrayLength = IntLiteral(200))
     }
 
-//    @test fun structParsing() {
-//        val cu = processDataDefinition("D                 DS\n" +
-//                "     D \$\$SVAR                      1050    DIM(200)\n" +
-//                "     D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name\n" +
-//                "     D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value")
-//        cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 10, arrayLength = 200)
-//    }
+    @test fun structParsing() {
+        val cu = processDataDefinition("D                 DS\n" +
+                "     D \$\$SVAR                      1050    DIM(200)\n" +
+                "     D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name\n" +
+                "     D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value")
+        cu.assertDataDefinitionIsPresent("\$\$SVAR", DataType.DATA_STRUCTURE, 1050,
+                arrayLength = IntLiteral(200),
+                fields = listOf(
+                        FieldDefinition("\$\$SVARCD", 50),
+                        FieldDefinition("\$\$SVARVA", 1000)
+                ))
+    }
 }
