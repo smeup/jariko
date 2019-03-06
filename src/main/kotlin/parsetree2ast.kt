@@ -49,6 +49,10 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
         this.bif() != null -> this.bif().toAst(considerPosition)
         this.literal() != null -> this.literal().toAst(considerPosition)
         this.EQUAL() != null -> EqualityExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+        this.comparisonOperator() != null -> when {
+            this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+            else -> TODO("ComparisonOperator ${this.comparisonOperator().text}")
+        }
         else -> TODO(this.text.toString())
     }
 }

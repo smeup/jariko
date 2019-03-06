@@ -32,4 +32,7 @@ class ExpressionsTest {
         assertEquals(EqualityExpr(DataRefExpr(ReferenceByName("U\$FUNZ")), StringLiteral("INZ")), expression("U\$FUNZ='INZ'"))
     }
 
+    @test fun greaterThanParsing() {
+        assertEquals(GreaterThanExpr(DataRefExpr(ReferenceByName("\$X")), IntLiteral(0)), expression("\$X>0"))
+    }
 }

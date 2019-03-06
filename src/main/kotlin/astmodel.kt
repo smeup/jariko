@@ -48,3 +48,4 @@ data class NumberOfElementsExpr(val value: Expression, override val position: Po
 data class DataRefExpr(val variable: ReferenceByName<DataDefinition>, override val position: Position? = null) : Expression(position)
 
 data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class GreaterThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
