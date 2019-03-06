@@ -26,8 +26,14 @@ class DataDefinitionTest {
         val cu = processDataDefinition("D U\$FUNZ          S             99")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 99)
     }
+
     @test fun singleDataParsingWithDecimals() {
         val cu = processDataDefinition("D \$X              S              3  2")
         cu.assertDataDefinitionIsPresent("\$X", DataType.SINGLE, 3, decimals = 2)
+    }
+
+    @test fun arrayParsing() {
+        val cu = processDataDefinition("D U\$FUNZ          S             10    DIM(200)")
+        cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 10, arrayLength = 200)
     }
 }
