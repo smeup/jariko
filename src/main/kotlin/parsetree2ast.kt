@@ -129,3 +129,9 @@ private fun Dcl_dsContext.toAst(considerPosition : Boolean = true) : DataDefinit
 private fun Parm_fixedContext.toAst(considerPosition: Boolean = true): FieldDefinition {
     return FieldDefinition(this.ds_name().text, this.TO_POSITION().text.trim().toInt(), this.toPosition(considerPosition))
 }
+
+fun StatementContext.toAst(considerPosition : Boolean = true): Statement {
+    return when {
+        else -> TODO(this.text.toString())
+    }
+}

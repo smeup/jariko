@@ -125,6 +125,14 @@ class RpgParserFacade {
         return ParsingResult(errors, root)
     }
 
+    fun parseStatement(inputStream: InputStream) : ParsingResult<RpgParser.StatementContext> {
+        val errors = LinkedList<Error>()
+        val parser = createParser(inputStream, errors, longLines = false)
+        val root = parser.statement()
+        verifyParseTree(parser, errors, root)
+        return ParsingResult(errors, root)
+    }
+
 }
 
 fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit, includingMe: Boolean = true) {

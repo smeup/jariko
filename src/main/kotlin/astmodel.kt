@@ -36,6 +36,10 @@ class CompilationUnit(val dataDefinitons: List<DataDefinition>, override val pos
     fun getDataDefinition(name: String) = dataDefinitons.first { it.name == name }
 }
 
+//
+// Expressions
+//
+
 abstract class Expression(override val position: Position? = null) : Node(position)
 
 open class NumberLiteral(override val position: Position? = null) : Expression(position)
@@ -49,3 +53,9 @@ data class DataRefExpr(val variable: ReferenceByName<DataDefinition>, override v
 
 data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
 data class GreaterThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+
+//
+// Statements
+//
+
+abstract class Statement(override val position: Position? = null) : Node(position)

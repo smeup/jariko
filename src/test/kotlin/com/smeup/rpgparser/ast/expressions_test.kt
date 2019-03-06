@@ -8,7 +8,7 @@ import org.junit.Test as test
 class ExpressionsTest {
 
     private fun expression(code: String) : Expression {
-        val exprContext = assertExpressionCodeCanBeParsed("                                   $code")
+        val exprContext = assertExpressionCanBeParsed("                                   $code")
         return exprContext.toAst(considerPosition = false)
     }
 

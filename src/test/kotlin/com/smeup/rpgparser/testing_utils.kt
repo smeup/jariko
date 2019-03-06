@@ -1,6 +1,6 @@
 package com.smeup.rpgparser
 
-import com.smeup.rpgparser.RpgParser.RContext
+import com.smeup.rpgparser.RpgParser.*
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import java.io.InputStream
@@ -44,8 +44,15 @@ fun assertCodeCanBeParsed(code: String) : RContext {
     return result.root!!
 }
 
-fun assertExpressionCodeCanBeParsed(code: String) : RpgParser.ExpressionContext {
+fun assertExpressionCanBeParsed(code: String) : ExpressionContext {
     val result = RpgParserFacade().parseExpression(inputStreamForCode(code))
+    assertTrue(result.correct,
+            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+    return result.root!!
+}
+
+fun assertStatementCanBeParsed(code: String) : StatementContext {
+    val result = RpgParserFacade().parseStatement(inputStreamForCode(code))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!
