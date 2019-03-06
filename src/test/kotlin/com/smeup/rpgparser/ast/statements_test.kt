@@ -16,9 +16,12 @@ class StatementsTest {
         assertEquals(ExecuteSubroutine(ReferenceByName("IMP0")), statement("EXSR      IMP0"))
     }
 
-//    @test fun evalParsing() {
-//        assertEquals(ExecuteSubroutine(ReferenceByName("IMP0")), statement("EVAL      \$\$SVAR=U\$SVARSK"))
-//    }
+    @test fun evalParsing() {
+        assertEquals(EvalStmt(EqualityExpr(
+                DataRefExpr(ReferenceByName("\$\$SVAR")),
+                DataRefExpr(ReferenceByName("U\$SVARSK")))),
+                statement("EVAL      \$\$SVAR=U\$SVARSK"))
+    }
 //
 //    @test fun callParsing() {
 //        assertEquals(ExecuteSubroutine(ReferenceByName("IMP0")), statement("CALL      'JD_URL'"))

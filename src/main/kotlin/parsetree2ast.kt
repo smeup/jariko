@@ -146,6 +146,7 @@ private fun Cspec_fixedContext.toAst(considerPosition: Boolean = true): Statemen
 private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true): Statement {
     return when {
         this.csEXSR() != null -> this.csEXSR().toAst(considerPosition)
+        this.csEVAL() != null -> this.csEVAL().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
 }
@@ -160,3 +161,8 @@ private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubrou
     require(this.cspec_fixed_standard_parts().result.text.isBlank())
     return ExecuteSubroutine(ReferenceByName(subroutineName), toPosition(considerPosition))
 }
+
+private fun CsEVALContext.toAst(considerPosition: Boolean = true): EvalStmt {
+    return EvalStmt(this.fixedexpression.expression().toAst(considerPosition), toPosition(considerPosition))
+}
+
