@@ -12,7 +12,7 @@ class DataDefinition(override val name: String,
                      val dataType: DataType,
                      val size: Int,
                      val decimals: Int = 0,
-                     val arrayLength: Int = 1,
+                     val arrayLength: Expression = IntLiteral(1),
                      override val position: Position?) : Node(position), Named {
 
 }
@@ -23,4 +23,8 @@ class CompilationUnit(val dataDefinitons: List<DataDefinition>, override val pos
     fun getDataDefinition(name: String) = dataDefinitons.first { it.name == name }
 }
 
-abstract class Expression(override val position: Position?) : Node(position)
+abstract class Expression(override val position: Position? = null) : Node(position)
+
+open class NumberLiteral(override val position: Position? = null) : Expression(position)
+data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position)
+data class RealLiteral(val value: Double, override val position: Position? = null) : NumberLiteral(position)

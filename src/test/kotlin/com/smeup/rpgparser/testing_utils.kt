@@ -44,7 +44,7 @@ fun assertCodeCanBeParsed(code: String) : RContext {
     return result.root!!
 }
 
-fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: DataType, size: Int, decimals: Int = 0, arrayLength: Int = 1) {
+fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: DataType, size: Int, decimals: Int = 0, arrayLength: Expression = IntLiteral(1)) {
     assertTrue(this.hasDataDefinition(name), message = "Data definition $name not found in Compilation Unit")
     val dataDefinition = this.getDataDefinition(name)
     assertEquals(dataType, dataDefinition.dataType)
