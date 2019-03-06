@@ -38,6 +38,13 @@ private fun SimpleExpressionContext.toAst(considerPosition : Boolean = true): Ex
     }
 }
 
+fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
+    return when {
+        this.number() != null -> this.number()!!.toAst(considerPosition)
+        else -> TODO(this.javaClass.canonicalName)
+    }
+}
+
 private fun NumberContext.toAst(considerPosition : Boolean = true) : NumberLiteral {
     require(this.NumberPart().isEmpty())
     require(this.MINUS() == null)

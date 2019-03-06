@@ -44,6 +44,13 @@ fun assertCodeCanBeParsed(code: String) : RContext {
     return result.root!!
 }
 
+fun assertExpressionCodeCanBeParsed(code: String) : RpgParser.ExpressionContext {
+    val result = RpgParserFacade().parseExpression(inputStreamForCode(code))
+    assertTrue(result.correct,
+            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+    return result.root!!
+}
+
 fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: DataType, size: Int,
                                                   decimals: Int = 0,
                                                   arrayLength: Expression = IntLiteral(1),
