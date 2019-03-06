@@ -42,5 +42,9 @@ open class NumberLiteral(override val position: Position? = null) : Expression(p
 data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position)
 data class RealLiteral(val value: Double, override val position: Position? = null) : NumberLiteral(position)
 
+data class StringLiteral(val value: String, override val position: Position? = null) : Expression(position)
+
 data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) : Expression(position)
 data class DataRefExpr(val variable: ReferenceByName<DataDefinition>, override val position: Position? = null) : Expression(position)
+
+data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)

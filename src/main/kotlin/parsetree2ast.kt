@@ -37,6 +37,7 @@ private fun SimpleExpressionContext.toAst(considerPosition : Boolean = true): Ex
         this.number() != null -> this.number()!!.toAst(considerPosition)
         this.identifier() != null -> this.identifier().toAst(considerPosition)
         this.bif() != null -> this.bif().toAst(considerPosition)
+        this.literal() != null -> this.literal().toAst(considerPosition)
         else -> TODO(this.javaClass.canonicalName)
     }
 }
@@ -46,11 +47,16 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
         this.number() != null -> this.number()!!.toAst(considerPosition)
         this.identifier() != null -> this.identifier().toAst(considerPosition)
         this.bif() != null -> this.bif().toAst(considerPosition)
+        this.literal() != null -> this.literal().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
 }
 
-private fun RpgParser.BifContext.toAst(considerPosition: Boolean): Expression {
+private fun LiteralContext.toAst(considerPosition : Boolean = true): Expression {
+    return StringLiteral(this.content.text, toPosition(considerPosition))
+}
+
+private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
     return when {
         this.bif_elem() != null -> NumberOfElementsExpr(this.bif_elem().expression().toAst(considerPosition), position = toPosition(considerPosition))
         else -> TODO(this.text.toString())

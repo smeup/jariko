@@ -16,12 +16,20 @@ class ExpressionsTest {
         assertEquals(IntLiteral(200), expression("200"))
     }
 
+    @test fun stringLiteralParsing() {
+        assertEquals(StringLiteral("INZ"), expression("'INZ'"))
+    }
+
     @test fun dataRefParsing() {
         assertEquals(DataRefExpr(ReferenceByName("\$\$SVAR")), expression("\$\$SVAR"))
     }
 
     @test fun numberOfElementsParsing() {
         assertEquals(NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR"))), expression("%ELEM(\$\$SVAR)"))
+    }
+
+    @test fun equalityParsing() {
+        assertEquals(EqualityExpr(DataRefExpr(ReferenceByName("U\$FUNZ")), StringLiteral("INZ")), expression("U\$FUNZ='INZ'"))
     }
 
 }
