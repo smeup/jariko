@@ -3,6 +3,7 @@ package com.smeup.rpgparser
 import com.smeup.rpgparser.DataType.*
 import com.smeup.rpgparser.RpgParser.*
 import me.tomassetti.kolasu.mapping.toPosition
+import me.tomassetti.kolasu.model.ReferenceByName
 import sun.java2d.cmm.lcms.LCMS
 
 fun RContext.toAst(considerPosition : Boolean = true) = CompilationUnit(
@@ -34,6 +35,8 @@ private fun List<KeywordContext>.arrayLength(considerPosition : Boolean = true) 
 private fun SimpleExpressionContext.toAst(considerPosition : Boolean = true): Expression {
     return when {
         this.number() != null -> this.number()!!.toAst(considerPosition)
+        this.identifier() != null -> this.identifier().toAst(considerPosition)
+        this.bif() != null -> this.bif().toAst(considerPosition)
         else -> TODO(this.javaClass.canonicalName)
     }
 }
@@ -41,7 +44,16 @@ private fun SimpleExpressionContext.toAst(considerPosition : Boolean = true): Ex
 fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
     return when {
         this.number() != null -> this.number()!!.toAst(considerPosition)
-        else -> TODO(this.javaClass.canonicalName)
+        this.identifier() != null -> this.identifier().toAst(considerPosition)
+        this.bif() != null -> this.bif().toAst(considerPosition)
+        else -> TODO(this.text.toString())
+    }
+}
+
+private fun RpgParser.BifContext.toAst(considerPosition: Boolean): Expression {
+    return when {
+        this.bif_elem() != null -> NumberOfElementsExpr(this.bif_elem().expression().toAst(considerPosition), position = toPosition(considerPosition))
+        else -> TODO(this.text.toString())
     }
 }
 
@@ -54,6 +66,10 @@ private fun NumberContext.toAst(considerPosition : Boolean = true) : NumberLiter
     } else {
         IntLiteral(text.toLong(), this.toPosition(considerPosition))
     }
+}
+
+private fun IdentifierContext.toAst(considerPosition : Boolean = true) : DataRefExpr {
+    return DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(considerPosition))
 }
 
 private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefinition {

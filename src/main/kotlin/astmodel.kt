@@ -4,6 +4,8 @@ import com.smeup.rpgparser.DataType.DATA_STRUCTURE
 import me.tomassetti.kolasu.model.Named
 import me.tomassetti.kolasu.model.Node
 import me.tomassetti.kolasu.model.Position
+import me.tomassetti.kolasu.model.ReferenceByName
+import javax.xml.crypto.Data
 
 enum class DataType {
     SINGLE,
@@ -39,3 +41,6 @@ abstract class Expression(override val position: Position? = null) : Node(positi
 open class NumberLiteral(override val position: Position? = null) : Expression(position)
 data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position)
 data class RealLiteral(val value: Double, override val position: Position? = null) : NumberLiteral(position)
+
+data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) : Expression(position)
+data class DataRefExpr(val variable: ReferenceByName<DataDefinition>, override val position: Position? = null) : Expression(position)
