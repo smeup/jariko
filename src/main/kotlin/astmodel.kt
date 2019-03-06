@@ -62,3 +62,5 @@ data class GreaterThanExpr(val left: Expression, val right: Expression, override
 
 abstract class Statement(override val position: Position? = null) : Node(position)
 data class ExecuteSubroutine(val subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
+data class SelectStmt(val cases: List<SelectCase>, override val position: Position? = null) : Statement(position)
+data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
