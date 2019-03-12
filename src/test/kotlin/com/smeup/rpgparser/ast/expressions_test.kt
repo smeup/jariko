@@ -77,4 +77,18 @@ class ExpressionsTest {
         )
     }
 
+    @test fun scanExprParsing() {
+        assertEquals(ScanExpr(
+                StringLiteral("oo"), dataRef("source")),
+                expression("%scan ('oo' : source)")
+        )
+    }
+
+    @test fun scanExprParsingWithStart() {
+        assertEquals(ScanExpr(
+                StringLiteral("Dr."), dataRef("source"), IntLiteral(2)),
+                expression("%scan ('Dr.' : source : 2)")
+        )
+    }
+
 }

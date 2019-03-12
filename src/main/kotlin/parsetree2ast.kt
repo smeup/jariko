@@ -79,6 +79,7 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
         this.bif() != null -> this.bif().toAst(considerPosition)
         this.literal() != null -> this.literal().toAst(considerPosition)
         this.EQUAL() != null -> EqualityExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+        this.OR() != null -> LogicalOrExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
         this.comparisonOperator() != null -> when {
             this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
             else -> TODO("ComparisonOperator ${this.comparisonOperator().text}")
@@ -105,8 +106,17 @@ private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
         this.bif_elem() != null -> NumberOfElementsExpr(this.bif_elem().expression().toAst(considerPosition), position = toPosition(considerPosition))
         this.bif_lookup() != null -> this.bif_lookup().toAst(considerPosition)
         this.bif_xlate() != null -> this.bif_xlate().toAst(considerPosition)
+        this.bif_scan() != null -> this.bif_scan().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun Bif_scanContext.toAst(considerPosition: Boolean = true): ScanExpr {
+    return ScanExpr(
+            this.searcharg.toAst(considerPosition),
+            this.source.toAst(considerPosition),
+            this.start?.toAst(considerPosition),
+            toPosition(considerPosition))
 }
 
 private fun Bif_xlateContext.toAst(considerPosition: Boolean = true): TranslateExpr {
