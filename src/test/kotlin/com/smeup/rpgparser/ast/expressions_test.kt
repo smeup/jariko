@@ -21,26 +21,34 @@ class ExpressionsTest {
     }
 
     @test fun dataRefParsing() {
-        assertEquals(DataRefExpr(ReferenceByName("\$\$SVAR")), expression("\$\$SVAR"))
+        assertEquals(dataRef(("\$\$SVAR")), expression("\$\$SVAR"))
     }
 
     @test fun numberOfElementsParsing() {
-        assertEquals(NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR"))), expression("%ELEM(\$\$SVAR)"))
+        assertEquals(NumberOfElementsExpr(dataRef("\$\$SVAR")), expression("%ELEM(\$\$SVAR)"))
     }
 
     @test fun equalityParsing() {
-        assertEquals(EqualityExpr(DataRefExpr(ReferenceByName("U\$FUNZ")), StringLiteral("INZ")), expression("U\$FUNZ='INZ'"))
+        assertEquals(EqualityExpr(dataRef("U\$FUNZ"), StringLiteral("INZ")), expression("U\$FUNZ='INZ'"))
     }
 
     @test fun greaterThanParsing() {
-        assertEquals(GreaterThanExpr(DataRefExpr(ReferenceByName("\$X")), IntLiteral(0)), expression("\$X>0"))
+        assertEquals(GreaterThanExpr(dataRef("\$X"), IntLiteral(0)), expression("\$X>0"))
     }
 
     @test fun functionCallParsing() {
         assertEquals(FunctionCall(
                 ReferenceByName("\$\$SVARVA"),
-                listOf(DataRefExpr(ReferenceByName("\$R")))),
+                listOf(dataRef(("\$R")))),
                 expression("\$\$SVARVA(\$R)"))
+    }
+
+    @test fun lookupParsing() {
+        assertEquals(LookupExpr(
+                        StringLiteral("Url"),
+                        dataRef("\$\$SVARCD")
+                ),
+                expression("%LOOKUP('Url':\$\$SVARCD)"))
     }
 
 }

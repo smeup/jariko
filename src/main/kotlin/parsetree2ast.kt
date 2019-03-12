@@ -99,8 +99,16 @@ private fun LiteralContext.toAst(considerPosition : Boolean = true): Expression 
 private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
     return when {
         this.bif_elem() != null -> NumberOfElementsExpr(this.bif_elem().expression().toAst(considerPosition), position = toPosition(considerPosition))
+        this.bif_lookup() != null -> this.bif_lookup().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun Bif_lookupContext.toAst(considerPosition: Boolean = true): LookupExpr {
+    return LookupExpr(
+            this.bif_lookupargs().arg.toAst(considerPosition),
+            this.bif_lookupargs().array.toAst(considerPosition),
+            toPosition(considerPosition))
 }
 
 private fun NumberContext.toAst(considerPosition : Boolean = true) : NumberLiteral {
@@ -232,8 +240,36 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
         this.csCALL() != null -> this.csCALL().toAst(considerPosition)
         this.csSETON() != null -> this.csSETON().toAst(considerPosition)
         this.csPLIST() != null -> this.csPLIST().toAst(considerPosition)
+        this.csCLEAR() != null -> this.csCLEAR().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+// FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
+//        in the grammar
+private fun referenceToExpression(text: String, position: Position?) : Expression {
+    var expr : Expression = text.indexOf("(").let {
+        val varName = if (it == -1) text else text.substring(0, it)
+        DataRefExpr(ReferenceByName(varName))
+    }
+    if (text.contains("(")) {
+        // TODO support annidated parenthesis, if necessary
+        if (text.substring(text.indexOf("(") + 1).contains("(")) {
+            TODO("Support annidated parenthesis")
+        }
+        val indexText = text.substring(text.indexOf("(") + 1, text.lastIndexOf(")"))
+        expr = ArrayAccessExpr(expr, IntLiteral(indexText.toLong(),
+                if (position == null) null else Position(position.start.plus(text.substring(0, text.indexOf("("))),
+                        position.start.plus(text.substring(0, text.lastIndexOf(")"))))))
+    }
+    return expr
+}
+
+private fun CsCLEARContext.toAst(considerPosition: Boolean = true): ClearStmt {
+    val name = this.cspec_fixed_standard_parts().result.text
+    return ClearStmt(
+            referenceToExpression(name, toPosition(considerPosition)),
+            toPosition(considerPosition))
 }
 
 private fun CsPLISTContext.toAst(considerPosition: Boolean = true): PlistStmt {

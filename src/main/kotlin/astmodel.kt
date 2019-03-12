@@ -63,6 +63,7 @@ data class GreaterThanExpr(val left: Expression, val right: Expression, override
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : Expression(position)
 data class FunctionCall(val function: ReferenceByName<Function>, val args: List<Expression>, override val position: Position? = null) : Expression(position)
+data class LookupExpr(val value: Expression, val array: Expression, override val position: Position? = null) : Expression(position)
 
 //
 // Statements
@@ -87,6 +88,7 @@ data class ElseIfClause(val condition: Expression, val body: List<Statement>, ov
 data class SetOnStmt(val choice: DataWrapUpChoice, override val position: Position? = null) : Statement(position)
 data class PlistStmt(val params: List<PlistParam>, override val position: Position? = null) : Statement(position)
 data class PlistParam(val paramName: String, override val position: Position? = null) : Node(position)
+data class ClearStmt(val value: Expression, override val position: Position? = null) : Statement(position)
 
 enum class DataWrapUpChoice {
     LR,

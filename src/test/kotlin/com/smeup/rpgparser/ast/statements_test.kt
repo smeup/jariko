@@ -140,4 +140,13 @@ class StatementsTest {
         assertEquals(SetOnStmt(LR), statement("SETON                                        LR"))
         assertEquals(SetOnStmt(RT), statement("SETON                                        RT"))
     }
+
+    @test fun clearParsing() {
+        assertEquals(ClearStmt(dataRef("\$\$SVAR")), statement("CLEAR                   \$\$SVAR"))
+    }
+
+    @test fun clearArrayElementParsing() {
+        assertEquals(ClearStmt(ArrayAccessExpr(dataRef("ARR1"), IntLiteral(1))), statement("CLEAR                   ARR1(1)"))
+    }
+
 }
