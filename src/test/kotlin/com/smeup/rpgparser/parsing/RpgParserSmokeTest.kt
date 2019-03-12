@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.parsing
 
+import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import org.junit.Test
 
@@ -38,5 +39,20 @@ class RpgParserSmokeTest {
     @Test
     fun parseJD_003() {
         assertCanBeParsed("JD_003")
+    }
+
+    @Test
+    fun buildAstForJD_001() {
+        assertASTCanBeProduced("JD_001")
+    }
+
+    @Test
+    fun buildAstForJD_002() {
+        assertASTCanBeProduced("JD_002")
+    }
+
+    @Test
+    fun buildAstForJD_003() {
+        assertASTCanBeProduced("JD_003")
     }
 }

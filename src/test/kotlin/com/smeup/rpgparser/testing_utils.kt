@@ -1,6 +1,8 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
+import me.tomassetti.kolasu.model.Named
+import me.tomassetti.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import java.io.InputStream
@@ -35,6 +37,11 @@ fun assertCanBeParsed(exampleName: String) : RContext {
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!
+}
+
+fun assertASTCanBeProduced(exampleName: String) : CompilationUnit {
+    val parseTreeRoot = assertCanBeParsed(exampleName)
+    return parseTreeRoot.toAst(false)
 }
 
 fun assertCodeCanBeParsed(code: String) : RContext {
@@ -93,3 +100,5 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
         assertEquals(expectedTokenText, token.text)
     }
 }
+
+fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))

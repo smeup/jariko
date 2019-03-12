@@ -97,7 +97,7 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
     return DataDefinition(
             this.ds_name().text,
             type,
-            this.TO_POSITION().text.trim().toInt(),
+            this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() },
             decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
             arrayLength = this.arrayLength(considerPosition),
             position = this.toPosition(true))
@@ -145,8 +145,28 @@ fun StatementContext.toAst(considerPosition : Boolean = true): Statement {
 private fun BlockContext.toAst(considerPosition: Boolean = true): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(considerPosition)
+        this.selectstatement() != null -> this.selectstatement().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun SelectstatementContext.toAst(considerPosition: Boolean = true): SelectStmt {
+    return SelectStmt(
+            this.whenstatement().map { it.toAst(considerPosition) },
+            this.other()?.toAst(considerPosition),
+            toPosition(considerPosition))
+}
+
+private fun WhenstatementContext.toAst(considerPosition: Boolean = true): SelectCase {
+    return SelectCase(
+            this.`when`().csWHEN().fixedexpression.expression().toAst(considerPosition),
+            this.statement().map { it.toAst(considerPosition) },
+            toPosition(considerPosition)
+    )
+}
+
+private fun OtherContext.toAst(considerPosition: Boolean = true): SelectOtherClause {
+    TODO()
 }
 
 private fun IfstatementContext.toAst(considerPosition: Boolean = true): IfStmt {

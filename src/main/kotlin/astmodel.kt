@@ -5,7 +5,6 @@ import me.tomassetti.kolasu.model.Named
 import me.tomassetti.kolasu.model.Node
 import me.tomassetti.kolasu.model.Position
 import me.tomassetti.kolasu.model.ReferenceByName
-import javax.xml.crypto.Data
 
 enum class DataType {
     SINGLE,
@@ -15,7 +14,7 @@ enum class DataType {
 
 class DataDefinition(override val name: String,
                      val dataType: DataType,
-                     val size: Int,
+                     val size: Int?,
                      val decimals: Int = 0,
                      val arrayLength: Expression = IntLiteral(1),
                      val fields: List<FieldDefinition>? = null,
@@ -66,7 +65,10 @@ data class FunctionCall(val function: ReferenceByName<Function>, val args: List<
 
 abstract class Statement(override val position: Position? = null) : Node(position)
 data class ExecuteSubroutine(val subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
-data class SelectStmt(val cases: List<SelectCase>, override val position: Position? = null) : Statement(position)
+data class SelectStmt(val cases: List<SelectCase>,
+                      val other: SelectOtherClause? = null,
+                      override val position: Position? = null) : Statement(position)
+data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class EvalStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
 data class CallStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
