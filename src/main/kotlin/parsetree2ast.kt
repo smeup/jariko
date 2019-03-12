@@ -27,12 +27,18 @@ fun RContext.toAst(considerPosition : Boolean = true) : CompilationUnit {
             else -> null
         }
     }
-    val subroutines = emptyList<Subroutine>()
+    val subroutines = this.subroutine().map { it.toAst(considerPosition) }
     return CompilationUnit(
             dataDefinitions,
             MainBody(mainStmts, if (considerPosition) mainStmts.position() else null),
             subroutines,
             position = this.toPosition(considerPosition))
+}
+
+private fun SubroutineContext.toAst(considerPosition: Boolean = true): Subroutine {
+    return Subroutine(this.begsr().csBEGSR().factor1.content.text,
+            this.statement().map { it.toAst(considerPosition) },
+            toPosition(considerPosition))
 }
 
 private fun DspecContext.arrayLength(considerPosition : Boolean = true) : Expression {
@@ -225,8 +231,21 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
         this.csEVAL() != null -> this.csEVAL().toAst(considerPosition)
         this.csCALL() != null -> this.csCALL().toAst(considerPosition)
         this.csSETON() != null -> this.csSETON().toAst(considerPosition)
+        this.csPLIST() != null -> this.csPLIST().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun CsPLISTContext.toAst(considerPosition: Boolean = true): PlistStmt {
+    return PlistStmt(
+            this.csPARM().map { it.toAst(considerPosition) },
+            toPosition(considerPosition)
+    )
+}
+
+private fun CsPARMContext.toAst(considerPosition: Boolean = true): PlistParam {
+    val paramName = this.cspec_fixed_standard_parts().result.CS_FactorContent().text
+    return PlistParam(paramName, toPosition(considerPosition))
 }
 
 private fun CsSETONContext.toAst(considerPosition: Boolean = true): SetOnStmt {

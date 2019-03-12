@@ -40,7 +40,7 @@ data class CompilationUnit(val dataDefinitons: List<DataDefinition>,
 
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
 
-class Subroutine(override val name: String, override val position: Position? = null) : Named, Node(position)
+class Subroutine(override val name: String, val stmts: List<Statement>, override val position: Position? = null) : Named, Node(position)
 class Function(override val name: String, override val position: Position? = null) : Named, Node(position)
 
 //
@@ -85,6 +85,8 @@ data class IfStmt(val condition: Expression, val body: List<Statement>,
 data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class SetOnStmt(val choice: DataWrapUpChoice, override val position: Position? = null) : Statement(position)
+data class PlistStmt(val params: List<PlistParam>, override val position: Position? = null) : Statement(position)
+data class PlistParam(val paramName: String, override val position: Position? = null) : Node(position)
 
 enum class DataWrapUpChoice {
     LR,
