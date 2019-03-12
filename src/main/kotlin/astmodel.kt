@@ -84,4 +84,9 @@ data class IfStmt(val condition: Expression, val body: List<Statement>,
 
 data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
+data class SetOnStmt(val choice: DataWrapUpChoice, override val position: Position? = null) : Statement(position)
+
+enum class DataWrapUpChoice {
+    LR
+}
 

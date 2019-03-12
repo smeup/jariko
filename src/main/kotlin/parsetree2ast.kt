@@ -20,7 +20,7 @@ fun List<Node>.position() : Position? {
 fun RContext.toAst(considerPosition : Boolean = true) : CompilationUnit {
     val dataDefinitions = this.statement().mapNotNull { it.dspec() }.map { it.toAst(considerPosition) } +
             this.statement().mapNotNull { it.dcl_ds() }.map { it.toAst(considerPosition) }
-    val mainStmts = emptyList<Statement>()
+    val mainStmts = this.statement().mapNotNull { it.cspec_fixed() }.map { it.toAst(considerPosition) }
     val subroutines = emptyList<Subroutine>()
     return CompilationUnit(
             dataDefinitions,
@@ -218,8 +218,13 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
         this.csEXSR() != null -> this.csEXSR().toAst(considerPosition)
         this.csEVAL() != null -> this.csEVAL().toAst(considerPosition)
         this.csCALL() != null -> this.csCALL().toAst(considerPosition)
+        this.csSETON() != null -> this.csSETON().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun CsSETONContext.toAst(considerPosition: Boolean = true): SetOnStmt {
+    return SetOnStmt(DataWrapUpChoice.valueOf(this.cspec_fixed_standard_parts().hi.text), toPosition(considerPosition))
 }
 
 private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubroutine {

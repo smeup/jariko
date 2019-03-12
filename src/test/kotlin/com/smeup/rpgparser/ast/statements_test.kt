@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.DataWrapUpChoice.LR
 import com.strumenta.kolasu.model.ReferenceByName
 import kotlin.test.assertEquals
 import org.junit.Test as test
@@ -134,4 +135,7 @@ class StatementsTest {
 
     // TODO select with other
 
+    @test fun setOnParsing() {
+        assertEquals(SetOnStmt(LR), statement("SETON                                        LR"))
+    }
 }
