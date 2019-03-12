@@ -1,6 +1,8 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
+import me.tomassetti.kolasu.model.Named
+import me.tomassetti.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import java.io.InputStream
@@ -93,3 +95,5 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
         assertEquals(expectedTokenText, token.text)
     }
 }
+
+fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))

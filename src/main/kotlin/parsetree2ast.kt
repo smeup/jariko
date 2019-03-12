@@ -158,7 +158,11 @@ private fun SelectstatementContext.toAst(considerPosition: Boolean = true): Sele
 }
 
 private fun WhenstatementContext.toAst(considerPosition: Boolean = true): SelectCase {
-    TODO()
+    return SelectCase(
+            this.`when`().csWHEN().fixedexpression.expression().toAst(considerPosition),
+            this.statement().map { it.toAst(considerPosition) },
+            toPosition(considerPosition)
+    )
 }
 
 private fun OtherContext.toAst(considerPosition: Boolean = true): SelectOtherClause {

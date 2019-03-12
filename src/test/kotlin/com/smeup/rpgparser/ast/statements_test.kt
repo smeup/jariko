@@ -18,8 +18,8 @@ class StatementsTest {
 
     @test fun evalParsing() {
         assertEquals(EvalStmt(EqualityExpr(
-                DataRefExpr(ReferenceByName("\$\$SVAR")),
-                DataRefExpr(ReferenceByName("U\$SVARSK")))),
+                dataRef("\$\$SVAR"),
+                dataRef("U\$SVARSK"))),
                 statement("EVAL      \$\$SVAR=U\$SVARSK"))
     }
 
@@ -30,12 +30,12 @@ class StatementsTest {
     @test fun ifParsingSimple() {
         assertEquals(IfStmt(
                 GreaterThanExpr(
-                        DataRefExpr(ReferenceByName("\$X")),
+                        dataRef("\$X"),
                         IntLiteral(0)
                 ),
                 listOf(
                         EvalStmt(EqualityExpr(
-                                DataRefExpr(ReferenceByName("U\$IN35")),
+                                dataRef("U\$IN35"),
                                 StringLiteral("1")))
                 )
         ), statement("IF        \$X>0\n" +
@@ -46,7 +46,7 @@ class StatementsTest {
     @test fun ifParsingEmpty() {
         assertEquals(IfStmt(
                 GreaterThanExpr(
-                        DataRefExpr(ReferenceByName("\$X")),
+                        dataRef("\$X"),
                         IntLiteral(0)
                 ),
                 emptyList()
@@ -57,19 +57,19 @@ class StatementsTest {
     @test fun ifParsingWithElseSimple() {
         assertEquals(IfStmt(
                 GreaterThanExpr(
-                        DataRefExpr(ReferenceByName("\$X")),
+                        dataRef("\$X"),
                         IntLiteral(0)
                 ),
                 listOf(
                         EvalStmt(EqualityExpr(
-                                DataRefExpr(ReferenceByName("U\$IN35")),
+                                dataRef("U\$IN35"),
                                 StringLiteral("1")))
                 ),
                 emptyList(),
                 ElseClause(listOf(
                         EvalStmt(EqualityExpr(
-                                DataRefExpr(ReferenceByName("\$\$URL")),
-                                FunctionCall(ReferenceByName("\$\$SVARVA"), listOf(DataRefExpr(ReferenceByName("\$R")))))))
+                                dataRef("\$\$URL"),
+                                FunctionCall(ReferenceByName("\$\$SVARVA"), listOf(dataRef("\$R"))))))
                 )
         ), statement("IF        \$X>0\n" +
                 "     C                   EVAL      U\$IN35='1'\n" +
@@ -105,14 +105,17 @@ class StatementsTest {
         assertEquals(SelectStmt(emptyList()), statement("SELECT\n" +
                 "1e   C                   ENDSL"))
     }
-//
-//    @test fun selectSingleCaseParsing() {
-//        assertEquals(SelectStmt(emptyList()), statement("SELECT\n" +
-//                "      * Init\n" +
-//                "1x   C                   WHEN      U\$FUNZ='INZ'\n" +
-//                "     C                   EXSR      FINZ\n" +
-//                "1e   C                   ENDSL"))
-//    }
+
+    @test fun selectSingleCaseParsing() {
+        assertEquals(SelectStmt(listOf(SelectCase(
+                EqualityExpr(dataRef("U\$FUNZ"), StringLiteral("INZ")),
+                listOf(ExecuteSubroutine(ReferenceByName("FINZ")))
+        ))), statement("SELECT\n" +
+                "      * Init\n" +
+                "1x   C                   WHEN      U\$FUNZ='INZ'\n" +
+                "     C                   EXSR      FINZ\n" +
+                "1e   C                   ENDSL"))
+    }
 //
 //    @test fun selectParsingComplex() {
 //        assertEquals(SelectStmt(listOf(
