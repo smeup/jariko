@@ -4,7 +4,6 @@ import com.smeup.rpgparser.DataType.*
 import com.smeup.rpgparser.RpgParser.*
 import me.tomassetti.kolasu.mapping.toPosition
 import me.tomassetti.kolasu.model.ReferenceByName
-import sun.java2d.cmm.lcms.LCMS
 
 fun RContext.toAst(considerPosition : Boolean = true) = CompilationUnit(
         this.statement().mapNotNull { it.dspec() }.map { it.toAst(considerPosition) }
@@ -53,8 +52,13 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
             this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
             else -> TODO("ComparisonOperator ${this.comparisonOperator().text}")
         }
+        this.function() != null -> this.function().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun FunctionContext.toAst(considerPosition : Boolean = true): FunctionCall {
+    return FunctionCall(ReferenceByName(this.functionName().text), this.args().expression().map { it.toAst(considerPosition) }, toPosition(considerPosition))
 }
 
 private fun LiteralContext.toAst(considerPosition : Boolean = true): Expression {
@@ -129,3 +133,74 @@ private fun Dcl_dsContext.toAst(considerPosition : Boolean = true) : DataDefinit
 private fun Parm_fixedContext.toAst(considerPosition: Boolean = true): FieldDefinition {
     return FieldDefinition(this.ds_name().text, this.TO_POSITION().text.trim().toInt(), this.toPosition(considerPosition))
 }
+
+fun StatementContext.toAst(considerPosition : Boolean = true): Statement {
+    return when {
+        this.cspec_fixed() != null -> this.cspec_fixed().toAst(considerPosition)
+        this.block() != null -> this.block().toAst(considerPosition)
+        else -> TODO(this.text.toString())
+    }
+}
+
+private fun BlockContext.toAst(considerPosition: Boolean = true): Statement {
+    return when {
+        this.ifstatement() != null -> this.ifstatement().toAst(considerPosition)
+        else -> TODO(this.text.toString())
+    }
+}
+
+private fun IfstatementContext.toAst(considerPosition: Boolean = true): IfStmt {
+    return IfStmt(this.beginif().fixedexpression.expression().toAst(considerPosition),
+            this.thenBody.map { it.toAst(considerPosition) },
+            this.elseIfClause().map { it.toAst(considerPosition) },
+            this.elseClause()?.toAst(considerPosition),
+            toPosition(considerPosition))
+}
+
+private fun ElseClauseContext.toAst(considerPosition: Boolean = true): ElseClause {
+    return ElseClause(this.statement().map { it.toAst(considerPosition) }, toPosition(considerPosition))
+}
+
+private fun ElseIfClauseContext.toAst(considerPosition: Boolean = true): ElseIfClause {
+    return ElseIfClause(
+            this.elseifstmt().fixedexpression.expression().toAst(considerPosition),
+            this.statement().map { it.toAst(considerPosition) }, toPosition(considerPosition))
+}
+
+private fun Cspec_fixedContext.toAst(considerPosition: Boolean = true): Statement {
+    return when {
+        this.cspec_fixed_standard() != null -> this.cspec_fixed_standard().toAst(considerPosition)
+        else -> TODO(this.text.toString())
+    }
+}
+
+private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true): Statement {
+    return when {
+        this.csEXSR() != null -> this.csEXSR().toAst(considerPosition)
+        this.csEVAL() != null -> this.csEVAL().toAst(considerPosition)
+        this.csCALL() != null -> this.csCALL().toAst(considerPosition)
+        else -> TODO(this.text.toString())
+    }
+}
+
+private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubroutine {
+    val subroutineName = this.cspec_fixed_standard_parts().factor2.text
+    require(this.cspec_fixed_standard_parts().decimalPositions.text.isBlank())
+    require(this.cspec_fixed_standard_parts().eq.text.isBlank())
+    require(this.cspec_fixed_standard_parts().hi.text.isBlank())
+    require(this.cspec_fixed_standard_parts().len.text.isBlank())
+    require(this.cspec_fixed_standard_parts().lo.text.isBlank())
+    require(this.cspec_fixed_standard_parts().result.text.isBlank())
+    return ExecuteSubroutine(ReferenceByName(subroutineName), toPosition(considerPosition))
+}
+
+private fun CsEVALContext.toAst(considerPosition: Boolean = true): EvalStmt {
+    return EvalStmt(this.fixedexpression.expression().toAst(considerPosition), toPosition(considerPosition))
+}
+
+private fun CsCALLContext.toAst(considerPosition: Boolean = true): CallStmt {
+    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
+    val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
+    return CallStmt(literal.toAst(considerPosition), toPosition(considerPosition))
+}
+

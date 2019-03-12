@@ -8,7 +8,7 @@ import org.junit.Test as test
 class ExpressionsTest {
 
     private fun expression(code: String) : Expression {
-        val exprContext = assertExpressionCodeCanBeParsed("                                   $code")
+        val exprContext = assertExpressionCanBeParsed("                                   $code")
         return exprContext.toAst(considerPosition = false)
     }
 
@@ -35,4 +35,12 @@ class ExpressionsTest {
     @test fun greaterThanParsing() {
         assertEquals(GreaterThanExpr(DataRefExpr(ReferenceByName("\$X")), IntLiteral(0)), expression("\$X>0"))
     }
+
+    @test fun functionCallParsing() {
+        assertEquals(FunctionCall(
+                ReferenceByName("\$\$SVARVA"),
+                listOf(DataRefExpr(ReferenceByName("\$R")))),
+                expression("\$\$SVARVA(\$R)"))
+    }
+
 }
