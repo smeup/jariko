@@ -116,23 +116,22 @@ class StatementsTest {
                 "     C                   EXSR      FINZ\n" +
                 "1e   C                   ENDSL"))
     }
-//
-//    @test fun selectParsingComplex() {
-//        assertEquals(SelectStmt(listOf(
-//                /*SelectCase(
-//                        EqualityExpr()),
-//                SelectCase(),
-//                SelectCase()*/)), statement("SELECT\n" +
-//                "      * Init\n" +
-//                "1x   C                   WHEN      U\$FUNZ='INZ'\n" +
-//                "     C                   EXSR      FINZ\n" +
-//                "      * Invoke URL\n" +
-//                "1x   C                   WHEN      U\$FUNZ='EXE'\n" +
-//                "     C                   EXSR      FEXE\n" +
-//                "      * Detach (empty subroutine in this case)\n" +
-//                "1x   C                   WHEN      U\$FUNZ='CLO'\n" +
-//                "     C                   EXSR      FCLO\n" +
-//                "1e   C                   ENDSL"))
-//    }
+
+    @test fun selectParsingComplex() {
+        val selectStmt = statement("SELECT\n" +
+                "      * Init\n" +
+                "1x   C                   WHEN      U\$FUNZ='INZ'\n" +
+                "     C                   EXSR      FINZ\n" +
+                "      * Invoke URL\n" +
+                "1x   C                   WHEN      U\$FUNZ='EXE'\n" +
+                "     C                   EXSR      FEXE\n" +
+                "      * Detach (empty subroutine in this case)\n" +
+                "1x   C                   WHEN      U\$FUNZ='CLO'\n" +
+                "     C                   EXSR      FCLO\n" +
+                "1e   C                   ENDSL") as SelectStmt
+        assertEquals(3, selectStmt.cases.size)
+    }
+
+    // TODO select with other
 
 }

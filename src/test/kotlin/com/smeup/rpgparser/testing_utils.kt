@@ -39,6 +39,11 @@ fun assertCanBeParsed(exampleName: String) : RContext {
     return result.root!!
 }
 
+fun assertASTCanBeProduced(exampleName: String) : CompilationUnit {
+    val parseTreeRoot = assertCanBeParsed(exampleName)
+    return parseTreeRoot.toAst(false)
+}
+
 fun assertCodeCanBeParsed(code: String) : RContext {
     val result = RpgParserFacade().parse(inputStreamForCode(code))
     assertTrue(result.correct,
