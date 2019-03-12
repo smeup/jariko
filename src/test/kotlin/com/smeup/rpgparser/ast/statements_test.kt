@@ -149,4 +149,18 @@ class StatementsTest {
         assertEquals(ClearStmt(ArrayAccessExpr(dataRef("ARR1"), IntLiteral(1))), statement("CLEAR                   ARR1(1)"))
     }
 
+    @test fun doParsing() {
+        val stmt = statement(
+                "DO        *HIVAL        \$X\n" +
+                        "     C                   IF        \$\$SVARCD(\$X)=*BLANKS\n" +
+                        "     C                   LEAVE\n" +
+                        "     C                   ENDIF\n" +
+                        "     C                   EVAL      \$\$URL=%XLATE(\$\$SVARCD(\$X):\n" +
+                        "     C                             \$\$SVARVA(\$X):\n" +
+                        "     C                             \$\$URL)\n" +
+                        "     C                   ENDDO")
+        assertEquals(true, stmt is DoStmt)
+        assertEquals(2, (stmt as DoStmt).body.size)
+    }
+
 }

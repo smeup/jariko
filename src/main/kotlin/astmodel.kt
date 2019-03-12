@@ -89,6 +89,8 @@ data class SetOnStmt(val choice: DataWrapUpChoice, override val position: Positi
 data class PlistStmt(val params: List<PlistParam>, override val position: Position? = null) : Statement(position)
 data class PlistParam(val paramName: String, override val position: Position? = null) : Node(position)
 data class ClearStmt(val value: Expression, override val position: Position? = null) : Statement(position)
+data class DoStmt(val body: List<Statement>, override val position: Position? = null) : Statement(position)
+data class LeaveStmt(override val position: Position? = null) : Statement(position)
 
 enum class DataWrapUpChoice {
     LR,

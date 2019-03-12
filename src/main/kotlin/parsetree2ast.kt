@@ -185,6 +185,7 @@ private fun BlockContext.toAst(considerPosition: Boolean = true): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(considerPosition)
         this.selectstatement() != null -> this.selectstatement().toAst(considerPosition)
+        this.begindo() != null -> DoStmt(this.statement().map { it.toAst(considerPosition) }, toPosition(considerPosition))
         else -> TODO(this.text.toString())
     }
 }
@@ -241,6 +242,7 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
         this.csSETON() != null -> this.csSETON().toAst(considerPosition)
         this.csPLIST() != null -> this.csPLIST().toAst(considerPosition)
         this.csCLEAR() != null -> this.csCLEAR().toAst(considerPosition)
+        this.csLEAVE() != null -> LeaveStmt(toPosition(considerPosition))
         else -> TODO(this.text.toString())
     }
 }
