@@ -87,6 +87,7 @@ data class ElseIfClause(val condition: Expression, val body: List<Statement>, ov
 data class SetOnStmt(val choice: DataWrapUpChoice, override val position: Position? = null) : Statement(position)
 
 enum class DataWrapUpChoice {
-    LR
+    LR,
+    RT
 }
 

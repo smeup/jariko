@@ -20,7 +20,13 @@ fun List<Node>.position() : Position? {
 fun RContext.toAst(considerPosition : Boolean = true) : CompilationUnit {
     val dataDefinitions = this.statement().mapNotNull { it.dspec() }.map { it.toAst(considerPosition) } +
             this.statement().mapNotNull { it.dcl_ds() }.map { it.toAst(considerPosition) }
-    val mainStmts = this.statement().mapNotNull { it.cspec_fixed() }.map { it.toAst(considerPosition) }
+    val mainStmts = this.statement().mapNotNull {
+        when {
+            it.cspec_fixed() != null -> it.cspec_fixed().toAst(considerPosition)
+            it.block() != null -> it.block().toAst(considerPosition)
+            else -> null
+        }
+    }
     val subroutines = emptyList<Subroutine>()
     return CompilationUnit(
             dataDefinitions,
