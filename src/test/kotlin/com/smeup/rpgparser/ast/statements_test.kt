@@ -8,7 +8,7 @@ import org.junit.Test as test
 class StatementsTest {
 
     private fun statement(code: String) : Statement {
-        val stmtContext = assertStatementCanBeParsed("     C                   $code                                      ")
+        val stmtContext = assertStatementCanBeParsed("     C                   $code                                                          ")
         return stmtContext.toAst(considerPosition = false)
     }
 
@@ -26,8 +26,59 @@ class StatementsTest {
     @test fun callParsing() {
         assertEquals(CallStmt(StringLiteral("JD_URL")), statement("CALL      'JD_URL'"))
     }
-//
-//    @test fun ifParsing() {
+
+    @test fun ifParsingSimple() {
+        assertEquals(IfStmt(
+                GreaterThanExpr(
+                        DataRefExpr(ReferenceByName("\$X")),
+                        IntLiteral(0)
+                ),
+                listOf(
+                        EvalStmt(EqualityExpr(
+                                DataRefExpr(ReferenceByName("U\$IN35")),
+                                StringLiteral("1")))
+                )
+        ), statement("IF        \$X>0\n" +
+                "     C                   EVAL      U\$IN35='1'\n" +
+                "     C                   ENDIF"))
+    }
+
+    @test fun ifParsingEmpty() {
+        assertEquals(IfStmt(
+                GreaterThanExpr(
+                        DataRefExpr(ReferenceByName("\$X")),
+                        IntLiteral(0)
+                ),
+                emptyList()
+        ), statement("IF        \$X>0\n" +
+                "     C                   ENDIF"))
+    }
+
+    @test fun ifParsingWithElseSimple() {
+        assertEquals(IfStmt(
+                GreaterThanExpr(
+                        DataRefExpr(ReferenceByName("\$X")),
+                        IntLiteral(0)
+                ),
+                listOf(
+                        EvalStmt(EqualityExpr(
+                                DataRefExpr(ReferenceByName("U\$IN35")),
+                                StringLiteral("1")))
+                ),
+                emptyList(),
+                ElseClause(listOf(
+                        EvalStmt(EqualityExpr(
+                                DataRefExpr(ReferenceByName("\$\$URL")),
+                                FunctionCall(ReferenceByName("\$\$SVARVA"), listOf(DataRefExpr(ReferenceByName("\$R")))))))
+                )
+        ), statement("IF        \$X>0\n" +
+                "     C                   EVAL      U\$IN35='1'\n" +
+                "5    C                   ELSE\n" +
+                "     C                   EVAL      \$\$URL=\$\$SVARVA(\$R)\n" +
+                "     C                   ENDIF"))
+    }
+
+//    @test fun ifParsingComplex() {
 //        assertEquals(ExecuteSubroutine(ReferenceByName("IMP0")), statement("IF        \$X>0\n" +
 //                "     C                   EVAL      U\$IN35='1'\n" +
 //                "5    C                   ELSE\n" +
@@ -47,6 +98,8 @@ class StatementsTest {
 //                "     C                   PARM                    \$\$SVAR\n" +
 //                "     C                   ENDIF"))
 //    }
+
+    // TODO if with else if
 //
 //    @test fun selectEmptyParsing() {
 //        assertEquals(SelectStmt(emptyList()), statement("SELECT\n" +

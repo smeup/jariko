@@ -300,10 +300,18 @@ block:
 
 ifstatement:
 	(beginif
-	statement*
-	(elseifstmt statement*)*
-	(elsestmt statement*)?
+	thenBody+=statement*
+	elseIfClause*
+	elseClause?
 	endif)
+;
+
+elseIfClause:
+    (elseifstmt statement*)
+;
+
+elseClause:
+    (elsestmt statement*)
 ;
 
 casestatement:

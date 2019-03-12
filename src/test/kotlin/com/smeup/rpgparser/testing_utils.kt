@@ -53,6 +53,18 @@ fun assertExpressionCanBeParsed(code: String) : ExpressionContext {
 
 fun assertStatementCanBeParsed(code: String) : StatementContext {
     val result = RpgParserFacade().parseStatement(inputStreamForCode(code))
+    if (!result.correct) {
+        val lexingResult = RpgParserFacade().lex(inputStreamForCode(code))
+        if (lexingResult.correct) {
+            println("Lexing completed successfully:")
+            println("CODE <<<$code>>>")
+            lexingResult.root!!.forEach {
+                println(" * ${RpgLexer.VOCABULARY.getDisplayName(it.type)} '${it.text}'")
+            }
+        } else {
+            println("Issue already at the lexical level")
+        }
+    }
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!

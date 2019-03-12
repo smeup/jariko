@@ -35,4 +35,12 @@ class ExpressionsTest {
     @test fun greaterThanParsing() {
         assertEquals(GreaterThanExpr(DataRefExpr(ReferenceByName("\$X")), IntLiteral(0)), expression("\$X>0"))
     }
+
+    @test fun functionCallParsing() {
+        assertEquals(FunctionCall(
+                ReferenceByName("\$\$SVARVA"),
+                listOf(DataRefExpr(ReferenceByName("\$R")))),
+                expression("\$\$SVARVA(\$R)"))
+    }
+
 }

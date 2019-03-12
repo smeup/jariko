@@ -117,17 +117,17 @@ class RpgParserFacade {
         return RpgParserResult(errors, root)
     }
 
-    fun parseExpression(inputStream: InputStream) : ParsingResult<ExpressionContext> {
+    fun parseExpression(inputStream: InputStream, longLines: Boolean = true) : ParsingResult<ExpressionContext> {
         val errors = LinkedList<Error>()
-        val parser = createParser(inputStream, errors, longLines = false)
+        val parser = createParser(inputStream, errors, longLines = longLines)
         val root = parser.expression()
         verifyParseTree(parser, errors, root)
         return ParsingResult(errors, root)
     }
 
-    fun parseStatement(inputStream: InputStream) : ParsingResult<RpgParser.StatementContext> {
+    fun parseStatement(inputStream: InputStream, longLines: Boolean = true) : ParsingResult<RpgParser.StatementContext> {
         val errors = LinkedList<Error>()
-        val parser = createParser(inputStream, errors, longLines = false)
+        val parser = createParser(inputStream, errors, longLines = longLines)
         val root = parser.statement()
         verifyParseTree(parser, errors, root)
         return ParsingResult(errors, root)

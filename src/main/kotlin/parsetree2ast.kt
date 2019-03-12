@@ -52,8 +52,13 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
             this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
             else -> TODO("ComparisonOperator ${this.comparisonOperator().text}")
         }
+        this.function() != null -> this.function().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun FunctionContext.toAst(considerPosition : Boolean = true): FunctionCall {
+    return FunctionCall(ReferenceByName(this.functionName().text), this.args().expression().map { it.toAst(considerPosition) }, toPosition(considerPosition))
 }
 
 private fun LiteralContext.toAst(considerPosition : Boolean = true): Expression {
@@ -132,8 +137,34 @@ private fun Parm_fixedContext.toAst(considerPosition: Boolean = true): FieldDefi
 fun StatementContext.toAst(considerPosition : Boolean = true): Statement {
     return when {
         this.cspec_fixed() != null -> this.cspec_fixed().toAst(considerPosition)
+        this.block() != null -> this.block().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun BlockContext.toAst(considerPosition: Boolean = true): Statement {
+    return when {
+        this.ifstatement() != null -> this.ifstatement().toAst(considerPosition)
+        else -> TODO(this.text.toString())
+    }
+}
+
+private fun IfstatementContext.toAst(considerPosition: Boolean = true): IfStmt {
+    return IfStmt(this.beginif().fixedexpression.expression().toAst(considerPosition),
+            this.thenBody.map { it.toAst(considerPosition) },
+            this.elseIfClause().map { it.toAst(considerPosition) },
+            this.elseClause()?.toAst(considerPosition),
+            toPosition(considerPosition))
+}
+
+private fun ElseClauseContext.toAst(considerPosition: Boolean = true): ElseClause {
+    return ElseClause(this.statement().map { it.toAst(considerPosition) }, toPosition(considerPosition))
+}
+
+private fun ElseIfClauseContext.toAst(considerPosition: Boolean = true): ElseIfClause {
+    return ElseIfClause(
+            this.elseifstmt().fixedexpression.expression().toAst(considerPosition),
+            this.statement().map { it.toAst(considerPosition) }, toPosition(considerPosition))
 }
 
 private fun Cspec_fixedContext.toAst(considerPosition: Boolean = true): Statement {
