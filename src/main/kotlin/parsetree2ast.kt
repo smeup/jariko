@@ -147,6 +147,7 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
     return when {
         this.csEXSR() != null -> this.csEXSR().toAst(considerPosition)
         this.csEVAL() != null -> this.csEVAL().toAst(considerPosition)
+        this.csCALL() != null -> this.csCALL().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
 }
@@ -164,5 +165,11 @@ private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubrou
 
 private fun CsEVALContext.toAst(considerPosition: Boolean = true): EvalStmt {
     return EvalStmt(this.fixedexpression.expression().toAst(considerPosition), toPosition(considerPosition))
+}
+
+private fun CsCALLContext.toAst(considerPosition: Boolean = true): CallStmt {
+    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
+    val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
+    return CallStmt(literal.toAst(considerPosition), toPosition(considerPosition))
 }
 

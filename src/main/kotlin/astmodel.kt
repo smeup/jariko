@@ -65,3 +65,4 @@ data class ExecuteSubroutine(val subroutine: ReferenceByName<Subroutine>, overri
 data class SelectStmt(val cases: List<SelectCase>, override val position: Position? = null) : Statement(position)
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class EvalStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
+data class CallStmt(val expression: Expression, override val position: Position? = null) : Statement(position)

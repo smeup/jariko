@@ -22,10 +22,10 @@ class StatementsTest {
                 DataRefExpr(ReferenceByName("U\$SVARSK")))),
                 statement("EVAL      \$\$SVAR=U\$SVARSK"))
     }
-//
-//    @test fun callParsing() {
-//        assertEquals(ExecuteSubroutine(ReferenceByName("IMP0")), statement("CALL      'JD_URL'"))
-//    }
+
+    @test fun callParsing() {
+        assertEquals(CallStmt(StringLiteral("JD_URL")), statement("CALL      'JD_URL'"))
+    }
 //
 //    @test fun ifParsing() {
 //        assertEquals(ExecuteSubroutine(ReferenceByName("IMP0")), statement("IF        \$X>0\n" +
