@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.*
-import me.tomassetti.kolasu.model.ReferenceByName
+import com.strumenta.kolasu.model.ReferenceByName
 import kotlin.test.assertEquals
 import org.junit.Test as test
 

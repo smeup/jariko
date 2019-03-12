@@ -2,9 +2,10 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.ExpressionContext
 import com.smeup.rpgparser.RpgParser.RContext
-import com.sun.org.apache.xpath.internal.operations.Bool
-import me.tomassetti.kolasu.mapping.toPosition
-import me.tomassetti.kolasu.model.Point
+import com.strumenta.kolasu.mapping.toPosition
+import com.strumenta.kolasu.model.Point
+import com.strumenta.kolasu.model.endPoint
+import com.strumenta.kolasu.model.startPoint
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ErrorNode
 import java.io.InputStream

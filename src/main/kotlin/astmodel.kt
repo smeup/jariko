@@ -1,10 +1,10 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.DATA_STRUCTURE
-import me.tomassetti.kolasu.model.Named
-import me.tomassetti.kolasu.model.Node
-import me.tomassetti.kolasu.model.Position
-import me.tomassetti.kolasu.model.ReferenceByName
+import com.strumenta.kolasu.model.Named
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.ReferenceByName
 
 enum class DataType {
     SINGLE,
@@ -29,11 +29,16 @@ data class FieldDefinition(override val name: String,
                       val size: Int,
                       override val position: Position? = null) : Node(position), Named
 
-class CompilationUnit(val dataDefinitons: List<DataDefinition>, override val position: Position?) : Node(position) {
+data class CompilationUnit(val dataDefinitons: List<DataDefinition>,
+                      val main: MainBody,
+                      val subroutines: List<Subroutine>,
+                      override val position: Position?) : Node(position) {
     fun hasDataDefinition(name: String) = dataDefinitons.any { it.name == name }
 
     fun getDataDefinition(name: String) = dataDefinitons.first { it.name == name }
 }
+
+data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
 
 class Subroutine(override val name: String, override val position: Position? = null) : Named, Node(position)
 class Function(override val name: String, override val position: Position? = null) : Named, Node(position)

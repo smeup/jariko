@@ -1,8 +1,8 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
-import me.tomassetti.kolasu.model.Named
-import me.tomassetti.kolasu.model.ReferenceByName
+import com.strumenta.kolasu.model.Named
+import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import java.io.InputStream

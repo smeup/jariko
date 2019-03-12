@@ -2,13 +2,32 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.*
 import com.smeup.rpgparser.RpgParser.*
-import me.tomassetti.kolasu.mapping.toPosition
-import me.tomassetti.kolasu.model.ReferenceByName
+import com.strumenta.kolasu.mapping.toPosition
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.ReferenceByName
 
-fun RContext.toAst(considerPosition : Boolean = true) = CompilationUnit(
-        this.statement().mapNotNull { it.dspec() }.map { it.toAst(considerPosition) }
-        + this.statement().mapNotNull { it.dcl_ds() }.map { it.toAst(considerPosition) },
-        position = this.toPosition(considerPosition))
+fun List<Node>.position() : Position? {
+    val start = this.map { it.position?.start }.filterNotNull().sorted()
+    val end = this.map { it.position?.end }.filterNotNull().sorted()
+    return if (start.isEmpty() || end.isEmpty()) {
+        null
+    } else {
+        Position(start.first(), end.last())
+    }
+}
+
+fun RContext.toAst(considerPosition : Boolean = true) : CompilationUnit {
+    val dataDefinitions = this.statement().mapNotNull { it.dspec() }.map { it.toAst(considerPosition) } +
+            this.statement().mapNotNull { it.dcl_ds() }.map { it.toAst(considerPosition) }
+    val mainStmts = emptyList<Statement>()
+    val subroutines = emptyList<Subroutine>()
+    return CompilationUnit(
+            dataDefinitions,
+            MainBody(mainStmts, if (considerPosition) mainStmts.position() else null),
+            subroutines,
+            position = this.toPosition(considerPosition))
+}
 
 private fun DspecContext.arrayLength(considerPosition : Boolean = true) : Expression {
     return this.keyword().arrayLength(considerPosition)
@@ -223,4 +242,3 @@ private fun CsCALLContext.toAst(considerPosition: Boolean = true): CallStmt {
     val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
     return CallStmt(literal.toAst(considerPosition), toPosition(considerPosition))
 }
-

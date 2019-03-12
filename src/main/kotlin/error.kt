@@ -1,6 +1,6 @@
 package com.smeup.rpgparser
 
-import me.tomassetti.kolasu.model.Position
+import com.strumenta.kolasu.model.Position
 
 enum class ErrorType {
     LEXICAL,
