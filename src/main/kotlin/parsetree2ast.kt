@@ -145,8 +145,24 @@ fun StatementContext.toAst(considerPosition : Boolean = true): Statement {
 private fun BlockContext.toAst(considerPosition: Boolean = true): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(considerPosition)
+        this.selectstatement() != null -> this.selectstatement().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun SelectstatementContext.toAst(considerPosition: Boolean = true): SelectStmt {
+    return SelectStmt(
+            this.whenstatement().map { it.toAst(considerPosition) },
+            this.other()?.toAst(considerPosition),
+            toPosition(considerPosition))
+}
+
+private fun WhenstatementContext.toAst(considerPosition: Boolean = true): SelectCase {
+    TODO()
+}
+
+private fun OtherContext.toAst(considerPosition: Boolean = true): SelectOtherClause {
+    TODO()
 }
 
 private fun IfstatementContext.toAst(considerPosition: Boolean = true): IfStmt {

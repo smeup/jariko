@@ -100,11 +100,11 @@ class StatementsTest {
 //    }
 
     // TODO if with else if
-//
-//    @test fun selectEmptyParsing() {
-//        assertEquals(SelectStmt(emptyList()), statement("SELECT\n" +
-//                "1e   C                   ENDSL"))
-//    }
+
+    @test fun selectEmptyParsing() {
+        assertEquals(SelectStmt(emptyList()), statement("SELECT\n" +
+                "1e   C                   ENDSL"))
+    }
 //
 //    @test fun selectSingleCaseParsing() {
 //        assertEquals(SelectStmt(emptyList()), statement("SELECT\n" +
