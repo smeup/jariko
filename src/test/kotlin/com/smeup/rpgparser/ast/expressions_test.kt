@@ -70,4 +70,11 @@ class ExpressionsTest {
         )
     }
 
+    @test fun notExprParsing() {
+        assertEquals(NotExpr(
+                dataRef("OK")),
+                expression("NOT(OK)")
+        )
+    }
+
 }

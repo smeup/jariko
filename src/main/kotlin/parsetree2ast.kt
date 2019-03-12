@@ -84,6 +84,10 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
             else -> TODO("ComparisonOperator ${this.comparisonOperator().text}")
         }
         this.function() != null -> this.function().toAst(considerPosition)
+        this.NOT() != null -> NotExpr(this.expression(0).toAst(considerPosition), toPosition(considerPosition))
+        // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
+        this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
+                && this.children[1] is ExpressionContext -> (this.children[1] as ExpressionContext).toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
 }

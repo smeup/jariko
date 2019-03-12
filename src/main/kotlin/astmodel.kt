@@ -66,6 +66,7 @@ data class FunctionCall(val function: ReferenceByName<Function>, val args: List<
 data class LookupExpr(val value: Expression, val array: Expression, override val position: Position? = null) : Expression(position)
 data class TranslateExpr(val from: Expression, val to: Expression, val string: Expression,
                          val startPos: Expression? = null, override val position: Position? = null) : Expression(position)
+data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position)
 
 //
 // Statements
