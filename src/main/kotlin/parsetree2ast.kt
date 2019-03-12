@@ -97,7 +97,7 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
     return DataDefinition(
             this.ds_name().text,
             type,
-            this.TO_POSITION().text.trim().toInt(),
+            this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() },
             decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
             arrayLength = this.arrayLength(considerPosition),
             position = this.toPosition(true))

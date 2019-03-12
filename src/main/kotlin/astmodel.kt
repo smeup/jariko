@@ -5,7 +5,6 @@ import me.tomassetti.kolasu.model.Named
 import me.tomassetti.kolasu.model.Node
 import me.tomassetti.kolasu.model.Position
 import me.tomassetti.kolasu.model.ReferenceByName
-import javax.xml.crypto.Data
 
 enum class DataType {
     SINGLE,
@@ -15,7 +14,7 @@ enum class DataType {
 
 class DataDefinition(override val name: String,
                      val dataType: DataType,
-                     val size: Int,
+                     val size: Int?,
                      val decimals: Int = 0,
                      val arrayLength: Expression = IntLiteral(1),
                      val fields: List<FieldDefinition>? = null,
