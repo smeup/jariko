@@ -257,6 +257,7 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
         this.csPLIST() != null -> this.csPLIST().toAst(considerPosition)
         this.csCLEAR() != null -> this.csCLEAR().toAst(considerPosition)
         this.csLEAVE() != null -> LeaveStmt(toPosition(considerPosition))
+        this.csITER() != null -> IterStmt(toPosition(considerPosition))
         else -> TODO(this.text.toString())
     }
 }

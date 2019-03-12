@@ -163,4 +163,8 @@ class StatementsTest {
         assertEquals(2, (stmt as DoStmt).body.size)
     }
 
+    @test fun iterParsing() {
+        assertEquals(IterStmt(), statement("ITER"))
+    }
+
 }
