@@ -91,4 +91,18 @@ class ExpressionsTest {
         )
     }
 
+    @test fun trimExprParsing() {
+        assertEquals(TrimExpr(
+                dataRef("§§NAM")),
+                expression("%TRIM(§§NAM)")
+        )
+    }
+
+    @test fun trimExprParsingWithCharacters() {
+        assertEquals(TrimExpr(
+                dataRef("edited"), StringLiteral("\$*")),
+                expression("%trim(edited : '\$*')")
+        )
+    }
+    
 }

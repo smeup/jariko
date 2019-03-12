@@ -107,8 +107,16 @@ private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
         this.bif_lookup() != null -> this.bif_lookup().toAst(considerPosition)
         this.bif_xlate() != null -> this.bif_xlate().toAst(considerPosition)
         this.bif_scan() != null -> this.bif_scan().toAst(considerPosition)
+        this.bif_trim() != null -> this.bif_trim().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun Bif_trimContext.toAst(considerPosition: Boolean = true): TrimExpr {
+    return TrimExpr(
+            this.string.toAst(considerPosition),
+            this.trimcharacters?.toAst(considerPosition),
+            toPosition(considerPosition))
 }
 
 private fun Bif_scanContext.toAst(considerPosition: Boolean = true): ScanExpr {
