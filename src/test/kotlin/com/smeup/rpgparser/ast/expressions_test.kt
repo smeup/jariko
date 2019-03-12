@@ -51,4 +51,23 @@ class ExpressionsTest {
                 expression("%LOOKUP('Url':\$\$SVARCD)"))
     }
 
+    @test fun translateExprParsing() {
+        assertEquals(TranslateExpr(
+                dataRef("lo"),
+                dataRef("up"),
+                StringLiteral("rpg dept")),
+                expression("%XLATE(lo:up:'rpg dept')")
+        )
+    }
+
+    @test fun translateExprParsingWithStartPos() {
+        assertEquals(TranslateExpr(
+                dataRef("lo"),
+                dataRef("up"),
+                StringLiteral("RPG DEPT"),
+                IntLiteral(6)),
+                expression("%XLATE(lo:up:'RPG DEPT':6)")
+        )
+    }
+
 }

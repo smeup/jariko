@@ -100,8 +100,18 @@ private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
     return when {
         this.bif_elem() != null -> NumberOfElementsExpr(this.bif_elem().expression().toAst(considerPosition), position = toPosition(considerPosition))
         this.bif_lookup() != null -> this.bif_lookup().toAst(considerPosition)
+        this.bif_xlate() != null -> this.bif_xlate().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun Bif_xlateContext.toAst(considerPosition: Boolean = true): TranslateExpr {
+    return TranslateExpr(
+            this.from.toAst(considerPosition),
+            this.to.toAst(considerPosition),
+            this.string.toAst(considerPosition),
+            this.startpos?.toAst(considerPosition),
+            toPosition(considerPosition))
 }
 
 private fun Bif_lookupContext.toAst(considerPosition: Boolean = true): LookupExpr {
