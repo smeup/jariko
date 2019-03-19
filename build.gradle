@@ -60,3 +60,9 @@ idea {
         sourceDirs += file("generated-src/antlr/main")
     }
 }
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
