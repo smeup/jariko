@@ -121,6 +121,12 @@ data class DoStmt(val body: List<Statement>, override val position: Position? = 
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 data class IterStmt(override val position: Position? = null) : Statement(position)
 data class OtherStmt(override val position: Position? = null) : Statement(position)
+data class ForStmt(
+        val init: Expression,
+        val endValue: Expression,
+        val body: List<Statement>, override val position: Position? = null) : Statement(position)
+
+//data class Assignment(val target: Expression, val value: Expression, override val position: Position? = null) : Node(position)
 
 enum class DataWrapUpChoice {
     LR,

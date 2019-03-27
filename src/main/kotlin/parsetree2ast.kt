@@ -107,7 +107,7 @@ private fun FunctionContext.toAst(considerPosition : Boolean = true): FunctionCa
 }
 
 private fun LiteralContext.toAst(considerPosition : Boolean = true): Expression {
-    return StringLiteral(this.content.text, toPosition(considerPosition))
+    return StringLiteral(this.content?.text ?: "", toPosition(considerPosition))
 }
 
 private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
@@ -243,8 +243,19 @@ private fun BlockContext.toAst(considerPosition: Boolean = true): Statement {
         this.ifstatement() != null -> this.ifstatement().toAst(considerPosition)
         this.selectstatement() != null -> this.selectstatement().toAst(considerPosition)
         this.begindo() != null -> DoStmt(this.statement().map { it.toAst(considerPosition) }, toPosition(considerPosition))
+        this.forstatement() != null -> this.forstatement().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun ForstatementContext.toAst(considerPosition: Boolean = true): ForStmt {
+    val assignment = this.beginfor().csFOR().expression(0).toAst(considerPosition)
+    val endValue = this.beginfor().csFOR().expression(1).toAst(considerPosition)
+    return ForStmt(
+            assignment,
+            endValue,
+            this.statement().map { it.toAst(considerPosition) },
+            toPosition(considerPosition))
 }
 
 private fun SelectstatementContext.toAst(considerPosition: Boolean = true): SelectStmt {
