@@ -204,12 +204,19 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
         "N" -> BOOLEAN
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
+    var like : Expression? = null
+    this.keyword().forEach {
+        it.keyword_like()?.let {
+            like = it.simpleExpression().toAst(considerPosition)
+        }
+    }
     return DataDefinition(
             this.ds_name().text,
             type,
             this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() },
             decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
             arrayLength = this.arrayLength(considerPosition),
+            like = like,
             position = this.toPosition(true))
 }
 

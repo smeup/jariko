@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import java.lang.IllegalArgumentException
+import java.lang.IllegalStateException
 
 /**
  * This represent the interface to the external world.
@@ -20,7 +21,7 @@ data class IntValue(val value: Long) : Value() {
 }
 data class ArrayValue(val elements: List<Value>) : Value()
 
-class SymbolTable() {
+class SymbolTable {
     private val values = HashMap<AbstractDataDefinition, Value>()
 
     operator fun get(data: AbstractDataDefinition) : Value {
@@ -59,7 +60,10 @@ class Interpreter(val systemInterface: SystemInterface) {
             is IntLiteral -> IntValue(expression.value)
             is NumberOfElementsExpr -> {
                 val value = interpret(expression.value)
-                TODO(value.toString())
+                when (value) {
+                    is ArrayValue -> value.elements.size.asValue()
+                    else -> throw IllegalStateException("Cannot ask number of elements of $value")
+                }
             }
             is DataRefExpr -> globalSymbolTable[expression.variable.referred!!]
             else -> TODO(expression.toString())
@@ -72,8 +76,27 @@ class Interpreter(val systemInterface: SystemInterface) {
             return ArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toList())
         }
         return when {
-            dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.size!!))
-            else -> TODO(this.toString())
+            dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
+            // TODO: to be revised
+            dataDefinition.dataType == DataType.DATA_STRUCTURE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
+            else -> TODO(dataDefinition.toString())
         }
+    }
+}
+
+private fun Int.asValue() = IntValue(this.toLong())
+
+private fun DataDefinition.actualSize(interpreter: Interpreter) : IntValue {
+    return when {
+        this.size != null -> this.size.asValue()
+        this.like != null -> interpreter.interpret(NumberOfElementsExpr(this.like)).asInt()
+        else -> throw IllegalStateException("No actual size can be calculated")
+    }
+}
+
+private fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
+    return when {
+        this.arrayLength != null -> interpreter.interpret(this.arrayLength).asInt()
+        else -> IntValue(1)
     }
 }

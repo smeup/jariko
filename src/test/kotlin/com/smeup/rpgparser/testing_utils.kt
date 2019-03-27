@@ -81,17 +81,20 @@ fun assertStatementCanBeParsed(code: String) : StatementContext {
     return result.root!!
 }
 
-fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: DataType, size: Int,
+fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: DataType, size: Int?,
                                                   decimals: Int = 0,
-                                                  arrayLength: Expression = IntLiteral(1),
-                                                  fields: List<FieldDefinition>? = null) {
+                                                  arrayLength: Expression? = null,
+                                                  fields: List<FieldDefinition>? = null,
+                                                  dim : Expression? = null,
+                                                  like : Expression? = null) {
     assertTrue(this.hasDataDefinition(name), message = "Data definition $name not found in Compilation Unit")
     val dataDefinition = this.getDataDefinition(name)
     assertEquals(dataType, dataDefinition.dataType)
     assertEquals(size, dataDefinition.size)
     assertEquals(decimals, dataDefinition.decimals)
-    assertEquals(arrayLength, dataDefinition.arrayLength)
+    assertEquals(arrayLength, dataDefinition.arrayLength, "Array length is not as expected. Expected $arrayLength, actual ${dataDefinition.arrayLength}")
     assertEquals(fields, dataDefinition.fields)
+    assertEquals(like, dataDefinition.like, "Like is not as expected. Expected $like, actual ${dataDefinition.like}")
 }
 
 fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {

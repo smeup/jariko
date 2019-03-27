@@ -23,6 +23,7 @@ class DataDefinition(override val name: String,
                      val decimals: Int = 0,
                      val arrayLength: Expression?,
                      val fields: List<FieldDefinition>? = null,
+                     val like: Expression? = null,
                      override val position: Position?) : AbstractDataDefinition(name, size, position) {
     init {
         require((fields != null) == (dataType == DATA_STRUCTURE))
@@ -32,6 +33,7 @@ class DataDefinition(override val name: String,
     override fun toString(): String {
         return "DataDefinition($name, $dataType, $size)"
     }
+
 }
 
 data class FieldDefinition(override val name: String,

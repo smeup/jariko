@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.*
+import com.strumenta.kolasu.model.ReferenceByName
 import org.junit.Test as test
 
 class DataDefinitionTest {
@@ -53,5 +54,18 @@ class DataDefinitionTest {
                         FieldDefinition("\$\$SVARCD", 50),
                         FieldDefinition("\$\$SVARVA", 1000)
                 ))
+    }
+
+    @test fun likeClauseParsing() {
+        val cu = processDataDefinition("D U\$SVARSK        S                   LIKE(\$\$SVAR)")
+        cu.assertDataDefinitionIsPresent("U\$SVARSK", DataType.SINGLE, null,
+                arrayLength = null,
+                like = DataRefExpr(ReferenceByName("\$\$SVAR")))
+    }
+
+    @test fun dimClauseParsing() {
+        val cu = processDataDefinition("D U\$SVARSK        S                                  DIM(%ELEM(\$\$SVAR))")
+        cu.assertDataDefinitionIsPresent("U\$SVARSK", DataType.SINGLE, null,
+                arrayLength = NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR"))))
     }
 }
