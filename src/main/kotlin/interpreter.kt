@@ -73,6 +73,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     execute(statement.other.body)
                 }
             }
+            is SetOnStmt -> null /* Nothing to do here */
             else -> TODO(statement.toString())
         }
     }
@@ -102,6 +103,11 @@ class Interpreter(val systemInterface: SystemInterface) {
                 }
             }
             is DataRefExpr -> globalSymbolTable[expression.variable.referred!!]
+            is EqualityExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return (left == right).asValue()
+            }
             else -> TODO(expression.toString())
         }
     }
@@ -121,6 +127,7 @@ class Interpreter(val systemInterface: SystemInterface) {
 }
 
 private fun Int.asValue() = IntValue(this.toLong())
+private fun Boolean.asValue() = BooleanValue(this)
 
 private fun DataDefinition.actualSize(interpreter: Interpreter) : IntValue {
     return when {
