@@ -81,6 +81,10 @@ data class TranslateExpr(val from: Expression, val to: Expression, val string: E
                          val startPos: Expression? = null, override val position: Position? = null) : Expression(position)
 data class TrimExpr(val value: Expression, val charactersToTrim: Expression? = null,
                     override val position: Position? = null) : Expression(position)
+data class SubstExpr(val string: Expression, val start: Expression,
+                     val length: Expression? = null, override val position: Position? = null)
+    : Expression(position)
+
 
 //
 // Statements
@@ -109,6 +113,7 @@ data class ClearStmt(val value: Expression, override val position: Position? = n
 data class DoStmt(val body: List<Statement>, override val position: Position? = null) : Statement(position)
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 data class IterStmt(override val position: Position? = null) : Statement(position)
+data class OtherStmt(override val position: Position? = null) : Statement(position)
 
 enum class DataWrapUpChoice {
     LR,

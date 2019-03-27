@@ -113,8 +113,17 @@ private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
         this.bif_xlate() != null -> this.bif_xlate().toAst(considerPosition)
         this.bif_scan() != null -> this.bif_scan().toAst(considerPosition)
         this.bif_trim() != null -> this.bif_trim().toAst(considerPosition)
+        this.bif_subst() != null -> this.bif_subst().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun Bif_substContext.toAst(considerPosition: Boolean = true): SubstExpr {
+    return SubstExpr(
+            this.string.toAst(considerPosition),
+            this.start.toAst(considerPosition),
+            this.length?.toAst(considerPosition),
+            toPosition(considerPosition))
 }
 
 private fun Bif_trimContext.toAst(considerPosition: Boolean = true): TrimExpr {
@@ -281,7 +290,8 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
         this.csCLEAR() != null -> this.csCLEAR().toAst(considerPosition)
         this.csLEAVE() != null -> LeaveStmt(toPosition(considerPosition))
         this.csITER() != null -> IterStmt(toPosition(considerPosition))
-        else -> TODO(this.text.toString())
+        this.csOTHER() != null -> OtherStmt(toPosition(considerPosition))
+        else -> TODO("${this.text.toString()} at ${this.toPosition(true)}")
     }
 }
 
