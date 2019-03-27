@@ -123,6 +123,12 @@ private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
     }
 }
 
+private fun Bif_lenContext.toAst(considerPosition: Boolean = true): LenExpr {
+    return LenExpr(
+            this.expression().toAst(considerPosition),
+            toPosition(considerPosition))
+}
+
 private fun Bif_substContext.toAst(considerPosition: Boolean = true): SubstExpr {
     return SubstExpr(
             this.string.toAst(considerPosition),

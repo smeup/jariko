@@ -90,7 +90,8 @@ data class TrimExpr(val value: Expression, val charactersToTrim: Expression? = n
 data class SubstExpr(val string: Expression, val start: Expression,
                      val length: Expression? = null, override val position: Position? = null)
     : Expression(position)
-
+data class LenExpr(val value: Expression, override val position: Position? = null)
+    : Expression(position)
 
 //
 // Statements
