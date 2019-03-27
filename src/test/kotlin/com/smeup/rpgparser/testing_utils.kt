@@ -39,9 +39,9 @@ fun assertCanBeParsed(exampleName: String) : RContext {
     return result.root!!
 }
 
-fun assertASTCanBeProduced(exampleName: String) : CompilationUnit {
+fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = false) : CompilationUnit {
     val parseTreeRoot = assertCanBeParsed(exampleName)
-    return parseTreeRoot.toAst(false)
+    return parseTreeRoot.toAst(considerPosition)
 }
 
 fun assertCodeCanBeParsed(code: String) : RContext {

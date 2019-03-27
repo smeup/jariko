@@ -18,8 +18,14 @@ fun List<Node>.position() : Position? {
 }
 
 fun RContext.toAst(considerPosition : Boolean = true) : CompilationUnit {
-    val dataDefinitions = this.statement().mapNotNull { it.dspec() }.map { it.toAst(considerPosition) } +
-            this.statement().mapNotNull { it.dcl_ds() }.map { it.toAst(considerPosition) }
+    val dataDefinitions = this.statement()
+            .mapNotNull {
+                when {
+                    it.dspec() != null -> it.dspec().toAst(considerPosition)
+                    it.dcl_ds() != null -> it.dcl_ds().toAst(considerPosition)
+                    else -> null
+                }
+            }
     val mainStmts = this.statement().mapNotNull {
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().toAst(considerPosition)
@@ -179,8 +185,16 @@ private fun NumberContext.toAst(considerPosition : Boolean = true) : NumberLiter
     }
 }
 
-private fun IdentifierContext.toAst(considerPosition : Boolean = true) : DataRefExpr {
-    return DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(considerPosition))
+private fun IdentifierContext.toAst(considerPosition : Boolean = true) : Expression {
+    return when (this.text) {
+        "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(considerPosition))
+        "*ZERO", "*ZEROS" -> TODO()
+        "*HIVAL" -> TODO()
+        "*LOWVAL" -> TODO()
+        "*ON" -> TODO()
+        "*OFF" -> TODO()
+        else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(considerPosition))
+    }
 }
 
 private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefinition {

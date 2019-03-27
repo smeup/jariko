@@ -1,5 +1,7 @@
 package com.smeup.rpgparser
 
+import java.lang.IllegalArgumentException
+
 /**
  * This represent the interface to the external world.
  * Printing, accessing databases, all sort of interactions should go through this interface.
@@ -19,26 +21,27 @@ data class IntValue(val value: Long) : Value() {
 data class ArrayValue(val elements: List<Value>) : Value()
 
 class SymbolTable() {
-    private val values = HashMap<String, Value>()
+    private val values = HashMap<AbstractDataDefinition, Value>()
 
-    operator fun get(name: String) : Value {
-        return values[name]!!
+    operator fun get(data: AbstractDataDefinition) : Value {
+        return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
     }
 
-    operator fun set(name: String, value: Value) {
-        values[name] = value
+    operator fun set(data: AbstractDataDefinition, value: Value) {
+        values[data] = value
     }
+
 }
 
 class Interpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
 
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
-        compilationUnit.dataDefinitons.forEach {
+        compilationUnit.dataDefinitions.forEach {
             if (it.name in initialValues) {
-                globalSymbolTable[it.name] = initialValues[it.name]!!
+                globalSymbolTable[it] = initialValues[it.name]!!
             } else {
-                globalSymbolTable[it.name] = blankValue(it)
+                globalSymbolTable[it] = blankValue(it)
             }
         }
         compilationUnit.main.stmts.forEach {
@@ -54,6 +57,11 @@ class Interpreter(val systemInterface: SystemInterface) {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
             is IntLiteral -> IntValue(expression.value)
+            is NumberOfElementsExpr -> {
+                val value = interpret(expression.value)
+                TODO(value.toString())
+            }
+            is DataRefExpr -> globalSymbolTable[expression.variable.referred!!]
             else -> TODO(expression.toString())
         }
     }

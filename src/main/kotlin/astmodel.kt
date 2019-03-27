@@ -5,6 +5,7 @@ import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import java.util.*
 
 enum class DataType {
     SINGLE,
@@ -12,13 +13,17 @@ enum class DataType {
     DATA_STRUCTURE
 }
 
+open class AbstractDataDefinition(override val name: String,
+    open val size: Int?,
+    override val position: Position? = null) : Node(position), Named
+
 class DataDefinition(override val name: String,
                      val dataType: DataType,
-                     val size: Int?,
+                     override val size: Int?,
                      val decimals: Int = 0,
                      val arrayLength: Expression?,
                      val fields: List<FieldDefinition>? = null,
-                     override val position: Position?) : Node(position), Named {
+                     override val position: Position?) : AbstractDataDefinition(name, size, position) {
     init {
         require((fields != null) == (dataType == DATA_STRUCTURE))
                 { "Fields should be sent always and only for data structures" }
@@ -30,16 +35,25 @@ class DataDefinition(override val name: String,
 }
 
 data class FieldDefinition(override val name: String,
-                      val size: Int,
-                      override val position: Position? = null) : Node(position), Named
+                      override val size: Int,
+                      override val position: Position? = null) : AbstractDataDefinition(name, size, position)
 
-data class CompilationUnit(val dataDefinitons: List<DataDefinition>,
-                      val main: MainBody,
-                      val subroutines: List<Subroutine>,
-                      override val position: Position?) : Node(position) {
-    fun hasDataDefinition(name: String) = dataDefinitons.any { it.name == name }
+data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
+                           val main: MainBody,
+                           val subroutines: List<Subroutine>,
+                           override val position: Position?) : Node(position) {
 
-    fun getDataDefinition(name: String) = dataDefinitons.first { it.name == name }
+    val dataDefinitonsAndFields : List<AbstractDataDefinition>
+        get() {
+            val res = LinkedList<AbstractDataDefinition>()
+            res.addAll(dataDefinitions)
+            dataDefinitions.forEach { it.fields?.let { res.addAll(it) } }
+            return res
+        }
+
+    fun hasDataDefinition(name: String) = dataDefinitions.any { it.name == name }
+
+    fun getDataDefinition(name: String) = dataDefinitions.first { it.name == name }
 }
 
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
@@ -60,7 +74,9 @@ data class RealLiteral(val value: Double, override val position: Position? = nul
 data class StringLiteral(val value: String, override val position: Position? = null) : Expression(position)
 
 data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) : Expression(position)
-data class DataRefExpr(val variable: ReferenceByName<DataDefinition>, override val position: Position? = null) : Expression(position)
+abstract class FigurativeConstantRef(override val position: Position? = null) : Expression(position)
+data class BlanksRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Expression(position)
 
 data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
 data class GreaterThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)

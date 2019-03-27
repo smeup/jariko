@@ -6,7 +6,7 @@ import com.strumenta.kolasu.model.tryToResolve
 fun CompilationUnit.resolve() {
     this.specificProcess(DataRefExpr::class.java) { dre ->
         if (!dre.variable.resolved) {
-            require(dre.variable.tryToResolve(this.dataDefinitons)) {
+            require(dre.variable.tryToResolve(this.dataDefinitonsAndFields)) {
                 "Data reference not resolved: ${dre.variable.name}"
             }
         }
