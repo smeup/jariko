@@ -51,6 +51,9 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
+    operator fun set(data: AbstractDataDefinition, value: Value) {
+        globalSymbolTable[data] = value
+    }
 
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
         compilationUnit.dataDefinitions.forEach {

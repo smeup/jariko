@@ -34,4 +34,19 @@ class InterpreterTest {
         assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["\$\$SVAR"])
     }
 
+    @Test
+    fun executeJD_001_inzFunz() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf(
+                "U\$FUNZ" to StringValue("INZ"),
+                "U\$METO" to StringValue("Bar"),
+                "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
+                "U\$IN35" to StringValue("X")))
+        // Initialized inside IMP0
+        assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["\$\$SVAR"])
+        // Assigned inside FINZ
+        assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
+        assertEquals(StringValue(" "), interpreter["U\$IN35"])
+    }
 }

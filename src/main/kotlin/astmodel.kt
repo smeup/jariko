@@ -21,10 +21,10 @@ class DataDefinition(override val name: String,
                      val dataType: DataType,
                      override val size: Int?,
                      val decimals: Int = 0,
-                     val arrayLength: Expression?,
+                     val arrayLength: Expression? = null,
                      val fields: List<FieldDefinition>? = null,
                      val like: Expression? = null,
-                     override val position: Position?) : AbstractDataDefinition(name, size, position) {
+                     override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
     init {
         require((fields != null) == (dataType == DATA_STRUCTURE))
                 { "Fields should be sent always and only for data structures" }
@@ -159,3 +159,4 @@ enum class DataWrapUpChoice {
     RT
 }
 
+fun dataRefTo(dataDefinition: AbstractDataDefinition) = DataRefExpr(ReferenceByName(dataDefinition.name, dataDefinition))
