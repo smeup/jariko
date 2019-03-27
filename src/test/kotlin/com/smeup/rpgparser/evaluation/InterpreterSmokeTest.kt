@@ -17,12 +17,14 @@ class InterpreterSmokeTest {
     @Test
     fun executeJD_002() {
         val cu = assertASTCanBeProduced("JD_002")
+        cu.resolve()
         execute(cu, mapOf())
     }
 
     @Test
     fun executeJD_003() {
         val cu = assertASTCanBeProduced("JD_003")
+        cu.resolve()
         execute(cu, mapOf())
     }
 

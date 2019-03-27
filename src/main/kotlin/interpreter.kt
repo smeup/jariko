@@ -119,6 +119,7 @@ class Interpreter(val systemInterface: SystemInterface) {
         }
         return when {
             dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
+            dataDefinition.dataType == DataType.BOOLEAN -> BooleanValue(false)
             // TODO: to be revised
             dataDefinition.dataType == DataType.DATA_STRUCTURE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
             else -> TODO(dataDefinition.toString())
