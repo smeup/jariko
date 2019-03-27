@@ -46,4 +46,24 @@ class ToAstSmokeTest {
         assertEquals("§§FUNZ", root.dataDefinitions[8].name)
         assertEquals("§§METO", root.dataDefinitions[9].name)
     }
+
+    @Test
+    fun buildAstForJD_001_subroutines() {
+        val root = assertASTCanBeProduced("JD_001")
+        assertEquals(7, root.subroutines.size)
+        assertEquals("£INIZI", root.subroutines[0].name)
+        assertEquals(1, root.subroutines[0].stmts.size)
+        assertEquals("IMP0", root.subroutines[1].name)
+        assertEquals(1, root.subroutines[1].stmts.size)
+        assertEquals("FIN0", root.subroutines[2].name)
+        assertEquals(0, root.subroutines[2].stmts.size)
+        assertEquals("FINZ", root.subroutines[3].name)
+        assertEquals(2, root.subroutines[3].stmts.size)
+        assertEquals("FEXE", root.subroutines[4].name)
+        assertEquals(3, root.subroutines[4].stmts.size)
+        assertEquals("REPVAR", root.subroutines[5].name)
+        assertEquals(1, root.subroutines[5].stmts.size)
+        assertEquals("FCLO", root.subroutines[6].name)
+        assertEquals(0, root.subroutines[6].stmts.size)
+    }
 }
