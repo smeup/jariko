@@ -5,6 +5,7 @@ import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
+import org.apache.commons.io.input.BOMInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import kotlin.test.assertEquals
@@ -14,7 +15,7 @@ import kotlin.test.assertTrue
 class Dummy
 
 fun inputStreamFor(exampleName: String) : InputStream {
-    return Dummy::class.java.getResourceAsStream("/$exampleName.txt")
+    return BOMInputStream(Dummy::class.java.getResourceAsStream("/$exampleName.txt"))
 }
 
 fun inputStreamForCode(code: String) : InputStream {

@@ -9,6 +9,11 @@ import org.junit.Test
 class RpgLexerSmokeTest {
 
     @Test
+    fun lexJD_000() {
+        assertCanBeLexed("JD_000")
+    }
+
+    @Test
     fun lexJD_001() {
         assertCanBeLexed("JD_001")
     }
