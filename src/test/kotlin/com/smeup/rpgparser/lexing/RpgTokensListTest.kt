@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.lexing
 
-import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.RpgLexer.*
 import com.smeup.rpgparser.assertCanBeLexed
 import com.smeup.rpgparser.assertToken
@@ -15,7 +14,7 @@ class RpgTokensListTest {
         assertToken(DIR_OtherText, "QILEGEN", tokens[2])
         assertToken(DIR_OtherText, "£INIZH", tokens[3])
         assertToken(EOL, "", tokens[4])
-        assertToken(EOF, "<EOF>", tokens[964])
+        assertToken(EOF, "<EOF>", tokens.last())
     }
 
     @test fun lexJD_001_justdirectives() {
