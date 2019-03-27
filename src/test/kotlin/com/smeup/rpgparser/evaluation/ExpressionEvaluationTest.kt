@@ -11,6 +11,12 @@ class ExpressionEvaluationTest {
         assertEquals(StringValue("hello"), interpret(StringLiteral("hello")))
     }
 
+    @Test
+    fun evaluateIntLiteral() {
+        assertEquals(IntValue(0), interpret(IntLiteral(0)))
+        assertEquals(IntValue(20), interpret(IntLiteral(20)))
+    }
+
     private fun interpret(expr: Expression) : Value {
         val systemInterface = object : SystemInterface {
 
