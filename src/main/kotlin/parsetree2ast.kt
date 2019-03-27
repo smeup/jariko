@@ -41,22 +41,22 @@ private fun SubroutineContext.toAst(considerPosition: Boolean = true): Subroutin
             toPosition(considerPosition))
 }
 
-private fun DspecContext.arrayLength(considerPosition : Boolean = true) : Expression {
+private fun DspecContext.arrayLength(considerPosition : Boolean = true) : Expression? {
     return this.keyword().arrayLength(considerPosition)
 }
 
-private fun Dcl_dsContext.arrayLength(considerPosition : Boolean = true) : Expression {
+private fun Dcl_dsContext.arrayLength(considerPosition : Boolean = true) : Expression? {
     return this.keyword().arrayLength(considerPosition)
 }
 
-private fun Parm_fixedContext.arrayLength(considerPosition : Boolean = true) : Expression {
+private fun Parm_fixedContext.arrayLength(considerPosition : Boolean = true) : Expression? {
     return this.keyword().arrayLength(considerPosition)
 }
 
-private fun List<KeywordContext>.arrayLength(considerPosition : Boolean = true) : Expression {
+private fun List<KeywordContext>.arrayLength(considerPosition : Boolean = true) : Expression? {
     val dims = this.filter { it.keyword_dim() != null }.map { it.keyword_dim() }
     return when (dims.size) {
-        0 -> IntLiteral(1)
+        0 -> null
         1 -> dims[0].numeric_constant.toAst(considerPosition)
         else -> throw UnsupportedOperationException("Ambiguous array dimensions")
     }

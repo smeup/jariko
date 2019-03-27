@@ -16,12 +16,16 @@ class DataDefinition(override val name: String,
                      val dataType: DataType,
                      val size: Int?,
                      val decimals: Int = 0,
-                     val arrayLength: Expression = IntLiteral(1),
+                     val arrayLength: Expression?,
                      val fields: List<FieldDefinition>? = null,
                      override val position: Position?) : Node(position), Named {
     init {
         require((fields != null) == (dataType == DATA_STRUCTURE))
                 { "Fields should be sent always and only for data structures" }
+    }
+
+    override fun toString(): String {
+        return "DataDefinition($name, $dataType, $size)"
     }
 }
 
