@@ -193,9 +193,24 @@ private fun IdentifierContext.toAst(considerPosition : Boolean = true) : Express
         "*LOWVAL" -> TODO()
         "*ON" -> OnRefExpr(toPosition(considerPosition))
         "*OFF" -> OffRefExpr(toPosition(considerPosition))
-        else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(considerPosition))
+        else -> when {
+            this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(
+                    this.text.indicatorIndex()!!,
+                    toPosition(considerPosition))
+            else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(considerPosition))
+        }
     }
 }
+
+private fun String.indicatorIndex() : Int? {
+    return if (this.startsWith("*IN")) {
+        this.substring("*IN".length).toIntOrNull()
+    } else {
+        null
+    }
+}
+
+private fun String.isInt() = this.toIntOrNull() != null
 
 private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefinition {
     val type = when (this.DATA_TYPE()?.text?.trim()) {

@@ -116,6 +116,8 @@ data class SubstExpr(val string: Expression, val start: Expression,
     : Expression(position)
 data class LenExpr(val value: Expression, override val position: Position? = null)
     : Expression(position)
+data class PredefinedIndicatorExpr(val index: Int, override val position: Position? = null)
+    : Expression(position)
 
 //
 // Statements
