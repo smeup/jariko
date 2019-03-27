@@ -13,11 +13,15 @@ interface SystemInterface {
 
 abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException()
+    open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
 }
 
 data class StringValue(val value: String) : Value()
 data class IntValue(val value: Long) : Value() {
     override fun asInt() = this
+}
+data class BooleanValue(val value: Boolean) : Value() {
+    override fun asBoolean() = this
 }
 data class ArrayValue(val elements: List<Value>) : Value()
 
@@ -50,10 +54,39 @@ class Interpreter(val systemInterface: SystemInterface) {
         }
     }
 
+    private fun execute(statements: List<Statement>) {
+        statements.forEach { it }
+    }
+
     private fun execute(statement: Statement) {
         when (statement) {
-            is ExecuteSubroutine -> statement.subroutine.referred!!.stmts.forEach { execute(it) }
+            is ExecuteSubroutine -> execute(statement.subroutine.referred!!.stmts)
+            is EvalStmt -> eval(statement.expression)
+            is SelectStmt -> {
+                for (case in statement.cases) {
+                    if (interpret(case.condition).asBoolean().value) {
+                        execute(case.body)
+                        return
+                    }
+                }
+                if (statement.other != null) {
+                    execute(statement.other.body)
+                }
+            }
             else -> TODO(statement.toString())
+        }
+    }
+
+    private fun eval(expression: Expression) {
+        when (expression) {
+            is EqualityExpr -> {
+                if (expression.left is DataRefExpr) {
+                    globalSymbolTable[expression.left.variable.referred!!] = interpret(expression.right)
+                } else {
+                    TODO(expression.toString())
+                }
+            }
+            else -> TODO(expression.toString())
         }
     }
 
