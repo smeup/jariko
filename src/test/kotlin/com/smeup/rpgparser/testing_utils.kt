@@ -109,3 +109,12 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 }
 
 fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))
+
+fun execute(cu: CompilationUnit, initialValues: Map<String, Value>) : Interpreter {
+    val systemInterface = object : SystemInterface {
+
+    }
+    val interpreter = Interpreter(systemInterface)
+    interpreter.execute(cu, initialValues)
+    return interpreter
+}

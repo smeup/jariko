@@ -1,0 +1,37 @@
+package com.smeup.rpgparser.evaluation
+
+import com.smeup.rpgparser.*
+import org.junit.Test
+import kotlin.test.assertEquals
+
+class InterpreterTest {
+
+    @Test
+    fun executeJD_001_plist() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf(
+                "U\$FUNZ" to StringValue("Foo"),
+                "U\$METO" to StringValue("Bar"),
+                "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
+                "U\$IN35" to blankString(1)))
+        assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
+        assertEquals(StringValue("Bar"), interpreter["U\$METO"])
+        assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["U\$SVARSK"])
+        assertEquals(StringValue(" "), interpreter["U\$IN35"])
+    }
+
+    @Test
+    fun executeJD_001_settingVars() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf(
+                "U\$FUNZ" to StringValue("Foo"),
+                "U\$METO" to StringValue("Bar"),
+                "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
+                "U\$IN35" to blankString(1)))
+        // Initialized inside IMP0
+        assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["\$\$SVAR"])
+    }
+
+}

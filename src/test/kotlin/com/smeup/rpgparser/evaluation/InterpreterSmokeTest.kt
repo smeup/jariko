@@ -28,11 +28,4 @@ class InterpreterSmokeTest {
         execute(cu, mapOf())
     }
 
-    private fun execute(cu: CompilationUnit, initialValues: Map<String, Value>) {
-        val systemInterface = object : SystemInterface {
-
-        }
-        return Interpreter(systemInterface).execute(cu, initialValues)
-    }
-
 }

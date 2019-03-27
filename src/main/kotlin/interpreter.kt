@@ -25,10 +25,18 @@ data class BooleanValue(val value: Boolean) : Value() {
 }
 data class ArrayValue(val elements: List<Value>) : Value()
 
+fun createArrayValue(n: Int, creator: (Int) -> Value) = ArrayValue(Array(n, creator).toList())
+fun blankString(length: Int) = StringValue(" ".repeat(length))
+
 class SymbolTable {
     private val values = HashMap<AbstractDataDefinition, Value>()
 
     operator fun get(data: AbstractDataDefinition) : Value {
+        return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+    }
+
+    operator fun get(dataName: String) : Value {
+        val data = values.keys.firstOrNull { it.name == dataName } ?: throw IllegalArgumentException("Cannot find value for $dataName")
         return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
     }
 
@@ -40,6 +48,9 @@ class SymbolTable {
 
 class Interpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
+
+    operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
+    operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
         compilationUnit.dataDefinitions.forEach {
