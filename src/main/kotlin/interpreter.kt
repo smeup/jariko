@@ -51,7 +51,10 @@ class Interpreter(val systemInterface: SystemInterface) {
     }
 
     private fun execute(statement: Statement) {
-        TODO()
+        when (statement) {
+            is ExecuteSubroutine -> statement.subroutine.referred!!.stmts.forEach { execute(it) }
+            else -> TODO(statement.toString())
+        }
     }
 
     fun interpret(expression: Expression) : Value {

@@ -11,4 +11,11 @@ fun CompilationUnit.resolve() {
             }
         }
     }
+    this.specificProcess(ExecuteSubroutine::class.java) { esr ->
+        if (!esr.subroutine.resolved) {
+            require(esr.subroutine.tryToResolve(this.subroutines)) {
+                "Subroutine call not resolved: ${esr.subroutine.name}"
+            }
+        }
+    }
 }
