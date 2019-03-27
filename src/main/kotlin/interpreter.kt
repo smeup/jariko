@@ -2,6 +2,7 @@ package com.smeup.rpgparser
 
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
+import java.util.*
 
 /**
  * This represent the interface to the external world.
@@ -46,8 +47,16 @@ class SymbolTable {
 
 }
 
+abstract class LogEntry
+data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry()
+
 class Interpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
+    private val logs = LinkedList<LogEntry>()
+
+    fun getLogs() = logs
+    fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
+    fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
 
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
@@ -74,7 +83,10 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     private fun execute(statement: Statement) {
         when (statement) {
-            is ExecuteSubroutine -> execute(statement.subroutine.referred!!.stmts)
+            is ExecuteSubroutine -> {
+                logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
+                execute(statement.subroutine.referred!!.stmts)
+            }
             is EvalStmt -> eval(statement.expression)
             is SelectStmt -> {
                 for (case in statement.cases) {

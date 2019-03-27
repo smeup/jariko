@@ -15,6 +15,7 @@ class InterpreterTest {
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
                 "U\$IN35" to blankString(1)))
+        assertEquals(listOf("IMP0", "FIN0"), interpreter.getExecutedSubroutineNames())
         assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
         assertEquals(StringValue("Bar"), interpreter["U\$METO"])
         assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["U\$SVARSK"])
@@ -30,6 +31,7 @@ class InterpreterTest {
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
                 "U\$IN35" to blankString(1)))
+        assertEquals(listOf("IMP0", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
         assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["\$\$SVAR"])
     }
@@ -43,6 +45,7 @@ class InterpreterTest {
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
                 "U\$IN35" to StringValue("X")))
+        assertEquals(listOf("IMP0", "FINZ", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
         assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["\$\$SVAR"])
         // Assigned inside FINZ
