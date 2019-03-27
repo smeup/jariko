@@ -91,6 +91,10 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
         }
         this.function() != null -> this.function().toAst(considerPosition)
         this.NOT() != null -> NotExpr(this.expression(0).toAst(considerPosition), toPosition(considerPosition))
+        this.PLUS() != null -> PlusExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+        this.MINUS() != null -> MinusExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+        this.MULT() != null -> MultExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+        this.DIV() != null -> DivExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
         this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
                 && this.children[1] is ExpressionContext -> (this.children[1] as ExpressionContext).toAst(considerPosition)
@@ -114,6 +118,7 @@ private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
         this.bif_scan() != null -> this.bif_scan().toAst(considerPosition)
         this.bif_trim() != null -> this.bif_trim().toAst(considerPosition)
         this.bif_subst() != null -> this.bif_subst().toAst(considerPosition)
+        this.bif_len() != null -> this.bif_len().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
 }

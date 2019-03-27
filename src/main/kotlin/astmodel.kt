@@ -71,6 +71,12 @@ data class NotExpr(val base: Expression, override val position: Position? = null
 data class LogicalOrExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
 data class LogicalAndExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
 
+data class PlusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class MinusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class MultExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class DivExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+
+
 //
 // Built-in functions
 //
