@@ -5,6 +5,7 @@
      V* 24/10/18  V5R1    PEDSTE Created
      V* 06/02/19  V5R1    PEDSTE Comments translated to english and added return code
      V* 07/02/19  V5R1    PEDSTE Array of Variables in initialisation
+     V* 27/03/19  V5R1    CM Ricompilato
      V*=====================================================================
      H/COPY QILEGEN,£INIZH
       *---------------------------------------------------------------
@@ -58,7 +59,7 @@
       * Final settings
      C                   EXSR      FIN0
       * End
-     C                   SETON                                        LR
+     C                   SETON                                        RT
       *---------------------------------------------------------------
      C/COPY QILEGEN,£INZSR
       *---------------------------------------------------------------
@@ -108,7 +109,7 @@
       * Search element with Url
      C                   EVAL      $X=%LOOKUP('Url':$$SVARCD)                   COSTANTE
       * Not found is an Error
-5    C                   IF        $X=0
+5    C                   IF        $X = 0
      C                   EVAL      U$IN35='1'
 5    C                   ELSE
      C                   EVAL      $$URL=$$SVARVA($X)
@@ -148,4 +149,4 @@
       *
       * This function doesn't do anything and is always successfull
       *
-     C                   ENDSR 
+     C                   ENDSR
