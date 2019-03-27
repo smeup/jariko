@@ -78,6 +78,8 @@ data class StringLiteral(val value: String, override val position: Position? = n
 data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) : Expression(position)
 abstract class FigurativeConstantRef(override val position: Position? = null) : Expression(position)
 data class BlanksRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class OnRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Expression(position)
 
 data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)

@@ -191,8 +191,8 @@ private fun IdentifierContext.toAst(considerPosition : Boolean = true) : Express
         "*ZERO", "*ZEROS" -> TODO()
         "*HIVAL" -> TODO()
         "*LOWVAL" -> TODO()
-        "*ON" -> TODO()
-        "*OFF" -> TODO()
+        "*ON" -> OnRefExpr(toPosition(considerPosition))
+        "*OFF" -> OffRefExpr(toPosition(considerPosition))
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(considerPosition))
     }
 }
