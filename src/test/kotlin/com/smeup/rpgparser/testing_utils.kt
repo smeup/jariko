@@ -58,6 +58,10 @@ fun assertExpressionCanBeParsed(code: String) : ExpressionContext {
     return result.root!!
 }
 
+fun expressionAst(code: String) : Expression {
+    return assertExpressionCanBeParsed(code).toAst(false)
+}
+
 fun assertStatementCanBeParsed(code: String) : StatementContext {
     val result = RpgParserFacade().parseStatement(inputStreamForCode(code))
     if (!result.correct) {

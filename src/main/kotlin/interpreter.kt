@@ -10,11 +10,16 @@ interface SystemInterface {
 
 abstract class Value
 
+data class StringValue(val value: String) : Value()
+
 class Interpreter(val systemInterface: SystemInterface) {
     fun execute(compilationUnit: CompilationUnit) {
         TODO()
     }
     fun interpret(expression: Expression) : Value {
-        TODO()
+        return when (expression) {
+            is StringLiteral -> StringValue(expression.value)
+            else -> TODO(expression.toString())
+        }
     }
 }
