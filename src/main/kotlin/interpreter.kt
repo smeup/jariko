@@ -13,7 +13,25 @@ abstract class Value
 data class StringValue(val value: String) : Value()
 data class IntValue(val value: Long) : Value()
 
+class SymbolTable() {
+    private val values = HashMap<String, Value>()
+
+    operator fun get(name: String) : Value {
+        return values[name]!!
+    }
+
+    operator fun set(name: String, value: Value) {
+        values[name] = value
+    }
+}
+
 class Interpreter(val systemInterface: SystemInterface) {
+    private val globalSymbolTable = SymbolTable()
+
+    fun setGlobalValue(name: String, value: Value) {
+        globalSymbolTable[name] = value
+    }
+
     fun execute(compilationUnit: CompilationUnit) {
         TODO()
     }
