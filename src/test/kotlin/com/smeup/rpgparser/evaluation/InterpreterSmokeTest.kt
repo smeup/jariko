@@ -10,6 +10,7 @@ class InterpreterSmokeTest {
     fun executeJD_001() {
         val cu = assertASTCanBeProduced("JD_001")
         execute(cu)
+        // We need JD_URL in Kotlin. We want it to print its third parameter
     }
 
     @Test

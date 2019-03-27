@@ -108,10 +108,10 @@
       * Search element with Url
      C                   EVAL      $X=%LOOKUP('Url':$$SVARCD)                   COSTANTE
       * Not found is an Error
-5    C                   IF        $X>0
+5    C                   IF        $X=0
      C                   EVAL      U$IN35='1'
 5    C                   ELSE
-     C                   EVAL      $$URL=$$SVARVA($R)
+     C                   EVAL      $$URL=$$SVARVA($X)
       * Replace all variables of execution in url
      C                   EXSR      REPVAR
       * Replace all variables of initialisation in url
@@ -124,7 +124,7 @@
      C                   CALL      'JD_URL'
      C                   PARM                    §§FUNZ
      C                   PARM                    §§METO
-     C                   PARM                    $$SVAR
+     C                   PARM                    $$URL
      C                   ENDIF
       *
      C                   ENDSR

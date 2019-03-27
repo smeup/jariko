@@ -33,6 +33,12 @@ class Interpreter(val systemInterface: SystemInterface) {
     }
 
     fun execute(compilationUnit: CompilationUnit) {
+        compilationUnit.main.stmts.forEach {
+
+        }
+    }
+
+    private fun execute(statement: Statement) {
         TODO()
     }
 
