@@ -60,11 +60,16 @@ data class DataRefExpr(val variable: ReferenceByName<DataDefinition>, override v
 
 data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
 data class GreaterThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class GreaterEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class LessThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class LessEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class DifferentThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : Expression(position)
 data class FunctionCall(val function: ReferenceByName<Function>, val args: List<Expression>, override val position: Position? = null) : Expression(position)
 data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position)
 data class LogicalOrExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class LogicalAndExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
 
 //
 // Built-in functions

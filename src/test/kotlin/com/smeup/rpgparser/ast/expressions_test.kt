@@ -104,5 +104,5 @@ class ExpressionsTest {
                 expression("%trim(edited : '\$*')")
         )
     }
-    
+
 }

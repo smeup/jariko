@@ -80,8 +80,13 @@ fun ExpressionContext.toAst(considerPosition : Boolean = true): Expression {
         this.literal() != null -> this.literal().toAst(considerPosition)
         this.EQUAL() != null -> EqualityExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
         this.OR() != null -> LogicalOrExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+        this.AND() != null -> LogicalAndExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
         this.comparisonOperator() != null -> when {
             this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+            this.comparisonOperator().GE() != null -> GreaterEqualThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+            this.comparisonOperator().LT() != null -> LessThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+            this.comparisonOperator().LE() != null -> LessEqualThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
+            this.comparisonOperator().NE() != null -> DifferentThanExpr(this.expression(0).toAst(considerPosition), this.expression(1).toAst(considerPosition))
             else -> TODO("ComparisonOperator ${this.comparisonOperator().text}")
         }
         this.function() != null -> this.function().toAst(considerPosition)
