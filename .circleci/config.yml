@@ -24,7 +24,10 @@ jobs:
                 path: ~/test-results/junit            
             - store_artifacts:
                 path: build/reports/tests
-                destination: test-results-html/     
+                destination: test-results-html/
+            - store_artifacts:
+                  path: build/reports/jacoco
+                  destination: test-results-html/
             - save_cache:
                 paths:
                     - ~/.gradle

@@ -42,6 +42,13 @@ All tests can be executed by running:
 ./gradlew check
 ```
 
+If you want to force the execution of all checks:
+
+```
+./gradlew check -rerun-tasks
+```
+
+
 ## How the repository is organized
 
 * _generated-src_ contains the code generated from the grammar
