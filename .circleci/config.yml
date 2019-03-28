@@ -15,6 +15,7 @@ jobs:
                 command: |
                     mkdir -p ~/test-results/junit/
                     mkdir -p ~/test-results-html/
+                    mkdir -p ~/test-coverage-html/
                     find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
                 when: always
             - run: gradle assemble
@@ -27,7 +28,7 @@ jobs:
                 destination: test-results-html/
             - store_artifacts:
                   path: build/reports/jacoco
-                  destination: test-results-html/
+                  destination: test-coverage-html/
             - save_cache:
                 paths:
                     - ~/.gradle
