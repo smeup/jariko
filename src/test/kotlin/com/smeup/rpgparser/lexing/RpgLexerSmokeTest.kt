@@ -42,4 +42,9 @@ class RpgLexerSmokeTest {
     fun lexQILEGEN_POUND_TABA_POUND_1DS() {
         assertCanBeLexed("QILEGEN.£TABA£1DS")
     }
+
+    @Test
+    fun lexPROOF() {
+        assertCanBeLexed("PROOF")
+    }
 }
