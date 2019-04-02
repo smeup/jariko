@@ -62,3 +62,5 @@ If you want to force the execution of all checks:
 
 The grammar used in this project is based on the work from Ryan Eberly. It is derived from his project [rpgleparser](https://github.com/rpgleparser/rpgleparser).
 
+Some RPG Examples are from [Claudio Neroni](https://www.neroni.it) 
+
