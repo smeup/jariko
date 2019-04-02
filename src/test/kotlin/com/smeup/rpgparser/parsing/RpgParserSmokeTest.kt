@@ -57,4 +57,8 @@ class RpgParserSmokeTest {
         assertCanBeParsed("JCODFISS")
     }
 
+    @Test
+    fun parseJFTCPR() {
+        assertCanBeParsed("JFTCPR")
+    }
 }

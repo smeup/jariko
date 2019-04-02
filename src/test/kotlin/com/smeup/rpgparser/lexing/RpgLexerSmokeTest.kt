@@ -58,4 +58,8 @@ class RpgLexerSmokeTest {
         assertCanBeLexed("JCODFISS")
     }
 
+    @Test
+    fun lexJFTCPR() {
+        assertCanBeLexed("JFTCPR")
+    }
 }
