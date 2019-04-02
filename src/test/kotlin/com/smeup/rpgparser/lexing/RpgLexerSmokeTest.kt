@@ -47,4 +47,15 @@ class RpgLexerSmokeTest {
     fun lexPROOF() {
         assertCanBeLexed("PROOF")
     }
+
+    @Test
+    fun lexJCODFISD() {
+        assertCanBeLexed("JCODFISD")
+    }
+
+    @Test
+    fun lexJCODFISS() {
+        assertCanBeLexed("JCODFISS")
+    }
+
 }
