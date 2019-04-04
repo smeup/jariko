@@ -3,6 +3,7 @@ package com.smeup.rpgparser
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import java.util.*
+import javax.swing.RootPaneContainer
 
 /**
  * This represent the interface to the external world.
@@ -12,28 +13,18 @@ interface SystemInterface {
 
 }
 
-abstract class Value {
-    open fun asInt() : IntValue = throw UnsupportedOperationException()
-    open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
-}
-
-data class StringValue(val value: String) : Value()
-data class IntValue(val value: Long) : Value() {
-    override fun asInt() = this
-}
-data class BooleanValue(val value: Boolean) : Value() {
-    override fun asBoolean() = this
-}
-data class ArrayValue(val elements: MutableList<Value>) : Value()
-object BlanksValue : Value()
-
-fun createArrayValue(n: Int, creator: (Int) -> Value) = ArrayValue(Array(n, creator).toMutableList())
-fun blankString(length: Int) = StringValue(" ".repeat(length))
-
 class SymbolTable {
     private val values = HashMap<AbstractDataDefinition, Value>()
 
     operator fun get(data: AbstractDataDefinition) : Value {
+        if (data is FieldDefinition) {
+            val containerValue = get(data.container!!)
+            return if (data.container!!.isArray()) {
+                ProjectedArrayValue(containerValue as ArrayValue, data)
+            } else {
+                (containerValue as StructValue).elements[data]!!
+            }
+        }
         return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
     }
 
@@ -144,7 +135,7 @@ class Interpreter(val systemInterface: SystemInterface) {
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
                 val indexValue = interpret(target.index)
-                arrayValue.elements[indexValue.asInt().value.toInt()] = coerce(interpret(value), ((target.array as ArrayAccessExpr).array.type() as ArrayType).element)
+                arrayValue.setElement(indexValue.asInt().value.toInt(), coerce(interpret(value), (target.array.type() as ArrayType).element))
             }
             else -> TODO(target.toString())
         }
@@ -178,7 +169,7 @@ class Interpreter(val systemInterface: SystemInterface) {
             is NumberOfElementsExpr -> {
                 val value = interpret(expression.value)
                 when (value) {
-                    is ArrayValue -> value.elements.size.asValue()
+                    is ArrayValue -> value.size().asValue()
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
@@ -198,7 +189,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (dataDefinition.arrayLength != null && !forceElement) {
             val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
-            return ArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList())
+            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList())
         }
         return when {
             dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))

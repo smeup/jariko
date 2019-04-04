@@ -2,6 +2,7 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.DATA_STRUCTURE
 import com.strumenta.kolasu.model.*
+import java.lang.IllegalArgumentException
 import java.util.*
 
 enum class DataType {
@@ -31,17 +32,48 @@ class DataDefinition(override val name: String,
         return "DataDefinition($name, $dataType, $size)"
     }
 
+    fun isArray() = arrayLength != null
+    fun startOffset(fieldDefinition: FieldDefinition): Int {
+        var start = 0
+        for (f in fields ?: emptyList()) {
+            if (f == fieldDefinition) {
+                require(start >= 0)
+                return start
+            }
+            start += fieldDefinition.size
+        }
+        throw IllegalArgumentException("Unknown field $fieldDefinition")
+    }
+    fun endOffset(fieldDefinition: FieldDefinition): Int {
+        return startOffset(fieldDefinition) + fieldDefinition.size
+    }
 }
 
 data class FieldDefinition(override val name: String,
                       override val size: Int,
-                      override val position: Position? = null) : AbstractDataDefinition(name, size, position)
+                      override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
+
+    init {
+        require(size > 0)
+    }
+
+    @Derived
+    val container
+        get() = this.parent as DataDefinition
+    // TODO consider overlay directive
+    val startOffset: Int
+        get() = container.startOffset(this)
+    // TODO consider overlay directive
+    val endOffset: Int
+        get() = container.endOffset(this)
+}
 
 data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
                            val main: MainBody,
                            val subroutines: List<Subroutine>,
                            override val position: Position?) : Node(position) {
 
+    @Derived
     val dataDefinitonsAndFields : List<AbstractDataDefinition>
         get() {
             val res = LinkedList<AbstractDataDefinition>()
