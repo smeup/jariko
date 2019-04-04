@@ -94,45 +94,48 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     override fun render() = variable.name
 }
 
-data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class EqualityExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} = ${right.render()}"
 }
-data class GreaterThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class GreaterThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} > ${right.render()}"
 }
-data class GreaterEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class GreaterEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} >= ${right.render()}"
 }
-data class LessThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class LessThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} < ${right.render()}"
 }
-data class LessEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class LessEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} <= ${right.render()}"
 }
-data class DifferentThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class DifferentThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} <> ${right.render()}"
 }
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : Expression(position)
+
+// A Function call is not distinguishable from an array access
+// TODO replace them in the AST during the resolution phase
 data class FunctionCall(val function: ReferenceByName<Function>, val args: List<Expression>, override val position: Position? = null) : Expression(position)
 data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position)
-data class LogicalOrExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class LogicalOrExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} || ${right.render()}"
 }
-data class LogicalAndExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class LogicalAndExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} && ${right.render()}"
 }
 
-data class PlusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class PlusExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} + ${right.render()}"
 }
-data class MinusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class MinusExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} - ${right.render()}"
 }
-data class MultExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class MultExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} * ${right.render()}"
 }
-data class DivExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class DivExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} / ${right.render()}"
 }
 

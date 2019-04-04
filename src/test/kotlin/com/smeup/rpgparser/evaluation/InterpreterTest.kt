@@ -53,4 +53,19 @@ class InterpreterTest {
         assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
+
+    @Test
+    fun executeJD_000_base() {
+        val cu = assertASTCanBeProduced("JD_000_base", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf())
+    }
+
+    @Test
+    fun executeJD_000() {
+        val cu = assertASTCanBeProduced("JD_000", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf())
+    }
+
 }

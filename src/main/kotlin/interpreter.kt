@@ -130,7 +130,8 @@ class Interpreter(val systemInterface: SystemInterface) {
         when (expression) {
             is EqualityExpr -> {
                 if (expression.left is DataRefExpr) {
-                    globalSymbolTable[expression.left.variable.referred!!] = coerce(interpret(expression.right), expression.left.variable.referred!!)
+                    val l = expression.left as DataRefExpr
+                    globalSymbolTable[l.variable.referred!!] = coerce(interpret(expression.right), l.variable.referred!!)
                 } else {
                     TODO(expression.toString())
                 }
