@@ -108,25 +108,29 @@ class Interpreter(val systemInterface: SystemInterface) {
     }
 
     private fun execute(statement: Statement) {
-        when (statement) {
-            is ExecuteSubroutine -> {
-                logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
-                execute(statement.subroutine.referred!!.stmts)
-            }
-            is EvalStmt -> eval(statement.expression)
-            is SelectStmt -> {
-                for (case in statement.cases) {
-                    if (interpret(case.condition).asBoolean().value) {
-                        execute(case.body)
-                        return
+        try {
+            when (statement) {
+                is ExecuteSubroutine -> {
+                    logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
+                    execute(statement.subroutine.referred!!.stmts)
+                }
+                is EvalStmt -> eval(statement.expression)
+                is SelectStmt -> {
+                    for (case in statement.cases) {
+                        if (interpret(case.condition).asBoolean().value) {
+                            execute(case.body)
+                            return
+                        }
+                    }
+                    if (statement.other != null) {
+                        execute(statement.other!!.body)
                     }
                 }
-                if (statement.other != null) {
-                    execute(statement.other!!.body)
-                }
+                is SetOnStmt -> null /* Nothing to do here */
+                else -> TODO(statement.toString())
             }
-            is SetOnStmt -> null /* Nothing to do here */
-            else -> TODO(statement.toString())
+        } catch (e : RuntimeException) {
+            throw RuntimeException("Issue executing statement $statement", e)
         }
     }
 
@@ -161,6 +165,15 @@ class Interpreter(val systemInterface: SystemInterface) {
                 when (type) {
                     is DataDefinitionType -> {
                         blankValue(type.dataDefinition as DataDefinition)
+                    }
+                    else -> TODO(type.toString())
+                }
+            }
+            value is StringValue -> {
+                when (type) {
+                    is RawType -> {
+                        val missingLength = type.size!! - value.value.length
+                        StringValue(value.value + " ".repeat(missingLength))
                     }
                     else -> TODO(type.toString())
                 }
