@@ -40,7 +40,7 @@ class DataDefinition(override val name: String,
                 require(start >= 0)
                 return start
             }
-            start += fieldDefinition.size
+            start += f.size
         }
         throw IllegalArgumentException("Unknown field $fieldDefinition")
     }

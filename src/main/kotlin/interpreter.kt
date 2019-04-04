@@ -29,8 +29,17 @@ class SymbolTable {
     }
 
     operator fun get(dataName: String) : Value {
-        val data = values.keys.firstOrNull { it.name == dataName } ?: throw IllegalArgumentException("Cannot find value for $dataName")
-        return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+        val data = values.keys.firstOrNull { it.name == dataName }
+        if (data != null) {
+            return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+        }
+        for (e in values) {
+            val field = (e.key as DataDefinition).fields?.firstOrNull { it.name == dataName }
+            if (field != null) {
+                return ProjectedArrayValue(e.value as ArrayValue, field)
+            }
+        }
+        throw IllegalArgumentException("Cannot find value for $dataName")
     }
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -77,7 +86,7 @@ class Interpreter(val systemInterface: SystemInterface) {
         globalSymbolTable[data] = value
     }
 
-    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+    private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
         compilationUnit.dataDefinitions.forEach {
             if (it.name in initialValues) {
                 globalSymbolTable[it] = initialValues[it.name]!!
@@ -85,6 +94,10 @@ class Interpreter(val systemInterface: SystemInterface) {
                 globalSymbolTable[it] = blankValue(it)
             }
         }
+    }
+
+    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+        initialize(compilationUnit, initialValues)
         compilationUnit.main.stmts.forEach {
             execute(it)
         }

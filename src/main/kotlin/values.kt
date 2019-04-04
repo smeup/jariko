@@ -10,8 +10,16 @@ data class StringValue(var value: String) : Value() {
         require(startOffset >= 0)
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
-        require(endOffset <= value.length)
+        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
         value = value.substring(0, startOffset) + substringValue + value.substring(endOffset)
+    }
+
+    fun getSubstring(startOffset: Int, endOffset: Int) : StringValue {
+        require(startOffset >= 0)
+        require(startOffset <= value.length)
+        require(endOffset >= startOffset)
+        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
+        return StringValue(value.substring(startOffset, endOffset))
     }
 }
 
@@ -55,7 +63,14 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         }
     }
 
-    override fun getElement(index: Int) = (container.getElement(index) as StructValue).elements[field]!!
+    override fun getElement(index: Int) : Value {
+        val containerElement = container.getElement(index)
+        if (containerElement is StringValue) {
+            return containerElement.getSubstring(field.startOffset, field.endOffset)
+        } else {
+            TODO()
+        }
+    }
 
 }
 
