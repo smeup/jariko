@@ -67,38 +67,76 @@ class Function(override val name: String, override val position: Position? = nul
 // Expressions
 //
 
-abstract class Expression(override val position: Position? = null) : Node(position)
+abstract class Expression(override val position: Position? = null) : Node(position) {
+    open fun render() : String {
+        TODO(this.javaClass.canonicalName)
+    }
+}
 
-open class NumberLiteral(override val position: Position? = null) : Expression(position)
-data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position)
-data class RealLiteral(val value: Double, override val position: Position? = null) : NumberLiteral(position)
+abstract class NumberLiteral(override val position: Position? = null) : Expression(position)
+data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position) {
+    override fun render() = value.toString()
+}
+data class RealLiteral(val value: Double, override val position: Position? = null) : NumberLiteral(position) {
+    override fun render() = value.toString()
+}
 
-data class StringLiteral(val value: String, override val position: Position? = null) : Expression(position)
+data class StringLiteral(val value: String, override val position: Position? = null) : Expression(position) {
+    override fun render() = "\"$value\""
+}
 
-data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) : Expression(position)
+data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "%ELEM(${value.render()})"
+}
 abstract class FigurativeConstantRef(override val position: Position? = null) : Expression(position)
 data class BlanksRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OnRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
-data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Expression(position)
+data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Expression(position) {
+    override fun render() = variable.name
+}
 
-data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class GreaterThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class GreaterEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class LessThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class LessEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class DifferentThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left = $right"
+}
+data class GreaterThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left > $right"
+}
+data class GreaterEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left >= $right"
+}
+data class LessThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left < $right"
+}
+data class LessEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left <= $right"
+}
+data class DifferentThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left <> $right"
+}
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : Expression(position)
 data class FunctionCall(val function: ReferenceByName<Function>, val args: List<Expression>, override val position: Position? = null) : Expression(position)
 data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position)
-data class LogicalOrExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class LogicalAndExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class LogicalOrExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left || $right"
+}
+data class LogicalAndExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left && $right"
+}
 
-data class PlusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class MinusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class MultExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
-data class DivExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position)
+data class PlusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left + $right"
+}
+data class MinusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left - $right"
+}
+data class MultExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left * $right"
+}
+data class DivExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "$left / $right"
+}
 
 
 //

@@ -45,6 +45,10 @@ class InterpreterTest {
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
                 "U\$IN35" to StringValue("X")))
+        interpreter.getEvaluatedExpressions().forEach {
+            println(it.expression.render())
+        }
+        assertEquals(1, interpreter.getEvaluatedExpressions().size)
         assertEquals(listOf("IMP0", "FINZ", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
         assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["\$\$SVAR"])

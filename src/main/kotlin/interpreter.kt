@@ -49,6 +49,7 @@ class SymbolTable {
 
 abstract class LogEntry
 data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry()
+data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry()
 
 class Interpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
@@ -57,6 +58,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
+    fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
 
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
@@ -118,6 +120,12 @@ class Interpreter(val systemInterface: SystemInterface) {
     }
 
     fun interpret(expression: Expression) : Value {
+        val value = interpretConcrete(expression)
+        logs.add(ExpressionEvaluationLogEntry(expression, value))
+        return value
+    }
+
+    private fun interpretConcrete(expression: Expression) : Value {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
             is IntLiteral -> IntValue(expression.value)
