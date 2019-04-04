@@ -32,6 +32,14 @@ class ToAstSmokeTest {
     }
 
     @Test
+    fun buildAstForJCODFISS() {
+        val cu = assertASTCanBeProduced("JCODFISS")
+        assertEquals(0, cu.dataDefinitions.size)
+        assertEquals(2, cu.main.stmts.size)
+        assertEquals(0, cu.subroutines.size)
+    }
+
+    @Test
     fun buildAstForJD_001_dataDefinitions() {
         val root = assertASTCanBeProduced("JD_001")
         assertEquals(10, root.dataDefinitions.size)

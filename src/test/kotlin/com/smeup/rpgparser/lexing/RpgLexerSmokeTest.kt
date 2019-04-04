@@ -9,6 +9,11 @@ import org.junit.Test
 class RpgLexerSmokeTest {
 
     @Test
+    fun lexJD_000() {
+        assertCanBeLexed("JD_000")
+    }
+
+    @Test
     fun lexJD_001() {
         assertCanBeLexed("JD_001")
     }
@@ -36,5 +41,35 @@ class RpgLexerSmokeTest {
     @Test
     fun lexQILEGEN_POUND_TABA_POUND_1DS() {
         assertCanBeLexed("QILEGEN.£TABA£1DS")
+    }
+
+    @Test
+    fun lexPROOF() {
+        assertCanBeLexed("PROOF")
+    }
+
+    @Test
+    fun lexJCODFISD() {
+        assertCanBeLexed("JCODFISD")
+    }
+
+    @Test
+    fun lexJCODFISS() {
+        assertCanBeLexed("JCODFISS")
+    }
+
+    @Test
+    fun lexJFTCPR() {
+        assertCanBeLexed("JFTCPR")
+    }
+
+    @Test
+    fun lexJDATWD() {
+        assertCanBeLexed("JDATWD")
+    }
+
+    @Test
+    fun lexJDATWDK() {
+        assertCanBeLexed("JDATWDK")
     }
 }

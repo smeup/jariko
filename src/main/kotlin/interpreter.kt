@@ -25,6 +25,7 @@ data class BooleanValue(val value: Boolean) : Value() {
     override fun asBoolean() = this
 }
 data class ArrayValue(val elements: List<Value>) : Value()
+object BlanksValue : Value()
 
 fun createArrayValue(n: Int, creator: (Int) -> Value) = ArrayValue(Array(n, creator).toList())
 fun blankString(length: Int) = StringValue(" ".repeat(length))
@@ -129,12 +130,27 @@ class Interpreter(val systemInterface: SystemInterface) {
         when (expression) {
             is EqualityExpr -> {
                 if (expression.left is DataRefExpr) {
-                    globalSymbolTable[expression.left.variable.referred!!] = interpret(expression.right)
+                    globalSymbolTable[expression.left.variable.referred!!] = coerce(interpret(expression.right), expression.left.variable.referred!!)
                 } else {
                     TODO(expression.toString())
                 }
             }
             else -> TODO(expression.toString())
+        }
+    }
+
+    private fun coerce(value: Value, data: AbstractDataDefinition) : Value {
+        // TODO to be completed
+        return when {
+            value is BlanksValue -> {
+                when (data) {
+                    is DataDefinition -> {
+                        blankValue(data)
+                    }
+                    else -> TODO(data.toString())
+                }
+            }
+            else -> value
         }
     }
 
@@ -160,6 +176,9 @@ class Interpreter(val systemInterface: SystemInterface) {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 return (left == right).asValue()
+            }
+            is BlanksRefExpr -> {
+                return BlanksValue
             }
             else -> TODO(expression.toString())
         }

@@ -2,6 +2,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://travis-ci.org/smeup/smeup-rpg.svg?branch=master)](https://travis-ci.org/smeup/smeup-rpg)
+[![CircleCI](https://circleci.com/gh/smeup/smeup-rpg.svg?style=svg)](https://circleci.com/gh/smeup/smeup-rpg)
+[![codebeat badge](https://codebeat.co/badges/92633ae2-5640-47b3-a0e7-b324f68288ac)](https://codebeat.co/projects/github-com-smeup-smeup-rpg-master)
 
 This project contains an interpreter for RPG, which runs on the JVM. The interpreter is written in Kotlin.
 
@@ -40,6 +42,13 @@ All tests can be executed by running:
 ./gradlew check
 ```
 
+If you want to force the execution of all checks:
+
+```
+./gradlew check -rerun-tasks
+```
+
+
 ## How the repository is organized
 
 * _generated-src_ contains the code generated from the grammar
@@ -52,4 +61,6 @@ All tests can be executed by running:
 ## Credits
 
 The grammar used in this project is based on the work from Ryan Eberly. It is derived from his project [rpgleparser](https://github.com/rpgleparser/rpgleparser).
+
+Some RPG Examples are from [Claudio Neroni](https://www.neroni.it) 
 

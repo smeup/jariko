@@ -68,9 +68,7 @@ class Function(override val name: String, override val position: Position? = nul
 //
 
 abstract class Expression(override val position: Position? = null) : Node(position) {
-    open fun render() : String {
-        TODO(this.javaClass.canonicalName)
-    }
+    open fun render() = this.javaClass.simpleName
 }
 
 abstract class NumberLiteral(override val position: Position? = null) : Expression(position)

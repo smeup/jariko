@@ -393,7 +393,7 @@ private fun CsPARMContext.toAst(considerPosition: Boolean = true): PlistParam {
 }
 
 private fun CsSETONContext.toAst(considerPosition: Boolean = true): SetOnStmt {
-    return SetOnStmt(DataWrapUpChoice.valueOf(this.cspec_fixed_standard_parts().hi.text), toPosition(considerPosition))
+    return SetOnStmt(DataWrapUpChoice.valueOf(this.cspec_fixed_standard_parts().hi.text.toUpperCase()), toPosition(considerPosition))
 }
 
 private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubroutine {
