@@ -59,6 +59,25 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
     fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
+    /**
+     * Remove an expression if the last time the same expression was evaluated it had the same value
+     */
+    fun getEvaluatedExpressionsConcise() : List<ExpressionEvaluationLogEntry> {
+        val base= logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
+        var i = 0
+        while (i < base.size) {
+            val current = base[i]
+            val found = base.subList(0, i).reversed().firstOrNull {
+                it.expression == current.expression
+            }?.value == current.value
+            if (found) {
+                base.removeAt(i)
+            } else {
+                i++
+            }
+        }
+        return base
+    }
 
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
@@ -80,7 +99,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     }
 
     private fun execute(statements: List<Statement>) {
-        statements.forEach { it }
+        statements.forEach { execute(it) }
     }
 
     private fun execute(statement: Statement) {
