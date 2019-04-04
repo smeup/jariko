@@ -96,11 +96,11 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf())
     }
 
-    @Test
-    fun executeJD_000() {
-        val cu = assertASTCanBeProduced("JD_000", true)
-        cu.resolve()
-        val interpreter = execute(cu, mapOf())
-    }
+//    @Test
+//    fun executeJD_000() {
+//        val cu = assertASTCanBeProduced("JD_000", true)
+//        cu.resolve()
+//        val interpreter = execute(cu, mapOf())
+//    }
 
 }

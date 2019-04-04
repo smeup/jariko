@@ -23,6 +23,9 @@ fun AbstractDataDefinition.type(): Type {
                 baseType
             }
         }
+        is DataDefinition -> {
+            return RawType(this.size)
+        }
         else -> TODO(this.javaClass.canonicalName)
     }
 }

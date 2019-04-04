@@ -166,6 +166,9 @@ class Interpreter(val systemInterface: SystemInterface) {
                     is DataDefinitionType -> {
                         blankValue(type.dataDefinition as DataDefinition)
                     }
+                    is RawType -> {
+                        blankValue(type.size!!)
+                    }
                     else -> TODO(type.toString())
                 }
             }
@@ -211,6 +214,8 @@ class Interpreter(val systemInterface: SystemInterface) {
             else -> TODO(expression.toString())
         }
     }
+
+    fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (dataDefinition.arrayLength != null && !forceElement) {

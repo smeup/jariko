@@ -182,7 +182,7 @@ data class DivExpr(var left: Expression, var right: Expression, override val pos
 
 data class LookupExpr(val value: Expression, val array: Expression, override val position: Position? = null) : Expression(position)
 data class ScanExpr(val value: Expression, val source: Expression, val start: Expression? = null, override val position: Position? = null) : Expression(position)
-data class TranslateExpr(val from: Expression, val to: Expression, val string: Expression,
+data class TranslateExpr(var from: Expression, var to: Expression, var string: Expression,
                          val startPos: Expression? = null, override val position: Position? = null) : Expression(position)
 data class TrimExpr(val value: Expression, val charactersToTrim: Expression? = null,
                     override val position: Position? = null) : Expression(position)
