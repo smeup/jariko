@@ -1,10 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.DATA_STRUCTURE
-import com.strumenta.kolasu.model.Named
-import com.strumenta.kolasu.model.Node
-import com.strumenta.kolasu.model.Position
-import com.strumenta.kolasu.model.ReferenceByName
+import com.strumenta.kolasu.model.*
 import java.util.*
 
 enum class DataType {
@@ -90,12 +87,19 @@ abstract class FigurativeConstantRef(override val position: Position? = null) : 
 data class BlanksRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OnRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
-data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Expression(position) {
+
+abstract class AssignableExpression(override val position: Position? = null) : Expression(position)
+
+data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null)
+    : AssignableExpression(position) {
     override fun render() = variable.name
 }
 
 data class EqualityExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} = ${right.render()}"
+}
+data class AssignmentExpr(var target: AssignableExpression, var value: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "${target.render()} = ${value.render()}"
 }
 data class GreaterThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} > ${right.render()}"
@@ -113,7 +117,7 @@ data class DifferentThanExpr(var left: Expression, var right: Expression, overri
     override fun render() = "${left.render()} <> ${right.render()}"
 }
 
-data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : Expression(position)
+data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : AssignableExpression(position)
 
 // A Function call is not distinguishable from an array access
 // TODO replace them in the AST during the resolution phase
@@ -163,13 +167,13 @@ data class PredefinedIndicatorExpr(val index: Int, override val position: Positi
 //
 
 abstract class Statement(override val position: Position? = null) : Node(position)
-data class ExecuteSubroutine(val subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
-data class SelectStmt(val cases: List<SelectCase>,
-                      val other: SelectOtherClause? = null,
+data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
+data class SelectStmt(var cases: List<SelectCase>,
+                      var other: SelectOtherClause? = null,
                       override val position: Position? = null) : Statement(position)
 data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
-data class EvalStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
+data class EvalStmt(var expression: Expression, override val position: Position? = null) : Statement(position)
 data class CallStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),

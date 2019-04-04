@@ -24,10 +24,10 @@ data class IntValue(val value: Long) : Value() {
 data class BooleanValue(val value: Boolean) : Value() {
     override fun asBoolean() = this
 }
-data class ArrayValue(val elements: List<Value>) : Value()
+data class ArrayValue(val elements: MutableList<Value>) : Value()
 object BlanksValue : Value()
 
-fun createArrayValue(n: Int, creator: (Int) -> Value) = ArrayValue(Array(n, creator).toList())
+fun createArrayValue(n: Int, creator: (Int) -> Value) = ArrayValue(Array(n, creator).toMutableList())
 fun blankString(length: Int) = StringValue(" ".repeat(length))
 
 class SymbolTable {
@@ -118,7 +118,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 if (statement.other != null) {
-                    execute(statement.other.body)
+                    execute(statement.other!!.body)
                 }
             }
             is SetOnStmt -> null /* Nothing to do here */
@@ -128,27 +128,37 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     private fun eval(expression: Expression) {
         when (expression) {
-            is EqualityExpr -> {
-                if (expression.left is DataRefExpr) {
-                    val l = expression.left as DataRefExpr
-                    globalSymbolTable[l.variable.referred!!] = coerce(interpret(expression.right), l.variable.referred!!)
-                } else {
-                    TODO(expression.toString())
-                }
+            is AssignmentExpr -> {
+                assign(expression.target, expression.value)
             }
             else -> TODO(expression.toString())
         }
     }
 
-    private fun coerce(value: Value, data: AbstractDataDefinition) : Value {
+    private fun assign(target: AssignableExpression, value: Expression) {
+        when (target) {
+            is DataRefExpr -> {
+                val l = target as DataRefExpr
+                globalSymbolTable[target.variable.referred!!] = coerce(interpret(value), l.variable.referred!!.type())
+            }
+            is ArrayAccessExpr -> {
+                val arrayValue = interpret(target.array) as ArrayValue
+                val indexValue = interpret(target.index)
+                arrayValue.elements[indexValue.asInt().value.toInt()] = coerce(interpret(value), ((target.array as ArrayAccessExpr).array.type() as ArrayType).element)
+            }
+            else -> TODO(target.toString())
+        }
+    }
+
+    private fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
         return when {
             value is BlanksValue -> {
-                when (data) {
-                    is DataDefinition -> {
-                        blankValue(data)
+                when (type) {
+                    is DataDefinitionType -> {
+                        blankValue(type.dataDefinition as DataDefinition)
                     }
-                    else -> TODO(data.toString())
+                    else -> TODO(type.toString())
                 }
             }
             else -> value
@@ -188,7 +198,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (dataDefinition.arrayLength != null && !forceElement) {
             val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
-            return ArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toList())
+            return ArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList())
         }
         return when {
             dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
