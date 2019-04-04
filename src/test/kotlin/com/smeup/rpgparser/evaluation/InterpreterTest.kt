@@ -3,6 +3,7 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class InterpreterTest {
 
@@ -53,4 +54,53 @@ class InterpreterTest {
         assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
+
+    @Test
+    fun executeJD_000_datainit() {
+        val cu = assertASTCanBeProduced("JD_000_datainit", true)
+        cu.resolve()
+
+        assertEquals("U\$SVARSK", cu.dataDefinitonsAndFields[0].name)
+        assertEquals("\$\$SVARCD", cu.dataDefinitonsAndFields[1].name)
+        assertEquals("\$\$SVARVA", cu.dataDefinitonsAndFields[2].name)
+        assertEquals(0, (cu.dataDefinitonsAndFields[1] as FieldDefinition).startOffset)
+        assertEquals(50, (cu.dataDefinitonsAndFields[1] as FieldDefinition).endOffset)
+        assertEquals(50, (cu.dataDefinitonsAndFields[2] as FieldDefinition).startOffset)
+        assertEquals(1050, (cu.dataDefinitonsAndFields[2] as FieldDefinition).endOffset)
+
+        val interpreter = execute(cu, mapOf())
+
+        val svarsk = interpreter["U\$SVARSK"]
+        assertTrue(svarsk is ArrayValue)
+        assertEquals(200, (svarsk as ArrayValue).size())
+        val svarskElement = (svarsk as ArrayValue).getElement(0)
+        assertEquals(blankString(1050), svarskElement)
+
+        val svarcd = interpreter["\$\$SVARCD"]
+        assertTrue(svarcd is ArrayValue)
+        assertEquals(200, (svarcd as ArrayValue).size())
+        val svarcdElement = (svarcd as ArrayValue).getElement(0)
+        assertEquals(blankString(50), svarcdElement)
+
+        val svarva = interpreter["\$\$SVARVA"]
+        assertTrue(svarva is ArrayValue)
+        assertEquals(200, (svarva as ArrayValue).size())
+        val svarvaElement = (svarva as ArrayValue).getElement(0)
+        assertEquals(blankString(1000), svarvaElement)
+    }
+
+    @Test
+    fun executeJD_000_base() {
+        val cu = assertASTCanBeProduced("JD_000_base", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf())
+    }
+
+//    @Test
+//    fun executeJD_000() {
+//        val cu = assertASTCanBeProduced("JD_000", true)
+//        cu.resolve()
+//        val interpreter = execute(cu, mapOf())
+//    }
+
 }

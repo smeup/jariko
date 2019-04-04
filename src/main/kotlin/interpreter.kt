@@ -3,6 +3,7 @@ package com.smeup.rpgparser
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import java.util.*
+import javax.swing.RootPaneContainer
 
 /**
  * This represent the interface to the external world.
@@ -12,34 +13,33 @@ interface SystemInterface {
 
 }
 
-abstract class Value {
-    open fun asInt() : IntValue = throw UnsupportedOperationException()
-    open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
-}
-
-data class StringValue(val value: String) : Value()
-data class IntValue(val value: Long) : Value() {
-    override fun asInt() = this
-}
-data class BooleanValue(val value: Boolean) : Value() {
-    override fun asBoolean() = this
-}
-data class ArrayValue(val elements: List<Value>) : Value()
-object BlanksValue : Value()
-
-fun createArrayValue(n: Int, creator: (Int) -> Value) = ArrayValue(Array(n, creator).toList())
-fun blankString(length: Int) = StringValue(" ".repeat(length))
-
 class SymbolTable {
     private val values = HashMap<AbstractDataDefinition, Value>()
 
     operator fun get(data: AbstractDataDefinition) : Value {
+        if (data is FieldDefinition) {
+            val containerValue = get(data.container!!)
+            return if (data.container!!.isArray()) {
+                ProjectedArrayValue(containerValue as ArrayValue, data)
+            } else {
+                (containerValue as StructValue).elements[data]!!
+            }
+        }
         return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
     }
 
     operator fun get(dataName: String) : Value {
-        val data = values.keys.firstOrNull { it.name == dataName } ?: throw IllegalArgumentException("Cannot find value for $dataName")
-        return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+        val data = values.keys.firstOrNull { it.name == dataName }
+        if (data != null) {
+            return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+        }
+        for (e in values) {
+            val field = (e.key as DataDefinition).fields?.firstOrNull { it.name == dataName }
+            if (field != null) {
+                return ProjectedArrayValue(e.value as ArrayValue, field)
+            }
+        }
+        throw IllegalArgumentException("Cannot find value for $dataName")
     }
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -86,7 +86,7 @@ class Interpreter(val systemInterface: SystemInterface) {
         globalSymbolTable[data] = value
     }
 
-    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+    private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
         compilationUnit.dataDefinitions.forEach {
             if (it.name in initialValues) {
                 globalSymbolTable[it] = initialValues[it.name]!!
@@ -94,6 +94,10 @@ class Interpreter(val systemInterface: SystemInterface) {
                 globalSymbolTable[it] = blankValue(it)
             }
         }
+    }
+
+    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+        initialize(compilationUnit, initialValues)
         compilationUnit.main.stmts.forEach {
             execute(it)
         }
@@ -104,50 +108,77 @@ class Interpreter(val systemInterface: SystemInterface) {
     }
 
     private fun execute(statement: Statement) {
-        when (statement) {
-            is ExecuteSubroutine -> {
-                logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
-                execute(statement.subroutine.referred!!.stmts)
-            }
-            is EvalStmt -> eval(statement.expression)
-            is SelectStmt -> {
-                for (case in statement.cases) {
-                    if (interpret(case.condition).asBoolean().value) {
-                        execute(case.body)
-                        return
+        try {
+            when (statement) {
+                is ExecuteSubroutine -> {
+                    logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
+                    execute(statement.subroutine.referred!!.stmts)
+                }
+                is EvalStmt -> eval(statement.expression)
+                is SelectStmt -> {
+                    for (case in statement.cases) {
+                        if (interpret(case.condition).asBoolean().value) {
+                            execute(case.body)
+                            return
+                        }
+                    }
+                    if (statement.other != null) {
+                        execute(statement.other!!.body)
                     }
                 }
-                if (statement.other != null) {
-                    execute(statement.other.body)
-                }
+                is SetOnStmt -> null /* Nothing to do here */
+                else -> TODO(statement.toString())
             }
-            is SetOnStmt -> null /* Nothing to do here */
-            else -> TODO(statement.toString())
+        } catch (e : RuntimeException) {
+            throw RuntimeException("Issue executing statement $statement", e)
         }
     }
 
     private fun eval(expression: Expression) {
         when (expression) {
-            is EqualityExpr -> {
-                if (expression.left is DataRefExpr) {
-                    globalSymbolTable[expression.left.variable.referred!!] = coerce(interpret(expression.right), expression.left.variable.referred!!)
-                } else {
-                    TODO(expression.toString())
-                }
+            is AssignmentExpr -> {
+                assign(expression.target, expression.value)
             }
             else -> TODO(expression.toString())
         }
     }
 
-    private fun coerce(value: Value, data: AbstractDataDefinition) : Value {
+    private fun assign(target: AssignableExpression, value: Expression) {
+        when (target) {
+            is DataRefExpr -> {
+                val l = target as DataRefExpr
+                globalSymbolTable[target.variable.referred!!] = coerce(interpret(value), l.variable.referred!!.type())
+            }
+            is ArrayAccessExpr -> {
+                val arrayValue = interpret(target.array) as ArrayValue
+                val indexValue = interpret(target.index)
+                arrayValue.setElement(indexValue.asInt().value.toInt(), coerce(interpret(value), (target.array.type() as ArrayType).element))
+            }
+            else -> TODO(target.toString())
+        }
+    }
+
+    private fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
         return when {
             value is BlanksValue -> {
-                when (data) {
-                    is DataDefinition -> {
-                        blankValue(data)
+                when (type) {
+                    is DataDefinitionType -> {
+                        blankValue(type.dataDefinition as DataDefinition)
                     }
-                    else -> TODO(data.toString())
+                    is RawType -> {
+                        blankValue(type.size!!)
+                    }
+                    else -> TODO(type.toString())
+                }
+            }
+            value is StringValue -> {
+                when (type) {
+                    is RawType -> {
+                        val missingLength = type.size!! - value.value.length
+                        StringValue(value.value + " ".repeat(missingLength))
+                    }
+                    else -> TODO(type.toString())
                 }
             }
             else -> value
@@ -167,7 +198,7 @@ class Interpreter(val systemInterface: SystemInterface) {
             is NumberOfElementsExpr -> {
                 val value = interpret(expression.value)
                 when (value) {
-                    is ArrayValue -> value.elements.size.asValue()
+                    is ArrayValue -> value.size().asValue()
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
@@ -184,10 +215,12 @@ class Interpreter(val systemInterface: SystemInterface) {
         }
     }
 
+    fun blankValue(size: Int) = StringValue(" ".repeat(size))
+
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (dataDefinition.arrayLength != null && !forceElement) {
             val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
-            return ArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toList())
+            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList())
         }
         return when {
             dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))

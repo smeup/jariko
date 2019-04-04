@@ -1,10 +1,8 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.DATA_STRUCTURE
-import com.strumenta.kolasu.model.Named
-import com.strumenta.kolasu.model.Node
-import com.strumenta.kolasu.model.Position
-import com.strumenta.kolasu.model.ReferenceByName
+import com.strumenta.kolasu.model.*
+import java.lang.IllegalArgumentException
 import java.util.*
 
 enum class DataType {
@@ -34,17 +32,48 @@ class DataDefinition(override val name: String,
         return "DataDefinition($name, $dataType, $size)"
     }
 
+    fun isArray() = arrayLength != null
+    fun startOffset(fieldDefinition: FieldDefinition): Int {
+        var start = 0
+        for (f in fields ?: emptyList()) {
+            if (f == fieldDefinition) {
+                require(start >= 0)
+                return start
+            }
+            start += f.size
+        }
+        throw IllegalArgumentException("Unknown field $fieldDefinition")
+    }
+    fun endOffset(fieldDefinition: FieldDefinition): Int {
+        return startOffset(fieldDefinition) + fieldDefinition.size
+    }
 }
 
 data class FieldDefinition(override val name: String,
                       override val size: Int,
-                      override val position: Position? = null) : AbstractDataDefinition(name, size, position)
+                      override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
+
+    init {
+        require(size > 0)
+    }
+
+    @Derived
+    val container
+        get() = this.parent as DataDefinition
+    // TODO consider overlay directive
+    val startOffset: Int
+        get() = container.startOffset(this)
+    // TODO consider overlay directive
+    val endOffset: Int
+        get() = container.endOffset(this)
+}
 
 data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
                            val main: MainBody,
                            val subroutines: List<Subroutine>,
                            override val position: Position?) : Node(position) {
 
+    @Derived
     val dataDefinitonsAndFields : List<AbstractDataDefinition>
         get() {
             val res = LinkedList<AbstractDataDefinition>()
@@ -90,49 +119,59 @@ abstract class FigurativeConstantRef(override val position: Position? = null) : 
 data class BlanksRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OnRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
-data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Expression(position) {
+
+abstract class AssignableExpression(override val position: Position? = null) : Expression(position)
+
+data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null)
+    : AssignableExpression(position) {
     override fun render() = variable.name
 }
 
-data class EqualityExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class EqualityExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} = ${right.render()}"
 }
-data class GreaterThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class AssignmentExpr(var target: AssignableExpression, var value: Expression, override val position: Position? = null) : Expression(position) {
+    override fun render() = "${target.render()} = ${value.render()}"
+}
+data class GreaterThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} > ${right.render()}"
 }
-data class GreaterEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class GreaterEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} >= ${right.render()}"
 }
-data class LessThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class LessThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} < ${right.render()}"
 }
-data class LessEqualThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class LessEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} <= ${right.render()}"
 }
-data class DifferentThanExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class DifferentThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} <> ${right.render()}"
 }
 
-data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : Expression(position)
+data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : AssignableExpression(position)
+
+// A Function call is not distinguishable from an array access
+// TODO replace them in the AST during the resolution phase
 data class FunctionCall(val function: ReferenceByName<Function>, val args: List<Expression>, override val position: Position? = null) : Expression(position)
 data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position)
-data class LogicalOrExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class LogicalOrExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} || ${right.render()}"
 }
-data class LogicalAndExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class LogicalAndExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} && ${right.render()}"
 }
 
-data class PlusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class PlusExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} + ${right.render()}"
 }
-data class MinusExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class MinusExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} - ${right.render()}"
 }
-data class MultExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class MultExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} * ${right.render()}"
 }
-data class DivExpr(val left: Expression, val right: Expression, override val position: Position? = null) : Expression(position) {
+data class DivExpr(var left: Expression, var right: Expression, override val position: Position? = null) : Expression(position) {
     override fun render() = "${left.render()} / ${right.render()}"
 }
 
@@ -143,7 +182,7 @@ data class DivExpr(val left: Expression, val right: Expression, override val pos
 
 data class LookupExpr(val value: Expression, val array: Expression, override val position: Position? = null) : Expression(position)
 data class ScanExpr(val value: Expression, val source: Expression, val start: Expression? = null, override val position: Position? = null) : Expression(position)
-data class TranslateExpr(val from: Expression, val to: Expression, val string: Expression,
+data class TranslateExpr(var from: Expression, var to: Expression, var string: Expression,
                          val startPos: Expression? = null, override val position: Position? = null) : Expression(position)
 data class TrimExpr(val value: Expression, val charactersToTrim: Expression? = null,
                     override val position: Position? = null) : Expression(position)
@@ -160,13 +199,13 @@ data class PredefinedIndicatorExpr(val index: Int, override val position: Positi
 //
 
 abstract class Statement(override val position: Position? = null) : Node(position)
-data class ExecuteSubroutine(val subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
-data class SelectStmt(val cases: List<SelectCase>,
-                      val other: SelectOtherClause? = null,
+data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
+data class SelectStmt(var cases: List<SelectCase>,
+                      var other: SelectOtherClause? = null,
                       override val position: Position? = null) : Statement(position)
 data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
-data class EvalStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
+data class EvalStmt(var expression: Expression, override val position: Position? = null) : Statement(position)
 data class CallStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),
