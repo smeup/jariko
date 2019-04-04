@@ -125,8 +125,24 @@ private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
         this.bif_trim() != null -> this.bif_trim().toAst(considerPosition)
         this.bif_subst() != null -> this.bif_subst().toAst(considerPosition)
         this.bif_len() != null -> this.bif_len().toAst(considerPosition)
+        this.bif_dec() != null -> this.bif_dec().toAst(considerPosition)
+        this.bif_char() != null -> this.bif_char().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun Bif_charContext.toAst(considerPosition: Boolean = true): CharExpr {
+    return CharExpr(
+            this.expression().toAst(considerPosition),
+            toPosition(considerPosition))
+}
+
+private fun Bif_decContext.toAst(considerPosition: Boolean = true): DecExpr {
+    return DecExpr(
+            this.expression(0).toAst(considerPosition),
+            this.expression(1).toAst(considerPosition),
+            this.expression(2).toAst(considerPosition),
+            toPosition(considerPosition))
 }
 
 private fun Bif_lenContext.toAst(considerPosition: Boolean = true): LenExpr {
@@ -349,6 +365,7 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
         this.csLEAVE() != null -> LeaveStmt(toPosition(considerPosition))
         this.csITER() != null -> IterStmt(toPosition(considerPosition))
         this.csOTHER() != null -> OtherStmt(toPosition(considerPosition))
+        this.csDSPLY() != null -> this.csDSPLY().toAst(considerPosition)
         else -> TODO("${this.text.toString()} at ${this.toPosition(true)}")
     }
 }
@@ -371,6 +388,10 @@ private fun referenceToExpression(text: String, position: Position?) : Expressio
                         position.start.plus(text.substring(0, text.lastIndexOf(")"))))))
     }
     return expr
+}
+
+private fun CsDSPLYContext.toAst(considerPosition: Boolean = true): DisplayStmt {
+    TODO()
 }
 
 private fun CsCLEARContext.toAst(considerPosition: Boolean = true): ClearStmt {

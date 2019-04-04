@@ -103,4 +103,11 @@ class InterpreterTest {
 //        val interpreter = execute(cu, mapOf())
 //    }
 
+    @Test
+    fun executeCALCFIB() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
+    }
+
 }

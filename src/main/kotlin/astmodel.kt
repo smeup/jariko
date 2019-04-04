@@ -193,6 +193,10 @@ data class LenExpr(val value: Expression, override val position: Position? = nul
     : Expression(position)
 data class PredefinedIndicatorExpr(val index: Int, override val position: Position? = null)
     : Expression(position)
+data class DecExpr(val value: Expression, var intDigits : Expression, val decDigits: Expression, override val position: Position? = null)
+    : Expression(position)
+data class CharExpr(val value: Expression, override val position: Position? = null)
+    : Expression(position)
 
 //
 // Statements
@@ -218,6 +222,7 @@ data class SetOnStmt(val choice: DataWrapUpChoice, override val position: Positi
 data class PlistStmt(val params: List<PlistParam>, override val position: Position? = null) : Statement(position)
 data class PlistParam(val paramName: String, override val position: Position? = null) : Node(position)
 data class ClearStmt(val value: Expression, override val position: Position? = null) : Statement(position)
+data class DisplayStmt(val value: Expression, override val position: Position? = null) : Statement(position)
 data class DoStmt(val body: List<Statement>, override val position: Position? = null) : Statement(position)
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 data class IterStmt(override val position: Position? = null) : Statement(position)
