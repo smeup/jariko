@@ -72,4 +72,9 @@ class RpgLexerSmokeTest {
     fun lexJDATWDK() {
         assertCanBeLexed("JDATWDK")
     }
+
+    @Test
+    fun lexCALCFIB() {
+        assertCanBeLexed("CALCFIB")
+    }
 }
