@@ -88,4 +88,13 @@ class RpgLexerSmokeTest {
         assertCanBeLexed("HELLO1")
     }
 
+    @Test
+    fun lexJRANDOMA() {
+        assertCanBeLexed("JRANDOMA")
+    }
+
+    @Test
+    fun lexJRANDOMCAL() {
+        assertCanBeLexed("JRANDOMCAL")
+    }
 }
