@@ -144,8 +144,8 @@ class Interpreter(val systemInterface: SystemInterface) {
                     systemInterface.display(render(value))
                 }
                 is ForStmt -> {
-                    val initValue = eval(statement.init)
-                    while (areEquals(initValue, eval(statement.endValue))) {
+                    eval(statement.init)
+                    while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
                         execute(statement.body)
                         increment(statement.iterDataDefinition())
                     }
@@ -157,8 +157,21 @@ class Interpreter(val systemInterface: SystemInterface) {
         }
     }
 
+    private fun isEqualOrSmaller(value1: Value, value2: Value) : Boolean {
+        return when {
+            value1 is IntValue && value2 is IntValue -> value1.value <= value2.value
+            else -> TODO()
+        }
+    }
+
     private fun increment(dataDefinition: AbstractDataDefinition) {
-        TODO()
+        val value = this[dataDefinition]
+        if (value is IntValue) {
+            println("incrementing ${dataDefinition.name} from ${value}")
+            this[dataDefinition] = IntValue(value.value + 1)
+        } else {
+            throw UnsupportedOperationException()
+        }
     }
 
     private fun areEquals(value1: Value, value2: Value) : Boolean {
@@ -270,6 +283,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                 val right = interpret(expression.right)
                 when {
                     left is StringValue && right is StringValue -> StringValue(left.value + right.value)
+                    left is IntValue && right is IntValue -> IntValue(left.value + right.value)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
             }

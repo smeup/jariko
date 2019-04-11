@@ -24,7 +24,7 @@
      C                   EVAL      RESULT = 1
      C                   OTHER
      C                   FOR       COUNT = 2 TO NBR
-     C                   EVAL      RESULT = A + B
+     C                   EVAL      RESULT = (A + B)
      C                   EVAL      A = B
      C                   EVAL      B = RESULT
      C                   ENDFOR

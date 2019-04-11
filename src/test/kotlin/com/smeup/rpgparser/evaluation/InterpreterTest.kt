@@ -154,7 +154,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("1")), si)
-        assertEquals(listOf("FIBONACCI OF: 0 IS: 1                             "), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 1 IS: 1                             "), si.displayed)
     }
 
     @Test
@@ -163,7 +163,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("2")), si)
-        assertEquals(listOf("FIBONACCI OF: 0 IS: 1                             "), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 2 IS: 1                             "), si.displayed)
     }
 
     @Test
@@ -172,7 +172,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")), si)
-        assertEquals(listOf("FIBONACCI OF: 0 IS: 2                             "), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 3 IS: 2                             "), si.displayed)
     }
 
     @Test
@@ -181,7 +181,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("4")), si)
-        assertEquals(listOf("FIBONACCI OF: 0 IS: 3                             "), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 4 IS: 3                             "), si.displayed)
     }
 
     @Test
@@ -190,7 +190,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
-        assertEquals(listOf("FIBONACCI OF: 0 IS: 55                            "), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55                           "), si.displayed)
     }
 
 }

@@ -186,7 +186,15 @@ data class ForStmt(
         val endValue: Expression,
         val body: List<Statement>, override val position: Position? = null) : Statement(position) {
     fun iterDataDefinition(): AbstractDataDefinition {
-        TODO()
+        if (init is AssignmentExpr) {
+            if ((init as AssignmentExpr).target is DataRefExpr) {
+                return ((init as AssignmentExpr).target as DataRefExpr).variable.referred!!
+            } else {
+                throw UnsupportedOperationException()
+            }
+        } else {
+            throw UnsupportedOperationException()
+        }
     }
 }
 
