@@ -2,15 +2,16 @@ package com.smeup.rpgparser
 
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
+import java.lang.UnsupportedOperationException
+import java.math.BigDecimal
 import java.util.*
-import javax.swing.RootPaneContainer
 
 /**
  * This represent the interface to the external world.
  * Printing, accessing databases, all sort of interactions should go through this interface.
  */
 interface SystemInterface {
-
+    fun display(value: String)
 }
 
 class SymbolTable {
@@ -87,11 +88,12 @@ class Interpreter(val systemInterface: SystemInterface) {
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+        // Assigning initial values received from outside and consider INZ clauses
         compilationUnit.dataDefinitions.forEach {
-            if (it.name in initialValues) {
-                globalSymbolTable[it] = initialValues[it.name]!!
-            } else {
-                globalSymbolTable[it] = blankValue(it)
+            globalSymbolTable[it] = when {
+                it.name in initialValues -> initialValues[it.name]!!
+                it.initializationValue != null -> interpret(it.initializationValue)
+                else -> blankValue(it)
             }
         }
     }
@@ -127,6 +129,27 @@ class Interpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is SetOnStmt -> null /* Nothing to do here */
+                is PlistStmt -> null /* Nothing to do here */
+                is ClearStmt -> {
+                    return when (statement.value) {
+                        is DataRefExpr -> {
+                            assign(statement.value, BlanksRefExpr())
+                            Unit
+                        }
+                        else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
+                    }
+                }
+                is DisplayStmt -> {
+                    val value = interpret(statement.value)
+                    systemInterface.display(render(value))
+                }
+                is ForStmt -> {
+                    eval(statement.init)
+                    while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
+                        execute(statement.body)
+                        increment(statement.iterDataDefinition())
+                    }
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e : RuntimeException) {
@@ -134,25 +157,59 @@ class Interpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun eval(expression: Expression) {
-        when (expression) {
-            is AssignmentExpr -> {
-                assign(expression.target, expression.value)
-            }
-            else -> TODO(expression.toString())
+    private fun isEqualOrSmaller(value1: Value, value2: Value) : Boolean {
+        return when {
+            value1 is IntValue && value2 is IntValue -> value1.value <= value2.value
+            else -> TODO()
         }
     }
 
-    private fun assign(target: AssignableExpression, value: Expression) {
+    private fun increment(dataDefinition: AbstractDataDefinition) {
+        val value = this[dataDefinition]
+        if (value is IntValue) {
+            println("incrementing ${dataDefinition.name} from ${value}")
+            this[dataDefinition] = IntValue(value.value + 1)
+        } else {
+            throw UnsupportedOperationException()
+        }
+    }
+
+    private fun areEquals(value1: Value, value2: Value) : Boolean {
+        return value1 == value2
+    }
+
+    private fun render(value: Value) : String {
+        return when (value) {
+            is StringValue -> value.value
+            is BooleanValue -> value.value.toString()
+            is IntValue -> value.value.toString()
+            else -> TODO(value.javaClass.canonicalName)
+        }
+    }
+
+    private fun eval(expression: Expression) : Value {
+        return when (expression) {
+            is AssignmentExpr -> {
+                assign(expression.target, expression.value)
+            }
+            else -> interpret(expression)
+        }
+    }
+
+    private fun assign(target: AssignableExpression, value: Expression) : Value {
         when (target) {
             is DataRefExpr -> {
                 val l = target as DataRefExpr
-                globalSymbolTable[target.variable.referred!!] = coerce(interpret(value), l.variable.referred!!.type())
+                val value = coerce(interpret(value), l.variable.referred!!.type())
+                globalSymbolTable[target.variable.referred!!] = value
+                return value
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
                 val indexValue = interpret(target.index)
-                arrayValue.setElement(indexValue.asInt().value.toInt(), coerce(interpret(value), (target.array.type() as ArrayType).element))
+                val value = coerce(interpret(value), (target.array.type() as ArrayType).element)
+                arrayValue.setElement(indexValue.asInt().value.toInt(), value)
+                return value
             }
             else -> TODO(target.toString())
         }
@@ -160,8 +217,8 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     private fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
-        return when {
-            value is BlanksValue -> {
+        return when (value) {
+            is BlanksValue -> {
                 when (type) {
                     is DataDefinitionType -> {
                         blankValue(type.dataDefinition as DataDefinition)
@@ -172,7 +229,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     else -> TODO(type.toString())
                 }
             }
-            value is StringValue -> {
+            is StringValue -> {
                 when (type) {
                     is RawType -> {
                         val missingLength = type.size!! - value.value.length
@@ -210,6 +267,29 @@ class Interpreter(val systemInterface: SystemInterface) {
             }
             is BlanksRefExpr -> {
                 return BlanksValue
+            }
+            is DecExpr -> {
+                val decDigits = interpret(expression.decDigits).asInt().value
+                val intDigits = interpret(expression.intDigits).asInt().value
+                val valueAsString = interpret(expression.value).asString().value
+                return if (decDigits == 0L) {
+                    IntValue(valueAsString.toLong())
+                } else {
+                    DecimalValue(BigDecimal(valueAsString))
+                }
+            }
+            is PlusExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                when {
+                    left is StringValue && right is StringValue -> StringValue(left.value + right.value)
+                    left is IntValue && right is IntValue -> IntValue(left.value + right.value)
+                    else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
+                }
+            }
+            is CharExpr -> {
+                val value = interpret(expression.value)
+                return StringValue(render(value))
             }
             else -> TODO(expression.toString())
         }

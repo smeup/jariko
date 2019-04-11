@@ -1,90 +1,36 @@
 package com.smeup.rpgparser
 
-import com.smeup.rpgparser.DataType.DATA_STRUCTURE
 import com.strumenta.kolasu.model.*
-import java.lang.IllegalArgumentException
 import java.util.*
-
-enum class DataType {
-    SINGLE,
-    BOOLEAN,
-    DATA_STRUCTURE
-}
-
-open class AbstractDataDefinition(override val name: String,
-    open val size: Int?,
-    override val position: Position? = null) : Node(position), Named
-
-class DataDefinition(override val name: String,
-                     val dataType: DataType,
-                     override val size: Int?,
-                     val decimals: Int = 0,
-                     val arrayLength: Expression? = null,
-                     val fields: List<FieldDefinition>? = null,
-                     val like: Expression? = null,
-                     override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
-    init {
-        require((fields != null) == (dataType == DATA_STRUCTURE))
-                { "Fields should be sent always and only for data structures" }
-    }
-
-    override fun toString(): String {
-        return "DataDefinition($name, $dataType, $size)"
-    }
-
-    fun isArray() = arrayLength != null
-    fun startOffset(fieldDefinition: FieldDefinition): Int {
-        var start = 0
-        for (f in fields ?: emptyList()) {
-            if (f == fieldDefinition) {
-                require(start >= 0)
-                return start
-            }
-            start += f.size
-        }
-        throw IllegalArgumentException("Unknown field $fieldDefinition")
-    }
-    fun endOffset(fieldDefinition: FieldDefinition): Int {
-        return startOffset(fieldDefinition) + fieldDefinition.size
-    }
-}
-
-data class FieldDefinition(override val name: String,
-                      override val size: Int,
-                      override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
-
-    init {
-        require(size > 0)
-    }
-
-    @Derived
-    val container
-        get() = this.parent as DataDefinition
-    // TODO consider overlay directive
-    val startOffset: Int
-        get() = container.startOffset(this)
-    // TODO consider overlay directive
-    val endOffset: Int
-        get() = container.endOffset(this)
-}
 
 data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
                            val main: MainBody,
                            val subroutines: List<Subroutine>,
                            override val position: Position?) : Node(position) {
 
+    private val inStatementsDataDefinitions = LinkedList<InStatementDataDefinition>()
+
+    fun addInStatementDataDefinition(dataDefinition: InStatementDataDefinition) {
+        inStatementsDataDefinitions.add(dataDefinition)
+    }
+
     @Derived
-    val dataDefinitonsAndFields : List<AbstractDataDefinition>
+    val allDataDefinitions : List<AbstractDataDefinition>
         get() {
             val res = LinkedList<AbstractDataDefinition>()
             res.addAll(dataDefinitions)
             dataDefinitions.forEach { it.fields?.let { res.addAll(it) } }
+            res.addAll(inStatementsDataDefinitions)
             return res
         }
 
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name == name }
 
     fun getDataDefinition(name: String) = dataDefinitions.first { it.name == name }
+
+    fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name == name }
+
+    fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name == name }
 }
 
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
@@ -193,10 +139,18 @@ data class LenExpr(val value: Expression, override val position: Position? = nul
     : Expression(position)
 data class PredefinedIndicatorExpr(val index: Int, override val position: Position? = null)
     : Expression(position)
+data class DecExpr(val value: Expression, var intDigits : Expression, val decDigits: Expression, override val position: Position? = null)
+    : Expression(position)
+data class CharExpr(val value: Expression, override val position: Position? = null)
+    : Expression(position)
 
 //
 // Statements
 //
+
+interface StatementThatCanDefineData {
+    fun dataDefinition() : InStatementDataDefinition?
+}
 
 abstract class Statement(override val position: Position? = null) : Node(position)
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
@@ -217,15 +171,32 @@ data class ElseIfClause(val condition: Expression, val body: List<Statement>, ov
 data class SetOnStmt(val choice: DataWrapUpChoice, override val position: Position? = null) : Statement(position)
 data class PlistStmt(val params: List<PlistParam>, override val position: Position? = null) : Statement(position)
 data class PlistParam(val paramName: String, override val position: Position? = null) : Node(position)
-data class ClearStmt(val value: Expression, override val position: Position? = null) : Statement(position)
+data class ClearStmt(val value: Expression,
+                     @Derived val dataDefinition: InStatementDataDefinition? = null,
+                     override val position: Position? = null) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition() = dataDefinition
+}
+data class DisplayStmt(val value: Expression, override val position: Position? = null) : Statement(position)
 data class DoStmt(val body: List<Statement>, override val position: Position? = null) : Statement(position)
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 data class IterStmt(override val position: Position? = null) : Statement(position)
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 data class ForStmt(
-        val init: Expression,
+        var init: Expression,
         val endValue: Expression,
-        val body: List<Statement>, override val position: Position? = null) : Statement(position)
+        val body: List<Statement>, override val position: Position? = null) : Statement(position) {
+    fun iterDataDefinition(): AbstractDataDefinition {
+        if (init is AssignmentExpr) {
+            if ((init as AssignmentExpr).target is DataRefExpr) {
+                return ((init as AssignmentExpr).target as DataRefExpr).variable.referred!!
+            } else {
+                throw UnsupportedOperationException()
+            }
+        } else {
+            throw UnsupportedOperationException()
+        }
+    }
+}
 
 //data class Assignment(val target: Expression, val value: Expression, override val position: Position? = null) : Node(position)
 

@@ -6,6 +6,7 @@ import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import javax.swing.plaf.nimbus.State
 
 fun List<Node>.position() : Position? {
     val start = this.map { it.position?.start }.filterNotNull().sorted()
@@ -125,8 +126,24 @@ private fun BifContext.toAst(considerPosition : Boolean = true): Expression {
         this.bif_trim() != null -> this.bif_trim().toAst(considerPosition)
         this.bif_subst() != null -> this.bif_subst().toAst(considerPosition)
         this.bif_len() != null -> this.bif_len().toAst(considerPosition)
+        this.bif_dec() != null -> this.bif_dec().toAst(considerPosition)
+        this.bif_char() != null -> this.bif_char().toAst(considerPosition)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun Bif_charContext.toAst(considerPosition: Boolean = true): CharExpr {
+    return CharExpr(
+            this.expression().toAst(considerPosition),
+            toPosition(considerPosition))
+}
+
+private fun Bif_decContext.toAst(considerPosition: Boolean = true): DecExpr {
+    return DecExpr(
+            this.expression(0).toAst(considerPosition),
+            this.expression(1).toAst(considerPosition),
+            this.expression(2).toAst(considerPosition),
+            toPosition(considerPosition))
 }
 
 private fun Bif_lenContext.toAst(considerPosition: Boolean = true): LenExpr {
@@ -220,9 +237,13 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     var like : Expression? = null
+    var initializationValue : Expression? = null
     this.keyword().forEach {
         it.keyword_like()?.let {
             like = it.simpleExpression().toAst(considerPosition)
+        }
+        it.keyword_inz()?.let {
+            initializationValue = it.simpleExpression().toAst(considerPosition)
         }
     }
     return DataDefinition(
@@ -232,6 +253,7 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
             decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
             arrayLength = this.arrayLength(considerPosition),
             like = like,
+            initializationValue = initializationValue,
             position = this.toPosition(true))
 }
 
@@ -295,16 +317,40 @@ private fun ForstatementContext.toAst(considerPosition: Boolean = true): ForStmt
 }
 
 private fun SelectstatementContext.toAst(considerPosition: Boolean = true): SelectStmt {
-    return SelectStmt(
-            this.whenstatement().map { it.toAst(considerPosition) },
-            this.other()?.toAst(considerPosition),
-            toPosition(considerPosition))
+    val whenClauses = this.whenstatement().map { it.toAst(considerPosition) }
+    // Unfortunately the other clause ends up being part of the when clause so we should
+    // unfold it
+    // TODO change this in the grammar
+    val statementsOfLastWhen = if (this.whenstatement().isEmpty())
+            emptyList()
+        else
+            this.whenstatement().last().statement().map { it.toAst(considerPosition) }
+    val indexOfOther = statementsOfLastWhen.indexOfFirst { it is OtherStmt }
+    var other : SelectOtherClause? = null
+    if (indexOfOther != -1) {
+        val otherPosition = if (considerPosition) {
+            Position(statementsOfLastWhen[indexOfOther].position!!.start, statementsOfLastWhen.last().position!!.end)
+        } else {
+            null
+        }
+        other = SelectOtherClause(statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size), position = otherPosition)
+    }
+
+    return SelectStmt(whenClauses, other, toPosition(considerPosition))
 }
 
 private fun WhenstatementContext.toAst(considerPosition: Boolean = true): SelectCase {
+    // Unfortunately the other clause ends up being part of the when clause so we should
+    // unfold it
+    // TODO change this in the grammar
+    var statementsToConsider = this.statement().map { it.toAst(considerPosition) }
+    val indexOfOther = statementsToConsider.indexOfFirst { it is OtherStmt }
+    if (indexOfOther != -1) {
+        statementsToConsider = statementsToConsider.subList(0, indexOfOther)
+    }
     return SelectCase(
             this.`when`().csWHEN().fixedexpression.expression().toAst(considerPosition),
-            this.statement().map { it.toAst(considerPosition) },
+            statementsToConsider,
             toPosition(considerPosition)
     )
 }
@@ -349,6 +395,7 @@ private fun Cspec_fixed_standardContext.toAst(considerPosition: Boolean = true):
         this.csLEAVE() != null -> LeaveStmt(toPosition(considerPosition))
         this.csITER() != null -> IterStmt(toPosition(considerPosition))
         this.csOTHER() != null -> OtherStmt(toPosition(considerPosition))
+        this.csDSPLY() != null -> this.csDSPLY().toAst(considerPosition)
         else -> TODO("${this.text.toString()} at ${this.toPosition(true)}")
     }
 }
@@ -373,10 +420,27 @@ private fun referenceToExpression(text: String, position: Position?) : Expressio
     return expr
 }
 
+private fun CsDSPLYContext.toAst(considerPosition: Boolean = true): DisplayStmt {
+    val expression = this.cspec_fixed_standard_parts().result.toAst(considerPosition)
+    return DisplayStmt(expression, toPosition(considerPosition))
+}
+
+private fun ResultTypeContext.toAst(considerPosition: Boolean = true): Expression {
+    // TODO this should have been parsed differently because here we have to figure out
+    // what kind of expression is this
+    return DataRefExpr(ReferenceByName(this.text), toPosition(considerPosition))
+}
+
 private fun CsCLEARContext.toAst(considerPosition: Boolean = true): ClearStmt {
     val name = this.cspec_fixed_standard_parts().result.text
+    var dataDeclaration : InStatementDataDefinition? = null
+    if (!this.cspec_fixed_standard_parts().len.text.isBlank()) {
+        val length = this.cspec_fixed_standard_parts().len.text.trim().toInt()
+        dataDeclaration = InStatementDataDefinition(name, length, toPosition(considerPosition))
+    }
     return ClearStmt(
             referenceToExpression(name, toPosition(considerPosition)),
+            dataDeclaration,
             toPosition(considerPosition))
 }
 

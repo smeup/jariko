@@ -10,10 +10,6 @@
       *
      C                   Eval      NBR    = %Dec(ppdat : 8 : 0)
      C                   EXSR      FIB
-     C                   clear                   dsp              50
-     C                   eval      dsp=('FIBONACCI OF: ' +  ppdat +
-     C                                 ' IS: ' + %CHAR(RESULT))
-     C                   dsply                   dsp
      C                   seton                                        lr
       *--------------------------------------------------------------*
      C     FIB           BEGSR
@@ -23,11 +19,7 @@
      C                   WHEN      NBR = 1
      C                   EVAL      RESULT = 1
      C                   OTHER
-     C                   FOR       COUNT = 2 TO NBR
-     C                   EVAL      RESULT = (A + B)
-     C                   EVAL      A = B
-     C                   EVAL      B = RESULT
-     C                   ENDFOR
+     C                   dsply                   NBR
      C                   ENDSL
      C                   ENDSR
       *--------------------------------------------------------------*
