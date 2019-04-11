@@ -112,6 +112,16 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCALCFIB_otherClauseOfSelect() {
+        val cu = assertASTCanBeProduced("CALCFIB_2", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        assertIsIntValue(interpreter["NBR"], 10)
+        assertEquals(listOf("10"), si.displayed)
+    }
+
+    @Test
     fun executeCALCFIB() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()

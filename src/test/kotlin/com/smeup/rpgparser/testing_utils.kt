@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -116,11 +117,22 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))
 
-fun execute(cu: CompilationUnit, initialValues: Map<String, Value>) : Interpreter {
-    val systemInterface = object : SystemInterface {
-
+class DummySystemInterface : SystemInterface {
+    override fun display(value: String) {
+        // doing nothing
     }
-    val interpreter = Interpreter(systemInterface)
+
+}
+
+class CollectorSystemInterface : SystemInterface {
+    val displayed = LinkedList<String>()
+    override fun display(value: String) {
+        displayed.add(value)
+    }
+}
+
+fun execute(cu: CompilationUnit, initialValues: Map<String, Value>, systemInterface: SystemInterface? = null) : Interpreter {
+    val interpreter = Interpreter(systemInterface ?: DummySystemInterface())
     interpreter.execute(cu, initialValues)
     return interpreter
 }

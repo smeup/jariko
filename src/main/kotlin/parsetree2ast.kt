@@ -311,16 +311,37 @@ private fun ForstatementContext.toAst(considerPosition: Boolean = true): ForStmt
 }
 
 private fun SelectstatementContext.toAst(considerPosition: Boolean = true): SelectStmt {
-    return SelectStmt(
-            this.whenstatement().map { it.toAst(considerPosition) },
-            this.other()?.toAst(considerPosition),
-            toPosition(considerPosition))
+    val whenClauses = this.whenstatement().map { it.toAst(considerPosition) }
+    // Unfortunately the other clause ends up being part of the when clause so we should
+    // unfold it
+    // TODO change this in the grammar
+    val statementsOfLastWhen = this.whenstatement().last().statement().map { it.toAst(considerPosition) }
+    val indexOfOther = statementsOfLastWhen.indexOfFirst { it is OtherStmt }
+    var other : SelectOtherClause? = null
+    if (indexOfOther != -1) {
+        val otherPosition = if (considerPosition) {
+            Position(statementsOfLastWhen[indexOfOther].position!!.start, statementsOfLastWhen.last().position!!.end)
+        } else {
+            null
+        }
+        other = SelectOtherClause(statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size), position = otherPosition)
+    }
+
+    return SelectStmt(whenClauses, other, toPosition(considerPosition))
 }
 
 private fun WhenstatementContext.toAst(considerPosition: Boolean = true): SelectCase {
+    // Unfortunately the other clause ends up being part of the when clause so we should
+    // unfold it
+    // TODO change this in the grammar
+    var statementsToConsider = this.statement().map { it.toAst(considerPosition) }
+    val indexOfOther = statementsToConsider.indexOfFirst { it is OtherStmt }
+    if (indexOfOther != -1) {
+        statementsToConsider = statementsToConsider.subList(0, indexOfOther)
+    }
     return SelectCase(
             this.`when`().csWHEN().fixedexpression.expression().toAst(considerPosition),
-            this.statement().map { it.toAst(considerPosition) },
+            statementsToConsider,
             toPosition(considerPosition)
     )
 }

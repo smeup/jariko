@@ -11,7 +11,7 @@ import java.util.*
  * Printing, accessing databases, all sort of interactions should go through this interface.
  */
 interface SystemInterface {
-
+    fun display(value: String)
 }
 
 class SymbolTable {
@@ -137,10 +137,23 @@ class Interpreter(val systemInterface: SystemInterface) {
                         else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
                     }
                 }
+                is DisplayStmt -> {
+                    val value = interpret(statement.value)
+                    systemInterface.display(render(value))
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e : RuntimeException) {
             throw RuntimeException("Issue executing statement $statement", e)
+        }
+    }
+
+    private fun render(value: Value) : String {
+        return when (value) {
+            is StringValue -> value.value
+            is BooleanValue -> value.value.toString()
+            is IntValue -> value.value.toString()
+            else -> TODO(value.javaClass.canonicalName)
         }
     }
 
@@ -173,8 +186,8 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     private fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
-        return when {
-            value is BlanksValue -> {
+        return when (value) {
+            is BlanksValue -> {
                 when (type) {
                     is DataDefinitionType -> {
                         blankValue(type.dataDefinition as DataDefinition)
@@ -185,7 +198,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     else -> TODO(type.toString())
                 }
             }
-            value is StringValue -> {
+            is StringValue -> {
                 when (type) {
                     is RawType -> {
                         val missingLength = type.size!! - value.value.length
