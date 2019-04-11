@@ -1,8 +1,9 @@
-﻿      * Search a record in AS400's hosts file
+﻿      * Searches a record in AS400's hosts file
       *
       * Hosts file (more or less)
      FQATOCHOST if   e           k disk
       * Record format QHOSTS
+      *    A    1   15  INTERNET         IP address
       *    A   16  270  HOSTNME1         Host name 1
       *    A  271  525  HOSTNME2         Host name 2
       *    A  526  780  HOSTNME3         Host name 4
