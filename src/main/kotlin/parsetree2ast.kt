@@ -6,6 +6,7 @@ import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import javax.swing.plaf.nimbus.State
 
 fun List<Node>.position() : Position? {
     val start = this.map { it.position?.start }.filterNotNull().sorted()
@@ -320,7 +321,10 @@ private fun SelectstatementContext.toAst(considerPosition: Boolean = true): Sele
     // Unfortunately the other clause ends up being part of the when clause so we should
     // unfold it
     // TODO change this in the grammar
-    val statementsOfLastWhen = this.whenstatement().last().statement().map { it.toAst(considerPosition) }
+    val statementsOfLastWhen = if (this.whenstatement().isEmpty())
+            emptyList()
+        else
+            this.whenstatement().last().statement().map { it.toAst(considerPosition) }
     val indexOfOther = statementsOfLastWhen.indexOfFirst { it is OtherStmt }
     var other : SelectOtherClause? = null
     if (indexOfOther != -1) {
