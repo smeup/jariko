@@ -1,5 +1,8 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.ast.DataRefExpr
+import com.smeup.rpgparser.ast.Expression
+
 interface Type
 
 data class ArrayType(val element: Type) : Type

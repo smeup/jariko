@@ -1,5 +1,6 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.ast.*
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import java.lang.UnsupportedOperationException
