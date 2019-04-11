@@ -2,8 +2,9 @@ package com.smeup.rpgparser
 
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
+import java.lang.UnsupportedOperationException
+import java.math.BigDecimal
 import java.util.*
-import javax.swing.RootPaneContainer
 
 /**
  * This represent the interface to the external world.
@@ -127,6 +128,15 @@ class Interpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is SetOnStmt -> null /* Nothing to do here */
+                is PlistStmt -> null /* Nothing to do here */
+                is ClearStmt -> {
+                    return when (statement.value) {
+                        is DataRefExpr -> {
+                            assign(statement.value, BlanksRefExpr())
+                        }
+                        else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
+                    }
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e : RuntimeException) {
@@ -138,6 +148,9 @@ class Interpreter(val systemInterface: SystemInterface) {
         when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
+            }
+            is PlusExpr -> {
+                interpretConcrete(expression)
             }
             else -> TODO(expression.toString())
         }
@@ -210,6 +223,23 @@ class Interpreter(val systemInterface: SystemInterface) {
             }
             is BlanksRefExpr -> {
                 return BlanksValue
+            }
+            is DecExpr -> {
+                val decDigits = interpret(expression.decDigits).asInt().value
+                val intDigits = interpret(expression.intDigits).asInt().value
+                val valueAsString = interpret(expression.value).asString().value
+                return if (decDigits == 0L) {
+                    IntValue(valueAsString.toLong())
+                } else {
+                    DecimalValue(BigDecimal(valueAsString))
+                }
+            }
+            is PlusExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                when {
+                    else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
+                }
             }
             else -> TODO(expression.toString())
         }

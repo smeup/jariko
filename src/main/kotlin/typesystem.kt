@@ -26,6 +26,10 @@ fun AbstractDataDefinition.type(): Type {
         is DataDefinition -> {
             return RawType(this.size)
         }
+        is InStatementDataDefinition -> {
+            // TODO consider data type
+            return RawType(this.size)
+        }
         else -> TODO(this.javaClass.canonicalName)
     }
 }

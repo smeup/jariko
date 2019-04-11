@@ -1,7 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
-import com.strumenta.kolasu.model.Named
+import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
@@ -13,6 +13,11 @@ import kotlin.test.assertTrue
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
+
+fun assertIsIntValue(value: Value, intValue: Long) {
+    assertTrue(value is IntValue)
+    assertEquals(intValue, (value as IntValue).value)
+}
 
 fun inputStreamFor(exampleName: String) : InputStream {
     return BOMInputStream(Dummy::class.java.getResourceAsStream("/$exampleName.txt"))

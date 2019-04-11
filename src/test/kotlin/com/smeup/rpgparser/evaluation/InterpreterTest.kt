@@ -104,10 +104,19 @@ class InterpreterTest {
 //    }
 
     @Test
+    fun executeCALCFIB_initialDeclarations() {
+        val cu = assertASTCanBeProduced("CALCFIB_1", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
+        assertIsIntValue(interpreter["NBR"], 3)
+    }
+
+    @Test
     fun executeCALCFIB() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
+        // TODO check output
     }
 
 }

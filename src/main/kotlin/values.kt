@@ -1,7 +1,10 @@
 package com.smeup.rpgparser
 
+import java.math.BigDecimal
+
 abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException()
+    open fun asString() : StringValue = throw UnsupportedOperationException()
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
 }
 
@@ -21,10 +24,15 @@ data class StringValue(var value: String) : Value() {
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
         return StringValue(value.substring(startOffset, endOffset))
     }
+
+    override fun asString() = this
 }
 
 data class IntValue(val value: Long) : Value() {
     override fun asInt() = this
+}
+data class DecimalValue(val value: BigDecimal) : Value() {
+
 }
 data class BooleanValue(val value: Boolean) : Value() {
     override fun asBoolean() = this
