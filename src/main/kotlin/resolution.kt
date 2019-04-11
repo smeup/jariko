@@ -1,5 +1,6 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.ast.*
 import com.strumenta.kolasu.model.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {

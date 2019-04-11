@@ -2,11 +2,11 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.*
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
-import javax.swing.plaf.nimbus.State
 
 fun List<Node>.position() : Position? {
     val start = this.map { it.position?.start }.filterNotNull().sorted()

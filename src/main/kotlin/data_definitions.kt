@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.DATA_STRUCTURE
+import com.smeup.rpgparser.ast.Expression
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
