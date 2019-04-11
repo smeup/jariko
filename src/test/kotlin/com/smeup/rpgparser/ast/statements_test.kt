@@ -20,7 +20,7 @@ class StatementsTest {
 
     @test fun evalParsing() {
         assertEquals(EvalStmt(
-                ReferenceByName("\$\$SVAR"),
+                dataRef("\$\$SVAR"),
                 dataRef("U\$SVARSK")),
                 statement("EVAL      \$\$SVAR=U\$SVARSK"))
     }
@@ -36,7 +36,7 @@ class StatementsTest {
                         IntLiteral(0)
                 ),
                 listOf(
-                        EvalStmt(ReferenceByName("U\$IN35"),
+                        EvalStmt(dataRef("U\$IN35"),
                                 StringLiteral("1"))
                 )
         ), statement("IF        \$X>0\n" +
@@ -62,12 +62,12 @@ class StatementsTest {
                         IntLiteral(0)
                 ),
                 listOf(
-                        EvalStmt(ReferenceByName("U\$IN35"),
+                        EvalStmt(dataRef("U\$IN35"),
                                 StringLiteral("1"))
                 ),
                 emptyList(),
                 ElseClause(listOf(
-                        EvalStmt(ReferenceByName("\$\$URL"),
+                        EvalStmt(dataRef("\$\$URL"),
                                 FunctionCall(ReferenceByName("\$\$SVARVA"), listOf(dataRef("\$R")))))
                 )
         ), statement("IF        \$X>0\n" +
@@ -166,7 +166,7 @@ class StatementsTest {
 
     @test fun parseEvalWithPlusExpression() {
         assertEquals(EvalStmt(
-                ReferenceByName("RESULT"),
+                dataRef("RESULT"),
                 PlusExpr(dataRef("A"), dataRef("B"))),
                 statement("EVAL      RESULT = A + B"))
     }

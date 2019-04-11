@@ -169,7 +169,6 @@ class Interpreter(val systemInterface: SystemInterface) {
     private fun increment(dataDefinition: AbstractDataDefinition) {
         val value = this[dataDefinition]
         if (value is IntValue) {
-            println("incrementing ${dataDefinition.name} from ${value}")
             this[dataDefinition] = IntValue(value.value + 1)
         } else {
             throw UnsupportedOperationException()

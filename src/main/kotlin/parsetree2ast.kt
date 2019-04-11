@@ -3,6 +3,8 @@ package com.smeup.rpgparser
 import com.smeup.rpgparser.DataType.*
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.ast.AssignmentOperator.DIVIDE_ASSIGNMENT
+import com.smeup.rpgparser.ast.AssignmentOperator.NORMAL_ASSIGNMENT
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
@@ -473,10 +475,28 @@ private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubrou
 
 private fun CsEVALContext.toAst(considerPosition: Boolean = true): EvalStmt {
     return EvalStmt(
-            ReferenceByName(this.target.text),
+            this.target().toAst(considerPosition),
             this.fixedexpression.expression().toAst(considerPosition),
-            operator=AssignmentOperator.values().first { it.text == this.operator.text },
+            operator=this.operator.toAssignmentOperator(),
             position=toPosition(considerPosition))
+}
+
+private fun TargetContext.toAst(considerPosition: Boolean = true): AssignableExpression {
+    return when (this) {
+        is SimpleTargetContext -> DataRefExpr(ReferenceByName(this.name.text), toPosition(considerPosition))
+        is IndexedTargetContext -> ArrayAccessExpr(array=this.base.toAst(considerPosition),
+                index = this.index.toAst(considerPosition),
+                position = toPosition(considerPosition))
+        else -> TODO()
+    }
+}
+
+private fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
+    return when {
+        this.CDIV() != null -> DIVIDE_ASSIGNMENT
+        this.EQUAL() != null -> NORMAL_ASSIGNMENT
+        else -> throw UnsupportedOperationException(this.text)
+    }
 }
 
 private fun CsCALLContext.toAst(considerPosition: Boolean = true): CallStmt {
