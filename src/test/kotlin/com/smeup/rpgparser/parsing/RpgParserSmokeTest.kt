@@ -96,4 +96,9 @@ class RpgParserSmokeTest {
     fun parseJRANDOMA() {
         assertCanBeParsed("JRANDOMA")
     }
+
+    @Test
+    fun parseCHAINHOSTS() {
+        assertCanBeParsed("CHAINHOSTS")
+    }
 }

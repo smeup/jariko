@@ -97,4 +97,9 @@ class RpgLexerSmokeTest {
     fun lexJRANDOMCAL() {
         assertCanBeLexed("JRANDOMCAL")
     }
+
+    @Test
+    fun lexCHAINHOSTS() {
+        assertCanBeLexed("CHAINHOSTS")
+    }
 }
