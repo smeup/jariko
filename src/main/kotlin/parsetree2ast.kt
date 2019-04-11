@@ -236,9 +236,13 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     var like : Expression? = null
+    var initializationValue : Expression? = null
     this.keyword().forEach {
         it.keyword_like()?.let {
             like = it.simpleExpression().toAst(considerPosition)
+        }
+        it.keyword_inz()?.let {
+            initializationValue = it.simpleExpression().toAst(considerPosition)
         }
     }
     return DataDefinition(
@@ -248,6 +252,7 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
             decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
             arrayLength = this.arrayLength(considerPosition),
             like = like,
+            initializationValue = initializationValue,
             position = this.toPosition(true))
 }
 

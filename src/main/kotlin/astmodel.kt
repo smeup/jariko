@@ -182,9 +182,13 @@ data class LeaveStmt(override val position: Position? = null) : Statement(positi
 data class IterStmt(override val position: Position? = null) : Statement(position)
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 data class ForStmt(
-        val init: Expression,
+        var init: Expression,
         val endValue: Expression,
-        val body: List<Statement>, override val position: Position? = null) : Statement(position)
+        val body: List<Statement>, override val position: Position? = null) : Statement(position) {
+    fun iterDataDefinition(): AbstractDataDefinition {
+        TODO()
+    }
+}
 
 //data class Assignment(val target: Expression, val value: Expression, override val position: Position? = null) : Node(position)
 

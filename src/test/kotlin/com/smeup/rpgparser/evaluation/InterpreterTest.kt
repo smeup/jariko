@@ -104,11 +104,29 @@ class InterpreterTest {
 //    }
 
     @Test
-    fun executeCALCFIB_initialDeclarations() {
+    fun executeCALCFIB_initialDeclarations_dec() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
         assertIsIntValue(interpreter["NBR"], 3)
+    }
+
+    @Test
+    fun executeCALCFIB_initialDeclarations_inz() {
+        val cu = assertASTCanBeProduced("CALCFIB_1", true)
+        cu.resolve()
+
+        assertTrue(cu.getDataDefinition("ppdat").initializationValue == null)
+        assertTrue(cu.getDataDefinition("NBR").initializationValue == null)
+        assertTrue(cu.getDataDefinition("RESULT").initializationValue != null)
+        assertTrue(cu.getDataDefinition("COUNT").initializationValue == null)
+        assertTrue(cu.getDataDefinition("A").initializationValue != null)
+        assertTrue(cu.getDataDefinition("B").initializationValue != null)
+
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
+        assertIsIntValue(interpreter["RESULT"], 0)
+        assertIsIntValue(interpreter["A"], 0)
+        assertIsIntValue(interpreter["B"], 1)
     }
 
     @Test

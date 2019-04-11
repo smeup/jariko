@@ -24,6 +24,7 @@ class DataDefinition(override val name: String,
                      val arrayLength: Expression? = null,
                      val fields: List<FieldDefinition>? = null,
                      val like: Expression? = null,
+                     val initializationValue : Expression? = null,
                      override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
     init {
         require((fields != null) == (dataType == DATA_STRUCTURE))

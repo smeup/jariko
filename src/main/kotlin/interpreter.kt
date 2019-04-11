@@ -88,11 +88,12 @@ class Interpreter(val systemInterface: SystemInterface) {
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+        // Assigning initial values received from outside and consider INZ clauses
         compilationUnit.dataDefinitions.forEach {
-            if (it.name in initialValues) {
-                globalSymbolTable[it] = initialValues[it.name]!!
-            } else {
-                globalSymbolTable[it] = blankValue(it)
+            globalSymbolTable[it] = when {
+                it.name in initialValues -> initialValues[it.name]!!
+                it.initializationValue != null -> interpret(it.initializationValue)
+                else -> blankValue(it)
             }
         }
     }
@@ -133,6 +134,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     return when (statement.value) {
                         is DataRefExpr -> {
                             assign(statement.value, BlanksRefExpr())
+                            Unit
                         }
                         else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
                     }
@@ -141,11 +143,26 @@ class Interpreter(val systemInterface: SystemInterface) {
                     val value = interpret(statement.value)
                     systemInterface.display(render(value))
                 }
+                is ForStmt -> {
+                    val initValue = eval(statement.init)
+                    while (areEquals(initValue, eval(statement.endValue))) {
+                        execute(statement.body)
+                        increment(statement.iterDataDefinition())
+                    }
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e : RuntimeException) {
             throw RuntimeException("Issue executing statement $statement", e)
         }
+    }
+
+    private fun increment(dataDefinition: AbstractDataDefinition) {
+        TODO()
+    }
+
+    private fun areEquals(value1: Value, value2: Value) : Boolean {
+        return value1 == value2
     }
 
     private fun render(value: Value) : String {
@@ -157,28 +174,29 @@ class Interpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun eval(expression: Expression) {
-        when (expression) {
+    private fun eval(expression: Expression) : Value {
+        return when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
             }
-            is PlusExpr -> {
-                interpretConcrete(expression)
-            }
-            else -> TODO(expression.toString())
+            else -> interpret(expression)
         }
     }
 
-    private fun assign(target: AssignableExpression, value: Expression) {
+    private fun assign(target: AssignableExpression, value: Expression) : Value {
         when (target) {
             is DataRefExpr -> {
                 val l = target as DataRefExpr
-                globalSymbolTable[target.variable.referred!!] = coerce(interpret(value), l.variable.referred!!.type())
+                val value = coerce(interpret(value), l.variable.referred!!.type())
+                globalSymbolTable[target.variable.referred!!] = value
+                return value
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
                 val indexValue = interpret(target.index)
-                arrayValue.setElement(indexValue.asInt().value.toInt(), coerce(interpret(value), (target.array.type() as ArrayType).element))
+                val value = coerce(interpret(value), (target.array.type() as ArrayType).element)
+                arrayValue.setElement(indexValue.asInt().value.toInt(), value)
+                return value
             }
             else -> TODO(target.toString())
         }
