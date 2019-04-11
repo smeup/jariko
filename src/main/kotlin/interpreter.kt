@@ -145,6 +145,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                 }
                 is ForStmt -> {
                     eval(statement.init)
+                    // TODO consider DOWNTO
                     while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
                         execute(statement.body)
                         increment(statement.iterDataDefinition())
