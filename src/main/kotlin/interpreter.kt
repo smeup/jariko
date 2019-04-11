@@ -91,11 +91,11 @@ class Interpreter(val systemInterface: SystemInterface) {
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
         // Assigning initial values received from outside and consider INZ clauses
         compilationUnit.dataDefinitions.forEach {
-            globalSymbolTable[it] = when {
+            set(it, when {
                 it.name in initialValues -> initialValues[it.name]!!
                 it.initializationValue != null -> interpret(it.initializationValue)
                 else -> blankValue(it)
-            }
+            })
         }
     }
 
@@ -202,7 +202,7 @@ class Interpreter(val systemInterface: SystemInterface) {
             is DataRefExpr -> {
                 val l = target as DataRefExpr
                 val value = coerce(interpret(value), l.variable.referred!!.type())
-                globalSymbolTable[target.variable.referred!!] = value
+                set(target.variable.referred!!, value)
                 return value
             }
             is ArrayAccessExpr -> {
@@ -260,7 +260,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
-            is DataRefExpr -> globalSymbolTable[expression.variable.referred!!]
+            is DataRefExpr -> get(expression.variable.referred!!)
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
@@ -317,9 +317,12 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 private fun DataDefinition.actualSize(interpreter: Interpreter) : IntValue {
+
+    ERRORE QUI: PER LA SVARSK_INI l'ACTUAL SIZE DOVREBBE ESSERE 1050, NON 200
+
     return when {
         this.size != null -> this.size.asValue()
-        this.like != null -> interpreter.interpret(NumberOfElementsExpr(this.like)).asInt()
+        this.like != null -> this.like
         else -> throw IllegalStateException("No actual size can be calculated")
     }
 }

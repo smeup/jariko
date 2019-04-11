@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.DATA_STRUCTURE
+import com.smeup.rpgparser.ast.AssignableExpression
 import com.smeup.rpgparser.ast.Expression
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
@@ -24,7 +25,7 @@ class DataDefinition(override val name: String,
                      val decimals: Int = 0,
                      val arrayLength: Expression? = null,
                      val fields: List<FieldDefinition>? = null,
-                     val like: Expression? = null,
+                     val like: AssignableExpression? = null,
                      val initializationValue : Expression? = null,
                      override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
     init {

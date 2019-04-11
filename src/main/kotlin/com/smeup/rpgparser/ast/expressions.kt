@@ -30,7 +30,9 @@ data class BlanksRefExpr(override val position: Position? = null) : FigurativeCo
 data class OnRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 
-abstract class AssignableExpression(override val position: Position? = null) : Expression(position)
+abstract class AssignableExpression(override val position: Position? = null) : Expression(position) {
+    fun size()
+}
 
 data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null)
     : AssignableExpression(position) {
