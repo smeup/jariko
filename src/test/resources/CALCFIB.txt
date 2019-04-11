@@ -11,8 +11,8 @@
      C                   Eval      NBR    = %Dec(ppdat : 8 : 0)
      C                   EXSR      FIB
      C                   clear                   dsp              50
-     C                   eval      dsp='FIBONACCI OF: ' +  ppdat +
-     C                                 ' IS: ' + %CHAR(RESULT)
+     C                   eval      dsp=('FIBONACCI OF: ' +  ppdat +
+     C                                 ' IS: ' + %CHAR(RESULT))
      C                   dsply                   dsp
      C                   seton                                        lr
       *--------------------------------------------------------------*

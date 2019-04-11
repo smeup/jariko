@@ -140,11 +140,57 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeCALCFIB() {
+    fun executeCALCFIB_for_value_0() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
-        // TODO check output
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("0")), si)
+        assertEquals(listOf("FIBONACCI OF: 0 IS: 0                             "), si.displayed)
+    }
+
+    @Test
+    fun executeCALCFIB_for_value_1() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("1")), si)
+        assertEquals(listOf("FIBONACCI OF: 0 IS: 1                             "), si.displayed)
+    }
+
+    @Test
+    fun executeCALCFIB_for_value_2() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("2")), si)
+        assertEquals(listOf("FIBONACCI OF: 0 IS: 1                             "), si.displayed)
+    }
+
+    @Test
+    fun executeCALCFIB_for_value_3() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")), si)
+        assertEquals(listOf("FIBONACCI OF: 0 IS: 2                             "), si.displayed)
+    }
+
+    @Test
+    fun executeCALCFIB_for_value_4() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("4")), si)
+        assertEquals(listOf("FIBONACCI OF: 0 IS: 3                             "), si.displayed)
+    }
+
+    @Test
+    fun executeCALCFIB_for_value_10() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        assertEquals(listOf("FIBONACCI OF: 0 IS: 55                            "), si.displayed)
     }
 
 }

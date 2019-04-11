@@ -269,8 +269,13 @@ class Interpreter(val systemInterface: SystemInterface) {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 when {
+                    left is StringValue && right is StringValue -> StringValue(left.value + right.value)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
+            }
+            is CharExpr -> {
+                val value = interpret(expression.value)
+                return StringValue(render(value))
             }
             else -> TODO(expression.toString())
         }
