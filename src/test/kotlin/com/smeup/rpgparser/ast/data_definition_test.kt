@@ -2,6 +2,7 @@ package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.*
 import com.strumenta.kolasu.model.ReferenceByName
+import kotlin.test.assertTrue
 import org.junit.Test as test
 
 class DataDefinitionTest {
@@ -67,5 +68,11 @@ class DataDefinitionTest {
         val cu = processDataDefinition("D U\$SVARSK        S                                  DIM(%ELEM(\$\$SVAR))")
         cu.assertDataDefinitionIsPresent("U\$SVARSK", DataType.SINGLE, null,
                 arrayLength = NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR"))))
+    }
+
+    @test fun inStatementDataDefinitionInClearIsProcessed() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        assertTrue(cu.hasAnyDataDefinition("dsp"))
     }
 }

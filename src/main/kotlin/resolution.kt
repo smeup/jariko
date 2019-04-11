@@ -2,12 +2,25 @@ package com.smeup.rpgparser
 
 import com.strumenta.kolasu.model.*
 
+private fun CompilationUnit.findInStatementDataDefinitions() {
+    // TODO could they be also annidated?
+    // TODO could they also be in subroutines?
+    this.main.stmts.filterIsInstance(StatementThatCanDefineData::class.java).forEach {
+        val dd = it.dataDefinition()
+        if (dd != null) {
+            this.addInStatementDataDefinition(dd)
+        }
+    }
+}
+
 fun CompilationUnit.resolve() {
     this.assignParents()
 
+    this.findInStatementDataDefinitions()
+
     this.specificProcess(DataRefExpr::class.java) { dre ->
         if (!dre.variable.resolved) {
-            require(dre.variable.tryToResolve(this.dataDefinitonsAndFields)) {
+            require(dre.variable.tryToResolve(this.allDataDefinitions)) {
                 "Data reference not resolved: ${dre.variable.name}"
             }
         }
@@ -22,7 +35,7 @@ fun CompilationUnit.resolve() {
     // replace FunctionCall with ArrayAccessExpr where it makes sense
     this.specificProcess(FunctionCall::class.java) { fc ->
         if (fc.args.size == 1) {
-            val data = this.dataDefinitonsAndFields.firstOrNull { it.name == fc.function.name }
+            val data = this.allDataDefinitions.firstOrNull { it.name == fc.function.name }
             if (data != null) {
                 fc.replace(ArrayAccessExpr(
                         array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),

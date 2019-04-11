@@ -60,13 +60,13 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("JD_000_datainit", true)
         cu.resolve()
 
-        assertEquals("U\$SVARSK", cu.dataDefinitonsAndFields[0].name)
-        assertEquals("\$\$SVARCD", cu.dataDefinitonsAndFields[1].name)
-        assertEquals("\$\$SVARVA", cu.dataDefinitonsAndFields[2].name)
-        assertEquals(0, (cu.dataDefinitonsAndFields[1] as FieldDefinition).startOffset)
-        assertEquals(50, (cu.dataDefinitonsAndFields[1] as FieldDefinition).endOffset)
-        assertEquals(50, (cu.dataDefinitonsAndFields[2] as FieldDefinition).startOffset)
-        assertEquals(1050, (cu.dataDefinitonsAndFields[2] as FieldDefinition).endOffset)
+        assertEquals("U\$SVARSK", cu.allDataDefinitions[0].name)
+        assertEquals("\$\$SVARCD", cu.allDataDefinitions[1].name)
+        assertEquals("\$\$SVARVA", cu.allDataDefinitions[2].name)
+        assertEquals(0, (cu.allDataDefinitions[1] as FieldDefinition).startOffset)
+        assertEquals(50, (cu.allDataDefinitions[1] as FieldDefinition).endOffset)
+        assertEquals(50, (cu.allDataDefinitions[2] as FieldDefinition).startOffset)
+        assertEquals(1050, (cu.allDataDefinitions[2] as FieldDefinition).endOffset)
 
         val interpreter = execute(cu, mapOf())
 

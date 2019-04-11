@@ -391,13 +391,26 @@ private fun referenceToExpression(text: String, position: Position?) : Expressio
 }
 
 private fun CsDSPLYContext.toAst(considerPosition: Boolean = true): DisplayStmt {
-    TODO()
+    val expression = this.cspec_fixed_standard_parts().result.toAst(considerPosition)
+    return DisplayStmt(expression, toPosition(considerPosition))
+}
+
+private fun ResultTypeContext.toAst(considerPosition: Boolean = true): Expression {
+    // TODO this should have been parsed differently because here we have to figure out
+    // what kind of expression is this
+    return DataRefExpr(ReferenceByName(this.text), toPosition(considerPosition))
 }
 
 private fun CsCLEARContext.toAst(considerPosition: Boolean = true): ClearStmt {
     val name = this.cspec_fixed_standard_parts().result.text
+    var dataDeclaration : InStatementDataDefinition? = null
+    if (!this.cspec_fixed_standard_parts().len.text.isBlank()) {
+        val length = this.cspec_fixed_standard_parts().len.text.trim().toInt()
+        dataDeclaration = InStatementDataDefinition(name, length, toPosition(considerPosition))
+    }
     return ClearStmt(
             referenceToExpression(name, toPosition(considerPosition)),
+            dataDeclaration,
             toPosition(considerPosition))
 }
 
