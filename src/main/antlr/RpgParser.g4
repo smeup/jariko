@@ -1342,8 +1342,65 @@ csENDSL:
 //	cspec_fixed_standard_parts;
 csEVAL:
 	operation=OP_EVAL
-	operationExtender=cs_operationExtender? 
-	fixedexpression=c_free (C_FREE_NEWLINE | EOF);
+    {
+        new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("CSEVAL_0 " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+    }?
+	operationExtender=cs_operationExtender?
+	{
+	    new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("CSEVAL_1 " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+	}?
+	target=ID
+    {
+	    new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("CSEVAL_2 " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+	}?
+	operator=assignmentOperatorIncludingEqual
+    {
+	    new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("CSEVAL_3 " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+	}?
+	fixedexpression=c_free
+    {
+	    new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("CSEVAL_3 " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+	}?
+	(C_FREE_NEWLINE | EOF)
+	    {
+    	    new java.util.function.Predicate<Object>() {
+                @Override
+                public boolean test(Object o) {
+                    System.out.println("CSEVAL_4 " + _input.LT(1));
+                    return true;
+                }
+            }.test(null)
+    	}?;
 csEVAL_CORR:
 	operation=OP_EVAL_CORR
 	fixedexpression=c_free (C_FREE_NEWLINE | EOF);
@@ -1714,10 +1771,48 @@ resultType:
    CS_FactorContent (COLON (constant=symbolicConstants))?  | CS_BlankFactor;
 cs_fixed_comments:CS_FixedComments;		
 //cs_fixed_x2: CS_OperationAndExtendedFactor2 C2_FACTOR2_CONT* C2_FACTOR2 C_EOL;
-cspec_fixed_x2: csOperationAndExtendedFactor2 fixedexpression=c_free (C_FREE_NEWLINE | EOF);
+cspec_fixed_x2:
+
+    {
+        new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("cspec_fixed_x2_0 " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+    }?
+
+csOperationAndExtendedFactor2
+
+    {
+        new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("cspec_fixed_x2_1 " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+    }?
+
+fixedexpression=c_free
+
+    {
+        new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("cspec_fixed_x2_2 " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+    }?
+
+(C_FREE_NEWLINE | EOF);
 
 csOperationAndExtendedFactor2:
-	operation=OP_EVAL
+    // Disabling this because we want to change how EVAL is parsed
+	// operation=OP_EVAL
+
 	//|operation=OP_IF
 	|operation=OP_CALLP operationExtender=cs_operationExtender?
 	//|operation=OP_DOW
@@ -2361,7 +2456,42 @@ expression:
     | <assoc=right> expression EXP expression
     | expression (MULT | MULT_NOSPACE) expression
     | expression DIV expression
-    | expression PLUS expression
+    | expression
+
+    {
+	    new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("Left recognized in sum " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+	}?
+
+    PLUS
+
+    {
+	    new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("Plus recognized in sum " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+	}?
+
+    expression
+
+    {
+	    new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("Right recognized in sum " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+	}?
+
     | expression MINUS expression
 	| expression EQUAL expression
 	| expression AND expression
@@ -2370,6 +2500,17 @@ expression:
 	| indicator
 	| function
 	| identifier
+
+    {
+	    new java.util.function.Predicate<Object>() {
+            @Override
+            public boolean test(Object o) {
+                System.out.println("Identifier recognized in expression " + _input.LT(1));
+                return true;
+            }
+        }.test(null)
+	}?
+
 	| number 
 	| literal  
 	| bif
@@ -2379,6 +2520,7 @@ function: functionName args;
 //arithmeticalOperator:PLUS | MINUS | EXP | MULT | MULT_NOSPACE | DIV;
 comparisonOperator: GT | LT | GE | LE | NE;
 assignmentOperator: CPLUS | CMINUS | CMULT | CDIV | CEXP ;
+assignmentOperatorIncludingEqual: CPLUS | CMINUS | CMULT | CDIV | CEXP | EQUAL ;
 
 /*--------------- what words 
 assignment: expression EQUAL indicator_expr;

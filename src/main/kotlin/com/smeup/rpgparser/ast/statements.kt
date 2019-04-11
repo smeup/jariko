@@ -13,6 +13,10 @@ interface StatementThatCanDefineData {
     fun dataDefinition() : InStatementDataDefinition?
 }
 
+enum class AssignmentOperator(val text: String) {
+    NORMAL_ASSIGNMENT("=")
+}
+
 abstract class Statement(override val position: Position? = null) : Node(position)
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
 data class SelectStmt(var cases: List<SelectCase>,
@@ -20,7 +24,11 @@ data class SelectStmt(var cases: List<SelectCase>,
                       override val position: Position? = null) : Statement(position)
 data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
-data class EvalStmt(var expression: Expression, override val position: Position? = null) : Statement(position)
+data class EvalStmt(val target: ReferenceByName<AbstractDataDefinition>,
+                    var expression: Expression,
+                    val operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT,
+                    override val position: Position? = null)
+    : Statement(position)
 data class CallStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),

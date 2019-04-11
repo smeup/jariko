@@ -472,7 +472,11 @@ private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubrou
 }
 
 private fun CsEVALContext.toAst(considerPosition: Boolean = true): EvalStmt {
-    return EvalStmt(this.fixedexpression.expression().toAst(considerPosition), toPosition(considerPosition))
+    return EvalStmt(
+            ReferenceByName(this.target.text),
+            this.fixedexpression.expression().toAst(considerPosition),
+            operator=AssignmentOperator.values().first { it.text == this.operator.text },
+            position=toPosition(considerPosition))
 }
 
 private fun CsCALLContext.toAst(considerPosition: Boolean = true): CallStmt {
