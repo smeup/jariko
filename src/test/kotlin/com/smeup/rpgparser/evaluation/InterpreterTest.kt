@@ -193,4 +193,12 @@ class InterpreterTest {
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55                           "), si.displayed)
     }
 
+    @Test
+    fun executeHELLO() {
+        val cu = assertASTCanBeProduced("HELLO", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf(), si)
+        assertEquals(listOf("Hello World!"), si.displayed)
+    }
 }

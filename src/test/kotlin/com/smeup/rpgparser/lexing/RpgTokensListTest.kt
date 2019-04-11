@@ -66,5 +66,10 @@ class RpgTokensListTest {
         assertToken(RESERVED, "", tokens[24])
         assertToken(EOF, "<EOF>", tokens[25])
     }
-    
+
+    @test fun lexHELLO() {
+        val tokens = assertCanBeLexed("HELLO")
+        assertToken(LastRecordIndicator, "LR", tokens[48])
+        assertToken(EOF, "<EOF>", tokens.last())
+    }
 }

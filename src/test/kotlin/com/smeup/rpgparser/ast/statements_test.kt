@@ -141,6 +141,11 @@ class StatementsTest {
         assertEquals(SetOnStmt(RT), statement("SETON                                        RT"))
     }
 
+    @test fun setOnParsingSecondPlace() {
+        assertEquals(SetOnStmt(LR), statement("SETON                                          LR"))
+        assertEquals(SetOnStmt(RT), statement("SETON                                          RT"))
+    }
+
     @test fun clearParsing() {
         assertEquals(ClearStmt(dataRef("\$\$SVAR")), statement("CLEAR                   \$\$SVAR"))
     }

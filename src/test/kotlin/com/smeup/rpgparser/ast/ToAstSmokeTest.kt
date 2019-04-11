@@ -74,4 +74,13 @@ class ToAstSmokeTest {
         assertEquals("FCLO", root.subroutines[6].name)
         assertEquals(0, root.subroutines[6].stmts.size)
     }
+
+    @Test
+    fun buildAstForHELLO() {
+        val cu = assertASTCanBeProduced("HELLO")
+        assertEquals(1, cu.dataDefinitions.size)
+        assertEquals(3, cu.main.stmts.size)
+        assertEquals(0, cu.subroutines.size)
+    }
+
 }
