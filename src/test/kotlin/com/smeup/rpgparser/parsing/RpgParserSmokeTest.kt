@@ -76,4 +76,24 @@ class RpgParserSmokeTest {
     fun parseCALCFIB() {
         assertCanBeParsed("CALCFIB")
     }
+
+    @Test
+    fun parseHELLO() {
+        assertCanBeParsed("HELLO")
+    }
+
+    @Test
+    fun parseHELLO1() {
+        assertCanBeParsed("HELLO1")
+    }
+
+    @Test
+    fun parseJRANDOMCAL() {
+        assertCanBeParsed("JRANDOMCAL")
+    }
+
+    @Test
+    fun parseJRANDOMA() {
+        assertCanBeParsed("JRANDOMA")
+    }
 }

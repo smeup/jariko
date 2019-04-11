@@ -77,4 +77,24 @@ class RpgLexerSmokeTest {
     fun lexCALCFIB() {
         assertCanBeLexed("CALCFIB")
     }
+
+    @Test
+    fun lexHELLO() {
+        assertCanBeLexed("HELLO")
+    }
+
+    @Test
+    fun lexHELLO1() {
+        assertCanBeLexed("HELLO1")
+    }
+
+    @Test
+    fun lexJRANDOMA() {
+        assertCanBeLexed("JRANDOMA")
+    }
+
+    @Test
+    fun lexJRANDOMCAL() {
+        assertCanBeLexed("JRANDOMCAL")
+    }
 }
