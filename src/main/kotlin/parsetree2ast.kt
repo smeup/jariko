@@ -459,15 +459,15 @@ private fun CsPARMContext.toAst(considerPosition: Boolean = true): PlistParam {
 }
 
 private fun CsSETONContext.toAst(considerPosition: Boolean = true): SetOnStmt {
-    //TODO: SetOnStmt should receive a list of DataWrapUpChoice???
-    return SetOnStmt(DataWrapUpChoice.valueOf(firstCompiledIndicator(this.cspec_fixed_standard_parts())), toPosition(considerPosition))
+    return SetOnStmt(indicators(this.cspec_fixed_standard_parts()), toPosition(considerPosition))
 }
 
-private fun firstCompiledIndicator(cspecs: Cspec_fixed_standard_partsContext) : String {
+private fun indicators(cspecs: Cspec_fixed_standard_partsContext) : List<DataWrapUpChoice> {
     return listOf(cspecs.hi, cspecs.lo, cspecs.eq)
             .map { it.text }
-            .first { !it.isNullOrBlank() }
-            .toUpperCase()
+            .filter { !it.isNullOrBlank() }
+            .map (String::toUpperCase)
+            .map(DataWrapUpChoice::valueOf)
 }
 
 private fun CsEXSRContext.toAst(considerPosition: Boolean = true): ExecuteSubroutine {

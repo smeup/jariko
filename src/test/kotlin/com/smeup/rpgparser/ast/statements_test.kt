@@ -137,13 +137,13 @@ class StatementsTest {
     // TODO select with other
 
     @test fun setOnParsing() {
-        assertEquals(SetOnStmt(LR), statement("SETON                                        LR"))
-        assertEquals(SetOnStmt(RT), statement("SETON                                        RT"))
+        assertEquals(SetOnStmt(listOf(LR)), statement("SETON                                        LR"))
+        assertEquals(SetOnStmt(listOf(RT)), statement("SETON                                        RT"))
     }
 
     @test fun setOnParsingSecondPlace() {
-        assertEquals(SetOnStmt(LR), statement("SETON                                          LR"))
-        assertEquals(SetOnStmt(RT), statement("SETON                                          RT"))
+        assertEquals(SetOnStmt(listOf(LR)), statement("SETON                                          LR"))
+        assertEquals(SetOnStmt(listOf(RT)), statement("SETON                                          RT"))
     }
 
     @test fun clearParsing() {
