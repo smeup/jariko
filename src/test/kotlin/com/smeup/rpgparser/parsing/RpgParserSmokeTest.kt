@@ -101,4 +101,9 @@ class RpgParserSmokeTest {
     fun parseCHAINHOSTS() {
         assertCanBeParsed("CHAINHOSTS")
     }
+
+    @Test
+    fun parseTIMESTDIFF() {
+        assertCanBeParsed("TIMESTDIFF")
+    }
 }

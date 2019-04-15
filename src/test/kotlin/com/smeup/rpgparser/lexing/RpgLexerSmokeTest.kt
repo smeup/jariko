@@ -102,4 +102,9 @@ class RpgLexerSmokeTest {
     fun lexCHAINHOSTS() {
         assertCanBeLexed("CHAINHOSTS")
     }
+
+    @Test
+    fun lexTIMESTDIFF() {
+        assertCanBeLexed("TIMESTDIFF")
+    }
 }
