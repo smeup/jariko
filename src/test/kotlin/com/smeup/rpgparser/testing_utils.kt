@@ -23,7 +23,7 @@ fun assertIsIntValue(value: Value, intValue: Long) {
 }
 
 fun inputStreamFor(exampleName: String) : InputStream {
-    return BOMInputStream(Dummy::class.java.getResourceAsStream("/$exampleName.txt"))
+    return BOMInputStream(Dummy::class.java.getResourceAsStream("/$exampleName.rpgle"))
 }
 
 fun inputStreamForCode(code: String) : InputStream {

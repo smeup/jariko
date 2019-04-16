@@ -2,6 +2,6 @@
 # The first parameter is the name of the file to convert
 param( [string] $infile = $(throw "Please specify a filename.") )
 
-$outfile = "$infile.txt"
+$outfile = "$infile.rpgle"
 
 get-content -Path $infile | out-file $outfile -encoding utf8

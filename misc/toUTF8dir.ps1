@@ -6,6 +6,6 @@ cd $dirName
 
 Get-ChildItem $dirName |
         Foreach-Object {
-            $outfile = "$_.txt"
+            $outfile = "$_.rpgle"
             get-content -Path $_ | out-file $outfile -encoding utf8
         }
