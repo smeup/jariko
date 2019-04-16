@@ -34,6 +34,8 @@ Then import in IDEA using these options:
 
 **It's very important not to check "Create separate module per source set"!!!**
 
+[Here is a small video on how to setup a Linux workstation to develop this project](https://youtu.be/r4vWfo4GbY8)
+
 ## Running tests
 
 All tests can be executed by running:
