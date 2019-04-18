@@ -19,9 +19,9 @@ class StatementsTest {
     }
 
     @test fun evalParsing() {
-        assertEquals(EvalStmt(EqualityExpr(
+        assertEquals(EvalStmt(
                 dataRef("\$\$SVAR"),
-                dataRef("U\$SVARSK"))),
+                dataRef("U\$SVARSK")),
                 statement("EVAL      \$\$SVAR=U\$SVARSK"))
     }
 
@@ -36,9 +36,8 @@ class StatementsTest {
                         IntLiteral(0)
                 ),
                 listOf(
-                        EvalStmt(EqualityExpr(
-                                dataRef("U\$IN35"),
-                                StringLiteral("1")))
+                        EvalStmt(dataRef("U\$IN35"),
+                                StringLiteral("1"))
                 )
         ), statement("IF        \$X>0\n" +
                 "     C                   EVAL      U\$IN35='1'\n" +
@@ -63,15 +62,13 @@ class StatementsTest {
                         IntLiteral(0)
                 ),
                 listOf(
-                        EvalStmt(EqualityExpr(
-                                dataRef("U\$IN35"),
-                                StringLiteral("1")))
+                        EvalStmt(dataRef("U\$IN35"),
+                                StringLiteral("1"))
                 ),
                 emptyList(),
                 ElseClause(listOf(
-                        EvalStmt(EqualityExpr(
-                                dataRef("\$\$URL"),
-                                FunctionCall(ReferenceByName("\$\$SVARVA"), listOf(dataRef("\$R"))))))
+                        EvalStmt(dataRef("\$\$URL"),
+                                FunctionCall(ReferenceByName("\$\$SVARVA"), listOf(dataRef("\$R")))))
                 )
         ), statement("IF        \$X>0\n" +
                 "     C                   EVAL      U\$IN35='1'\n" +
@@ -170,6 +167,13 @@ class StatementsTest {
 
     @test fun iterParsing() {
         assertEquals(IterStmt(), statement("ITER"))
+    }
+
+    @test fun parseEvalWithPlusExpression() {
+        assertEquals(EvalStmt(
+                dataRef("RESULT"),
+                PlusExpr(dataRef("A"), dataRef("B"))),
+                statement("EVAL      RESULT = A + B"))
     }
 
 }

@@ -46,14 +46,6 @@ fun CompilationUnit.resolve() {
         }
     }
 
-    // replace equality expr in Eval with Assignments
-    this.specificProcess(EvalStmt::class.java) { fc ->
-        if (fc.expression is EqualityExpr) {
-            val ee = fc.expression as EqualityExpr
-            fc.expression.replace(AssignmentExpr(ee.left as AssignableExpression, ee.right, ee.position))
-        }
-    }
-
     // replace equality expr in For init with Assignments
     this.specificProcess(ForStmt::class.java) { fs ->
         if (fs.init is EqualityExpr) {

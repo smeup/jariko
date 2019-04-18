@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.DataType.DATA_STRUCTURE
+import com.smeup.rpgparser.ast.AssignableExpression
 import com.smeup.rpgparser.ast.Expression
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
@@ -14,6 +15,13 @@ enum class DataType {
     DATA_STRUCTURE
 }
 
+// TODO DataType should be transformed to be an interface
+// We should have:
+// * DataStructure(fields)
+// * NumberType(digits, decimal)
+// * StringType(length)
+// * TimestampType
+
 open class AbstractDataDefinition(override val name: String,
                                   open val size: Int?,
                                   override val position: Position? = null) : Node(position), Named
@@ -24,7 +32,7 @@ class DataDefinition(override val name: String,
                      val decimals: Int = 0,
                      val arrayLength: Expression? = null,
                      val fields: List<FieldDefinition>? = null,
-                     val like: Expression? = null,
+                     val like: AssignableExpression? = null,
                      val initializationValue : Expression? = null,
                      override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
     init {

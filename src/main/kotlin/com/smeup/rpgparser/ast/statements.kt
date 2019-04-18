@@ -4,13 +4,27 @@ import com.smeup.rpgparser.AbstractDataDefinition
 import com.smeup.rpgparser.InStatementDataDefinition
 import com.smeup.rpgparser.ast.DataWrapUpChoice
 import com.smeup.rpgparser.ast.Subroutine
+import com.smeup.rpgparser.toAst
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import java.lang.IllegalArgumentException
 
 interface StatementThatCanDefineData {
     fun dataDefinition() : InStatementDataDefinition?
+}
+
+enum class AssignmentOperator(val text: String) {
+    DIVIDE_ASSIGNMENT("/="),
+    NORMAL_ASSIGNMENT("=");
+
+    companion object {
+        fun byText(text: String) : AssignmentOperator {
+            return AssignmentOperator.values().firstOrNull { it.text == text }
+                    ?: throw IllegalArgumentException("No assignment operator with text $text found")
+        }
+    }
 }
 
 abstract class Statement(override val position: Position? = null) : Node(position)
@@ -20,7 +34,11 @@ data class SelectStmt(var cases: List<SelectCase>,
                       override val position: Position? = null) : Statement(position)
 data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
-data class EvalStmt(var expression: Expression, override val position: Position? = null) : Statement(position)
+data class EvalStmt(val target: AssignableExpression,
+                    var expression: Expression,
+                    val operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT,
+                    override val position: Position? = null)
+    : Statement(position)
 data class CallStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),

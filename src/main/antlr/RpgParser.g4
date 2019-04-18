@@ -1342,8 +1342,11 @@ csENDSL:
 //	cspec_fixed_standard_parts;
 csEVAL:
 	operation=OP_EVAL
-	operationExtender=cs_operationExtender? 
-	fixedexpression=c_free (C_FREE_NEWLINE | EOF);
+	operationExtender=cs_operationExtender?
+	target
+	operator=assignmentOperatorIncludingEqual
+	fixedexpression=c_free
+	(C_FREE_NEWLINE | EOF);
 csEVAL_CORR:
 	operation=OP_EVAL_CORR
 	fixedexpression=c_free (C_FREE_NEWLINE | EOF);
@@ -1714,10 +1717,15 @@ resultType:
    CS_FactorContent (COLON (constant=symbolicConstants))?  | CS_BlankFactor;
 cs_fixed_comments:CS_FixedComments;		
 //cs_fixed_x2: CS_OperationAndExtendedFactor2 C2_FACTOR2_CONT* C2_FACTOR2 C_EOL;
-cspec_fixed_x2: csOperationAndExtendedFactor2 fixedexpression=c_free (C_FREE_NEWLINE | EOF);
+cspec_fixed_x2:
+    csOperationAndExtendedFactor2
+    fixedexpression=c_free
+    (C_FREE_NEWLINE | EOF);
 
 csOperationAndExtendedFactor2:
-	operation=OP_EVAL
+    // Disabling this because we want to change how EVAL is parsed
+	// operation=OP_EVAL
+
 	//|operation=OP_IF
 	|operation=OP_CALLP operationExtender=cs_operationExtender?
 	//|operation=OP_DOW
@@ -2379,6 +2387,7 @@ function: functionName args;
 //arithmeticalOperator:PLUS | MINUS | EXP | MULT | MULT_NOSPACE | DIV;
 comparisonOperator: GT | LT | GE | LE | NE;
 assignmentOperator: CPLUS | CMINUS | CMULT | CDIV | CEXP ;
+assignmentOperatorIncludingEqual: CPLUS | CMINUS | CMULT | CDIV | CEXP | EQUAL ;
 
 /*--------------- what words 
 assignment: expression EQUAL indicator_expr;
@@ -2499,7 +2508,7 @@ argument: ID;
 
 symbolicConstants:
 SPLAT_ALL
-   | SPLAT_NONEc
+   | SPLAT_NONE
    | SPLAT_NO
    | SPLAT_YES
    | SPLAT_ILERPG
@@ -2600,3 +2609,7 @@ SPLAT_ALL
    | SPLAT_YEARS
    | SPLAT_EXTDESC
    ;
+
+target:
+      name=ID #simpleTarget
+    | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget ;

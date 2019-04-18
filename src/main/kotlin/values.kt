@@ -3,7 +3,7 @@ package com.smeup.rpgparser
 import java.math.BigDecimal
 
 abstract class Value {
-    open fun asInt() : IntValue = throw UnsupportedOperationException()
+    open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asString() : StringValue = throw UnsupportedOperationException()
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
 }
@@ -38,12 +38,15 @@ data class BooleanValue(val value: Boolean) : Value() {
     override fun asBoolean() = this
 }
 abstract class ArrayValue : Value() {
-    abstract fun size() : Int
+    abstract fun arrayLength() : Int
+    abstract fun elementSize() : Int
     abstract fun setElement(index: Int, value: Value)
     abstract fun getElement(index: Int) : Value
 }
-data class ConcreteArrayValue(val elements: MutableList<Value>) : ArrayValue() {
-    override fun size() = elements.size
+data class ConcreteArrayValue(val elements: MutableList<Value>, val elementSize: Int) : ArrayValue() {
+    override fun elementSize() = elementSize
+
+    override fun arrayLength() = elements.size
 
     override fun setElement(index: Int, value: Value) {
         elements[index] = value
@@ -56,7 +59,11 @@ object BlanksValue : Value()
 class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value()
 
 class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition) : ArrayValue() {
-    override fun size() = container.size()
+    override fun elementSize(): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun arrayLength() = container.arrayLength()
 
     override fun setElement(index: Int, value: Value) {
         val containerElement =  container.getElement(index)
@@ -82,6 +89,8 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
 }
 
-fun createArrayValue(n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList())
+fun createArrayValue(elementSize: Int, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementSize)
 
 fun blankString(length: Int) = StringValue(" ".repeat(length))
+
+fun Long.asValue() = IntValue(this)

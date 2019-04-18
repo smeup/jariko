@@ -53,6 +53,7 @@ class SymbolTable {
 abstract class LogEntry
 data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry()
 data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry()
+data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry()
 
 class Interpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
@@ -62,6 +63,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
     fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
+    fun getAssignments() = logs.filterIsInstance(AssignmentLogEntry::class.java)
     /**
      * Remove an expression if the last time the same expression was evaluated it had the same value
      */
@@ -85,18 +87,23 @@ class Interpreter(val systemInterface: SystemInterface) {
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
+        logs.add(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = value
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
         // Assigning initial values received from outside and consider INZ clauses
         compilationUnit.dataDefinitions.forEach {
-            globalSymbolTable[it] = when {
+            set(it, when {
                 it.name in initialValues -> initialValues[it.name]!!
                 it.initializationValue != null -> interpret(it.initializationValue)
                 else -> blankValue(it)
-            }
+            })
         }
+    }
+
+    fun simplyInitialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+        initialize(compilationUnit, initialValues)
     }
 
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
@@ -117,7 +124,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
                     execute(statement.subroutine.referred!!.stmts)
                 }
-                is EvalStmt -> eval(statement.expression)
+                is EvalStmt -> assign(statement.target, statement.expression)
                 is SelectStmt -> {
                     for (case in statement.cases) {
                         if (interpret(case.condition).asBoolean().value) {
@@ -162,14 +169,14 @@ class Interpreter(val systemInterface: SystemInterface) {
     private fun isEqualOrSmaller(value1: Value, value2: Value) : Boolean {
         return when {
             value1 is IntValue && value2 is IntValue -> value1.value <= value2.value
-            else -> TODO()
+            value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
+            else -> TODO("Value 1 is $value1, Value 2 is $value2")
         }
     }
 
     private fun increment(dataDefinition: AbstractDataDefinition) {
         val value = this[dataDefinition]
         if (value is IntValue) {
-            println("incrementing ${dataDefinition.name} from ${value}")
             this[dataDefinition] = IntValue(value.value + 1)
         } else {
             throw UnsupportedOperationException()
@@ -203,7 +210,7 @@ class Interpreter(val systemInterface: SystemInterface) {
             is DataRefExpr -> {
                 val l = target as DataRefExpr
                 val value = coerce(interpret(value), l.variable.referred!!.type())
-                globalSymbolTable[target.variable.referred!!] = value
+                set(target.variable.referred!!, value)
                 return value
             }
             is ArrayAccessExpr -> {
@@ -257,11 +264,11 @@ class Interpreter(val systemInterface: SystemInterface) {
             is NumberOfElementsExpr -> {
                 val value = interpret(expression.value)
                 when (value) {
-                    is ArrayValue -> value.size().asValue()
+                    is ArrayValue -> value.arrayLength().asValue()
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
-            is DataRefExpr -> globalSymbolTable[expression.variable.referred!!]
+            is DataRefExpr -> get(expression.variable.referred!!)
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
@@ -300,15 +307,16 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
+        val interpreter = this
         if (dataDefinition.arrayLength != null && !forceElement) {
             val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
-            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList())
+            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList(), dataDefinition.actualElementSize(interpreter).value.toInt())
         }
         return when {
-            dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
+            dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
             dataDefinition.dataType == DataType.BOOLEAN -> BooleanValue(false)
             // TODO: to be revised
-            dataDefinition.dataType == DataType.DATA_STRUCTURE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
+            dataDefinition.dataType == DataType.DATA_STRUCTURE -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
             else -> TODO(dataDefinition.toString())
         }
     }
@@ -317,15 +325,22 @@ class Interpreter(val systemInterface: SystemInterface) {
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
-private fun DataDefinition.actualSize(interpreter: Interpreter) : IntValue {
+/**
+ * Here we mean the arrayLength of a single element
+ */
+fun DataDefinition.actualElementSize(interpreter: Interpreter) : IntValue {
     return when {
+        this.like != null && this.size != null -> throw IllegalStateException("Should not be both arrayLength and dim be set")
         this.size != null -> this.size.asValue()
-        this.like != null -> interpreter.interpret(NumberOfElementsExpr(this.like)).asInt()
-        else -> throw IllegalStateException("No actual size can be calculated")
+        this.like != null -> (interpreter.interpret(this.like) as ConcreteArrayValue).elementSize().asValue()
+        else -> throw IllegalStateException("No actual arrayLength can be calculated")
     }
 }
 
-private fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
+/**
+ * Here we mean the number of elements
+ */
+fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
     return when {
         this.arrayLength != null -> interpreter.interpret(this.arrayLength).asInt()
         else -> IntValue(1)
