@@ -111,4 +111,9 @@ class RpgParserSmokeTest {
     fun parseDSEX01() {
         assertCanBeParsed("DSEX01")
     }
+
+    @Test
+    fun parseDSEX02() {
+        assertCanBeParsed("DSEX02")
+    }
 }
