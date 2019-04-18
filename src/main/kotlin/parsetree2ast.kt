@@ -300,10 +300,10 @@ private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
     return DataDefinition(
             this.ds_name().text,
             type,
-            this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() },
-            decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
-            arrayLength = this.arrayLength(conf),
-            like = like,
+//            this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() },
+//            decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
+//            arrayLength = this.arrayLength(conf),
+//            like = like,
             initializationValue = initializationValue,
             position = this.toPosition(true))
 }
@@ -335,13 +335,15 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
 
         // It is found by looking at the first entry
         val elementSize = header.TO_POSITION().text.trim().toInt()
-        val type = DataStructureType(others.map { it.toFieldType() }, elementSize)
+        var type : Type = DataStructureType(others.map { it.toFieldType() }, elementSize)
+        val ks = header.keyword().map { it.keyword_dim() }
+        header.keyword().firstOrNull { it.keyword_dim() != null }?.let {
+            val nElements = staticallyEvaluate(it.keyword_dim().numeric_constant.toAst(conf)).asInt().value
+            type = ArrayType(type, nElements.toInt())
+        }
         return DataDefinition(
                 header.ds_name().text,
                 type,
-                header.TO_POSITION().text.trim().toInt(),
-                decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
-                arrayLength = header.arrayLength(conf),
                 fields = others.map { it.toAst(conf) },
                 position = this.toPosition(true))
     } else {
@@ -358,7 +360,10 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
 }
 
 private fun Parm_fixedContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
-    return FieldDefinition(this.ds_name().text, this.TO_POSITION().text.trim().toInt(), position = this.toPosition(conf.considerPosition))
+    val length = this.TO_POSITION().text.trim().toLong()
+    return FieldDefinition(this.ds_name().text,
+            StringType(length),
+            position = this.toPosition(conf.considerPosition))
 }
 
 private fun Parm_fixedContext.toFieldType(): FieldType {
@@ -529,7 +534,7 @@ private fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
     var dataDeclaration : InStatementDataDefinition? = null
     if (!this.cspec_fixed_standard_parts().len.text.isBlank()) {
         val length = this.cspec_fixed_standard_parts().len.text.trim().toInt()
-        dataDeclaration = InStatementDataDefinition(name, length, toPosition(conf.considerPosition))
+        dataDeclaration = InStatementDataDefinition(name, StringType(length.toLong()), toPosition(conf.considerPosition))
     }
     return ClearStmt(
             referenceToExpression(name, toPosition(conf.considerPosition)),

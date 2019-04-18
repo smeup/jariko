@@ -14,6 +14,7 @@ import java.util.*
  */
 interface SystemInterface {
     fun display(value: String)
+    @Deprecated("do not use")
     fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
         throw UnsupportedOperationException("Unresolved reference to ${variable.name}")
     }
@@ -350,19 +351,28 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
+    fun blankValue(type: Type): Value {
+        when {
+            else -> TODO(type.toString())
+        }
+    }
+
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
-        val interpreter = this
-        if (dataDefinition.arrayLength != null && !forceElement) {
-            val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
-            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList(), dataDefinition.actualElementSize(interpreter).value.toInt())
-        }
-        return when {
-            dataDefinition.dataType is StringType -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
-            dataDefinition.dataType is BooleanType -> BooleanValue(false)
-            // TODO: to be revised
-            dataDefinition.dataType is DataStructureType -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
-            else -> TODO(dataDefinition.toString())
-        }
+        if (forceElement) TODO()
+        return blankValue(dataDefinition.type)
+//        val interpreter = this
+//        if (dataDefinition.arrayLength != null && !forceElement) {
+//            val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
+//            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList(), dataDefinition.actualElementSize(interpreter).value.toInt())
+//        }
+//        return when {
+//            dataDefinition.type is StringType -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
+//            dataDefinition.type is BooleanType -> BooleanValue(false)
+//            // TODO: to be revised
+//            dataDefinition.type is DataStructureType -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
+//            else -> TODO(dataDefinition.toString())
+//        }
+//        TODO()
     }
 }
 
@@ -373,22 +383,24 @@ private fun Boolean.asValue() = BooleanValue(this)
  * Here we mean the arrayLength of a single element
  */
 fun DataDefinition.actualElementSize(interpreter: Interpreter) : IntValue {
-    return when {
-        this.like != null && this.size != null -> throw IllegalStateException("Should not be both arrayLength and dim be set")
-        this.size != null -> this.size.asValue()
-        this.like != null -> (interpreter.interpret(this.like) as ConcreteArrayValue).elementSize().asValue()
-        else -> throw IllegalStateException("No actual arrayLength can be calculated")
-    }
+//    return when {
+//        this.like != null && this.size != null -> throw IllegalStateException("Should not be both arrayLength and dim be set")
+//        this.size != null -> this.size.asValue()
+//        this.like != null -> (interpreter.interpret(this.like) as ConcreteArrayValue).elementSize().asValue()
+//        else -> throw IllegalStateException("No actual arrayLength can be calculated")
+//    }
+    TODO()
 }
 
 /**
  * Here we mean the number of elements
  */
 fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
-    return when {
-        this.arrayLength != null -> interpreter.interpret(this.arrayLength).asInt()
-        else -> IntValue(1)
-    }
+//    return when {
+//        this.arrayLength != null -> interpreter.interpret(this.arrayLength).asInt()
+//        else -> IntValue(1)
+//    }
+    TODO()
 }
 
 object DummySystemInterface : SystemInterface {

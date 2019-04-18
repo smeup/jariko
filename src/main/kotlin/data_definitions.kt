@@ -1,60 +1,65 @@
 package com.smeup.rpgparser
 
-import com.smeup.rpgparser.ast.AssignableExpression
 import com.smeup.rpgparser.ast.Expression
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
-import java.lang.IllegalArgumentException
 
 open class AbstractDataDefinition(override val name: String,
-                                  open val size: Int?,
+                                  open val type: Type,
                                   override val position: Position? = null) : Node(position), Named
 
-// TODO: remove most fields
-class DataDefinition(override val name: String,
-                     val dataType: Type,
-                     override val size: Int? = null,
-                     val decimals: Int = 0,
-                     val arrayLength: Expression? = null,
-                     val fields: List<FieldDefinition>? = null,
-                     val like: AssignableExpression? = null,
-                     val initializationValue : Expression? = null,
-                     override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
-    init {
-        require((fields != null) == (dataType is DataStructureType))
-        { "Fields should be sent always and only for data structures" }
-    }
+data class DataDefinition(override val name: String,
+                          override val type: Type,
+                     //override val size: Int? = null,
+                     //val decimals: Int = 0,
+                     //val arrayLength: Expression? = null,
+                          val fields: List<FieldDefinition> = emptyList(),
+                     //val like: AssignableExpression? = null,
+                          val initializationValue : Expression? = null,
+                          override val position: Position? = null) : AbstractDataDefinition(name, type, position) {
 
-    override fun toString(): String {
-        return "DataDefinition($name, $dataType, $size)"
-    }
+//    val fields : List<FieldDefinition>
+//        get() {
+//            val dataStructureType = when {
+//                type is ArrayType && type.element is DataStructureType -> type.element
+//                type is DataStructureType -> type
+//                else -> null
+//            }
+//            return dataStructureType.fields
+//        }
 
-    fun isArray() = arrayLength != null
+    /*init {
+        require((fields != null) == (type is DataStructureType))
+        { "Fields should be sent always and only for data structures, while in this case the type was $type" }
+    }*/
+
+//    override fun toString(): String {
+//        return "DataDefinition($name, $type, $size)"
+//    }
+
+    fun isArray() = type is ArrayType
     fun startOffset(fieldDefinition: FieldDefinition): Int {
         var start = 0
-        for (f in fields ?: emptyList()) {
+        for (f in fields) {
             if (f == fieldDefinition) {
                 require(start >= 0)
                 return start
             }
-            start += f.size
+            start += f.size.toInt()
         }
         throw IllegalArgumentException("Unknown field $fieldDefinition")
     }
     fun endOffset(fieldDefinition: FieldDefinition): Int {
-        return startOffset(fieldDefinition) + fieldDefinition.size
+        return (startOffset(fieldDefinition) + fieldDefinition.size).toInt()
     }
 }
 
 data class FieldDefinition(override val name: String,
-                           override val size: Int,
-                           override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
-
-    init {
-        require(size > 0)
-    }
+                           override val type: Type,
+                           override val position: Position? = null) : AbstractDataDefinition(name, type, position) {
+    val size : Long = type.size
 
     @Derived
     val container
@@ -73,9 +78,10 @@ data class FieldDefinition(override val name: String,
 // calculation specification using the *LIKE DEFINE operation.
 
 class InStatementDataDefinition(override val name: String,
-                                override val size: Int,
-                                override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
-    init {
-        require(size > 0)
-    }
+                                override val type: Type,
+                                //override val size: Int,
+                                override val position: Position? = null) : AbstractDataDefinition(name, type, position) {
+//    init {
+//        require(size > 0)
+//    }
 }
