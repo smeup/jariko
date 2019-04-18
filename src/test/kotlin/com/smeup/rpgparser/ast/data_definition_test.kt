@@ -22,27 +22,27 @@ class DataDefinitionTest {
 
     @test fun singleDataParsing() {
         val cu = processDataDefinition("D U\$FUNZ          S             10")
-        cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 10)
+        cu.assertDataDefinitionIsPresent("U\$FUNZ", StringType(10))
     }
 
     @test fun booleanDataParsing() {
         val cu = processDataDefinition("D OK              S              1N")
-        cu.assertDataDefinitionIsPresent("OK", DataType.BOOLEAN, 1)
+        cu.assertDataDefinitionIsPresent("OK", BooleanType)
     }
 
     @test fun singleDataParsingOther() {
         val cu = processDataDefinition("D U\$FUNZ          S             99")
-        cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 99)
+        cu.assertDataDefinitionIsPresent("U\$FUNZ", StringType(99))
     }
 
     @test fun singleDataParsingWithDecimals() {
         val cu = processDataDefinition("D \$X              S              3  2")
-        cu.assertDataDefinitionIsPresent("\$X", DataType.SINGLE, 3, decimals = 2)
+        cu.assertDataDefinitionIsPresent("\$X", NumberType(3, 2))
     }
 
     @test fun arrayParsing() {
         val cu = processDataDefinition("D U\$FUNZ          S             10    DIM(200)")
-        cu.assertDataDefinitionIsPresent("U\$FUNZ", DataType.SINGLE, 10, arrayLength = IntLiteral(200))
+        cu.assertDataDefinitionIsPresent("U\$FUNZ", ArrayType(StringType(10), 200))
     }
 
     @test fun structParsing() {
@@ -50,7 +50,9 @@ class DataDefinitionTest {
                 "     D \$\$SVAR                      1050    DIM(200)\n" +
                 "     D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name\n" +
                 "     D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value")
-        cu.assertDataDefinitionIsPresent("\$\$SVAR", DataType.DATA_STRUCTURE, 1050,
+        cu.assertDataDefinitionIsPresent("\$\$SVAR", DataStructureType(
+                listOf(FieldType("\$\$SVARCD", )),
+                1050)DataType.DATA_STRUCTURE, 1050,
                 arrayLength = IntLiteral(200),
                 fields = listOf(
                         FieldDefinition("\$\$SVARCD", 50),

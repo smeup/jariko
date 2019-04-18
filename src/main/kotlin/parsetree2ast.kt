@@ -1,6 +1,5 @@
 package com.smeup.rpgparser
 
-import com.smeup.rpgparser.DataType.*
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.DIVIDE_ASSIGNMENT
@@ -232,10 +231,26 @@ private fun String.indicatorIndex() : Int? {
 private fun String.isInt() = this.toIntOrNull() != null
 
 private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefinition {
+    //    A Character (Fixed or Variable-length format)
+    //    B Numeric (Binary format)
+    //    C UCS-2 (Fixed or Variable-length format)
+    //    D Date
+    //    F Numeric (Float format)
+    //    G Graphic (Fixed or Variable-length format)
+    //    I Numeric (Integer format)
+    //    N Character (Indicator format)
+    //    O Object
+    //    P Numeric (Packed decimal format)
+    //    S Numeric (Zoned format)
+    //    T Time
+    //    U Numeric (Unsigned format)
+    //    Z Timestamp
+    //    * Basing pointer or procedure pointer
+
     val type = when (this.DATA_TYPE()?.text?.trim()) {
-        null -> SINGLE
-        "" -> SINGLE
-        "N" -> BOOLEAN
+        null -> TODO()
+        "" -> TODO()
+        "N" -> BooleanType
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     var like : AssignableExpression? = null
@@ -269,14 +284,15 @@ private fun Dcl_dsContext.toAst(considerPosition : Boolean = true) : DataDefinit
         require(this.parm_fixed().isNotEmpty())
         val header = this.parm_fixed().first()
         val others = this.parm_fixed().drop(1)
-        return DataDefinition(
-                header.ds_name().text,
-                DATA_STRUCTURE,
-                header.TO_POSITION().text.trim().toInt(),
-                decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
-                arrayLength = header.arrayLength(considerPosition),
-                fields = others.map { it.toAst(considerPosition) },
-                position = this.toPosition(true))
+        TODO()
+//        return DataDefinition(
+//                header.ds_name().text,
+//                //TODO DATA_STRUCTURE,
+//                header.TO_POSITION().text.trim().toInt(),
+//                decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
+//                arrayLength = header.arrayLength(considerPosition),
+//                fields = others.map { it.toAst(considerPosition) },
+//                position = this.toPosition(true))
     } else {
         TODO()
 //        return DataDefinition(

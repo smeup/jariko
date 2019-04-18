@@ -1,6 +1,5 @@
 package com.smeup.rpgparser
 
-import com.smeup.rpgparser.DataType.DATA_STRUCTURE
 import com.smeup.rpgparser.ast.AssignableExpression
 import com.smeup.rpgparser.ast.Expression
 import com.strumenta.kolasu.model.Derived
@@ -9,25 +8,12 @@ import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import java.lang.IllegalArgumentException
 
-enum class DataType {
-    SINGLE,
-    BOOLEAN,
-    DATA_STRUCTURE
-}
-
-// TODO DataType should be transformed to be an interface
-// We should have:
-// * DataStructure(fields)
-// * NumberType(digits, decimal)
-// * StringType(length)
-// * TimestampType
-
 open class AbstractDataDefinition(override val name: String,
                                   open val size: Int?,
                                   override val position: Position? = null) : Node(position), Named
 
 class DataDefinition(override val name: String,
-                     val dataType: DataType,
+                     val dataType: Type,
                      override val size: Int?,
                      val decimals: Int = 0,
                      val arrayLength: Expression? = null,
@@ -36,7 +22,7 @@ class DataDefinition(override val name: String,
                      val initializationValue : Expression? = null,
                      override val position: Position? = null) : AbstractDataDefinition(name, size, position) {
     init {
-        require((fields != null) == (dataType == DATA_STRUCTURE))
+        require((fields != null) == (dataType is DataStructureType))
         { "Fields should be sent always and only for data structures" }
     }
 
