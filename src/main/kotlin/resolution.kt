@@ -22,7 +22,7 @@ fun CompilationUnit.resolve() {
     this.specificProcess(DataRefExpr::class.java) { dre ->
         if (!dre.variable.resolved) {
             require(dre.variable.tryToResolve(this.allDataDefinitions)) {
-                "Data reference not resolved: ${dre.variable.name}"
+                "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
             }
         }
     }

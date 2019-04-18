@@ -1,6 +1,8 @@
 package com.smeup.rpgparser
 
 import java.math.BigDecimal
+import java.util.*
+import kotlin.streams.toList
 
 abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
@@ -9,6 +11,20 @@ abstract class Value {
 }
 
 data class StringValue(var value: String) : Value() {
+    val valueWithoutPadding : String = value.removeNullChars()
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is StringValue) {
+            this.valueWithoutPadding == other.valueWithoutPadding
+        } else {
+            false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return valueWithoutPadding.hashCode()
+    }
+
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
         require(startOffset <= value.length)
@@ -28,6 +44,15 @@ data class StringValue(var value: String) : Value() {
     override fun asString() = this
 }
 
+fun String.removeNullChars() : String {
+    val firstNullChar = this.chars().toList().indexOfFirst { it == 0 }
+    return if (firstNullChar == -1) {
+        this
+    } else {
+        this.substring(0, firstNullChar)
+    }
+}
+
 data class IntValue(val value: Long) : Value() {
     override fun asInt() = this
 }
@@ -42,6 +67,13 @@ abstract class ArrayValue : Value() {
     abstract fun elementSize() : Int
     abstract fun setElement(index: Int, value: Value)
     abstract fun getElement(index: Int) : Value
+    fun elements() : List<Value> {
+        val elements = LinkedList<Value>()
+        for (i in 0 until (arrayLength())) {
+            elements.add(getElement(i))
+        }
+        return elements
+    }
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementSize: Int) : ArrayValue() {
     override fun elementSize() = elementSize
@@ -94,3 +126,5 @@ fun createArrayValue(elementSize: Int, n: Int, creator: (Int) -> Value) = Concre
 fun blankString(length: Int) = StringValue(" ".repeat(length))
 
 fun Long.asValue() = IntValue(this)
+
+fun String.asValue() = StringValue(this)
