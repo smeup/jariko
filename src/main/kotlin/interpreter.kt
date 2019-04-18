@@ -53,6 +53,7 @@ class SymbolTable {
 abstract class LogEntry
 data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry()
 data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry()
+data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry()
 
 class Interpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
@@ -62,6 +63,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
     fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
+    fun getAssignments() = logs.filterIsInstance(AssignmentLogEntry::class.java)
     /**
      * Remove an expression if the last time the same expression was evaluated it had the same value
      */
@@ -85,6 +87,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
+        logs.add(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = value
     }
 
@@ -121,7 +124,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
                     execute(statement.subroutine.referred!!.stmts)
                 }
-                is EvalStmt -> eval(statement.expression)
+                is EvalStmt -> assign(statement.target, statement.expression)
                 is SelectStmt -> {
                     for (case in statement.cases) {
                         if (interpret(case.condition).asBoolean().value) {
@@ -166,6 +169,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     private fun isEqualOrSmaller(value1: Value, value2: Value) : Boolean {
         return when {
             value1 is IntValue && value2 is IntValue -> value1.value <= value2.value
+            value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
             else -> TODO("Value 1 is $value1, Value 2 is $value2")
         }
     }

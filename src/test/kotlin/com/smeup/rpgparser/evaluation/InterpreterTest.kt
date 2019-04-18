@@ -46,7 +46,7 @@ class InterpreterTest {
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(1050,200) { blankString(1050) },
                 "U\$IN35" to StringValue("X")))
-        assertEquals(11, interpreter.getEvaluatedExpressionsConcise().size)
+        assertEquals(10, interpreter.getEvaluatedExpressionsConcise().size)
         assertEquals(listOf("IMP0", "FINZ", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
         assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["\$\$SVAR"])
@@ -135,6 +135,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        val assignments = interpreter.getAssignments()
         assertIsIntValue(interpreter["NBR"], 10)
         assertEquals(listOf("10"), si.displayed)
     }

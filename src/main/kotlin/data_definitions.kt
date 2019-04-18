@@ -15,6 +15,13 @@ enum class DataType {
     DATA_STRUCTURE
 }
 
+// TODO DataType should be transformed to be an interface
+// We should have:
+// * DataStructure(fields)
+// * NumberType(digits, decimal)
+// * StringType(length)
+// * TimestampType
+
 open class AbstractDataDefinition(override val name: String,
                                   open val size: Int?,
                                   override val position: Position? = null) : Node(position), Named
