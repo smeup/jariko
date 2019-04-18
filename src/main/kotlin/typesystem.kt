@@ -7,6 +7,7 @@ interface Type
 
 data class ArrayType(val element: Type) : Type
 data class RawType(val size: Int?) : Type
+data class StringType(val size: Int?) : Type
 
 fun Expression.type() : Type {
     return when (this) {
@@ -27,7 +28,7 @@ fun AbstractDataDefinition.type(): Type {
             }
         }
         is DataDefinition -> {
-            return RawType(this.size)
+            return StringType(this.size)
         }
         is InStatementDataDefinition -> {
             // TODO consider data type
