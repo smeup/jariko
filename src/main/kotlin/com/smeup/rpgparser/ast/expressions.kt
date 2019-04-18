@@ -31,11 +31,15 @@ data class OnRefExpr(override val position: Position? = null) : FigurativeConsta
 data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 
 abstract class AssignableExpression(override val position: Position? = null) : Expression(position) {
-    fun size()
+    abstract fun size() : Long
 }
 
 data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null)
     : AssignableExpression(position) {
+    override fun size(): Long {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun render() = variable.name
 }
 
@@ -61,7 +65,11 @@ data class DifferentThanExpr(var left: Expression, var right: Expression, overri
     override fun render() = "${left.render()} <> ${right.render()}"
 }
 
-data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : AssignableExpression(position)
+data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) : AssignableExpression(position) {
+    override fun size(): Long {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
 
 // A Function call is not distinguishable from an array access
 // TODO replace them in the AST during the resolution phase

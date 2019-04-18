@@ -2,6 +2,7 @@ package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.*
 import com.strumenta.kolasu.model.ReferenceByName
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test
 
@@ -74,5 +75,23 @@ class DataDefinitionTest {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
         assertTrue(cu.hasAnyDataDefinition("dsp"))
+    }
+
+    @test fun executeJD_useOfLike() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+        val interpreter = Interpreter(DummySystemInterface())
+        interpreter.simplyInitialize(cu, emptyMap())
+        val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
+        assertEquals(IntValue(200), dataDefinition.actualArrayLength(interpreter))
+    }
+
+    @test fun executeJD_useOfDim() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+        val interpreter = Interpreter(DummySystemInterface())
+        interpreter.simplyInitialize(cu, emptyMap())
+        val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
+        assertEquals(IntValue(1050), dataDefinition.actualElementSize(interpreter))
     }
 }

@@ -99,6 +99,10 @@ class Interpreter(val systemInterface: SystemInterface) {
         }
     }
 
+    fun simplyInitialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+        initialize(compilationUnit, initialValues)
+    }
+
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
         initialize(compilationUnit, initialValues)
         compilationUnit.main.stmts.forEach {
@@ -162,7 +166,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     private fun isEqualOrSmaller(value1: Value, value2: Value) : Boolean {
         return when {
             value1 is IntValue && value2 is IntValue -> value1.value <= value2.value
-            else -> TODO()
+            else -> TODO("Value 1 is $value1, Value 2 is $value2")
         }
     }
 
@@ -256,7 +260,7 @@ class Interpreter(val systemInterface: SystemInterface) {
             is NumberOfElementsExpr -> {
                 val value = interpret(expression.value)
                 when (value) {
-                    is ArrayValue -> value.size().asValue()
+                    is ArrayValue -> value.arrayLength().asValue()
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
@@ -299,15 +303,16 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
+        val interpreter = this
         if (dataDefinition.arrayLength != null && !forceElement) {
             val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
-            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList())
+            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList(), dataDefinition.actualElementSize(interpreter).value.toInt())
         }
         return when {
-            dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
+            dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
             dataDefinition.dataType == DataType.BOOLEAN -> BooleanValue(false)
             // TODO: to be revised
-            dataDefinition.dataType == DataType.DATA_STRUCTURE -> StringValue(" ".repeat(dataDefinition.actualSize(this).value.toInt()))
+            dataDefinition.dataType == DataType.DATA_STRUCTURE -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
             else -> TODO(dataDefinition.toString())
         }
     }
@@ -316,18 +321,22 @@ class Interpreter(val systemInterface: SystemInterface) {
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
-private fun DataDefinition.actualSize(interpreter: Interpreter) : IntValue {
-
-    ERRORE QUI: PER LA SVARSK_INI l'ACTUAL SIZE DOVREBBE ESSERE 1050, NON 200
-
+/**
+ * Here we mean the arrayLength of a single element
+ */
+fun DataDefinition.actualElementSize(interpreter: Interpreter) : IntValue {
     return when {
+        this.like != null && this.size != null -> throw IllegalStateException("Should not be both arrayLength and dim be set")
         this.size != null -> this.size.asValue()
-        this.like != null -> this.like
-        else -> throw IllegalStateException("No actual size can be calculated")
+        this.like != null -> (interpreter.interpret(this.like) as ConcreteArrayValue).elementSize().asValue()
+        else -> throw IllegalStateException("No actual arrayLength can be calculated")
     }
 }
 
-private fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
+/**
+ * Here we mean the number of elements
+ */
+fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
     return when {
         this.arrayLength != null -> interpreter.interpret(this.arrayLength).asInt()
         else -> IntValue(1)

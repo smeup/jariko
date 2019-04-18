@@ -14,12 +14,12 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
                 "U\$METO" to StringValue("Bar"),
-                "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
+                "U\$SVARSK" to createArrayValue(1050, 200) { blankString(1050) },
                 "U\$IN35" to blankString(1)))
         assertEquals(listOf("IMP0", "FIN0"), interpreter.getExecutedSubroutineNames())
         assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
         assertEquals(StringValue("Bar"), interpreter["U\$METO"])
-        assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["U\$SVARSK"])
+        assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["U\$SVARSK"])
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
 
@@ -30,11 +30,11 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
                 "U\$METO" to StringValue("Bar"),
-                "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
+                "U\$SVARSK" to createArrayValue(1050, 200) { blankString(1050) },
                 "U\$IN35" to blankString(1)))
         assertEquals(listOf("IMP0", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
-        assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["\$\$SVAR"])
+        assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["\$\$SVAR"])
     }
 
     @Test
@@ -44,14 +44,14 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
                 "U\$METO" to StringValue("Bar"),
-                "U\$SVARSK" to createArrayValue(200) { blankString(1050) },
+                "U\$SVARSK" to createArrayValue(1050,200) { blankString(1050) },
                 "U\$IN35" to StringValue("X")))
         assertEquals(11, interpreter.getEvaluatedExpressionsConcise().size)
         assertEquals(listOf("IMP0", "FINZ", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
-        assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["\$\$SVAR"])
+        assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["\$\$SVAR"])
         // Assigned inside FINZ
-        assertEquals(createArrayValue(200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
+        assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
 
@@ -72,19 +72,19 @@ class InterpreterTest {
 
         val svarsk = interpreter["U\$SVARSK"]
         assertTrue(svarsk is ArrayValue)
-        assertEquals(200, (svarsk as ArrayValue).size())
+        assertEquals(200, (svarsk as ArrayValue).arrayLength())
         val svarskElement = (svarsk as ArrayValue).getElement(0)
         assertEquals(blankString(1050), svarskElement)
 
         val svarcd = interpreter["\$\$SVARCD"]
         assertTrue(svarcd is ArrayValue)
-        assertEquals(200, (svarcd as ArrayValue).size())
+        assertEquals(200, (svarcd as ArrayValue).arrayLength())
         val svarcdElement = (svarcd as ArrayValue).getElement(0)
         assertEquals(blankString(50), svarcdElement)
 
         val svarva = interpreter["\$\$SVARVA"]
         assertTrue(svarva is ArrayValue)
-        assertEquals(200, (svarva as ArrayValue).size())
+        assertEquals(200, (svarva as ArrayValue).arrayLength())
         val svarvaElement = (svarva as ArrayValue).getElement(0)
         assertEquals(blankString(1000), svarvaElement)
     }

@@ -238,14 +238,18 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
         "N" -> BOOLEAN
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
-    var like : Expression? = null
+    var like : AssignableExpression? = null
+    var dim : Expression? = null
     var initializationValue : Expression? = null
     this.keyword().forEach {
         it.keyword_like()?.let {
-            like = it.simpleExpression().toAst(considerPosition)
+            like = it.simpleExpression().toAst(considerPosition) as AssignableExpression
         }
         it.keyword_inz()?.let {
             initializationValue = it.simpleExpression().toAst(considerPosition)
+        }
+        it.keyword_dim()?.let {
+            dim = it.simpleExpression().toAst(considerPosition)
         }
     }
     return DataDefinition(
