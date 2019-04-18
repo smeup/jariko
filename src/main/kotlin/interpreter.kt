@@ -88,7 +88,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
         logs.add(AssignmentLogEntry(data, value))
-        globalSymbolTable[data] = value
+        globalSymbolTable[data] = coerce(value, data.type())
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
@@ -258,6 +258,9 @@ class Interpreter(val systemInterface: SystemInterface) {
                     is RawType -> {
                         blankValue(type.size!!)
                     }
+                    is StringType -> {
+                        blankValue(type.size!!)
+                    }
                     else -> TODO(type.toString())
                 }
             }
@@ -265,7 +268,11 @@ class Interpreter(val systemInterface: SystemInterface) {
                 when (type) {
                     is RawType -> {
                         val missingLength = type.size!! - value.value.length
-                        StringValue(value.value + " ".repeat(missingLength))
+                        StringValue(value.value + "\u0000".repeat(missingLength))
+                    }
+                    is StringType -> {
+                        val missingLength = type.size!! - value.value.length
+                        StringValue(value.value + "\u0000".repeat(missingLength))
                     }
                     else -> TODO(type.toString())
                 }

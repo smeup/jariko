@@ -2,6 +2,7 @@ package com.smeup.rpgparser
 
 import java.math.BigDecimal
 import java.util.*
+import kotlin.streams.toList
 
 abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
@@ -10,6 +11,29 @@ abstract class Value {
 }
 
 data class StringValue(var value: String) : Value() {
+    val valueWithoutPadding : String
+
+    init {
+        val firstNullChar = value.chars().toList().indexOfFirst { it == 0 }
+        valueWithoutPadding = if (firstNullChar == -1) {
+            value
+        } else {
+            value.substring(0, firstNullChar)
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is StringValue) {
+            this.valueWithoutPadding == other.valueWithoutPadding
+        } else {
+            false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return valueWithoutPadding.hashCode()
+    }
+
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
         require(startOffset <= value.length)
