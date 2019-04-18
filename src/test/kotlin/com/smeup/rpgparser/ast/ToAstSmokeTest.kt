@@ -83,4 +83,12 @@ class ToAstSmokeTest {
         assertEquals(0, cu.subroutines.size)
     }
 
+    @Test
+    fun buildAstForCALCFIBCAL() {
+        val cu = assertASTCanBeProduced("CALCFIBCAL")
+        assertEquals(1, cu.dataDefinitions.size)
+        assertEquals(3, cu.main.stmts.size)
+        assertEquals(0, cu.subroutines.size)
+    }
+
 }

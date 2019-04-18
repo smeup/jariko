@@ -20,13 +20,13 @@ class ExpressionEvaluationTest {
 
     @Test
     fun evaluateDataRefExpr() {
-        val dataDefinition = DataDefinition("Foo", DataType.SINGLE, 1)
+        val dataDefinition = DataDefinition("Foo", NumberType(2, 0))
         assertEquals(IntValue(11), interpret(dataRefTo(dataDefinition), mapOf(dataDefinition to IntValue(11))))
     }
 
     @Test
     fun evaluateEqualityExprTrueCase() {
-        val dataDefinition = DataDefinition("Foo", DataType.SINGLE, 1)
+        val dataDefinition = DataDefinition("Foo", NumberType(2, 0))
         assertEquals(
                 BooleanValue(true),
                 interpret(EqualityExpr(IntLiteral(11), dataRefTo(dataDefinition)),
@@ -35,7 +35,7 @@ class ExpressionEvaluationTest {
 
     @Test
     fun evaluateEqualityExprFalseCase() {
-        val dataDefinition = DataDefinition("Foo", DataType.SINGLE, 1)
+        val dataDefinition = DataDefinition("Foo", NumberType(2, 0))
         assertEquals(
                 BooleanValue(false),
                 interpret(EqualityExpr(IntLiteral(10), dataRefTo(dataDefinition)),

@@ -50,10 +50,11 @@ class DataDefinitionTest {
                 "     D \$\$SVAR                      1050    DIM(200)\n" +
                 "     D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name\n" +
                 "     D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value")
-        cu.assertDataDefinitionIsPresent("\$\$SVAR", DataStructureType(
-                listOf(FieldType("\$\$SVARCD", )),
-                1050)DataType.DATA_STRUCTURE, 1050,
-                arrayLength = IntLiteral(200),
+        cu.assertDataDefinitionIsPresent("\$\$SVAR", ArrayType(DataStructureType(
+                listOf(
+                        FieldType("\$\$SVARCD", StringType(50)),
+                        FieldType("\$\$SVARVA", StringType(1000))),
+                1050), 200),
                 fields = listOf(
                         FieldDefinition("\$\$SVARCD", 50),
                         FieldDefinition("\$\$SVARVA", 1000)
@@ -62,14 +63,14 @@ class DataDefinitionTest {
 
     @test fun likeClauseParsing() {
         val cu = processDataDefinition("D U\$SVARSK        S                   LIKE(\$\$SVAR)")
-        cu.assertDataDefinitionIsPresent("U\$SVARSK", DataType.SINGLE, null,
+        cu.assertDataDefinitionIsPresent("U\$SVARSK", StringType(38),
                 arrayLength = null,
                 like = DataRefExpr(ReferenceByName("\$\$SVAR")))
     }
 
     @test fun dimClauseParsing() {
         val cu = processDataDefinition("D U\$SVARSK        S                                  DIM(%ELEM(\$\$SVAR))")
-        cu.assertDataDefinitionIsPresent("U\$SVARSK", DataType.SINGLE, null,
+        cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 27),
                 arrayLength = NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR"))))
     }
 

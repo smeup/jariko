@@ -14,7 +14,7 @@ open class AbstractDataDefinition(override val name: String,
 
 class DataDefinition(override val name: String,
                      val dataType: Type,
-                     override val size: Int?,
+                     override val size: Int? = null,
                      val decimals: Int = 0,
                      val arrayLength: Expression? = null,
                      val fields: List<FieldDefinition>? = null,

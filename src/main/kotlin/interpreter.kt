@@ -27,13 +27,13 @@ class SymbolTable {
                 (containerValue as StructValue).elements[data]!!
             }
         }
-        return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+        return values[data] ?: throw IllegalArgumentException("Cannot find searchedValued for $data")
     }
 
     operator fun get(dataName: String) : Value {
         val data = values.keys.firstOrNull { it.name == dataName }
         if (data != null) {
-            return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+            return values[data] ?: throw IllegalArgumentException("Cannot find searchedValued for $data")
         }
         for (e in values) {
             val field = (e.key as DataDefinition).fields?.firstOrNull { it.name == dataName }
@@ -41,7 +41,7 @@ class SymbolTable {
                 return ProjectedArrayValue(e.value as ArrayValue, field)
             }
         }
-        throw IllegalArgumentException("Cannot find value for $dataName")
+        throw IllegalArgumentException("Cannot find searchedValued for $dataName")
     }
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -65,7 +65,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
     fun getAssignments() = logs.filterIsInstance(AssignmentLogEntry::class.java)
     /**
-     * Remove an expression if the last time the same expression was evaluated it had the same value
+     * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
     fun getEvaluatedExpressionsConcise() : List<ExpressionEvaluationLogEntry> {
         val base= logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
@@ -88,17 +88,23 @@ class Interpreter(val systemInterface: SystemInterface) {
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
         logs.add(AssignmentLogEntry(data, value))
-        globalSymbolTable[data] = value
+        globalSymbolTable[data] = coerce(value, data.type())
     }
 
-    private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+    private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
         // Assigning initial values received from outside and consider INZ clauses
-        compilationUnit.dataDefinitions.forEach {
-            set(it, when {
-                it.name in initialValues -> initialValues[it.name]!!
-                it.initializationValue != null -> interpret(it.initializationValue)
-                else -> blankValue(it)
-            })
+        if (reinitialization) {
+            compilationUnit.dataDefinitions.forEach {
+                set(it, when {
+                    it.name in initialValues -> initialValues[it.name]!!
+                    it.initializationValue != null -> interpret(it.initializationValue)
+                    else -> blankValue(it)
+                })
+            }
+        } else {
+            initialValues.forEach { iv ->
+                set(compilationUnit.allDataDefinitions.find { it.name == iv.key }!!, iv.value)
+            }
         }
     }
 
@@ -106,8 +112,8 @@ class Interpreter(val systemInterface: SystemInterface) {
         initialize(compilationUnit, initialValues)
     }
 
-    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
-        initialize(compilationUnit, initialValues)
+    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
+        initialize(compilationUnit, initialValues, reinitialization)
         compilationUnit.main.stmts.forEach {
             execute(it)
         }
@@ -159,6 +165,23 @@ class Interpreter(val systemInterface: SystemInterface) {
                         increment(statement.iterDataDefinition())
                     }
                 }
+                is IfStmt -> {
+                    val condition = eval(statement.condition).asBoolean().value
+                    if (condition) {
+                        execute(statement.body)
+                    } else {
+                        for (elseIfClause in statement.elseIfClauses) {
+                            val c = eval(elseIfClause.condition).asBoolean().value
+                            if (c) {
+                                execute(elseIfClause.body)
+                                return
+                            }
+                        }
+                        if (statement.elseClause != null) {
+                            execute(statement.elseClause.body)
+                        }
+                    }
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e : RuntimeException) {
@@ -189,7 +212,7 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     private fun render(value: Value) : String {
         return when (value) {
-            is StringValue -> value.value
+            is StringValue -> value.valueWithoutPadding
             is BooleanValue -> value.value.toString()
             is IntValue -> value.value.toString()
             else -> TODO(value.javaClass.canonicalName)
@@ -235,6 +258,9 @@ class Interpreter(val systemInterface: SystemInterface) {
 //                    is RawType -> {
 //                        blankValue(type.size!!)
 //                    }
+                    is StringType -> {
+                        blankValue(type.length.toInt())
+                    }
                     else -> TODO(type.toString())
                 }
             }
@@ -244,6 +270,10 @@ class Interpreter(val systemInterface: SystemInterface) {
 //                        val missingLength = type.size!! - value.value.length
 //                        StringValue(value.value + " ".repeat(missingLength))
 //                    }
+                    is StringType -> {
+                        val missingLength = type.length - value.value.length
+                        StringValue(value.value + "\u0000".repeat(missingLength.toInt()))
+                    }
                     else -> TODO(type.toString())
                 }
             }
@@ -282,7 +312,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                 val intDigits = interpret(expression.intDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
-                    IntValue(valueAsString.toLong())
+                    IntValue(valueAsString.removeNullChars().toLong())
                 } else {
                     DecimalValue(BigDecimal(valueAsString))
                 }
@@ -291,7 +321,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 when {
-                    left is StringValue && right is StringValue -> StringValue(left.value + right.value)
+                    left is StringValue && right is StringValue -> StringValue(left.valueWithoutPadding + right.valueWithoutPadding)
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
@@ -299,6 +329,12 @@ class Interpreter(val systemInterface: SystemInterface) {
             is CharExpr -> {
                 val value = interpret(expression.value)
                 return StringValue(render(value))
+            }
+            is LookupExpr -> {
+                val searchValued = interpret(expression.searchedValued)
+                val array = interpret(expression.array) as ArrayValue
+                val index = array.elements().indexOfFirst { it == searchValued }
+                return if (index == -1) 0.asValue() else (index + 1).asValue()
             }
             else -> TODO(expression.toString())
         }
