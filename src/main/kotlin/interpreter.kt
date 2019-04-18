@@ -7,6 +7,7 @@ import java.lang.IllegalStateException
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.util.*
+import kotlin.math.exp
 
 /**
  * This represent the interface to the external world.
@@ -303,11 +304,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
-            is DataRefExpr -> if (expression.variable.referred == null) {
-                systemInterface.getUnsolvedExpression(expression.variable)
-            } else {
-                get(expression.variable.referred!!)
-            }
+            is DataRefExpr -> get(expression.variable.referred ?: throw IllegalStateException("Unsolved reference ${expression.variable}"))
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)

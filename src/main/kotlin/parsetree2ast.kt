@@ -8,17 +8,85 @@ import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import org.antlr.v4.runtime.ParserRuleContext
 
 /**
  * This is a very limited interpreter used while examining data definitions.
  * It should consider only statically evaluatable elements
  */
 interface DataDefinitionsInterpreter {
-
+    fun evaluate(rContext: RContext, expression: Expression) : Value
+    fun evaluateElementSizeOf(rContext: RContext, expression: Expression) : Int
 }
 
+//private fun RContext.
+
 object CommonDataDefinitionsInterpreter : DataDefinitionsInterpreter {
-    
+    override fun evaluate(rContext: RContext, expression: Expression) : Value {
+        return when (expression) {
+            is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
+            else -> TODO(expression.toString())
+        }
+    }
+    private fun evaluateNumberOfElementsOf(rContext: RContext, expression: Expression) : Int {
+        TODO(expression.toString())
+    }
+    private fun evaluateNumberOfElementsOf(rContext: RContext, declName: String) : Int {
+        rContext.statement()
+                .forEach {
+                    when {
+                        it.dspec() != null -> {
+                            val name = it.dspec().ds_name().text
+                            println("DSPEC * $name")
+                            if (name == declName) {
+                                TODO()
+                            }
+                        }
+                        it.dcl_ds() != null -> {
+                            val name = it.dcl_ds().name
+                            println("DS * $name")
+                            if (name == declName) {
+                                TODO()
+                            }
+                        }
+                    }
+                }
+        TODO("Not found: $declName")
+    }
+    fun evaluateElementSizeOf(rContext: RContext, declName: String) : Int {
+        rContext.statement()
+                .forEach {
+                    when {
+                        it.dspec() != null -> {
+                            val name = it.dspec().ds_name().text
+                            println("DSPEC * $name")
+                            if (name == declName) {
+                                TODO()
+                            }
+                        }
+                        it.dcl_ds() != null -> {
+                            val name = it.dcl_ds().name
+                            println("DS * $name")
+                            if (name == declName) {
+                                return it.dcl_ds().elementSizeOf()
+                            }
+                        }
+                    }
+                }
+        TODO("Not found: $declName")
+    }
+    override fun evaluateElementSizeOf(rContext: RContext, expression: Expression) : Int {
+        return when (expression){
+            is DataRefExpr -> evaluateElementSizeOf(rContext, expression.variable.name)
+            else -> TODO(expression.toString())
+        }
+    }
+}
+
+private fun Dcl_dsContext.elementSizeOf() : Int {
+    val header = this.parm_fixed().first()
+    val elementSize = header.TO_POSITION().text.trim().toInt()
+    return elementSize
 }
 
 data class ToAstConfiguration(val considerPosition: Boolean = true, 
@@ -277,7 +345,7 @@ private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
         }
     }
     val elementSize = when {
-        like != null -> (staticallyEvaluate(like!!) as ArrayValue).elementSize()
+        like != null -> conf.dataDefinitionsInterpreter.evaluateElementSizeOf(this.rContext(), like!!)
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
 
@@ -293,7 +361,7 @@ private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     val type = if (this.keyword().any { it.keyword_dim() != null }) {
-        ArrayType(baseType, staticallyEvaluate(this.arrayLength(conf)!!).asInt().value.toInt())
+        ArrayType(baseType, conf.dataDefinitionsInterpreter.evaluate(this.rContext(), this.arrayLength(conf)!!).asInt().value.toInt())
     } else {
         baseType
     }
@@ -307,6 +375,25 @@ private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
             initializationValue = initializationValue,
             position = this.toPosition(true))
 }
+
+private fun ParserRuleContext.rContext(): RContext {
+    return if (this.parent == null) {
+        this as RContext
+    } else {
+        (this.parent as ParserRuleContext).rContext()
+    }
+}
+
+private val Dcl_dsContext.name : String
+    get() {
+        return if (this.ds_name().text.trim().isEmpty()) {
+            require(this.parm_fixed().isNotEmpty())
+            val header = this.parm_fixed().first()
+            header.ds_name().text
+        } else {
+            TODO()
+        }
+    }
 
 private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
     require(this.TO_POSITION().text.trim().isEmpty())
@@ -334,7 +421,7 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
 //        }
 
         // It is found by looking at the first entry
-        val elementSize = header.TO_POSITION().text.trim().toInt()
+        val elementSize = this.elementSizeOf()
         var type : Type = DataStructureType(others.map { it.toFieldType() }, elementSize)
         val ks = header.keyword().map { it.keyword_dim() }
         header.keyword().firstOrNull { it.keyword_dim() != null }?.let {
@@ -342,7 +429,7 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
             type = ArrayType(type, nElements.toInt())
         }
         return DataDefinition(
-                header.ds_name().text,
+                this.name,
                 type,
                 fields = others.map { it.toAst(conf) },
                 position = this.toPosition(true))
