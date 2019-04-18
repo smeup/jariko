@@ -11,16 +11,7 @@ abstract class Value {
 }
 
 data class StringValue(var value: String) : Value() {
-    val valueWithoutPadding : String
-
-    init {
-        val firstNullChar = value.chars().toList().indexOfFirst { it == 0 }
-        valueWithoutPadding = if (firstNullChar == -1) {
-            value
-        } else {
-            value.substring(0, firstNullChar)
-        }
-    }
+    val valueWithoutPadding : String = value.removeNullChars()
 
     override fun equals(other: Any?): Boolean {
         return if (other is StringValue) {
@@ -51,6 +42,15 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun asString() = this
+}
+
+fun String.removeNullChars() : String {
+    val firstNullChar = this.chars().toList().indexOfFirst { it == 0 }
+    return if (firstNullChar == -1) {
+        this
+    } else {
+        this.substring(0, firstNullChar)
+    }
 }
 
 data class IntValue(val value: Long) : Value() {

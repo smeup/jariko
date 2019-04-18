@@ -212,7 +212,7 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     private fun render(value: Value) : String {
         return when (value) {
-            is StringValue -> value.value
+            is StringValue -> value.valueWithoutPadding
             is BooleanValue -> value.value.toString()
             is IntValue -> value.value.toString()
             else -> TODO(value.javaClass.canonicalName)
@@ -312,7 +312,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                 val intDigits = interpret(expression.intDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
-                    IntValue(valueAsString.toLong())
+                    IntValue(valueAsString.removeNullChars().toLong())
                 } else {
                     DecimalValue(BigDecimal(valueAsString))
                 }
@@ -321,7 +321,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 when {
-                    left is StringValue && right is StringValue -> StringValue(left.value + right.value)
+                    left is StringValue && right is StringValue -> StringValue(left.valueWithoutPadding + right.valueWithoutPadding)
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
