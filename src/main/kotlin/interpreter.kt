@@ -159,6 +159,23 @@ class Interpreter(val systemInterface: SystemInterface) {
                         increment(statement.iterDataDefinition())
                     }
                 }
+                is IfStmt -> {
+                    val condition = eval(statement.condition).asBoolean().value
+                    if (condition) {
+                        execute(statement.body)
+                    } else {
+                        for (elseIfClause in statement.elseIfClauses) {
+                            val c = eval(elseIfClause.condition).asBoolean().value
+                            if (c) {
+                                execute(elseIfClause.body)
+                                return
+                            }
+                        }
+                        if (statement.elseClause != null) {
+                            execute(statement.elseClause.body)
+                        }
+                    }
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e : RuntimeException) {
