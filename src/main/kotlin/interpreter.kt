@@ -91,14 +91,20 @@ class Interpreter(val systemInterface: SystemInterface) {
         globalSymbolTable[data] = value
     }
 
-    private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
+    private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
         // Assigning initial values received from outside and consider INZ clauses
-        compilationUnit.dataDefinitions.forEach {
-            set(it, when {
-                it.name in initialValues -> initialValues[it.name]!!
-                it.initializationValue != null -> interpret(it.initializationValue)
-                else -> blankValue(it)
-            })
+        if (reinitialization) {
+            compilationUnit.dataDefinitions.forEach {
+                set(it, when {
+                    it.name in initialValues -> initialValues[it.name]!!
+                    it.initializationValue != null -> interpret(it.initializationValue)
+                    else -> blankValue(it)
+                })
+            }
+        } else {
+            initialValues.forEach { iv ->
+                set(compilationUnit.allDataDefinitions.find { it.name == iv.key }!!, iv.value)
+            }
         }
     }
 
@@ -106,8 +112,8 @@ class Interpreter(val systemInterface: SystemInterface) {
         initialize(compilationUnit, initialValues)
     }
 
-    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
-        initialize(compilationUnit, initialValues)
+    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
+        initialize(compilationUnit, initialValues, reinitialization)
         compilationUnit.main.stmts.forEach {
             execute(it)
         }

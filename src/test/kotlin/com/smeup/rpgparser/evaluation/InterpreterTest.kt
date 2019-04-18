@@ -97,12 +97,14 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeJD_001_complete() {
+    fun executeJD_001_complete_url_not_found() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()))
-        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()))
-        interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()))
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
+        assertEquals(IntValue(0), interpreter["\$X"])
+        assertEquals(StringValue("1"), interpreter["U\$IN35"])
     }
 
 //    @Test
