@@ -15,7 +15,7 @@ import com.smeup.rpgparser.ast.Expression
 // * Procedure Pointer Data Type
 
 sealed class Type
-class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type()
+data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type()
 // TODO remove this one
 @Deprecated(message = "Replace with DataStructureType")
 class DataDefinitionType(val dataDefinition: AbstractDataDefinition) : Type()

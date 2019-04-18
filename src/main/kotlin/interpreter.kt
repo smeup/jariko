@@ -356,14 +356,13 @@ class Interpreter(val systemInterface: SystemInterface) {
             val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
             return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList(), dataDefinition.actualElementSize(interpreter).value.toInt())
         }
-        TODO()
-//        return when {
-//            dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
-//            dataDefinition.dataType == DataType.BOOLEAN -> BooleanValue(false)
-//            // TODO: to be revised
-//            dataDefinition.dataType == DataType.DATA_STRUCTURE -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
-//            else -> TODO(dataDefinition.toString())
-//        }
+        return when {
+            dataDefinition.dataType is StringType -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
+            dataDefinition.dataType is BooleanType -> BooleanValue(false)
+            // TODO: to be revised
+            dataDefinition.dataType is DataStructureType -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
+            else -> TODO(dataDefinition.toString())
+        }
     }
 }
 
