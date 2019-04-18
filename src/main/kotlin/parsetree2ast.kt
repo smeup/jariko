@@ -247,12 +247,6 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
     //    Z Timestamp
     //    * Basing pointer or procedure pointer
 
-    val type = when (this.DATA_TYPE()?.text?.trim()) {
-        null -> TODO()
-        "" -> TODO()
-        "N" -> BooleanType
-        else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
-    }
     var like : AssignableExpression? = null
     var dim : Expression? = null
     var initializationValue : Expression? = null
@@ -266,6 +260,21 @@ private fun DspecContext.toAst(considerPosition : Boolean = true) : DataDefiniti
         it.keyword_dim()?.let {
             dim = it.simpleExpression().toAst(considerPosition)
         }
+    }
+    val elementSize = when {
+        else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
+    }
+
+    val type = when (this.DATA_TYPE()?.text?.trim()) {
+        null -> TODO()
+        "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
+            val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
+            NumberType(elementSize!! - decimalPositions, decimalPositions)
+        } else {
+            StringType(elementSize!!.toLong())
+        }
+        "N" -> BooleanType
+        else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     return DataDefinition(
             this.ds_name().text,

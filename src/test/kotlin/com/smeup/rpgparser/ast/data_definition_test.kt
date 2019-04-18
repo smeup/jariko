@@ -37,7 +37,7 @@ class DataDefinitionTest {
 
     @test fun singleDataParsingWithDecimals() {
         val cu = processDataDefinition("D \$X              S              3  2")
-        cu.assertDataDefinitionIsPresent("\$X", NumberType(3, 2))
+        cu.assertDataDefinitionIsPresent("\$X", NumberType(1, 2))
     }
 
     @test fun arrayParsing() {
@@ -64,14 +64,13 @@ class DataDefinitionTest {
     @test fun likeClauseParsing() {
         val cu = processDataDefinition("D U\$SVARSK        S                   LIKE(\$\$SVAR)")
         cu.assertDataDefinitionIsPresent("U\$SVARSK", StringType(38),
-                arrayLength = null,
                 like = DataRefExpr(ReferenceByName("\$\$SVAR")))
     }
 
     @test fun dimClauseParsing() {
         val cu = processDataDefinition("D U\$SVARSK        S                                  DIM(%ELEM(\$\$SVAR))")
-        cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 27),
-                arrayLength = NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR"))))
+        cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 27)
+                /*arrayLength = NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR")))*/)
     }
 
     @test fun inStatementDataDefinitionInClearIsProcessed() {

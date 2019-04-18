@@ -19,9 +19,9 @@ class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Typ
 // TODO remove this one
 @Deprecated(message = "Replace with DataStructureType")
 class DataDefinitionType(val dataDefinition: AbstractDataDefinition) : Type()
-class StringType(val length: Long) : Type()
+data class StringType(val length: Long) : Type()
 object BooleanType : Type()
-class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type()
+data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type()
 data class ArrayType(val element: Type, val nElements: Int) : Type()
 
 data class FieldType(val name: String, val type: Type)

@@ -91,8 +91,8 @@ fun assertStatementCanBeParsed(code: String) : StatementContext {
 }
 
 fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: Type,
-                                                  decimals: Int = 0,
-                                                  arrayLength: Expression? = null,
+                                                  //decimals: Int = 0,
+                                                  //arrayLength: Expression? = null,
                                                   fields: List<FieldDefinition>? = null,
                                                   dim : Expression? = null,
                                                   like : Expression? = null) {
@@ -100,8 +100,8 @@ fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: Type,
     val dataDefinition = this.getDataDefinition(name)
     assertEquals(dataType, dataDefinition.dataType)
     //assertEquals(size, dataDefinition.size)
-    assertEquals(decimals, dataDefinition.decimals)
-    assertEquals(arrayLength, dataDefinition.arrayLength, "Array length is not as expected. Expected $arrayLength, actual ${dataDefinition.arrayLength}")
+    //assertEquals(decimals, dataDefinition.decimals)
+    //assertEquals(arrayLength, dataDefinition.arrayLength, "Array length is not as expected. Expected $arrayLength, actual ${dataDefinition.arrayLength}")
     assertEquals(fields, dataDefinition.fields)
     assertEquals(like, dataDefinition.like, "Like is not as expected. Expected $like, actual ${dataDefinition.like}")
 }
