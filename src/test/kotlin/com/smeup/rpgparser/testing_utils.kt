@@ -50,7 +50,7 @@ fun assertCanBeParsed(exampleName: String) : RContext {
 
 fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = false) : CompilationUnit {
     val parseTreeRoot = assertCanBeParsed(exampleName)
-    return parseTreeRoot.toAst(considerPosition)
+    return parseTreeRoot.toAst(ToAstConfiguration(considerPosition = considerPosition))
 }
 
 fun assertCodeCanBeParsed(code: String) : RContext {
@@ -68,7 +68,7 @@ fun assertExpressionCanBeParsed(code: String) : ExpressionContext {
 }
 
 fun expressionAst(code: String) : Expression {
-    return assertExpressionCanBeParsed(code).toAst(false)
+    return assertExpressionCanBeParsed(code).toAst(ToAstConfiguration(considerPosition = false))
 }
 
 fun assertStatementCanBeParsed(code: String) : StatementContext {
@@ -103,7 +103,7 @@ fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: Type,
     //assertEquals(decimals, dataDefinition.decimals)
     //assertEquals(arrayLength, dataDefinition.arrayLength, "Array length is not as expected. Expected $arrayLength, actual ${dataDefinition.arrayLength}")
     assertEquals(fields, dataDefinition.fields)
-    assertEquals(like, dataDefinition.like, "Like is not as expected. Expected $like, actual ${dataDefinition.like}")
+   //assertEquals(like, dataDefinition.like, "Like is not as expected. Expected $like, actual ${dataDefinition.like}")
 }
 
 fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {
@@ -119,13 +119,6 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))
 
-class DummySystemInterface : SystemInterface {
-    override fun display(value: String) {
-        // doing nothing
-    }
-
-}
-
 class CollectorSystemInterface : SystemInterface {
     val displayed = LinkedList<String>()
     override fun display(value: String) {
@@ -134,7 +127,7 @@ class CollectorSystemInterface : SystemInterface {
 }
 
 fun execute(cu: CompilationUnit, initialValues: Map<String, Value>, systemInterface: SystemInterface? = null) : Interpreter {
-    val interpreter = Interpreter(systemInterface ?: DummySystemInterface())
+    val interpreter = Interpreter(systemInterface ?: DummySystemInterface)
     interpreter.execute(cu, initialValues)
     return interpreter
 }

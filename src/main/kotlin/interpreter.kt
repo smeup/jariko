@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.ast.*
+import com.strumenta.kolasu.model.ReferenceByName
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import java.lang.UnsupportedOperationException
@@ -13,6 +14,9 @@ import java.util.*
  */
 interface SystemInterface {
     fun display(value: String)
+    fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
+        throw UnsupportedOperationException("Unresolved reference to ${variable.name}")
+    }
 }
 
 class SymbolTable {
@@ -298,7 +302,11 @@ class Interpreter(val systemInterface: SystemInterface) {
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
-            is DataRefExpr -> get(expression.variable.referred!!)
+            is DataRefExpr -> if (expression.variable.referred == null) {
+                systemInterface.getUnsolvedExpression(expression.variable)
+            } else {
+                get(expression.variable.referred!!)
+            }
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
@@ -383,3 +391,20 @@ fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
         else -> IntValue(1)
     }
 }
+
+object DummySystemInterface : SystemInterface {
+    override fun display(value: String) {
+        // doing nothing
+    }
+
+}
+
+object StaticallyEvaluator {
+    var systemInterface: SystemInterface = DummySystemInterface
+    fun evaluate(expression: Expression) : Value {
+        val interpreter = Interpreter(systemInterface)
+        return interpreter.interpret(expression)
+    }
+}
+
+fun staticallyEvaluate(expression: Expression) = StaticallyEvaluator.evaluate(expression)

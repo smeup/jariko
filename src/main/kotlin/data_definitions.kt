@@ -12,6 +12,7 @@ open class AbstractDataDefinition(override val name: String,
                                   open val size: Int?,
                                   override val position: Position? = null) : Node(position), Named
 
+// TODO: remove most fields
 class DataDefinition(override val name: String,
                      val dataType: Type,
                      override val size: Int? = null,

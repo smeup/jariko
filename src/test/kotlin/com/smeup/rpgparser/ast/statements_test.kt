@@ -11,7 +11,7 @@ class StatementsTest {
 
     private fun statement(code: String) : Statement {
         val stmtContext = assertStatementCanBeParsed("     C                   $code                                                          ")
-        return stmtContext.toAst(considerPosition = false)
+        return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
     }
 
     @test fun executeSubroutineParsing() {

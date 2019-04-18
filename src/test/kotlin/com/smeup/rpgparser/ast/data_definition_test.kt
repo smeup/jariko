@@ -17,7 +17,7 @@ class DataDefinitionTest {
 |     $code
         """.trimMargin("|")
         val rContext = assertCodeCanBeParsed(completeCode)
-        return rContext.toAst(considerPosition = false)
+        return rContext.toAst(ToAstConfiguration(considerPosition = false))
     }
 
     @test fun singleDataParsing() {
@@ -61,28 +61,40 @@ class DataDefinitionTest {
                 ))
     }
 
-    @test fun likeClauseParsing() {
-        val cu = processDataDefinition("D U\$SVARSK        S                   LIKE(\$\$SVAR)")
-        cu.assertDataDefinitionIsPresent("U\$SVARSK", StringType(38),
-                like = DataRefExpr(ReferenceByName("\$\$SVAR")))
+    @test fun likeAndDimClauseParsing() {
+        StaticallyEvaluator.systemInterface = object : SystemInterface {
+            override fun display(value: String) {
+                // nothing to do
+            }
+
+            override fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
+                if (variable.name == "\$\$SVAR") {
+                    return createArrayValue(12, 38) { StringValue("")}
+                }
+                throw RuntimeException("Unexpected call")
+            }
+        }
+        val cu = processDataDefinition("D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))")
+        cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 38))
     }
 
-    @test fun dimClauseParsing() {
-        val cu = processDataDefinition("D U\$SVARSK        S                                  DIM(%ELEM(\$\$SVAR))")
-        cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 27)
-                /*arrayLength = NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR")))*/)
-    }
+//    @test fun dimClauseParsing() {
+//        val cu = processDataDefinition("D U\$SVARSK        S                                  DIM(%ELEM(\$\$SVAR))")
+//        cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 27)
+//                /*arrayLength = NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR")))*/)
+//    }
 
     @test fun inStatementDataDefinitionInClearIsProcessed() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
         assertTrue(cu.hasAnyDataDefinition("dsp"))
+        // TODO test the type is StringType(50)
     }
 
     @test fun executeJD_useOfLike() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
-        val interpreter = Interpreter(DummySystemInterface())
+        val interpreter = Interpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
         assertEquals(IntValue(200), dataDefinition.actualArrayLength(interpreter))
@@ -91,7 +103,7 @@ class DataDefinitionTest {
     @test fun executeJD_useOfDim() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
-        val interpreter = Interpreter(DummySystemInterface())
+        val interpreter = Interpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
         assertEquals(IntValue(1050), dataDefinition.actualElementSize(interpreter))
