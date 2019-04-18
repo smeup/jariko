@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import java.math.BigDecimal
+import java.util.*
 
 abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
@@ -42,6 +43,13 @@ abstract class ArrayValue : Value() {
     abstract fun elementSize() : Int
     abstract fun setElement(index: Int, value: Value)
     abstract fun getElement(index: Int) : Value
+    fun elements() : List<Value> {
+        val elements = LinkedList<Value>()
+        for (i in 0 until (arrayLength())) {
+            elements.add(getElement(i))
+        }
+        return elements
+    }
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementSize: Int) : ArrayValue() {
     override fun elementSize() = elementSize
@@ -94,3 +102,5 @@ fun createArrayValue(elementSize: Int, n: Int, creator: (Int) -> Value) = Concre
 fun blankString(length: Int) = StringValue(" ".repeat(length))
 
 fun Long.asValue() = IntValue(this)
+
+fun String.asValue() = StringValue(this)

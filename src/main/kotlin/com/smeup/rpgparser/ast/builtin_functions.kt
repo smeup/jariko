@@ -2,7 +2,7 @@ package com.smeup.rpgparser.ast
 
 import com.strumenta.kolasu.model.Position
 
-data class LookupExpr(val value: Expression, val array: Expression, override val position: Position? = null) : Expression(position)
+data class LookupExpr(val searchedValued: Expression, val array: Expression, override val position: Position? = null) : Expression(position)
 data class ScanExpr(val value: Expression, val source: Expression, val start: Expression? = null, override val position: Position? = null) : Expression(position)
 data class TranslateExpr(var from: Expression, var to: Expression, var string: Expression,
                          val startPos: Expression? = null, override val position: Position? = null) : Expression(position)

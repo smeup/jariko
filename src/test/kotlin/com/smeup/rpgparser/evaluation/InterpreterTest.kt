@@ -96,6 +96,15 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf())
     }
 
+    @Test
+    fun executeJD_001_complete() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()))
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()))
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()))
+    }
+
 //    @Test
 //    fun executeJD_000() {
 //        val cu = assertASTCanBeProduced("JD_000", true)

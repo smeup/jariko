@@ -27,13 +27,13 @@ class SymbolTable {
                 (containerValue as StructValue).elements[data]!!
             }
         }
-        return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+        return values[data] ?: throw IllegalArgumentException("Cannot find searchedValued for $data")
     }
 
     operator fun get(dataName: String) : Value {
         val data = values.keys.firstOrNull { it.name == dataName }
         if (data != null) {
-            return values[data] ?: throw IllegalArgumentException("Cannot find value for $data")
+            return values[data] ?: throw IllegalArgumentException("Cannot find searchedValued for $data")
         }
         for (e in values) {
             val field = (e.key as DataDefinition).fields?.firstOrNull { it.name == dataName }
@@ -41,7 +41,7 @@ class SymbolTable {
                 return ProjectedArrayValue(e.value as ArrayValue, field)
             }
         }
-        throw IllegalArgumentException("Cannot find value for $dataName")
+        throw IllegalArgumentException("Cannot find searchedValued for $dataName")
     }
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -65,7 +65,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
     fun getAssignments() = logs.filterIsInstance(AssignmentLogEntry::class.java)
     /**
-     * Remove an expression if the last time the same expression was evaluated it had the same value
+     * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
     fun getEvaluatedExpressionsConcise() : List<ExpressionEvaluationLogEntry> {
         val base= logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
@@ -299,6 +299,12 @@ class Interpreter(val systemInterface: SystemInterface) {
             is CharExpr -> {
                 val value = interpret(expression.value)
                 return StringValue(render(value))
+            }
+            is LookupExpr -> {
+                val searchValued = interpret(expression.searchedValued)
+                val array = interpret(expression.array) as ArrayValue
+                val index = array.elements().indexOfFirst { it == searchValued }
+                return if (index == -1) 0.asValue() else (index + 1).asValue()
             }
             else -> TODO(expression.toString())
         }
