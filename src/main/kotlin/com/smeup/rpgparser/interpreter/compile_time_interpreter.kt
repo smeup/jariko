@@ -1,9 +1,13 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.ast.DataRefExpr
 import com.smeup.rpgparser.ast.Expression
 import com.smeup.rpgparser.ast.IntLiteral
 import com.smeup.rpgparser.ast.NumberOfElementsExpr
+import com.smeup.rpgparser.elementSizeOf
+import com.smeup.rpgparser.name
+import com.smeup.rpgparser.type
 
 /**
  * This is a very limited interpreter used at compile time, mainly

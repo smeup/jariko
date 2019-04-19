@@ -1,8 +1,8 @@
 package com.smeup.rpgparser.ast
 
-import com.smeup.rpgparser.AbstractDataDefinition
-import com.smeup.rpgparser.DataDefinition
-import com.smeup.rpgparser.InStatementDataDefinition
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.strumenta.kolasu.model.*
 import java.util.*
 

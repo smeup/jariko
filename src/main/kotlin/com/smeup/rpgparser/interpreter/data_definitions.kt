@@ -1,4 +1,4 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.Expression
 import com.strumenta.kolasu.model.Derived

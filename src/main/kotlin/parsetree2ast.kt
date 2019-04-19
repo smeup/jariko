@@ -4,6 +4,7 @@ import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.DIVIDE_ASSIGNMENT
 import com.smeup.rpgparser.ast.AssignmentOperator.NORMAL_ASSIGNMENT
+import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position

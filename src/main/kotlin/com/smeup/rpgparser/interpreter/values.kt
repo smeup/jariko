@@ -1,4 +1,4 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.interpreter
 
 import java.math.BigDecimal
 import java.util.*

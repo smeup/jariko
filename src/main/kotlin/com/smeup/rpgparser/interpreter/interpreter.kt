@@ -1,25 +1,9 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
-import java.io.InputStream
 import java.math.BigDecimal
 import java.util.*
 import kotlin.collections.HashMap
-
-interface Program {
-    fun execute(systemInterface: SystemInterface, params: Map<String, Value>)
-}
-
-class RpgProgram(val inputStream: InputStream, val name: String = "<UNNAMED>") : Program {
-    override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
-        val interpreter = Interpreter(systemInterface, programName = name)
-        val cu = RpgParserFacade().parseAndProduceAst(inputStream)
-        cu.resolve()
-        interpreter.execute(cu, params)
-    }
-}
-
-abstract class JvmProgram(val name: String = "<UNNAMED>") : Program
 
 /**
  * This represent the interface to the external world.
@@ -118,7 +102,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
         } else {
             initialValues.forEach { iv ->
-                set(compilationUnit.allDataDefinitions.find { it.name == iv.key }!!, iv.value)
+                set(compilationUnit.allDataDefinitions.find { it?.name == iv.key }!!, iv.value)
             }
         }
     }
@@ -175,7 +159,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 is ForStmt -> {
                     eval(statement.init)
                     // TODO consider DOWNTO
-                    while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
+                    while (isEqualOrSmaller(this.get(statement.iterDataDefinition()), eval(statement.endValue))) {
                         execute(statement.body)
                         increment(statement.iterDataDefinition())
                     }
