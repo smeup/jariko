@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.ast.CompilationUnit
 import com.smeup.rpgparser.ast.DataRefExpr
 import com.smeup.rpgparser.ast.Expression
@@ -50,7 +51,8 @@ fun assertCanBeParsed(exampleName: String) : RContext {
 
 fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = false) : CompilationUnit {
     val parseTreeRoot = assertCanBeParsed(exampleName)
-    return parseTreeRoot.toAst(considerPosition)
+    return parseTreeRoot.toAst(ToAstConfiguration(
+            considerPosition = considerPosition))
 }
 
 fun assertCodeCanBeParsed(code: String) : RContext {
@@ -68,7 +70,7 @@ fun assertExpressionCanBeParsed(code: String) : ExpressionContext {
 }
 
 fun expressionAst(code: String) : Expression {
-    return assertExpressionCanBeParsed(code).toAst(false)
+    return assertExpressionCanBeParsed(code).toAst(ToAstConfiguration(considerPosition = false))
 }
 
 fun assertStatementCanBeParsed(code: String) : StatementContext {
@@ -90,20 +92,13 @@ fun assertStatementCanBeParsed(code: String) : StatementContext {
     return result.root!!
 }
 
-fun CompilationUnit.assertDataDefinitionIsPresent(name: String, dataType: DataType, size: Int?,
-                                                  decimals: Int = 0,
-                                                  arrayLength: Expression? = null,
-                                                  fields: List<FieldDefinition>? = null,
-                                                  dim : Expression? = null,
-                                                  like : Expression? = null) {
+fun CompilationUnit.assertDataDefinitionIsPresent(name: String,
+                                                  dataType: Type,
+                                                  fields: List<FieldDefinition> = emptyList()) {
     assertTrue(this.hasDataDefinition(name), message = "Data definition $name not found in Compilation Unit")
     val dataDefinition = this.getDataDefinition(name)
-    assertEquals(dataType, dataDefinition.dataType)
-    assertEquals(size, dataDefinition.size)
-    assertEquals(decimals, dataDefinition.decimals)
-    assertEquals(arrayLength, dataDefinition.arrayLength, "Array length is not as expected. Expected $arrayLength, actual ${dataDefinition.arrayLength}")
+    assertEquals(dataType, dataDefinition.type)
     assertEquals(fields, dataDefinition.fields)
-    assertEquals(like, dataDefinition.like, "Like is not as expected. Expected $like, actual ${dataDefinition.like}")
 }
 
 fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {
@@ -119,22 +114,18 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))
 
-class DummySystemInterface : SystemInterface {
-    override fun display(value: String) {
-        // doing nothing
-    }
-
-}
-
 class CollectorSystemInterface : SystemInterface {
     val displayed = LinkedList<String>()
+    val programs = HashMap<String, Program>()
+
+    override fun findProgram(name: String) = programs[name]
     override fun display(value: String) {
         displayed.add(value)
     }
 }
 
 fun execute(cu: CompilationUnit, initialValues: Map<String, Value>, systemInterface: SystemInterface? = null) : Interpreter {
-    val interpreter = Interpreter(systemInterface ?: DummySystemInterface())
+    val interpreter = Interpreter(systemInterface ?: DummySystemInterface)
     interpreter.execute(cu, initialValues)
     return interpreter
 }

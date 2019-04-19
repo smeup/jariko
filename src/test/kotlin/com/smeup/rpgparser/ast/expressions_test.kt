@@ -9,7 +9,7 @@ class ExpressionsTest {
 
     private fun expression(code: String) : Expression {
         val exprContext = assertExpressionCanBeParsed("                                   $code")
-        return exprContext.toAst(considerPosition = false)
+        return exprContext.toAst(ToAstConfiguration(considerPosition = false))
     }
 
     @test fun intLiteralParsing() {

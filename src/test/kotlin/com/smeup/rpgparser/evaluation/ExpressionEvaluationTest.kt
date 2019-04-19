@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.*
 import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -20,13 +20,13 @@ class ExpressionEvaluationTest {
 
     @Test
     fun evaluateDataRefExpr() {
-        val dataDefinition = DataDefinition("Foo", DataType.SINGLE, 1)
+        val dataDefinition = DataDefinition("Foo", NumberType(2, 0))
         assertEquals(IntValue(11), interpret(dataRefTo(dataDefinition), mapOf(dataDefinition to IntValue(11))))
     }
 
     @Test
     fun evaluateEqualityExprTrueCase() {
-        val dataDefinition = DataDefinition("Foo", DataType.SINGLE, 1)
+        val dataDefinition = DataDefinition("Foo", NumberType(2, 0))
         assertEquals(
                 BooleanValue(true),
                 interpret(EqualityExpr(IntLiteral(11), dataRefTo(dataDefinition)),
@@ -35,7 +35,7 @@ class ExpressionEvaluationTest {
 
     @Test
     fun evaluateEqualityExprFalseCase() {
-        val dataDefinition = DataDefinition("Foo", DataType.SINGLE, 1)
+        val dataDefinition = DataDefinition("Foo", NumberType(2, 0))
         assertEquals(
                 BooleanValue(false),
                 interpret(EqualityExpr(IntLiteral(10), dataRefTo(dataDefinition)),
@@ -43,7 +43,7 @@ class ExpressionEvaluationTest {
     }
 
     private fun interpret(expr: Expression, initializations : Map<AbstractDataDefinition, Value> = mapOf()) : Value {
-        val systemInterface = DummySystemInterface()
+        val systemInterface = DummySystemInterface
         val interpreter = Interpreter(systemInterface)
         initializations.forEach {
             interpreter[it.key] = it.value

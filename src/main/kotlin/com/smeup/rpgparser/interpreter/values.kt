@@ -1,4 +1,4 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.interpreter
 
 import java.math.BigDecimal
 import java.util.*
@@ -8,10 +8,20 @@ abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asString() : StringValue = throw UnsupportedOperationException()
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
+    abstract fun assignableTo(expectedType: Type): Boolean
 }
 
 data class StringValue(var value: String) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // TODO check size
+        return expectedType is StringType
+    }
+
     val valueWithoutPadding : String = value.removeNullChars()
+
+    companion object {
+        fun blank(length: Int) = StringValue("\u0000".repeat(length))
+    }
 
     override fun equals(other: Any?): Boolean {
         return if (other is StringValue) {
@@ -54,12 +64,25 @@ fun String.removeNullChars() : String {
 }
 
 data class IntValue(val value: Long) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // TODO check decimals
+        return expectedType is NumberType
+    }
+
     override fun asInt() = this
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // TODO check decimals
+        return expectedType is NumberType
+    }
 
 }
 data class BooleanValue(val value: Boolean) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is BooleanType
+    }
+
     override fun asBoolean() = this
 }
 abstract class ArrayValue : Value() {
@@ -74,9 +97,14 @@ abstract class ArrayValue : Value() {
         }
         return elements
     }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
 }
-data class ConcreteArrayValue(val elements: MutableList<Value>, val elementSize: Int) : ArrayValue() {
-    override fun elementSize() = elementSize
+data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
+    override fun elementSize() = elementType.size.toInt()
 
     override fun arrayLength() = elements.size
 
@@ -87,8 +115,19 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementSize:
     override fun getElement(index: Int) = elements[index]
 
 }
-object BlanksValue : Value()
-class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value()
+object BlanksValue : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
+
+class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
 
 class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition) : ArrayValue() {
     override fun elementSize(): Int {
@@ -121,9 +160,9 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
 }
 
-fun createArrayValue(elementSize: Int, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementSize)
+fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
 
-fun blankString(length: Int) = StringValue(" ".repeat(length))
+fun blankString(length: Int) = StringValue("\u0000".repeat(length))
 
 fun Long.asValue() = IntValue(this)
 

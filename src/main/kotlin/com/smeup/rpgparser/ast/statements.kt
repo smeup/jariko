@@ -1,15 +1,11 @@
 package com.smeup.rpgparser.ast
 
-import com.smeup.rpgparser.AbstractDataDefinition
-import com.smeup.rpgparser.InStatementDataDefinition
-import com.smeup.rpgparser.ast.DataWrapUpChoice
-import com.smeup.rpgparser.ast.Subroutine
-import com.smeup.rpgparser.toAst
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
-import java.lang.IllegalArgumentException
 
 interface StatementThatCanDefineData {
     fun dataDefinition() : InStatementDataDefinition?
@@ -39,7 +35,8 @@ data class EvalStmt(val target: AssignableExpression,
                     val operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT,
                     override val position: Position? = null)
     : Statement(position)
-data class CallStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
+data class CallStmt(val expression: Expression, val params: List<PlistParam>,
+                    override val position: Position? = null) : Statement(position)
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),
                   val elseClause: ElseClause? = null,
@@ -48,7 +45,9 @@ data class IfStmt(val condition: Expression, val body: List<Statement>,
 data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
-data class PlistStmt(val params: List<PlistParam>, override val position: Position? = null) : Statement(position)
+data class PlistStmt(val params: List<PlistParam>,
+                     val isEntry: Boolean,
+                     override val position: Position? = null) : Statement(position)
 data class PlistParam(val paramName: String, override val position: Position? = null) : Node(position)
 data class ClearStmt(val value: Expression,
                      @Derived val dataDefinition: InStatementDataDefinition? = null,

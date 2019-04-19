@@ -1,7 +1,10 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
+import java.io.File
+import java.io.FileInputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -14,13 +17,13 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
                 "U\$METO" to StringValue("Bar"),
-                "U\$SVARSK" to createArrayValue(1050, 200) { blankString(1050) },
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { blankString(1050) },
                 "U\$IN35" to blankString(1)))
         assertEquals(listOf("IMP0", "FIN0"), interpreter.getExecutedSubroutineNames())
         assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
         assertEquals(StringValue("Bar"), interpreter["U\$METO"])
-        assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["U\$SVARSK"])
-        assertEquals(StringValue(" "), interpreter["U\$IN35"])
+        assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK"])
+        assertEquals(StringValue("\u0000"), interpreter["U\$IN35"])
     }
 
     @Test
@@ -30,11 +33,11 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
                 "U\$METO" to StringValue("Bar"),
-                "U\$SVARSK" to createArrayValue(1050, 200) { blankString(1050) },
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { blankString(1050) },
                 "U\$IN35" to blankString(1)))
         assertEquals(listOf("IMP0", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
-        assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["\$\$SVAR"])
+        assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["\$\$SVAR"])
     }
 
     @Test
@@ -44,14 +47,14 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
                 "U\$METO" to StringValue("Bar"),
-                "U\$SVARSK" to createArrayValue(1050,200) { blankString(1050) },
+                "U\$SVARSK" to createArrayValue(StringType(1050),200) { blankString(1050) },
                 "U\$IN35" to StringValue("X")))
-        assertEquals(10, interpreter.getEvaluatedExpressionsConcise().size)
+        assertEquals(6, interpreter.getEvaluatedExpressionsConcise().size)
         assertEquals(listOf("IMP0", "FINZ", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
-        assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["\$\$SVAR"])
+        assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["\$\$SVAR"])
         // Assigned inside FINZ
-        assertEquals(createArrayValue(1050, 200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
+        assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
 
@@ -113,7 +116,7 @@ class InterpreterTest {
 //        cu.resolve()
 //        val interpreter = execute(cu, mapOf(
 //                "U\$FUNZ" to "INZ".asValue(),
-//                "\$\$SVAR" to createArrayValue(1050, 200) { i ->
+//                "\$\$SVAR" to createArrayValue(StringType(1050), 200) { i ->
 //                    if (i == 38) {
 //                        ("Url".padEnd(50, '\u0000') + "".padEnd(1000, '\u0000'))
 //                    } else {
@@ -231,5 +234,54 @@ class InterpreterTest {
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf(), si)
         assertEquals(listOf("Hello World!"), si.displayed)
+    }
+
+    @Test
+    fun executeCallToFibonacciWrittenInRpg() {
+        val cu = assertASTCanBeProduced("CALCFIBCAL", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        si.programs["CALCFIB"] = rpgProgram("CALCFIB")
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+    }
+
+    @Test
+    fun executeCallToFibonacciWrittenOnTheJvm() {
+        val cu = assertASTCanBeProduced("CALCFIBCAL", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        si.programs["CALCFIB"] = object : JvmProgram("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+                val n = params["ppdat"]!!.asString().valueWithoutPadding.toInt()
+                var t1 = 0
+                var t2 = 1
+
+                for (i in 1..n) {
+                    val sum = t1 + t2
+                    t1 = t2
+                    t2 = sum
+                }
+                systemInterface.display("FIBONACCI OF: $n IS: $t1")
+            }
+        }
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+    }
+
+    @Test
+    fun executeFibonacciWrittenInRpgAsProgram() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val rpgProgram = RpgProgram(cu)
+        rpgProgram.execute(si, mapOf("ppdat" to StringValue("10")))
+        assertEquals(1, rpgProgram.params().size)
+        assertEquals(ProgramParam("ppdat", StringType(8)), rpgProgram.params()[0])
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+    }
+
+    private fun rpgProgram(name: String) : RpgProgram {
+        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
     }
 }

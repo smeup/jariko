@@ -1,11 +1,9 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
-import java.lang.IllegalArgumentException
-import java.lang.IllegalStateException
-import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * This represent the interface to the external world.
@@ -13,6 +11,7 @@ import java.util.*
  */
 interface SystemInterface {
     fun display(value: String)
+    fun findProgram(name: String) : Program?
 }
 
 class SymbolTable {
@@ -55,7 +54,7 @@ data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry()
 data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry()
 data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry()
 
-class Interpreter(val systemInterface: SystemInterface) {
+class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
 
@@ -88,7 +87,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
         logs.add(AssignmentLogEntry(data, value))
-        globalSymbolTable[data] = coerce(value, data.type())
+        globalSymbolTable[data] = coerce(value, data.type)
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
@@ -103,7 +102,7 @@ class Interpreter(val systemInterface: SystemInterface) {
             }
         } else {
             initialValues.forEach { iv ->
-                set(compilationUnit.allDataDefinitions.find { it.name == iv.key }!!, iv.value)
+                set(compilationUnit.allDataDefinitions.find { it?.name == iv.key }!!, iv.value)
             }
         }
     }
@@ -160,7 +159,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                 is ForStmt -> {
                     eval(statement.init)
                     // TODO consider DOWNTO
-                    while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
+                    while (isEqualOrSmaller(this.get(statement.iterDataDefinition()), eval(statement.endValue))) {
                         execute(statement.body)
                         increment(statement.iterDataDefinition())
                     }
@@ -181,6 +180,12 @@ class Interpreter(val systemInterface: SystemInterface) {
                             execute(statement.elseClause.body)
                         }
                     }
+                }
+                is CallStmt -> {
+                    val programToCall = eval(statement.expression).asString().value
+                    val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
+                    val params = statement.params.map { it.paramName to get(it.paramName) }.toMap()
+                    program.execute(systemInterface, params)
                 }
                 else -> TODO(statement.toString())
             }
@@ -232,7 +237,7 @@ class Interpreter(val systemInterface: SystemInterface) {
         when (target) {
             is DataRefExpr -> {
                 val l = target as DataRefExpr
-                val value = coerce(interpret(value), l.variable.referred!!.type())
+                val value = coerce(interpret(value), l.variable.referred!!.type)
                 set(target.variable.referred!!, value)
                 return value
             }
@@ -252,27 +257,17 @@ class Interpreter(val systemInterface: SystemInterface) {
         return when (value) {
             is BlanksValue -> {
                 when (type) {
-                    is DataDefinitionType -> {
-                        blankValue(type.dataDefinition as DataDefinition)
-                    }
-                    is RawType -> {
-                        blankValue(type.size!!)
-                    }
                     is StringType -> {
-                        blankValue(type.size!!)
+                        blankValue(type.length.toInt())
                     }
                     else -> TODO(type.toString())
                 }
             }
             is StringValue -> {
                 when (type) {
-                    is RawType -> {
-                        val missingLength = type.size!! - value.value.length
-                        StringValue(value.value + "\u0000".repeat(missingLength))
-                    }
                     is StringType -> {
-                        val missingLength = type.size!! - value.value.length
-                        StringValue(value.value + "\u0000".repeat(missingLength))
+                        val missingLength = type.length - value.value.length
+                        StringValue(value.value + "\u0000".repeat(missingLength.toInt()))
                     }
                     else -> TODO(type.toString())
                 }
@@ -298,7 +293,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
-            is DataRefExpr -> get(expression.variable.referred!!)
+            is DataRefExpr -> get(expression.variable.referred ?: throw IllegalStateException("[$programName] Unsolved reference ${expression.variable.name} at ${expression.position}"))
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
@@ -342,43 +337,35 @@ class Interpreter(val systemInterface: SystemInterface) {
 
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
+    fun blankValue(type: Type): Value {
+        return when (type){
+            is ArrayType -> createArrayValue(type.element, type.nElements) {
+                blankValue(type.element)
+            }
+            is DataStructureType -> StringValue.blank(type.size.toInt())
+            is StringType ->  StringValue.blank(type.size.toInt())
+            is NumberType -> IntValue(0)
+            is BooleanType -> BooleanValue(false)
+            else -> TODO(type.toString())
+        }
+    }
+
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
-        val interpreter = this
-        if (dataDefinition.arrayLength != null && !forceElement) {
-            val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
-            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList(), dataDefinition.actualElementSize(interpreter).value.toInt())
-        }
-        return when {
-            dataDefinition.dataType == DataType.SINGLE -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
-            dataDefinition.dataType == DataType.BOOLEAN -> BooleanValue(false)
-            // TODO: to be revised
-            dataDefinition.dataType == DataType.DATA_STRUCTURE -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
-            else -> TODO(dataDefinition.toString())
-        }
+        if (forceElement) TODO()
+        return blankValue(dataDefinition.type)
     }
 }
 
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
-/**
- * Here we mean the arrayLength of a single element
- */
-fun DataDefinition.actualElementSize(interpreter: Interpreter) : IntValue {
-    return when {
-        this.like != null && this.size != null -> throw IllegalStateException("Should not be both arrayLength and dim be set")
-        this.size != null -> this.size.asValue()
-        this.like != null -> (interpreter.interpret(this.like) as ConcreteArrayValue).elementSize().asValue()
-        else -> throw IllegalStateException("No actual arrayLength can be calculated")
+object DummySystemInterface : SystemInterface {
+    override fun findProgram(name: String): Program? {
+        return null
     }
-}
 
-/**
- * Here we mean the number of elements
- */
-fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
-    return when {
-        this.arrayLength != null -> interpreter.interpret(this.arrayLength).asInt()
-        else -> IntValue(1)
+    override fun display(value: String) {
+        // doing nothing
     }
+
 }
