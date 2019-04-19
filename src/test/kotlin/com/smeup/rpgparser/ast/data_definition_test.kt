@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.*
-import com.strumenta.kolasu.model.ReferenceByName
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test
@@ -66,7 +65,7 @@ class DataDefinitionTest {
         val cu = processDataDefinition(
                 "D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))",
                 toAstConfiguration = ToAstConfiguration(considerPosition = false,
-                        dataDefinitionsInterpreter = InjectableDataDefinitionsInterpreter().apply {
+                        compileTimeInterpreter = InjectableCompileTimeInterpreter().apply {
                             this.overrideDecl("\$\$SVAR", ArrayType(StringType(12), 38))
                         }))
         cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 38))

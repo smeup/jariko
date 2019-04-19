@@ -10,112 +10,14 @@ import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 
-/**
- * This is a very limited interpreter used while examining data definitions.
- * It should consider only statically evaluatable elements
- */
-interface DataDefinitionsInterpreter {
-    fun evaluate(rContext: RContext, expression: Expression) : Value
-    fun evaluateElementSizeOf(rContext: RContext, expression: Expression) : Int
-}
-
-//private fun RContext.
-
-object CommonDataDefinitionsInterpreter : BaseDataDefinitionsInterpreter() {
-
-}
-
-class InjectableDataDefinitionsInterpreter : BaseDataDefinitionsInterpreter() {
-    override fun evaluateNumberOfElementsOf(rContext: RContext, declName: String): Int {
-        return mockedDecls[declName]?.numberOfElements() ?: super.evaluateNumberOfElementsOf(rContext, declName)
-    }
-
-    override fun evaluateElementSizeOf(rContext: RContext, declName: String): Int {
-        return mockedDecls[declName]?.elementSize()?.toInt() ?: super.evaluateElementSizeOf(rContext, declName)
-    }
-
-    private val mockedDecls = HashMap<String, Type>()
-
-    fun overrideDecl(name: String, type: Type) {
-        mockedDecls[name] = type
-    }
-
-}
-
-open class BaseDataDefinitionsInterpreter : DataDefinitionsInterpreter {
-    override fun evaluate(rContext: RContext, expression: Expression) : Value {
-        return when (expression) {
-            is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
-            is IntLiteral -> IntValue(expression.value)
-            else -> TODO(expression.toString())
-        }
-    }
-    private fun evaluateNumberOfElementsOf(rContext: RContext, expression: Expression) : Int {
-        return when (expression){
-            is DataRefExpr -> evaluateNumberOfElementsOf(rContext, expression.variable.name)
-            else -> TODO(expression.toString())
-        }
-    }
-    protected open fun evaluateNumberOfElementsOf(rContext: RContext, declName: String) : Int {
-        rContext.statement()
-                .forEach {
-                    when {
-                        it.dspec() != null -> {
-                            val name = it.dspec().ds_name().text
-                            println("DSPEC * $name")
-                            if (name == declName) {
-                                TODO()
-                            }
-                        }
-                        it.dcl_ds() != null -> {
-                            val name = it.dcl_ds().name
-                            println("DS * $name")
-                            if (name == declName) {
-                                return it.dcl_ds().type().numberOfElements()
-                            }
-                        }
-                    }
-                }
-        TODO("Not found: $declName")
-    }
-    open fun evaluateElementSizeOf(rContext: RContext, declName: String) : Int {
-        rContext.statement()
-                .forEach {
-                    when {
-                        it.dspec() != null -> {
-                            val name = it.dspec().ds_name().text
-                            println("DSPEC * $name")
-                            if (name == declName) {
-                                TODO()
-                            }
-                        }
-                        it.dcl_ds() != null -> {
-                            val name = it.dcl_ds().name
-                            println("DS * $name")
-                            if (name == declName) {
-                                return it.dcl_ds().elementSizeOf()
-                            }
-                        }
-                    }
-                }
-        TODO("Not found: $declName")
-    }
-    override fun evaluateElementSizeOf(rContext: RContext, expression: Expression) : Int {
-        return when (expression){
-            is DataRefExpr -> evaluateElementSizeOf(rContext, expression.variable.name)
-            else -> TODO(expression.toString())
-        }
-    }
-}
-
-private fun Dcl_dsContext.elementSizeOf() : Int {
+fun Dcl_dsContext.elementSizeOf() : Int {
     val header = this.parm_fixed().first()
     val elementSize = header.TO_POSITION().text.trim().toInt()
     return elementSize
 }
 
 data class ToAstConfiguration(val considerPosition: Boolean = true, 
-                              val dataDefinitionsInterpreter : DataDefinitionsInterpreter = CommonDataDefinitionsInterpreter)
+                              val compileTimeInterpreter : CompileTimeInterpreter = CommonCompileTimeInterpreter)
 
 fun List<Node>.position() : Position? {
     val start = this.map { it.position?.start }.filterNotNull().sorted()
@@ -370,7 +272,7 @@ private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
         }
     }
     val elementSize = when {
-        like != null -> conf.dataDefinitionsInterpreter.evaluateElementSizeOf(this.rContext(), like!!)
+        like != null -> conf.compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!)
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
 
@@ -386,17 +288,13 @@ private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     val type = if (dim != null) {
-        ArrayType(baseType, conf.dataDefinitionsInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt())
+        ArrayType(baseType, conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt())
     } else {
         baseType
     }
     return DataDefinition(
             this.ds_name().text,
             type,
-//            this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() },
-//            decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
-//            arrayLength = this.arrayLength(conf),
-//            like = like,
             initializationValue = initializationValue,
             position = this.toPosition(true))
 }
@@ -409,7 +307,7 @@ private fun ParserRuleContext.rContext(): RContext {
     }
 }
 
-private val Dcl_dsContext.name : String
+val Dcl_dsContext.name : String
     get() {
         return if (this.ds_name().text.trim().isEmpty()) {
             require(this.parm_fixed().isNotEmpty())
@@ -420,10 +318,10 @@ private val Dcl_dsContext.name : String
         }
     }
 
-private fun Dcl_dsContext.type(conf : ToAstConfiguration = ToAstConfiguration()) : Type {
+fun Dcl_dsContext.type(conf : ToAstConfiguration = ToAstConfiguration()) : Type {
     val header = this.parm_fixed().first()
-    var dim : Expression? = header.keyword().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
-    val nElements = if (dim != null) conf.dataDefinitionsInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt() else null
+    val dim : Expression? = header.keyword().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
+    val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt() else null
     val others = this.parm_fixed().drop(1)
     val elementSize = this.elementSizeOf()
     val baseType = DataStructureType(others.map { it.toFieldType() }, elementSize)
@@ -438,36 +336,13 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
     require(this.TO_POSITION().text.trim().isEmpty())
     if (this.ds_name().text.trim().isEmpty()) {
         require(this.parm_fixed().isNotEmpty())
-        val header = this.parm_fixed().first()
         val others = this.parm_fixed().drop(1)
-//        var like : AssignableExpression? = null
-//        var dim : Expression? = null
-//        var initializationValue : Expression? = null
-//        this.keyword().forEach {
-//            it.keyword_like()?.let {
-//                like = it.simpleExpression().toAst(conf) as AssignableExpression
-//            }
-//            it.keyword_inz()?.let {
-//                initializationValue = it.simpleExpression().toAst(conf)
-//            }
-//            it.keyword_dim()?.let {
-//                dim = it.simpleExpression().toAst(conf)
-//            }
-//        }
-//        val elementSize = when {
-//            like != null -> (staticallyEvaluate(like!!) as ArrayValue).elementSize()
-//            else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
-//        }
-
-        // It is found by looking at the first entry
-        val elementSize = this.elementSizeOf()
-        var type : Type = this.type()
+        val type : Type = this.type()
         val nElements = if (type is ArrayType) {
             type.nElements
         } else {
             null
         }
-        val ks = header.keyword().map { it.keyword_dim() }
         return DataDefinition(
                 this.name,
                 type,
@@ -475,14 +350,6 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
                 position = this.toPosition(true))
     } else {
         TODO()
-//        return DataDefinition(
-//                this.ds_name().text,
-//                DATA_STRUCTURE,
-//                0,
-//                decimals = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() },
-//                arrayLength = this.arrayLength(considerPosition),
-//                fields = listOf(),
-//                position = this.toPosition(true))
     }
 }
 
