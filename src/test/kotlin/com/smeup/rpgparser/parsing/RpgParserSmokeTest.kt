@@ -106,4 +106,19 @@ class RpgParserSmokeTest {
     fun parseTIMESTDIFF() {
         assertCanBeParsed("TIMESTDIFF")
     }
+
+    @Test
+    fun parseDSEX01() {
+        assertCanBeParsed("DSEX01")
+    }
+
+    @Test
+    fun parseDSEX02() {
+        assertCanBeParsed("DSEX02")
+    }
+
+    @Test
+    fun parseMUTE05_02() {
+        assertCanBeParsed("MUTE05_02")
+    }
 }

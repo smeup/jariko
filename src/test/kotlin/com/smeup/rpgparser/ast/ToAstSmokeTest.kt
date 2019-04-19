@@ -91,4 +91,19 @@ class ToAstSmokeTest {
         assertEquals(0, cu.subroutines.size)
     }
 
+    @Test
+    fun buildAstForHELLOTYPE() {
+        val cu = assertASTCanBeProduced("HELLOTYPE")
+        assertEquals(2, cu.dataDefinitions.size)
+        assertEquals(6, cu.main.stmts.size)
+        assertEquals(0, cu.subroutines.size)
+    }
+
+    @Test
+    fun buildAstForHELLOERROR() {
+        val cu = assertASTCanBeProduced("HELLOERROR")
+        assertEquals(1, cu.dataDefinitions.size)
+        assertEquals(5, cu.main.stmts.size)
+        assertEquals(0, cu.subroutines.size)
+    }
 }
