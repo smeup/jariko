@@ -51,6 +51,10 @@ data class StringValue(var value: String) : Value() {
         return StringValue(value.substring(startOffset, endOffset))
     }
 
+    override fun toString(): String {
+        return "StringValue($valueWithoutPadding)"
+    }
+
     override fun asString() = this
 }
 
@@ -116,6 +120,10 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
 
 }
 object BlanksValue : Value() {
+    override fun toString(): String {
+        return "BlanksValue"
+    }
+
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
         return true

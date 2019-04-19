@@ -50,13 +50,26 @@ class SymbolTable {
 }
 
 abstract class LogEntry
-data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry()
-data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry()
-data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry()
+data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
+    override fun toString(): String {
+        return "executing ${subroutine.name}"
+    }
+}
+data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "evaluating $expression as $value"
+    }
+}
+data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "assigning $value to $data"
+    }
+}
 
 class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
+    var traceMode : Boolean = false
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
@@ -86,8 +99,15 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
-        logs.add(AssignmentLogEntry(data, value))
+        log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
+    }
+
+    private fun log(logEntry: LogEntry) {
+        if (traceMode) {
+            println("[LOG] $logEntry")
+        }
+        logs.add(logEntry)
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
@@ -126,7 +146,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         try {
             when (statement) {
                 is ExecuteSubroutine -> {
-                    logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
+                    log(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
                     execute(statement.subroutine.referred!!.stmts)
                 }
                 is EvalStmt -> assign(statement.target, statement.expression)
@@ -186,6 +206,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
                     val params = statement.params.map { it.paramName to get(it.paramName) }.toMap()
                     program.execute(systemInterface, params)
+                }
+                is DoStmt -> {
+
                 }
                 else -> TODO(statement.toString())
             }
@@ -260,6 +283,11 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     is StringType -> {
                         blankValue(type.length.toInt())
                     }
+                    is ArrayType -> {
+                        createArrayValue(type.element, type.nElements) {
+                            blankValue(type.element)
+                        }
+                    }
                     else -> TODO(type.toString())
                 }
             }
@@ -278,7 +306,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
 
     fun interpret(expression: Expression) : Value {
         val value = interpretConcrete(expression)
-        logs.add(ExpressionEvaluationLogEntry(expression, value))
+        log(ExpressionEvaluationLogEntry(expression, value))
         return value
     }
 
@@ -330,6 +358,12 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 val array = interpret(expression.array) as ArrayValue
                 val index = array.elements().indexOfFirst { it == searchValued }
                 return if (index == -1) 0.asValue() else (index + 1).asValue()
+            }
+            is ArrayAccessExpr -> {
+                val arrayValue = interpret(expression.array) as ArrayValue
+                val indexValue = interpret(expression.index)
+                return arrayValue.getElement(indexValue.asInt().value.toInt())
+
             }
             else -> TODO(expression.toString())
         }

@@ -110,24 +110,25 @@ class InterpreterTest {
         assertEquals(StringValue("1"), interpreter["U\$IN35"])
     }
 
-//    @Test
-//    fun executeJD_001_complete_url_found() {
-//        val cu = assertASTCanBeProduced("JD_001", true)
-//        cu.resolve()
-//        val interpreter = execute(cu, mapOf(
-//                "U\$FUNZ" to "INZ".asValue(),
-//                "\$\$SVAR" to createArrayValue(StringType(1050), 200) { i ->
-//                    if (i == 38) {
-//                        ("Url".padEnd(50, '\u0000') + "".padEnd(1000, '\u0000'))
-//                    } else {
-//                        "".padEnd(1050, '\u0000')
-//                    }.asValue()
-//                }))
-//        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
-//        interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
-//        assertEquals(IntValue(39), interpreter["\$X"])
-//        //assertEquals(StringValue("1"), interpreter["U\$IN35"])
-//    }
+    @Test
+    fun executeJD_001_complete_url_found() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf(
+                "U\$FUNZ" to "INZ".asValue(),
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
+                    if (i == 38) {
+                        ("Url".padEnd(50, '\u0000') + "".padEnd(1000, '\u0000'))
+                    } else {
+                        "".padEnd(1050, '\u0000')
+                    }.asValue()
+                }))
+        interpreter.traceMode = true
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
+        assertEquals(IntValue(39), interpreter["\$X"])
+        //assertEquals(StringValue("1"), interpreter["U\$IN35"])
+    }
 
 //    @Test
 //    fun executeJD_000() {
