@@ -113,7 +113,7 @@ class InterpreterTest {
 //        cu.resolve()
 //        val interpreter = execute(cu, mapOf(
 //                "U\$FUNZ" to "INZ".asValue(),
-//                "\$\$SVAR" to createArrayValue(1050, 200) { i ->
+//                "\$\$SVAR" to createArrayValue(StringType(1050), 200) { i ->
 //                    if (i == 38) {
 //                        ("Url".padEnd(50, '\u0000') + "".padEnd(1000, '\u0000'))
 //                    } else {

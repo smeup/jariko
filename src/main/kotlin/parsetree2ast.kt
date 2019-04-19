@@ -367,9 +367,7 @@ private fun Parm_fixedContext.toAst(
 }
 
 private fun Parm_fixedContext.toFieldType(): FieldType {
-    val elementSize = when {
-        else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
-    }
+    val elementSize = this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
 
     var baseType = when (this.DATA_TYPE()?.text?.trim()) {
         null -> TODO()

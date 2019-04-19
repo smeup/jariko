@@ -29,12 +29,7 @@ data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) 
     override val size: Long
         get()= elementSize.toLong()
 }
-// TODO remove this one
-@Deprecated(message = "Replace with DataStructureType")
-class DataDefinitionType(val dataDefinition: AbstractDataDefinition) : Type() {
-    override val size: Long
-        get()= TODO()
-}
+
 data class StringType(val length: Long) : Type() {
     override val size: Long
         get()= length

@@ -75,7 +75,7 @@ class DataDefinitionTest {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
         assertTrue(cu.hasAnyDataDefinition("dsp"))
-        // TODO test the type is StringType(50)
+        assertEquals(StringType(50), cu.getAnyDataDefinition("dsp").type)
     }
 
     @test fun executeJD_useOfLike() {
