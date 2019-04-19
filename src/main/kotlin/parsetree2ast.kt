@@ -385,8 +385,8 @@ private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
         "N" -> BooleanType
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
-    val type = if (this.keyword().any { it.keyword_dim() != null }) {
-        ArrayType(baseType, conf.dataDefinitionsInterpreter.evaluate(this.rContext(), this.arrayLength(conf)!!).asInt().value.toInt())
+    val type = if (dim != null) {
+        ArrayType(baseType, conf.dataDefinitionsInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt())
     } else {
         baseType
     }
@@ -420,10 +420,17 @@ private val Dcl_dsContext.name : String
         }
     }
 
-private fun Dcl_dsContext.type() : Type {
+private fun Dcl_dsContext.type(conf : ToAstConfiguration = ToAstConfiguration()) : Type {
+    val header = this.parm_fixed().first()
+    var dim : Expression? = header.keyword().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val others = this.parm_fixed().drop(1)
     val elementSize = this.elementSizeOf()
-    return DataStructureType(others.map { it.toFieldType() }, elementSize)
+    val baseType = DataStructureType(others.map { it.toFieldType() }, elementSize)
+    return if (dim == null) {
+        baseType
+    } else {
+        ArrayType(baseType, conf.dataDefinitionsInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt())
+    }
 }
 
 private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
@@ -455,10 +462,6 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
         val elementSize = this.elementSizeOf()
         var type : Type = this.type()
         val ks = header.keyword().map { it.keyword_dim() }
-        header.keyword().firstOrNull { it.keyword_dim() != null }?.let {
-            val nElements = staticallyEvaluate(it.keyword_dim().numeric_constant.toAst(conf)).asInt().value
-            type = ArrayType(type, nElements.toInt())
-        }
         return DataDefinition(
                 this.name,
                 type,
