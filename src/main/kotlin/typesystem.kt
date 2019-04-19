@@ -15,9 +15,17 @@ import com.smeup.rpgparser.ast.Expression
 // * Procedure Pointer Data Type
 
 sealed class Type {
+    open fun numberOfElements(): Int {
+        return 1
+    }
+    open fun elementSize(): Long {
+        return size
+    }
+
     abstract val size: Long
 }
 data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
+
     override val size: Long
         get()= elementSize.toLong()
 }
@@ -42,38 +50,21 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
 data class ArrayType(val element: Type, val nElements: Int) : Type() {
     override val size: Long
         get()= element.size * nElements
+
+    override fun numberOfElements(): Int {
+        return nElements
+    }
+
+    override fun elementSize(): Long {
+        return element.size
+    }
 }
 
 data class FieldType(val name: String, val type: Type)
 
 fun Expression.type() : Type {
     return when (this) {
-        is DataRefExpr -> this.variable.referred!!.type()
-        else -> TODO(this.javaClass.canonicalName)
-    }
-}
-
-fun AbstractDataDefinition.type(): Type {
-    when (this) {
-        is FieldDefinition -> {
-            // TODO consider data type
-            TODO()
-//            val baseType = RawType(this.size)
-//            return if (container.isArray()) {
-//                ArrayType(baseType)
-//            } else {
-//                baseType
-//            }
-        }
-        is DataDefinition -> {
-            TODO()
-            //return RawType(this.size)
-        }
-        is InStatementDataDefinition -> {
-            TODO()
-            // TODO consider data type
-            //return RawType(this.size)
-        }
+        is DataRefExpr -> this.variable.referred!!.type
         else -> TODO(this.javaClass.canonicalName)
     }
 }

@@ -15,10 +15,10 @@ import kotlin.math.exp
  */
 interface SystemInterface {
     fun display(value: String)
-    @Deprecated("do not use")
-    fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
-        throw UnsupportedOperationException("Unresolved reference to ${variable.name}")
-    }
+//    @Deprecated("do not use")
+//    fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
+//        throw UnsupportedOperationException("Unresolved reference to ${variable.name}")
+//    }
 }
 
 class SymbolTable {
@@ -94,7 +94,7 @@ class Interpreter(val systemInterface: SystemInterface) {
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
         logs.add(AssignmentLogEntry(data, value))
-        globalSymbolTable[data] = coerce(value, data.type())
+        globalSymbolTable[data] = coerce(value, data.type)
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
@@ -238,7 +238,7 @@ class Interpreter(val systemInterface: SystemInterface) {
         when (target) {
             is DataRefExpr -> {
                 val l = target as DataRefExpr
-                val value = coerce(interpret(value), l.variable.referred!!.type())
+                val value = coerce(interpret(value), l.variable.referred!!.type)
                 set(target.variable.referred!!, value)
                 return value
             }
@@ -349,7 +349,13 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
     fun blankValue(type: Type): Value {
-        when {
+        return when (type){
+            is ArrayType -> createArrayValue(type.element, type.nElements) {
+                blankValue(type.element)
+            }
+            is DataStructureType -> StringValue.blank(type.size.toInt())
+            is StringType ->  StringValue.blank(type.size.toInt())
+            is NumberType -> IntValue(0)
             else -> TODO(type.toString())
         }
     }

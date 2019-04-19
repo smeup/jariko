@@ -8,7 +8,8 @@ import org.junit.Test as test
 
 class DataDefinitionTest {
 
-    fun processDataDefinition(code: String) : CompilationUnit {
+    fun processDataDefinition(code: String,
+                              toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)) : CompilationUnit {
         val completeCode = """
 |     H/COPY QILEGEN,£INIZH
 |      *---------------------------------------------------------------
@@ -17,7 +18,7 @@ class DataDefinitionTest {
 |     $code
         """.trimMargin("|")
         val rContext = assertCodeCanBeParsed(completeCode)
-        return rContext.toAst(ToAstConfiguration(considerPosition = false))
+        return rContext.toAst(toAstConfiguration)
     }
 
     @test fun singleDataParsing() {
@@ -67,14 +68,19 @@ class DataDefinitionTest {
                 // nothing to do
             }
 
-            override fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
-                if (variable.name == "\$\$SVAR") {
-                    return createArrayValue(12, 38) { StringValue("")}
-                }
-                throw RuntimeException("Unexpected call")
-            }
+//            override fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
+//                if (variable.name == "\$\$SVAR") {
+//                    return createArrayValue(12, 38) { StringValue("")}
+//                }
+//                throw RuntimeException("Unexpected call")
+//            }
         }
-        val cu = processDataDefinition("D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))")
+        val cu = processDataDefinition(
+                "D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))",
+                toAstConfiguration = ToAstConfiguration(considerPosition = false,
+                        dataDefinitionsInterpreter = InjectableDataDefinitionsInterpreter().apply {
+                            this.overrideDecl("\$\$SVAR", ArrayType(StringType(12), 38))
+                        }))
         cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 38))
     }
 
@@ -97,7 +103,7 @@ class DataDefinitionTest {
         val interpreter = Interpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
-        assertEquals(IntValue(200), dataDefinition.actualArrayLength(interpreter))
+        assertEquals(200, dataDefinition.numberOfElements())
     }
 
     @test fun executeJD_useOfDim() {
@@ -106,6 +112,6 @@ class DataDefinitionTest {
         val interpreter = Interpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
-        assertEquals(IntValue(1050), dataDefinition.actualElementSize(interpreter))
+        assertEquals(1050, dataDefinition.elementSize())
     }
 }

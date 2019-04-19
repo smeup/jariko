@@ -8,7 +8,10 @@ import com.strumenta.kolasu.model.Position
 
 open class AbstractDataDefinition(override val name: String,
                                   open val type: Type,
-                                  override val position: Position? = null) : Node(position), Named
+                                  override val position: Position? = null) : Node(position), Named {
+    fun numberOfElements() = type.numberOfElements()
+    fun elementSize() = type.elementSize()
+}
 
 data class DataDefinition(override val name: String,
                           override val type: Type,

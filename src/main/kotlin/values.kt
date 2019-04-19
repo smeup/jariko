@@ -13,6 +13,10 @@ abstract class Value {
 data class StringValue(var value: String) : Value() {
     val valueWithoutPadding : String = value.removeNullChars()
 
+    companion object {
+        fun blank(length: Int) = StringValue("\u0000".repeat(length))
+    }
+
     override fun equals(other: Any?): Boolean {
         return if (other is StringValue) {
             this.valueWithoutPadding == other.valueWithoutPadding
@@ -75,8 +79,8 @@ abstract class ArrayValue : Value() {
         return elements
     }
 }
-data class ConcreteArrayValue(val elements: MutableList<Value>, val elementSize: Int) : ArrayValue() {
-    override fun elementSize() = elementSize
+data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
+    override fun elementSize() = elementType.size.toInt()
 
     override fun arrayLength() = elements.size
 
@@ -121,7 +125,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
 }
 
-fun createArrayValue(elementSize: Int, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementSize)
+fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
 
 fun blankString(length: Int) = StringValue(" ".repeat(length))
 

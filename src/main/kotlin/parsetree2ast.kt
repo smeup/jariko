@@ -21,17 +21,42 @@ interface DataDefinitionsInterpreter {
 
 //private fun RContext.
 
-object CommonDataDefinitionsInterpreter : DataDefinitionsInterpreter {
+object CommonDataDefinitionsInterpreter : BaseDataDefinitionsInterpreter() {
+
+}
+
+class InjectableDataDefinitionsInterpreter : BaseDataDefinitionsInterpreter() {
+    override fun evaluateNumberOfElementsOf(rContext: RContext, declName: String): Int {
+        return mockedDecls[declName]?.numberOfElements() ?: super.evaluateNumberOfElementsOf(rContext, declName)
+    }
+
+    override fun evaluateElementSizeOf(rContext: RContext, declName: String): Int {
+        return mockedDecls[declName]?.elementSize()?.toInt() ?: super.evaluateElementSizeOf(rContext, declName)
+    }
+
+    private val mockedDecls = HashMap<String, Type>()
+
+    fun overrideDecl(name: String, type: Type) {
+        mockedDecls[name] = type
+    }
+
+}
+
+open class BaseDataDefinitionsInterpreter : DataDefinitionsInterpreter {
     override fun evaluate(rContext: RContext, expression: Expression) : Value {
         return when (expression) {
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
+            is IntLiteral -> IntValue(expression.value)
             else -> TODO(expression.toString())
         }
     }
     private fun evaluateNumberOfElementsOf(rContext: RContext, expression: Expression) : Int {
-        TODO(expression.toString())
+        return when (expression){
+            is DataRefExpr -> evaluateNumberOfElementsOf(rContext, expression.variable.name)
+            else -> TODO(expression.toString())
+        }
     }
-    private fun evaluateNumberOfElementsOf(rContext: RContext, declName: String) : Int {
+    protected open fun evaluateNumberOfElementsOf(rContext: RContext, declName: String) : Int {
         rContext.statement()
                 .forEach {
                     when {
@@ -46,14 +71,14 @@ object CommonDataDefinitionsInterpreter : DataDefinitionsInterpreter {
                             val name = it.dcl_ds().name
                             println("DS * $name")
                             if (name == declName) {
-                                TODO()
+                                return it.dcl_ds().type().numberOfElements()
                             }
                         }
                     }
                 }
         TODO("Not found: $declName")
     }
-    fun evaluateElementSizeOf(rContext: RContext, declName: String) : Int {
+    open fun evaluateElementSizeOf(rContext: RContext, declName: String) : Int {
         rContext.statement()
                 .forEach {
                     when {
@@ -395,6 +420,12 @@ private val Dcl_dsContext.name : String
         }
     }
 
+private fun Dcl_dsContext.type() : Type {
+    val others = this.parm_fixed().drop(1)
+    val elementSize = this.elementSizeOf()
+    return DataStructureType(others.map { it.toFieldType() }, elementSize)
+}
+
 private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
     require(this.TO_POSITION().text.trim().isEmpty())
     if (this.ds_name().text.trim().isEmpty()) {
@@ -422,7 +453,7 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
 
         // It is found by looking at the first entry
         val elementSize = this.elementSizeOf()
-        var type : Type = DataStructureType(others.map { it.toFieldType() }, elementSize)
+        var type : Type = this.type()
         val ks = header.keyword().map { it.keyword_dim() }
         header.keyword().firstOrNull { it.keyword_dim() != null }?.let {
             val nElements = staticallyEvaluate(it.keyword_dim().numeric_constant.toAst(conf)).asInt().value
