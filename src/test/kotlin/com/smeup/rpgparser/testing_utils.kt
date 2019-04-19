@@ -115,6 +115,9 @@ fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))
 
 class CollectorSystemInterface : SystemInterface {
     val displayed = LinkedList<String>()
+    val programs = HashMap<String, Program>()
+
+    override fun findProgram(name: String) = programs[name]
     override fun display(value: String) {
         displayed.add(value)
     }

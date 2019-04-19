@@ -232,4 +232,18 @@ class InterpreterTest {
         val interpreter = execute(cu, mapOf(), si)
         assertEquals(listOf("Hello World!"), si.displayed)
     }
+
+    @Test
+    fun executeCallToFibonacci() {
+        val cu = assertASTCanBeProduced("CALCFIBCAL", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        si.programs["CALCFIB"] = rpgProgram("CALCFIB")
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+    }
+
+    private fun rpgProgram(name: String) : RpgProgram {
+        return RpgProgram(Dummy::class.java.getResourceAsStream("/$name.rpgle"))
+    }
 }

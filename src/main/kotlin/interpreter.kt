@@ -1,8 +1,24 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.ast.*
+import java.io.InputStream
 import java.math.BigDecimal
 import java.util.*
+
+interface Program {
+    fun execute(systemInterface: SystemInterface, params: Map<String, Value>)
+}
+
+class RpgProgram(val inputStream: InputStream) : Program {
+    override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+        val interpreter = Interpreter(systemInterface)
+        val result = RpgParserFacade().parse(inputStream)
+        require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
+        val pt = result.root!!
+        val cu = pt.toAst()
+        interpreter.execute(cu, params)
+    }
+}
 
 /**
  * This represent the interface to the external world.
@@ -10,6 +26,7 @@ import java.util.*
  */
 interface SystemInterface {
     fun display(value: String)
+    fun findProgram(name: String) : Program?
 }
 
 class SymbolTable {
@@ -178,6 +195,11 @@ class Interpreter(val systemInterface: SystemInterface) {
                             execute(statement.elseClause.body)
                         }
                     }
+                }
+                is CallStmt -> {
+                    val programToCall = eval(statement.expression).asString().value
+                    val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
+                    program.execute(systemInterface, mapOf())
                 }
                 else -> TODO(statement.toString())
             }
@@ -352,6 +374,10 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 object DummySystemInterface : SystemInterface {
+    override fun findProgram(name: String): Program? {
+        return null
+    }
+
     override fun display(value: String) {
         // doing nothing
     }
