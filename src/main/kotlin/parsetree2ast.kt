@@ -423,13 +423,14 @@ private val Dcl_dsContext.name : String
 private fun Dcl_dsContext.type(conf : ToAstConfiguration = ToAstConfiguration()) : Type {
     val header = this.parm_fixed().first()
     var dim : Expression? = header.keyword().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
+    val nElements = if (dim != null) conf.dataDefinitionsInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt() else null
     val others = this.parm_fixed().drop(1)
     val elementSize = this.elementSizeOf()
     val baseType = DataStructureType(others.map { it.toFieldType() }, elementSize)
-    return if (dim == null) {
+    return if (nElements == null) {
         baseType
     } else {
-        ArrayType(baseType, conf.dataDefinitionsInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt())
+        ArrayType(baseType, nElements)
     }
 }
 
@@ -461,11 +462,16 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
         // It is found by looking at the first entry
         val elementSize = this.elementSizeOf()
         var type : Type = this.type()
+        val nElements = if (type is ArrayType) {
+            type.nElements
+        } else {
+            null
+        }
         val ks = header.keyword().map { it.keyword_dim() }
         return DataDefinition(
                 this.name,
                 type,
-                fields = others.map { it.toAst(conf) },
+                fields = others.map { it.toAst(nElements, conf) },
                 position = this.toPosition(true))
     } else {
         TODO()
@@ -480,10 +486,16 @@ private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
     }
 }
 
-private fun Parm_fixedContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
+private fun Parm_fixedContext.toAst(
+        nElements: Int?,
+        conf : ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
     val length = this.TO_POSITION().text.trim().toLong()
+    var baseType : Type = StringType(length)
+    if (nElements != null) {
+        baseType = ArrayType(baseType, nElements)
+    }
     return FieldDefinition(this.ds_name().text,
-            StringType(length),
+            baseType,
             position = this.toPosition(conf.considerPosition))
 }
 
@@ -492,7 +504,7 @@ private fun Parm_fixedContext.toFieldType(): FieldType {
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
 
-    val baseType = when (this.DATA_TYPE()?.text?.trim()) {
+    var baseType = when (this.DATA_TYPE()?.text?.trim()) {
         null -> TODO()
         "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
             val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }

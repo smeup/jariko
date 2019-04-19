@@ -50,12 +50,12 @@ data class DataDefinition(override val name: String,
                 require(start >= 0)
                 return start
             }
-            start += f.size.toInt()
+            start += f.elementSize().toInt()
         }
         throw IllegalArgumentException("Unknown field $fieldDefinition")
     }
     fun endOffset(fieldDefinition: FieldDefinition): Int {
-        return (startOffset(fieldDefinition) + fieldDefinition.size).toInt()
+        return (startOffset(fieldDefinition) + fieldDefinition.elementSize()).toInt()
     }
 }
 

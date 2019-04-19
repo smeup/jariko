@@ -1,14 +1,8 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.ast.*
-import com.strumenta.kolasu.model.ReferenceByName
-import com.sun.tools.jdi.BooleanValueImpl
-import java.lang.IllegalArgumentException
-import java.lang.IllegalStateException
-import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.util.*
-import kotlin.math.exp
 
 /**
  * This represent the interface to the external world.
