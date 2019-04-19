@@ -36,7 +36,10 @@ data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name == name }
 }
 
-data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
+data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position) {
+    val entryPlist : PlistStmt?
+        get() = stmts.mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
+}
 
 class Subroutine(override val name: String, val stmts: List<Statement>, override val position: Position? = null) : Named, Node(position)
 class Function(override val name: String, override val position: Position? = null) : Named, Node(position)

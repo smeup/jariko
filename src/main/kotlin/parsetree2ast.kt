@@ -544,8 +544,10 @@ private fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
 
 
 private fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistStmt {
+    val isEntry = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor().symbolicConstants().SPLAT_ENTRY() != null
     return PlistStmt(
             this.csPARM().map { it.toAst(conf) },
+            isEntry,
             toPosition(conf.considerPosition)
     )
 }

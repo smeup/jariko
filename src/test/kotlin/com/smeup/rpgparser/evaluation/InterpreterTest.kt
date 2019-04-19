@@ -251,7 +251,7 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        si.programs["CALCFIB"] = object : JvmProgram("CALCFIB") {
+        si.programs["CALCFIB"] = object : JvmProgram("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
             override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
                 val n = params["ppdat"]!!.asString().valueWithoutPadding.toInt()
                 var t1 = 0
@@ -274,7 +274,10 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        RpgProgram(cu).execute(si, mapOf("ppdat" to StringValue("10")))
+        val rpgProgram = RpgProgram(cu)
+        rpgProgram.execute(si, mapOf("ppdat" to StringValue("10")))
+        assertEquals(1, rpgProgram.params().size)
+        assertEquals(ProgramParam("ppdat", StringType(8)), rpgProgram.params()[0])
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
     }
 

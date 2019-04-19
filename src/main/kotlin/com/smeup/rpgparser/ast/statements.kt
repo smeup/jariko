@@ -45,7 +45,9 @@ data class IfStmt(val condition: Expression, val body: List<Statement>,
 data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
-data class PlistStmt(val params: List<PlistParam>, override val position: Position? = null) : Statement(position)
+data class PlistStmt(val params: List<PlistParam>,
+                     val isEntry: Boolean,
+                     override val position: Position? = null) : Statement(position)
 data class PlistParam(val paramName: String, override val position: Position? = null) : Node(position)
 data class ClearStmt(val value: Expression,
                      @Derived val dataDefinition: InStatementDataDefinition? = null,

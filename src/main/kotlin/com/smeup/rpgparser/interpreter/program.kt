@@ -5,11 +5,19 @@ import com.smeup.rpgparser.ast.CompilationUnit
 import com.smeup.rpgparser.resolve
 import java.io.InputStream
 
+data class ProgramParam(val name: String, val type: Type)
+
 interface Program {
+    fun params() : List<ProgramParam>
     fun execute(systemInterface: SystemInterface, params: Map<String, Value>)
 }
 
 class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Program {
+    override fun params(): List<ProgramParam> {
+        val plistParams = cu.main.entryPlist ?: throw RuntimeException("[$name] no entry plist found")
+        // TODO derive proper type
+        return plistParams.params.map { ProgramParam(it.paramName, StringType(8)) }
+    }
 
     init {
         cu.resolve()
@@ -28,4 +36,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
     }
 }
 
-abstract class JvmProgram(val name: String = "<UNNAMED>") : Program
+abstract class JvmProgram(val name: String = "<UNNAMED>", val params: List<ProgramParam>)
+    : Program {
+    override fun params() = params
+}
