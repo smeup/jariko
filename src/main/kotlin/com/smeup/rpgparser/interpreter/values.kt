@@ -8,9 +8,15 @@ abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asString() : StringValue = throw UnsupportedOperationException()
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
+    abstract fun assignableTo(expectedType: Type): Boolean
 }
 
 data class StringValue(var value: String) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // TODO check size
+        return expectedType is StringType
+    }
+
     val valueWithoutPadding : String = value.removeNullChars()
 
     companion object {
@@ -58,12 +64,25 @@ fun String.removeNullChars() : String {
 }
 
 data class IntValue(val value: Long) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // TODO check decimals
+        return expectedType is NumberType
+    }
+
     override fun asInt() = this
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // TODO check decimals
+        return expectedType is NumberType
+    }
 
 }
 data class BooleanValue(val value: Boolean) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is BooleanType
+    }
+
     override fun asBoolean() = this
 }
 abstract class ArrayValue : Value() {
@@ -78,6 +97,11 @@ abstract class ArrayValue : Value() {
         }
         return elements
     }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
     override fun elementSize() = elementType.size.toInt()
@@ -91,8 +115,19 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     override fun getElement(index: Int) = elements[index]
 
 }
-object BlanksValue : Value()
-class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value()
+object BlanksValue : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
+
+class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
 
 class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition) : ArrayValue() {
     override fun elementSize(): Int {
