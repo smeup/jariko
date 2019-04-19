@@ -2,6 +2,7 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.ast.*
 import com.strumenta.kolasu.model.ReferenceByName
+import com.sun.tools.jdi.BooleanValueImpl
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import java.lang.UnsupportedOperationException
@@ -356,6 +357,7 @@ class Interpreter(val systemInterface: SystemInterface) {
             is DataStructureType -> StringValue.blank(type.size.toInt())
             is StringType ->  StringValue.blank(type.size.toInt())
             is NumberType -> IntValue(0)
+            is BooleanType -> BooleanValue(false)
             else -> TODO(type.toString())
         }
     }

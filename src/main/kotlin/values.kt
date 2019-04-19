@@ -127,7 +127,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
 
-fun blankString(length: Int) = StringValue(" ".repeat(length))
+fun blankString(length: Int) = StringValue("\u0000".repeat(length))
 
 fun Long.asValue() = IntValue(this)
 

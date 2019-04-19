@@ -20,7 +20,7 @@ class InterpreterTest {
         assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
         assertEquals(StringValue("Bar"), interpreter["U\$METO"])
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK"])
-        assertEquals(StringValue(" "), interpreter["U\$IN35"])
+        assertEquals(StringValue("\u0000"), interpreter["U\$IN35"])
     }
 
     @Test
@@ -46,7 +46,7 @@ class InterpreterTest {
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(StringType(1050),200) { blankString(1050) },
                 "U\$IN35" to StringValue("X")))
-        assertEquals(10, interpreter.getEvaluatedExpressionsConcise().size)
+        assertEquals(6, interpreter.getEvaluatedExpressionsConcise().size)
         assertEquals(listOf("IMP0", "FINZ", "FIN0"), interpreter.getExecutedSubroutineNames())
         // Initialized inside IMP0
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["\$\$SVAR"])
