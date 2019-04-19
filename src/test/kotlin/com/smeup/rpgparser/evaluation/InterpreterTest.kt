@@ -236,11 +236,34 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeCallToFibonacci() {
+    fun executeCallToFibonacciWrittenInRpg() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
         cu.resolve()
         val si = CollectorSystemInterface()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+    }
+
+    @Test
+    fun executeCallToFibonacciWrittenOnTheJvm() {
+        val cu = assertASTCanBeProduced("CALCFIBCAL", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        si.programs["CALCFIB"] = object : JvmProgram("CALCFIB") {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+                val n = params["ppdat"]!!.asString().valueWithoutPadding.toInt()
+                var t1 = 0
+                var t2 = 1
+
+                for (i in 1..n) {
+                    val sum = t1 + t2
+                    t1 = t2
+                    t2 = sum
+                }
+                systemInterface.display("FIBONACCI OF: $n IS: $t1")
+            }
+        }
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
     }

@@ -19,6 +19,8 @@ class RpgProgram(val inputStream: InputStream, val name: String = "<UNNAMED>") :
     }
 }
 
+abstract class JvmProgram(val name: String = "<UNNAMED>") : Program
+
 /**
  * This represent the interface to the external world.
  * Printing, accessing databases, all sort of interactions should go through this interface.
