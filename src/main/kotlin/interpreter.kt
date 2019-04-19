@@ -4,18 +4,17 @@ import com.smeup.rpgparser.ast.*
 import java.io.InputStream
 import java.math.BigDecimal
 import java.util.*
+import kotlin.collections.HashMap
 
 interface Program {
     fun execute(systemInterface: SystemInterface, params: Map<String, Value>)
 }
 
-class RpgProgram(val inputStream: InputStream) : Program {
+class RpgProgram(val inputStream: InputStream, val name: String = "<UNNAMED>") : Program {
     override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
-        val interpreter = Interpreter(systemInterface)
-        val result = RpgParserFacade().parse(inputStream)
-        require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
-        val pt = result.root!!
-        val cu = pt.toAst()
+        val interpreter = Interpreter(systemInterface, programName = name)
+        val cu = RpgParserFacade().parseAndProduceAst(inputStream)
+        cu.resolve()
         interpreter.execute(cu, params)
     }
 }
@@ -69,7 +68,7 @@ data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry()
 data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry()
 data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry()
 
-class Interpreter(val systemInterface: SystemInterface) {
+class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
 
@@ -199,7 +198,8 @@ class Interpreter(val systemInterface: SystemInterface) {
                 is CallStmt -> {
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
-                    program.execute(systemInterface, mapOf())
+                    val params = statement.params.map { it.paramName to get(it.paramName) }.toMap()
+                    program.execute(systemInterface, params)
                 }
                 else -> TODO(statement.toString())
             }
@@ -307,7 +307,7 @@ class Interpreter(val systemInterface: SystemInterface) {
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
-            is DataRefExpr -> get(expression.variable.referred ?: throw IllegalStateException("Unsolved reference ${expression.variable}"))
+            is DataRefExpr -> get(expression.variable.referred ?: throw IllegalStateException("[$programName] Unsolved reference ${expression.variable.name} at ${expression.position}"))
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)

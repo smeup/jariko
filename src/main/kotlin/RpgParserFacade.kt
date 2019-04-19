@@ -2,12 +2,14 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.ExpressionContext
 import com.smeup.rpgparser.RpgParser.RContext
+import com.smeup.rpgparser.ast.CompilationUnit
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.endPoint
 import com.strumenta.kolasu.model.startPoint
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ErrorNode
+import org.apache.commons.io.input.BOMInputStream
 import java.io.InputStream
 import java.util.*
 import java.io.ByteArrayOutputStream
@@ -112,10 +114,18 @@ class RpgParserFacade {
 
     fun parse(inputStream: InputStream) : RpgParserResult {
         val errors = LinkedList<Error>()
-        val parser = createParser(inputStream, errors, longLines = true)
+        val code = inputStreamToString(inputStream)
+        val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
         val root = parser.r()
         verifyParseTree(parser, errors, root)
         return RpgParserResult(errors, root)
+    }
+
+    fun parseAndProduceAst(inputStream: InputStream) : CompilationUnit {
+        val result = RpgParserFacade().parse(inputStream)
+        require(result.correct)
+                { "Errors: ${result.errors.joinToString(separator = ", ")}" }
+        return result.root!!.toAst()
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true) : ParsingResult<ExpressionContext> {

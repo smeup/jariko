@@ -2,6 +2,8 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import org.junit.Test
+import java.io.File
+import java.io.FileInputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -244,6 +246,6 @@ class InterpreterTest {
     }
 
     private fun rpgProgram(name: String) : RpgProgram {
-        return RpgProgram(Dummy::class.java.getResourceAsStream("/$name.rpgle"))
+        return RpgProgram(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
     }
 }

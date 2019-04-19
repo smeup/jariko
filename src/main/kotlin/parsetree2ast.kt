@@ -606,5 +606,8 @@ private fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Assi
 private fun CsCALLContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CallStmt {
     require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
     val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
-    return CallStmt(literal.toAst(conf), toPosition(conf.considerPosition))
+    return CallStmt(literal.toAst(conf),
+            this.csPARM().map { it.toAst(conf) },
+            toPosition(conf.considerPosition))
 }
+

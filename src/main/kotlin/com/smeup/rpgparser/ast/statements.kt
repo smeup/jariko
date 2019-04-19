@@ -35,7 +35,8 @@ data class EvalStmt(val target: AssignableExpression,
                     val operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT,
                     override val position: Position? = null)
     : Statement(position)
-data class CallStmt(val expression: Expression, override val position: Position? = null) : Statement(position)
+data class CallStmt(val expression: Expression, val params: List<PlistParam>,
+                    override val position: Position? = null) : Statement(position)
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),
                   val elseClause: ElseClause? = null,

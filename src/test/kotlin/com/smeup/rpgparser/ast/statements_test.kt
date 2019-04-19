@@ -26,7 +26,7 @@ class StatementsTest {
     }
 
     @test fun callParsing() {
-        assertEquals(CallStmt(StringLiteral("JD_URL")), statement("CALL      'JD_URL'"))
+        assertEquals(CallStmt(StringLiteral("JD_URL"), emptyList()), statement("CALL      'JD_URL'"))
     }
 
     @test fun ifParsingSimple() {
