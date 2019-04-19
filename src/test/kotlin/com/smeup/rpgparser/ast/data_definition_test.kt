@@ -63,18 +63,6 @@ class DataDefinitionTest {
     }
 
     @test fun likeAndDimClauseParsing() {
-        StaticallyEvaluator.systemInterface = object : SystemInterface {
-            override fun display(value: String) {
-                // nothing to do
-            }
-
-//            override fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
-//                if (variable.name == "\$\$SVAR") {
-//                    return createArrayValue(12, 38) { StringValue("")}
-//                }
-//                throw RuntimeException("Unexpected call")
-//            }
-        }
         val cu = processDataDefinition(
                 "D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))",
                 toAstConfiguration = ToAstConfiguration(considerPosition = false,
@@ -83,12 +71,6 @@ class DataDefinitionTest {
                         }))
         cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 38))
     }
-
-//    @test fun dimClauseParsing() {
-//        val cu = processDataDefinition("D U\$SVARSK        S                                  DIM(%ELEM(\$\$SVAR))")
-//        cu.assertDataDefinitionIsPresent("U\$SVARSK", ArrayType(StringType(12), 27)
-//                /*arrayLength = NumberOfElementsExpr(DataRefExpr(ReferenceByName("\$\$SVAR")))*/)
-//    }
 
     @test fun inStatementDataDefinitionInClearIsProcessed() {
         val cu = assertASTCanBeProduced("CALCFIB", true)

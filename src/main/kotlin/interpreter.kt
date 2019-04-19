@@ -345,48 +345,11 @@ class Interpreter(val systemInterface: SystemInterface) {
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return blankValue(dataDefinition.type)
-//        val interpreter = this
-//        if (dataDefinition.arrayLength != null && !forceElement) {
-//            val nElements : Int = interpret(dataDefinition.arrayLength).asInt().value.toInt()
-//            return ConcreteArrayValue(Array(nElements) { blankValue(dataDefinition, true) }.toMutableList(), dataDefinition.actualElementSize(interpreter).value.toInt())
-//        }
-//        return when {
-//            dataDefinition.type is StringType -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
-//            dataDefinition.type is BooleanType -> BooleanValue(false)
-//            // TODO: to be revised
-//            dataDefinition.type is DataStructureType -> StringValue(" ".repeat(dataDefinition.actualElementSize(this).value.toInt()))
-//            else -> TODO(dataDefinition.toString())
-//        }
-//        TODO()
     }
 }
 
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
-
-/**
- * Here we mean the arrayLength of a single element
- */
-fun DataDefinition.actualElementSize(interpreter: Interpreter) : IntValue {
-//    return when {
-//        this.like != null && this.size != null -> throw IllegalStateException("Should not be both arrayLength and dim be set")
-//        this.size != null -> this.size.asValue()
-//        this.like != null -> (interpreter.interpret(this.like) as ConcreteArrayValue).elementSize().asValue()
-//        else -> throw IllegalStateException("No actual arrayLength can be calculated")
-//    }
-    TODO()
-}
-
-/**
- * Here we mean the number of elements
- */
-fun DataDefinition.actualArrayLength(interpreter: Interpreter) : IntValue {
-//    return when {
-//        this.arrayLength != null -> interpreter.interpret(this.arrayLength).asInt()
-//        else -> IntValue(1)
-//    }
-    TODO()
-}
 
 object DummySystemInterface : SystemInterface {
     override fun display(value: String) {
@@ -394,13 +357,3 @@ object DummySystemInterface : SystemInterface {
     }
 
 }
-
-object StaticallyEvaluator {
-    var systemInterface: SystemInterface = DummySystemInterface
-    fun evaluate(expression: Expression) : Value {
-        val interpreter = Interpreter(systemInterface)
-        return interpreter.interpret(expression)
-    }
-}
-
-fun staticallyEvaluate(expression: Expression) = StaticallyEvaluator.evaluate(expression)
