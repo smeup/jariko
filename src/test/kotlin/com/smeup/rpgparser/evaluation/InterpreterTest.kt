@@ -269,7 +269,16 @@ class InterpreterTest {
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
     }
 
+    @Test
+    fun executeFibonacciWrittenInRpgAsProgram() {
+        val cu = assertASTCanBeProduced("CALCFIB", true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        RpgProgram(cu).execute(si, mapOf("ppdat" to StringValue("10")))
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+    }
+
     private fun rpgProgram(name: String) : RpgProgram {
-        return RpgProgram(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
+        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
     }
 }
