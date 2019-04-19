@@ -92,6 +92,22 @@ class ToAstSmokeTest {
     }
 
     @Test
+    fun buildAstForCALCFIBCA2() {
+        val cu = assertASTCanBeProduced("CALCFIBCA2")
+        assertEquals(0, cu.dataDefinitions.size)
+        assertEquals(3, cu.main.stmts.size)
+        assertEquals(0, cu.subroutines.size)
+    }
+
+    @Test
+    fun buildAstForCALCFIBCA3() {
+        val cu = assertASTCanBeProduced("CALCFIBCA3")
+        assertEquals(0, cu.dataDefinitions.size)
+        assertEquals(3, cu.main.stmts.size)
+        assertEquals(0, cu.subroutines.size)
+    }
+
+    @Test
     fun buildAstForHELLOTYPE() {
         val cu = assertASTCanBeProduced("HELLOTYPE")
         assertEquals(2, cu.dataDefinitions.size)
