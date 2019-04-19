@@ -99,6 +99,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
+
+        TODO check why certain values have length 1016, instead of the expected length
+
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
     }
@@ -294,8 +297,8 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is StringValue -> {
                 when (type) {
                     is StringType -> {
-                        val missingLength = type.length - value.value.length
-                        StringValue(value.value + "\u0000".repeat(missingLength.toInt()))
+                        val res = StringValue(value.value.padEnd(type.length.toInt(), '\u0000'))
+                        return res
                     }
                     else -> TODO(type.toString())
                 }
