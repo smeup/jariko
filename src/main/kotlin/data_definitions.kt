@@ -15,32 +15,10 @@ open class AbstractDataDefinition(override val name: String,
 
 data class DataDefinition(override val name: String,
                           override val type: Type,
-                     //override val size: Int? = null,
-                     //val decimals: Int = 0,
-                     //val arrayLength: Expression? = null,
                           val fields: List<FieldDefinition> = emptyList(),
-                     //val like: AssignableExpression? = null,
                           val initializationValue : Expression? = null,
-                          override val position: Position? = null) : AbstractDataDefinition(name, type, position) {
-
-//    val fields : List<FieldDefinition>
-//        get() {
-//            val dataStructureType = when {
-//                type is ArrayType && type.element is DataStructureType -> type.element
-//                type is DataStructureType -> type
-//                else -> null
-//            }
-//            return dataStructureType.fields
-//        }
-
-    /*init {
-        require((fields != null) == (type is DataStructureType))
-        { "Fields should be sent always and only for data structures, while in this case the type was $type" }
-    }*/
-
-//    override fun toString(): String {
-//        return "DataDefinition($name, $type, $size)"
-//    }
+                          override val position: Position? = null)
+            : AbstractDataDefinition(name, type, position) {
 
     fun isArray() = type is ArrayType
     fun startOffset(fieldDefinition: FieldDefinition): Int {
@@ -61,7 +39,8 @@ data class DataDefinition(override val name: String,
 
 data class FieldDefinition(override val name: String,
                            override val type: Type,
-                           override val position: Position? = null) : AbstractDataDefinition(name, type, position) {
+                           override val position: Position? = null)
+            : AbstractDataDefinition(name, type, position) {
     val size : Long = type.size
 
     @Derived
@@ -82,9 +61,5 @@ data class FieldDefinition(override val name: String,
 
 class InStatementDataDefinition(override val name: String,
                                 override val type: Type,
-                                //override val size: Int,
-                                override val position: Position? = null) : AbstractDataDefinition(name, type, position) {
-//    init {
-//        require(size > 0)
-//    }
-}
+                                override val position: Position? = null)
+            : AbstractDataDefinition(name, type, position)

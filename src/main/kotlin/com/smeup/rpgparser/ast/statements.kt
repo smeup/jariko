@@ -2,14 +2,10 @@ package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.AbstractDataDefinition
 import com.smeup.rpgparser.InStatementDataDefinition
-import com.smeup.rpgparser.ast.DataWrapUpChoice
-import com.smeup.rpgparser.ast.Subroutine
-import com.smeup.rpgparser.toAst
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
-import java.lang.IllegalArgumentException
 
 interface StatementThatCanDefineData {
     fun dataDefinition() : InStatementDataDefinition?

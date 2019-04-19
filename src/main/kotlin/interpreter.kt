@@ -10,10 +10,6 @@ import java.util.*
  */
 interface SystemInterface {
     fun display(value: String)
-//    @Deprecated("do not use")
-//    fun getUnsolvedExpression(variable: ReferenceByName<AbstractDataDefinition>): Value {
-//        throw UnsupportedOperationException("Unresolved reference to ${variable.name}")
-//    }
 }
 
 class SymbolTable {
@@ -253,12 +249,6 @@ class Interpreter(val systemInterface: SystemInterface) {
         return when (value) {
             is BlanksValue -> {
                 when (type) {
-                    is DataDefinitionType -> {
-                        blankValue(type.dataDefinition as DataDefinition)
-                    }
-//                    is RawType -> {
-//                        blankValue(type.size!!)
-//                    }
                     is StringType -> {
                         blankValue(type.length.toInt())
                     }
@@ -267,10 +257,6 @@ class Interpreter(val systemInterface: SystemInterface) {
             }
             is StringValue -> {
                 when (type) {
-//                    is RawType -> {
-//                        val missingLength = type.size!! - value.value.length
-//                        StringValue(value.value + " ".repeat(missingLength))
-//                    }
                     is StringType -> {
                         val missingLength = type.length - value.value.length
                         StringValue(value.value + "\u0000".repeat(missingLength.toInt()))
