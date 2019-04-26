@@ -3,6 +3,7 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -110,30 +111,52 @@ class InterpreterTest {
 
     @Test
     fun executeJD_001_complete_url_found() {
+        val si = CollectorSystemInterface()
+        val callsToJDURL = LinkedList<Map<String, Value>>()
+        si.programs["JD_URL"] = object : JvmProgram("JD_URL", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("method", StringType(10)),
+                ProgramParam("URL", StringType(1000)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+                callsToJDURL.add(params)
+            }
+        }
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
-                    if (i == 38) {
-                        ("Url".padEnd(50, '\u0000') + "".padEnd(1000, '\u0000'))
-                    } else {
-                        "".padEnd(1050, '\u0000')
+                    when (i) {
+                        0 -> "Url".padEnd(50, '\u0000') + "https://xxx.myurl.com".padEnd(1000, '\u0000')
+                        1 -> "x".padEnd(50, '\u0000') + "w".padEnd(1000, '\u0000')
+                        else -> "".padEnd(1050, '\u0000')
                     }.asValue()
-                }))
+                }), systemInterface = si)
         interpreter.traceMode = true
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
-        assertEquals(IntValue(39), interpreter["\$X"])
-        //assertEquals(StringValue("1"), interpreter["U\$IN35"])
+        assertEquals(callsToJDURL.size, 1)
+        assertEquals(callsToJDURL[0]["\$\$URL"], StringValue("https://www.myurl.com".padEnd(1000, '\u0000')))
     }
 
-//    @Test
-//    fun executeJD_000() {
-//        val cu = assertASTCanBeProduced("JD_000", true)
-//        cu.resolve()
-//        val interpreter = execute(cu, mapOf())
-//    }
+    @Test
+    fun executeJD_000() {
+        val si = CollectorSystemInterface()
+        val callsToJDURL = LinkedList<Map<String, Value>>()
+        si.programs["JD_URL"] = object : JvmProgram("JD_URL", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("method", StringType(10)),
+                ProgramParam("URL", StringType(1000)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+                callsToJDURL.add(params)
+            }
+        }
+        val cu = assertASTCanBeProduced("JD_000", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf(), systemInterface = si)
+        assertEquals(callsToJDURL.size, 1)
+        assertEquals(callsToJDURL[0]["\$\$URL"], StringValue("https://www.myurl.com".padEnd(1000, '\u0000')))
+    }
 
     @Test
     fun executeCALCFIB_initialDeclarations_dec() {

@@ -71,6 +71,8 @@ data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, va
     }
 }
 
+class LeaveException : Exception()
+
 class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
@@ -219,8 +221,21 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     program.execute(systemInterface, params)
                 }
                 is DoStmt -> {
-
+                    if (statement.index == null) {
+                        TODO()
+                    } else {
+                        assign(statement.index, statement.startLimit)
+                        try {
+                            while (isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))) {
+                                execute(statement.body)
+                                assign(statement.index, PlusExpr(statement.index, IntLiteral(1)))
+                            }
+                        } catch (e: LeaveException) {
+                            // nothing to do here
+                        }
+                    }
                 }
+                is LeaveStmt -> throw LeaveException()
                 else -> TODO(statement.toString())
             }
         } catch (e : RuntimeException) {
@@ -232,6 +247,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         return when {
             value1 is IntValue && value2 is IntValue -> value1.value <= value2.value
             value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
+            value2 is HiValValue -> true
             else -> TODO("Value 1 is $value1, Value 2 is $value2")
         }
     }
@@ -246,7 +262,11 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     }
 
     private fun areEquals(value1: Value, value2: Value) : Boolean {
-        return value1 == value2
+        return when {
+            value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
+            value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
+            else -> return value1 == value2
+        }
     }
 
     private fun render(value: Value) : String {
@@ -341,7 +361,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
-                return (left == right).asValue()
+                return areEquals(left, right).asValue()
             }
             is BlanksRefExpr -> {
                 return BlanksValue
@@ -381,8 +401,18 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(expression.array) as ArrayValue
                 val indexValue = interpret(expression.index)
-                return arrayValue.getElement(indexValue.asInt().value.toInt())
+                return arrayValue.getElement(indexValue.asInt().value.toInt() - 1)
 
+            }
+            is HiValExpr -> return HiValValue
+            is TranslateExpr -> {
+                val originalChars = eval(expression.from).asString().valueWithoutPadding
+                val newChars = eval(expression.to).asString().valueWithoutPadding
+                var s = eval(expression.string).asString().valueWithoutPadding
+                originalChars.forEachIndexed { i, c ->
+                    s = s.replace(c, newChars[i])
+                }
+                return StringValue(s)
             }
             else -> TODO(expression.toString())
         }

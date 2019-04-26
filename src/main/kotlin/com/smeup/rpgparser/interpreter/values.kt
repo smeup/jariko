@@ -63,6 +63,9 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun asString() = this
+    fun isBlank() : Boolean {
+        return this.valueWithoutPadding.isBlank()
+    }
 }
 
 fun String.removeNullChars() : String {
@@ -81,6 +84,7 @@ data class IntValue(val value: Long) : Value() {
     }
 
     override fun asInt() = this
+    fun increment() = IntValue(value + 1)
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
@@ -126,12 +130,26 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
         elements[index] = value
     }
 
-    override fun getElement(index: Int) = elements[index]
+    override fun getElement(index: Int) : Value {
+        require(index < arrayLength())
+        return elements[index]
+    }
 
 }
 object BlanksValue : Value() {
     override fun toString(): String {
         return "BlanksValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
+
+object HiValValue : Value() {
+    override fun toString(): String {
+        return "HiValValue"
     }
 
     override fun assignableTo(expectedType: Type): Boolean {

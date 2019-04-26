@@ -400,15 +400,22 @@ private fun BlockContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
         this.begindo() != null -> {
             val result = this.begindo().csDO().cspec_fixed_standard_parts().result
             val iter = if (result.text.isBlank()) null else result.toAst(conf) as AssignableExpression
+            val factor = this.begindo().factor()
+            val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
             DoStmt(
                     this.begindo().csDO().cspec_fixed_standard_parts().factor2.symbolicConstants().toAst(conf),
                     iter,
                     this.statement().map { it.toAst(conf) },
-                    toPosition(conf.considerPosition))
+                    start,
+                    position = toPosition(conf.considerPosition))
         }
         this.forstatement() != null -> this.forstatement().toAst(conf)
         else -> TODO(this.text.toString())
     }
+}
+
+private fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
+    return IntLiteral(this.CS_FactorContent().text.toLong(), position = toPosition(conf.considerPosition))
 }
 
 private fun SymbolicConstantsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
