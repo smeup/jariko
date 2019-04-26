@@ -143,6 +143,7 @@ class InterpreterTest {
     fun executeJD_002_base() {
         val si = CollectorSystemInterface()
         val callsToListFld = LinkedList<Map<String, Value>>()
+        val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["LISTEN_FLD"] = object : JvmProgram("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(10)),
                 ProgramParam("name", StringType(10)),
@@ -152,9 +153,17 @@ class InterpreterTest {
                 callsToListFld.add(params)
             }
         }
+        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("meto", StringType(10)),
+                ProgramParam("var", StringType(10)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+                callsToNfyeve.add(params)
+            }
+        }
         val cu = assertASTCanBeProduced("JD_002", true)
         cu.resolve()
-        val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()), systemInterface = si)
+        val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()), systemInterface = si, traceMode = true)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
     }

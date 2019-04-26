@@ -432,6 +432,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is NotExpr -> {
                 return BooleanValue(!eval(expression.base).asBoolean().value)
             }
+            is TrimExpr -> {
+                return StringValue(eval(expression.value).asString().value.trim())
+            }
             else -> TODO(expression.toString())
         }
     }
