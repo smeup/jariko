@@ -139,6 +139,26 @@ class InterpreterTest {
         assertEquals(callsToJDURL[0]["\$\$URL"], StringValue("https://www.myurl.com".padEnd(1000, '\u0000')))
     }
 
+    @Test
+    fun executeJD_002_base() {
+        val si = CollectorSystemInterface()
+        val callsToListFld = LinkedList<Map<String, Value>>()
+        si.programs["LISTEN_FLD"] = object : JvmProgram("LISTEN_FLD", listOf(
+                ProgramParam("foldern", StringType(10)),
+                ProgramParam("name", StringType(10)),
+                ProgramParam("tip", StringType(10)),
+                ProgramParam("ope", StringType(10)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+                callsToListFld.add(params)
+            }
+        }
+        val cu = assertASTCanBeProduced("JD_002", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()), systemInterface = si)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
+    }
+
 //    TODO: to solve this we should handle params being data declarations, sometimes
 //    @Test
 //    fun executeJD_000() {

@@ -222,7 +222,15 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 }
                 is DoStmt -> {
                     if (statement.index == null) {
-                        TODO()
+                        var myIterValue = eval(statement.startLimit).asInt()
+                        try {
+                            while (isEqualOrSmaller(myIterValue, eval(statement.endLimit))) {
+                                execute(statement.body)
+                                myIterValue = myIterValue.increment()
+                            }
+                        } catch (e: LeaveException) {
+                            // nothing to do here
+                        }
                     } else {
                         assign(statement.index, statement.startLimit)
                         try {
@@ -357,7 +365,8 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
                 }
             }
-            is DataRefExpr -> get(expression.variable.referred ?: throw IllegalStateException("[$programName] Unsolved reference ${expression.variable.name} at ${expression.position}"))
+            is DataRefExpr -> get(expression.variable.referred
+                    ?: throw IllegalStateException("[$programName] Unsolved reference ${expression.variable.name} at ${expression.position}"))
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
@@ -413,6 +422,15 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     s = s.replace(c, newChars[i])
                 }
                 return StringValue(s)
+            }
+            is LogicalOrExpr -> {
+                return (eval(expression.left).asBoolean().value || eval(expression.right).asBoolean().value).asValue()
+            }
+            is OnRefExpr -> {
+                return BooleanValue(true)
+            }
+            is NotExpr -> {
+                return BooleanValue(!eval(expression.base).asBoolean().value)
             }
             else -> TODO(expression.toString())
         }
