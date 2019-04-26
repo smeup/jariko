@@ -100,7 +100,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
 
-        TODO check why certain values have length 1016, instead of the expected length
+        //TODO check why certain values have length 1016, instead of the expected length
+
+        require(data.canBeAssigned(value)) { "$value cannot be assigned to $data"}
 
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
@@ -391,6 +393,10 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         if (forceElement) TODO()
         return blankValue(dataDefinition.type)
     }
+}
+
+private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
+    return type.canBeAssigned(value)
 }
 
 private fun Int.asValue() = IntValue(this.toLong())
