@@ -29,6 +29,8 @@ abstract class FigurativeConstantRef(override val position: Position? = null) : 
 data class BlanksRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OnRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class HiValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class LowValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 
 abstract class AssignableExpression(override val position: Position? = null) : Expression(position) {
     abstract fun size() : Long
@@ -36,6 +38,12 @@ abstract class AssignableExpression(override val position: Position? = null) : E
 
 data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null)
     : AssignableExpression(position) {
+
+    init {
+        require(variable.name.isNotBlank()) { "The variable name should not blank" }
+        require(variable.name.trim() == variable.name) { "The variable name should not starts or ends with whitespace" }
+    }
+
     override fun size(): Long {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

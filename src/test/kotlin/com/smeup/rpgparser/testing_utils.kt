@@ -124,8 +124,11 @@ class CollectorSystemInterface : SystemInterface {
     }
 }
 
-fun execute(cu: CompilationUnit, initialValues: Map<String, Value>, systemInterface: SystemInterface? = null) : Interpreter {
+fun execute(cu: CompilationUnit,
+            initialValues: Map<String, Value>, systemInterface: SystemInterface? = null,
+            traceMode : Boolean = false) : Interpreter {
     val interpreter = Interpreter(systemInterface ?: DummySystemInterface)
+    interpreter.traceMode = traceMode
     interpreter.execute(cu, initialValues)
     return interpreter
 }

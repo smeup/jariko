@@ -50,13 +50,33 @@ class SymbolTable {
 }
 
 abstract class LogEntry
-data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry()
-data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry()
-data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry()
+data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
+    override fun toString(): String {
+        return "executing ${subroutine.name}"
+    }
+}
+data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "evaluating $expression as $value"
+    }
+}
+data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "assigning to $data value $value"
+    }
+}
+data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "assigning to $array[$index] value $value"
+    }
+}
+
+class LeaveException : Exception()
 
 class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
+    var traceMode : Boolean = false
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
@@ -86,23 +106,36 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
-        logs.add(AssignmentLogEntry(data, value))
+
+        //TODO check why certain values have length 1016, instead of the expected length
+
+        require(data.canBeAssigned(value)) { "$data cannot be assigned the value $value"}
+
+        log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
+    }
+
+    private fun log(logEntry: LogEntry) {
+        if (traceMode) {
+            println("[LOG] $logEntry")
+        }
+        logs.add(logEntry)
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
-                set(it, when {
+                set(it, coerce(when {
                     it.name in initialValues -> initialValues[it.name]!!
                     it.initializationValue != null -> interpret(it.initializationValue)
                     else -> blankValue(it)
-                })
+                }, it.type))
             }
         } else {
             initialValues.forEach { iv ->
-                set(compilationUnit.allDataDefinitions.find { it?.name == iv.key }!!, iv.value)
+                val def = compilationUnit.allDataDefinitions.find { it?.name == iv.key }!!
+                set(def, coerce(iv.value, def.type))
             }
         }
     }
@@ -126,7 +159,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         try {
             when (statement) {
                 is ExecuteSubroutine -> {
-                    logs.add(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
+                    log(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
                     execute(statement.subroutine.referred!!.stmts)
                 }
                 is EvalStmt -> assign(statement.target, statement.expression)
@@ -187,6 +220,22 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     val params = statement.params.map { it.paramName to get(it.paramName) }.toMap()
                     program.execute(systemInterface, params)
                 }
+                is DoStmt -> {
+                    if (statement.index == null) {
+                        TODO()
+                    } else {
+                        assign(statement.index, statement.startLimit)
+                        try {
+                            while (isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))) {
+                                execute(statement.body)
+                                assign(statement.index, PlusExpr(statement.index, IntLiteral(1)))
+                            }
+                        } catch (e: LeaveException) {
+                            // nothing to do here
+                        }
+                    }
+                }
+                is LeaveStmt -> throw LeaveException()
                 else -> TODO(statement.toString())
             }
         } catch (e : RuntimeException) {
@@ -198,6 +247,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         return when {
             value1 is IntValue && value2 is IntValue -> value1.value <= value2.value
             value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
+            value2 is HiValValue -> true
             else -> TODO("Value 1 is $value1, Value 2 is $value2")
         }
     }
@@ -212,7 +262,11 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     }
 
     private fun areEquals(value1: Value, value2: Value) : Boolean {
-        return value1 == value2
+        return when {
+            value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
+            value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
+            else -> return value1 == value2
+        }
     }
 
     private fun render(value: Value) : String {
@@ -243,16 +297,21 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
+                require(arrayValue.assignableTo(target.array.type()))
                 val indexValue = interpret(target.index)
-                val value = coerce(interpret(value), (target.array.type() as ArrayType).element)
-                arrayValue.setElement(indexValue.asInt().value.toInt(), value)
-                return value
+                val elementType = (target.array.type() as ArrayType).element
+                val evaluatedValue = coerce(interpret(value), elementType)
+                val index = indexValue.asInt().value.toInt()
+                log(AssignmentOfElementLogEntry(target.array, index, evaluatedValue))
+                arrayValue.setElement(index, evaluatedValue)
+                return evaluatedValue
             }
             else -> TODO(target.toString())
         }
     }
 
-    private fun coerce(value: Value, type: Type) : Value {
+    // TODO put it outside Interpreter
+    public fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
         return when (value) {
             is BlanksValue -> {
@@ -260,14 +319,19 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     is StringType -> {
                         blankValue(type.length.toInt())
                     }
+                    is ArrayType -> {
+                        createArrayValue(type.element, type.nElements) {
+                            blankValue(type.element)
+                        }
+                    }
                     else -> TODO(type.toString())
                 }
             }
             is StringValue -> {
                 when (type) {
                     is StringType -> {
-                        val missingLength = type.length - value.value.length
-                        StringValue(value.value + "\u0000".repeat(missingLength.toInt()))
+                        val s = value.value.padEnd(type.length.toInt(), '\u0000')
+                        return StringValue(s)
                     }
                     else -> TODO(type.toString())
                 }
@@ -278,7 +342,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
 
     fun interpret(expression: Expression) : Value {
         val value = interpretConcrete(expression)
-        logs.add(ExpressionEvaluationLogEntry(expression, value))
+        log(ExpressionEvaluationLogEntry(expression, value))
         return value
     }
 
@@ -297,7 +361,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
-                return (left == right).asValue()
+                return areEquals(left, right).asValue()
             }
             is BlanksRefExpr -> {
                 return BlanksValue
@@ -316,7 +380,10 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 when {
-                    left is StringValue && right is StringValue -> StringValue(left.valueWithoutPadding + right.valueWithoutPadding)
+                    left is StringValue && right is StringValue -> {
+                        val s = left.valueWithoutPadding + right.valueWithoutPadding
+                        StringValue(s)
+                    }
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
@@ -330,6 +397,22 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 val array = interpret(expression.array) as ArrayValue
                 val index = array.elements().indexOfFirst { it == searchValued }
                 return if (index == -1) 0.asValue() else (index + 1).asValue()
+            }
+            is ArrayAccessExpr -> {
+                val arrayValue = interpret(expression.array) as ArrayValue
+                val indexValue = interpret(expression.index)
+                return arrayValue.getElement(indexValue.asInt().value.toInt() - 1)
+
+            }
+            is HiValExpr -> return HiValValue
+            is TranslateExpr -> {
+                val originalChars = eval(expression.from).asString().valueWithoutPadding
+                val newChars = eval(expression.to).asString().valueWithoutPadding
+                var s = eval(expression.string).asString().valueWithoutPadding
+                originalChars.forEachIndexed { i, c ->
+                    s = s.replace(c, newChars[i])
+                }
+                return StringValue(s)
             }
             else -> TODO(expression.toString())
         }
@@ -354,6 +437,10 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         if (forceElement) TODO()
         return blankValue(dataDefinition.type)
     }
+}
+
+private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
+    return type.canBeAssigned(value)
 }
 
 private fun Int.asValue() = IntValue(this.toLong())

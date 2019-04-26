@@ -6,6 +6,7 @@ import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import javax.xml.crypto.Data
 
 interface StatementThatCanDefineData {
     fun dataDefinition() : InStatementDataDefinition?
@@ -55,7 +56,12 @@ data class ClearStmt(val value: Expression,
     override fun dataDefinition() = dataDefinition
 }
 data class DisplayStmt(val value: Expression, override val position: Position? = null) : Statement(position)
-data class DoStmt(val body: List<Statement>, override val position: Position? = null) : Statement(position)
+data class DoStmt(
+        val endLimit: Expression,
+        val index: AssignableExpression?,
+        val body: List<Statement>,
+        val startLimit: Expression = IntLiteral(1),
+        override val position: Position? = null) : Statement(position)
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 data class IterStmt(override val position: Position? = null) : Statement(position)
 data class OtherStmt(override val position: Position? = null) : Statement(position)

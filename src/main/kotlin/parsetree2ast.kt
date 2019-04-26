@@ -215,11 +215,11 @@ private fun NumberContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
 }
 
 private fun IdentifierContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
-    return when (this.text) {
+    return when (this.text.toUpperCase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> TODO()
-        "*HIVAL" -> TODO()
-        "*LOWVAL" -> TODO()
+        "*HIVAL" -> HiValExpr(toPosition(conf.considerPosition))
+        "*LOWVAL" -> LowValExpr(toPosition(conf.considerPosition))
         "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
         "*OFF" -> OffRefExpr(toPosition(conf.considerPosition))
         else -> when {
@@ -397,9 +397,32 @@ private fun BlockContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
         this.selectstatement() != null -> this.selectstatement().toAst(conf)
-        this.begindo() != null -> DoStmt(this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
+        this.begindo() != null -> {
+            val result = this.begindo().csDO().cspec_fixed_standard_parts().result
+            val iter = if (result.text.isBlank()) null else result.toAst(conf) as AssignableExpression
+            val factor = this.begindo().factor()
+            val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
+            DoStmt(
+                    this.begindo().csDO().cspec_fixed_standard_parts().factor2.symbolicConstants().toAst(conf),
+                    iter,
+                    this.statement().map { it.toAst(conf) },
+                    start,
+                    position = toPosition(conf.considerPosition))
+        }
         this.forstatement() != null -> this.forstatement().toAst(conf)
         else -> TODO(this.text.toString())
+    }
+}
+
+private fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
+    return IntLiteral(this.CS_FactorContent().text.toLong(), position = toPosition(conf.considerPosition))
+}
+
+private fun SymbolicConstantsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
+    return when {
+        this.SPLAT_HIVAL() != null -> HiValExpr(toPosition(conf.considerPosition))
+        this.SPLAT_LOVAL() != null -> LowValExpr(toPosition(conf.considerPosition))
+        else -> TODO()
     }
 }
 

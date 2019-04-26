@@ -22,6 +22,10 @@ sealed class Type {
         return size
     }
 
+    fun canBeAssigned(value: Value): Boolean {
+        return value.assignableTo(this)
+    }
+
     abstract val size: Long
 }
 data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
@@ -33,10 +37,12 @@ data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) 
 data class StringType(val length: Long) : Type() {
     override val size: Long
         get()= length
+
 }
 object BooleanType : Type() {
     override val size: Long
         get()= 1
+
 }
 data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
     override val size: Long
@@ -53,6 +59,7 @@ data class ArrayType(val element: Type, val nElements: Int) : Type() {
     override fun elementSize(): Long {
         return element.size
     }
+
 }
 
 data class FieldType(val name: String, val type: Type)

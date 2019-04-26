@@ -15,8 +15,11 @@ interface Program {
 class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Program {
     override fun params(): List<ProgramParam> {
         val plistParams = cu.main.entryPlist ?: throw RuntimeException("[$name] no entry plist found")
-        // TODO derive proper type
-        return plistParams.params.map { ProgramParam(it.paramName, StringType(8)) }
+        // TODO derive proper type from the data specification
+        return plistParams.params.map {
+            val type = cu.getDataDefinition(it.paramName).type
+            ProgramParam(it.paramName, type)
+        }
     }
 
     init {
@@ -34,13 +37,14 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         require(paramValues.keys.toSet() == params().map { it.name }.toSet()) {
             "Expected params: ${params().map { it.name }.joinToString(", ")}"
         }
+        val interpreter = Interpreter(systemInterface, programName = name)
         for (pv in paramValues) {
             val expectedType = params().find { it.name == pv.key }!!.type
-            require(pv.value.assignableTo(expectedType)) {
-                "param ${pv.key} was expected to have type $expectedType. It has value: ${pv.value}"
+            val coercedValue = interpreter.coerce(pv.value, expectedType)
+            require(coercedValue.assignableTo(expectedType)) {
+                "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
             }
         }
-        val interpreter = Interpreter(systemInterface, programName = name)
         interpreter.execute(cu, paramValues)
     }
 }

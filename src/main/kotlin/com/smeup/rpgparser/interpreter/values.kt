@@ -13,8 +13,12 @@ abstract class Value {
 
 data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
-        // TODO check size
-        return expectedType is StringType
+        return when (expectedType) {
+            is StringType -> expectedType.length == value.length.toLong()
+            is DataStructureType -> expectedType.fields.all { it.type is StringType } &&
+                    expectedType.elementSize == value.length
+            else -> false
+        }
     }
 
     val valueWithoutPadding : String = value.removeNullChars()
@@ -40,7 +44,9 @@ data class StringValue(var value: String) : Value() {
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        value = value.substring(0, startOffset) + substringValue + value.substring(endOffset)
+        require(endOffset - startOffset == substringValue.value.length)
+        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
+        value = newValue
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int) : StringValue {
@@ -48,10 +54,18 @@ data class StringValue(var value: String) : Value() {
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        return StringValue(value.substring(startOffset, endOffset))
+        val s = value.substring(startOffset, endOffset)
+        return StringValue(s)
+    }
+
+    override fun toString(): String {
+        return "StringValue[${value.length}]($valueWithoutPadding)"
     }
 
     override fun asString() = this
+    fun isBlank() : Boolean {
+        return this.valueWithoutPadding.isBlank()
+    }
 }
 
 fun String.removeNullChars() : String {
@@ -70,6 +84,7 @@ data class IntValue(val value: Long) : Value() {
     }
 
     override fun asInt() = this
+    fun increment() = IntValue(value + 1)
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
@@ -99,8 +114,10 @@ abstract class ArrayValue : Value() {
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
-        // FIXME
-        return true
+        if (expectedType is ArrayType) {
+            return elements().all { it.assignableTo(expectedType.element) }
+        }
+        return false
     }
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
@@ -109,13 +126,32 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     override fun arrayLength() = elements.size
 
     override fun setElement(index: Int, value: Value) {
+        require(value.assignableTo(elementType))
         elements[index] = value
     }
 
-    override fun getElement(index: Int) = elements[index]
+    override fun getElement(index: Int) : Value {
+        require(index < arrayLength())
+        return elements[index]
+    }
 
 }
 object BlanksValue : Value() {
+    override fun toString(): String {
+        return "BlanksValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
+
+object HiValValue : Value() {
+    override fun toString(): String {
+        return "HiValValue"
+    }
+
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
         return true
@@ -137,6 +173,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
     override fun arrayLength() = container.arrayLength()
 
     override fun setElement(index: Int, value: Value) {
+        require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val containerElement =  container.getElement(index)
         if (containerElement is StringValue) {
             if (value is StringValue) {
