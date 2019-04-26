@@ -13,10 +13,11 @@ abstract class Value {
 
 data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
-        return if (expectedType is StringType) {
-            expectedType.length == value.length.toLong()
-        } else {
-            false
+        return when (expectedType) {
+            is StringType -> expectedType.length == value.length.toLong()
+            is DataStructureType -> expectedType.fields.all { it.type is StringType } &&
+                    expectedType.elementSize == value.length
+            else -> false
         }
     }
 
@@ -43,6 +44,7 @@ data class StringValue(var value: String) : Value() {
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
+        require(endOffset - startOffset == substringValue.value.length)
         value = value.substring(0, startOffset) + substringValue + value.substring(endOffset)
     }
 
@@ -55,7 +57,7 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun toString(): String {
-        return "StringValue($valueWithoutPadding)"
+        return "StringValue[${value.length}]($valueWithoutPadding)"
     }
 
     override fun asString() = this
@@ -106,8 +108,10 @@ abstract class ArrayValue : Value() {
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
-        // FIXME
-        return true
+        if (expectedType is ArrayType) {
+            return elements().all { it.assignableTo(expectedType.element) }
+        }
+        return false
     }
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
@@ -116,6 +120,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     override fun arrayLength() = elements.size
 
     override fun setElement(index: Int, value: Value) {
+        require(value.assignableTo(elementType))
         elements[index] = value
     }
 
@@ -148,6 +153,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
     override fun arrayLength() = container.arrayLength()
 
     override fun setElement(index: Int, value: Value) {
+        require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val containerElement =  container.getElement(index)
         if (containerElement is StringValue) {
             if (value is StringValue) {

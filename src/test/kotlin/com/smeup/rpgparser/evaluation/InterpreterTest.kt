@@ -94,7 +94,7 @@ class InterpreterTest {
     fun executeJD_000_base() {
         val cu = assertASTCanBeProduced("JD_000_base", true)
         cu.resolve()
-        val interpreter = execute(cu, mapOf())
+        val interpreter = execute(cu, mapOf(), traceMode = true)
     }
 
     @Test

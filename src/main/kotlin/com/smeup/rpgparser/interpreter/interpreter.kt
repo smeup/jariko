@@ -62,7 +62,12 @@ data class ExpressionEvaluationLogEntry(val expression: Expression, val value: V
 }
 data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry() {
     override fun toString(): String {
-        return "assigning $value to $data"
+        return "assigning to $data value $value"
+    }
+}
+data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "assigning to $array[$index] value $value"
     }
 }
 
@@ -102,7 +107,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
 
         //TODO check why certain values have length 1016, instead of the expected length
 
-        require(data.canBeAssigned(value)) { "$value cannot be assigned to $data"}
+        require(data.canBeAssigned(value)) { "$data cannot be assigned the value $value"}
 
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
@@ -272,16 +277,21 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
+                require(arrayValue.assignableTo(target.array.type()))
                 val indexValue = interpret(target.index)
-                val value = coerce(interpret(value), (target.array.type() as ArrayType).element)
-                arrayValue.setElement(indexValue.asInt().value.toInt(), value)
-                return value
+                val elementType = (target.array.type() as ArrayType).element
+                val evaluatedValue = coerce(interpret(value), elementType)
+                val index = indexValue.asInt().value.toInt()
+                log(AssignmentOfElementLogEntry(target.array, index, evaluatedValue))
+                arrayValue.setElement(index, evaluatedValue)
+                return evaluatedValue
             }
             else -> TODO(target.toString())
         }
     }
 
-    private fun coerce(value: Value, type: Type) : Value {
+    // TODO put it outside Interpreter
+    public fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
         return when (value) {
             is BlanksValue -> {
@@ -300,8 +310,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is StringValue -> {
                 when (type) {
                     is StringType -> {
-                        val res = StringValue(value.value.padEnd(type.length.toInt(), '\u0000'))
-                        return res
+                        return StringValue(value.value.padEnd(type.length.toInt(), '\u0000'))
                     }
                     else -> TODO(type.toString())
                 }
