@@ -397,11 +397,15 @@ private fun BlockContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
         this.selectstatement() != null -> this.selectstatement().toAst(conf)
-        this.begindo() != null -> DoStmt(
-                this.begindo().csDO().cspec_fixed_standard_parts().factor2.symbolicConstants().toAst(conf),
-                this.begindo().csDO().cspec_fixed_standard_parts().result.toAst(conf) as AssignableExpression,
-                this.statement().map { it.toAst(conf) },
-                toPosition(conf.considerPosition))
+        this.begindo() != null -> {
+            val result = this.begindo().csDO().cspec_fixed_standard_parts().result
+            val iter = if (result.text.isBlank()) null else result.toAst(conf) as AssignableExpression
+            DoStmt(
+                    this.begindo().csDO().cspec_fixed_standard_parts().factor2.symbolicConstants().toAst(conf),
+                    iter,
+                    this.statement().map { it.toAst(conf) },
+                    toPosition(conf.considerPosition))
+        }
         this.forstatement() != null -> this.forstatement().toAst(conf)
         else -> TODO(this.text.toString())
     }

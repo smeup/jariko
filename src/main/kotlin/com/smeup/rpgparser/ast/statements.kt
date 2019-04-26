@@ -58,7 +58,7 @@ data class ClearStmt(val value: Expression,
 data class DisplayStmt(val value: Expression, override val position: Position? = null) : Statement(position)
 data class DoStmt(
         val limit: Expression,
-        val index: AssignableExpression,
+        val index: AssignableExpression?,
         val body: List<Statement>,
         override val position: Position? = null) : Statement(position)
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
