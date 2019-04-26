@@ -45,7 +45,8 @@ data class StringValue(var value: String) : Value() {
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
         require(endOffset - startOffset == substringValue.value.length)
-        value = value.substring(0, startOffset) + substringValue + value.substring(endOffset)
+        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
+        value = newValue
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int) : StringValue {
@@ -53,7 +54,8 @@ data class StringValue(var value: String) : Value() {
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        return StringValue(value.substring(startOffset, endOffset))
+        val s = value.substring(startOffset, endOffset)
+        return StringValue(s)
     }
 
     override fun toString(): String {

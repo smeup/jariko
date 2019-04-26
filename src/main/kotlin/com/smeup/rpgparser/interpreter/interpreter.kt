@@ -310,7 +310,8 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is StringValue -> {
                 when (type) {
                     is StringType -> {
-                        return StringValue(value.value.padEnd(type.length.toInt(), '\u0000'))
+                        val s = value.value.padEnd(type.length.toInt(), '\u0000')
+                        return StringValue(s)
                     }
                     else -> TODO(type.toString())
                 }
@@ -359,7 +360,10 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 when {
-                    left is StringValue && right is StringValue -> StringValue(left.valueWithoutPadding + right.valueWithoutPadding)
+                    left is StringValue && right is StringValue -> {
+                        val s = left.valueWithoutPadding + right.valueWithoutPadding
+                        StringValue(s)
+                    }
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
