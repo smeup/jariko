@@ -119,15 +119,16 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
-                set(it, when {
+                set(it, coerce(when {
                     it.name in initialValues -> initialValues[it.name]!!
                     it.initializationValue != null -> interpret(it.initializationValue)
                     else -> blankValue(it)
-                })
+                }, it.type))
             }
         } else {
             initialValues.forEach { iv ->
-                set(compilationUnit.allDataDefinitions.find { it?.name == iv.key }!!, iv.value)
+                val def = compilationUnit.allDataDefinitions.find { it?.name == iv.key }!!
+                set(def, coerce(iv.value, def.type))
             }
         }
     }

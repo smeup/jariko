@@ -13,8 +13,11 @@ abstract class Value {
 
 data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
-        // TODO check size
-        return expectedType is StringType
+        return if (expectedType is StringType) {
+            expectedType.length == value.length.toLong()
+        } else {
+            false
+        }
     }
 
     val valueWithoutPadding : String = value.removeNullChars()
