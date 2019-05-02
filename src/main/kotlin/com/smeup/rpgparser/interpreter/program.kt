@@ -46,8 +46,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
             }
         }
         interpreter.execute(cu, paramValues)
-        val paramValuesAtTheEnd = params().map { interpreter[it.name] }
-        return paramValuesAtTheEnd
+        return params().map { interpreter[it.name] }
     }
 }
 

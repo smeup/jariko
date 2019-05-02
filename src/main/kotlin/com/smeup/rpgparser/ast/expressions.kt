@@ -6,7 +6,7 @@ import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 
 abstract class Expression(override val position: Position? = null) : Node(position) {
-    open fun render() = this.javaClass.simpleName
+    open fun render() : String = this.javaClass.simpleName
 }
 
 abstract class NumberLiteral(override val position: Position? = null) : Expression(position)

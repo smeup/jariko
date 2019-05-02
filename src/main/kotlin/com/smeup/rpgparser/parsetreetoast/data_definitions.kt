@@ -8,29 +8,7 @@ import com.strumenta.kolasu.mapping.toPosition
 
 fun RpgParser.Dcl_dsContext.elementSizeOf() : Int {
     val header = this.parm_fixed().first()
-    val elementSize = header.TO_POSITION().text.trim().toInt()
-    return elementSize
-}
-
-private fun RpgParser.DspecContext.arrayLength(conf : ToAstConfiguration = ToAstConfiguration()) : Expression? {
-    return this.keyword().arrayLength(conf)
-}
-
-private fun RpgParser.Dcl_dsContext.arrayLength(conf : ToAstConfiguration = ToAstConfiguration()) : Expression? {
-    return this.keyword().arrayLength(conf)
-}
-
-private fun RpgParser.Parm_fixedContext.arrayLength(conf : ToAstConfiguration = ToAstConfiguration()) : Expression? {
-    return this.keyword().arrayLength(conf)
-}
-
-private fun List<RpgParser.KeywordContext>.arrayLength(conf : ToAstConfiguration = ToAstConfiguration()) : Expression? {
-    val dims = this.filter { it.keyword_dim() != null }.map { it.keyword_dim() }
-    return when (dims.size) {
-        0 -> null
-        1 -> dims[0].numeric_constant.toAst(conf)
-        else -> throw UnsupportedOperationException("Ambiguous array dimensions")
-    }
+    return header.TO_POSITION().text.trim().toInt()
 }
 
 internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
@@ -115,8 +93,8 @@ val RpgParser.Dcl_dsContext.hasHeader : Boolean
 
 fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf : ToAstConfiguration = ToAstConfiguration()) : Type {
     val header = this.parm_fixed().first()
-    val dim : Expression? = header.keyword().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
-    val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt() else null
+    val dim : Expression? = header.keyword().asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
+    val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val others = this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
     val elementSize = this.elementSizeOf()
     val baseType = DataStructureType(others.map { it.toFieldType() }, size ?: elementSize)
@@ -189,18 +167,17 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
         else -> endPosition - startPosition.toInt() + 1
     }
 
-    val baseType = when (this.DATA_TYPE()?.text?.trim()) {
+    return when (DATA_TYPE()?.text?.trim()) {
         null -> TODO()
-        "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
-            val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
+        "" -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+            val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
             StringType(elementSize!!.toLong())
         }
         "N" -> BooleanType
-        else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
+        else -> throw UnsupportedOperationException("<${DATA_TYPE().text}>")
     }
-    return baseType
 }
 
 internal fun RpgParser.Parm_fixedContext.toFieldType(): FieldType {

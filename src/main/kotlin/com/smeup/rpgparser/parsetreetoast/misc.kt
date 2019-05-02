@@ -99,7 +99,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAst
         this.csITER() != null -> IterStmt(toPosition(conf.considerPosition))
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
-        else -> TODO("${this.text.toString()} at ${this.toPosition(true)}")
+        else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
 
