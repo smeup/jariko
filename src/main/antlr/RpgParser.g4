@@ -2365,13 +2365,13 @@ unaryExpression:
 expression: 
 	NOT expression
 	| OPEN_PAREN expression CLOSE_PAREN
-	| expression (assignmentOperator | comparisonOperator | EQUAL) expression
     | <assoc=right> expression EXP expression
     | expression (MULT | MULT_NOSPACE) expression
     | expression DIV expression
     | expression PLUS expression
     | expression MINUS expression
 	| expression EQUAL expression
+	| expression (assignmentOperator | comparisonOperator | EQUAL) expression
 	| expression AND expression
 	| expression OR expression
 	| unaryExpression
