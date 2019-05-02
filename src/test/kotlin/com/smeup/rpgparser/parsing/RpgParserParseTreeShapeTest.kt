@@ -1,7 +1,11 @@
 package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.ToAstConfiguration
 import com.smeup.rpgparser.assertCanBeParsed
+import com.smeup.rpgparser.assertExpressionCanBeParsed
+import com.smeup.rpgparser.ast.GreaterThanExpr
+import com.smeup.rpgparser.toAst
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test
@@ -107,6 +111,12 @@ class RpgParserParseTreeShapeTest {
         assertTrue(stmt2.children[0] is DirectiveContext)
         val dir2 = stmt2.children[0] as DirectiveContext
         assertEquals("I/", dir2.DIRECTIVE().text)
+    }
+
+    @test fun parseGreaterThanAndPlus() {
+        val exp = assertExpressionCanBeParsed("                                   %LEN(%TRIM(§§NAM))>%LEN(%TRIM(\$\$EST_FLT))+1")
+        val ast = exp.toAst(ToAstConfiguration(considerPosition = false))
+        assertTrue(ast is GreaterThanExpr)
     }
 
 }
