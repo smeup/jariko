@@ -392,7 +392,7 @@ private fun Parm_fixedContext.toAst(
     return FieldDefinition(this.ds_name().text,
             baseType,
             explicitStartOffset = this.explicitStartOffset(),
-            explicitEndOffset = this.explicitEndOffset(),
+            explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
             position = this.toPosition(conf.considerPosition))
 }
 
