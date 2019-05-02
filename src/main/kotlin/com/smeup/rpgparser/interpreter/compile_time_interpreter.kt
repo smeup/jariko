@@ -5,9 +5,9 @@ import com.smeup.rpgparser.ast.DataRefExpr
 import com.smeup.rpgparser.ast.Expression
 import com.smeup.rpgparser.ast.IntLiteral
 import com.smeup.rpgparser.ast.NumberOfElementsExpr
-import com.smeup.rpgparser.elementSizeOf
-import com.smeup.rpgparser.name
-import com.smeup.rpgparser.type
+import com.smeup.rpgparser.parsetreetoast.elementSizeOf
+import com.smeup.rpgparser.parsetreetoast.name
+import com.smeup.rpgparser.parsetreetoast.type
 
 /**
  * This is a very limited interpreter used at compile time, mainly

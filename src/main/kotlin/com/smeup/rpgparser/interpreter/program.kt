@@ -2,7 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.ast.CompilationUnit
-import com.smeup.rpgparser.resolve
+import com.smeup.rpgparser.parsetreetoast.resolve
 import java.io.InputStream
 
 data class ProgramParam(val name: String, val type: Type)

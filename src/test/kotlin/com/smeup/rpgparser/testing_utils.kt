@@ -6,6 +6,8 @@ import com.smeup.rpgparser.ast.CompilationUnit
 import com.smeup.rpgparser.ast.DataRefExpr
 import com.smeup.rpgparser.ast.Expression
 import com.smeup.rpgparser.facade.RpgParserFacade
+import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token

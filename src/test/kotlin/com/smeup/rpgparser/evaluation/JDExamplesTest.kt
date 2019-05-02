@@ -4,7 +4,7 @@ import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.resolve
+import com.smeup.rpgparser.parsetreetoast.resolve
 import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals

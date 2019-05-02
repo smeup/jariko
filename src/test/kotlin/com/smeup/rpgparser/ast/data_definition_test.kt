@@ -2,6 +2,9 @@ package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsetreetoast.resolve
+import com.smeup.rpgparser.parsetreetoast.toAst
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test

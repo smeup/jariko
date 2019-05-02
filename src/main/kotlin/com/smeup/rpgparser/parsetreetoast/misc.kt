@@ -1,4 +1,4 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.ast.*

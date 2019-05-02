@@ -5,7 +5,7 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.ExpressionContext
 import com.smeup.rpgparser.RpgParser.RContext
 import com.smeup.rpgparser.ast.CompilationUnit
-import com.smeup.rpgparser.toAst
+import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.endPoint
