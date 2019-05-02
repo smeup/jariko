@@ -11,12 +11,6 @@ import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 
-fun Dcl_dsContext.elementSizeOf() : Int {
-    val header = this.parm_fixed().first()
-    val elementSize = header.TO_POSITION().text.trim().toInt()
-    return elementSize
-}
-
 data class ToAstConfiguration(val considerPosition: Boolean = true, 
                               val compileTimeInterpreter : CompileTimeInterpreter = CommonCompileTimeInterpreter)
 
@@ -54,34 +48,13 @@ fun RContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Compilati
             position = this.toPosition(conf.considerPosition))
 }
 
-private fun SubroutineContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Subroutine {
+internal fun SubroutineContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Subroutine {
     return Subroutine(this.begsr().csBEGSR().factor1.content.text,
             this.statement().map { it.toAst(conf) },
             toPosition(conf.considerPosition))
 }
 
-private fun DspecContext.arrayLength(conf : ToAstConfiguration = ToAstConfiguration()) : Expression? {
-    return this.keyword().arrayLength(conf)
-}
-
-private fun Dcl_dsContext.arrayLength(conf : ToAstConfiguration = ToAstConfiguration()) : Expression? {
-    return this.keyword().arrayLength(conf)
-}
-
-private fun Parm_fixedContext.arrayLength(conf : ToAstConfiguration = ToAstConfiguration()) : Expression? {
-    return this.keyword().arrayLength(conf)
-}
-
-private fun List<KeywordContext>.arrayLength(conf : ToAstConfiguration = ToAstConfiguration()) : Expression? {
-    val dims = this.filter { it.keyword_dim() != null }.map { it.keyword_dim() }
-    return when (dims.size) {
-        0 -> null
-        1 -> dims[0].numeric_constant.toAst(conf)
-        else -> throw UnsupportedOperationException("Ambiguous array dimensions")
-    }
-}
-
-private fun SimpleExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun SimpleExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
         this.number() != null -> this.number()!!.toAst(conf)
         this.identifier() != null -> this.identifier().toAst(conf)
@@ -121,15 +94,15 @@ fun ExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): E
     }
 }
 
-private fun FunctionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): FunctionCall {
+internal fun FunctionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): FunctionCall {
     return FunctionCall(ReferenceByName(this.functionName().text), this.args().expression().map { it.toAst(conf) }, toPosition(conf.considerPosition))
 }
 
-private fun LiteralContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun LiteralContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
     return StringLiteral(this.content?.text ?: "", toPosition(conf.considerPosition))
 }
 
-private fun BifContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun BifContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
         this.bif_elem() != null -> NumberOfElementsExpr(this.bif_elem().expression().toAst(conf), position = toPosition(conf.considerPosition))
         this.bif_lookup() != null -> this.bif_lookup().toAst(conf)
@@ -144,13 +117,13 @@ private fun BifContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): 
     }
 }
 
-private fun Bif_charContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CharExpr {
+internal fun Bif_charContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CharExpr {
     return CharExpr(
             this.expression().toAst(conf),
             toPosition(conf.considerPosition))
 }
 
-private fun Bif_decContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DecExpr {
+internal fun Bif_decContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DecExpr {
     return DecExpr(
             this.expression(0).toAst(conf),
             this.expression(1).toAst(conf),
@@ -158,13 +131,13 @@ private fun Bif_decContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
             toPosition(conf.considerPosition))
 }
 
-private fun Bif_lenContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): LenExpr {
+internal fun Bif_lenContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): LenExpr {
     return LenExpr(
             this.expression().toAst(conf),
             toPosition(conf.considerPosition))
 }
 
-private fun Bif_substContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SubstExpr {
+internal fun Bif_substContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SubstExpr {
     return SubstExpr(
             this.string.toAst(conf),
             this.start.toAst(conf),
@@ -172,14 +145,14 @@ private fun Bif_substContext.toAst(conf : ToAstConfiguration = ToAstConfiguratio
             toPosition(conf.considerPosition))
 }
 
-private fun Bif_trimContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): TrimExpr {
+internal fun Bif_trimContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): TrimExpr {
     return TrimExpr(
             this.string.toAst(conf),
             this.trimcharacters?.toAst(conf),
             toPosition(conf.considerPosition))
 }
 
-private fun Bif_scanContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ScanExpr {
+internal fun Bif_scanContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ScanExpr {
     return ScanExpr(
             this.searcharg.toAst(conf),
             this.source.toAst(conf),
@@ -187,7 +160,7 @@ private fun Bif_scanContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
             toPosition(conf.considerPosition))
 }
 
-private fun Bif_xlateContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): TranslateExpr {
+internal fun Bif_xlateContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): TranslateExpr {
     return TranslateExpr(
             this.from.toAst(conf),
             this.to.toAst(conf),
@@ -196,14 +169,14 @@ private fun Bif_xlateContext.toAst(conf : ToAstConfiguration = ToAstConfiguratio
             toPosition(conf.considerPosition))
 }
 
-private fun Bif_lookupContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): LookupExpr {
+internal fun Bif_lookupContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): LookupExpr {
     return LookupExpr(
             this.bif_lookupargs().arg.toAst(conf),
             this.bif_lookupargs().array.toAst(conf),
             toPosition(conf.considerPosition))
 }
 
-private fun NumberContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : NumberLiteral {
+internal fun NumberContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : NumberLiteral {
     require(this.NumberPart().isEmpty())
     require(this.MINUS() == null)
     val text = this.NUMBER().text
@@ -214,7 +187,7 @@ private fun NumberContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
     }
 }
 
-private fun IdentifierContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
+internal fun IdentifierContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
     return when (this.text.toUpperCase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> TODO()
@@ -231,7 +204,7 @@ private fun IdentifierContext.toAst(conf : ToAstConfiguration = ToAstConfigurati
     }
 }
 
-private fun String.indicatorIndex() : Int? {
+internal fun String.indicatorIndex() : Int? {
     return if (this.startsWith("*IN")) {
         this.substring("*IN".length).toIntOrNull()
     } else {
@@ -239,9 +212,9 @@ private fun String.indicatorIndex() : Int? {
     }
 }
 
-private fun String.isInt() = this.toIntOrNull() != null
+internal fun String.isInt() = this.toIntOrNull() != null
 
-private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
+internal fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
     //    C UCS-2 (Fixed or Variable-length format)
@@ -300,7 +273,7 @@ private fun DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
             position = this.toPosition(true))
 }
 
-private fun ParserRuleContext.rContext(): RContext {
+internal fun ParserRuleContext.rContext(): RContext {
     return if (this.parent == null) {
         this as RContext
     } else {
@@ -343,7 +316,7 @@ fun Dcl_dsContext.type(size: Int? = null, conf : ToAstConfiguration = ToAstConfi
     }
 }
 
-private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
+internal fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
     val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
         this.TO_POSITION().text.trim().toInt()
     } else {
@@ -382,7 +355,7 @@ fun Parm_fixedContext.explicitEndOffset() : Int? {
     }
 }
 
-private fun Parm_fixedContext.toAst(
+internal fun Parm_fixedContext.toAst(
         nElements: Int?,
         conf : ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
     var baseType = this.toType()
@@ -396,7 +369,7 @@ private fun Parm_fixedContext.toAst(
             position = this.toPosition(conf.considerPosition))
 }
 
-private fun Parm_fixedContext.toType(): Type {
+internal fun Parm_fixedContext.toType(): Type {
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
     val elementSize = when {
@@ -419,7 +392,7 @@ private fun Parm_fixedContext.toType(): Type {
     return baseType
 }
 
-private fun Parm_fixedContext.toFieldType(): FieldType {
+internal fun Parm_fixedContext.toFieldType(): FieldType {
     return FieldType(this.ds_name().text, this.toType())
 }
 
@@ -432,7 +405,7 @@ fun StatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): St
     }
 }
 
-private fun BlockContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
+internal fun BlockContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
         this.selectstatement() != null -> this.selectstatement().toAst(conf)
@@ -453,11 +426,11 @@ private fun BlockContext.toAst(conf : ToAstConfiguration = ToAstConfiguration())
     }
 }
 
-private fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
+internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
     return IntLiteral(this.CS_FactorContent().text.toLong(), position = toPosition(conf.considerPosition))
 }
 
-private fun SymbolicConstantsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
+internal fun SymbolicConstantsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
     return when {
         this.SPLAT_HIVAL() != null -> HiValExpr(toPosition(conf.considerPosition))
         this.SPLAT_LOVAL() != null -> LowValExpr(toPosition(conf.considerPosition))
@@ -465,7 +438,7 @@ private fun SymbolicConstantsContext.toAst(conf : ToAstConfiguration = ToAstConf
     }
 }
 
-private fun ForstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ForStmt {
+internal fun ForstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ForStmt {
     val assignment = this.beginfor().csFOR().expression(0).toAst(conf)
     val endValue = this.beginfor().csFOR().expression(1).toAst(conf)
     return ForStmt(
@@ -475,7 +448,7 @@ private fun ForstatementContext.toAst(conf : ToAstConfiguration = ToAstConfigura
             toPosition(conf.considerPosition))
 }
 
-private fun SelectstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectStmt {
+internal fun SelectstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectStmt {
     val whenClauses = this.whenstatement().map { it.toAst(conf) }
     // Unfortunately the other clause ends up being part of the when clause so we should
     // unfold it
@@ -498,7 +471,7 @@ private fun SelectstatementContext.toAst(conf : ToAstConfiguration = ToAstConfig
     return SelectStmt(whenClauses, other, toPosition(conf.considerPosition))
 }
 
-private fun WhenstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectCase {
+internal fun WhenstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectCase {
     // Unfortunately the other clause ends up being part of the when clause so we should
     // unfold it
     // TODO change this in the grammar
@@ -514,11 +487,11 @@ private fun WhenstatementContext.toAst(conf : ToAstConfiguration = ToAstConfigur
     )
 }
 
-private fun OtherContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
+internal fun OtherContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
     TODO()
 }
 
-private fun IfstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): IfStmt {
+internal fun IfstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): IfStmt {
     return IfStmt(this.beginif().fixedexpression.expression().toAst(conf),
             this.thenBody.map { it.toAst(conf) },
             this.elseIfClause().map { it.toAst(conf) },
@@ -526,24 +499,24 @@ private fun IfstatementContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
             toPosition(conf.considerPosition))
 }
 
-private fun ElseClauseContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ElseClause {
+internal fun ElseClauseContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ElseClause {
     return ElseClause(this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
 }
 
-private fun ElseIfClauseContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ElseIfClause {
+internal fun ElseIfClauseContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ElseIfClause {
     return ElseIfClause(
             this.elseifstmt().fixedexpression.expression().toAst(conf),
             this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
 }
 
-private fun Cspec_fixedContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
+internal fun Cspec_fixedContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.cspec_fixed_standard() != null -> this.cspec_fixed_standard().toAst(conf)
         else -> TODO(this.text.toString())
     }
 }
 
-private fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
+internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.csEXSR() != null -> this.csEXSR().toAst(conf)
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
@@ -561,7 +534,7 @@ private fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAstC
 
 // FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
 //        in the grammar
-private fun referenceToExpression(text: String, position: Position?) : Expression {
+internal fun referenceToExpression(text: String, position: Position?) : Expression {
     var expr : Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
         DataRefExpr(ReferenceByName(varName))
@@ -579,18 +552,18 @@ private fun referenceToExpression(text: String, position: Position?) : Expressio
     return expr
 }
 
-private fun CsDSPLYContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
+internal fun CsDSPLYContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
     val expression = this.cspec_fixed_standard_parts().result.toAst(conf)
     return DisplayStmt(expression, toPosition(conf.considerPosition))
 }
 
-private fun ResultTypeContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun ResultTypeContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
     // TODO this should have been parsed differently because here we have to figure out
     // what kind of expression is this
     return DataRefExpr(ReferenceByName(this.text), toPosition(conf.considerPosition))
 }
 
-private fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
+internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
     val name = this.cspec_fixed_standard_parts().result.text
     var dataDeclaration : InStatementDataDefinition? = null
     if (!this.cspec_fixed_standard_parts().len.text.isBlank()) {
@@ -605,7 +578,7 @@ private fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
 
 
 
-private fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistStmt {
+internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistStmt {
     val isEntry = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor().symbolicConstants().SPLAT_ENTRY() != null
     return PlistStmt(
             this.csPARM().map { it.toAst(conf) },
@@ -614,16 +587,16 @@ private fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
     )
 }
 
-private fun CsPARMContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistParam {
+internal fun CsPARMContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistParam {
     val paramName = this.cspec_fixed_standard_parts().result.CS_FactorContent().text
     return PlistParam(ReferenceByName(paramName), toPosition(conf.considerPosition))
 }
 
-private fun CsSETONContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SetOnStmt {
+internal fun CsSETONContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SetOnStmt {
     return SetOnStmt(indicators(this.cspec_fixed_standard_parts()), toPosition(conf.considerPosition))
 }
 
-private fun indicators(cspecs: Cspec_fixed_standard_partsContext) : List<DataWrapUpChoice> {
+internal fun indicators(cspecs: Cspec_fixed_standard_partsContext) : List<DataWrapUpChoice> {
     return listOf(cspecs.hi, cspecs.lo, cspecs.eq)
             .map { it.text }
             .filter { !it.isNullOrBlank() }
@@ -631,7 +604,7 @@ private fun indicators(cspecs: Cspec_fixed_standard_partsContext) : List<DataWra
             .map(DataWrapUpChoice::valueOf)
 }
 
-private fun CsEXSRContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ExecuteSubroutine {
+internal fun CsEXSRContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ExecuteSubroutine {
     val subroutineName = this.cspec_fixed_standard_parts().factor2.text
     require(this.cspec_fixed_standard_parts().decimalPositions.text.isBlank())
     require(this.cspec_fixed_standard_parts().eq.text.isBlank())
@@ -642,7 +615,7 @@ private fun CsEXSRContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
     return ExecuteSubroutine(ReferenceByName(subroutineName), toPosition(conf.considerPosition))
 }
 
-private fun CsEVALContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): EvalStmt {
+internal fun CsEVALContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): EvalStmt {
     return EvalStmt(
             this.target().toAst(conf),
             this.fixedexpression.expression().toAst(conf),
@@ -650,7 +623,7 @@ private fun CsEVALContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
             position=toPosition(conf.considerPosition))
 }
 
-private fun TargetContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
+internal fun TargetContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
     return when (this) {
         is SimpleTargetContext -> DataRefExpr(ReferenceByName(this.name.text), toPosition(conf.considerPosition))
         is IndexedTargetContext -> ArrayAccessExpr(array=this.base.toAst(conf),
@@ -660,7 +633,7 @@ private fun TargetContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()
     }
 }
 
-private fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
+internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
     return when {
         this.CDIV() != null -> DIVIDE_ASSIGNMENT
         this.EQUAL() != null -> NORMAL_ASSIGNMENT
@@ -668,7 +641,7 @@ private fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Assi
     }
 }
 
-private fun CsCALLContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CallStmt {
+internal fun CsCALLContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CallStmt {
     require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
     val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
     return CallStmt(literal.toAst(conf),
