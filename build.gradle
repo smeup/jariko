@@ -93,3 +93,12 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
+
+//gradlew runExample -Pargs="CALCFIB,9"
+task runExample (type: JavaExec) {
+    if(project.hasProperty('args')){
+        args(project.getProperties().get("args").split(','))
+    }
+    main="com.smeup.rpgparser.RunnerKt"
+    classpath = sourceSets.test.runtimeClasspath
+}
