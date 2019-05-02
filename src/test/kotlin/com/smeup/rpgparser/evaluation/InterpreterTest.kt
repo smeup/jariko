@@ -125,7 +125,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         si.programs["CALCFIB"] = object : JvmProgram("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 val n = params["ppdat"]!!.asString().valueWithoutPadding.toInt()
                 var t1 = 0
                 var t2 = 1
@@ -136,6 +136,7 @@ class InterpreterTest {
                     t2 = sum
                 }
                 systemInterface.display("FIBONACCI OF: $n IS: $t1")
+                return listOf(params["ppdat"]!!)
             }
         }
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)

@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.interpreter.ProgramParam
 import com.strumenta.kolasu.model.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
@@ -54,4 +55,11 @@ fun CompilationUnit.resolve() {
         }
     }
 
+    this.specificProcess(PlistParam::class.java) { pp ->
+        if (!pp.param.resolved) {
+            require(pp.param.tryToResolve(this.allDataDefinitions)) {
+                "Plist Param not resolved: ${pp.param.name} at ${pp.position}"
+            }
+        }
+    }
 }

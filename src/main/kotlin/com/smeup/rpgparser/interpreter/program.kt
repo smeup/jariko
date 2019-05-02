@@ -9,7 +9,7 @@ data class ProgramParam(val name: String, val type: Type)
 
 interface Program {
     fun params() : List<ProgramParam>
-    fun execute(systemInterface: SystemInterface, params: Map<String, Value>)
+    fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value>
 }
 
 class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Program {
@@ -17,8 +17,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         val plistParams = cu.main.entryPlist ?: throw RuntimeException("[$name] no entry plist found")
         // TODO derive proper type from the data specification
         return plistParams.params.map {
-            val type = cu.getDataDefinition(it.paramName).type
-            ProgramParam(it.paramName, type)
+            val type = cu.getDataDefinition(it.param.name).type
+            ProgramParam(it.param.name, type)
         }
     }
 
@@ -33,7 +33,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         }
     }
 
-    override fun execute(systemInterface: SystemInterface, paramValues: Map<String, Value>) {
+    override fun execute(systemInterface: SystemInterface, paramValues: Map<String, Value>) : List<Value> {
         require(paramValues.keys.toSet() == params().map { it.name }.toSet()) {
             "Expected params: ${params().map { it.name }.joinToString(", ")}"
         }
@@ -46,6 +46,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
             }
         }
         interpreter.execute(cu, paramValues)
+        val paramValuesAtTheEnd = params().map { interpreter[it.name] }
+        return paramValuesAtTheEnd
     }
 }
 

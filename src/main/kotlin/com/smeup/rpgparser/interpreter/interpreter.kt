@@ -217,8 +217,11 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 is CallStmt -> {
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
-                    val params = statement.params.mapIndexed { index, it -> program.params()[index].name to get(it.paramName) }.toMap()
-                    program.execute(systemInterface, params)
+                    val params = statement.params.mapIndexed { index, it -> program.params()[index].name to get(it.param.name) }.toMap()
+                    val paramValuesAtTheEnd = program.execute(systemInterface, params)
+                    paramValuesAtTheEnd.forEachIndexed { index, value ->
+                        assign(statement.params[index].param.referred!!, value)
+                    }
                 }
                 is DoStmt -> {
                     if (statement.index == null) {
@@ -329,20 +332,23 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         }
     }
 
-    private fun assign(target: AssignableExpression, value: Expression) : Value {
+    private fun assign(dataDefinition: AbstractDataDefinition, value: Value) : Value {
+        val value = coerce(value, dataDefinition.type)
+        set(dataDefinition, value)
+        return value
+    }
+
+    private fun assign(target: AssignableExpression, value: Value) : Value {
         when (target) {
             is DataRefExpr -> {
-                val l = target as DataRefExpr
-                val value = coerce(interpret(value), l.variable.referred!!.type)
-                set(target.variable.referred!!, value)
-                return value
+                return assign(target.variable.referred!!, value)
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
                 require(arrayValue.assignableTo(target.array.type()))
                 val indexValue = interpret(target.index)
                 val elementType = (target.array.type() as ArrayType).element
-                val evaluatedValue = coerce(interpret(value), elementType)
+                val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
                 log(AssignmentOfElementLogEntry(target.array, index, evaluatedValue))
                 arrayValue.setElement(index, evaluatedValue)
@@ -350,6 +356,10 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
             else -> TODO(target.toString())
         }
+    }
+
+    private fun assign(target: AssignableExpression, value: Expression) : Value {
+        return assign(target, eval(value))
     }
 
     // TODO put it outside Interpreter

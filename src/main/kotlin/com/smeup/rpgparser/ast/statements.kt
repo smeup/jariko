@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Node
@@ -48,7 +49,7 @@ data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position:
 data class PlistStmt(val params: List<PlistParam>,
                      val isEntry: Boolean,
                      override val position: Position? = null) : Statement(position)
-data class PlistParam(val paramName: String, override val position: Position? = null) : Node(position)
+data class PlistParam(val param: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Node(position)
 data class ClearStmt(val value: Expression,
                      @Derived val dataDefinition: InStatementDataDefinition? = null,
                      override val position: Position? = null) : Statement(position), StatementThatCanDefineData {

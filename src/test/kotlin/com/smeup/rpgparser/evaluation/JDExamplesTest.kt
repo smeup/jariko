@@ -119,8 +119,9 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", StringType(1000)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 callsToJDURL.add(params)
+                return emptyList()
             }
         }
         val cu = assertASTCanBeProduced("JD_001", true)
@@ -151,15 +152,16 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 callsToListFld.add(params)
+                return emptyList()
             }
         }
         si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -183,15 +185,16 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 callsToListFld.add(params)
+                return emptyList()
             }
         }
         si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
