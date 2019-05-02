@@ -21,7 +21,8 @@ data class StringValue(var value: String) : Value() {
         }
     }
 
-    val valueWithoutPadding : String = value.removeNullChars()
+    val valueWithoutPadding : String
+        get() = value.removeNullChars()
 
     companion object {
         fun blank(length: Int) = StringValue("\u0000".repeat(length))
