@@ -6,6 +6,10 @@ import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.strumenta.kolasu.model.*
 import java.util.*
 
+// This file contains the AST nodes at the highest level:
+// from the CompilationUnit (which represents the whole file)
+// to its main components
+
 data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
                            val main: MainBody,
                            val subroutines: List<Subroutine>,

@@ -6,7 +6,6 @@ import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
-import javax.xml.crypto.Data
 
 interface StatementThatCanDefineData {
     fun dataDefinition() : InStatementDataDefinition?

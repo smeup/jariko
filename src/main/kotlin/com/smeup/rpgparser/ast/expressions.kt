@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.ast
 
-import com.smeup.rpgparser.ast.Function
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position

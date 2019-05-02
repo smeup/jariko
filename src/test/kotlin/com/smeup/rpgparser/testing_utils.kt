@@ -94,11 +94,12 @@ fun assertStatementCanBeParsed(code: String) : StatementContext {
 
 fun CompilationUnit.assertDataDefinitionIsPresent(name: String,
                                                   dataType: Type,
-                                                  fields: List<FieldDefinition> = emptyList()) {
+                                                  fields: List<FieldDefinition> = emptyList()) : DataDefinition {
     assertTrue(this.hasDataDefinition(name), message = "Data definition $name not found in Compilation Unit")
     val dataDefinition = this.getDataDefinition(name)
     assertEquals(dataType, dataDefinition.type)
     assertEquals(fields, dataDefinition.fields)
+    return dataDefinition
 }
 
 fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {
