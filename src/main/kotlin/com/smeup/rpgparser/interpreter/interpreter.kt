@@ -134,7 +134,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
         } else {
             initialValues.forEach { iv ->
-                val def = compilationUnit.allDataDefinitions.find { it?.name == iv.key }!!
+                val def = compilationUnit.allDataDefinitions.find { it.name == iv.key }!!
                 set(def, coerce(iv.value, def.type))
             }
         }
@@ -333,9 +333,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     }
 
     private fun assign(dataDefinition: AbstractDataDefinition, value: Value) : Value {
-        val value = coerce(value, dataDefinition.type)
-        set(dataDefinition, value)
-        return value
+        val coercedValue = coerce(value, dataDefinition.type)
+        set(dataDefinition, coercedValue)
+        return coercedValue
     }
 
     private fun assign(target: AssignableExpression, value: Value) : Value {
@@ -363,7 +363,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     }
 
     // TODO put it outside Interpreter
-    public fun coerce(value: Value, type: Type) : Value {
+    fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
         return when (value) {
             is BlanksValue -> {
@@ -434,7 +434,6 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
             is DecExpr -> {
                 val decDigits = interpret(expression.decDigits).asInt().value
-                val intDigits = interpret(expression.intDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
                     IntValue(valueAsString.removeNullChars().toLong())
@@ -524,7 +523,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 return IntValue(if (result == -1) 0 else result.toLong() + 1)
             }
             is SubstExpr -> {
-                val length = if (expression.length != null) eval(expression.length!!).asInt().value.toInt() else null
+                val length = if (expression.length != null) eval(expression.length).asInt().value.toInt() else null
                 val start = eval(expression.start).asInt().value.toInt() - 1
                 val originalString = eval(expression.string).asString().value
                 return if (length == null) {
@@ -558,7 +557,6 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is StringType ->  StringValue.blank(type.size.toInt())
             is NumberType -> IntValue(0)
             is BooleanType -> BooleanValue(false)
-            else -> TODO(type.toString())
         }
     }
 
