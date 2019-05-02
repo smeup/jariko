@@ -58,11 +58,7 @@ internal fun FunctionContext.toAst(conf : ToAstConfiguration = ToAstConfiguratio
     return FunctionCall(ReferenceByName(this.functionName().text), this.args().expression().map { it.toAst(conf) }, toPosition(conf.considerPosition))
 }
 
-
-
 internal fun String.isInt() = this.toIntOrNull() != null
-
-
 
 internal fun ParserRuleContext.rContext(): RContext {
     return if (this.parent == null) {
@@ -71,11 +67,6 @@ internal fun ParserRuleContext.rContext(): RContext {
         (this.parent as ParserRuleContext).rContext()
     }
 }
-
-
-
-
-
 
 internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
     return IntLiteral(this.CS_FactorContent().text.toLong(), position = toPosition(conf.considerPosition))
@@ -87,77 +78,6 @@ internal fun SymbolicConstantsContext.toAst(conf : ToAstConfiguration = ToAstCon
         this.SPLAT_LOVAL() != null -> LowValExpr(toPosition(conf.considerPosition))
         else -> TODO()
     }
-}
-
-internal fun ForstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ForStmt {
-    val assignment = this.beginfor().csFOR().expression(0).toAst(conf)
-    val endValue = this.beginfor().csFOR().expression(1).toAst(conf)
-    return ForStmt(
-            assignment,
-            endValue,
-            this.statement().map { it.toAst(conf) },
-            toPosition(conf.considerPosition))
-}
-
-internal fun SelectstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectStmt {
-    val whenClauses = this.whenstatement().map { it.toAst(conf) }
-    // Unfortunately the other clause ends up being part of the when clause so we should
-    // unfold it
-    // TODO change this in the grammar
-    val statementsOfLastWhen = if (this.whenstatement().isEmpty())
-            emptyList()
-        else
-            this.whenstatement().last().statement().map { it.toAst(conf) }
-    val indexOfOther = statementsOfLastWhen.indexOfFirst { it is OtherStmt }
-    var other : SelectOtherClause? = null
-    if (indexOfOther != -1) {
-        val otherPosition = if (conf.considerPosition) {
-            Position(statementsOfLastWhen[indexOfOther].position!!.start, statementsOfLastWhen.last().position!!.end)
-        } else {
-            null
-        }
-        other = SelectOtherClause(statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size), position = otherPosition)
-    }
-
-    return SelectStmt(whenClauses, other, toPosition(conf.considerPosition))
-}
-
-internal fun WhenstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectCase {
-    // Unfortunately the other clause ends up being part of the when clause so we should
-    // unfold it
-    // TODO change this in the grammar
-    var statementsToConsider = this.statement().map { it.toAst(conf) }
-    val indexOfOther = statementsToConsider.indexOfFirst { it is OtherStmt }
-    if (indexOfOther != -1) {
-        statementsToConsider = statementsToConsider.subList(0, indexOfOther)
-    }
-    return SelectCase(
-            this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
-            statementsToConsider,
-            toPosition(conf.considerPosition)
-    )
-}
-
-internal fun OtherContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
-    TODO()
-}
-
-internal fun IfstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): IfStmt {
-    return IfStmt(this.beginif().fixedexpression.expression().toAst(conf),
-            this.thenBody.map { it.toAst(conf) },
-            this.elseIfClause().map { it.toAst(conf) },
-            this.elseClause()?.toAst(conf),
-            toPosition(conf.considerPosition))
-}
-
-internal fun ElseClauseContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ElseClause {
-    return ElseClause(this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
-}
-
-internal fun ElseIfClauseContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ElseIfClause {
-    return ElseIfClause(
-            this.elseifstmt().fixedexpression.expression().toAst(conf),
-            this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
 }
 
 internal fun Cspec_fixedContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
@@ -226,8 +146,6 @@ internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
             dataDeclaration,
             toPosition(conf.considerPosition))
 }
-
-
 
 internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistStmt {
     val isEntry = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor().symbolicConstants().SPLAT_ENTRY() != null
@@ -299,4 +217,3 @@ internal fun CsCALLContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
             this.csPARM().map { it.toAst(conf) },
             toPosition(conf.considerPosition))
 }
-

@@ -189,7 +189,7 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
         else -> endPosition - startPosition.toInt() + 1
     }
 
-    var baseType = when (this.DATA_TYPE()?.text?.trim()) {
+    val baseType = when (this.DATA_TYPE()?.text?.trim()) {
         null -> TODO()
         "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
             val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
