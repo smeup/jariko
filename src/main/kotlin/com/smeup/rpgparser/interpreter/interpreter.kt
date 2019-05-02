@@ -19,8 +19,8 @@ class SymbolTable {
 
     operator fun get(data: AbstractDataDefinition) : Value {
         if (data is FieldDefinition) {
-            val containerValue = get(data.container!!)
-            return if (data.container!!.isArray()) {
+            val containerValue = get(data.container)
+            return if (data.container.isArray()) {
                 ProjectedArrayValue(containerValue as ArrayValue, data)
             } else {
                 (containerValue as StructValue).elements[data]!!
@@ -35,7 +35,7 @@ class SymbolTable {
             return values[data] ?: throw IllegalArgumentException("Cannot find searchedValued for $data")
         }
         for (e in values) {
-            val field = (e.key as DataDefinition).fields?.firstOrNull { it.name == dataName }
+            val field = (e.key as DataDefinition).fields.firstOrNull { it.name == dataName }
             if (field != null) {
                 return ProjectedArrayValue(e.value as ArrayValue, field)
             }
