@@ -25,6 +25,7 @@ data class StringValue(var value: String) : Value() {
 
     companion object {
         fun blank(length: Int) = StringValue("\u0000".repeat(length))
+        fun padded(value: String, size: Int) = StringValue(value.padEnd(size, '\u0000'))
     }
 
     override fun equals(other: Any?): Boolean {

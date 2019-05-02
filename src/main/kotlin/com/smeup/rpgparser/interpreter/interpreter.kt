@@ -72,11 +72,13 @@ data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, va
 }
 
 class LeaveException : Exception()
+class IterException : Exception()
 
 class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
     var traceMode : Boolean = false
+    var cycleLimit : Int? = null
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
@@ -215,15 +217,20 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 is CallStmt -> {
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
-                    val params = statement.params.map { it.paramName to get(it.paramName) }.toMap()
+                    val params = statement.params.mapIndexed { index, it -> program.params()[index].name to get(it.paramName) }.toMap()
                     program.execute(systemInterface, params)
                 }
                 is DoStmt -> {
                     if (statement.index == null) {
                         var myIterValue = eval(statement.startLimit).asInt()
                         try {
-                            while (isEqualOrSmaller(myIterValue, eval(statement.endLimit))) {
-                                execute(statement.body)
+                            while ((cycleLimit == null || (cycleLimit as Int) >= myIterValue.value) &&
+                                    isEqualOrSmaller(myIterValue, eval(statement.endLimit))) {
+                                try {
+                                    execute(statement.body)
+                                } catch (e : IterException) {
+                                    // nothing to do here
+                                }
                                 myIterValue = myIterValue.increment()
                             }
                         } catch (e: LeaveException) {
@@ -232,8 +239,13 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     } else {
                         assign(statement.index, statement.startLimit)
                         try {
-                            while (isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))) {
-                                execute(statement.body)
+                            while ((cycleLimit == null || (cycleLimit as Int) >= eval(statement.index).asInt().value) &&
+                                    isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))) {
+                                try {
+                                    execute(statement.body)
+                                } catch (e : IterException) {
+                                    // nothing to do here
+                                }
                                 assign(statement.index, PlusExpr(statement.index, IntLiteral(1)))
                             }
                         } catch (e: LeaveException) {
@@ -242,6 +254,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     }
                 }
                 is LeaveStmt -> throw LeaveException()
+                is IterStmt -> throw IterException()
                 else -> TODO(statement.toString())
             }
         } catch (e : InterruptForDebuggingPurposes) {
@@ -396,6 +409,11 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 val right = interpret(expression.right)
                 return areEquals(left, right).asValue()
             }
+            is DifferentThanExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return (!areEquals(left, right)).asValue()
+            }
             is GreaterThanExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
@@ -452,8 +470,21 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 }
                 return StringValue(s)
             }
+            is LogicalAndExpr -> {
+                val left = eval(expression.left).asBoolean().value
+                return if (left) {
+                    eval(expression.right)
+                } else {
+                    BooleanValue(false)
+                }
+            }
             is LogicalOrExpr -> {
-                return (eval(expression.left).asBoolean().value || eval(expression.right).asBoolean().value).asValue()
+                val left = eval(expression.left).asBoolean().value
+                return if (left) {
+                    BooleanValue(true)
+                } else {
+                    eval(expression.right)
+                }
             }
             is OnRefExpr -> {
                 return BooleanValue(true)
@@ -463,6 +494,19 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
             is TrimExpr -> {
                 return StringValue(eval(expression.value).asString().value.trim())
+            }
+            is ScanExpr -> {
+                var startIndex = 0
+                if (expression.start != null) {
+                    startIndex = eval(expression.start).asInt().value.toInt()
+                }
+                val value = eval(expression.value).asString().valueWithoutPadding
+                val source = eval(expression.source).asString().valueWithoutPadding
+                val result = source.indexOf(value, startIndex)
+                return IntValue(if (result == -1) 0 else result.toLong() + 1)
+            }
+            is OffRefExpr -> {
+                return BooleanValue(false)
             }
             else -> TODO(expression.toString())
         }
@@ -507,4 +551,5 @@ object DummySystemInterface : SystemInterface {
 
 }
 
+// Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
