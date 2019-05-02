@@ -515,6 +515,23 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 val result = source.indexOf(value, startIndex)
                 return IntValue(if (result == -1) 0 else result.toLong() + 1)
             }
+            is SubstExpr -> {
+                val length = if (expression.length != null) eval(expression.length!!).asInt().value.toInt() else null
+                val start = eval(expression.start).asInt().value.toInt()
+                val originalString = eval(expression.string).asString().value
+                return if (length == null) {
+                    StringValue(originalString.substring(start))
+                } else {
+                    StringValue(originalString.substring(start, start + length))
+                }
+            }
+            is LenExpr -> {
+                val value = eval(expression.value)
+                return when (value) {
+                    is StringValue -> value.valueWithoutPadding.length.asValue()
+                    else -> TODO(value.toString())
+                }
+            }
             is OffRefExpr -> {
                 return BooleanValue(false)
             }

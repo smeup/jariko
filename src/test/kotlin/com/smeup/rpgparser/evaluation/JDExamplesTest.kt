@@ -224,6 +224,58 @@ class JDExamplesTest {
         assertEquals(0, callsToNfyeve.size)
     }
 
+    @Test
+    fun executeJD_002_listenFldProduceOutput() {
+        val si = CollectorSystemInterface()
+        val callsToListFld = LinkedList<Map<String, Value>>()
+        val callsToNfyeve = LinkedList<Map<String, Value>>()
+        si.programs["LISTEN_FLD"] = object : JvmProgram("LISTEN_FLD", listOf(
+                ProgramParam("foldern", StringType(100)),
+                ProgramParam("name", StringType(10)),
+                ProgramParam("tip", StringType(10)),
+                ProgramParam("ope", StringType(10)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                callsToListFld.add(params)
+                return listOf(params["foldern"]!!,
+                        StringValue.padded("myFile.png", 10),
+                        StringValue.padded("FILE", 10),
+                        StringValue.padded("ADD", 10))
+            }
+        }
+        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("meto", StringType(10)),
+                ProgramParam("var", StringType(10)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                callsToNfyeve.add(params)
+                throw InterruptForDebuggingPurposes()
+            }
+        }
+        val cu = assertASTCanBeProduced("JD_002", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf(
+                "U\$FUNZ" to "INZ".asValue(),
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
+                    when (i) {
+                        0 -> "Folder".padEnd(50, '\u0000') + "my/path/to/folder".padEnd(1000, '\u0000')
+                        1 -> "Mode".padEnd(50, '\u0000') + "ADD".padEnd(1000, '\u0000')
+                        2 -> "Filter".padEnd(50, '\u0000') + "*.png".padEnd(1000, '\u0000')
+                        else -> "".padEnd(1050, '\u0000')
+                    }.asValue()
+                }), systemInterface = si, traceMode = true, cycleLimit = 5)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
+        assertEquals(5, callsToListFld.size)
+        assertEquals(
+                mapOf(
+                        "foldern" to StringValue.padded("my/path/to/folder", 1000),
+                        "name" to StringValue.blank(10),
+                        "tip" to StringValue.blank(10),
+                        "ope" to StringValue.blank(10)
+                ), callsToListFld[0])
+        assertEquals(0, callsToNfyeve.size)
+    }
+
 //    TODO: to solve this we should handle params being data declarations, sometimes
 //    @Test
 //    fun executeJD_000() {
