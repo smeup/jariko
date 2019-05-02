@@ -454,6 +454,14 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
             }
+            is MinusExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                when {
+                    left is IntValue && right is IntValue -> IntValue(left.value - right.value)
+                    else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
+                }
+            }
             is CharExpr -> {
                 val value = interpret(expression.value)
                 return StringValue(render(value))
@@ -467,7 +475,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(expression.array) as ArrayValue
                 val indexValue = interpret(expression.index)
-                return arrayValue.getElement(indexValue.asInt().value.toInt() - 1)
+                return arrayValue.getElement(indexValue.asInt().value.toInt())
 
             }
             is HiValExpr -> return HiValValue
@@ -517,7 +525,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
             is SubstExpr -> {
                 val length = if (expression.length != null) eval(expression.length!!).asInt().value.toInt() else null
-                val start = eval(expression.start).asInt().value.toInt()
+                val start = eval(expression.start).asInt().value.toInt() - 1
                 val originalString = eval(expression.string).asString().value
                 return if (length == null) {
                     StringValue(originalString.substring(start))

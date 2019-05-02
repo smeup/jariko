@@ -265,7 +265,7 @@ class JDExamplesTest {
                 }), systemInterface = si, traceMode = true, cycleLimit = 5)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
-        assertEquals(5, callsToListFld.size)
+        assertEquals(1, callsToListFld.size)
         assertEquals(
                 mapOf(
                         "foldern" to StringValue.padded("my/path/to/folder", 1000),
@@ -273,7 +273,17 @@ class JDExamplesTest {
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])
-        assertEquals(0, callsToNfyeve.size)
+        assertEquals(1, callsToNfyeve.size)
+        val v = callsToNfyeve[0]["var"] as ArrayValue
+        assertEquals(StringValue("Object name".padEnd(50, '\u0000')
+                + "myFile.png".padEnd(1000, '\u0000')),
+                v.getElement(1))
+        assertEquals(StringValue("Object type".padEnd(50, '\u0000')
+                + "FILE".padEnd(1000, '\u0000')),
+                v.getElement(2))
+        assertEquals(StringValue("Operation type".padEnd(50, '\u0000')
+                + "ADD".padEnd(1000, '\u0000')),
+                v.getElement(3))
     }
 
 //    TODO: to solve this we should handle params being data declarations, sometimes

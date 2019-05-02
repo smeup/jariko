@@ -109,7 +109,7 @@ abstract class ArrayValue : Value() {
     fun elements() : List<Value> {
         val elements = LinkedList<Value>()
         for (i in 0 until (arrayLength())) {
-            elements.add(getElement(i))
+            elements.add(getElement(i + 1))
         }
         return elements
     }
@@ -127,13 +127,16 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     override fun arrayLength() = elements.size
 
     override fun setElement(index: Int, value: Value) {
+        require(index >= 0)
+        require(index <= arrayLength())
         require(value.assignableTo(elementType))
-        elements[index] = value
+        elements[index - 1] = value
     }
 
     override fun getElement(index: Int) : Value {
-        require(index < arrayLength())
-        return elements[index]
+        require(index >= 0)
+        require(index <= arrayLength())
+        return elements[index - 1]
     }
 
 }
@@ -174,6 +177,8 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
     override fun arrayLength() = container.arrayLength()
 
     override fun setElement(index: Int, value: Value) {
+        require(index >= 1)
+        require(index <= arrayLength())
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val containerElement =  container.getElement(index)
         if (containerElement is StringValue) {
