@@ -3,6 +3,7 @@ package com.smeup.rpgparser.parsetreetoast
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.ast.*
 import com.strumenta.kolasu.mapping.toPosition
+import com.strumenta.kolasu.model.ReferenceByName
 
 internal fun RpgParser.SimpleExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
@@ -41,5 +42,45 @@ fun RpgParser.ExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfigura
         this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
                 && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
         else -> TODO(this.text.toString())
+    }
+}
+
+internal fun RpgParser.LiteralContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+    return StringLiteral(this.content?.text ?: "", toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.NumberContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : NumberLiteral {
+    require(this.NumberPart().isEmpty())
+    require(this.MINUS() == null)
+    val text = this.NUMBER().text
+    return if (text.contains('.')) {
+        RealLiteral(text.toDouble(), this.toPosition(conf.considerPosition))
+    } else {
+        IntLiteral(text.toLong(), this.toPosition(conf.considerPosition))
+    }
+}
+
+internal fun RpgParser.IdentifierContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
+    return when (this.text.toUpperCase()) {
+        "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
+        "*ZERO", "*ZEROS" -> TODO()
+        "*HIVAL" -> HiValExpr(toPosition(conf.considerPosition))
+        "*LOWVAL" -> LowValExpr(toPosition(conf.considerPosition))
+        "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
+        "*OFF" -> OffRefExpr(toPosition(conf.considerPosition))
+        else -> when {
+            this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(
+                    this.text.indicatorIndex()!!,
+                    toPosition(conf.considerPosition))
+            else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
+        }
+    }
+}
+
+internal fun String.indicatorIndex() : Int? {
+    return if (this.startsWith("*IN")) {
+        this.substring("*IN".length).toIntOrNull()
+    } else {
+        null
     }
 }
