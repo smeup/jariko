@@ -106,10 +106,8 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
-
-        //TODO check why certain values have length 1016, instead of the expected length
-
-        require(data.canBeAssigned(value)) { "$data cannot be assigned the value $value"}
+        require(data.canBeAssigned(value)) {
+            "$data cannot be assigned the value $value"}
 
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
@@ -246,16 +244,39 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 is LeaveStmt -> throw LeaveException()
                 else -> TODO(statement.toString())
             }
+        } catch (e : InterruptForDebuggingPurposes) {
+            throw e
         } catch (e : RuntimeException) {
             throw RuntimeException("Issue executing statement $statement", e)
         }
     }
 
+    enum class Comparison {
+        SMALLER,
+        EQUAL,
+        GREATER
+    }
+
+
     private fun isEqualOrSmaller(value1: Value, value2: Value) : Boolean {
+        val cmp = compare(value1, value2)
+        return cmp == Comparison.SMALLER || cmp == Comparison.EQUAL
+    }
+
+    private fun isGreaterThan(value1: Value, value2: Value) : Boolean {
+        val cmp = compare(value1, value2)
+        return cmp == Comparison.GREATER
+    }
+
+    private fun compare(value1: Value, value2: Value) : Comparison {
         return when {
-            value1 is IntValue && value2 is IntValue -> value1.value <= value2.value
+            value1 is IntValue && value2 is IntValue -> when {
+                value1.value == value2.value -> Comparison.EQUAL
+                value1.value < value2.value -> Comparison.SMALLER
+                else -> Comparison.GREATER
+            }
             value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
-            value2 is HiValValue -> true
+            value2 is HiValValue -> Comparison.SMALLER
             else -> TODO("Value 1 is $value1, Value 2 is $value2")
         }
     }
@@ -338,7 +359,10 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is StringValue -> {
                 when (type) {
                     is StringType -> {
-                        val s = value.value.padEnd(type.length.toInt(), '\u0000')
+                        var s = value.value.padEnd(type.length.toInt(), '\u0000')
+                        if (value.value.length > type.length) {
+                           s = s.substring(0, type.length.toInt())
+                        }
                         return StringValue(s)
                     }
                     else -> TODO(type.toString())
@@ -371,6 +395,11 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 return areEquals(left, right).asValue()
+            }
+            is GreaterThanExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return isGreaterThan(left, right).asValue()
             }
             is BlanksRefExpr -> {
                 return BlanksValue
@@ -477,3 +506,5 @@ object DummySystemInterface : SystemInterface {
     }
 
 }
+
+class InterruptForDebuggingPurposes : RuntimeException()
