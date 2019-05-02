@@ -97,19 +97,25 @@ class DataDefinitionTest {
         assertEquals(1050, dataDefinition.elementSize())
     }
 
-    @test fun dsNotArray() {
+    @test fun dsNotArrayWithOffsets() {
         val cu = processDataDefinition("D DSDX3           DS            50       \n" +
-                "D  \$TIPO                  1      2       \n" +
-                "D  \$OBBL                  3      3       \n" +
-                "D  \$INDI                  4      5       \n" +
-                "D  \$PARA                 21     30")
+                "     D  \$TIPO                  1      2       \n" +
+                "     D  \$OBBL                  3      3       \n" +
+                "     D  \$INDI                  4      5       \n" +
+                "     D  \$PARA                 21     30")
         val dataDef = cu.assertDataDefinitionIsPresent("DSDX3", DataStructureType(
                 listOf(
                         FieldType("\$TIPO", StringType(2)),
                         FieldType("\$OBBL", StringType(1)),
                         FieldType("\$INDI", StringType(2)),
                         FieldType("\$PARA", StringType(10))),
-                50))
+                50),
+                listOf(
+                        FieldDefinition("\$TIPO", StringType(2), 1, 2),
+                        FieldDefinition("\$OBBL", StringType(1), 3, 3),
+                        FieldDefinition("\$INDI", StringType(2), 4, 5),
+                        FieldDefinition("\$PARA", StringType(10), 21, 30)
+                ))
         assertEquals(1, dataDef.fields[0].startOffset)
         assertEquals(2, dataDef.fields[0].endOffset)
         assertEquals(3, dataDef.fields[1].startOffset)

@@ -39,6 +39,8 @@ data class DataDefinition(override val name: String,
 
 data class FieldDefinition(override val name: String,
                            override val type: Type,
+                           val explicitStartOffset: Int? = null,
+                           val explicitEndOffset: Int? = null,
                            override val position: Position? = null)
             : AbstractDataDefinition(name, type, position) {
     val size : Long = type.size
@@ -48,10 +50,10 @@ data class FieldDefinition(override val name: String,
         get() = this.parent as DataDefinition
     // TODO consider overlay directive
     val startOffset: Int
-        get() = container.startOffset(this)
+        get() = explicitStartOffset ?: container.startOffset(this)
     // TODO consider overlay directive
     val endOffset: Int
-        get() = container.endOffset(this)
+        get() = explicitEndOffset ?: container.endOffset(this)
 }
 
 // Positions 64 through 68 specify the length of the result field. This entry is optional, but can be used to define a

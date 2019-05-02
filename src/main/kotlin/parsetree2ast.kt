@@ -308,24 +308,34 @@ private fun ParserRuleContext.rContext(): RContext {
     }
 }
 
+val Dcl_dsContext.nameIsInFirstLine : Boolean
+    get() {
+        return this.ds_name().text.trim().isNotEmpty()
+    }
+
 val Dcl_dsContext.name : String
     get() {
-        return if (this.ds_name().text.trim().isEmpty()) {
+        return if (nameIsInFirstLine) {
+            this.ds_name().text.trim()
+        } else {
             require(this.parm_fixed().isNotEmpty())
             val header = this.parm_fixed().first()
             header.ds_name().text
-        } else {
-            TODO()
         }
     }
 
-fun Dcl_dsContext.type(conf : ToAstConfiguration = ToAstConfiguration()) : Type {
+val Dcl_dsContext.hasHeader : Boolean
+    get() {
+        return this.ds_name().text.trim().isEmpty()
+    }
+
+fun Dcl_dsContext.type(size: Int? = null, conf : ToAstConfiguration = ToAstConfiguration()) : Type {
     val header = this.parm_fixed().first()
     val dim : Expression? = header.keyword().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt() else null
-    val others = this.parm_fixed().drop(1)
+    val others = this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
     val elementSize = this.elementSizeOf()
-    val baseType = DataStructureType(others.map { it.toFieldType() }, elementSize)
+    val baseType = DataStructureType(others.map { it.toFieldType() }, size ?: elementSize)
     return if (nElements == null) {
         baseType
     } else {
@@ -334,41 +344,66 @@ fun Dcl_dsContext.type(conf : ToAstConfiguration = ToAstConfiguration()) : Type 
 }
 
 private fun Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
-    require(this.TO_POSITION().text.trim().isEmpty())
-    if (this.ds_name().text.trim().isEmpty()) {
-        require(this.parm_fixed().isNotEmpty())
-        val others = this.parm_fixed().drop(1)
-        val type : Type = this.type()
-        val nElements = if (type is ArrayType) {
-            type.nElements
-        } else {
-            null
-        }
-        return DataDefinition(
-                this.name,
-                type,
-                fields = others.map { it.toAst(nElements, conf) },
-                position = this.toPosition(true))
+    val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
+        this.TO_POSITION().text.trim().toInt()
     } else {
-        TODO()
+        null
+    }
+    require(this.parm_fixed().isNotEmpty())
+    val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
+    val type : Type = this.type(size)
+    val nElements = if (type is ArrayType) {
+        type.nElements
+    } else {
+        null
+    }
+    return DataDefinition(
+            this.name,
+            type,
+            fields = others.map { it.toAst(nElements, conf) },
+            position = this.toPosition(true))
+}
+
+fun Parm_fixedContext.explicitStartOffset() : Int? {
+    val text = this.FROM_POSITION().text.trim()
+    return if (text.isBlank()) {
+        null
+    } else {
+        text.toInt()
+    }
+}
+
+fun Parm_fixedContext.explicitEndOffset() : Int? {
+    val text = this.TO_POSITION().text.trim()
+    return if (text.isBlank()) {
+        null
+    } else {
+        text.toInt()
     }
 }
 
 private fun Parm_fixedContext.toAst(
         nElements: Int?,
         conf : ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
-    val length = this.TO_POSITION().text.trim().toLong()
-    var baseType : Type = StringType(length)
+    var baseType = this.toType()
     if (nElements != null) {
         baseType = ArrayType(baseType, nElements)
     }
     return FieldDefinition(this.ds_name().text,
             baseType,
+            explicitStartOffset = this.explicitStartOffset(),
+            explicitEndOffset = this.explicitEndOffset(),
             position = this.toPosition(conf.considerPosition))
 }
 
-private fun Parm_fixedContext.toFieldType(): FieldType {
-    val elementSize = this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
+private fun Parm_fixedContext.toType(): Type {
+    val startPosition = this.explicitStartOffset()
+    val endPosition = this.explicitEndOffset()
+    val elementSize = when {
+        startPosition == null -> endPosition
+        endPosition == null -> endPosition
+        else -> endPosition - startPosition.toInt() + 1
+    }
 
     var baseType = when (this.DATA_TYPE()?.text?.trim()) {
         null -> TODO()
@@ -381,7 +416,11 @@ private fun Parm_fixedContext.toFieldType(): FieldType {
         "N" -> BooleanType
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
-    return FieldType(this.ds_name().text, baseType)
+    return baseType
+}
+
+private fun Parm_fixedContext.toFieldType(): FieldType {
+    return FieldType(this.ds_name().text, this.toType())
 }
 
 
