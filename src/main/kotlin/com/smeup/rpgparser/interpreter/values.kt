@@ -87,11 +87,19 @@ data class IntValue(val value: Long) : Value() {
 
     override fun asInt() = this
     fun increment() = IntValue(value + 1)
+
+    companion object {
+        val ZERO = IntValue(0)
+    }
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         return expectedType is NumberType
+    }
+
+    companion object {
+        val ZERO = DecimalValue(BigDecimal.ZERO)
     }
 
 }
@@ -101,6 +109,11 @@ data class BooleanValue(val value: Boolean) : Value() {
     }
 
     override fun asBoolean() = this
+
+    companion object {
+        val FALSE = BooleanValue(false)
+        val TRUE = BooleanValue(true)
+    }
 }
 abstract class ArrayValue : Value() {
     abstract fun arrayLength() : Int

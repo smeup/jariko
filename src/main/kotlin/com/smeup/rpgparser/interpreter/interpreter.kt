@@ -77,6 +77,7 @@ class IterException : Exception()
 class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
+    private val predefinedIndicators = HashMap<Int, Value>()
     var traceMode : Boolean = false
     var cycleLimit : Int? = null
 
@@ -376,6 +377,13 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                             blankValue(type.element)
                         }
                     }
+                    is NumberType -> {
+                        if (type.integer) {
+                            IntValue.ZERO
+                        } else {
+                            DecimalValue.ZERO
+                        }
+                    }
                     else -> TODO(type.toString())
                 }
             }
@@ -542,6 +550,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
             is OffRefExpr -> {
                 return BooleanValue(false)
+            }
+            is PredefinedIndicatorExpr -> {
+                return predefinedIndicators[expression.index] ?: BooleanValue.FALSE
             }
             else -> TODO(expression.toString())
         }

@@ -55,6 +55,12 @@ fun CompilationUnit.resolve() {
         }
     }
 
+    this.specificProcess(EvalStmt::class.java) { s ->
+        if (s.expression is EqualityExpr) {
+            s.expression.replace((s.expression as EqualityExpr).toAssignment())
+        }
+    }
+
     this.specificProcess(PlistParam::class.java) { pp ->
         if (!pp.param.resolved) {
             require(pp.param.tryToResolve(this.allDataDefinitions)) {
@@ -62,4 +68,12 @@ fun CompilationUnit.resolve() {
             }
         }
     }
+}
+
+private fun EqualityExpr.toAssignment(): AssignmentExpr {
+    return AssignmentExpr(
+            this.left as AssignableExpression,
+            this.right,
+            this.position
+    )
 }
