@@ -1,8 +1,11 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.facade
 
+import com.smeup.rpgparser.RpgLexer
+import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.ExpressionContext
 import com.smeup.rpgparser.RpgParser.RContext
 import com.smeup.rpgparser.ast.CompilationUnit
+import com.smeup.rpgparser.toAst
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.endPoint
@@ -57,7 +60,8 @@ class RpgParserFacade {
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.LEXICAL, errorMessage ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+                errors.add(Error(ErrorType.LEXICAL, errorMessage
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
             }
         })
         val tokens = LinkedList<Token>()
@@ -82,14 +86,16 @@ class RpgParserFacade {
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.LEXICAL, errorMessage ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+                errors.add(Error(ErrorType.LEXICAL, errorMessage
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
             }
         })
         val commonTokenStream = CommonTokenStream(lexer)
         val parser = RpgParser(commonTokenStream)
         parser.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.SYNTACTIC, errorMessage ?: "unspecified"))
+                errors.add(Error(ErrorType.SYNTACTIC, errorMessage
+                        ?: "unspecified"))
             }
         })
         parser.removeErrorListeners()

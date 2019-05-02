@@ -5,6 +5,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.ast.CompilationUnit
 import com.smeup.rpgparser.ast.DataRefExpr
 import com.smeup.rpgparser.ast.Expression
+import com.smeup.rpgparser.facade.RpgParserFacade
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token

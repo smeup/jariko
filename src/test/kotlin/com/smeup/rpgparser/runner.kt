@@ -1,5 +1,6 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
 
 class ConsoleSystemInterface() : SystemInterface {

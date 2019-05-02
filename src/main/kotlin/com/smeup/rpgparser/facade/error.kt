@@ -1,4 +1,4 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.facade
 
 import com.strumenta.kolasu.model.Position
 

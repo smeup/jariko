@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.RpgParserFacade
+import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.ast.CompilationUnit
 import com.smeup.rpgparser.resolve
 import java.io.InputStream
