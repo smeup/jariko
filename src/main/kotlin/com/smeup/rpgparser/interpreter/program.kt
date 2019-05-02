@@ -34,8 +34,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
     }
 
     override fun execute(systemInterface: SystemInterface, paramValues: Map<String, Value>) : List<Value> {
-        require(paramValues.keys.toSet() == params().map { it.name }.toSet()) {
-            "Expected params: ${params().map { it.name }.joinToString(", ")}"
+        require(paramValues.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
+            "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
         val interpreter = Interpreter(systemInterface, programName = name)
         for (pv in paramValues) {

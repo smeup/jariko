@@ -81,7 +81,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     var cycleLimit : Int? = null
 
     fun getLogs() = logs
-    fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
+    fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
     fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
     fun getAssignments() = logs.filterIsInstance(AssignmentLogEntry::class.java)
@@ -89,7 +89,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
      * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
     fun getEvaluatedExpressionsConcise() : List<ExpressionEvaluationLogEntry> {
-        val base= logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
+        val base= logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
         var i = 0
         while (i < base.size) {
             val current = base[i]
@@ -192,7 +192,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 is ForStmt -> {
                     eval(statement.init)
                     // TODO consider DOWNTO
-                    while (isEqualOrSmaller(this.get(statement.iterDataDefinition()), eval(statement.endValue))) {
+                    while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
                         execute(statement.body)
                         increment(statement.iterDataDefinition())
                     }

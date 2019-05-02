@@ -15,8 +15,8 @@ data class ToAstConfiguration(val considerPosition: Boolean = true,
                               val compileTimeInterpreter : CompileTimeInterpreter = CommonCompileTimeInterpreter)
 
 fun List<Node>.position() : Position? {
-    val start = this.map { it.position?.start }.filterNotNull().sorted()
-    val end = this.map { it.position?.end }.filterNotNull().sorted()
+    val start = this.asSequence().map { it.position?.start }.filterNotNull().sorted().toList()
+    val end = this.asSequence().map { it.position?.end }.filterNotNull().sorted().toList()
     return if (start.isEmpty() || end.isEmpty()) {
         null
     } else {
@@ -167,10 +167,12 @@ internal fun CsSETONContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
 
 internal fun indicators(cspecs: Cspec_fixed_standard_partsContext) : List<DataWrapUpChoice> {
     return listOf(cspecs.hi, cspecs.lo, cspecs.eq)
+            .asSequence()
             .map { it.text }
             .filter { !it.isNullOrBlank() }
             .map (String::toUpperCase)
             .map(DataWrapUpChoice::valueOf)
+            .toList()
 }
 
 internal fun CsEXSRContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ExecuteSubroutine {

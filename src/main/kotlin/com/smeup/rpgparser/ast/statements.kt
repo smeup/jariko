@@ -14,13 +14,6 @@ interface StatementThatCanDefineData {
 enum class AssignmentOperator(val text: String) {
     DIVIDE_ASSIGNMENT("/="),
     NORMAL_ASSIGNMENT("=");
-
-    companion object {
-        fun byText(text: String) : AssignmentOperator {
-            return AssignmentOperator.values().firstOrNull { it.text == text }
-                    ?: throw IllegalArgumentException("No assignment operator with text $text found")
-        }
-    }
 }
 
 abstract class Statement(override val position: Position? = null) : Node(position)
