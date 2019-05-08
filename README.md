@@ -50,6 +50,11 @@ If you want to force the execution of all checks:
 ./gradlew check -rerun-tasks
 ```
 
+(_Side note: if you get this error running tests_
+ ```
+ com.esotericsoftware.kryo.KryoException: Buffer underflow
+ ```
+ _try to clean the .gradle directory_)
 
 ## How the repository is organized
 
