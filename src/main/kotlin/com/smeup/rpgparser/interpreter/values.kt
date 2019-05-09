@@ -9,6 +9,7 @@ abstract class Value {
     open fun asString() : StringValue = throw UnsupportedOperationException()
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
     abstract fun assignableTo(expectedType: Type): Boolean
+    open fun asArray(): ArrayValue = throw UnsupportedOperationException()
 }
 
 data class StringValue(var value: String) : Value() {
@@ -134,6 +135,8 @@ abstract class ArrayValue : Value() {
         }
         return false
     }
+
+    override fun asArray() = this
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
     override fun elementSize() = elementType.size.toInt()

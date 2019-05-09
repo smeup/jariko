@@ -6,6 +6,7 @@ import com.smeup.rpgparser.ast.CompilationUnit
 import com.smeup.rpgparser.ast.DataRefExpr
 import com.smeup.rpgparser.ast.Expression
 import com.smeup.rpgparser.facade.RpgParserFacade
+import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
@@ -121,8 +122,11 @@ fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))
 class CollectorSystemInterface : SystemInterface {
     val displayed = LinkedList<String>()
     val programs = HashMap<String, Program>()
+    val functions = HashMap<String, Function>()
 
     override fun findProgram(name: String) = programs[name]
+    override fun findFunction(globalSymbolTable: SymbolTable, name: String) = functions[name]
+
     override fun display(value: String) {
         displayed.add(value)
     }

@@ -344,25 +344,47 @@ class JDExamplesTest {
     fun executeJD_003() {
         val si = CollectorSystemInterface()
         val callsToRcvsck = LinkedList<Map<String, Value>>()
-//        val callsToNfyeve = LinkedList<Map<String, Value>>()
+        val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["JD_RCVSCK"] = object : JvmProgram("LISTEN_FLD", listOf(
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
             override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 callsToRcvsck.add(params)
-                return listOf(params["addr"]!!, StringValue("MyResult"), IntValue(8))
+                return listOf(params["addr"]!!, StringValue("<myxml></myxml>"), IntValue("<myxml></myxml>".length.toLong()))
             }
         }
-//        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
-//                ProgramParam("funz", StringType(10)),
-//                ProgramParam("meto", StringType(10)),
-//                ProgramParam("var", StringType(10)))) {
-//            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
-//                callsToNfyeve.add(params)
-//                throw InterruptForDebuggingPurposes()
-//            }
-//        }
+        si.functions["P_RxELE"] = object : JvmFunction("P_RxELE", listOf(
+                FunctionParam("tag", StringType(50)),
+                FunctionParam("pos", StringType(50)),
+                FunctionParam("index", NumberType(2, 0)),
+                FunctionParam("xml", StringType(5000)))) {
+            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+                assertEquals("Auto", params[0].asString().valueWithoutPadding)
+                assertEquals("POS", params[1].asString().valueWithoutPadding)
+                assertEquals(1, params[2].asInt().value)
+                assertEquals("<myxml></myxml>", params[3].asString().valueWithoutPadding)
+                return StringValue("<riga Targa=\"ZZ000AA\"/>")
+            }
+        }
+        si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
+                FunctionParam("Element", StringType(500)),
+                FunctionParam("AttributeName", StringType(50)))) {
+            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+                assertEquals("<riga Targa=\"ZZ000AA\"/>", params[0].asString().valueWithoutPadding)
+                assertEquals("Targa", params[1].asString().valueWithoutPadding)
+                return StringValue("ZZ000AA")
+            }
+        }
+        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("meto", StringType(10)),
+                ProgramParam("var", StringType(10)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                callsToNfyeve.add(params)
+                throw InterruptForDebuggingPurposes()
+            }
+        }
         val cu = assertASTCanBeProduced("JD_003", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue(),
@@ -377,7 +399,8 @@ class JDExamplesTest {
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(1, callsToRcvsck.size)
         assertEquals("addressToListen", callsToRcvsck[0]["addr"]!!.asString().value)
-//        assertEquals(1, callsToNfyeve.size)
+        assertEquals(1, callsToNfyeve.size)
+        assertEquals("Targa".padEnd(50, '\u0000') + "ZZ000AA".padEnd(1000, '\u0000'), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
     }
 
 }

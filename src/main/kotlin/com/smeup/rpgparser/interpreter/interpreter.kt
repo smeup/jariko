@@ -12,6 +12,7 @@ import kotlin.collections.HashMap
 interface SystemInterface {
     fun display(value: String)
     fun findProgram(name: String) : Program?
+    fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
 }
 
 class SymbolTable {
@@ -557,6 +558,14 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is PredefinedIndicatorExpr -> {
                 return predefinedIndicators[expression.index] ?: BooleanValue.FALSE
             }
+            is FunctionCall -> {
+                val functionToCall = expression.function.name
+                val function = systemInterface.findFunction(globalSymbolTable, functionToCall)
+                        ?: throw RuntimeException("Function $functionToCall cannot be found")
+                // TODO check number and types of params
+                val paramsValues = expression.args.map { eval(it) }
+                return function.execute(systemInterface, paramsValues, globalSymbolTable)
+            }
             else -> TODO(expression.toString())
         }
     }
@@ -589,6 +598,10 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 object DummySystemInterface : SystemInterface {
+    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
+        return null
+    }
+
     override fun findProgram(name: String): Program? {
         return null
     }
