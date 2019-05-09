@@ -28,5 +28,5 @@ repositories {
 }
 
 dependencies {
-  compile module(":rpgJavaInterpreter-core")
+  compile project(":rpgJavaInterpreter-core")
 }
