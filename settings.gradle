@@ -1,3 +1,3 @@
 rootProject.name = "RpgJavaInterpreter"
-include 'rpgJavaInterpreter'
+include 'rpgJavaInterpreter-core'
 include 'examples'
