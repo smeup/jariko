@@ -45,7 +45,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
                 "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
             }
         }
-        interpreter.execute(this, paramValues)
+        interpreter.execute(this.cu, paramValues)
         return params().map { interpreter[it.name] }
     }
 }

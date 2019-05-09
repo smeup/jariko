@@ -31,13 +31,31 @@ data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, va
 class LeaveException : Exception()
 class IterException : Exception()
 
-class InternalInterpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
+interface InterpretationContext {
+    val name: String
+    fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
+    fun shouldReinitialize() : Boolean
+}
+
+object DummyInterpretationContext : InterpretationContext {
+    override val name: String
+        get() = "<UNSPECIFIED>"
+
+    override fun shouldReinitialize() = false
+
+    override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
+        // nothing to do
+    }
+
+}
+
+class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
     private val predefinedIndicators = HashMap<Int, Value>()
+    public var interpretationContext : InterpretationContext = DummyInterpretationContext
     var traceMode : Boolean = false
     var cycleLimit : Int? = null
-    private val dataWrapUpPolicy = HashMap<RpgProgram, DataWrapUpChoice>()
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
@@ -82,8 +100,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, val programName 
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
-                           reinitialization : Boolean = true,
-                           rpgProgram: RpgProgram? = null) {
+                           reinitialization : Boolean = true) {
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
@@ -105,33 +122,19 @@ class InternalInterpreter(val systemInterface: SystemInterface, val programName 
         initialize(compilationUnit, initialValues)
     }
 
-    private fun shouldReinitialize(rpgProgram: RpgProgram?) : Boolean {
-        return if (rpgProgram == null) {
-            true
-        } else {
-            (dataWrapUpPolicy[rpgProgram] ?: DataWrapUpChoice.LR) == DataWrapUpChoice.LR
-        }
-    }
-
-    fun execute(rpgProgram: RpgProgram, initialValues: Map<String, Value>) {
-        initialize(rpgProgram.cu, initialValues, shouldReinitialize(rpgProgram), rpgProgram)
-        rpgProgram.cu.main.stmts.forEach {
-            execute(it, rpgProgram)
-        }
-    }
-
-    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
+    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
+                reinitialization : Boolean = true) {
         initialize(compilationUnit, initialValues, reinitialization)
         compilationUnit.main.stmts.forEach {
             execute(it)
         }
     }
 
-    private fun execute(statements: List<Statement>, rpgProgram: RpgProgram? = null) {
-        statements.forEach { execute(it, rpgProgram) }
+    private fun execute(statements: List<Statement>) {
+        statements.forEach { execute(it) }
     }
 
-    private fun execute(statement: Statement, rpgProgram: RpgProgram? = null) {
+    private fun execute(statement: Statement) {
         try {
             when (statement) {
                 is ExecuteSubroutine -> {
@@ -152,9 +155,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, val programName 
                 }
                 is SetOnStmt -> {
                     statement.choices.forEach {
-                        if (rpgProgram != null) {
-                            dataWrapUpPolicy[rpgProgram] = it
-                        }
+                        interpretationContext.setDataWrapUpPolicy(it)
                     }
                 }
                 is PlistStmt -> null /* Nothing to do here */
@@ -406,7 +407,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, val programName 
                 }
             }
             is DataRefExpr -> get(expression.variable.referred
-                    ?: throw IllegalStateException("[$programName] Unsolved reference ${expression.variable.name} at ${expression.position}"))
+                    ?: throw IllegalStateException("[${interpretationContext.name}] Unsolved reference ${expression.variable.name} at ${expression.position}"))
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
