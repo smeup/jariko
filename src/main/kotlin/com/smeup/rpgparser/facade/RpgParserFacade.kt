@@ -10,6 +10,8 @@ import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.endPoint
 import com.strumenta.kolasu.model.startPoint
+import com.strumenta.kolasu.validation.Error
+import com.strumenta.kolasu.validation.ErrorType
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.apache.commons.io.input.BOMInputStream
