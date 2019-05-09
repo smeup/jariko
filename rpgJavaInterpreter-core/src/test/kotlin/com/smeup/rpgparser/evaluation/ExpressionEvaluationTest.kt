@@ -44,7 +44,7 @@ class ExpressionEvaluationTest {
 
     private fun interpret(expr: Expression, initializations : Map<AbstractDataDefinition, Value> = mapOf()) : Value {
         val systemInterface = DummySystemInterface
-        val interpreter = Interpreter(systemInterface)
+        val interpreter = InternalInterpreter(systemInterface)
         initializations.forEach {
             interpreter[it.key] = it.value
         }

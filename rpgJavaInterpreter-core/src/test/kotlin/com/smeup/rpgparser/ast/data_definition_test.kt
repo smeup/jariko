@@ -85,7 +85,7 @@ class DataDefinitionTest {
     @test fun executeJD_useOfLike() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
-        val interpreter = Interpreter(DummySystemInterface)
+        val interpreter = InternalInterpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
         assertEquals(200, dataDefinition.numberOfElements())
@@ -94,7 +94,7 @@ class DataDefinitionTest {
     @test fun executeJD_useOfDim() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
-        val interpreter = Interpreter(DummySystemInterface)
+        val interpreter = InternalInterpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
         assertEquals(1050, dataDefinition.elementSize())

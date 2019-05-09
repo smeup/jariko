@@ -3,52 +3,8 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.ast.*
 import java.math.BigDecimal
 import java.util.*
+import javax.xml.crypto.Data
 import kotlin.collections.HashMap
-
-/**
- * This represent the interface to the external world.
- * Printing, accessing databases, all sort of interactions should go through this interface.
- */
-interface SystemInterface {
-    fun display(value: String)
-    fun findProgram(name: String) : Program?
-    fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
-}
-
-class SymbolTable {
-    private val values = HashMap<AbstractDataDefinition, Value>()
-
-    operator fun get(data: AbstractDataDefinition) : Value {
-        if (data is FieldDefinition) {
-            val containerValue = get(data.container)
-            return if (data.container.isArray()) {
-                ProjectedArrayValue(containerValue as ArrayValue, data)
-            } else {
-                (containerValue as StructValue).elements[data]!!
-            }
-        }
-        return values[data] ?: throw IllegalArgumentException("Cannot find searchedValued for $data")
-    }
-
-    operator fun get(dataName: String) : Value {
-        val data = values.keys.firstOrNull { it.name == dataName }
-        if (data != null) {
-            return values[data] ?: throw IllegalArgumentException("Cannot find searchedValued for $data")
-        }
-        for (e in values) {
-            val field = (e.key as DataDefinition).fields.firstOrNull { it.name == dataName }
-            if (field != null) {
-                return ProjectedArrayValue(e.value as ArrayValue, field)
-            }
-        }
-        throw IllegalArgumentException("Cannot find searchedValued for $dataName")
-    }
-
-    operator fun set(data: AbstractDataDefinition, value: Value) {
-        values[data] = value
-    }
-
-}
 
 abstract class LogEntry
 data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
@@ -75,13 +31,13 @@ data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, va
 class LeaveException : Exception()
 class IterException : Exception()
 
-class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
+class InternalInterpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
     private val predefinedIndicators = HashMap<Int, Value>()
     var traceMode : Boolean = false
     var cycleLimit : Int? = null
-    private var dataWrapUpPolicy = DataWrapUpChoice.LR
+    private val dataWrapUpPolicy = HashMap<RpgProgram, DataWrapUpChoice>()
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
@@ -125,7 +81,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         logs.add(logEntry)
     }
 
-    private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
+    private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
+                           reinitialization : Boolean = true,
+                           rpgProgram: RpgProgram? = null) {
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
@@ -147,6 +105,21 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         initialize(compilationUnit, initialValues)
     }
 
+    private fun shouldReinitialize(rpgProgram: RpgProgram?) : Boolean {
+        return if (rpgProgram == null) {
+            true
+        } else {
+            (dataWrapUpPolicy[rpgProgram] ?: DataWrapUpChoice.LR) == DataWrapUpChoice.LR
+        }
+    }
+
+    fun execute(rpgProgram: RpgProgram, initialValues: Map<String, Value>) {
+        initialize(rpgProgram.cu, initialValues, shouldReinitialize(rpgProgram), rpgProgram)
+        rpgProgram.cu.main.stmts.forEach {
+            execute(it, rpgProgram)
+        }
+    }
+
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization : Boolean = true) {
         initialize(compilationUnit, initialValues, reinitialization)
         compilationUnit.main.stmts.forEach {
@@ -154,11 +127,11 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         }
     }
 
-    private fun execute(statements: List<Statement>) {
-        statements.forEach { execute(it) }
+    private fun execute(statements: List<Statement>, rpgProgram: RpgProgram? = null) {
+        statements.forEach { execute(it, rpgProgram) }
     }
 
-    private fun execute(statement: Statement) {
+    private fun execute(statement: Statement, rpgProgram: RpgProgram? = null) {
         try {
             when (statement) {
                 is ExecuteSubroutine -> {
@@ -179,7 +152,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 }
                 is SetOnStmt -> {
                     statement.choices.forEach {
-                        dataWrapUpPolicy = it
+                        if (rpgProgram != null) {
+                            dataWrapUpPolicy[rpgProgram] = it
+                        }
                     }
                 }
                 is PlistStmt -> null /* Nothing to do here */
@@ -373,7 +348,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
         return assign(target, eval(value))
     }
 
-    // TODO put it outside Interpreter
+    // TODO put it outside InternalInterpreter
     fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
         return when (value) {
@@ -602,20 +577,7 @@ private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
-object DummySystemInterface : SystemInterface {
-    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
-        return null
-    }
 
-    override fun findProgram(name: String): Program? {
-        return null
-    }
-
-    override fun display(value: String) {
-        // doing nothing
-    }
-
-}
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()

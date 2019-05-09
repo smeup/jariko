@@ -37,7 +37,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         require(paramValues.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
-        val interpreter = Interpreter(systemInterface, programName = name)
+        val interpreter = InternalInterpreter(systemInterface)
         for (pv in paramValues) {
             val expectedType = params().find { it.name == pv.key }!!.type
             val coercedValue = interpreter.coerce(pv.value, expectedType)
@@ -45,7 +45,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
                 "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
             }
         }
-        interpreter.execute(cu, paramValues)
+        interpreter.execute(this, paramValues)
         return params().map { interpreter[it.name] }
     }
 }
