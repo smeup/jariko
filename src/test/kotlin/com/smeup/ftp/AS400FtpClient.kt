@@ -1,6 +1,5 @@
 package com.smeup.ftp
 
-import java.io.Console
 import java.io.File
 import java.io.InputStream
 import java.util.*
