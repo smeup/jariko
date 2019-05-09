@@ -16,47 +16,66 @@ enum class AssignmentOperator(val text: String) {
     NORMAL_ASSIGNMENT("=");
 }
 
+
 abstract class Statement(override val position: Position? = null) : Node(position)
+
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
+
 data class SelectStmt(var cases: List<SelectCase>,
                       var other: SelectOtherClause? = null,
                       override val position: Position? = null) : Statement(position)
+
 data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
+
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
+
 data class EvalStmt(val target: AssignableExpression,
                     var expression: Expression,
                     val operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT,
                     override val position: Position? = null)
     : Statement(position)
+
 data class CallStmt(val expression: Expression, val params: List<PlistParam>,
                     override val position: Position? = null) : Statement(position)
+
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),
                   val elseClause: ElseClause? = null,
                   override val position: Position? = null) : Statement(position)
 
 data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
+
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
+
 data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
+
 data class PlistStmt(val params: List<PlistParam>,
                      val isEntry: Boolean,
                      override val position: Position? = null) : Statement(position)
+
 data class PlistParam(val param: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Node(position)
+
 data class ClearStmt(val value: Expression,
                      @Derived val dataDefinition: InStatementDataDefinition? = null,
                      override val position: Position? = null) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition() = dataDefinition
 }
+
 data class DisplayStmt(val value: Expression, override val position: Position? = null) : Statement(position)
+
 data class DoStmt(
         val endLimit: Expression,
         val index: AssignableExpression?,
         val body: List<Statement>,
         val startLimit: Expression = IntLiteral(1),
         override val position: Position? = null) : Statement(position)
+
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
+
 data class IterStmt(override val position: Position? = null) : Statement(position)
+
 data class OtherStmt(override val position: Position? = null) : Statement(position)
+
 data class ForStmt(
         var init: Expression,
         val endValue: Expression,
