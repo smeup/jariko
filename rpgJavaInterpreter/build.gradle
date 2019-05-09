@@ -30,12 +30,12 @@ repositories {
 dependencies {
   antlr "org.antlr:antlr4:4.5.1"
   compile "org.antlr:antlr4-runtime:4.5.1"
-  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version".toString()
+  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version".toString()
+  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version".toString()
   compile "com.github.ftomassetti:kolasu:fb550d5369"
-  testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-  testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+  testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version".toString()
+  testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
   testCompile 'junit:junit:4.12'
   compile 'commons-io:commons-io:2.6'
   compile 'commons-net:commons-net:3.6'
