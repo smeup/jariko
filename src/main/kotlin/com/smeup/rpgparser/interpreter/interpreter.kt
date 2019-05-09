@@ -193,9 +193,13 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 is ForStmt -> {
                     eval(statement.init)
                     // TODO consider DOWNTO
-                    while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
-                        execute(statement.body)
-                        increment(statement.iterDataDefinition())
+                    try {
+                        while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
+                            execute(statement.body)
+                            increment(statement.iterDataDefinition())
+                        }
+                    } catch (e: LeaveException) {
+                        // leaving
                     }
                 }
                 is IfStmt -> {

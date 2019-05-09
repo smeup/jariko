@@ -340,4 +340,44 @@ class JDExamplesTest {
 //        assertEquals(1, callsToNfyeve.size)
     }
 
+    @Test
+    fun executeJD_003() {
+        val si = CollectorSystemInterface()
+        val callsToRcvsck = LinkedList<Map<String, Value>>()
+//        val callsToNfyeve = LinkedList<Map<String, Value>>()
+        si.programs["JD_RCVSCK"] = object : JvmProgram("LISTEN_FLD", listOf(
+                ProgramParam("addr", StringType(10)),
+                ProgramParam("buffer", StringType(10)),
+                ProgramParam("bufferLen", NumberType(2, 0)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                callsToRcvsck.add(params)
+                return listOf(params["addr"]!!, StringValue("MyResult"), IntValue(8))
+            }
+        }
+//        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+//                ProgramParam("funz", StringType(10)),
+//                ProgramParam("meto", StringType(10)),
+//                ProgramParam("var", StringType(10)))) {
+//            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+//                callsToNfyeve.add(params)
+//                throw InterruptForDebuggingPurposes()
+//            }
+//        }
+        val cu = assertASTCanBeProduced("JD_003", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue(),
+                "\$\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
+                    when (i) {
+                        0 -> "SOCKET".padEnd(50, '\u0000') + "addressToListenTo".padEnd(1000, '\u0000')
+                        else -> "".padEnd(1050, '\u0000')
+                    }.asValue()
+                }),
+                systemInterface = si, traceMode = true, cycleLimit = 5)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
+        assertEquals(1, callsToRcvsck.size)
+        assertEquals("addressToListen", callsToRcvsck[0]["addr"]!!.asString().value)
+//        assertEquals(1, callsToNfyeve.size)
+    }
+
 }
