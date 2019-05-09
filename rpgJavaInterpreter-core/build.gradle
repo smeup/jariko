@@ -38,7 +38,6 @@ dependencies {
   testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
   testCompile 'junit:junit:4.12'
   compile 'commons-io:commons-io:2.6'
-  compile 'commons-net:commons-net:3.6'
 }
 
 generateGrammarSource {
