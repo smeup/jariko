@@ -81,6 +81,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     private val predefinedIndicators = HashMap<Int, Value>()
     var traceMode : Boolean = false
     var cycleLimit : Int? = null
+    private var dataWrapUpPolicy = DataWrapUpChoice.LR
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
@@ -176,7 +177,11 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                         execute(statement.other!!.body)
                     }
                 }
-                is SetOnStmt -> null /* Nothing to do here */
+                is SetOnStmt -> {
+                    statement.choices.forEach {
+                        dataWrapUpPolicy = it
+                    }
+                }
                 is PlistStmt -> null /* Nothing to do here */
                 is ClearStmt -> {
                     return when (statement.value) {
