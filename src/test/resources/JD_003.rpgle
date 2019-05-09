@@ -175,7 +175,7 @@
       * Clear error field
      C                   EVAL      U$IN35=*BLANKS
       *
-     C                   EVAL      $$SVAR=$$SVARSK
+     C                   EVAL      $$SVAR=U$SVARSK
       *
      C                   ENDSR
       *--------------------------------------------------------------*
