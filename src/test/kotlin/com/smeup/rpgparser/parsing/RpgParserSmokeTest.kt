@@ -38,6 +38,21 @@ class RpgParserSmokeTest {
     }
 
     @Test
+    fun parseJD_004() {
+        assertCanBeParsed("JD_004")
+    }
+
+    @Test
+    fun parseJD_005() {
+        assertCanBeParsed("JD_005")
+    }
+
+    @Test
+    fun parseJD_006() {
+        assertCanBeParsed("JD_006")
+    }
+
+    @Test
     fun parseJD_003() {
         assertCanBeParsed("JD_003")
     }
