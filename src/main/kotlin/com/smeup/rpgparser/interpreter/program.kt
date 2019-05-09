@@ -1,8 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.RpgParserFacade
+import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.ast.CompilationUnit
-import com.smeup.rpgparser.resolve
+import com.smeup.rpgparser.parsetreetoast.resolve
 import java.io.InputStream
 
 data class ProgramParam(val name: String, val type: Type)
@@ -34,8 +34,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
     }
 
     override fun execute(systemInterface: SystemInterface, paramValues: Map<String, Value>) : List<Value> {
-        require(paramValues.keys.toSet() == params().map { it.name }.toSet()) {
-            "Expected params: ${params().map { it.name }.joinToString(", ")}"
+        require(paramValues.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
+            "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
         val interpreter = Interpreter(systemInterface, programName = name)
         for (pv in paramValues) {
@@ -46,8 +46,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
             }
         }
         interpreter.execute(cu, paramValues)
-        val paramValuesAtTheEnd = params().map { interpreter[it.name] }
-        return paramValuesAtTheEnd
+        return params().map { interpreter[it.name] }
     }
 }
 

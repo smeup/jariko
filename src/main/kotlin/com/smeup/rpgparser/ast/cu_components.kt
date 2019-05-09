@@ -26,7 +26,7 @@ data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
         get() {
             val res = LinkedList<AbstractDataDefinition>()
             res.addAll(dataDefinitions)
-            dataDefinitions.forEach { it.fields?.let { res.addAll(it) } }
+            dataDefinitions.forEach { it.fields.let { res.addAll(it) } }
             res.addAll(inStatementsDataDefinitions)
             return res
         }
@@ -42,7 +42,7 @@ data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
 
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position) {
     val entryPlist : PlistStmt?
-        get() = stmts.mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
+        get() = stmts.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
 }
 
 class Subroutine(override val name: String, val stmts: List<Statement>, override val position: Position? = null) : Named, Node(position)

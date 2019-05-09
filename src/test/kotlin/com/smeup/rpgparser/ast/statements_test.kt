@@ -3,6 +3,8 @@ package com.smeup.rpgparser.ast
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.ast.DataWrapUpChoice.LR
 import com.smeup.rpgparser.ast.DataWrapUpChoice.RT
+import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import kotlin.test.assertEquals
 import org.junit.Test as test

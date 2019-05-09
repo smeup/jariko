@@ -19,8 +19,8 @@ class SymbolTable {
 
     operator fun get(data: AbstractDataDefinition) : Value {
         if (data is FieldDefinition) {
-            val containerValue = get(data.container!!)
-            return if (data.container!!.isArray()) {
+            val containerValue = get(data.container)
+            return if (data.container.isArray()) {
                 ProjectedArrayValue(containerValue as ArrayValue, data)
             } else {
                 (containerValue as StructValue).elements[data]!!
@@ -35,7 +35,7 @@ class SymbolTable {
             return values[data] ?: throw IllegalArgumentException("Cannot find searchedValued for $data")
         }
         for (e in values) {
-            val field = (e.key as DataDefinition).fields?.firstOrNull { it.name == dataName }
+            val field = (e.key as DataDefinition).fields.firstOrNull { it.name == dataName }
             if (field != null) {
                 return ProjectedArrayValue(e.value as ArrayValue, field)
             }
@@ -82,7 +82,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     var cycleLimit : Int? = null
 
     fun getLogs() = logs
-    fun getExecutedSubroutines() = logs.filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }
+    fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
     fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
     fun getAssignments() = logs.filterIsInstance(AssignmentLogEntry::class.java)
@@ -90,7 +90,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
      * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
     fun getEvaluatedExpressionsConcise() : List<ExpressionEvaluationLogEntry> {
-        val base= logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
+        val base= logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
         var i = 0
         while (i < base.size) {
             val current = base[i]
@@ -135,7 +135,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
         } else {
             initialValues.forEach { iv ->
-                val def = compilationUnit.allDataDefinitions.find { it?.name == iv.key }!!
+                val def = compilationUnit.allDataDefinitions.find { it.name == iv.key }!!
                 set(def, coerce(iv.value, def.type))
             }
         }
@@ -193,7 +193,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 is ForStmt -> {
                     eval(statement.init)
                     // TODO consider DOWNTO
-                    while (isEqualOrSmaller(this.get(statement.iterDataDefinition()), eval(statement.endValue))) {
+                    while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
                         execute(statement.body)
                         increment(statement.iterDataDefinition())
                     }
@@ -334,9 +334,9 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     }
 
     private fun assign(dataDefinition: AbstractDataDefinition, value: Value) : Value {
-        val value = coerce(value, dataDefinition.type)
-        set(dataDefinition, value)
-        return value
+        val coercedValue = coerce(value, dataDefinition.type)
+        set(dataDefinition, coercedValue)
+        return coercedValue
     }
 
     private fun assign(target: AssignableExpression, value: Value) : Value {
@@ -364,7 +364,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
     }
 
     // TODO put it outside Interpreter
-    public fun coerce(value: Value, type: Type) : Value {
+    fun coerce(value: Value, type: Type) : Value {
         // TODO to be completed
         return when (value) {
             is BlanksValue -> {
@@ -442,7 +442,6 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             }
             is DecExpr -> {
                 val decDigits = interpret(expression.decDigits).asInt().value
-                val intDigits = interpret(expression.intDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
                     IntValue(valueAsString.removeNullChars().toLong())
@@ -532,7 +531,7 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 return IntValue(if (result == -1) 0 else result.toLong() + 1)
             }
             is SubstExpr -> {
-                val length = if (expression.length != null) eval(expression.length!!).asInt().value.toInt() else null
+                val length = if (expression.length != null) eval(expression.length).asInt().value.toInt() else null
                 val start = eval(expression.start).asInt().value.toInt() - 1
                 val originalString = eval(expression.string).asString().value
                 return if (length == null) {
@@ -569,7 +568,6 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is StringType ->  StringValue.blank(type.size.toInt())
             is NumberType -> IntValue(0)
             is BooleanType -> BooleanValue(false)
-            else -> TODO(type.toString())
         }
     }
 

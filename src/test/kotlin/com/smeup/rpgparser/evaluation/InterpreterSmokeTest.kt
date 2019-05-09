@@ -1,8 +1,8 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.parsetreetoast.resolve
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class InterpreterSmokeTest {
 
