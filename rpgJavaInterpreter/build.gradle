@@ -1,0 +1,104 @@
+buildscript {
+    ext.kotlin_version = '1.3.30'
+
+    repositories {
+        mavenCentral()
+        maven {
+            name 'JFrog OSS snapshot repo'
+            url  'https://oss.jfrog.org/oss-snapshot-local/'
+        }
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'antlr'
+apply plugin: 'idea'
+apply plugin: 'jacoco'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+  antlr "org.antlr:antlr4:4.5.1"
+  compile "org.antlr:antlr4-runtime:4.5.1"
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+  compile "com.github.ftomassetti:kolasu:fb550d5369"
+  testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+  testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+  testCompile 'junit:junit:4.12'
+  compile 'commons-io:commons-io:2.6'
+  compile 'commons-net:commons-net:3.6'
+}
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ['-package', 'com.smeup.rpgparser']
+    outputDirectory = new File("generated-src/antlr/main/com/smeup/rpgparser".toString())
+}
+compileKotlin.dependsOn generateGrammarSource
+compileJava.dependsOn generateGrammarSource
+sourceSets {
+    generated {
+        java.srcDir 'generated-src/antlr/main/'
+    }
+}
+compileJava.source sourceSets.generated.java, sourceSets.main.java
+compileKotlin.source sourceSets.generated.java, sourceSets.main.java, sourceSets.main.kotlin
+
+clean{
+    delete "generated-src"
+}
+
+idea {
+    module {
+        sourceDirs += file("generated-src/antlr/main")
+    }
+}
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.3"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+    }
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['**/RpgLexer*',
+                              '**/RpgParser*',
+                              '**/RpgParser*',
+                              '**/RpgParser*'])
+        })
+    }
+}
+
+check.dependsOn jacocoTestReport
+
+//gradlew runExample -Pargs="CALCFIB,9"
+task runExample (type: JavaExec) {
+    if(project.hasProperty('args')){
+        args(project.getProperties().get("args").split(','))
+    }
+    main="com.smeup.rpgparser.RunnerKt"
+    classpath = sourceSets.test.runtimeClasspath
+}
