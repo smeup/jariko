@@ -388,7 +388,7 @@ class JDExamplesTest {
         val cu = assertASTCanBeProduced("JD_003", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue(),
-                "\$\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
                         0 -> "SOCKET".padEnd(50, '\u0000') + "addressToListenTo".padEnd(1000, '\u0000')
                         else -> "".padEnd(1050, '\u0000')
