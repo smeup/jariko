@@ -47,6 +47,10 @@ object BooleanType : Type() {
 data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
     override val size: Long
         get()= (entireDigits + decimalDigits).toLong()
+    val integer: Boolean
+        get() = decimalDigits == 0
+    val decimal: Boolean
+        get() = !integer
 }
 data class ArrayType(val element: Type, val nElements: Int) : Type() {
     override val size: Long

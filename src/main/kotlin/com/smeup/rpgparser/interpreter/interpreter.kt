@@ -12,6 +12,7 @@ import kotlin.collections.HashMap
 interface SystemInterface {
     fun display(value: String)
     fun findProgram(name: String) : Program?
+    fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
 }
 
 class SymbolTable {
@@ -77,6 +78,7 @@ class IterException : Exception()
 class Interpreter(val systemInterface: SystemInterface, val programName : String = "<UNNAMED>") {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
+    private val predefinedIndicators = HashMap<Int, Value>()
     var traceMode : Boolean = false
     var cycleLimit : Int? = null
 
@@ -192,9 +194,13 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                 is ForStmt -> {
                     eval(statement.init)
                     // TODO consider DOWNTO
-                    while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
-                        execute(statement.body)
-                        increment(statement.iterDataDefinition())
+                    try {
+                        while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
+                            execute(statement.body)
+                            increment(statement.iterDataDefinition())
+                        }
+                    } catch (e: LeaveException) {
+                        // leaving
                     }
                 }
                 is IfStmt -> {
@@ -376,6 +382,13 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
                             blankValue(type.element)
                         }
                     }
+                    is NumberType -> {
+                        if (type.integer) {
+                            IntValue.ZERO
+                        } else {
+                            DecimalValue.ZERO
+                        }
+                    }
                     else -> TODO(type.toString())
                 }
             }
@@ -542,6 +555,17 @@ class Interpreter(val systemInterface: SystemInterface, val programName : String
             is OffRefExpr -> {
                 return BooleanValue(false)
             }
+            is PredefinedIndicatorExpr -> {
+                return predefinedIndicators[expression.index] ?: BooleanValue.FALSE
+            }
+            is FunctionCall -> {
+                val functionToCall = expression.function.name
+                val function = systemInterface.findFunction(globalSymbolTable, functionToCall)
+                        ?: throw RuntimeException("Function $functionToCall cannot be found")
+                // TODO check number and types of params
+                val paramsValues = expression.args.map { eval(it) }
+                return function.execute(systemInterface, paramsValues, globalSymbolTable)
+            }
             else -> TODO(expression.toString())
         }
     }
@@ -574,6 +598,10 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 object DummySystemInterface : SystemInterface {
+    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
+        return null
+    }
+
     override fun findProgram(name: String): Program? {
         return null
     }

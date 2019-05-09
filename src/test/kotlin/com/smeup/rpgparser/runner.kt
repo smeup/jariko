@@ -2,11 +2,16 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsetreetoast.resolve
 import com.smeup.rpgparser.parsetreetoast.toAst
 
 class ConsoleSystemInterface() : SystemInterface {
+    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
+        return null
+    }
+
     override fun findProgram(name: String): Program? {
         return null
     }
