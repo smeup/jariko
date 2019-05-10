@@ -4,6 +4,7 @@ import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
 import org.junit.Test
 import java.util.*
@@ -136,7 +137,7 @@ class JDExamplesTest {
     fun executeJD_001_complete_url_found() {
         val si = CollectorSystemInterface()
         val callsToJDURL = LinkedList<Map<String, Value>>()
-        si.programs["JD_URL"] = object : JvmProgram("JD_URL", listOf(
+        si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", StringType(1000)))) {
@@ -168,7 +169,7 @@ class JDExamplesTest {
         val si = CollectorSystemInterface()
         val callsToListFld = LinkedList<Map<String, Value>>()
         val callsToNfyeve = LinkedList<Map<String, Value>>()
-        si.programs["LISTEN_FLD"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(10)),
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
@@ -178,7 +179,7 @@ class JDExamplesTest {
                 return emptyList()
             }
         }
-        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
@@ -201,7 +202,7 @@ class JDExamplesTest {
         val si = CollectorSystemInterface()
         val callsToListFld = LinkedList<Map<String, Value>>()
         val callsToNfyeve = LinkedList<Map<String, Value>>()
-        si.programs["LISTEN_FLD"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(100)),
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
@@ -211,7 +212,7 @@ class JDExamplesTest {
                 return emptyList()
             }
         }
-        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
@@ -250,7 +251,7 @@ class JDExamplesTest {
         val si = CollectorSystemInterface()
         val callsToListFld = LinkedList<Map<String, Value>>()
         val callsToNfyeve = LinkedList<Map<String, Value>>()
-        si.programs["LISTEN_FLD"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(100)),
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
@@ -263,7 +264,7 @@ class JDExamplesTest {
                         StringValue.padded("ADD", 10))
             }
         }
-        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
@@ -312,7 +313,7 @@ class JDExamplesTest {
         val si = CollectorSystemInterface()
         val callsToRcvsck = LinkedList<Map<String, Value>>()
 //        val callsToNfyeve = LinkedList<Map<String, Value>>()
-        si.programs["JD_RCVSCK"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", StringType(10)))) {
@@ -345,7 +346,7 @@ class JDExamplesTest {
         val si = CollectorSystemInterface()
         val callsToRcvsck = LinkedList<Map<String, Value>>()
         val callsToNfyeve = LinkedList<Map<String, Value>>()
-        si.programs["JD_RCVSCK"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
@@ -376,7 +377,7 @@ class JDExamplesTest {
                 return StringValue("ZZ000AA")
             }
         }
-        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {

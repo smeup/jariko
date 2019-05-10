@@ -1,68 +1,32 @@
 package com.github.rpgjavainterpreter.gatecontroller
 
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramByReflection
 import com.smeup.rpgparser.jvminterop.Size
 
 annotation class Param(val name: String)
 
-
-
 data class VarElement(val varCd: String, val varVa: String)
 
 private fun rpgProgram(name: String) : RpgProgram {
-    return RpgProgram.fromInputStream(MySystemInterface::class.java.getResourceAsStream("/$name.rpgle"), name)
+    return RpgProgram.fromInputStream(JavaSystemInterface::class.java.getResourceAsStream("/$name.rpgle"), name)
 }
 
 
+class JD_URL : JvmProgramByReflection() {
 
-
-
-
-class JdUrl : JvmProgramByReflection() {
-
-    fun run(systemInterface: SystemInterface,
-            @Size(10) funz: String, @Size(10) method: String, @Size(1000) URL: String) : List<Value> {
+    fun run(systemInterface: SystemInterface, @Size(10) funz: String, @Size(10) method: String,
+            @Size(1000) URL: String) : List<Value> {
         println("Invoked $funz $method, URL=$URL")
         return emptyList()
     }
 }
 
-object MySystemInterface : SystemInterface {
-    override fun display(value: String) {
-        println(value)
-    }
-
-    override fun findProgram(name: String): Program? {
-        if (name == "JD_URL") {
-//            return object : JvmProgramRaw("JD_URL", listOf(
-//                    ProgramParam("funz", StringType(10)),
-//                    ProgramParam("method", StringType(10)),
-//                    ProgramParam("URL", StringType(1000)))) {
-//                override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
-//                    println()
-//                    println("JD URL: $params")
-//                    println()
-//                    return emptyList()
-//                }
-//            }
-            return JdUrl()
-        } else {
-            return null
-        }
-    }
-
-    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-}
-
 class Jd001 {
 
     private val traceMode = true
-    private val programInterpreter = ProgramInterpreter(MySystemInterface)
+    private val programInterpreter = ProgramInterpreter(JavaSystemInterface)
     private val rpgProgram = rpgProgram("JD_001")
 
     fun call(originalUrl: String, stringToReplace: String, replacement: String) {
@@ -100,5 +64,6 @@ class Jd001 {
 }
 
 fun main(args: Array<String>) {
+    JavaSystemInterface.addJavaInteropPackage("com.github.rpgjavainterpreter.gatecontroller")
     Jd001().call("https://xxx.myurl.com", "x", "w")
 }

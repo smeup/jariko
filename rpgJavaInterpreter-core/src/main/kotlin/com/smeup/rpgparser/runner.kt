@@ -38,8 +38,8 @@ fun runPgm(exampleName: String, parameters: List<String>) {
 
 fun runExecution(cu: CompilationUnit,
                  initialValues: Map<String, Value>, systemInterface: SystemInterface? = null,
-                 traceMode : Boolean = false) : Interpreter {
-    val interpreter = Interpreter(systemInterface ?: DummySystemInterface)
+                 traceMode : Boolean = false) : InternalInterpreter {
+    val interpreter = InternalInterpreter(systemInterface ?: DummySystemInterface)
     interpreter.traceMode = traceMode
     interpreter.execute(cu, initialValues)
     return interpreter

@@ -2,6 +2,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
@@ -125,7 +126,7 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        si.programs["CALCFIB"] = object : JvmProgram("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
+        si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
             override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 val n = params["ppdat"]!!.asString().valueWithoutPadding.toInt()
                 var t1 = 0
