@@ -3,6 +3,7 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsetreetoast.resolve
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -153,6 +154,33 @@ class InterpreterTest {
         assertEquals(1, rpgProgram.params().size)
         assertEquals(ProgramParam("ppdat", StringType(8)), rpgProgram.params()[0])
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+    }
+
+    //TODO
+    @Test @Ignore
+    fun executeHELLOCHARS() {
+        assertOutputOf("HELLOCHARS", listOf("OK"))
+    }
+
+    //TODO
+    @Test @Ignore
+    fun executeHELLOEQU() {
+        assertOutputOf("HELLOEQU", listOf("Cb is equal to C and Cb does not differ from C"))
+    }
+
+    //TODO
+    @Test @Ignore
+    fun executeHELLOPAD() {
+        assertOutputOf("HELLOPAD", listOf("X padded"))
+    }
+
+
+    private fun assertOutputOf(programName: String, outputLines: List<String>) {
+        val cu = assertASTCanBeProduced(programName, true)
+        cu.resolve()
+        val si = CollectorSystemInterface()
+        val interpreter = execute(cu, mapOf(), si)
+        assertEquals(outputLines, si.displayed)
     }
 
     private fun rpgProgram(name: String) : RpgProgram {
