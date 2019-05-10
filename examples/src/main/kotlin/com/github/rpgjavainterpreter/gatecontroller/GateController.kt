@@ -1,55 +1,33 @@
 package com.github.rpgjavainterpreter.gatecontroller
 
-import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.Size
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rgpinterop.Param
+import com.smeup.rpgparser.rgpinterop.RpgFacade
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import java.io.File
 
-annotation class Param(val name: String)
-
 data class VarElement(
-        @Size(50) val varCd: String,
-        @Size(1000) val varVa: String)
+        @property:Size(50) val varCd: String,
+        @property:Size(1000) val varVa: String)
 
-private fun rpgProgram(name: String) : RpgProgram {
-    return RpgProgram.fromInputStream(JavaSystemInterface::class.java.getResourceAsStream("/$name.rpgle"), name)
-}
+data class JD_001_params(@property:Param("U\$FUNZ") val funz: String,
+                         @property:Param("U\$SVARSK") @property:Size(200) val svarsk: Array<VarElement>)
 
-class JD_001 {
 
-    var traceMode = false
-
-    private val programInterpreter = ProgramInterpreter(JavaSystemInterface)
-    private val rpgProgram by lazy { RpgSystem.getProgram(this.javaClass.simpleName) }
+class JD_001 : RpgFacade<JD_001_params>() {
 
     fun call(originalUrl: String, stringToReplace: String, replacement: String) {
-        singleCall("INZ", arrayOf(
+        singleCall(JD_001_params("INZ", arrayOf(
                 VarElement("Url", originalUrl),
-                VarElement(stringToReplace, replacement)))
-        singleCall("EXE", emptyArray())
-        singleCall("CLO", emptyArray())
+                VarElement(stringToReplace, replacement))))
+        singleCall(JD_001_params("EXE", arrayOf(
+                VarElement("Url", originalUrl),
+                VarElement(stringToReplace, replacement))))
+        singleCall(JD_001_params("CLO", emptyArray()))
     }
 
-    fun singleCall(@Param("U\$FUNZ") funz: String,
-                   @Param("U\$SVARSK") @Size(200) svarsk: Array<VarElement>) {
-        val initialValues = HashMap<String, Value>()
-        initialValues["U\$FUNZ"] = funz.asValue()
-
-        initialValues["U\$SVARSK"] = createArrayValue(StringType(1050), 200) {
-            if (it < svarsk.size) {
-                toValue(svarsk[it])
-            } else {
-                blankString(1050)
-            }
-        }
-        programInterpreter.execute(rpgProgram, initialValues, traceMode = traceMode)
-    }
-
-    private fun toValue(varElement: VarElement): Value {
-        return StringValue(varElement.varCd.padEnd(50, '\u0000') + varElement.varVa.padEnd(1000, '\u0000'))
-    }
 }
 
 fun main(args: Array<String>) {

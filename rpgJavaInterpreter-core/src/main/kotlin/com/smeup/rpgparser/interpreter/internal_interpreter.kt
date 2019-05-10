@@ -553,18 +553,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
-    fun blankValue(type: Type): Value {
-        return when (type){
-            is ArrayType -> createArrayValue(type.element, type.nElements) {
-                blankValue(type.element)
-            }
-            is DataStructureType -> StringValue.blank(type.size.toInt())
-            is StringType ->  StringValue.blank(type.size.toInt())
-            is NumberType -> IntValue(0)
-            is BooleanType -> BooleanValue(false)
-        }
-    }
-
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return blankValue(dataDefinition.type)
@@ -582,3 +570,15 @@ private fun Boolean.asValue() = BooleanValue(this)
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
+
+fun blankValue(type: Type): Value {
+    return when (type){
+        is ArrayType -> createArrayValue(type.element, type.nElements) {
+            blankValue(type.element)
+        }
+        is DataStructureType -> StringValue.blank(type.size.toInt())
+        is StringType ->  StringValue.blank(type.size.toInt())
+        is NumberType -> IntValue(0)
+        is BooleanType -> BooleanValue(false)
+    }
+}
