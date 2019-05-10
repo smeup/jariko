@@ -8,7 +8,9 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
     private val interpreters = HashMap<RpgProgram, InternalInterpreter>()
 
     fun execute(rpgProgram: RpgProgram, initialValues: Map<String, Value>, traceMode : Boolean = false) {
+        var firstCall = false
         val interpreter = interpreters.getOrPut(rpgProgram) {
+            firstCall = true
             val ii = InternalInterpreter(systemInterface)
             ii.interpretationContext = object : InterpretationContext {
                 override val name: String
@@ -27,7 +29,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
             ii
         }
         interpreter.traceMode = traceMode
-        interpreter.execute(rpgProgram.cu, initialValues)
+        interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall)
     }
 
 }
