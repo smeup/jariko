@@ -142,5 +142,10 @@ class RpgParserSmokeTest {
         assertCanBeParsed("ERRORVARST")
     }
 
+    @Test
+    fun parseHELLOVARST() {
+        assertCanBeParsed("HELLOVARST")
+    }
+
 
 }

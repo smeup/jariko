@@ -175,6 +175,12 @@ class InterpreterTest {
         assertOutputOf("HELLOPAD", listOf("X padded"))
     }
 
+    //TODO
+    @Test @Ignore
+    fun executeHELLOVARST() {
+        assertOutputOf("HELLOVARST", listOf("Eq", "Hello-World", "Hello-World"))
+    }
+
     private fun assertOutputOf(programName: String, outputLines: List<String>) {
         val cu = assertASTCanBeProduced(programName, true)
         cu.resolve()
