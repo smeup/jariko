@@ -50,7 +50,3 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
     }
 }
 
-abstract class JvmProgram(val name: String = "<UNNAMED>", val params: List<ProgramParam>)
-    : Program {
-    override fun params() = params
-}

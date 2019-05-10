@@ -57,7 +57,7 @@ class JDExamplesTest {
 //    fun executeJD_000() {
 //        val si = CollectorSystemInterface()
 //        val callsToJDURL = LinkedList<Map<String, Value>>()
-//        si.programs["JD_URL"] = object : JvmProgram("JD_URL", listOf(
+//        si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
 //                ProgramParam("funz", StringType(10)),
 //                ProgramParam("method", StringType(10)),
 //                ProgramParam("URL", StringType(1000)))) {
@@ -321,7 +321,7 @@ class JDExamplesTest {
                 return emptyList()
             }
         }
-//        si.programs["JD_NFYEVE"] = object : JvmProgram("LISTEN_FLD", listOf(
+//        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
 //                ProgramParam("funz", StringType(10)),
 //                ProgramParam("meto", StringType(10)),
 //                ProgramParam("var", StringType(10)))) {
