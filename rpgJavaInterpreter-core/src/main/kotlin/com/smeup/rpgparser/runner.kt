@@ -9,7 +9,7 @@ import com.smeup.rpgparser.parsetreetoast.toAst
 import org.apache.commons.io.input.BOMInputStream
 import java.io.InputStream
 
-class ConsoleSystemInterface() : SystemInterface {
+class ConsoleSystemInterface : SystemInterface {
     override fun findProgram(name: String): Program? {
         return null
     }

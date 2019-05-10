@@ -8,7 +8,7 @@ import java.util.*
 import kotlin.reflect.full.isSubclassOf
 
 object JavaSystemInterface : SystemInterface {
-
+    val consoleOutput = LinkedList<String>()
     private val javaInteropPackages = LinkedList<String>()
     private val programs = HashMap<String, Program?>()
 
@@ -17,6 +17,7 @@ object JavaSystemInterface : SystemInterface {
     }
 
     override fun display(value: String) {
+        consoleOutput.add(value)
         println(value)
     }
 

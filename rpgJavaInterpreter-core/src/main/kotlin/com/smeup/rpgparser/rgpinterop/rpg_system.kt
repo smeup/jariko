@@ -15,6 +15,7 @@ class DirRpgProgramFinder(val directory: File) : RpgProgramFinder {
         return if (file.exists()) {
             RpgProgram.fromInputStream(FileInputStream(file), name)
         } else {
+            println("Not found file ${file.absolutePath}")
             null
         }
     }
