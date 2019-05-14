@@ -34,6 +34,12 @@ class DataDefinitionTest {
         cu.assertDataDefinitionIsPresent("OK", BooleanType)
     }
 
+    @test fun caseInsensitiveBooleanDataParsing() {
+        val cu = processDataDefinition("D OK              S              1n")
+        cu.assertDataDefinitionIsPresent("OK", BooleanType)
+    }
+
+
     @test fun singleDataParsingOther() {
         val cu = processDataDefinition("D U\$FUNZ          S             99")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", StringType(99))
@@ -42,6 +48,11 @@ class DataDefinitionTest {
     @test fun singleDataParsingWithDecimals() {
         val cu = processDataDefinition("D \$X              S              3  2")
         cu.assertDataDefinitionIsPresent("\$X", NumberType(1, 2))
+    }
+
+    @test fun timestampDataParsing() {
+        val cu = processDataDefinition("Dstart            S               z")
+        cu.assertDataDefinitionIsPresent("start", TimeStampType)
     }
 
     @test fun arrayParsing() {

@@ -47,7 +47,7 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
 
-    val baseType = when (this.DATA_TYPE()?.text?.trim()) {
+    val baseType = when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
         null -> TODO()
         "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
             val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
@@ -56,6 +56,7 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
             StringType(elementSize!!.toLong())
         }
         "N" -> BooleanType
+        "Z" -> TimeStampType
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     val type = if (dim != null) {

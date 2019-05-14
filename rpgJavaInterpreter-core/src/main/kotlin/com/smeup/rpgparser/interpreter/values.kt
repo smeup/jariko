@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
 import java.math.BigDecimal
+import java.time.LocalDateTime
+import java.time.Month
 import java.util.*
 import kotlin.streams.toList
 
@@ -114,6 +116,15 @@ data class BooleanValue(val value: Boolean) : Value() {
     companion object {
         val FALSE = BooleanValue(false)
         val TRUE = BooleanValue(true)
+    }
+}
+data class TimeStampValue(val value: LocalDateTime) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is BooleanType
+    }
+
+    companion object {
+        val LOVAL = TimeStampValue(LocalDateTime.of(0, Month.JANUARY, 1, 0, 0, 0))
     }
 }
 abstract class ArrayValue : Value() {

@@ -5,7 +5,7 @@
      Dx                S             15  0 inz(0)
       **************************************************************************
      Dstart            S               z
-     Delapsed          S             15p 0
+     Delapsed          S             15  0
      C                   eval      start = %timestamp()
      C                   exsr      computation
      C                   eval      elapsed = %DIFF(%timestamp():start:*MSECONDS)

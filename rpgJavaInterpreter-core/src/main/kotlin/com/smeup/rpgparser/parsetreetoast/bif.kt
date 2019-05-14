@@ -15,6 +15,8 @@ internal fun RpgParser.BifContext.toAst(conf : ToAstConfiguration = ToAstConfigu
         this.bif_len() != null -> this.bif_len().toAst(conf)
         this.bif_dec() != null -> this.bif_dec().toAst(conf)
         this.bif_char() != null -> this.bif_char().toAst(conf)
+        this.bif_timestamp() != null -> this.bif_timestamp().toAst(conf)
+        this.bif_diff() != null -> this.bif_diff().toAst(conf)
         else -> TODO(this.text.toString())
     }
 }
@@ -38,6 +40,27 @@ internal fun RpgParser.Bif_lenContext.toAst(conf : ToAstConfiguration = ToAstCon
             this.expression().toAst(conf),
             toPosition(conf.considerPosition))
 }
+
+internal fun RpgParser.Bif_timestampContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): TimeStampExpr {
+    return TimeStampExpr(
+            this.expression()?.toAst(conf),
+            toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_diffContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DiffExpr {
+    //TODO: handle 4th parameter (= frac)
+    return DiffExpr(
+            this.expression(0).toAst(conf),
+            this.expression(1).toAst(conf),
+            this.durationCode().toAst(conf),
+            toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.DurationCodeContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DurationCodeExpr {
+    //TODO: handle types of duration
+    return DurationCodeExpr(toPosition(conf.considerPosition))
+}
+
 
 internal fun RpgParser.Bif_substContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SubstExpr {
     return SubstExpr(

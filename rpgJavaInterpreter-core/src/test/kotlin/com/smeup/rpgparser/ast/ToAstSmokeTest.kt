@@ -122,4 +122,12 @@ class ToAstSmokeTest {
         assertEquals(5, cu.main.stmts.size)
         assertEquals(0, cu.subroutines.size)
     }
+
+    @Test
+    fun buildAstForTIMESTDIFF() {
+        val cu = assertASTCanBeProduced("TIMESTDIFF")
+        assertEquals(4, cu.dataDefinitions.size)
+        assertEquals(5, cu.main.stmts.size)
+        assertEquals(1, cu.subroutines.size)
+    }
 }

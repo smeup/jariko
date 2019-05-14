@@ -44,6 +44,11 @@ object BooleanType : Type() {
         get()= 1
 
 }
+object TimeStampType : Type() {
+    override val size: Long
+        get()= 26
+
+}
 data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
     override val size: Long
         get()= (entireDigits + decimalDigits).toLong()

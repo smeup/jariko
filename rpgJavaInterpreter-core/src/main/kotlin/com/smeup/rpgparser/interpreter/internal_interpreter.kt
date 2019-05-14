@@ -580,5 +580,6 @@ fun blankValue(type: Type): Value {
         is StringType ->  StringValue.blank(type.size.toInt())
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
+        is TimeStampType -> TimeStampValue.LOVAL
     }
 }

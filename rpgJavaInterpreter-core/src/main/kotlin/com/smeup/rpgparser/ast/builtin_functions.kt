@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.ast
 
+import com.smeup.rpgparser.RpgParser
 import com.strumenta.kolasu.model.Position
 
 // %LOOKUP
@@ -40,4 +41,17 @@ data class DecExpr(val value: Expression, var intDigits : Expression, val decDig
 
 // %CHAR
 data class CharExpr(val value: Expression, override val position: Position? = null)
+    : Expression(position)
+
+// %TIMESTAMP
+data class TimeStampExpr(val value: Expression?, override val position: Position? = null)
+    : Expression(position)
+
+// %DIFF
+data class DiffExpr(val value1: Expression, var value2 : Expression, val durationCode: Expression,
+                   override val position: Position? = null)
+    : Expression(position)
+
+// TODO Move and handle different types of duration
+data class DurationCodeExpr(override val position: Position? = null)
     : Expression(position)
