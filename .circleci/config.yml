@@ -24,17 +24,17 @@ jobs:
             - store_artifacts:
                 path: ~/test-results/junit            
             - store_artifacts:
-                path: ~/rpgJavaInterpreter-core/build/reports
+                path: ~/project/rpgJavaInterpreter-core/build/reports
                 destination: test-results-html/
             - store_artifacts:
-                  path: ~/rpgJavaInterpreter-core/build/reports/reports/jacoco
+                  path: ~/project/rpgJavaInterpreter-core/build/reports/reports/jacoco
                   destination: test-coverage-html/
             - save_cache:
                 paths:
                     - ~/.gradle
                 key: gradle-{{ checksum "build.gradle" }}
             - store_artifacts:
-                path: ~/rpgJavaInterpreter-core/build/libs
+                path: ~/project/rpgJavaInterpreter-core/build/libs
                 destination: libs     
 
       
