@@ -22,12 +22,20 @@ private val <R> KProperty<R>.rpgName: String
         return param?.name ?: this.name
     }
 
-abstract class RpgFacade<P> {
+interface ProgramNameSource<P> {
+    fun nameFor(rpgFacade: RpgFacade<P>) : String
+}
+
+class ClassProgramName<P> : ProgramNameSource<P> {
+    override fun nameFor(rpgFacade: RpgFacade<P>) : String = rpgFacade.javaClass.simpleName
+}
+
+abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>()) {
 
     var traceMode = false
 
-    private val programInterpreter = ProgramInterpreter(JavaSystemInterface)
-    private val rpgProgram by lazy { RpgSystem.getProgram(this.javaClass.simpleName) }
+    protected val programInterpreter = ProgramInterpreter(JavaSystemInterface)
+    protected val rpgProgram by lazy { RpgSystem.getProgram(programNameSource.nameFor(this)) }
 
     fun singleCall(params: P) : P? {
         programInterpreter.execute(rpgProgram, toInitialValues(params), traceMode = traceMode)
@@ -35,7 +43,7 @@ abstract class RpgFacade<P> {
         return null
     }
 
-    private fun toInitialValues(params: P) : Map<String, Value> {
+    open protected fun toInitialValues(params: P) : Map<String, Value> {
         val any : Any = params!!
         val kclass = any::class
         val initialValues = HashMap<String, Value>()

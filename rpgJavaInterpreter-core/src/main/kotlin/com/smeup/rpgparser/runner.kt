@@ -6,59 +6,41 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.rgpinterop.*
 import org.apache.commons.io.input.BOMInputStream
+import java.io.File
 import java.io.InputStream
 
-class ConsoleSystemInterface : SystemInterface {
-    override fun findProgram(name: String): Program? {
-        return null
+class CommandLineParms(val parmsList: List<String>)
+
+class CommandLineProgramNameSource(val name: String) : ProgramNameSource<CommandLineParms> {
+    override fun nameFor(rpgFacade: RpgFacade<CommandLineParms>): String = name
+}
+
+class CommandLineProgram(val name: String) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name))) {
+    override fun toInitialValues(params: CommandLineParms) : Map<String, Value> {
+        val values = params.parmsList.map { parameter -> StringValue(parameter) }
+        return rpgProgram.params()
+                .map {dataDefinition -> dataDefinition.name }
+                .zip(values)
+                .toMap()
     }
+}
 
-    override fun display(value: String) {
-        println(value)
+class ResourceProgramFinder(val path: String): RpgProgramFinder {
+    override fun findRpgProgram(name: String): RpgProgram? {
+        return RpgProgram.fromInputStream(BOMInputStream(ResourceProgramFinder::class.java.getResourceAsStream("$path$name.rpgle")))
     }
-    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
-        return null
-    }
-}
-
-// Used only to get a class to be used for getResourceAsStream
-class Dummy
-
-fun inputStreamFor(exampleName: String) : InputStream {
-    return BOMInputStream(Dummy::class.java.getResourceAsStream("/$exampleName.rpgle"))
-}
-
-fun runPgm(exampleName: String, parameters: List<String>) {
-    val parseTreeRoot = RpgParserFacade().parse(inputStreamFor(exampleName)).root!!
-    val cu = parseTreeRoot.toAst(ToAstConfiguration(true))
-    val si = ConsoleSystemInterface()
-    runExecution(cu, toNameValueMap(cu.dataDefinitions, parameters), si)
-}
-
-fun runExecution(cu: CompilationUnit,
-                 initialValues: Map<String, Value>, systemInterface: SystemInterface? = null,
-                 traceMode : Boolean = false) : InternalInterpreter {
-    val interpreter = InternalInterpreter(systemInterface ?: DummySystemInterface)
-    interpreter.traceMode = traceMode
-    interpreter.execute(cu, initialValues)
-    return interpreter
-}
-
-private fun toNameValueMap(dataDefinitions: List<DataDefinition>, parameters: List<String>) : Map<String, Value> {
-    val values = parameters.map { parameter -> StringValue(parameter) }
-    return dataDefinitions
-            .map {dataDefinition -> dataDefinition.name }
-            .zip(values)
-            .toMap()
 }
 
 fun main(args : Array<String>) {
-    if (args.size == 0) {
+    if (args.isEmpty()) {
         println("Please provide the name of a .rpgle file to interpret")
         return
     }
-
-    runPgm(args[0], args.asList().subList(1, args.size))
+    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
+    RpgSystem.addProgramFinder(DirRpgProgramFinder(File(".")))
+    RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+    CommandLineProgram(args[0]).singleCall(CommandLineParms(args.asList().subList(1, args.size)))
 }
 
