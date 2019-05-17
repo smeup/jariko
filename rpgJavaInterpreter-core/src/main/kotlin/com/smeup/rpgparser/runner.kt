@@ -19,6 +19,9 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
 
 class CommandLineProgram(val name: String) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name))) {
     override fun toInitialValues(params: CommandLineParms) : Map<String, Value> {
+        if (params.parmsList.isEmpty()) {
+            return mapOf()
+        }
         val values = params.parmsList.map { parameter -> StringValue(parameter) }
         return rpgProgram.params()
                 .map {dataDefinition -> dataDefinition.name }
@@ -40,6 +43,7 @@ fun main(args : Array<String>) {
     }
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File(".")))
+    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
     CommandLineProgram(args[0]).singleCall(CommandLineParms(args.asList().subList(1, args.size)))
 }
