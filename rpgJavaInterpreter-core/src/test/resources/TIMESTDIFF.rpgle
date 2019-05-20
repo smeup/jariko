@@ -13,7 +13,7 @@
      C                   seton                                        lr
       **************************************************************************
      c     computation   begsr
-     C                   FOR       COUNT = 1 TO 100000000
+     C                   FOR       count = 1 TO 100000000
      C                   eval      x = x + 1 * 31
      c                   endfor
      c                   endsr

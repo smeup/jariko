@@ -159,6 +159,12 @@ class InterpreterTest {
 
     //TODO
     @Test @Ignore
+    fun executeHELLOCASE() {
+        assertOutputOf("HELLOCASE", listOf("'Hello World!"))
+    }
+
+    //TODO
+    @Test @Ignore
     fun executeHELLOCHARS() {
         assertOutputOf("HELLOCHARS", listOf("OK"))
     }
@@ -179,6 +185,12 @@ class InterpreterTest {
     @Test @Ignore
     fun executeHELLOVARST() {
         assertOutputOf("HELLOVARST", listOf("Eq", "Hello-World", "Hello-World"))
+    }
+
+    //TODO
+    @Test @Ignore
+    fun executeTIMESTDIFF() {
+        assertOutputOf("TIMESTDIFF", listOf("Eq", "Hello-World", "Hello-World"))
     }
 
     private fun assertOutputOf(programName: String, outputLines: List<String>) {
