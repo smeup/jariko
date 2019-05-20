@@ -65,6 +65,35 @@ If you want to force the execution of all checks:
 * _misc_ contains utilities
 * _docs_ contains documentation
 
+## How to use this code in your project
+
+At the moment, we use [Jitack](https://jitpack.io/) to publish the project.
+
+If you use Maven, add these lines to your pom.xml in order to add the repository
+
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+	
+Then add the following dependencies for the core library:
+	
+		<dependency>
+			<groupId>com.github.smeup.smeup-rpg</groupId>
+			<artifactId>rpgJavaInterpreter-core</artifactId>
+			<version>master-SNAPSHOT</version>
+		</dependency>
+		
+And this if you want to include the examples too:
+		
+		<dependency>
+			<groupId>com.github.smeup.smeup-rpg</groupId>
+			<artifactId>examples</artifactId>
+			<version>master-SNAPSHOT</version>
+		</dependency>
+
 ## Credits
 
 The grammar used in this project is based on the work from Ryan Eberly. It is derived from his project [rpgleparser](https://github.com/rpgleparser/rpgleparser).
