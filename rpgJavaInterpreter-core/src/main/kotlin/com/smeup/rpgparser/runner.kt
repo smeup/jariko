@@ -32,7 +32,13 @@ class CommandLineProgram(val name: String) : RpgFacade<CommandLineParms>((Comman
 
 class ResourceProgramFinder(val path: String): RpgProgramFinder {
     override fun findRpgProgram(name: String): RpgProgram? {
-        return RpgProgram.fromInputStream(BOMInputStream(ResourceProgramFinder::class.java.getResourceAsStream("$path$name.rpgle")))
+        val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$name.rpgle")
+        return if (resourceStream != null) {
+            RpgProgram.fromInputStream(BOMInputStream(resourceStream))
+        } else {
+            println("Resource ${path} not found")
+            null
+        }
     }
 }
 
