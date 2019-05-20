@@ -67,7 +67,7 @@ If you want to force the execution of all checks:
 
 ## How to use this code in your project
 
-At the moment, we use [Jitack](https://jitpack.io/) to publish the project.
+At the moment, we use [Jitpack](https://jitpack.io/) to publish the project.
 
 If you use Maven, add these lines to your pom.xml in order to add the repository
 
