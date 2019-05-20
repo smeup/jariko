@@ -13,3 +13,15 @@ class JD_URL : JvmProgramByReflection() {
         return emptyList()
     }
 }
+
+
+class JD_RCVSCK : JvmProgramByReflection() {
+
+    fun run(systemInterface: SystemInterface,
+            @Size(10) addr: String,
+            @Size(30000) buffer: String,
+            @Size(5) bufferLen: Int) : List<Value> {
+        systemInterface.display("Invoked $addr $buffer $bufferLen")
+        return emptyList()
+    }
+}

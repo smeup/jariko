@@ -72,6 +72,7 @@ abstract class JvmProgramByReflection : Program {
 private fun Value.toJavaValue(parameter: KParameter): Any {
     return when (parameter.type) {
         String::class.createType() -> this.asString().valueWithoutPadding
+        Int::class.createType() -> this.asInt().value
         else -> TODO()
     }
 }
@@ -85,6 +86,10 @@ private fun KParameter.toRpgType(): Type {
         String::class.createType() -> {
             return StringType(this.findAnnotation<Size>()?.size?.toLong()
                     ?: throw RuntimeException("Size annotation required for string param ${this.name}"))
+        }
+        Int::class.createType() -> {
+            return NumberType(this.findAnnotation<Size>()?.size
+                    ?: throw RuntimeException("Size annotation required for int param ${this.name}"), 0)
         }
         else -> TODO(this.type.toString())
     }
