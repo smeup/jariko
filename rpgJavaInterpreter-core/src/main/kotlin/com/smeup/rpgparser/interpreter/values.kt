@@ -120,7 +120,7 @@ data class BooleanValue(val value: Boolean) : Value() {
 }
 data class TimeStampValue(val value: LocalDateTime) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
-        return expectedType is BooleanType
+        return expectedType is TimeStampType
     }
 
     companion object {
