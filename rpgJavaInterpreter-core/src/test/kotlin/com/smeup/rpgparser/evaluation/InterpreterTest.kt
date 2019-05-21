@@ -4,10 +4,13 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
+import junit.framework.Assert.format
 import org.junit.Ignore
 import org.junit.Test
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class InterpreterTest {
 
@@ -160,46 +163,53 @@ class InterpreterTest {
     //TODO
     @Test @Ignore
     fun executeHELLOCASE() {
-        assertOutputOf("HELLOCASE", listOf("'Hello World!"))
+        assertEquals(outputOf("HELLOCASE"), listOf("'Hello World!"))
     }
 
     //TODO
     @Test @Ignore
     fun executeHELLOCHARS() {
-        assertOutputOf("HELLOCHARS", listOf("OK"))
+        assertEquals(outputOf("HELLOCHARS"), listOf("OK"))
     }
 
     //TODO
     @Test @Ignore
     fun executeHELLOEQU() {
-        assertOutputOf("HELLOEQU", listOf("Cb is equal to C and Cb does not differ from C"))
+        assertEquals(outputOf("HELLOEQU"), listOf("Cb is equal to C and Cb does not differ from C"))
     }
 
     //TODO
     @Test @Ignore
     fun executeHELLOPAD() {
-        assertOutputOf("HELLOPAD", listOf("X padded"))
+        assertEquals(outputOf("HELLOPAD"), listOf("X padded"))
     }
 
     //TODO
     @Test @Ignore
     fun executeHELLOVARST() {
-        assertOutputOf("HELLOVARST", listOf("Eq", "Hello-World", "Hello-World"))
+        assertEquals(outputOf("HELLOVARST"), listOf("Eq", "Hello-World", "Hello-World"))
     }
 
-    //TODO
-    @Test @Ignore
+    @Test
     fun executeTIMESTDIFF() {
-        assertOutputOf("TIMESTDIFF", listOf("Eq", "Hello-World", "Hello-World"))
+        assertStartsWith(outputOf("TIMESTDIFF"), "Elapsed time:")
     }
 
-    private fun assertOutputOf(programName: String, outputLines: List<String>) {
+    private fun assertStartsWith(lines: List<String>, value: String) {
+        if (lines == null || lines.isEmpty()) {
+            fail("Empty output")
+        }
+        assertTrue (lines.get(0).startsWith(value), format("Output not matching", value, lines))
+    }
+
+    private fun outputOf(programName: String): LinkedList<String> {
         val cu = assertASTCanBeProduced(programName, true)
         cu.resolve()
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf(), si)
-        assertEquals(outputLines, si.displayed)
+        return si.displayed
     }
+
 
     private fun rpgProgram(name: String) : RpgProgram {
         return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)

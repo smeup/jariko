@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.*
 import javax.xml.crypto.Data
 import kotlin.collections.HashMap
@@ -306,6 +307,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is StringValue -> value.valueWithoutPadding
             is BooleanValue -> value.value.toString()
             is IntValue -> value.value.toString()
+            is DecimalValue -> value.value.toString()
             else -> TODO(value.javaClass.canonicalName)
         }
     }
@@ -455,6 +457,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
             }
+            is MultExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                when {
+                    left is IntValue && right is IntValue -> IntValue(left.value * right.value)
+                    else -> throw UnsupportedOperationException("I do not know how to multiply $left and $right at ${expression.position}")
+                }
+            }
             is CharExpr -> {
                 val value = interpret(expression.value)
                 return StringValue(render(value))
@@ -546,6 +556,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 // TODO check number and types of params
                 val paramsValues = expression.args.map { eval(it) }
                 return function.execute(systemInterface, paramsValues, globalSymbolTable)
+            }
+            is TimeStampExpr -> {
+                if (expression.value == null) {
+                    return TimeStampValue(Date())
+                } else {
+                    TODO("TimeStamp parsing")
+                }
+            }
+            is DiffExpr -> {
+                //TODO expression.durationCode
+                val v1 = eval(expression.value1)
+                val v2 = eval(expression.value2)
+                return DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
             }
             else -> TODO(expression.toString())
         }

@@ -5,11 +5,16 @@ import java.time.LocalDateTime
 import java.time.Month
 import java.util.*
 import kotlin.streams.toList
+import java.util.Calendar
+import java.util.GregorianCalendar
+
+
 
 abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asString() : StringValue = throw UnsupportedOperationException()
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
+    open fun asTimeStamp() : TimeStampValue = throw UnsupportedOperationException()
     abstract fun assignableTo(expectedType: Type): Boolean
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
 }
@@ -118,13 +123,15 @@ data class BooleanValue(val value: Boolean) : Value() {
         val TRUE = BooleanValue(true)
     }
 }
-data class TimeStampValue(val value: LocalDateTime) : Value() {
+data class TimeStampValue(val value: Date) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is TimeStampType
     }
 
+    override fun asTimeStamp() = this
+
     companion object {
-        val LOVAL = TimeStampValue(LocalDateTime.of(0, Month.JANUARY, 1, 0, 0, 0))
+        val LOVAL = TimeStampValue(GregorianCalendar(0, Calendar.JANUARY, 0).time)
     }
 }
 abstract class ArrayValue : Value() {
