@@ -11,7 +11,7 @@ interface RpgProgramFinder {
 
 class DirRpgProgramFinder(val directory: File) : RpgProgramFinder {
     override fun findRpgProgram(name: String): RpgProgram? {
-        val file = File(directory.absolutePath + File.separator + name + ".rpgle")
+        val file = File(directory.absolutePath + File.separator + nameAndSuffix(name))
         return if (file.exists()) {
             RpgProgram.fromInputStream(FileInputStream(file), name)
         } else {
@@ -20,6 +20,12 @@ class DirRpgProgramFinder(val directory: File) : RpgProgramFinder {
         }
     }
 
+    private fun nameAndSuffix(name: String): String {
+        if (name.endsWith(".rpgle")) {
+            return name
+        }
+        return name + ".rpgle"
+    }
 }
 
 object RpgSystem {

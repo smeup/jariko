@@ -48,6 +48,7 @@ fun main(args : Array<String>) {
         return
     }
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
+    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/")))
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File(".")))
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
