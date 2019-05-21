@@ -9,6 +9,26 @@ interface RpgProgramFinder {
     fun findRpgProgram(name: String) : RpgProgram?
 }
 
+private fun nameAndSuffix(name: String): String {
+    if (name.endsWith(".rpgle")) {
+        return name
+    }
+    return name + ".rpgle"
+}
+
+class AbsolutePathProgramFinder : RpgProgramFinder {
+    override fun findRpgProgram(name: String): RpgProgram? {
+        val file = File(nameAndSuffix(name))
+        return if (file.exists()) {
+            RpgProgram.fromInputStream(FileInputStream(file), name)
+        } else {
+            println("Not found file ${file.absolutePath}")
+            null
+        }
+    }
+}
+
+
 class DirRpgProgramFinder(val directory: File) : RpgProgramFinder {
     override fun findRpgProgram(name: String): RpgProgram? {
         val file = File(directory.absolutePath + File.separator + nameAndSuffix(name))
@@ -18,13 +38,6 @@ class DirRpgProgramFinder(val directory: File) : RpgProgramFinder {
             println("Not found file ${file.absolutePath}")
             null
         }
-    }
-
-    private fun nameAndSuffix(name: String): String {
-        if (name.endsWith(".rpgle")) {
-            return name
-        }
-        return name + ".rpgle"
     }
 }
 
