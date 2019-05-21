@@ -1,9 +1,10 @@
-     V*=====================================================================
+﻿     V*=====================================================================
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
      V* 19/10/18  V5R1   BMA Created
      V* 05/02/19  V5R1   BMA Comments translated to english
+     V* 09/05/19  V5R1   BMA Corrected eval $$SVAR
      V*=====================================================================
      H/COPY QILEGEN,£INIZH
       *---------------------------------------------------------------
@@ -35,8 +36,6 @@
      D U$SVARSK        S                   LIKE($$SVAR) DIM(%ELEM($$SVAR))
       * . Return Code ('1'=ERROR / blank=OK)
      D U$IN35          S              1
-      *---------------------------------------------------------------
-     D$$SVARSK         S                   LIKE($$SVAR) DIM(%ELEM($$SVAR))
       *---------------------------------------------------------------
       * PARM JD_NFYEVE (notify the event)
       * . Function
@@ -186,4 +185,4 @@
       *
      C                   ENDSR
       *--------------------------------------------------------------*
-      /COPY QILEGEN,£JAX_PC1 
+      /COPY QILEGEN,£JAX_PC1

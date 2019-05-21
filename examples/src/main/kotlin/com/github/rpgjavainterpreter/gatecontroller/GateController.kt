@@ -21,7 +21,7 @@ class JD_001 : RpgFacade<JD_001_params>() {
         singleCall(JD_001_params("INZ", arrayOf(
                 VarElement("Url", originalUrl),
                 VarElement(stringToReplace, replacement))))
-        singleCall(JD_001_params("EXE", arrayOf(
+        singleCall(JD_001_params("ESE", arrayOf(
                 VarElement("Url", originalUrl),
                 VarElement(stringToReplace, replacement))))
         singleCall(JD_001_params("CLO", emptyArray()))

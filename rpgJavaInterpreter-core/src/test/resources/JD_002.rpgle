@@ -1,4 +1,4 @@
-     V*=====================================================================
+﻿     V*=====================================================================
      V* Date      Release Au Description
      V* dd/mm/yy  nn.mm   xx Brief description
      V*=====================================================================
@@ -119,7 +119,7 @@
       * Variable load
      C                   EXSR      CARVAR_INZ
       * Listening $$FLD folder
-     C                   DO        *HIVAL
+1    C                   DO        *HIVAL
      C                   EVAL      §§FLD=$$FLD
      C                   CALL      'LISTEN_FLD'
      C                   PARM                    §§FLD
@@ -128,14 +128,14 @@
      C                   PARM                    §§OPE
       * Check if operation returned is one of those managed
      C                   EXSR      CHKOPE
-     C                   IF        NOT(OK)
+2    C                   IF        NOT(OK)
      C                   ITER
-     C                   ENDIF
+2e   C                   ENDIF
       * Check if file meets the filter
      C                   EXSR      CHKFLT
-     C                   IF        NOT(OK)
+2    C                   IF        NOT(OK)
      C                   ITER
-     C                   ENDIF
+2e   C                   ENDIF
       * Build variabled to notify the event
      C                   EXSR      COSVAR_EVE
       * Notify the event
@@ -143,7 +143,7 @@
      C                   PARM                    §§FUNZ
      C                   PARM                    §§METO
      C                   PARM                    §§SVAR
-     C                   ENDDO
+1e   C                   ENDDO
       * Operation is always successfull
      C                   EVAL      U$IN35=*BLANKS
       *
@@ -153,12 +153,12 @@
       *--------------------------------------------------------------*
      C     CHKOPE        BEGSR
       *
-     C                   IF        $$MOD=*BLANKS OR
+1    C                   IF        $$MOD=*BLANKS OR
      C                             %SCAN(%TRIM(§§OPE):$$MOD)>0
      C                   EVAL      OK=*ON
-     C                   ELSE
+1x   C                   ELSE
      C                   EVAL      OK=*OFF
-     C                   ENDIF
+1e   C                   ENDIF
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -166,26 +166,26 @@
       *--------------------------------------------------------------*
      C     CHKFLT        BEGSR
       *
-     C                   SELECT
+1    C                   SELECT
       * If no filter, file is OK
-     C                   WHEN      $$FLT=*BLANKS
+1x   C                   WHEN      $$FLT=*BLANKS
      C                   EVAL      OK=*ON
       * If I have a filter and the event concerns a folder: NO OK
-     C                   WHEN      $$FLT<>*BLANKS AND §§TIP<>'FILE'
+1x   C                   WHEN      $$FLT<>*BLANKS AND §§TIP<>'FILE'
      C                   EVAL      OK=*OFF
-     C                   OTHER
+1x   C                   OTHER
      C                   EVAL      $$EST_FLT=%SUBST($$FLT:3)
-     C                   IF        %LEN(%TRIM(§§NAM))>%LEN(%TRIM($$EST_FLT))+1
+2    C                   IF        %LEN(%TRIM(§§NAM))>%LEN(%TRIM($$EST_FLT))+1
      C                             AND
      C
      C                             %TRIM(%SUBST(%TRIM(§§NAM):%LEN(%TRIM(§§NAM))
      C                              -%LEN(%TRIM($$EST_FLT))))
      C                             ='.'+%TRIM($$EST_FLT)
      C                   EVAL      OK=*ON
-     C                   ELSE
+2x   C                   ELSE
      C                   EVAL      OK=*OFF
-     C                   ENDIF
-     C                   ENDSL
+2e   C                   ENDIF
+1e   C                   ENDSL
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -194,26 +194,26 @@
      C     CARVAR_INZ    BEGSR
       *
       * Read the variabiles
-     C                   DO        *HIVAL        $X
-     C                   IF        $$SVARCD($X)=*BLANKS
+1    C                   DO        *HIVAL        $X
+2    C                   IF        $$SVARCD($X)=*BLANKS
      C                   LEAVE
-     C                   ENDIF
-     C                   SELECT
+2e   C                   ENDIF
+2    C                   SELECT
       * Folder: Folder name
-     C                   WHEN      $$SVARCD($X)='Folder'
+2x   C                   WHEN      $$SVARCD($X)='Folder'
      C                   EVAL      $$FLD=$$SVARVA($X)
       * Mode: Events to monitor
       * . *ADD File or folder creation
       * . *CHG File change
       * . *DEL File or foldere deletion
-     C                   WHEN      $$SVARCD($X)='Mode'
+2x   C                   WHEN      $$SVARCD($X)='Mode'
      C                   EVAL      $$MOD=$$SVARVA($X)
       * Filter: Filter to apply
       * . Now we can set up only a single filter and only in form *.extension
-     C                   WHEN      $$SVARCD($X)='Filter'
+2x   C                   WHEN      $$SVARCD($X)='Filter'
      C                   EVAL      $$FLT=$$SVARVA($X)
-     C                   ENDSL
-     C                   ENDDO
+2e   C                   ENDSL
+1e   C                   ENDDO
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -246,4 +246,4 @@
       *
       * This function doesn't do anything and is always successfull
       *
-     C                   ENDSR 
+     C                   ENDSR

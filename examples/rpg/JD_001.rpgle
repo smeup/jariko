@@ -50,7 +50,7 @@
 1x   C                   WHEN      U$FUNZ='INZ'
      C                   EXSR      FINZ
       * Invoke URL
-1x   C                   WHEN      U$FUNZ='EXE'
+1x   C                   WHEN      U$FUNZ='ESE'
      C                   EXSR      FEXE
       * Detach (empty subroutine in this case)
 1x   C                   WHEN      U$FUNZ='CLO'

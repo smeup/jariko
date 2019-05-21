@@ -1,4 +1,4 @@
-     V*=====================================================================
+﻿     V*=====================================================================
      V* Date      Release Au Description
      V* dd/mm/yy  nn.mm   xx Brief description
      V*=====================================================================
@@ -6,6 +6,7 @@
      V* 06/02/19  V5R1    PEDSTE Comments translated to english and added return code
      V* 07/02/19  V5R1    PEDSTE Array of Variables in initialisation
      V* 27/03/19  V5R1    CM Ricompilato
+     V* 21/05/19  V5R1    BMA Funzione EXE rinominata ESE per uniformità
      V*=====================================================================
      H/COPY QILEGEN,£INIZH
       *---------------------------------------------------------------
@@ -50,8 +51,8 @@
 1x   C                   WHEN      U$FUNZ='INZ'
      C                   EXSR      FINZ
       * Invoke URL
-1x   C                   WHEN      U$FUNZ='EXE'
-     C                   EXSR      FEXE
+1x   C                   WHEN      U$FUNZ='ESE'
+     C                   EXSR      FESE
       * Detach (empty subroutine in this case)
 1x   C                   WHEN      U$FUNZ='CLO'
      C                   EXSR      FCLO
@@ -102,7 +103,7 @@
       *--------------------------------------------------------------*
     RD* Invoke
       *--------------------------------------------------------------*
-     C     FEXE          BEGSR
+     C     FESE          BEGSR
       *
      C                   EVAL      U$IN35=*BLANKS
       *

@@ -127,7 +127,7 @@ class JDExamplesTest {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()))
-        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(IntValue(0), interpreter["\$X"])
         assertEquals(StringValue("1"), interpreter["U\$IN35"])
@@ -158,7 +158,8 @@ class JDExamplesTest {
                     }.asValue()
                 }), systemInterface = si)
         interpreter.traceMode = true
-        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
+        interpreter.traceMode = false
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(callsToJDURL.size, 1)
         assertEquals(callsToJDURL[0]["URL"], StringValue("https://www.myurl.com".padEnd(1000, '\u0000')))
@@ -191,7 +192,7 @@ class JDExamplesTest {
         val cu = assertASTCanBeProduced("JD_002", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()), systemInterface = si, traceMode = true)
-        interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
+        interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(1, callsToListFld.size)
         assertEquals(1, callsToNfyeve.size)

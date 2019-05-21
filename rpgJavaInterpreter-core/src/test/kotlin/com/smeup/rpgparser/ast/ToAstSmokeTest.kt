@@ -26,7 +26,7 @@ class ToAstSmokeTest {
     @Test
     fun buildAstForJD_003() {
         val cu = assertASTCanBeProduced("JD_003")
-        assertEquals(17, cu.dataDefinitions.size)
+        assertEquals(16, cu.dataDefinitions.size)
         assertEquals(4, cu.main.stmts.size)
         assertEquals(6, cu.subroutines.size)
     }
@@ -67,7 +67,7 @@ class ToAstSmokeTest {
         assertEquals(0, root.subroutines[2].stmts.size)
         assertEquals("FINZ", root.subroutines[3].name)
         assertEquals(2, root.subroutines[3].stmts.size)
-        assertEquals("FEXE", root.subroutines[4].name)
+        assertEquals("FESE", root.subroutines[4].name)
         assertEquals(3, root.subroutines[4].stmts.size)
         assertEquals("REPVAR", root.subroutines[5].name)
         assertEquals(1, root.subroutines[5].stmts.size)
