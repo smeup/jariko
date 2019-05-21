@@ -28,7 +28,11 @@ fun assertIsIntValue(value: Value, intValue: Long) {
 }
 
 fun inputStreamFor(exampleName: String) : InputStream {
-    return BOMInputStream(Dummy::class.java.getResourceAsStream("/$exampleName.rpgle"))
+    val resourceStream = Dummy::class.java.getResourceAsStream("/$exampleName.rpgle")
+    if (resourceStream == null) {
+        throw RuntimeException("$exampleName not found")
+    }
+    return BOMInputStream(resourceStream)
 }
 
 fun inputStreamForCode(code: String) : InputStream {

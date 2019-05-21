@@ -47,9 +47,8 @@ fun main(args : Array<String>) {
         println("Please provide the name of a .rpgle file to interpret")
         return
     }
+    RpgSystem.addProgramFinder(DirRpgProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-    RpgSystem.addProgramFinder(AbsolutePathProgramFinder())
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File(".")))
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
     CommandLineProgram(args[0]).singleCall(CommandLineParms(args.asList().subList(1, args.size)))
