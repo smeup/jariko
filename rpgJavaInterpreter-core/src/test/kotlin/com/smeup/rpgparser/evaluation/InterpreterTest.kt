@@ -195,6 +195,11 @@ class InterpreterTest {
         assertStartsWith(outputOf("TIMESTDIFF"), "Elapsed time:")
     }
 
+    @Test @Ignore
+    fun executeJD_000() {
+        assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com"))
+    }
+
     private fun assertStartsWith(lines: List<String>, value: String) {
         if (lines == null || lines.isEmpty()) {
             fail("Empty output")
