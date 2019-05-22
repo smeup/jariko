@@ -10,6 +10,7 @@ import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class JDExamplesTest {
     @Test
@@ -140,7 +141,7 @@ class JDExamplesTest {
         si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("method", StringType(10)),
-                ProgramParam("URL", StringType(1000)))) {
+                ProgramParam("URL", ArrayType(StringType(1050), 200)))) {
             override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
                 callsToJDURL.add(params)
                 return emptyList()
@@ -162,7 +163,13 @@ class JDExamplesTest {
         interpreter.traceMode = false
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(callsToJDURL.size, 1)
-        assertEquals(callsToJDURL[0]["URL"], StringValue("https://www.myurl.com".padEnd(1000, '\u0000')))
+        val a = callsToJDURL[0]["URL"]
+        if (a !is ConcreteArrayValue) {
+            fail("Expected array, found $a")
+        }
+        assertEquals(a.getElement(1).asString(),
+                     StringValue("Url".padEnd(50, '\u0000') +
+                                 "https://www.myurl.com".padEnd(1000, '\u0000')))
     }
 
     @Test

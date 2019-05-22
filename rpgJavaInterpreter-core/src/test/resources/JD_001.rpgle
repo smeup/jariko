@@ -126,7 +126,7 @@
      C                   CALL      'JD_URL'
      C                   PARM                    §§FUNZ
      C                   PARM                    §§METO
-     C                   PARM                    $$URL
+     C                   PARM                    $$SVAR
      C                   ENDIF
       *
      C                   ENDSR
