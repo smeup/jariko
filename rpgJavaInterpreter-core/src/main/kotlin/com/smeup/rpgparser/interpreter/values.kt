@@ -162,14 +162,14 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     override fun arrayLength() = elements.size
 
     override fun setElement(index: Int, value: Value) {
-        require(index >= 0)
+        require(index >= 1)
         require(index <= arrayLength())
         require(value.assignableTo(elementType))
         elements[index - 1] = value
     }
 
     override fun getElement(index: Int) : Value {
-        require(index >= 0)
+        require(index >= 1)
         require(index <= arrayLength())
         return elements[index - 1]
     }
