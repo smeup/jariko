@@ -31,22 +31,22 @@ sealed class Type {
 data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
 
     override val size: Long
-        get()= elementSize.toLong()
+        get() = elementSize.toLong()
 }
 
 data class StringType(val length: Long) : Type() {
     override val size: Long
-        get()= length
+        get() = length
 
 }
 object BooleanType : Type() {
     override val size: Long
-        get()= 1
+        get() = 1
 
 }
 object TimeStampType : Type() {
     override val size: Long
-        get()= 26
+        get() = 26
 
 }
 data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
