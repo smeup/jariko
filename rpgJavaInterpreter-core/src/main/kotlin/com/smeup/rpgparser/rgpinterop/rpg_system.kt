@@ -9,9 +9,6 @@ interface RpgProgramFinder {
     fun findRpgProgram(name: String) : RpgProgram?
 }
 
-
-
-
 class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     override fun findRpgProgram(name: String): RpgProgram? {
         val file = File(prefix() + nameAndSuffix(name))
@@ -34,7 +31,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         if (name.endsWith(".rpgle")) {
             return name
         }
-        return name + ".rpgle"
+        return "$name.rpgle"
     }
 }
 
