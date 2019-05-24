@@ -33,7 +33,7 @@ dependencies {
   compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version".toString()
   compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version".toString()
   compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version".toString()
-  compile "com.github.ftomassetti:kolasu:fb550d5369"
+  compile "com.github.ftomassetti:kolasu:b97d982a8c"
   testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version".toString()
   testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
   testCompile 'junit:junit:4.12'

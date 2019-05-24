@@ -14,6 +14,7 @@ private fun CompilationUnit.findInStatementDataDefinitions() {
     }
 }
 
+
 fun CompilationUnit.resolve() {
     this.assignParents()
 
@@ -21,14 +22,14 @@ fun CompilationUnit.resolve() {
 
     this.specificProcess(DataRefExpr::class.java) { dre ->
         if (!dre.variable.resolved) {
-            require(dre.variable.tryToResolve(this.allDataDefinitions)) {
+            require(dre.variable.tryToResolve(this.allDataDefinitions,caseInsensitive = true)) {
                 "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
             }
         }
     }
     this.specificProcess(ExecuteSubroutine::class.java) { esr ->
         if (!esr.subroutine.resolved) {
-            require(esr.subroutine.tryToResolve(this.subroutines)) {
+            require(esr.subroutine.tryToResolve(this.subroutines,caseInsensitive = true)) {
                 "Subroutine call not resolved: ${esr.subroutine.name}"
             }
         }
@@ -62,7 +63,7 @@ fun CompilationUnit.resolve() {
 
     this.specificProcess(PlistParam::class.java) { pp ->
         if (!pp.param.resolved) {
-            require(pp.param.tryToResolve(this.allDataDefinitions)) {
+            require(pp.param.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
                 "Plist Param not resolved: ${pp.param.name} at ${pp.position}"
             }
         }

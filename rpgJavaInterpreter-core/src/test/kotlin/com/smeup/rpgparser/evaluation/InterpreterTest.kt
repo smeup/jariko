@@ -161,9 +161,9 @@ class InterpreterTest {
     }
 
     //TODO
-    @Test @Ignore
+    @Test
     fun executeHELLOCASE() {
-        assertEquals(outputOf("HELLOCASE"), listOf("'Hello World!"))
+        assertEquals(outputOf("HELLOCASE"), listOf("Hello World!"))
     }
 
     //TODO
