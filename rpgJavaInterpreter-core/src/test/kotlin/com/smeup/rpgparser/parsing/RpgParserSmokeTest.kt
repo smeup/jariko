@@ -157,5 +157,4 @@ class RpgParserSmokeTest {
         assertCanBeParsed("HELLOVARST")
     }
 
-
 }

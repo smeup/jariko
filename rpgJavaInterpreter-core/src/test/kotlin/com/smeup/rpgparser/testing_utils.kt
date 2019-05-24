@@ -8,12 +8,15 @@ import com.smeup.rpgparser.ast.Expression
 import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsetreetoast.toAst
+import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
 import java.io.InputStream
+import java.lang.IllegalStateException
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.test.assertEquals
@@ -50,17 +53,27 @@ fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true) : L
     }
 }
 
-fun assertCanBeParsed(exampleName: String) : RContext {
-    val result = RpgParserFacade().parse(inputStreamFor(exampleName))
+fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false) : RContext {
+    val result = RpgParserFacade()
+            .apply { this.muteSupport = withMuteSupport }
+            .parse(inputStreamFor(exampleName))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!
 }
 
-fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = false) : CompilationUnit {
-    val parseTreeRoot = assertCanBeParsed(exampleName)
-    return parseTreeRoot.toAst(ToAstConfiguration(
+fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = false,
+                           withMuteSupport: Boolean = false) : CompilationUnit {
+    val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
+    val ast = parseTreeRoot.toAst(ToAstConfiguration(
             considerPosition = considerPosition))
+    if (withMuteSupport) {
+        if (!considerPosition) {
+            throw IllegalStateException("Mute annotations can be injected only when retaining the position")
+        }
+        ast.injectMuteAnnotation(parseTreeRoot)
+    }
+    return ast
 }
 
 fun assertCodeCanBeParsed(code: String) : RContext {

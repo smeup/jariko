@@ -2362,7 +2362,7 @@ simpleExpression:
 unaryExpression:
 	sign expression;
 
-expression: 
+expression: EndOfSourceMode
 	NOT expression
 	| OPEN_PAREN expression CLOSE_PAREN
     | <assoc=right> expression EXP expression

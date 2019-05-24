@@ -11,7 +11,7 @@ import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 
-data class ToAstConfiguration(val considerPosition: Boolean = true, 
+data class ToAstConfiguration(val considerPosition : Boolean = true,
                               val compileTimeInterpreter : CompileTimeInterpreter = CommonCompileTimeInterpreter)
 
 fun List<Node>.position() : Position? {

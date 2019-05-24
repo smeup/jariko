@@ -5,6 +5,7 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.ExpressionContext
 import com.smeup.rpgparser.RpgParser.RContext
 import com.smeup.rpgparser.ast.CompilationUnit
+import com.smeup.rpgparser.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Point
@@ -30,6 +31,8 @@ typealias RpgParserResult = ParsingResult<RContext>
 typealias RpgLexerResult = ParsingResult<List<Token>>
 
 class RpgParserFacade {
+
+    var muteSupport : Boolean = false
 
     private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80) : ANTLRInputStream {
         val code = inputStreamToString(inputStream)
@@ -57,6 +60,9 @@ class RpgParserFacade {
     }
 
     fun lex(inputStream: InputStream) : RpgLexerResult {
+        if (muteSupport) {
+            TODO("Mute support to be implemented")
+        }
         val errors = LinkedList<Error>()
         val lexer = RpgLexer(inputStreamWithLongLines(inputStream))
         lexer.removeErrorListeners()
@@ -121,6 +127,9 @@ class RpgParserFacade {
     }
 
     fun parse(inputStream: InputStream) : RpgParserResult {
+        if (muteSupport) {
+            TODO("Mute support to be implemented")
+        }
         val errors = LinkedList<Error>()
         val code = inputStreamToString(inputStream)
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
@@ -133,10 +142,15 @@ class RpgParserFacade {
         val result = RpgParserFacade().parse(inputStream)
         require(result.correct)
                 { "Errors: ${result.errors.joinToString(separator = ", ")}" }
-        return result.root!!.toAst()
+        return result.root!!.toAst().apply {
+            if (muteSupport) {
+                this.injectMuteAnnotation(result.root!!)
+            }
+        }
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true) : ParsingResult<ExpressionContext> {
+        // Nothing to do with Mute support, as annotations can be only on statements
         val errors = LinkedList<Error>()
         val parser = createParser(inputStream, errors, longLines = longLines)
         val root = parser.expression()
@@ -145,6 +159,9 @@ class RpgParserFacade {
     }
 
     fun parseStatement(inputStream: InputStream, longLines: Boolean = true) : ParsingResult<RpgParser.StatementContext> {
+        if (muteSupport) {
+            TODO("Mute support to be implemented")
+        }
         val errors = LinkedList<Error>()
         val parser = createParser(inputStream, errors, longLines = longLines)
         val root = parser.statement()
