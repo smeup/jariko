@@ -83,7 +83,7 @@ DIR_ELSE: {_input.LA(-1)=='/'}? ([eE][lL][sS][eE]);
 DIR_ELSEIF: {_input.LA(-1)=='/'}? ([eE][lL][sS][eE][iI][fF]);
 DIR_ENDIF: {_input.LA(-1)=='/'}? ([eE][nN][dD][iI][fF]);
 DIR_Number: NUMBER -> type(NUMBER);
-DIR_WhiteSpace: [ ] -> type(WS);
+DIR_WhiteSpace: [ ] -> skip;
 DIR_OtherText : ~[/'"\r\n \t,()]+ ;
 DIR_Comma : [,] -> skip;
 DIR_Slash : [/] ;
@@ -1473,7 +1473,7 @@ IF_Reserved2: '  ' {getCharPositionInLine()==68}? ->pushMode(IndicatorMode),push
 IF_WS : [ \t] {getCharPositionInLine()>=75}? [ \t]* -> popMode,skip  ; // skip spaces, tabs
 
 mode FIXED_I_EXT_REC_SPEC;
-IR_WS : [ \t]{getCharPositionInLine()>=23}? [ \t]* -> type(WS),popMode  ; // skip spaces, tabs
+IR_WS : [ \t]{getCharPositionInLine()>=23}? [ \t]* -> skip,popMode  ; // skip spaces, tabs
 
 mode FIXED_I_FIELD_SPEC;
 IFD_DATA_ATTR: WORD_WCOLON WORD_WCOLON WORD_WCOLON WORD_WCOLON {getCharPositionInLine()==34}?;
