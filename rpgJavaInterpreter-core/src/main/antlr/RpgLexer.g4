@@ -25,7 +25,7 @@ END_SOURCE :  '**' {getCharPositionInLine()==2}? ~[\r\n]~[\r\n]~[\r\n]~[\r\n*]~[
 LEAD_WS5 :  '     ' {getCharPositionInLine()==5}? -> skip;
 LEAD_WS5_Comments :  WORD5 {getCharPositionInLine()==5}? -> channel(HIDDEN);
 	//5 position blank means FREE, unless..
-FREE_SPEC : {getCharPositionInLine()==5}? [  ] -> pushMode(OpCode),skip;
+FREE_SPEC : {getCharPositionInLine()==5}? [ ] -> pushMode(OpCode),skip;
     // 6th position asterisk is a comment
 COMMENT_SPEC_FIXED : {getCharPositionInLine()==5}? .'*' -> pushMode(FIXED_CommentMode), channel(HIDDEN) ;
     // X specs 
@@ -83,7 +83,7 @@ DIR_ELSE: {_input.LA(-1)=='/'}? ([eE][lL][sS][eE]);
 DIR_ELSEIF: {_input.LA(-1)=='/'}? ([eE][lL][sS][eE][iI][fF]);
 DIR_ENDIF: {_input.LA(-1)=='/'}? ([eE][nN][dD][iI][fF]);
 DIR_Number: NUMBER -> type(NUMBER);
-DIR_WhiteSpace: [ ] -> type(WS),skip;
+DIR_WhiteSpace: [ ] -> skip;
 DIR_OtherText : ~[/'"\r\n \t,()]+ ;
 DIR_Comma : [,] -> skip;
 DIR_Slash : [/] ;
@@ -594,7 +594,7 @@ OP_ANDGE: [aA][nN][dD][gG][eE];
 OP_ANDGT: [aA][nN][dD][gG][tT];
 OP_BITOFF: [bB][iI][tT][oO][fF][fF];
 OP_BITON: [bB][iI][tT][oO][nN];
-OP_CABxx: [cc][aA][bB][0-9][0-9];
+OP_CABxx: [cC][aA][bB][0-9][0-9];
 OP_CABEQ: [cC][aA][bB][eE][qQ];
 OP_CABNE: [cC][aA][bB][nN][eE];
 OP_CABLE: [cC][aA][bB][lL][eE];
@@ -747,7 +747,7 @@ FIXED_FREE_STRING_CONTINUATION_Part2:
       | 
      )  // If it plus continuation eat whitespace.
    ) 
-   -> type(CONTINUATION),skip ;
+   -> skip ;
 //Deliberate match no char, pop out again
 EatCommentLines_NothingLeft: -> popMode,skip;
 
@@ -829,10 +829,10 @@ DEF_TYPE_DS: [dD][sS] {getCharPositionInLine()==25}?;
 DEF_TYPE_S: [sS][ ] {getCharPositionInLine()==25}?;
 DEF_TYPE_BLANK: [ ][ ] {getCharPositionInLine()==25}?;
 DEF_TYPE: [a-zA-Z0-9 ][a-zA-Z0-9 ] {getCharPositionInLine()==25}?;
-FROM_POSITION: WORD5 [a-zA-Z0-9\+\- ][a-zA-Z0-9 ]{getCharPositionInLine()==32}?;
-TO_POSITION: WORD5[a-zA-Z0-9\+\- ][a-zA-Z0-9 ]{getCharPositionInLine()==39}? ;
-DATA_TYPE: [a-zA-Z\* ]{getCharPositionInLine()==40}? ;
-DECIMAL_POSITIONS: [0-9\+\- ][0-9 ]{getCharPositionInLine()==42}? ;
+FROM_POSITION: WORD5 [a-zA-Z0-9+\- ][a-zA-Z0-9 ]{getCharPositionInLine()==32}?;
+TO_POSITION: WORD5[a-zA-Z0-9+\- ][a-zA-Z0-9 ]{getCharPositionInLine()==39}? ;
+DATA_TYPE: [a-zA-Z* ]{getCharPositionInLine()==40}? ;
+DECIMAL_POSITIONS: [0-9+\- ][0-9 ]{getCharPositionInLine()==42}? ;
 RESERVED :  ' ' {getCharPositionInLine()==43}? -> pushMode(FREE);
 //KEYWORDS : ~[\r\n] {getCharPositionInLine()==44}? ~[\r\n]* ;
 D_WS : [ \t] {getCharPositionInLine()>=81}? [ \t]* -> skip  ; // skip spaces, tabs, newlines
@@ -886,7 +886,7 @@ OS_Space3: [ 0-9][ 0-9][ 0-9] {getCharPositionInLine()==42 || getCharPositionInL
 	|| getCharPositionInLine()==48 || getCharPositionInLine()==51}? ;
 OS_RemainingSpace:  '                             ' {getCharPositionInLine()==80}?;
 OS_Comments : CS_Comments -> channel(HIDDEN); // skip comments after 80
-OS_WS : [ \t] {getCharPositionInLine()>80}? [ \t]* -> type(WS),skip  ; // skip spaces, tabs, newlines
+OS_WS : [ \t] {getCharPositionInLine()>80}? [ \t]* -> skip  ; // skip spaces, tabs, newlines
 OS_EOL : NEWLINE -> type(EOL),popMode;//,skip;
 
 mode FIXED_OutputSpec_PGM1;
@@ -1152,12 +1152,12 @@ CS_FactorContentStringLiteral: [']
 	}?
 		-> type(StringLiteralStart),pushMode(InFactorStringMode);
 				
-CS_FactorContent: (~[\r\n'\'' :]
+CS_FactorContent: (~[\r\n' :]
 	{(getCharPositionInLine()>=12 && getCharPositionInLine()<=25)
 			|| (getCharPositionInLine()>=36 && getCharPositionInLine()<=49)
 	}?
 		)+;
-CS_ResultContent: (~[\r\n'\'' :]
+CS_ResultContent: (~[\r\n' :]
 	{(getCharPositionInLine()>=50 && getCharPositionInLine()<=63)}?
 		)+ -> type(CS_FactorContent);
 CS_FactorColon: ([:]
@@ -1345,7 +1345,7 @@ CS_OperationExtenderClose: CLOSE_PAREN{getCharPositionInLine()>=26 && getCharPos
   {setText(getText().trim());}
   -> type(CLOSE_PAREN);
   
-CS_FieldLength: [+\\- 0-9][+\\- 0-9][+\\- 0-9][+\\- 0-9][+\\- 0-9]  {getCharPositionInLine()==68}?;
+CS_FieldLength: ('+'|'\\'|'-'|[0-9]|' ')('+'|'\\'|'-'|[0-9]|' ')('+'|'\\'|'-'|[0-9]|' ')('+'|'\\'|'-'|[0-9]|' ')('+'|'\\'|'-'|[0-9]|' ')  {getCharPositionInLine()==68}?;
 CS_DecimalPositions: [ 0-9][ 0-9] {getCharPositionInLine()==70}?
 	-> pushMode(IndicatorMode),pushMode(IndicatorMode),pushMode(IndicatorMode); // 3 Indicators in a row
 CS_WhiteSpace : [ \t] {getCharPositionInLine()>=77}? [ \t]* -> skip  ; // skip spaces, tabs, newlines
@@ -1460,7 +1460,7 @@ IS_Number : [ 1nN]  {getCharPositionInLine()==19}?;
 IS_Option: [ oO] {getCharPositionInLine()==20}? -> pushMode(IndicatorMode);
 IS_RecordIdCode:  WORD5_WCOLON WORD5_WCOLON WORD5_WCOLON WORD5_WCOLON
 		WORD_WCOLON WORD_WCOLON WORD_WCOLON WORD_WCOLON  {getCharPositionInLine()==46}?; //TODO better lexing
-IS_WS : [ \t] {getCharPositionInLine()>=47}? [ \t]* -> type(WS),skip  ; // skip spaces, tabs
+IS_WS : [ \t] {getCharPositionInLine()>=47}? [ \t]* -> skip  ; // skip spaces, tabs
 IS_COMMENTS : ~[\r\n] {getCharPositionInLine()>80}? ~[\r\n]* -> channel(HIDDEN) ; // skip spaces, tabs, newlines
 IS_EOL : NEWLINE -> type(EOL),popMode; 
 
@@ -1470,10 +1470,10 @@ IF_Reserved: '                  ' {getCharPositionInLine()==48}? -> skip;
 IF_FieldName: WORD5_WCOLON WORD5_WCOLON WORD_WCOLON WORD_WCOLON
 	WORD_WCOLON WORD_WCOLON  {getCharPositionInLine()==62}? ->pushMode(IndicatorMode),pushMode(IndicatorMode);
 IF_Reserved2: '  ' {getCharPositionInLine()==68}? ->pushMode(IndicatorMode),pushMode(IndicatorMode),pushMode(IndicatorMode),skip; // 3 Indicators in a row
-IF_WS : [ \t] {getCharPositionInLine()>=75}? [ \t]* -> type(WS),popMode,skip  ; // skip spaces, tabs
+IF_WS : [ \t] {getCharPositionInLine()>=75}? [ \t]* -> popMode,skip  ; // skip spaces, tabs
 
 mode FIXED_I_EXT_REC_SPEC;
-IR_WS : [ \t]{getCharPositionInLine()>=23}? [ \t]* -> type(WS),popMode  ; // skip spaces, tabs
+IR_WS : [ \t]{getCharPositionInLine()>=23}? [ \t]* -> popMode,skip  ; // skip spaces, tabs
 
 mode FIXED_I_FIELD_SPEC;
 IFD_DATA_ATTR: WORD_WCOLON WORD_WCOLON WORD_WCOLON WORD_WCOLON {getCharPositionInLine()==34}?;
@@ -1494,7 +1494,7 @@ HS_OPEN_PAREN: OPEN_PAREN -> type(OPEN_PAREN);
 HS_CLOSE_PAREN: CLOSE_PAREN -> type(CLOSE_PAREN);
 HS_StringLiteralStart: ['] -> type(StringLiteralStart),pushMode(InStringMode) ;
 HS_COLON: ':' -> type(COLON);
-HS_ID: [§£#@%$*a-zA-Z] [§£&#@\-$*a-zA-Z0-9_/,\.]* -> type(ID);
+HS_ID: [§£#@%$*a-zA-Z] [§£&#@\-$*a-zA-Z0-9_/,.]* -> type(ID);
 HS_WhiteSpace : [ \t]+ -> skip  ; // skip spaces, tabs, newlines
 HS_CONTINUATION: NEWLINE 
 	WORD5 [hH] ~[*] -> skip;
