@@ -1473,7 +1473,7 @@ IF_Reserved2: '  ' {getCharPositionInLine()==68}? ->pushMode(IndicatorMode),push
 IF_WS : [ \t] {getCharPositionInLine()>=75}? [ \t]* -> popMode,skip  ; // skip spaces, tabs
 
 mode FIXED_I_EXT_REC_SPEC;
-IR_WS : [ \t]{getCharPositionInLine()>=23}? [ \t]* -> skip,popMode  ; // skip spaces, tabs
+IR_WS : [ \t]{getCharPositionInLine()>=23}? [ \t]* -> popMode,skip  ; // skip spaces, tabs
 
 mode FIXED_I_FIELD_SPEC;
 IFD_DATA_ATTR: WORD_WCOLON WORD_WCOLON WORD_WCOLON WORD_WCOLON {getCharPositionInLine()==34}?;
