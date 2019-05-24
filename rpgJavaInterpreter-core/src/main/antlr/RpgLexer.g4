@@ -1345,7 +1345,7 @@ CS_OperationExtenderClose: CLOSE_PAREN{getCharPositionInLine()>=26 && getCharPos
   {setText(getText().trim());}
   -> type(CLOSE_PAREN);
   
-CS_FieldLength: [+\\- 0-9][+\\- 0-9][+\\- 0-9][+\\- 0-9][+\\- 0-9]  {getCharPositionInLine()==68}?;
+CS_FieldLength: ('+'|'\\'|'-'|[0-9]|' ')('+'|'\\'|'-'|[0-9]|' ')('+'|'\\'|'-'|[0-9]|' ')('+'|'\\'|'-'|[0-9]|' ')('+'|'\\'|'-'|[0-9]|' ')  {getCharPositionInLine()==68}?;
 CS_DecimalPositions: [ 0-9][ 0-9] {getCharPositionInLine()==70}?
 	-> pushMode(IndicatorMode),pushMode(IndicatorMode),pushMode(IndicatorMode); // 3 Indicators in a row
 CS_WhiteSpace : [ \t] {getCharPositionInLine()>=77}? [ \t]* -> skip  ; // skip spaces, tabs, newlines
