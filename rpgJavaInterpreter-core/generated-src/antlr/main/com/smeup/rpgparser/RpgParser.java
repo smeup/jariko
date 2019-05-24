@@ -175,7 +175,7 @@ public class RpgParser extends Parser {
 		IF_FieldName=737, IF_Reserved2=738, IF_WS=739, IR_WS=740, IFD_DATA_ATTR=741, 
 		IFD_DATETIME_SEP=742, IFD_DATA_FORMAT=743, IFD_FIELD_LOCATION=744, IFD_DECIMAL_POSITIONS=745, 
 		IFD_FIELD_NAME=746, IFD_CONTROL_LEVEL=747, IFD_MATCHING_FIELDS=748, IFD_BLANKS=749, 
-		IFD_COMMENTS=750, HS_WhiteSpace=751, HS_CONTINUATION=752;
+		IFD_COMMENTS=750, HS_WhiteSpace=751, HS_CONTINUATION=752, EndOfSourceMode=753;
 	public static final int
 		RULE_r = 0, RULE_statement = 1, RULE_endSource = 2, RULE_endSourceHead = 3, 
 		RULE_endSourceLine = 4, RULE_star_comments = 5, RULE_free_comments = 6, 
@@ -653,7 +653,7 @@ public class RpgParser extends Parser {
 		"IF_Name", "IF_Reserved", "IF_FieldName", "IF_Reserved2", "IF_WS", "IR_WS", 
 		"IFD_DATA_ATTR", "IFD_DATETIME_SEP", "IFD_DATA_FORMAT", "IFD_FIELD_LOCATION", 
 		"IFD_DECIMAL_POSITIONS", "IFD_FIELD_NAME", "IFD_CONTROL_LEVEL", "IFD_MATCHING_FIELDS", 
-		"IFD_BLANKS", "IFD_COMMENTS", "HS_WhiteSpace", "HS_CONTINUATION"
+		"IFD_BLANKS", "IFD_COMMENTS", "HS_WhiteSpace", "HS_CONTINUATION", "EndOfSourceMode"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -771,7 +771,7 @@ public class RpgParser extends Parser {
 			setState(1170);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((((_la - 5)) & ~0x3f) == 0 && ((1L << (_la - 5)) & ((1L << (COMMENT_SPEC_FIXED - 5)) | (1L << (DS_FIXED - 5)) | (1L << (FS_FIXED - 5)) | (1L << (OS_FIXED - 5)) | (1L << (CS_FIXED - 5)) | (1L << (CS_ExecSQL - 5)) | (1L << (IS_FIXED - 5)) | (1L << (PS_FIXED - 5)) | (1L << (HS_FIXED - 5)) | (1L << (BLANK_LINE - 5)) | (1L << (COMMENTS - 5)) | (1L << (DIRECTIVE - 5)) | (1L << (OPEN_PAREN - 5)) | (1L << (NUMBER - 5)) | (1L << (ID - 5)) | (1L << (OP_ACQ - 5)) | (1L << (OP_BEGSR - 5)) | (1L << (OP_CALLP - 5)) | (1L << (OP_CHAIN - 5)) | (1L << (OP_CLEAR - 5)) | (1L << (OP_CLOSE - 5)) | (1L << (OP_COMMIT - 5)) | (1L << (OP_DEALLOC - 5)) | (1L << (OP_DELETE - 5)) | (1L << (OP_DOU - 5)) | (1L << (OP_DOW - 5)) | (1L << (OP_DSPLY - 5)) | (1L << (OP_DUMP - 5)))) != 0) || ((((_la - 73)) & ~0x3f) == 0 && ((1L << (_la - 73)) & ((1L << (OP_ENDSR - 73)) | (1L << (OP_EVAL - 73)) | (1L << (OP_EVALR - 73)) | (1L << (OP_EVAL_CORR - 73)) | (1L << (OP_EXCEPT - 73)) | (1L << (OP_EXFMT - 73)) | (1L << (OP_EXSR - 73)) | (1L << (OP_FEOD - 73)) | (1L << (OP_FOR - 73)) | (1L << (OP_FORCE - 73)) | (1L << (OP_IF - 73)) | (1L << (OP_IN - 73)) | (1L << (OP_ITER - 73)) | (1L << (OP_LEAVE - 73)) | (1L << (OP_LEAVESR - 73)) | (1L << (OP_MONITOR - 73)) | (1L << (OP_NEXT - 73)) | (1L << (OP_OPEN - 73)) | (1L << (OP_OTHER - 73)) | (1L << (OP_OUT - 73)) | (1L << (OP_POST - 73)) | (1L << (OP_READ - 73)) | (1L << (OP_READC - 73)) | (1L << (OP_READE - 73)) | (1L << (OP_READP - 73)) | (1L << (OP_READPE - 73)) | (1L << (OP_REL - 73)) | (1L << (OP_RESET - 73)) | (1L << (OP_RETURN - 73)) | (1L << (OP_ROLBK - 73)) | (1L << (OP_SELECT - 73)) | (1L << (OP_SETGT - 73)) | (1L << (OP_SETLL - 73)) | (1L << (OP_SORTA - 73)) | (1L << (OP_TEST - 73)) | (1L << (OP_UNLOCK - 73)) | (1L << (OP_UPDATE - 73)) | (1L << (OP_WHEN - 73)) | (1L << (OP_WRITE - 73)) | (1L << (OP_XML_INTO - 73)) | (1L << (OP_XML_SAX - 73)) | (1L << (DS_Standalone - 73)) | (1L << (DS_DataStructureStart - 73)) | (1L << (DS_PrototypeStart - 73)) | (1L << (DS_ProcedureInterfaceStart - 73)) | (1L << (DS_ProcedureStart - 73)) | (1L << (DS_Constant - 73)) | (1L << (FS_FreeFile - 73)) | (1L << (H_SPEC - 73)) | (1L << (EXEC_SQL - 73)) | (1L << (BIF_ABS - 73)) | (1L << (BIF_ADDR - 73)) | (1L << (BIF_ALLOC - 73)) | (1L << (BIF_BITAND - 73)) | (1L << (BIF_BITNOT - 73)))) != 0) || ((((_la - 137)) & ~0x3f) == 0 && ((1L << (_la - 137)) & ((1L << (BIF_BITOR - 137)) | (1L << (BIF_BITXOR - 137)) | (1L << (BIF_CHAR - 137)) | (1L << (BIF_CHECK - 137)) | (1L << (BIF_CHECKR - 137)) | (1L << (BIF_DATE - 137)) | (1L << (BIF_DAYS - 137)) | (1L << (BIF_DEC - 137)) | (1L << (BIF_DECH - 137)) | (1L << (BIF_DECPOS - 137)) | (1L << (BIF_DIFF - 137)) | (1L << (BIF_DIV - 137)) | (1L << (BIF_EDITC - 137)) | (1L << (BIF_EDITFLT - 137)) | (1L << (BIF_EDITW - 137)) | (1L << (BIF_ELEM - 137)) | (1L << (BIF_EOF - 137)) | (1L << (BIF_EQUAL - 137)) | (1L << (BIF_ERROR - 137)) | (1L << (BIF_FIELDS - 137)) | (1L << (BIF_FLOAT - 137)) | (1L << (BIF_FOUND - 137)) | (1L << (BIF_GRAPH - 137)) | (1L << (BIF_HANDLER - 137)) | (1L << (BIF_HOURS - 137)) | (1L << (BIF_INT - 137)) | (1L << (BIF_INTH - 137)) | (1L << (BIF_KDS - 137)) | (1L << (BIF_LEN - 137)) | (1L << (BIF_LOOKUP - 137)) | (1L << (BIF_LOOKUPLT - 137)) | (1L << (BIF_LOOKUPLE - 137)) | (1L << (BIF_LOOKUPGT - 137)) | (1L << (BIF_LOOKUPGE - 137)) | (1L << (BIF_MINUTES - 137)) | (1L << (BIF_MONTHS - 137)) | (1L << (BIF_MSECONDS - 137)) | (1L << (BIF_NULLIND - 137)) | (1L << (BIF_OCCUR - 137)) | (1L << (BIF_OPEN - 137)) | (1L << (BIF_PADDR - 137)) | (1L << (BIF_PARMS - 137)) | (1L << (BIF_PARMNUM - 137)) | (1L << (BIF_REALLOC - 137)) | (1L << (BIF_REM - 137)) | (1L << (BIF_REPLACE - 137)) | (1L << (BIF_SCAN - 137)) | (1L << (BIF_SCANRPL - 137)) | (1L << (BIF_SECONDS - 137)) | (1L << (BIF_SHTDN - 137)) | (1L << (BIF_SIZE - 137)) | (1L << (BIF_SQRT - 137)) | (1L << (BIF_STATUS - 137)) | (1L << (BIF_STR - 137)) | (1L << (BIF_SUBARR - 137)) | (1L << (BIF_SUBDT - 137)) | (1L << (BIF_SUBST - 137)) | (1L << (BIF_THIS - 137)) | (1L << (BIF_TIME - 137)) | (1L << (BIF_TIMESTAMP - 137)) | (1L << (BIF_TLOOKUP - 137)) | (1L << (BIF_TLOOKUPLT - 137)) | (1L << (BIF_TLOOKUPLE - 137)) | (1L << (BIF_TLOOKUPGT - 137)))) != 0) || ((((_la - 201)) & ~0x3f) == 0 && ((1L << (_la - 201)) & ((1L << (BIF_TLOOKUPGE - 201)) | (1L << (BIF_TRIM - 201)) | (1L << (BIF_TRIML - 201)) | (1L << (BIF_TRIMR - 201)) | (1L << (BIF_UCS2 - 201)) | (1L << (BIF_UNS - 201)) | (1L << (BIF_UNSH - 201)) | (1L << (BIF_XFOOT - 201)) | (1L << (BIF_XLATE - 201)) | (1L << (BIF_XML - 201)) | (1L << (BIF_YEARS - 201)) | (1L << (SPLAT_ALL - 201)) | (1L << (SPLAT_NONE - 201)) | (1L << (SPLAT_YES - 201)) | (1L << (SPLAT_NO - 201)) | (1L << (SPLAT_ILERPG - 201)) | (1L << (SPLAT_COMPAT - 201)) | (1L << (SPLAT_CRTBNDRPG - 201)) | (1L << (SPLAT_CRTRPGMOD - 201)) | (1L << (SPLAT_VRM - 201)) | (1L << (SPLAT_ALLG - 201)) | (1L << (SPLAT_ALLU - 201)) | (1L << (SPLAT_ALLTHREAD - 201)) | (1L << (SPLAT_ALLX - 201)) | (1L << (SPLAT_BLANKS - 201)) | (1L << (SPLAT_CANCL - 201)) | (1L << (SPLAT_CYMD - 201)) | (1L << (SPLAT_CMDY - 201)) | (1L << (SPLAT_CDMY - 201)) | (1L << (SPLAT_MDY - 201)) | (1L << (SPLAT_DMY - 201)) | (1L << (SPLAT_DFT - 201)) | (1L << (SPLAT_YMD - 201)) | (1L << (SPLAT_JUL - 201)) | (1L << (SPLAT_JAVA - 201)) | (1L << (SPLAT_ISO - 201)) | (1L << (SPLAT_USA - 201)) | (1L << (SPLAT_EUR - 201)) | (1L << (SPLAT_JIS - 201)) | (1L << (SPLAT_DATE - 201)) | (1L << (SPLAT_DAY - 201)) | (1L << (SPlAT_DETC - 201)) | (1L << (SPLAT_DETL - 201)) | (1L << (SPLAT_DTAARA - 201)) | (1L << (SPLAT_END - 201)) | (1L << (SPLAT_ENTRY - 201)) | (1L << (SPLAT_EQUATE - 201)) | (1L << (SPLAT_EXTDFT - 201)) | (1L << (SPLAT_EXT - 201)) | (1L << (SPLAT_FILE - 201)) | (1L << (SPLAT_GETIN - 201)) | (1L << (SPLAT_HIVAL - 201)) | (1L << (SPLAT_INIT - 201)) | (1L << (SPLAT_INDICATOR - 201)) | (1L << (SPLAT_INZSR - 201)) | (1L << (SPLAT_IN - 201)) | (1L << (SPLAT_INPUT - 201)) | (1L << (SPLAT_OUTPUT - 201)) | (1L << (SPLAT_JOBRUN - 201)) | (1L << (SPLAT_JOB - 201)) | (1L << (SPLAT_LDA - 201)) | (1L << (SPLAT_LIKE - 201)) | (1L << (SPLAT_LONGJUL - 201)) | (1L << (SPLAT_LOVAL - 201)))) != 0) || ((((_la - 265)) & ~0x3f) == 0 && ((1L << (_la - 265)) & ((1L << (SPLAT_KEY - 265)) | (1L << (SPLAT_MONTH - 265)) | (1L << (SPLAT_NEXT - 265)) | (1L << (SPLAT_NOIND - 265)) | (1L << (SPLAT_NOKEY - 265)) | (1L << (SPLAT_NULL - 265)) | (1L << (SPLAT_OFL - 265)) | (1L << (SPLAT_ON - 265)) | (1L << (SPLAT_ONLY - 265)) | (1L << (SPLAT_OFF - 265)) | (1L << (SPLAT_PDA - 265)) | (1L << (SPLAT_PLACE - 265)) | (1L << (SPLAT_PSSR - 265)) | (1L << (SPLAT_ROUTINE - 265)) | (1L << (SPLAT_START - 265)) | (1L << (SPLAT_SYS - 265)) | (1L << (SPLAT_TERM - 265)) | (1L << (SPLAT_TOTC - 265)) | (1L << (SPLAT_TOTL - 265)) | (1L << (SPLAT_USER - 265)) | (1L << (SPLAT_VAR - 265)) | (1L << (SPLAT_YEAR - 265)) | (1L << (SPLAT_ZEROS - 265)) | (1L << (SPLAT_HMS - 265)) | (1L << (SPLAT_INLR - 265)) | (1L << (SPLAT_INOF - 265)) | (1L << (SPLAT_DATA - 265)) | (1L << (SPLAT_ASTFILL - 265)) | (1L << (SPLAT_CURSYM - 265)) | (1L << (SPLAT_MAX - 265)) | (1L << (SPLAT_LOCK - 265)) | (1L << (SPLAT_PROGRAM - 265)) | (1L << (SPLAT_EXTDESC - 265)) | (1L << (SPLAT_D - 265)) | (1L << (SPLAT_H - 265)) | (1L << (SPLAT_HOURS - 265)) | (1L << (SPLAT_DAYS - 265)) | (1L << (SPLAT_M - 265)) | (1L << (SPLAT_MINUTES - 265)) | (1L << (SPLAT_MONTHS - 265)) | (1L << (SPLAT_MN - 265)) | (1L << (SPLAT_MS - 265)) | (1L << (SPLAT_MSECONDS - 265)) | (1L << (SPLAT_S - 265)) | (1L << (SPLAT_SECONDS - 265)) | (1L << (SPLAT_Y - 265)) | (1L << (SPLAT_YEARS - 265)) | (1L << (UDATE - 265)) | (1L << (UMONTH - 265)) | (1L << (UYEAR - 265)) | (1L << (UDAY - 265)) | (1L << (CHAR - 265)) | (1L << (VARCHAR - 265)) | (1L << (UCS2 - 265)) | (1L << (DATE_ - 265)) | (1L << (VARUCS2 - 265)) | (1L << (GRAPH - 265)) | (1L << (VARGRAPH - 265)) | (1L << (IND - 265)))) != 0) || ((((_la - 329)) & ~0x3f) == 0 && ((1L << (_la - 329)) & ((1L << (PACKED - 329)) | (1L << (ZONED - 329)) | (1L << (BINDEC - 329)) | (1L << (INT - 329)) | (1L << (UNS - 329)) | (1L << (FLOAT - 329)) | (1L << (TIME - 329)) | (1L << (TIMESTAMP - 329)) | (1L << (POINTER - 329)) | (1L << (OBJECT - 329)) | (1L << (KEYWORD_ALIAS - 329)) | (1L << (KEYWORD_ALIGN - 329)) | (1L << (KEYWORD_ALT - 329)) | (1L << (KEYWORD_ALTSEQ - 329)) | (1L << (KEYWORD_ASCEND - 329)) | (1L << (KEYWORD_BASED - 329)) | (1L << (KEYWORD_CCSID - 329)) | (1L << (KEYWORD_CLASS - 329)) | (1L << (KEYWORD_CONST - 329)) | (1L << (KEYWORD_CTDATA - 329)) | (1L << (KEYWORD_DATFMT - 329)) | (1L << (KEYWORD_DESCEND - 329)) | (1L << (KEYWORD_DIM - 329)) | (1L << (KEYWORD_DTAARA - 329)) | (1L << (KEYWORD_EXPORT - 329)) | (1L << (KEYWORD_EXT - 329)) | (1L << (KEYWORD_EXTFLD - 329)) | (1L << (KEYWORD_EXTFMT - 329)) | (1L << (KEYWORD_EXTNAME - 329)) | (1L << (KEYWORD_EXTPGM - 329)) | (1L << (KEYWORD_EXTPROC - 329)) | (1L << (KEYWORD_FROMFILE - 329)) | (1L << (KEYWORD_IMPORT - 329)) | (1L << (KEYWORD_INZ - 329)) | (1L << (KEYWORD_LEN - 329)) | (1L << (KEYWORD_LIKE - 329)) | (1L << (KEYWORD_LIKEDS - 329)) | (1L << (KEYWORD_LIKEFILE - 329)) | (1L << (KEYWORD_LIKEREC - 329)) | (1L << (KEYWORD_NOOPT - 329)) | (1L << (KEYWORD_OCCURS - 329)) | (1L << (KEYWORD_OPDESC - 329)) | (1L << (KEYWORD_OPTIONS - 329)) | (1L << (KEYWORD_OVERLAY - 329)) | (1L << (KEYWORD_PACKEVEN - 329)) | (1L << (KEYWORD_PERRCD - 329)) | (1L << (KEYWORD_PREFIX - 329)) | (1L << (KEYWORD_POS - 329)) | (1L << (KEYWORD_PROCPTR - 329)) | (1L << (KEYWORD_QUALIFIED - 329)) | (1L << (KEYWORD_RTNPARM - 329)) | (1L << (KEYWORD_STATIC - 329)) | (1L << (KEYWORD_TEMPLATE - 329)) | (1L << (KEYWORD_TIMFMT - 329)) | (1L << (KEYWORD_TOFILE - 329)) | (1L << (KEYWORD_VALUE - 329)) | (1L << (KEYWORD_VARYING - 329)) | (1L << (KEYWORD_BLOCK - 329)) | (1L << (KEYWORD_COMMIT - 329)) | (1L << (KEYWORD_DEVID - 329)) | (1L << (KEYWORD_EXTDESC - 329)) | (1L << (KEYWORD_EXTFILE - 329)) | (1L << (KEYWORD_EXTIND - 329)) | (1L << (KEYWORD_EXTMBR - 329)))) != 0) || ((((_la - 393)) & ~0x3f) == 0 && ((1L << (_la - 393)) & ((1L << (KEYWORD_FORMLEN - 393)) | (1L << (KEYWORD_FORMOFL - 393)) | (1L << (KEYWORD_IGNORE - 393)) | (1L << (KEYWORD_INCLUDE - 393)) | (1L << (KEYWORD_INDDS - 393)) | (1L << (KEYWORD_INFDS - 393)) | (1L << (KEYWORD_INFSR - 393)) | (1L << (KEYWORD_KEYLOC - 393)) | (1L << (KEYWORD_MAXDEV - 393)) | (1L << (KEYWORD_OFLIND - 393)) | (1L << (KEYWORD_PASS - 393)) | (1L << (KEYWORD_PGMNAME - 393)) | (1L << (KEYWORD_PLIST - 393)) | (1L << (KEYWORD_PRTCTL - 393)) | (1L << (KEYWORD_RAFDATA - 393)) | (1L << (KEYWORD_RECNO - 393)) | (1L << (KEYWORD_RENAME - 393)) | (1L << (KEYWORD_SAVEDS - 393)) | (1L << (KEYWORD_SAVEIND - 393)) | (1L << (KEYWORD_SFILE - 393)) | (1L << (KEYWORD_SLN - 393)) | (1L << (KEYWORD_USROPN - 393)) | (1L << (KEYWORD_DISK - 393)) | (1L << (KEYWORD_WORKSTN - 393)) | (1L << (KEYWORD_PRINTER - 393)) | (1L << (KEYWORD_SPECIAL - 393)) | (1L << (KEYWORD_KEYED - 393)) | (1L << (KEYWORD_USAGE - 393)) | (1L << (KEYWORD_PSDS - 393)) | (1L << (NOT - 393)) | (1L << (PLUS - 393)) | (1L << (MINUS - 393)) | (1L << (MULT_NOSPACE - 393)) | (1L << (FREE_BY - 393)) | (1L << (FREE_TO - 393)) | (1L << (FREE_DOWNTO - 393)) | (1L << (HexLiteralStart - 393)) | (1L << (DateLiteralStart - 393)) | (1L << (TimeLiteralStart - 393)) | (1L << (TimeStampLiteralStart - 393)) | (1L << (GraphicLiteralStart - 393)) | (1L << (UCS2LiteralStart - 393)) | (1L << (StringLiteralStart - 393)))) != 0)) {
+			while (((((_la - 5)) & ~0x3f) == 0 && ((1L << (_la - 5)) & ((1L << (COMMENT_SPEC_FIXED - 5)) | (1L << (DS_FIXED - 5)) | (1L << (FS_FIXED - 5)) | (1L << (OS_FIXED - 5)) | (1L << (CS_FIXED - 5)) | (1L << (CS_ExecSQL - 5)) | (1L << (IS_FIXED - 5)) | (1L << (PS_FIXED - 5)) | (1L << (HS_FIXED - 5)) | (1L << (BLANK_LINE - 5)) | (1L << (COMMENTS - 5)) | (1L << (DIRECTIVE - 5)) | (1L << (OPEN_PAREN - 5)) | (1L << (NUMBER - 5)) | (1L << (ID - 5)) | (1L << (OP_ACQ - 5)) | (1L << (OP_BEGSR - 5)) | (1L << (OP_CALLP - 5)) | (1L << (OP_CHAIN - 5)) | (1L << (OP_CLEAR - 5)) | (1L << (OP_CLOSE - 5)) | (1L << (OP_COMMIT - 5)) | (1L << (OP_DEALLOC - 5)) | (1L << (OP_DELETE - 5)) | (1L << (OP_DOU - 5)) | (1L << (OP_DOW - 5)) | (1L << (OP_DSPLY - 5)) | (1L << (OP_DUMP - 5)))) != 0) || ((((_la - 73)) & ~0x3f) == 0 && ((1L << (_la - 73)) & ((1L << (OP_ENDSR - 73)) | (1L << (OP_EVAL - 73)) | (1L << (OP_EVALR - 73)) | (1L << (OP_EVAL_CORR - 73)) | (1L << (OP_EXCEPT - 73)) | (1L << (OP_EXFMT - 73)) | (1L << (OP_EXSR - 73)) | (1L << (OP_FEOD - 73)) | (1L << (OP_FOR - 73)) | (1L << (OP_FORCE - 73)) | (1L << (OP_IF - 73)) | (1L << (OP_IN - 73)) | (1L << (OP_ITER - 73)) | (1L << (OP_LEAVE - 73)) | (1L << (OP_LEAVESR - 73)) | (1L << (OP_MONITOR - 73)) | (1L << (OP_NEXT - 73)) | (1L << (OP_OPEN - 73)) | (1L << (OP_OTHER - 73)) | (1L << (OP_OUT - 73)) | (1L << (OP_POST - 73)) | (1L << (OP_READ - 73)) | (1L << (OP_READC - 73)) | (1L << (OP_READE - 73)) | (1L << (OP_READP - 73)) | (1L << (OP_READPE - 73)) | (1L << (OP_REL - 73)) | (1L << (OP_RESET - 73)) | (1L << (OP_RETURN - 73)) | (1L << (OP_ROLBK - 73)) | (1L << (OP_SELECT - 73)) | (1L << (OP_SETGT - 73)) | (1L << (OP_SETLL - 73)) | (1L << (OP_SORTA - 73)) | (1L << (OP_TEST - 73)) | (1L << (OP_UNLOCK - 73)) | (1L << (OP_UPDATE - 73)) | (1L << (OP_WHEN - 73)) | (1L << (OP_WRITE - 73)) | (1L << (OP_XML_INTO - 73)) | (1L << (OP_XML_SAX - 73)) | (1L << (DS_Standalone - 73)) | (1L << (DS_DataStructureStart - 73)) | (1L << (DS_PrototypeStart - 73)) | (1L << (DS_ProcedureInterfaceStart - 73)) | (1L << (DS_ProcedureStart - 73)) | (1L << (DS_Constant - 73)) | (1L << (FS_FreeFile - 73)) | (1L << (H_SPEC - 73)) | (1L << (EXEC_SQL - 73)) | (1L << (BIF_ABS - 73)) | (1L << (BIF_ADDR - 73)) | (1L << (BIF_ALLOC - 73)) | (1L << (BIF_BITAND - 73)) | (1L << (BIF_BITNOT - 73)))) != 0) || ((((_la - 137)) & ~0x3f) == 0 && ((1L << (_la - 137)) & ((1L << (BIF_BITOR - 137)) | (1L << (BIF_BITXOR - 137)) | (1L << (BIF_CHAR - 137)) | (1L << (BIF_CHECK - 137)) | (1L << (BIF_CHECKR - 137)) | (1L << (BIF_DATE - 137)) | (1L << (BIF_DAYS - 137)) | (1L << (BIF_DEC - 137)) | (1L << (BIF_DECH - 137)) | (1L << (BIF_DECPOS - 137)) | (1L << (BIF_DIFF - 137)) | (1L << (BIF_DIV - 137)) | (1L << (BIF_EDITC - 137)) | (1L << (BIF_EDITFLT - 137)) | (1L << (BIF_EDITW - 137)) | (1L << (BIF_ELEM - 137)) | (1L << (BIF_EOF - 137)) | (1L << (BIF_EQUAL - 137)) | (1L << (BIF_ERROR - 137)) | (1L << (BIF_FIELDS - 137)) | (1L << (BIF_FLOAT - 137)) | (1L << (BIF_FOUND - 137)) | (1L << (BIF_GRAPH - 137)) | (1L << (BIF_HANDLER - 137)) | (1L << (BIF_HOURS - 137)) | (1L << (BIF_INT - 137)) | (1L << (BIF_INTH - 137)) | (1L << (BIF_KDS - 137)) | (1L << (BIF_LEN - 137)) | (1L << (BIF_LOOKUP - 137)) | (1L << (BIF_LOOKUPLT - 137)) | (1L << (BIF_LOOKUPLE - 137)) | (1L << (BIF_LOOKUPGT - 137)) | (1L << (BIF_LOOKUPGE - 137)) | (1L << (BIF_MINUTES - 137)) | (1L << (BIF_MONTHS - 137)) | (1L << (BIF_MSECONDS - 137)) | (1L << (BIF_NULLIND - 137)) | (1L << (BIF_OCCUR - 137)) | (1L << (BIF_OPEN - 137)) | (1L << (BIF_PADDR - 137)) | (1L << (BIF_PARMS - 137)) | (1L << (BIF_PARMNUM - 137)) | (1L << (BIF_REALLOC - 137)) | (1L << (BIF_REM - 137)) | (1L << (BIF_REPLACE - 137)) | (1L << (BIF_SCAN - 137)) | (1L << (BIF_SCANRPL - 137)) | (1L << (BIF_SECONDS - 137)) | (1L << (BIF_SHTDN - 137)) | (1L << (BIF_SIZE - 137)) | (1L << (BIF_SQRT - 137)) | (1L << (BIF_STATUS - 137)) | (1L << (BIF_STR - 137)) | (1L << (BIF_SUBARR - 137)) | (1L << (BIF_SUBDT - 137)) | (1L << (BIF_SUBST - 137)) | (1L << (BIF_THIS - 137)) | (1L << (BIF_TIME - 137)) | (1L << (BIF_TIMESTAMP - 137)) | (1L << (BIF_TLOOKUP - 137)) | (1L << (BIF_TLOOKUPLT - 137)) | (1L << (BIF_TLOOKUPLE - 137)) | (1L << (BIF_TLOOKUPGT - 137)))) != 0) || ((((_la - 201)) & ~0x3f) == 0 && ((1L << (_la - 201)) & ((1L << (BIF_TLOOKUPGE - 201)) | (1L << (BIF_TRIM - 201)) | (1L << (BIF_TRIML - 201)) | (1L << (BIF_TRIMR - 201)) | (1L << (BIF_UCS2 - 201)) | (1L << (BIF_UNS - 201)) | (1L << (BIF_UNSH - 201)) | (1L << (BIF_XFOOT - 201)) | (1L << (BIF_XLATE - 201)) | (1L << (BIF_XML - 201)) | (1L << (BIF_YEARS - 201)) | (1L << (SPLAT_ALL - 201)) | (1L << (SPLAT_NONE - 201)) | (1L << (SPLAT_YES - 201)) | (1L << (SPLAT_NO - 201)) | (1L << (SPLAT_ILERPG - 201)) | (1L << (SPLAT_COMPAT - 201)) | (1L << (SPLAT_CRTBNDRPG - 201)) | (1L << (SPLAT_CRTRPGMOD - 201)) | (1L << (SPLAT_VRM - 201)) | (1L << (SPLAT_ALLG - 201)) | (1L << (SPLAT_ALLU - 201)) | (1L << (SPLAT_ALLTHREAD - 201)) | (1L << (SPLAT_ALLX - 201)) | (1L << (SPLAT_BLANKS - 201)) | (1L << (SPLAT_CANCL - 201)) | (1L << (SPLAT_CYMD - 201)) | (1L << (SPLAT_CMDY - 201)) | (1L << (SPLAT_CDMY - 201)) | (1L << (SPLAT_MDY - 201)) | (1L << (SPLAT_DMY - 201)) | (1L << (SPLAT_DFT - 201)) | (1L << (SPLAT_YMD - 201)) | (1L << (SPLAT_JUL - 201)) | (1L << (SPLAT_JAVA - 201)) | (1L << (SPLAT_ISO - 201)) | (1L << (SPLAT_USA - 201)) | (1L << (SPLAT_EUR - 201)) | (1L << (SPLAT_JIS - 201)) | (1L << (SPLAT_DATE - 201)) | (1L << (SPLAT_DAY - 201)) | (1L << (SPlAT_DETC - 201)) | (1L << (SPLAT_DETL - 201)) | (1L << (SPLAT_DTAARA - 201)) | (1L << (SPLAT_END - 201)) | (1L << (SPLAT_ENTRY - 201)) | (1L << (SPLAT_EQUATE - 201)) | (1L << (SPLAT_EXTDFT - 201)) | (1L << (SPLAT_EXT - 201)) | (1L << (SPLAT_FILE - 201)) | (1L << (SPLAT_GETIN - 201)) | (1L << (SPLAT_HIVAL - 201)) | (1L << (SPLAT_INIT - 201)) | (1L << (SPLAT_INDICATOR - 201)) | (1L << (SPLAT_INZSR - 201)) | (1L << (SPLAT_IN - 201)) | (1L << (SPLAT_INPUT - 201)) | (1L << (SPLAT_OUTPUT - 201)) | (1L << (SPLAT_JOBRUN - 201)) | (1L << (SPLAT_JOB - 201)) | (1L << (SPLAT_LDA - 201)) | (1L << (SPLAT_LIKE - 201)) | (1L << (SPLAT_LONGJUL - 201)) | (1L << (SPLAT_LOVAL - 201)))) != 0) || ((((_la - 265)) & ~0x3f) == 0 && ((1L << (_la - 265)) & ((1L << (SPLAT_KEY - 265)) | (1L << (SPLAT_MONTH - 265)) | (1L << (SPLAT_NEXT - 265)) | (1L << (SPLAT_NOIND - 265)) | (1L << (SPLAT_NOKEY - 265)) | (1L << (SPLAT_NULL - 265)) | (1L << (SPLAT_OFL - 265)) | (1L << (SPLAT_ON - 265)) | (1L << (SPLAT_ONLY - 265)) | (1L << (SPLAT_OFF - 265)) | (1L << (SPLAT_PDA - 265)) | (1L << (SPLAT_PLACE - 265)) | (1L << (SPLAT_PSSR - 265)) | (1L << (SPLAT_ROUTINE - 265)) | (1L << (SPLAT_START - 265)) | (1L << (SPLAT_SYS - 265)) | (1L << (SPLAT_TERM - 265)) | (1L << (SPLAT_TOTC - 265)) | (1L << (SPLAT_TOTL - 265)) | (1L << (SPLAT_USER - 265)) | (1L << (SPLAT_VAR - 265)) | (1L << (SPLAT_YEAR - 265)) | (1L << (SPLAT_ZEROS - 265)) | (1L << (SPLAT_HMS - 265)) | (1L << (SPLAT_INLR - 265)) | (1L << (SPLAT_INOF - 265)) | (1L << (SPLAT_DATA - 265)) | (1L << (SPLAT_ASTFILL - 265)) | (1L << (SPLAT_CURSYM - 265)) | (1L << (SPLAT_MAX - 265)) | (1L << (SPLAT_LOCK - 265)) | (1L << (SPLAT_PROGRAM - 265)) | (1L << (SPLAT_EXTDESC - 265)) | (1L << (SPLAT_D - 265)) | (1L << (SPLAT_H - 265)) | (1L << (SPLAT_HOURS - 265)) | (1L << (SPLAT_DAYS - 265)) | (1L << (SPLAT_M - 265)) | (1L << (SPLAT_MINUTES - 265)) | (1L << (SPLAT_MONTHS - 265)) | (1L << (SPLAT_MN - 265)) | (1L << (SPLAT_MS - 265)) | (1L << (SPLAT_MSECONDS - 265)) | (1L << (SPLAT_S - 265)) | (1L << (SPLAT_SECONDS - 265)) | (1L << (SPLAT_Y - 265)) | (1L << (SPLAT_YEARS - 265)) | (1L << (UDATE - 265)) | (1L << (UMONTH - 265)) | (1L << (UYEAR - 265)) | (1L << (UDAY - 265)) | (1L << (CHAR - 265)) | (1L << (VARCHAR - 265)) | (1L << (UCS2 - 265)) | (1L << (DATE_ - 265)) | (1L << (VARUCS2 - 265)) | (1L << (GRAPH - 265)) | (1L << (VARGRAPH - 265)) | (1L << (IND - 265)))) != 0) || ((((_la - 329)) & ~0x3f) == 0 && ((1L << (_la - 329)) & ((1L << (PACKED - 329)) | (1L << (ZONED - 329)) | (1L << (BINDEC - 329)) | (1L << (INT - 329)) | (1L << (UNS - 329)) | (1L << (FLOAT - 329)) | (1L << (TIME - 329)) | (1L << (TIMESTAMP - 329)) | (1L << (POINTER - 329)) | (1L << (OBJECT - 329)) | (1L << (KEYWORD_ALIAS - 329)) | (1L << (KEYWORD_ALIGN - 329)) | (1L << (KEYWORD_ALT - 329)) | (1L << (KEYWORD_ALTSEQ - 329)) | (1L << (KEYWORD_ASCEND - 329)) | (1L << (KEYWORD_BASED - 329)) | (1L << (KEYWORD_CCSID - 329)) | (1L << (KEYWORD_CLASS - 329)) | (1L << (KEYWORD_CONST - 329)) | (1L << (KEYWORD_CTDATA - 329)) | (1L << (KEYWORD_DATFMT - 329)) | (1L << (KEYWORD_DESCEND - 329)) | (1L << (KEYWORD_DIM - 329)) | (1L << (KEYWORD_DTAARA - 329)) | (1L << (KEYWORD_EXPORT - 329)) | (1L << (KEYWORD_EXT - 329)) | (1L << (KEYWORD_EXTFLD - 329)) | (1L << (KEYWORD_EXTFMT - 329)) | (1L << (KEYWORD_EXTNAME - 329)) | (1L << (KEYWORD_EXTPGM - 329)) | (1L << (KEYWORD_EXTPROC - 329)) | (1L << (KEYWORD_FROMFILE - 329)) | (1L << (KEYWORD_IMPORT - 329)) | (1L << (KEYWORD_INZ - 329)) | (1L << (KEYWORD_LEN - 329)) | (1L << (KEYWORD_LIKE - 329)) | (1L << (KEYWORD_LIKEDS - 329)) | (1L << (KEYWORD_LIKEFILE - 329)) | (1L << (KEYWORD_LIKEREC - 329)) | (1L << (KEYWORD_NOOPT - 329)) | (1L << (KEYWORD_OCCURS - 329)) | (1L << (KEYWORD_OPDESC - 329)) | (1L << (KEYWORD_OPTIONS - 329)) | (1L << (KEYWORD_OVERLAY - 329)) | (1L << (KEYWORD_PACKEVEN - 329)) | (1L << (KEYWORD_PERRCD - 329)) | (1L << (KEYWORD_PREFIX - 329)) | (1L << (KEYWORD_POS - 329)) | (1L << (KEYWORD_PROCPTR - 329)) | (1L << (KEYWORD_QUALIFIED - 329)) | (1L << (KEYWORD_RTNPARM - 329)) | (1L << (KEYWORD_STATIC - 329)) | (1L << (KEYWORD_TEMPLATE - 329)) | (1L << (KEYWORD_TIMFMT - 329)) | (1L << (KEYWORD_TOFILE - 329)) | (1L << (KEYWORD_VALUE - 329)) | (1L << (KEYWORD_VARYING - 329)) | (1L << (KEYWORD_BLOCK - 329)) | (1L << (KEYWORD_COMMIT - 329)) | (1L << (KEYWORD_DEVID - 329)) | (1L << (KEYWORD_EXTDESC - 329)) | (1L << (KEYWORD_EXTFILE - 329)) | (1L << (KEYWORD_EXTIND - 329)) | (1L << (KEYWORD_EXTMBR - 329)))) != 0) || ((((_la - 393)) & ~0x3f) == 0 && ((1L << (_la - 393)) & ((1L << (KEYWORD_FORMLEN - 393)) | (1L << (KEYWORD_FORMOFL - 393)) | (1L << (KEYWORD_IGNORE - 393)) | (1L << (KEYWORD_INCLUDE - 393)) | (1L << (KEYWORD_INDDS - 393)) | (1L << (KEYWORD_INFDS - 393)) | (1L << (KEYWORD_INFSR - 393)) | (1L << (KEYWORD_KEYLOC - 393)) | (1L << (KEYWORD_MAXDEV - 393)) | (1L << (KEYWORD_OFLIND - 393)) | (1L << (KEYWORD_PASS - 393)) | (1L << (KEYWORD_PGMNAME - 393)) | (1L << (KEYWORD_PLIST - 393)) | (1L << (KEYWORD_PRTCTL - 393)) | (1L << (KEYWORD_RAFDATA - 393)) | (1L << (KEYWORD_RECNO - 393)) | (1L << (KEYWORD_RENAME - 393)) | (1L << (KEYWORD_SAVEDS - 393)) | (1L << (KEYWORD_SAVEIND - 393)) | (1L << (KEYWORD_SFILE - 393)) | (1L << (KEYWORD_SLN - 393)) | (1L << (KEYWORD_USROPN - 393)) | (1L << (KEYWORD_DISK - 393)) | (1L << (KEYWORD_WORKSTN - 393)) | (1L << (KEYWORD_PRINTER - 393)) | (1L << (KEYWORD_SPECIAL - 393)) | (1L << (KEYWORD_KEYED - 393)) | (1L << (KEYWORD_USAGE - 393)) | (1L << (KEYWORD_PSDS - 393)) | (1L << (NOT - 393)) | (1L << (PLUS - 393)) | (1L << (MINUS - 393)) | (1L << (MULT_NOSPACE - 393)) | (1L << (FREE_BY - 393)) | (1L << (FREE_TO - 393)) | (1L << (FREE_DOWNTO - 393)) | (1L << (HexLiteralStart - 393)) | (1L << (DateLiteralStart - 393)) | (1L << (TimeLiteralStart - 393)) | (1L << (TimeStampLiteralStart - 393)) | (1L << (GraphicLiteralStart - 393)) | (1L << (UCS2LiteralStart - 393)) | (1L << (StringLiteralStart - 393)))) != 0) || _la==EndOfSourceMode) {
 				{
 				setState(1168);
 				_errHandler.sync(this);
@@ -8730,7 +8730,7 @@ public class RpgParser extends Parser {
 			setState(2055);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+			while (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 				{
 				setState(2053);
 				_errHandler.sync(this);
@@ -15639,7 +15639,7 @@ public class RpgParser extends Parser {
 			setState(3055);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((((_la - 5)) & ~0x3f) == 0 && ((1L << (_la - 5)) & ((1L << (COMMENT_SPEC_FIXED - 5)) | (1L << (DS_FIXED - 5)) | (1L << (FS_FIXED - 5)) | (1L << (OS_FIXED - 5)) | (1L << (CS_FIXED - 5)) | (1L << (CS_ExecSQL - 5)) | (1L << (IS_FIXED - 5)) | (1L << (HS_FIXED - 5)) | (1L << (BLANK_LINE - 5)) | (1L << (COMMENTS - 5)) | (1L << (DIRECTIVE - 5)) | (1L << (OPEN_PAREN - 5)) | (1L << (NUMBER - 5)) | (1L << (ID - 5)) | (1L << (OP_ACQ - 5)) | (1L << (OP_BEGSR - 5)) | (1L << (OP_CALLP - 5)) | (1L << (OP_CHAIN - 5)) | (1L << (OP_CLEAR - 5)) | (1L << (OP_CLOSE - 5)) | (1L << (OP_COMMIT - 5)) | (1L << (OP_DEALLOC - 5)) | (1L << (OP_DELETE - 5)) | (1L << (OP_DOU - 5)) | (1L << (OP_DOW - 5)) | (1L << (OP_DSPLY - 5)) | (1L << (OP_DUMP - 5)))) != 0) || ((((_la - 73)) & ~0x3f) == 0 && ((1L << (_la - 73)) & ((1L << (OP_ENDSR - 73)) | (1L << (OP_EVAL - 73)) | (1L << (OP_EVALR - 73)) | (1L << (OP_EVAL_CORR - 73)) | (1L << (OP_EXCEPT - 73)) | (1L << (OP_EXFMT - 73)) | (1L << (OP_EXSR - 73)) | (1L << (OP_FEOD - 73)) | (1L << (OP_FOR - 73)) | (1L << (OP_FORCE - 73)) | (1L << (OP_IF - 73)) | (1L << (OP_IN - 73)) | (1L << (OP_ITER - 73)) | (1L << (OP_LEAVE - 73)) | (1L << (OP_LEAVESR - 73)) | (1L << (OP_MONITOR - 73)) | (1L << (OP_NEXT - 73)) | (1L << (OP_OPEN - 73)) | (1L << (OP_OTHER - 73)) | (1L << (OP_OUT - 73)) | (1L << (OP_POST - 73)) | (1L << (OP_READ - 73)) | (1L << (OP_READC - 73)) | (1L << (OP_READE - 73)) | (1L << (OP_READP - 73)) | (1L << (OP_READPE - 73)) | (1L << (OP_REL - 73)) | (1L << (OP_RESET - 73)) | (1L << (OP_RETURN - 73)) | (1L << (OP_ROLBK - 73)) | (1L << (OP_SELECT - 73)) | (1L << (OP_SETGT - 73)) | (1L << (OP_SETLL - 73)) | (1L << (OP_SORTA - 73)) | (1L << (OP_TEST - 73)) | (1L << (OP_UNLOCK - 73)) | (1L << (OP_UPDATE - 73)) | (1L << (OP_WHEN - 73)) | (1L << (OP_WRITE - 73)) | (1L << (OP_XML_INTO - 73)) | (1L << (OP_XML_SAX - 73)) | (1L << (DS_Standalone - 73)) | (1L << (DS_DataStructureStart - 73)) | (1L << (DS_PrototypeStart - 73)) | (1L << (DS_Constant - 73)) | (1L << (FS_FreeFile - 73)) | (1L << (EXEC_SQL - 73)) | (1L << (BIF_ABS - 73)) | (1L << (BIF_ADDR - 73)) | (1L << (BIF_ALLOC - 73)) | (1L << (BIF_BITAND - 73)) | (1L << (BIF_BITNOT - 73)))) != 0) || ((((_la - 137)) & ~0x3f) == 0 && ((1L << (_la - 137)) & ((1L << (BIF_BITOR - 137)) | (1L << (BIF_BITXOR - 137)) | (1L << (BIF_CHAR - 137)) | (1L << (BIF_CHECK - 137)) | (1L << (BIF_CHECKR - 137)) | (1L << (BIF_DATE - 137)) | (1L << (BIF_DAYS - 137)) | (1L << (BIF_DEC - 137)) | (1L << (BIF_DECH - 137)) | (1L << (BIF_DECPOS - 137)) | (1L << (BIF_DIFF - 137)) | (1L << (BIF_DIV - 137)) | (1L << (BIF_EDITC - 137)) | (1L << (BIF_EDITFLT - 137)) | (1L << (BIF_EDITW - 137)) | (1L << (BIF_ELEM - 137)) | (1L << (BIF_EOF - 137)) | (1L << (BIF_EQUAL - 137)) | (1L << (BIF_ERROR - 137)) | (1L << (BIF_FIELDS - 137)) | (1L << (BIF_FLOAT - 137)) | (1L << (BIF_FOUND - 137)) | (1L << (BIF_GRAPH - 137)) | (1L << (BIF_HANDLER - 137)) | (1L << (BIF_HOURS - 137)) | (1L << (BIF_INT - 137)) | (1L << (BIF_INTH - 137)) | (1L << (BIF_KDS - 137)) | (1L << (BIF_LEN - 137)) | (1L << (BIF_LOOKUP - 137)) | (1L << (BIF_LOOKUPLT - 137)) | (1L << (BIF_LOOKUPLE - 137)) | (1L << (BIF_LOOKUPGT - 137)) | (1L << (BIF_LOOKUPGE - 137)) | (1L << (BIF_MINUTES - 137)) | (1L << (BIF_MONTHS - 137)) | (1L << (BIF_MSECONDS - 137)) | (1L << (BIF_NULLIND - 137)) | (1L << (BIF_OCCUR - 137)) | (1L << (BIF_OPEN - 137)) | (1L << (BIF_PADDR - 137)) | (1L << (BIF_PARMS - 137)) | (1L << (BIF_PARMNUM - 137)) | (1L << (BIF_REALLOC - 137)) | (1L << (BIF_REM - 137)) | (1L << (BIF_REPLACE - 137)) | (1L << (BIF_SCAN - 137)) | (1L << (BIF_SCANRPL - 137)) | (1L << (BIF_SECONDS - 137)) | (1L << (BIF_SHTDN - 137)) | (1L << (BIF_SIZE - 137)) | (1L << (BIF_SQRT - 137)) | (1L << (BIF_STATUS - 137)) | (1L << (BIF_STR - 137)) | (1L << (BIF_SUBARR - 137)) | (1L << (BIF_SUBDT - 137)) | (1L << (BIF_SUBST - 137)) | (1L << (BIF_THIS - 137)) | (1L << (BIF_TIME - 137)) | (1L << (BIF_TIMESTAMP - 137)) | (1L << (BIF_TLOOKUP - 137)) | (1L << (BIF_TLOOKUPLT - 137)) | (1L << (BIF_TLOOKUPLE - 137)) | (1L << (BIF_TLOOKUPGT - 137)))) != 0) || ((((_la - 201)) & ~0x3f) == 0 && ((1L << (_la - 201)) & ((1L << (BIF_TLOOKUPGE - 201)) | (1L << (BIF_TRIM - 201)) | (1L << (BIF_TRIML - 201)) | (1L << (BIF_TRIMR - 201)) | (1L << (BIF_UCS2 - 201)) | (1L << (BIF_UNS - 201)) | (1L << (BIF_UNSH - 201)) | (1L << (BIF_XFOOT - 201)) | (1L << (BIF_XLATE - 201)) | (1L << (BIF_XML - 201)) | (1L << (BIF_YEARS - 201)) | (1L << (SPLAT_ALL - 201)) | (1L << (SPLAT_NONE - 201)) | (1L << (SPLAT_YES - 201)) | (1L << (SPLAT_NO - 201)) | (1L << (SPLAT_ILERPG - 201)) | (1L << (SPLAT_COMPAT - 201)) | (1L << (SPLAT_CRTBNDRPG - 201)) | (1L << (SPLAT_CRTRPGMOD - 201)) | (1L << (SPLAT_VRM - 201)) | (1L << (SPLAT_ALLG - 201)) | (1L << (SPLAT_ALLU - 201)) | (1L << (SPLAT_ALLTHREAD - 201)) | (1L << (SPLAT_ALLX - 201)) | (1L << (SPLAT_BLANKS - 201)) | (1L << (SPLAT_CANCL - 201)) | (1L << (SPLAT_CYMD - 201)) | (1L << (SPLAT_CMDY - 201)) | (1L << (SPLAT_CDMY - 201)) | (1L << (SPLAT_MDY - 201)) | (1L << (SPLAT_DMY - 201)) | (1L << (SPLAT_DFT - 201)) | (1L << (SPLAT_YMD - 201)) | (1L << (SPLAT_JUL - 201)) | (1L << (SPLAT_JAVA - 201)) | (1L << (SPLAT_ISO - 201)) | (1L << (SPLAT_USA - 201)) | (1L << (SPLAT_EUR - 201)) | (1L << (SPLAT_JIS - 201)) | (1L << (SPLAT_DATE - 201)) | (1L << (SPLAT_DAY - 201)) | (1L << (SPlAT_DETC - 201)) | (1L << (SPLAT_DETL - 201)) | (1L << (SPLAT_DTAARA - 201)) | (1L << (SPLAT_END - 201)) | (1L << (SPLAT_ENTRY - 201)) | (1L << (SPLAT_EQUATE - 201)) | (1L << (SPLAT_EXTDFT - 201)) | (1L << (SPLAT_EXT - 201)) | (1L << (SPLAT_FILE - 201)) | (1L << (SPLAT_GETIN - 201)) | (1L << (SPLAT_HIVAL - 201)) | (1L << (SPLAT_INIT - 201)) | (1L << (SPLAT_INDICATOR - 201)) | (1L << (SPLAT_INZSR - 201)) | (1L << (SPLAT_IN - 201)) | (1L << (SPLAT_INPUT - 201)) | (1L << (SPLAT_OUTPUT - 201)) | (1L << (SPLAT_JOBRUN - 201)) | (1L << (SPLAT_JOB - 201)) | (1L << (SPLAT_LDA - 201)) | (1L << (SPLAT_LIKE - 201)) | (1L << (SPLAT_LONGJUL - 201)) | (1L << (SPLAT_LOVAL - 201)))) != 0) || ((((_la - 265)) & ~0x3f) == 0 && ((1L << (_la - 265)) & ((1L << (SPLAT_KEY - 265)) | (1L << (SPLAT_MONTH - 265)) | (1L << (SPLAT_NEXT - 265)) | (1L << (SPLAT_NOIND - 265)) | (1L << (SPLAT_NOKEY - 265)) | (1L << (SPLAT_NULL - 265)) | (1L << (SPLAT_OFL - 265)) | (1L << (SPLAT_ON - 265)) | (1L << (SPLAT_ONLY - 265)) | (1L << (SPLAT_OFF - 265)) | (1L << (SPLAT_PDA - 265)) | (1L << (SPLAT_PLACE - 265)) | (1L << (SPLAT_PSSR - 265)) | (1L << (SPLAT_ROUTINE - 265)) | (1L << (SPLAT_START - 265)) | (1L << (SPLAT_SYS - 265)) | (1L << (SPLAT_TERM - 265)) | (1L << (SPLAT_TOTC - 265)) | (1L << (SPLAT_TOTL - 265)) | (1L << (SPLAT_USER - 265)) | (1L << (SPLAT_VAR - 265)) | (1L << (SPLAT_YEAR - 265)) | (1L << (SPLAT_ZEROS - 265)) | (1L << (SPLAT_HMS - 265)) | (1L << (SPLAT_INLR - 265)) | (1L << (SPLAT_INOF - 265)) | (1L << (SPLAT_DATA - 265)) | (1L << (SPLAT_ASTFILL - 265)) | (1L << (SPLAT_CURSYM - 265)) | (1L << (SPLAT_MAX - 265)) | (1L << (SPLAT_LOCK - 265)) | (1L << (SPLAT_PROGRAM - 265)) | (1L << (SPLAT_EXTDESC - 265)) | (1L << (SPLAT_D - 265)) | (1L << (SPLAT_H - 265)) | (1L << (SPLAT_HOURS - 265)) | (1L << (SPLAT_DAYS - 265)) | (1L << (SPLAT_M - 265)) | (1L << (SPLAT_MINUTES - 265)) | (1L << (SPLAT_MONTHS - 265)) | (1L << (SPLAT_MN - 265)) | (1L << (SPLAT_MS - 265)) | (1L << (SPLAT_MSECONDS - 265)) | (1L << (SPLAT_S - 265)) | (1L << (SPLAT_SECONDS - 265)) | (1L << (SPLAT_Y - 265)) | (1L << (SPLAT_YEARS - 265)) | (1L << (UDATE - 265)) | (1L << (UMONTH - 265)) | (1L << (UYEAR - 265)) | (1L << (UDAY - 265)) | (1L << (CHAR - 265)) | (1L << (VARCHAR - 265)) | (1L << (UCS2 - 265)) | (1L << (DATE_ - 265)) | (1L << (VARUCS2 - 265)) | (1L << (GRAPH - 265)) | (1L << (VARGRAPH - 265)) | (1L << (IND - 265)))) != 0) || ((((_la - 329)) & ~0x3f) == 0 && ((1L << (_la - 329)) & ((1L << (PACKED - 329)) | (1L << (ZONED - 329)) | (1L << (BINDEC - 329)) | (1L << (INT - 329)) | (1L << (UNS - 329)) | (1L << (FLOAT - 329)) | (1L << (TIME - 329)) | (1L << (TIMESTAMP - 329)) | (1L << (POINTER - 329)) | (1L << (OBJECT - 329)) | (1L << (KEYWORD_ALIAS - 329)) | (1L << (KEYWORD_ALIGN - 329)) | (1L << (KEYWORD_ALT - 329)) | (1L << (KEYWORD_ALTSEQ - 329)) | (1L << (KEYWORD_ASCEND - 329)) | (1L << (KEYWORD_BASED - 329)) | (1L << (KEYWORD_CCSID - 329)) | (1L << (KEYWORD_CLASS - 329)) | (1L << (KEYWORD_CONST - 329)) | (1L << (KEYWORD_CTDATA - 329)) | (1L << (KEYWORD_DATFMT - 329)) | (1L << (KEYWORD_DESCEND - 329)) | (1L << (KEYWORD_DIM - 329)) | (1L << (KEYWORD_DTAARA - 329)) | (1L << (KEYWORD_EXPORT - 329)) | (1L << (KEYWORD_EXT - 329)) | (1L << (KEYWORD_EXTFLD - 329)) | (1L << (KEYWORD_EXTFMT - 329)) | (1L << (KEYWORD_EXTNAME - 329)) | (1L << (KEYWORD_EXTPGM - 329)) | (1L << (KEYWORD_EXTPROC - 329)) | (1L << (KEYWORD_FROMFILE - 329)) | (1L << (KEYWORD_IMPORT - 329)) | (1L << (KEYWORD_INZ - 329)) | (1L << (KEYWORD_LEN - 329)) | (1L << (KEYWORD_LIKE - 329)) | (1L << (KEYWORD_LIKEDS - 329)) | (1L << (KEYWORD_LIKEFILE - 329)) | (1L << (KEYWORD_LIKEREC - 329)) | (1L << (KEYWORD_NOOPT - 329)) | (1L << (KEYWORD_OCCURS - 329)) | (1L << (KEYWORD_OPDESC - 329)) | (1L << (KEYWORD_OPTIONS - 329)) | (1L << (KEYWORD_OVERLAY - 329)) | (1L << (KEYWORD_PACKEVEN - 329)) | (1L << (KEYWORD_PERRCD - 329)) | (1L << (KEYWORD_PREFIX - 329)) | (1L << (KEYWORD_POS - 329)) | (1L << (KEYWORD_PROCPTR - 329)) | (1L << (KEYWORD_QUALIFIED - 329)) | (1L << (KEYWORD_RTNPARM - 329)) | (1L << (KEYWORD_STATIC - 329)) | (1L << (KEYWORD_TEMPLATE - 329)) | (1L << (KEYWORD_TIMFMT - 329)) | (1L << (KEYWORD_TOFILE - 329)) | (1L << (KEYWORD_VALUE - 329)) | (1L << (KEYWORD_VARYING - 329)) | (1L << (KEYWORD_BLOCK - 329)) | (1L << (KEYWORD_COMMIT - 329)) | (1L << (KEYWORD_DEVID - 329)) | (1L << (KEYWORD_EXTDESC - 329)) | (1L << (KEYWORD_EXTFILE - 329)) | (1L << (KEYWORD_EXTIND - 329)) | (1L << (KEYWORD_EXTMBR - 329)))) != 0) || ((((_la - 393)) & ~0x3f) == 0 && ((1L << (_la - 393)) & ((1L << (KEYWORD_FORMLEN - 393)) | (1L << (KEYWORD_FORMOFL - 393)) | (1L << (KEYWORD_IGNORE - 393)) | (1L << (KEYWORD_INCLUDE - 393)) | (1L << (KEYWORD_INDDS - 393)) | (1L << (KEYWORD_INFDS - 393)) | (1L << (KEYWORD_INFSR - 393)) | (1L << (KEYWORD_KEYLOC - 393)) | (1L << (KEYWORD_MAXDEV - 393)) | (1L << (KEYWORD_OFLIND - 393)) | (1L << (KEYWORD_PASS - 393)) | (1L << (KEYWORD_PGMNAME - 393)) | (1L << (KEYWORD_PLIST - 393)) | (1L << (KEYWORD_PRTCTL - 393)) | (1L << (KEYWORD_RAFDATA - 393)) | (1L << (KEYWORD_RECNO - 393)) | (1L << (KEYWORD_RENAME - 393)) | (1L << (KEYWORD_SAVEDS - 393)) | (1L << (KEYWORD_SAVEIND - 393)) | (1L << (KEYWORD_SFILE - 393)) | (1L << (KEYWORD_SLN - 393)) | (1L << (KEYWORD_USROPN - 393)) | (1L << (KEYWORD_DISK - 393)) | (1L << (KEYWORD_WORKSTN - 393)) | (1L << (KEYWORD_PRINTER - 393)) | (1L << (KEYWORD_SPECIAL - 393)) | (1L << (KEYWORD_KEYED - 393)) | (1L << (KEYWORD_USAGE - 393)) | (1L << (KEYWORD_PSDS - 393)) | (1L << (NOT - 393)) | (1L << (PLUS - 393)) | (1L << (MINUS - 393)) | (1L << (MULT_NOSPACE - 393)) | (1L << (FREE_BY - 393)) | (1L << (FREE_TO - 393)) | (1L << (FREE_DOWNTO - 393)) | (1L << (HexLiteralStart - 393)) | (1L << (DateLiteralStart - 393)) | (1L << (TimeLiteralStart - 393)) | (1L << (TimeStampLiteralStart - 393)) | (1L << (GraphicLiteralStart - 393)) | (1L << (UCS2LiteralStart - 393)) | (1L << (StringLiteralStart - 393)))) != 0)) {
+			while (((((_la - 5)) & ~0x3f) == 0 && ((1L << (_la - 5)) & ((1L << (COMMENT_SPEC_FIXED - 5)) | (1L << (DS_FIXED - 5)) | (1L << (FS_FIXED - 5)) | (1L << (OS_FIXED - 5)) | (1L << (CS_FIXED - 5)) | (1L << (CS_ExecSQL - 5)) | (1L << (IS_FIXED - 5)) | (1L << (HS_FIXED - 5)) | (1L << (BLANK_LINE - 5)) | (1L << (COMMENTS - 5)) | (1L << (DIRECTIVE - 5)) | (1L << (OPEN_PAREN - 5)) | (1L << (NUMBER - 5)) | (1L << (ID - 5)) | (1L << (OP_ACQ - 5)) | (1L << (OP_BEGSR - 5)) | (1L << (OP_CALLP - 5)) | (1L << (OP_CHAIN - 5)) | (1L << (OP_CLEAR - 5)) | (1L << (OP_CLOSE - 5)) | (1L << (OP_COMMIT - 5)) | (1L << (OP_DEALLOC - 5)) | (1L << (OP_DELETE - 5)) | (1L << (OP_DOU - 5)) | (1L << (OP_DOW - 5)) | (1L << (OP_DSPLY - 5)) | (1L << (OP_DUMP - 5)))) != 0) || ((((_la - 73)) & ~0x3f) == 0 && ((1L << (_la - 73)) & ((1L << (OP_ENDSR - 73)) | (1L << (OP_EVAL - 73)) | (1L << (OP_EVALR - 73)) | (1L << (OP_EVAL_CORR - 73)) | (1L << (OP_EXCEPT - 73)) | (1L << (OP_EXFMT - 73)) | (1L << (OP_EXSR - 73)) | (1L << (OP_FEOD - 73)) | (1L << (OP_FOR - 73)) | (1L << (OP_FORCE - 73)) | (1L << (OP_IF - 73)) | (1L << (OP_IN - 73)) | (1L << (OP_ITER - 73)) | (1L << (OP_LEAVE - 73)) | (1L << (OP_LEAVESR - 73)) | (1L << (OP_MONITOR - 73)) | (1L << (OP_NEXT - 73)) | (1L << (OP_OPEN - 73)) | (1L << (OP_OTHER - 73)) | (1L << (OP_OUT - 73)) | (1L << (OP_POST - 73)) | (1L << (OP_READ - 73)) | (1L << (OP_READC - 73)) | (1L << (OP_READE - 73)) | (1L << (OP_READP - 73)) | (1L << (OP_READPE - 73)) | (1L << (OP_REL - 73)) | (1L << (OP_RESET - 73)) | (1L << (OP_RETURN - 73)) | (1L << (OP_ROLBK - 73)) | (1L << (OP_SELECT - 73)) | (1L << (OP_SETGT - 73)) | (1L << (OP_SETLL - 73)) | (1L << (OP_SORTA - 73)) | (1L << (OP_TEST - 73)) | (1L << (OP_UNLOCK - 73)) | (1L << (OP_UPDATE - 73)) | (1L << (OP_WHEN - 73)) | (1L << (OP_WRITE - 73)) | (1L << (OP_XML_INTO - 73)) | (1L << (OP_XML_SAX - 73)) | (1L << (DS_Standalone - 73)) | (1L << (DS_DataStructureStart - 73)) | (1L << (DS_PrototypeStart - 73)) | (1L << (DS_Constant - 73)) | (1L << (FS_FreeFile - 73)) | (1L << (EXEC_SQL - 73)) | (1L << (BIF_ABS - 73)) | (1L << (BIF_ADDR - 73)) | (1L << (BIF_ALLOC - 73)) | (1L << (BIF_BITAND - 73)) | (1L << (BIF_BITNOT - 73)))) != 0) || ((((_la - 137)) & ~0x3f) == 0 && ((1L << (_la - 137)) & ((1L << (BIF_BITOR - 137)) | (1L << (BIF_BITXOR - 137)) | (1L << (BIF_CHAR - 137)) | (1L << (BIF_CHECK - 137)) | (1L << (BIF_CHECKR - 137)) | (1L << (BIF_DATE - 137)) | (1L << (BIF_DAYS - 137)) | (1L << (BIF_DEC - 137)) | (1L << (BIF_DECH - 137)) | (1L << (BIF_DECPOS - 137)) | (1L << (BIF_DIFF - 137)) | (1L << (BIF_DIV - 137)) | (1L << (BIF_EDITC - 137)) | (1L << (BIF_EDITFLT - 137)) | (1L << (BIF_EDITW - 137)) | (1L << (BIF_ELEM - 137)) | (1L << (BIF_EOF - 137)) | (1L << (BIF_EQUAL - 137)) | (1L << (BIF_ERROR - 137)) | (1L << (BIF_FIELDS - 137)) | (1L << (BIF_FLOAT - 137)) | (1L << (BIF_FOUND - 137)) | (1L << (BIF_GRAPH - 137)) | (1L << (BIF_HANDLER - 137)) | (1L << (BIF_HOURS - 137)) | (1L << (BIF_INT - 137)) | (1L << (BIF_INTH - 137)) | (1L << (BIF_KDS - 137)) | (1L << (BIF_LEN - 137)) | (1L << (BIF_LOOKUP - 137)) | (1L << (BIF_LOOKUPLT - 137)) | (1L << (BIF_LOOKUPLE - 137)) | (1L << (BIF_LOOKUPGT - 137)) | (1L << (BIF_LOOKUPGE - 137)) | (1L << (BIF_MINUTES - 137)) | (1L << (BIF_MONTHS - 137)) | (1L << (BIF_MSECONDS - 137)) | (1L << (BIF_NULLIND - 137)) | (1L << (BIF_OCCUR - 137)) | (1L << (BIF_OPEN - 137)) | (1L << (BIF_PADDR - 137)) | (1L << (BIF_PARMS - 137)) | (1L << (BIF_PARMNUM - 137)) | (1L << (BIF_REALLOC - 137)) | (1L << (BIF_REM - 137)) | (1L << (BIF_REPLACE - 137)) | (1L << (BIF_SCAN - 137)) | (1L << (BIF_SCANRPL - 137)) | (1L << (BIF_SECONDS - 137)) | (1L << (BIF_SHTDN - 137)) | (1L << (BIF_SIZE - 137)) | (1L << (BIF_SQRT - 137)) | (1L << (BIF_STATUS - 137)) | (1L << (BIF_STR - 137)) | (1L << (BIF_SUBARR - 137)) | (1L << (BIF_SUBDT - 137)) | (1L << (BIF_SUBST - 137)) | (1L << (BIF_THIS - 137)) | (1L << (BIF_TIME - 137)) | (1L << (BIF_TIMESTAMP - 137)) | (1L << (BIF_TLOOKUP - 137)) | (1L << (BIF_TLOOKUPLT - 137)) | (1L << (BIF_TLOOKUPLE - 137)) | (1L << (BIF_TLOOKUPGT - 137)))) != 0) || ((((_la - 201)) & ~0x3f) == 0 && ((1L << (_la - 201)) & ((1L << (BIF_TLOOKUPGE - 201)) | (1L << (BIF_TRIM - 201)) | (1L << (BIF_TRIML - 201)) | (1L << (BIF_TRIMR - 201)) | (1L << (BIF_UCS2 - 201)) | (1L << (BIF_UNS - 201)) | (1L << (BIF_UNSH - 201)) | (1L << (BIF_XFOOT - 201)) | (1L << (BIF_XLATE - 201)) | (1L << (BIF_XML - 201)) | (1L << (BIF_YEARS - 201)) | (1L << (SPLAT_ALL - 201)) | (1L << (SPLAT_NONE - 201)) | (1L << (SPLAT_YES - 201)) | (1L << (SPLAT_NO - 201)) | (1L << (SPLAT_ILERPG - 201)) | (1L << (SPLAT_COMPAT - 201)) | (1L << (SPLAT_CRTBNDRPG - 201)) | (1L << (SPLAT_CRTRPGMOD - 201)) | (1L << (SPLAT_VRM - 201)) | (1L << (SPLAT_ALLG - 201)) | (1L << (SPLAT_ALLU - 201)) | (1L << (SPLAT_ALLTHREAD - 201)) | (1L << (SPLAT_ALLX - 201)) | (1L << (SPLAT_BLANKS - 201)) | (1L << (SPLAT_CANCL - 201)) | (1L << (SPLAT_CYMD - 201)) | (1L << (SPLAT_CMDY - 201)) | (1L << (SPLAT_CDMY - 201)) | (1L << (SPLAT_MDY - 201)) | (1L << (SPLAT_DMY - 201)) | (1L << (SPLAT_DFT - 201)) | (1L << (SPLAT_YMD - 201)) | (1L << (SPLAT_JUL - 201)) | (1L << (SPLAT_JAVA - 201)) | (1L << (SPLAT_ISO - 201)) | (1L << (SPLAT_USA - 201)) | (1L << (SPLAT_EUR - 201)) | (1L << (SPLAT_JIS - 201)) | (1L << (SPLAT_DATE - 201)) | (1L << (SPLAT_DAY - 201)) | (1L << (SPlAT_DETC - 201)) | (1L << (SPLAT_DETL - 201)) | (1L << (SPLAT_DTAARA - 201)) | (1L << (SPLAT_END - 201)) | (1L << (SPLAT_ENTRY - 201)) | (1L << (SPLAT_EQUATE - 201)) | (1L << (SPLAT_EXTDFT - 201)) | (1L << (SPLAT_EXT - 201)) | (1L << (SPLAT_FILE - 201)) | (1L << (SPLAT_GETIN - 201)) | (1L << (SPLAT_HIVAL - 201)) | (1L << (SPLAT_INIT - 201)) | (1L << (SPLAT_INDICATOR - 201)) | (1L << (SPLAT_INZSR - 201)) | (1L << (SPLAT_IN - 201)) | (1L << (SPLAT_INPUT - 201)) | (1L << (SPLAT_OUTPUT - 201)) | (1L << (SPLAT_JOBRUN - 201)) | (1L << (SPLAT_JOB - 201)) | (1L << (SPLAT_LDA - 201)) | (1L << (SPLAT_LIKE - 201)) | (1L << (SPLAT_LONGJUL - 201)) | (1L << (SPLAT_LOVAL - 201)))) != 0) || ((((_la - 265)) & ~0x3f) == 0 && ((1L << (_la - 265)) & ((1L << (SPLAT_KEY - 265)) | (1L << (SPLAT_MONTH - 265)) | (1L << (SPLAT_NEXT - 265)) | (1L << (SPLAT_NOIND - 265)) | (1L << (SPLAT_NOKEY - 265)) | (1L << (SPLAT_NULL - 265)) | (1L << (SPLAT_OFL - 265)) | (1L << (SPLAT_ON - 265)) | (1L << (SPLAT_ONLY - 265)) | (1L << (SPLAT_OFF - 265)) | (1L << (SPLAT_PDA - 265)) | (1L << (SPLAT_PLACE - 265)) | (1L << (SPLAT_PSSR - 265)) | (1L << (SPLAT_ROUTINE - 265)) | (1L << (SPLAT_START - 265)) | (1L << (SPLAT_SYS - 265)) | (1L << (SPLAT_TERM - 265)) | (1L << (SPLAT_TOTC - 265)) | (1L << (SPLAT_TOTL - 265)) | (1L << (SPLAT_USER - 265)) | (1L << (SPLAT_VAR - 265)) | (1L << (SPLAT_YEAR - 265)) | (1L << (SPLAT_ZEROS - 265)) | (1L << (SPLAT_HMS - 265)) | (1L << (SPLAT_INLR - 265)) | (1L << (SPLAT_INOF - 265)) | (1L << (SPLAT_DATA - 265)) | (1L << (SPLAT_ASTFILL - 265)) | (1L << (SPLAT_CURSYM - 265)) | (1L << (SPLAT_MAX - 265)) | (1L << (SPLAT_LOCK - 265)) | (1L << (SPLAT_PROGRAM - 265)) | (1L << (SPLAT_EXTDESC - 265)) | (1L << (SPLAT_D - 265)) | (1L << (SPLAT_H - 265)) | (1L << (SPLAT_HOURS - 265)) | (1L << (SPLAT_DAYS - 265)) | (1L << (SPLAT_M - 265)) | (1L << (SPLAT_MINUTES - 265)) | (1L << (SPLAT_MONTHS - 265)) | (1L << (SPLAT_MN - 265)) | (1L << (SPLAT_MS - 265)) | (1L << (SPLAT_MSECONDS - 265)) | (1L << (SPLAT_S - 265)) | (1L << (SPLAT_SECONDS - 265)) | (1L << (SPLAT_Y - 265)) | (1L << (SPLAT_YEARS - 265)) | (1L << (UDATE - 265)) | (1L << (UMONTH - 265)) | (1L << (UYEAR - 265)) | (1L << (UDAY - 265)) | (1L << (CHAR - 265)) | (1L << (VARCHAR - 265)) | (1L << (UCS2 - 265)) | (1L << (DATE_ - 265)) | (1L << (VARUCS2 - 265)) | (1L << (GRAPH - 265)) | (1L << (VARGRAPH - 265)) | (1L << (IND - 265)))) != 0) || ((((_la - 329)) & ~0x3f) == 0 && ((1L << (_la - 329)) & ((1L << (PACKED - 329)) | (1L << (ZONED - 329)) | (1L << (BINDEC - 329)) | (1L << (INT - 329)) | (1L << (UNS - 329)) | (1L << (FLOAT - 329)) | (1L << (TIME - 329)) | (1L << (TIMESTAMP - 329)) | (1L << (POINTER - 329)) | (1L << (OBJECT - 329)) | (1L << (KEYWORD_ALIAS - 329)) | (1L << (KEYWORD_ALIGN - 329)) | (1L << (KEYWORD_ALT - 329)) | (1L << (KEYWORD_ALTSEQ - 329)) | (1L << (KEYWORD_ASCEND - 329)) | (1L << (KEYWORD_BASED - 329)) | (1L << (KEYWORD_CCSID - 329)) | (1L << (KEYWORD_CLASS - 329)) | (1L << (KEYWORD_CONST - 329)) | (1L << (KEYWORD_CTDATA - 329)) | (1L << (KEYWORD_DATFMT - 329)) | (1L << (KEYWORD_DESCEND - 329)) | (1L << (KEYWORD_DIM - 329)) | (1L << (KEYWORD_DTAARA - 329)) | (1L << (KEYWORD_EXPORT - 329)) | (1L << (KEYWORD_EXT - 329)) | (1L << (KEYWORD_EXTFLD - 329)) | (1L << (KEYWORD_EXTFMT - 329)) | (1L << (KEYWORD_EXTNAME - 329)) | (1L << (KEYWORD_EXTPGM - 329)) | (1L << (KEYWORD_EXTPROC - 329)) | (1L << (KEYWORD_FROMFILE - 329)) | (1L << (KEYWORD_IMPORT - 329)) | (1L << (KEYWORD_INZ - 329)) | (1L << (KEYWORD_LEN - 329)) | (1L << (KEYWORD_LIKE - 329)) | (1L << (KEYWORD_LIKEDS - 329)) | (1L << (KEYWORD_LIKEFILE - 329)) | (1L << (KEYWORD_LIKEREC - 329)) | (1L << (KEYWORD_NOOPT - 329)) | (1L << (KEYWORD_OCCURS - 329)) | (1L << (KEYWORD_OPDESC - 329)) | (1L << (KEYWORD_OPTIONS - 329)) | (1L << (KEYWORD_OVERLAY - 329)) | (1L << (KEYWORD_PACKEVEN - 329)) | (1L << (KEYWORD_PERRCD - 329)) | (1L << (KEYWORD_PREFIX - 329)) | (1L << (KEYWORD_POS - 329)) | (1L << (KEYWORD_PROCPTR - 329)) | (1L << (KEYWORD_QUALIFIED - 329)) | (1L << (KEYWORD_RTNPARM - 329)) | (1L << (KEYWORD_STATIC - 329)) | (1L << (KEYWORD_TEMPLATE - 329)) | (1L << (KEYWORD_TIMFMT - 329)) | (1L << (KEYWORD_TOFILE - 329)) | (1L << (KEYWORD_VALUE - 329)) | (1L << (KEYWORD_VARYING - 329)) | (1L << (KEYWORD_BLOCK - 329)) | (1L << (KEYWORD_COMMIT - 329)) | (1L << (KEYWORD_DEVID - 329)) | (1L << (KEYWORD_EXTDESC - 329)) | (1L << (KEYWORD_EXTFILE - 329)) | (1L << (KEYWORD_EXTIND - 329)) | (1L << (KEYWORD_EXTMBR - 329)))) != 0) || ((((_la - 393)) & ~0x3f) == 0 && ((1L << (_la - 393)) & ((1L << (KEYWORD_FORMLEN - 393)) | (1L << (KEYWORD_FORMOFL - 393)) | (1L << (KEYWORD_IGNORE - 393)) | (1L << (KEYWORD_INCLUDE - 393)) | (1L << (KEYWORD_INDDS - 393)) | (1L << (KEYWORD_INFDS - 393)) | (1L << (KEYWORD_INFSR - 393)) | (1L << (KEYWORD_KEYLOC - 393)) | (1L << (KEYWORD_MAXDEV - 393)) | (1L << (KEYWORD_OFLIND - 393)) | (1L << (KEYWORD_PASS - 393)) | (1L << (KEYWORD_PGMNAME - 393)) | (1L << (KEYWORD_PLIST - 393)) | (1L << (KEYWORD_PRTCTL - 393)) | (1L << (KEYWORD_RAFDATA - 393)) | (1L << (KEYWORD_RECNO - 393)) | (1L << (KEYWORD_RENAME - 393)) | (1L << (KEYWORD_SAVEDS - 393)) | (1L << (KEYWORD_SAVEIND - 393)) | (1L << (KEYWORD_SFILE - 393)) | (1L << (KEYWORD_SLN - 393)) | (1L << (KEYWORD_USROPN - 393)) | (1L << (KEYWORD_DISK - 393)) | (1L << (KEYWORD_WORKSTN - 393)) | (1L << (KEYWORD_PRINTER - 393)) | (1L << (KEYWORD_SPECIAL - 393)) | (1L << (KEYWORD_KEYED - 393)) | (1L << (KEYWORD_USAGE - 393)) | (1L << (KEYWORD_PSDS - 393)) | (1L << (NOT - 393)) | (1L << (PLUS - 393)) | (1L << (MINUS - 393)) | (1L << (MULT_NOSPACE - 393)) | (1L << (FREE_BY - 393)) | (1L << (FREE_TO - 393)) | (1L << (FREE_DOWNTO - 393)) | (1L << (HexLiteralStart - 393)) | (1L << (DateLiteralStart - 393)) | (1L << (TimeLiteralStart - 393)) | (1L << (TimeStampLiteralStart - 393)) | (1L << (GraphicLiteralStart - 393)) | (1L << (UCS2LiteralStart - 393)) | (1L << (StringLiteralStart - 393)))) != 0) || _la==EndOfSourceMode) {
 				{
 				{
 				setState(3052);
@@ -25153,7 +25153,7 @@ public class RpgParser extends Parser {
 			setState(3904);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (EXEC_SQL - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (EXEC_SQL - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 				{
 				setState(3903);
 				((CsRETURNContext)_localctx).fixedexpression = c_free();
@@ -30492,7 +30492,7 @@ public class RpgParser extends Parser {
 			setState(4425);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 				{
 				setState(4417);
 				expression(0);
@@ -31073,21 +31073,21 @@ public class RpgParser extends Parser {
 			setState(4498);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 				{
 				setState(4491);
 				expression(0);
 				setState(4496);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 					{
 					setState(4492);
 					expression(0);
 					setState(4494);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-					if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+					if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 						{
 						setState(4493);
 						expression(0);
@@ -33825,7 +33825,7 @@ public class RpgParser extends Parser {
 			setState(4737);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 				{
 				setState(4736);
 				expression(0);
@@ -36130,7 +36130,7 @@ public class RpgParser extends Parser {
 				setState(4916);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 					{
 					setState(4908);
 					expression(0);
@@ -37298,7 +37298,7 @@ public class RpgParser extends Parser {
 				setState(5055);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 					{
 					setState(5054);
 					expression(0);
@@ -40330,7 +40330,7 @@ public class RpgParser extends Parser {
 				setState(5422);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 					{
 					setState(5421);
 					expression(0);
@@ -40412,7 +40412,7 @@ public class RpgParser extends Parser {
 				setState(5434);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+				if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 					{
 					setState(5433);
 					expression(0);
@@ -41759,6 +41759,7 @@ public class RpgParser extends Parser {
 			case GraphicLiteralStart:
 			case UCS2LiteralStart:
 			case StringLiteralStart:
+			case EndOfSourceMode:
 				{
 				{
 				setState(5534);
@@ -42185,6 +42186,7 @@ public class RpgParser extends Parser {
 			case GraphicLiteralStart:
 			case UCS2LiteralStart:
 			case StringLiteralStart:
+			case EndOfSourceMode:
 				{
 				{
 				{
@@ -42729,6 +42731,7 @@ public class RpgParser extends Parser {
 	}
 
 	public static class ExpressionContext extends ParserRuleContext {
+		public TerminalNode EndOfSourceMode() { return getToken(RpgParser.EndOfSourceMode, 0); }
 		public TerminalNode NOT() { return getToken(RpgParser.NOT, 0); }
 		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
@@ -42804,72 +42807,74 @@ public class RpgParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5609);
+			setState(5610);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,493,_ctx) ) {
 			case 1:
 				{
 				setState(5596);
-				match(NOT);
+				match(EndOfSourceMode);
 				setState(5597);
+				match(NOT);
+				setState(5598);
 				expression(18);
 				}
 				break;
 			case 2:
 				{
-				setState(5598);
-				match(OPEN_PAREN);
 				setState(5599);
-				expression(0);
+				match(OPEN_PAREN);
 				setState(5600);
+				expression(0);
+				setState(5601);
 				match(CLOSE_PAREN);
 				}
 				break;
 			case 3:
 				{
-				setState(5602);
+				setState(5603);
 				unaryExpression();
 				}
 				break;
 			case 4:
 				{
-				setState(5603);
+				setState(5604);
 				indicator();
 				}
 				break;
 			case 5:
 				{
-				setState(5604);
+				setState(5605);
 				function();
 				}
 				break;
 			case 6:
 				{
-				setState(5605);
+				setState(5606);
 				identifier();
 				}
 				break;
 			case 7:
 				{
-				setState(5606);
+				setState(5607);
 				number();
 				}
 				break;
 			case 8:
 				{
-				setState(5607);
+				setState(5608);
 				literal();
 				}
 				break;
 			case 9:
 				{
-				setState(5608);
+				setState(5609);
 				bif();
 				}
 				break;
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(5644);
+			setState(5645);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,496,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -42877,18 +42882,18 @@ public class RpgParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(5642);
+					setState(5643);
 					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,495,_ctx) ) {
 					case 1:
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5611);
-						if (!(precpred(_ctx, 16))) throw new FailedPredicateException(this, "precpred(_ctx, 16)");
 						setState(5612);
-						match(EXP);
+						if (!(precpred(_ctx, 16))) throw new FailedPredicateException(this, "precpred(_ctx, 16)");
 						setState(5613);
+						match(EXP);
+						setState(5614);
 						expression(16);
 						}
 						break;
@@ -42896,9 +42901,9 @@ public class RpgParser extends Parser {
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5614);
-						if (!(precpred(_ctx, 15))) throw new FailedPredicateException(this, "precpred(_ctx, 15)");
 						setState(5615);
+						if (!(precpred(_ctx, 15))) throw new FailedPredicateException(this, "precpred(_ctx, 15)");
+						setState(5616);
 						_la = _input.LA(1);
 						if ( !(_la==MULT_NOSPACE || _la==MULT) ) {
 						_errHandler.recoverInline(this);
@@ -42908,7 +42913,7 @@ public class RpgParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(5616);
+						setState(5617);
 						expression(16);
 						}
 						break;
@@ -42916,11 +42921,11 @@ public class RpgParser extends Parser {
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5617);
-						if (!(precpred(_ctx, 14))) throw new FailedPredicateException(this, "precpred(_ctx, 14)");
 						setState(5618);
-						match(DIV);
+						if (!(precpred(_ctx, 14))) throw new FailedPredicateException(this, "precpred(_ctx, 14)");
 						setState(5619);
+						match(DIV);
+						setState(5620);
 						expression(15);
 						}
 						break;
@@ -42928,11 +42933,11 @@ public class RpgParser extends Parser {
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5620);
-						if (!(precpred(_ctx, 13))) throw new FailedPredicateException(this, "precpred(_ctx, 13)");
 						setState(5621);
-						match(PLUS);
+						if (!(precpred(_ctx, 13))) throw new FailedPredicateException(this, "precpred(_ctx, 13)");
 						setState(5622);
+						match(PLUS);
+						setState(5623);
 						expression(14);
 						}
 						break;
@@ -42940,11 +42945,11 @@ public class RpgParser extends Parser {
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5623);
-						if (!(precpred(_ctx, 12))) throw new FailedPredicateException(this, "precpred(_ctx, 12)");
 						setState(5624);
-						match(MINUS);
+						if (!(precpred(_ctx, 12))) throw new FailedPredicateException(this, "precpred(_ctx, 12)");
 						setState(5625);
+						match(MINUS);
+						setState(5626);
 						expression(13);
 						}
 						break;
@@ -42952,11 +42957,11 @@ public class RpgParser extends Parser {
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5626);
-						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
 						setState(5627);
-						match(EQUAL);
+						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
 						setState(5628);
+						match(EQUAL);
+						setState(5629);
 						expression(12);
 						}
 						break;
@@ -42964,9 +42969,9 @@ public class RpgParser extends Parser {
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5629);
+						setState(5630);
 						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
-						setState(5633);
+						setState(5634);
 						_errHandler.sync(this);
 						switch (_input.LA(1)) {
 						case CPLUS:
@@ -42975,7 +42980,7 @@ public class RpgParser extends Parser {
 						case CDIV:
 						case CEXP:
 							{
-							setState(5630);
+							setState(5631);
 							assignmentOperator();
 							}
 							break;
@@ -42985,20 +42990,20 @@ public class RpgParser extends Parser {
 						case LE:
 						case NE:
 							{
-							setState(5631);
+							setState(5632);
 							comparisonOperator();
 							}
 							break;
 						case EQUAL:
 							{
-							setState(5632);
+							setState(5633);
 							match(EQUAL);
 							}
 							break;
 						default:
 							throw new NoViableAltException(this);
 						}
-						setState(5635);
+						setState(5636);
 						expression(11);
 						}
 						break;
@@ -43006,11 +43011,11 @@ public class RpgParser extends Parser {
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5636);
-						if (!(precpred(_ctx, 9))) throw new FailedPredicateException(this, "precpred(_ctx, 9)");
 						setState(5637);
-						match(AND);
+						if (!(precpred(_ctx, 9))) throw new FailedPredicateException(this, "precpred(_ctx, 9)");
 						setState(5638);
+						match(AND);
+						setState(5639);
 						expression(10);
 						}
 						break;
@@ -43018,18 +43023,18 @@ public class RpgParser extends Parser {
 						{
 						_localctx = new ExpressionContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
-						setState(5639);
-						if (!(precpred(_ctx, 8))) throw new FailedPredicateException(this, "precpred(_ctx, 8)");
 						setState(5640);
-						match(OR);
+						if (!(precpred(_ctx, 8))) throw new FailedPredicateException(this, "precpred(_ctx, 8)");
 						setState(5641);
+						match(OR);
+						setState(5642);
 						expression(9);
 						}
 						break;
 					}
 					} 
 				}
-				setState(5646);
+				setState(5647);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,496,_ctx);
 			}
@@ -43070,7 +43075,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5647);
+			setState(5648);
 			expression(0);
 			}
 		}
@@ -43112,9 +43117,9 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5649);
-			functionName();
 			setState(5650);
+			functionName();
+			setState(5651);
 			args();
 			}
 		}
@@ -43156,7 +43161,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5652);
+			setState(5653);
 			_la = _input.LA(1);
 			if ( !(((((_la - 439)) & ~0x3f) == 0 && ((1L << (_la - 439)) & ((1L << (GT - 439)) | (1L << (LT - 439)) | (1L << (GE - 439)) | (1L << (LE - 439)) | (1L << (NE - 439)))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -43206,7 +43211,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5654);
+			setState(5655);
 			_la = _input.LA(1);
 			if ( !(((((_la - 434)) & ~0x3f) == 0 && ((1L << (_la - 434)) & ((1L << (CPLUS - 434)) | (1L << (CMINUS - 434)) | (1L << (CMULT - 434)) | (1L << (CDIV - 434)) | (1L << (CEXP - 434)))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -43257,7 +43262,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5656);
+			setState(5657);
 			_la = _input.LA(1);
 			if ( !(((((_la - 434)) & ~0x3f) == 0 && ((1L << (_la - 434)) & ((1L << (CPLUS - 434)) | (1L << (CMINUS - 434)) | (1L << (CMULT - 434)) | (1L << (CDIV - 434)) | (1L << (CEXP - 434)) | (1L << (EQUAL - 434)))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -43314,35 +43319,35 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5658);
+			setState(5659);
 			match(OPEN_PAREN);
-			setState(5667);
+			setState(5668);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0)) {
+			if (((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & ((1L << (OPEN_PAREN - 20)) | (1L << (NUMBER - 20)) | (1L << (ID - 20)) | (1L << (OP_ACQ - 20)) | (1L << (OP_BEGSR - 20)) | (1L << (OP_CALLP - 20)) | (1L << (OP_CHAIN - 20)) | (1L << (OP_CLEAR - 20)) | (1L << (OP_CLOSE - 20)) | (1L << (OP_COMMIT - 20)) | (1L << (OP_DEALLOC - 20)) | (1L << (OP_DELETE - 20)) | (1L << (OP_DSPLY - 20)) | (1L << (OP_DUMP - 20)) | (1L << (OP_ENDSR - 20)) | (1L << (OP_EVAL - 20)) | (1L << (OP_EVALR - 20)) | (1L << (OP_EVAL_CORR - 20)) | (1L << (OP_EXCEPT - 20)) | (1L << (OP_EXFMT - 20)) | (1L << (OP_EXSR - 20)) | (1L << (OP_FEOD - 20)) | (1L << (OP_FORCE - 20)))) != 0) || ((((_la - 84)) & ~0x3f) == 0 && ((1L << (_la - 84)) & ((1L << (OP_IN - 84)) | (1L << (OP_ITER - 84)) | (1L << (OP_LEAVE - 84)) | (1L << (OP_LEAVESR - 84)) | (1L << (OP_NEXT - 84)) | (1L << (OP_OPEN - 84)) | (1L << (OP_OTHER - 84)) | (1L << (OP_OUT - 84)) | (1L << (OP_POST - 84)) | (1L << (OP_READ - 84)) | (1L << (OP_READC - 84)) | (1L << (OP_READE - 84)) | (1L << (OP_READP - 84)) | (1L << (OP_READPE - 84)) | (1L << (OP_REL - 84)) | (1L << (OP_RESET - 84)) | (1L << (OP_RETURN - 84)) | (1L << (OP_ROLBK - 84)) | (1L << (OP_SELECT - 84)) | (1L << (OP_SETGT - 84)) | (1L << (OP_SETLL - 84)) | (1L << (OP_SORTA - 84)) | (1L << (OP_TEST - 84)) | (1L << (OP_UNLOCK - 84)) | (1L << (OP_UPDATE - 84)) | (1L << (OP_WHEN - 84)) | (1L << (OP_WRITE - 84)) | (1L << (OP_XML_INTO - 84)) | (1L << (OP_XML_SAX - 84)) | (1L << (BIF_ABS - 84)) | (1L << (BIF_ADDR - 84)) | (1L << (BIF_ALLOC - 84)) | (1L << (BIF_BITAND - 84)) | (1L << (BIF_BITNOT - 84)) | (1L << (BIF_BITOR - 84)) | (1L << (BIF_BITXOR - 84)) | (1L << (BIF_CHAR - 84)) | (1L << (BIF_CHECK - 84)) | (1L << (BIF_CHECKR - 84)) | (1L << (BIF_DATE - 84)) | (1L << (BIF_DAYS - 84)) | (1L << (BIF_DEC - 84)) | (1L << (BIF_DECH - 84)) | (1L << (BIF_DECPOS - 84)) | (1L << (BIF_DIFF - 84)))) != 0) || ((((_la - 148)) & ~0x3f) == 0 && ((1L << (_la - 148)) & ((1L << (BIF_DIV - 148)) | (1L << (BIF_EDITC - 148)) | (1L << (BIF_EDITFLT - 148)) | (1L << (BIF_EDITW - 148)) | (1L << (BIF_ELEM - 148)) | (1L << (BIF_EOF - 148)) | (1L << (BIF_EQUAL - 148)) | (1L << (BIF_ERROR - 148)) | (1L << (BIF_FIELDS - 148)) | (1L << (BIF_FLOAT - 148)) | (1L << (BIF_FOUND - 148)) | (1L << (BIF_GRAPH - 148)) | (1L << (BIF_HANDLER - 148)) | (1L << (BIF_HOURS - 148)) | (1L << (BIF_INT - 148)) | (1L << (BIF_INTH - 148)) | (1L << (BIF_KDS - 148)) | (1L << (BIF_LEN - 148)) | (1L << (BIF_LOOKUP - 148)) | (1L << (BIF_LOOKUPLT - 148)) | (1L << (BIF_LOOKUPLE - 148)) | (1L << (BIF_LOOKUPGT - 148)) | (1L << (BIF_LOOKUPGE - 148)) | (1L << (BIF_MINUTES - 148)) | (1L << (BIF_MONTHS - 148)) | (1L << (BIF_MSECONDS - 148)) | (1L << (BIF_NULLIND - 148)) | (1L << (BIF_OCCUR - 148)) | (1L << (BIF_OPEN - 148)) | (1L << (BIF_PADDR - 148)) | (1L << (BIF_PARMS - 148)) | (1L << (BIF_PARMNUM - 148)) | (1L << (BIF_REALLOC - 148)) | (1L << (BIF_REM - 148)) | (1L << (BIF_REPLACE - 148)) | (1L << (BIF_SCAN - 148)) | (1L << (BIF_SCANRPL - 148)) | (1L << (BIF_SECONDS - 148)) | (1L << (BIF_SHTDN - 148)) | (1L << (BIF_SIZE - 148)) | (1L << (BIF_SQRT - 148)) | (1L << (BIF_STATUS - 148)) | (1L << (BIF_STR - 148)) | (1L << (BIF_SUBARR - 148)) | (1L << (BIF_SUBDT - 148)) | (1L << (BIF_SUBST - 148)) | (1L << (BIF_THIS - 148)) | (1L << (BIF_TIME - 148)) | (1L << (BIF_TIMESTAMP - 148)) | (1L << (BIF_TLOOKUP - 148)) | (1L << (BIF_TLOOKUPLT - 148)) | (1L << (BIF_TLOOKUPLE - 148)) | (1L << (BIF_TLOOKUPGT - 148)) | (1L << (BIF_TLOOKUPGE - 148)) | (1L << (BIF_TRIM - 148)) | (1L << (BIF_TRIML - 148)) | (1L << (BIF_TRIMR - 148)) | (1L << (BIF_UCS2 - 148)) | (1L << (BIF_UNS - 148)) | (1L << (BIF_UNSH - 148)) | (1L << (BIF_XFOOT - 148)) | (1L << (BIF_XLATE - 148)) | (1L << (BIF_XML - 148)) | (1L << (BIF_YEARS - 148)))) != 0) || ((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)) | (1L << (UDATE - 276)) | (1L << (UMONTH - 276)) | (1L << (UYEAR - 276)) | (1L << (UDAY - 276)) | (1L << (CHAR - 276)) | (1L << (VARCHAR - 276)) | (1L << (UCS2 - 276)) | (1L << (DATE_ - 276)) | (1L << (VARUCS2 - 276)) | (1L << (GRAPH - 276)) | (1L << (VARGRAPH - 276)) | (1L << (IND - 276)) | (1L << (PACKED - 276)) | (1L << (ZONED - 276)) | (1L << (BINDEC - 276)) | (1L << (INT - 276)) | (1L << (UNS - 276)) | (1L << (FLOAT - 276)) | (1L << (TIME - 276)) | (1L << (TIMESTAMP - 276)) | (1L << (POINTER - 276)) | (1L << (OBJECT - 276)) | (1L << (KEYWORD_ALIAS - 276)))) != 0) || ((((_la - 340)) & ~0x3f) == 0 && ((1L << (_la - 340)) & ((1L << (KEYWORD_ALIGN - 340)) | (1L << (KEYWORD_ALT - 340)) | (1L << (KEYWORD_ALTSEQ - 340)) | (1L << (KEYWORD_ASCEND - 340)) | (1L << (KEYWORD_BASED - 340)) | (1L << (KEYWORD_CCSID - 340)) | (1L << (KEYWORD_CLASS - 340)) | (1L << (KEYWORD_CONST - 340)) | (1L << (KEYWORD_CTDATA - 340)) | (1L << (KEYWORD_DATFMT - 340)) | (1L << (KEYWORD_DESCEND - 340)) | (1L << (KEYWORD_DIM - 340)) | (1L << (KEYWORD_DTAARA - 340)) | (1L << (KEYWORD_EXPORT - 340)) | (1L << (KEYWORD_EXT - 340)) | (1L << (KEYWORD_EXTFLD - 340)) | (1L << (KEYWORD_EXTFMT - 340)) | (1L << (KEYWORD_EXTNAME - 340)) | (1L << (KEYWORD_EXTPGM - 340)) | (1L << (KEYWORD_EXTPROC - 340)) | (1L << (KEYWORD_FROMFILE - 340)) | (1L << (KEYWORD_IMPORT - 340)) | (1L << (KEYWORD_INZ - 340)) | (1L << (KEYWORD_LEN - 340)) | (1L << (KEYWORD_LIKE - 340)) | (1L << (KEYWORD_LIKEDS - 340)) | (1L << (KEYWORD_LIKEFILE - 340)) | (1L << (KEYWORD_LIKEREC - 340)) | (1L << (KEYWORD_NOOPT - 340)) | (1L << (KEYWORD_OCCURS - 340)) | (1L << (KEYWORD_OPDESC - 340)) | (1L << (KEYWORD_OPTIONS - 340)) | (1L << (KEYWORD_OVERLAY - 340)) | (1L << (KEYWORD_PACKEVEN - 340)) | (1L << (KEYWORD_PERRCD - 340)) | (1L << (KEYWORD_PREFIX - 340)) | (1L << (KEYWORD_POS - 340)) | (1L << (KEYWORD_PROCPTR - 340)) | (1L << (KEYWORD_QUALIFIED - 340)) | (1L << (KEYWORD_RTNPARM - 340)) | (1L << (KEYWORD_STATIC - 340)) | (1L << (KEYWORD_TEMPLATE - 340)) | (1L << (KEYWORD_TIMFMT - 340)) | (1L << (KEYWORD_TOFILE - 340)) | (1L << (KEYWORD_VALUE - 340)) | (1L << (KEYWORD_VARYING - 340)) | (1L << (KEYWORD_BLOCK - 340)) | (1L << (KEYWORD_COMMIT - 340)) | (1L << (KEYWORD_DEVID - 340)) | (1L << (KEYWORD_EXTDESC - 340)) | (1L << (KEYWORD_EXTFILE - 340)) | (1L << (KEYWORD_EXTIND - 340)) | (1L << (KEYWORD_EXTMBR - 340)) | (1L << (KEYWORD_FORMLEN - 340)) | (1L << (KEYWORD_FORMOFL - 340)) | (1L << (KEYWORD_IGNORE - 340)) | (1L << (KEYWORD_INCLUDE - 340)) | (1L << (KEYWORD_INDDS - 340)) | (1L << (KEYWORD_INFDS - 340)) | (1L << (KEYWORD_INFSR - 340)) | (1L << (KEYWORD_KEYLOC - 340)) | (1L << (KEYWORD_MAXDEV - 340)) | (1L << (KEYWORD_OFLIND - 340)) | (1L << (KEYWORD_PASS - 340)))) != 0) || ((((_la - 404)) & ~0x3f) == 0 && ((1L << (_la - 404)) & ((1L << (KEYWORD_PGMNAME - 404)) | (1L << (KEYWORD_PLIST - 404)) | (1L << (KEYWORD_PRTCTL - 404)) | (1L << (KEYWORD_RAFDATA - 404)) | (1L << (KEYWORD_RECNO - 404)) | (1L << (KEYWORD_RENAME - 404)) | (1L << (KEYWORD_SAVEDS - 404)) | (1L << (KEYWORD_SAVEIND - 404)) | (1L << (KEYWORD_SFILE - 404)) | (1L << (KEYWORD_SLN - 404)) | (1L << (KEYWORD_USROPN - 404)) | (1L << (KEYWORD_DISK - 404)) | (1L << (KEYWORD_WORKSTN - 404)) | (1L << (KEYWORD_PRINTER - 404)) | (1L << (KEYWORD_SPECIAL - 404)) | (1L << (KEYWORD_KEYED - 404)) | (1L << (KEYWORD_USAGE - 404)) | (1L << (KEYWORD_PSDS - 404)) | (1L << (NOT - 404)) | (1L << (PLUS - 404)) | (1L << (MINUS - 404)) | (1L << (MULT_NOSPACE - 404)) | (1L << (FREE_BY - 404)) | (1L << (FREE_TO - 404)) | (1L << (FREE_DOWNTO - 404)) | (1L << (HexLiteralStart - 404)) | (1L << (DateLiteralStart - 404)) | (1L << (TimeLiteralStart - 404)) | (1L << (TimeStampLiteralStart - 404)) | (1L << (GraphicLiteralStart - 404)) | (1L << (UCS2LiteralStart - 404)) | (1L << (StringLiteralStart - 404)))) != 0) || _la==EndOfSourceMode) {
 				{
-				setState(5659);
+				setState(5660);
 				expression(0);
-				setState(5664);
+				setState(5665);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==COLON) {
 					{
 					{
-					setState(5660);
-					match(COLON);
 					setState(5661);
+					match(COLON);
+					setState(5662);
 					expression(0);
 					}
 					}
-					setState(5666);
+					setState(5667);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
 				}
 			}
 
-			setState(5669);
+			setState(5670);
 			match(CLOSE_PAREN);
 			}
 		}
@@ -43400,7 +43405,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5671);
+			setState(5672);
 			_la = _input.LA(1);
 			if ( !(((((_la - 449)) & ~0x3f) == 0 && ((1L << (_la - 449)) & ((1L << (HexLiteralStart - 449)) | (1L << (DateLiteralStart - 449)) | (1L << (TimeLiteralStart - 449)) | (1L << (TimeStampLiteralStart - 449)) | (1L << (GraphicLiteralStart - 449)) | (1L << (UCS2LiteralStart - 449)) | (1L << (StringLiteralStart - 449)))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -43410,13 +43415,13 @@ public class RpgParser extends Parser {
 				_errHandler.reportMatch(this);
 				consume();
 			}
-			setState(5675);
+			setState(5676);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (((((_la - 575)) & ~0x3f) == 0 && ((1L << (_la - 575)) & ((1L << (StringContent - 575)) | (1L << (StringEscapedQuote - 575)) | (1L << (PlusOrMinus - 575)))) != 0)) {
 				{
 				{
-				setState(5672);
+				setState(5673);
 				((LiteralContext)_localctx).content = _input.LT(1);
 				_la = _input.LA(1);
 				if ( !(((((_la - 575)) & ~0x3f) == 0 && ((1L << (_la - 575)) & ((1L << (StringContent - 575)) | (1L << (StringEscapedQuote - 575)) | (1L << (PlusOrMinus - 575)))) != 0)) ) {
@@ -43429,11 +43434,11 @@ public class RpgParser extends Parser {
 				}
 				}
 				}
-				setState(5677);
+				setState(5678);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(5678);
+			setState(5679);
 			match(StringLiteralEnd);
 			}
 		}
@@ -43476,27 +43481,27 @@ public class RpgParser extends Parser {
 		IdentifierContext _localctx = new IdentifierContext(_ctx, getState());
 		enterRule(_localctx, 1136, RULE_identifier);
 		try {
-			setState(5683);
+			setState(5684);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,500,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(5680);
+				setState(5681);
 				free_identifier();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(5681);
+				setState(5682);
 				multipart_identifier();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(5682);
+				setState(5683);
 				all();
 				}
 				break;
@@ -43540,14 +43545,14 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5685);
+			setState(5686);
 			symbolicConstants();
-			setState(5687);
+			setState(5688);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,501,_ctx) ) {
 			case 1:
 				{
-				setState(5686);
+				setState(5687);
 				literal();
 				}
 				break;
@@ -43589,7 +43594,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5689);
+			setState(5690);
 			free_identifier();
 			}
 		}
@@ -43642,43 +43647,43 @@ public class RpgParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5693);
+			setState(5694);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,502,_ctx) ) {
 			case 1:
 				{
-				setState(5691);
+				setState(5692);
 				free_identifier();
 				}
 				break;
 			case 2:
 				{
-				setState(5692);
+				setState(5693);
 				indexed_identifier();
 				}
 				break;
 			}
-			setState(5702);
+			setState(5703);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,504,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(5695);
+					setState(5696);
 					match(FREE_DOT);
-					setState(5698);
+					setState(5699);
 					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,503,_ctx) ) {
 					case 1:
 						{
-						setState(5696);
+						setState(5697);
 						free_identifier();
 						}
 						break;
 					case 2:
 						{
-						setState(5697);
+						setState(5698);
 						indexed_identifier();
 						}
 						break;
@@ -43686,7 +43691,7 @@ public class RpgParser extends Parser {
 					}
 					} 
 				}
-				setState(5704);
+				setState(5705);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,504,_ctx);
 			}
@@ -43733,11 +43738,11 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5705);
-			free_identifier();
 			setState(5706);
+			free_identifier();
+			setState(5707);
 			match(OPEN_PAREN);
-			setState(5709);
+			setState(5710);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case OPEN_PAREN:
@@ -44091,21 +44096,22 @@ public class RpgParser extends Parser {
 			case GraphicLiteralStart:
 			case UCS2LiteralStart:
 			case StringLiteralStart:
+			case EndOfSourceMode:
 				{
-				setState(5707);
+				setState(5708);
 				expression(0);
 				}
 				break;
 			case ARRAY_REPEAT:
 				{
-				setState(5708);
+				setState(5709);
 				match(ARRAY_REPEAT);
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
-			setState(5711);
+			setState(5712);
 			match(CLOSE_PAREN);
 			}
 		}
@@ -44144,7 +44150,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5713);
+			setState(5714);
 			free_identifier();
 			}
 		}
@@ -44188,31 +44194,31 @@ public class RpgParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5716);
+			setState(5717);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==MINUS) {
 				{
-				setState(5715);
+				setState(5716);
 				match(MINUS);
 				}
 			}
 
-			setState(5718);
+			setState(5719);
 			match(NUMBER);
-			setState(5722);
+			setState(5723);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,507,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(5719);
+					setState(5720);
 					match(NumberPart);
 					}
 					} 
 				}
-				setState(5724);
+				setState(5725);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,507,_ctx);
 			}
@@ -44265,58 +44271,58 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5735);
+			setState(5736);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,509,_ctx) ) {
 			case 1:
 				{
-				setState(5725);
+				setState(5726);
 				continuedIdentifier();
 				}
 				break;
 			case 2:
 				{
-				setState(5727);
+				setState(5728);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==MULT_NOSPACE) {
 					{
-					setState(5726);
+					setState(5727);
 					match(MULT_NOSPACE);
 					}
 				}
 
-				setState(5729);
+				setState(5730);
 				idOrKeyword();
 				}
 				break;
 			case 3:
 				{
-				setState(5730);
+				setState(5731);
 				match(NOT);
 				}
 				break;
 			case 4:
 				{
-				setState(5731);
+				setState(5732);
 				match(FREE_BY);
 				}
 				break;
 			case 5:
 				{
-				setState(5732);
+				setState(5733);
 				match(FREE_TO);
 				}
 				break;
 			case 6:
 				{
-				setState(5733);
+				setState(5734);
 				match(FREE_DOWNTO);
 				}
 				break;
 			case 7:
 				{
-				setState(5734);
+				setState(5735);
 				op_code();
 				}
 				break;
@@ -44366,7 +44372,7 @@ public class RpgParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5740); 
+			setState(5741); 
 			_errHandler.sync(this);
 			_alt = 1;
 			do {
@@ -44374,9 +44380,9 @@ public class RpgParser extends Parser {
 				case 1:
 					{
 					{
-					setState(5737);
-					idOrKeyword();
 					setState(5738);
+					idOrKeyword();
+					setState(5739);
 					match(CONTINUATION);
 					}
 					}
@@ -44384,11 +44390,11 @@ public class RpgParser extends Parser {
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(5742); 
+				setState(5743); 
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,510,_ctx);
 			} while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER );
-			setState(5744);
+			setState(5745);
 			idOrKeyword();
 			}
 		}
@@ -44513,622 +44519,622 @@ public class RpgParser extends Parser {
 		IdOrKeywordContext _localctx = new IdOrKeywordContext(_ctx, getState());
 		enterRule(_localctx, 1154, RULE_idOrKeyword);
 		try {
-			setState(5835);
+			setState(5836);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case ID:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(5746);
+				setState(5747);
 				match(ID);
 				}
 				break;
 			case KEYWORD_ALIAS:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(5747);
+				setState(5748);
 				match(KEYWORD_ALIAS);
 				}
 				break;
 			case KEYWORD_ALIGN:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(5748);
+				setState(5749);
 				match(KEYWORD_ALIGN);
 				}
 				break;
 			case KEYWORD_ALT:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(5749);
+				setState(5750);
 				match(KEYWORD_ALT);
 				}
 				break;
 			case KEYWORD_ALTSEQ:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(5750);
+				setState(5751);
 				match(KEYWORD_ALTSEQ);
 				}
 				break;
 			case KEYWORD_ASCEND:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(5751);
+				setState(5752);
 				match(KEYWORD_ASCEND);
 				}
 				break;
 			case KEYWORD_BASED:
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(5752);
+				setState(5753);
 				match(KEYWORD_BASED);
 				}
 				break;
 			case KEYWORD_CCSID:
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(5753);
+				setState(5754);
 				match(KEYWORD_CCSID);
 				}
 				break;
 			case KEYWORD_CLASS:
 				enterOuterAlt(_localctx, 9);
 				{
-				setState(5754);
+				setState(5755);
 				match(KEYWORD_CLASS);
 				}
 				break;
 			case KEYWORD_CONST:
 				enterOuterAlt(_localctx, 10);
 				{
-				setState(5755);
+				setState(5756);
 				match(KEYWORD_CONST);
 				}
 				break;
 			case KEYWORD_CTDATA:
 				enterOuterAlt(_localctx, 11);
 				{
-				setState(5756);
+				setState(5757);
 				match(KEYWORD_CTDATA);
 				}
 				break;
 			case KEYWORD_DATFMT:
 				enterOuterAlt(_localctx, 12);
 				{
-				setState(5757);
+				setState(5758);
 				match(KEYWORD_DATFMT);
 				}
 				break;
 			case KEYWORD_DESCEND:
 				enterOuterAlt(_localctx, 13);
 				{
-				setState(5758);
+				setState(5759);
 				match(KEYWORD_DESCEND);
 				}
 				break;
 			case KEYWORD_DIM:
 				enterOuterAlt(_localctx, 14);
 				{
-				setState(5759);
+				setState(5760);
 				match(KEYWORD_DIM);
 				}
 				break;
 			case KEYWORD_DTAARA:
 				enterOuterAlt(_localctx, 15);
 				{
-				setState(5760);
+				setState(5761);
 				match(KEYWORD_DTAARA);
 				}
 				break;
 			case KEYWORD_EXPORT:
 				enterOuterAlt(_localctx, 16);
 				{
-				setState(5761);
+				setState(5762);
 				match(KEYWORD_EXPORT);
 				}
 				break;
 			case KEYWORD_EXT:
 				enterOuterAlt(_localctx, 17);
 				{
-				setState(5762);
+				setState(5763);
 				match(KEYWORD_EXT);
 				}
 				break;
 			case KEYWORD_EXTFLD:
 				enterOuterAlt(_localctx, 18);
 				{
-				setState(5763);
+				setState(5764);
 				match(KEYWORD_EXTFLD);
 				}
 				break;
 			case KEYWORD_EXTFMT:
 				enterOuterAlt(_localctx, 19);
 				{
-				setState(5764);
+				setState(5765);
 				match(KEYWORD_EXTFMT);
 				}
 				break;
 			case KEYWORD_EXTNAME:
 				enterOuterAlt(_localctx, 20);
 				{
-				setState(5765);
+				setState(5766);
 				match(KEYWORD_EXTNAME);
 				}
 				break;
 			case KEYWORD_EXTPGM:
 				enterOuterAlt(_localctx, 21);
 				{
-				setState(5766);
+				setState(5767);
 				match(KEYWORD_EXTPGM);
 				}
 				break;
 			case KEYWORD_EXTPROC:
 				enterOuterAlt(_localctx, 22);
 				{
-				setState(5767);
+				setState(5768);
 				match(KEYWORD_EXTPROC);
 				}
 				break;
 			case KEYWORD_FROMFILE:
 				enterOuterAlt(_localctx, 23);
 				{
-				setState(5768);
+				setState(5769);
 				match(KEYWORD_FROMFILE);
 				}
 				break;
 			case KEYWORD_IMPORT:
 				enterOuterAlt(_localctx, 24);
 				{
-				setState(5769);
+				setState(5770);
 				match(KEYWORD_IMPORT);
 				}
 				break;
 			case KEYWORD_INZ:
 				enterOuterAlt(_localctx, 25);
 				{
-				setState(5770);
+				setState(5771);
 				match(KEYWORD_INZ);
 				}
 				break;
 			case KEYWORD_LEN:
 				enterOuterAlt(_localctx, 26);
 				{
-				setState(5771);
+				setState(5772);
 				match(KEYWORD_LEN);
 				}
 				break;
 			case KEYWORD_LIKE:
 				enterOuterAlt(_localctx, 27);
 				{
-				setState(5772);
+				setState(5773);
 				match(KEYWORD_LIKE);
 				}
 				break;
 			case KEYWORD_LIKEDS:
 				enterOuterAlt(_localctx, 28);
 				{
-				setState(5773);
+				setState(5774);
 				match(KEYWORD_LIKEDS);
 				}
 				break;
 			case KEYWORD_LIKEFILE:
 				enterOuterAlt(_localctx, 29);
 				{
-				setState(5774);
+				setState(5775);
 				match(KEYWORD_LIKEFILE);
 				}
 				break;
 			case KEYWORD_LIKEREC:
 				enterOuterAlt(_localctx, 30);
 				{
-				setState(5775);
+				setState(5776);
 				match(KEYWORD_LIKEREC);
 				}
 				break;
 			case KEYWORD_NOOPT:
 				enterOuterAlt(_localctx, 31);
 				{
-				setState(5776);
+				setState(5777);
 				match(KEYWORD_NOOPT);
 				}
 				break;
 			case KEYWORD_OCCURS:
 				enterOuterAlt(_localctx, 32);
 				{
-				setState(5777);
+				setState(5778);
 				match(KEYWORD_OCCURS);
 				}
 				break;
 			case KEYWORD_OPDESC:
 				enterOuterAlt(_localctx, 33);
 				{
-				setState(5778);
+				setState(5779);
 				match(KEYWORD_OPDESC);
 				}
 				break;
 			case KEYWORD_OPTIONS:
 				enterOuterAlt(_localctx, 34);
 				{
-				setState(5779);
+				setState(5780);
 				match(KEYWORD_OPTIONS);
 				}
 				break;
 			case KEYWORD_OVERLAY:
 				enterOuterAlt(_localctx, 35);
 				{
-				setState(5780);
+				setState(5781);
 				match(KEYWORD_OVERLAY);
 				}
 				break;
 			case KEYWORD_PACKEVEN:
 				enterOuterAlt(_localctx, 36);
 				{
-				setState(5781);
+				setState(5782);
 				match(KEYWORD_PACKEVEN);
 				}
 				break;
 			case KEYWORD_PERRCD:
 				enterOuterAlt(_localctx, 37);
 				{
-				setState(5782);
+				setState(5783);
 				match(KEYWORD_PERRCD);
 				}
 				break;
 			case KEYWORD_PREFIX:
 				enterOuterAlt(_localctx, 38);
 				{
-				setState(5783);
+				setState(5784);
 				match(KEYWORD_PREFIX);
 				}
 				break;
 			case KEYWORD_POS:
 				enterOuterAlt(_localctx, 39);
 				{
-				setState(5784);
+				setState(5785);
 				match(KEYWORD_POS);
 				}
 				break;
 			case KEYWORD_PROCPTR:
 				enterOuterAlt(_localctx, 40);
 				{
-				setState(5785);
+				setState(5786);
 				match(KEYWORD_PROCPTR);
 				}
 				break;
 			case KEYWORD_QUALIFIED:
 				enterOuterAlt(_localctx, 41);
 				{
-				setState(5786);
+				setState(5787);
 				match(KEYWORD_QUALIFIED);
 				}
 				break;
 			case KEYWORD_RTNPARM:
 				enterOuterAlt(_localctx, 42);
 				{
-				setState(5787);
+				setState(5788);
 				match(KEYWORD_RTNPARM);
 				}
 				break;
 			case KEYWORD_STATIC:
 				enterOuterAlt(_localctx, 43);
 				{
-				setState(5788);
+				setState(5789);
 				match(KEYWORD_STATIC);
 				}
 				break;
 			case KEYWORD_TEMPLATE:
 				enterOuterAlt(_localctx, 44);
 				{
-				setState(5789);
+				setState(5790);
 				match(KEYWORD_TEMPLATE);
 				}
 				break;
 			case KEYWORD_TIMFMT:
 				enterOuterAlt(_localctx, 45);
 				{
-				setState(5790);
+				setState(5791);
 				match(KEYWORD_TIMFMT);
 				}
 				break;
 			case KEYWORD_TOFILE:
 				enterOuterAlt(_localctx, 46);
 				{
-				setState(5791);
+				setState(5792);
 				match(KEYWORD_TOFILE);
 				}
 				break;
 			case KEYWORD_VALUE:
 				enterOuterAlt(_localctx, 47);
 				{
-				setState(5792);
+				setState(5793);
 				match(KEYWORD_VALUE);
 				}
 				break;
 			case KEYWORD_VARYING:
 				enterOuterAlt(_localctx, 48);
 				{
-				setState(5793);
+				setState(5794);
 				match(KEYWORD_VARYING);
 				}
 				break;
 			case KEYWORD_BLOCK:
 				enterOuterAlt(_localctx, 49);
 				{
-				setState(5794);
+				setState(5795);
 				match(KEYWORD_BLOCK);
 				}
 				break;
 			case KEYWORD_COMMIT:
 				enterOuterAlt(_localctx, 50);
 				{
-				setState(5795);
+				setState(5796);
 				match(KEYWORD_COMMIT);
 				}
 				break;
 			case KEYWORD_DEVID:
 				enterOuterAlt(_localctx, 51);
 				{
-				setState(5796);
+				setState(5797);
 				match(KEYWORD_DEVID);
 				}
 				break;
 			case KEYWORD_EXTDESC:
 				enterOuterAlt(_localctx, 52);
 				{
-				setState(5797);
+				setState(5798);
 				match(KEYWORD_EXTDESC);
 				}
 				break;
 			case KEYWORD_EXTFILE:
 				enterOuterAlt(_localctx, 53);
 				{
-				setState(5798);
+				setState(5799);
 				match(KEYWORD_EXTFILE);
 				}
 				break;
 			case KEYWORD_EXTIND:
 				enterOuterAlt(_localctx, 54);
 				{
-				setState(5799);
+				setState(5800);
 				match(KEYWORD_EXTIND);
 				}
 				break;
 			case KEYWORD_EXTMBR:
 				enterOuterAlt(_localctx, 55);
 				{
-				setState(5800);
+				setState(5801);
 				match(KEYWORD_EXTMBR);
 				}
 				break;
 			case KEYWORD_FORMLEN:
 				enterOuterAlt(_localctx, 56);
 				{
-				setState(5801);
+				setState(5802);
 				match(KEYWORD_FORMLEN);
 				}
 				break;
 			case KEYWORD_FORMOFL:
 				enterOuterAlt(_localctx, 57);
 				{
-				setState(5802);
+				setState(5803);
 				match(KEYWORD_FORMOFL);
 				}
 				break;
 			case KEYWORD_IGNORE:
 				enterOuterAlt(_localctx, 58);
 				{
-				setState(5803);
+				setState(5804);
 				match(KEYWORD_IGNORE);
 				}
 				break;
 			case KEYWORD_INCLUDE:
 				enterOuterAlt(_localctx, 59);
 				{
-				setState(5804);
+				setState(5805);
 				match(KEYWORD_INCLUDE);
 				}
 				break;
 			case KEYWORD_INDDS:
 				enterOuterAlt(_localctx, 60);
 				{
-				setState(5805);
+				setState(5806);
 				match(KEYWORD_INDDS);
 				}
 				break;
 			case KEYWORD_INFDS:
 				enterOuterAlt(_localctx, 61);
 				{
-				setState(5806);
+				setState(5807);
 				match(KEYWORD_INFDS);
 				}
 				break;
 			case KEYWORD_INFSR:
 				enterOuterAlt(_localctx, 62);
 				{
-				setState(5807);
+				setState(5808);
 				match(KEYWORD_INFSR);
 				}
 				break;
 			case KEYWORD_KEYLOC:
 				enterOuterAlt(_localctx, 63);
 				{
-				setState(5808);
+				setState(5809);
 				match(KEYWORD_KEYLOC);
 				}
 				break;
 			case KEYWORD_MAXDEV:
 				enterOuterAlt(_localctx, 64);
 				{
-				setState(5809);
+				setState(5810);
 				match(KEYWORD_MAXDEV);
 				}
 				break;
 			case KEYWORD_OFLIND:
 				enterOuterAlt(_localctx, 65);
 				{
-				setState(5810);
+				setState(5811);
 				match(KEYWORD_OFLIND);
 				}
 				break;
 			case KEYWORD_PASS:
 				enterOuterAlt(_localctx, 66);
 				{
-				setState(5811);
+				setState(5812);
 				match(KEYWORD_PASS);
 				}
 				break;
 			case KEYWORD_PGMNAME:
 				enterOuterAlt(_localctx, 67);
 				{
-				setState(5812);
+				setState(5813);
 				match(KEYWORD_PGMNAME);
 				}
 				break;
 			case KEYWORD_PLIST:
 				enterOuterAlt(_localctx, 68);
 				{
-				setState(5813);
+				setState(5814);
 				match(KEYWORD_PLIST);
 				}
 				break;
 			case KEYWORD_PRTCTL:
 				enterOuterAlt(_localctx, 69);
 				{
-				setState(5814);
+				setState(5815);
 				match(KEYWORD_PRTCTL);
 				}
 				break;
 			case KEYWORD_RAFDATA:
 				enterOuterAlt(_localctx, 70);
 				{
-				setState(5815);
+				setState(5816);
 				match(KEYWORD_RAFDATA);
 				}
 				break;
 			case KEYWORD_RECNO:
 				enterOuterAlt(_localctx, 71);
 				{
-				setState(5816);
+				setState(5817);
 				match(KEYWORD_RECNO);
 				}
 				break;
 			case KEYWORD_RENAME:
 				enterOuterAlt(_localctx, 72);
 				{
-				setState(5817);
+				setState(5818);
 				match(KEYWORD_RENAME);
 				}
 				break;
 			case KEYWORD_SAVEDS:
 				enterOuterAlt(_localctx, 73);
 				{
-				setState(5818);
+				setState(5819);
 				match(KEYWORD_SAVEDS);
 				}
 				break;
 			case KEYWORD_SAVEIND:
 				enterOuterAlt(_localctx, 74);
 				{
-				setState(5819);
+				setState(5820);
 				match(KEYWORD_SAVEIND);
 				}
 				break;
 			case KEYWORD_SFILE:
 				enterOuterAlt(_localctx, 75);
 				{
-				setState(5820);
+				setState(5821);
 				match(KEYWORD_SFILE);
 				}
 				break;
 			case KEYWORD_SLN:
 				enterOuterAlt(_localctx, 76);
 				{
-				setState(5821);
+				setState(5822);
 				match(KEYWORD_SLN);
 				}
 				break;
 			case KEYWORD_USROPN:
 				enterOuterAlt(_localctx, 77);
 				{
-				setState(5822);
+				setState(5823);
 				match(KEYWORD_USROPN);
 				}
 				break;
 			case KEYWORD_DISK:
 				enterOuterAlt(_localctx, 78);
 				{
-				setState(5823);
+				setState(5824);
 				match(KEYWORD_DISK);
 				}
 				break;
 			case KEYWORD_WORKSTN:
 				enterOuterAlt(_localctx, 79);
 				{
-				setState(5824);
+				setState(5825);
 				match(KEYWORD_WORKSTN);
 				}
 				break;
 			case KEYWORD_PRINTER:
 				enterOuterAlt(_localctx, 80);
 				{
-				setState(5825);
+				setState(5826);
 				match(KEYWORD_PRINTER);
 				}
 				break;
 			case KEYWORD_SPECIAL:
 				enterOuterAlt(_localctx, 81);
 				{
-				setState(5826);
+				setState(5827);
 				match(KEYWORD_SPECIAL);
 				}
 				break;
 			case KEYWORD_KEYED:
 				enterOuterAlt(_localctx, 82);
 				{
-				setState(5827);
+				setState(5828);
 				match(KEYWORD_KEYED);
 				}
 				break;
 			case KEYWORD_USAGE:
 				enterOuterAlt(_localctx, 83);
 				{
-				setState(5828);
+				setState(5829);
 				match(KEYWORD_USAGE);
 				}
 				break;
 			case KEYWORD_PSDS:
 				enterOuterAlt(_localctx, 84);
 				{
-				setState(5829);
+				setState(5830);
 				match(KEYWORD_PSDS);
 				}
 				break;
 			case UDATE:
 				enterOuterAlt(_localctx, 85);
 				{
-				setState(5830);
+				setState(5831);
 				match(UDATE);
 				}
 				break;
 			case UMONTH:
 				enterOuterAlt(_localctx, 86);
 				{
-				setState(5831);
+				setState(5832);
 				match(UMONTH);
 				}
 				break;
 			case UYEAR:
 				enterOuterAlt(_localctx, 87);
 				{
-				setState(5832);
+				setState(5833);
 				match(UYEAR);
 				}
 				break;
 			case UDAY:
 				enterOuterAlt(_localctx, 88);
 				{
-				setState(5833);
+				setState(5834);
 				match(UDAY);
 				}
 				break;
@@ -45152,7 +45158,7 @@ public class RpgParser extends Parser {
 			case OBJECT:
 				enterOuterAlt(_localctx, 89);
 				{
-				setState(5834);
+				setState(5835);
 				datatypeName();
 				}
 				break;
@@ -45193,7 +45199,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5837);
+			setState(5838);
 			match(ID);
 			}
 		}
@@ -45330,7 +45336,7 @@ public class RpgParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(5839);
+			setState(5840);
 			_la = _input.LA(1);
 			if ( !(((((_la - 212)) & ~0x3f) == 0 && ((1L << (_la - 212)) & ((1L << (SPLAT_ALL - 212)) | (1L << (SPLAT_NONE - 212)) | (1L << (SPLAT_YES - 212)) | (1L << (SPLAT_NO - 212)) | (1L << (SPLAT_ILERPG - 212)) | (1L << (SPLAT_COMPAT - 212)) | (1L << (SPLAT_CRTBNDRPG - 212)) | (1L << (SPLAT_CRTRPGMOD - 212)) | (1L << (SPLAT_VRM - 212)) | (1L << (SPLAT_ALLG - 212)) | (1L << (SPLAT_ALLU - 212)) | (1L << (SPLAT_ALLTHREAD - 212)) | (1L << (SPLAT_ALLX - 212)) | (1L << (SPLAT_BLANKS - 212)) | (1L << (SPLAT_CANCL - 212)) | (1L << (SPLAT_CYMD - 212)) | (1L << (SPLAT_CMDY - 212)) | (1L << (SPLAT_CDMY - 212)) | (1L << (SPLAT_MDY - 212)) | (1L << (SPLAT_DMY - 212)) | (1L << (SPLAT_DFT - 212)) | (1L << (SPLAT_YMD - 212)) | (1L << (SPLAT_JUL - 212)) | (1L << (SPLAT_JAVA - 212)) | (1L << (SPLAT_ISO - 212)) | (1L << (SPLAT_USA - 212)) | (1L << (SPLAT_EUR - 212)) | (1L << (SPLAT_JIS - 212)) | (1L << (SPLAT_DATE - 212)) | (1L << (SPLAT_DAY - 212)) | (1L << (SPlAT_DETC - 212)) | (1L << (SPLAT_DETL - 212)) | (1L << (SPLAT_DTAARA - 212)) | (1L << (SPLAT_END - 212)) | (1L << (SPLAT_ENTRY - 212)) | (1L << (SPLAT_EQUATE - 212)) | (1L << (SPLAT_EXTDFT - 212)) | (1L << (SPLAT_EXT - 212)) | (1L << (SPLAT_FILE - 212)) | (1L << (SPLAT_GETIN - 212)) | (1L << (SPLAT_HIVAL - 212)) | (1L << (SPLAT_INIT - 212)) | (1L << (SPLAT_INDICATOR - 212)) | (1L << (SPLAT_INZSR - 212)) | (1L << (SPLAT_IN - 212)) | (1L << (SPLAT_INPUT - 212)) | (1L << (SPLAT_OUTPUT - 212)) | (1L << (SPLAT_JOBRUN - 212)) | (1L << (SPLAT_JOB - 212)) | (1L << (SPLAT_LDA - 212)) | (1L << (SPLAT_LIKE - 212)) | (1L << (SPLAT_LONGJUL - 212)) | (1L << (SPLAT_LOVAL - 212)) | (1L << (SPLAT_KEY - 212)) | (1L << (SPLAT_MONTH - 212)) | (1L << (SPLAT_NEXT - 212)) | (1L << (SPLAT_NOIND - 212)) | (1L << (SPLAT_NOKEY - 212)) | (1L << (SPLAT_NULL - 212)) | (1L << (SPLAT_OFL - 212)) | (1L << (SPLAT_ON - 212)) | (1L << (SPLAT_ONLY - 212)) | (1L << (SPLAT_OFF - 212)) | (1L << (SPLAT_PDA - 212)))) != 0) || ((((_la - 276)) & ~0x3f) == 0 && ((1L << (_la - 276)) & ((1L << (SPLAT_PLACE - 276)) | (1L << (SPLAT_PSSR - 276)) | (1L << (SPLAT_ROUTINE - 276)) | (1L << (SPLAT_START - 276)) | (1L << (SPLAT_SYS - 276)) | (1L << (SPLAT_TERM - 276)) | (1L << (SPLAT_TOTC - 276)) | (1L << (SPLAT_TOTL - 276)) | (1L << (SPLAT_USER - 276)) | (1L << (SPLAT_VAR - 276)) | (1L << (SPLAT_YEAR - 276)) | (1L << (SPLAT_ZEROS - 276)) | (1L << (SPLAT_HMS - 276)) | (1L << (SPLAT_INLR - 276)) | (1L << (SPLAT_INOF - 276)) | (1L << (SPLAT_DATA - 276)) | (1L << (SPLAT_ASTFILL - 276)) | (1L << (SPLAT_CURSYM - 276)) | (1L << (SPLAT_MAX - 276)) | (1L << (SPLAT_LOCK - 276)) | (1L << (SPLAT_PROGRAM - 276)) | (1L << (SPLAT_EXTDESC - 276)) | (1L << (SPLAT_D - 276)) | (1L << (SPLAT_H - 276)) | (1L << (SPLAT_HOURS - 276)) | (1L << (SPLAT_DAYS - 276)) | (1L << (SPLAT_M - 276)) | (1L << (SPLAT_MINUTES - 276)) | (1L << (SPLAT_MONTHS - 276)) | (1L << (SPLAT_MN - 276)) | (1L << (SPLAT_MS - 276)) | (1L << (SPLAT_MSECONDS - 276)) | (1L << (SPLAT_S - 276)) | (1L << (SPLAT_SECONDS - 276)) | (1L << (SPLAT_Y - 276)) | (1L << (SPLAT_YEARS - 276)))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -45419,11 +45425,11 @@ public class RpgParser extends Parser {
 			_ctx = _localctx;
 			_prevctx = _localctx;
 
-			setState(5842);
+			setState(5843);
 			((SimpleTargetContext)_localctx).name = match(ID);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(5851);
+			setState(5852);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,512,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -45435,18 +45441,18 @@ public class RpgParser extends Parser {
 					_localctx = new IndexedTargetContext(new TargetContext(_parentctx, _parentState));
 					((IndexedTargetContext)_localctx).base = _prevctx;
 					pushNewRecursionContext(_localctx, _startState, RULE_target);
-					setState(5844);
-					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
 					setState(5845);
-					match(OPEN_PAREN);
+					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
 					setState(5846);
-					((IndexedTargetContext)_localctx).index = expression(0);
+					match(OPEN_PAREN);
 					setState(5847);
+					((IndexedTargetContext)_localctx).index = expression(0);
+					setState(5848);
 					match(CLOSE_PAREN);
 					}
 					} 
 				}
-				setState(5853);
+				setState(5854);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,512,_ctx);
 			}
@@ -45505,7 +45511,7 @@ public class RpgParser extends Parser {
 
 	private static final int _serializedATNSegments = 3;
 	private static final String _serializedATNSegment0 =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\u02f2\u16e1\4\2\t"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\u02f3\u16e2\4\2\t"+
 		"\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13"+
 		"\t\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
@@ -46105,26 +46111,25 @@ public class RpgParser extends Parser {
 		"\3\u022f\3\u022f\5\u022f\u15ce\n\u022f\3\u0230\3\u0230\3\u0230\3\u0230"+
 		"\3\u0230\3\u0230\3\u0230\3\u0230\3\u0230\5\u0230\u15d9\n\u0230\3\u0231"+
 		"\3\u0231\3\u0231\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232"+
-		"\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\5\u0232\u15ec"+
-		"\n\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232"+
+		"\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\5\u0232"+
+		"\u15ed\n\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232"+
 		"\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232"+
-		"\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\5\u0232\u1604\n\u0232\3\u0232"+
-		"\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\7\u0232\u160d\n\u0232"+
-		"\f\u0232\16\u0232\u1610\13\u0232\3\u0233\3\u0233\3\u0234\3\u0234\3\u0234"+
-		"\3\u0235\3\u0235\3\u0236\3\u0236\3\u0237\3\u0237\3\u0238\3\u0238\3\u0238"+
-		"\3\u0238\7\u0238\u1621\n\u0238\f\u0238\16\u0238\u1624\13\u0238\5\u0238"+
-		"\u1626\n\u0238\3\u0238\3\u0238\3\u0239\3\u0239\7\u0239\u162c\n\u0239\f"+
-		"\u0239\16\u0239\u162f\13\u0239\3\u0239\3\u0239\3\u023a\3\u023a\3\u023a"+
-		"\5\u023a\u1636\n\u023a\3\u023b\3\u023b\5\u023b\u163a\n\u023b\3\u023c\3"+
-		"\u023c\3\u023d\3\u023d\5\u023d\u1640\n\u023d\3\u023d\3\u023d\3\u023d\5"+
-		"\u023d\u1645\n\u023d\7\u023d\u1647\n\u023d\f\u023d\16\u023d\u164a\13\u023d"+
-		"\3\u023e\3\u023e\3\u023e\3\u023e\5\u023e\u1650\n\u023e\3\u023e\3\u023e"+
-		"\3\u023f\3\u023f\3\u0240\5\u0240\u1657\n\u0240\3\u0240\3\u0240\7\u0240"+
-		"\u165b\n\u0240\f\u0240\16\u0240\u165e\13\u0240\3\u0241\3\u0241\5\u0241"+
-		"\u1662\n\u0241\3\u0241\3\u0241\3\u0241\3\u0241\3\u0241\3\u0241\5\u0241"+
-		"\u166a\n\u0241\3\u0242\3\u0242\3\u0242\6\u0242\u166f\n\u0242\r\u0242\16"+
-		"\u0242\u1670\3\u0242\3\u0242\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3"+
-		"\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243"+
+		"\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\5\u0232\u1605\n\u0232"+
+		"\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\3\u0232\7\u0232\u160e"+
+		"\n\u0232\f\u0232\16\u0232\u1611\13\u0232\3\u0233\3\u0233\3\u0234\3\u0234"+
+		"\3\u0234\3\u0235\3\u0235\3\u0236\3\u0236\3\u0237\3\u0237\3\u0238\3\u0238"+
+		"\3\u0238\3\u0238\7\u0238\u1622\n\u0238\f\u0238\16\u0238\u1625\13\u0238"+
+		"\5\u0238\u1627\n\u0238\3\u0238\3\u0238\3\u0239\3\u0239\7\u0239\u162d\n"+
+		"\u0239\f\u0239\16\u0239\u1630\13\u0239\3\u0239\3\u0239\3\u023a\3\u023a"+
+		"\3\u023a\5\u023a\u1637\n\u023a\3\u023b\3\u023b\5\u023b\u163b\n\u023b\3"+
+		"\u023c\3\u023c\3\u023d\3\u023d\5\u023d\u1641\n\u023d\3\u023d\3\u023d\3"+
+		"\u023d\5\u023d\u1646\n\u023d\7\u023d\u1648\n\u023d\f\u023d\16\u023d\u164b"+
+		"\13\u023d\3\u023e\3\u023e\3\u023e\3\u023e\5\u023e\u1651\n\u023e\3\u023e"+
+		"\3\u023e\3\u023f\3\u023f\3\u0240\5\u0240\u1658\n\u0240\3\u0240\3\u0240"+
+		"\7\u0240\u165c\n\u0240\f\u0240\16\u0240\u165f\13\u0240\3\u0241\3\u0241"+
+		"\5\u0241\u1663\n\u0241\3\u0241\3\u0241\3\u0241\3\u0241\3\u0241\3\u0241"+
+		"\5\u0241\u166b\n\u0241\3\u0242\3\u0242\3\u0242\6\u0242\u1670\n\u0242\r"+
+		"\u0242\16\u0242\u1671\3\u0242\3\u0242\3\u0243\3\u0243\3\u0243\3\u0243"+
 		"\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243"+
 		"\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243"+
 		"\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243"+
@@ -46133,57 +46138,58 @@ public class RpgParser extends Parser {
 		"\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243"+
 		"\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243"+
 		"\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243"+
-		"\3\u0243\3\u0243\3\u0243\5\u0243\u16ce\n\u0243\3\u0244\3\u0244\3\u0245"+
-		"\3\u0245\3\u0246\3\u0246\3\u0246\3\u0246\3\u0246\3\u0246\3\u0246\3\u0246"+
-		"\7\u0246\u16dc\n\u0246\f\u0246\16\u0246\u16df\13\u0246\3\u0246\2\4\u0462"+
-		"\u048a\u0247\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64"+
-		"\668:<>@BDFHJLNPRTVXZ\\^`bdfhjlnprtvxz|~\u0080\u0082\u0084\u0086\u0088"+
-		"\u008a\u008c\u008e\u0090\u0092\u0094\u0096\u0098\u009a\u009c\u009e\u00a0"+
-		"\u00a2\u00a4\u00a6\u00a8\u00aa\u00ac\u00ae\u00b0\u00b2\u00b4\u00b6\u00b8"+
-		"\u00ba\u00bc\u00be\u00c0\u00c2\u00c4\u00c6\u00c8\u00ca\u00cc\u00ce\u00d0"+
-		"\u00d2\u00d4\u00d6\u00d8\u00da\u00dc\u00de\u00e0\u00e2\u00e4\u00e6\u00e8"+
-		"\u00ea\u00ec\u00ee\u00f0\u00f2\u00f4\u00f6\u00f8\u00fa\u00fc\u00fe\u0100"+
-		"\u0102\u0104\u0106\u0108\u010a\u010c\u010e\u0110\u0112\u0114\u0116\u0118"+
-		"\u011a\u011c\u011e\u0120\u0122\u0124\u0126\u0128\u012a\u012c\u012e\u0130"+
-		"\u0132\u0134\u0136\u0138\u013a\u013c\u013e\u0140\u0142\u0144\u0146\u0148"+
-		"\u014a\u014c\u014e\u0150\u0152\u0154\u0156\u0158\u015a\u015c\u015e\u0160"+
-		"\u0162\u0164\u0166\u0168\u016a\u016c\u016e\u0170\u0172\u0174\u0176\u0178"+
-		"\u017a\u017c\u017e\u0180\u0182\u0184\u0186\u0188\u018a\u018c\u018e\u0190"+
-		"\u0192\u0194\u0196\u0198\u019a\u019c\u019e\u01a0\u01a2\u01a4\u01a6\u01a8"+
-		"\u01aa\u01ac\u01ae\u01b0\u01b2\u01b4\u01b6\u01b8\u01ba\u01bc\u01be\u01c0"+
-		"\u01c2\u01c4\u01c6\u01c8\u01ca\u01cc\u01ce\u01d0\u01d2\u01d4\u01d6\u01d8"+
-		"\u01da\u01dc\u01de\u01e0\u01e2\u01e4\u01e6\u01e8\u01ea\u01ec\u01ee\u01f0"+
-		"\u01f2\u01f4\u01f6\u01f8\u01fa\u01fc\u01fe\u0200\u0202\u0204\u0206\u0208"+
-		"\u020a\u020c\u020e\u0210\u0212\u0214\u0216\u0218\u021a\u021c\u021e\u0220"+
-		"\u0222\u0224\u0226\u0228\u022a\u022c\u022e\u0230\u0232\u0234\u0236\u0238"+
-		"\u023a\u023c\u023e\u0240\u0242\u0244\u0246\u0248\u024a\u024c\u024e\u0250"+
-		"\u0252\u0254\u0256\u0258\u025a\u025c\u025e\u0260\u0262\u0264\u0266\u0268"+
-		"\u026a\u026c\u026e\u0270\u0272\u0274\u0276\u0278\u027a\u027c\u027e\u0280"+
-		"\u0282\u0284\u0286\u0288\u028a\u028c\u028e\u0290\u0292\u0294\u0296\u0298"+
-		"\u029a\u029c\u029e\u02a0\u02a2\u02a4\u02a6\u02a8\u02aa\u02ac\u02ae\u02b0"+
-		"\u02b2\u02b4\u02b6\u02b8\u02ba\u02bc\u02be\u02c0\u02c2\u02c4\u02c6\u02c8"+
-		"\u02ca\u02cc\u02ce\u02d0\u02d2\u02d4\u02d6\u02d8\u02da\u02dc\u02de\u02e0"+
-		"\u02e2\u02e4\u02e6\u02e8\u02ea\u02ec\u02ee\u02f0\u02f2\u02f4\u02f6\u02f8"+
-		"\u02fa\u02fc\u02fe\u0300\u0302\u0304\u0306\u0308\u030a\u030c\u030e\u0310"+
-		"\u0312\u0314\u0316\u0318\u031a\u031c\u031e\u0320\u0322\u0324\u0326\u0328"+
-		"\u032a\u032c\u032e\u0330\u0332\u0334\u0336\u0338\u033a\u033c\u033e\u0340"+
-		"\u0342\u0344\u0346\u0348\u034a\u034c\u034e\u0350\u0352\u0354\u0356\u0358"+
-		"\u035a\u035c\u035e\u0360\u0362\u0364\u0366\u0368\u036a\u036c\u036e\u0370"+
-		"\u0372\u0374\u0376\u0378\u037a\u037c\u037e\u0380\u0382\u0384\u0386\u0388"+
-		"\u038a\u038c\u038e\u0390\u0392\u0394\u0396\u0398\u039a\u039c\u039e\u03a0"+
-		"\u03a2\u03a4\u03a6\u03a8\u03aa\u03ac\u03ae\u03b0\u03b2\u03b4\u03b6\u03b8"+
-		"\u03ba\u03bc\u03be\u03c0\u03c2\u03c4\u03c6\u03c8\u03ca\u03cc\u03ce\u03d0"+
-		"\u03d2\u03d4\u03d6\u03d8\u03da\u03dc\u03de\u03e0\u03e2\u03e4\u03e6\u03e8"+
-		"\u03ea\u03ec\u03ee\u03f0\u03f2\u03f4\u03f6\u03f8\u03fa\u03fc\u03fe\u0400"+
-		"\u0402\u0404\u0406\u0408\u040a\u040c\u040e\u0410\u0412\u0414\u0416\u0418"+
-		"\u041a\u041c\u041e\u0420\u0422\u0424\u0426\u0428\u042a\u042c\u042e\u0430"+
-		"\u0432\u0434\u0436\u0438\u043a\u043c\u043e\u0440\u0442\u0444\u0446\u0448"+
-		"\u044a\u044c\u044e\u0450\u0452\u0454\u0456\u0458\u045a\u045c\u045e\u0460"+
-		"\u0462\u0464\u0466\u0468\u046a\u046c\u046e\u0470\u0472\u0474\u0476\u0478"+
-		"\u047a\u047c\u047e\u0480\u0482\u0484\u0486\u0488\u048a\2!\3\3\u0276\u0276"+
-		"\6\2\u01a9\u01a9\u01ae\u01ae\u01b3\u01b3\u01be\u01be\5\2\u00d6\u00d6\u0103"+
-		"\u0104\u010b\u010b\4\2==\u0185\u0185\3\2\u01ad\u01ae\3\2\u0143\u0154\3"+
-		"\3\u01d2\u01d2\5\2\u02b3\u02b6\u02b8\u02bd\u02c2\u02c2\4\2\u01c3\u01c4"+
+		"\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243\3\u0243"+
+		"\3\u0243\3\u0243\3\u0243\3\u0243\5\u0243\u16cf\n\u0243\3\u0244\3\u0244"+
+		"\3\u0245\3\u0245\3\u0246\3\u0246\3\u0246\3\u0246\3\u0246\3\u0246\3\u0246"+
+		"\3\u0246\7\u0246\u16dd\n\u0246\f\u0246\16\u0246\u16e0\13\u0246\3\u0246"+
+		"\2\4\u0462\u048a\u0247\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,"+
+		".\60\62\64\668:<>@BDFHJLNPRTVXZ\\^`bdfhjlnprtvxz|~\u0080\u0082\u0084\u0086"+
+		"\u0088\u008a\u008c\u008e\u0090\u0092\u0094\u0096\u0098\u009a\u009c\u009e"+
+		"\u00a0\u00a2\u00a4\u00a6\u00a8\u00aa\u00ac\u00ae\u00b0\u00b2\u00b4\u00b6"+
+		"\u00b8\u00ba\u00bc\u00be\u00c0\u00c2\u00c4\u00c6\u00c8\u00ca\u00cc\u00ce"+
+		"\u00d0\u00d2\u00d4\u00d6\u00d8\u00da\u00dc\u00de\u00e0\u00e2\u00e4\u00e6"+
+		"\u00e8\u00ea\u00ec\u00ee\u00f0\u00f2\u00f4\u00f6\u00f8\u00fa\u00fc\u00fe"+
+		"\u0100\u0102\u0104\u0106\u0108\u010a\u010c\u010e\u0110\u0112\u0114\u0116"+
+		"\u0118\u011a\u011c\u011e\u0120\u0122\u0124\u0126\u0128\u012a\u012c\u012e"+
+		"\u0130\u0132\u0134\u0136\u0138\u013a\u013c\u013e\u0140\u0142\u0144\u0146"+
+		"\u0148\u014a\u014c\u014e\u0150\u0152\u0154\u0156\u0158\u015a\u015c\u015e"+
+		"\u0160\u0162\u0164\u0166\u0168\u016a\u016c\u016e\u0170\u0172\u0174\u0176"+
+		"\u0178\u017a\u017c\u017e\u0180\u0182\u0184\u0186\u0188\u018a\u018c\u018e"+
+		"\u0190\u0192\u0194\u0196\u0198\u019a\u019c\u019e\u01a0\u01a2\u01a4\u01a6"+
+		"\u01a8\u01aa\u01ac\u01ae\u01b0\u01b2\u01b4\u01b6\u01b8\u01ba\u01bc\u01be"+
+		"\u01c0\u01c2\u01c4\u01c6\u01c8\u01ca\u01cc\u01ce\u01d0\u01d2\u01d4\u01d6"+
+		"\u01d8\u01da\u01dc\u01de\u01e0\u01e2\u01e4\u01e6\u01e8\u01ea\u01ec\u01ee"+
+		"\u01f0\u01f2\u01f4\u01f6\u01f8\u01fa\u01fc\u01fe\u0200\u0202\u0204\u0206"+
+		"\u0208\u020a\u020c\u020e\u0210\u0212\u0214\u0216\u0218\u021a\u021c\u021e"+
+		"\u0220\u0222\u0224\u0226\u0228\u022a\u022c\u022e\u0230\u0232\u0234\u0236"+
+		"\u0238\u023a\u023c\u023e\u0240\u0242\u0244\u0246\u0248\u024a\u024c\u024e"+
+		"\u0250\u0252\u0254\u0256\u0258\u025a\u025c\u025e\u0260\u0262\u0264\u0266"+
+		"\u0268\u026a\u026c\u026e\u0270\u0272\u0274\u0276\u0278\u027a\u027c\u027e"+
+		"\u0280\u0282\u0284\u0286\u0288\u028a\u028c\u028e\u0290\u0292\u0294\u0296"+
+		"\u0298\u029a\u029c\u029e\u02a0\u02a2\u02a4\u02a6\u02a8\u02aa\u02ac\u02ae"+
+		"\u02b0\u02b2\u02b4\u02b6\u02b8\u02ba\u02bc\u02be\u02c0\u02c2\u02c4\u02c6"+
+		"\u02c8\u02ca\u02cc\u02ce\u02d0\u02d2\u02d4\u02d6\u02d8\u02da\u02dc\u02de"+
+		"\u02e0\u02e2\u02e4\u02e6\u02e8\u02ea\u02ec\u02ee\u02f0\u02f2\u02f4\u02f6"+
+		"\u02f8\u02fa\u02fc\u02fe\u0300\u0302\u0304\u0306\u0308\u030a\u030c\u030e"+
+		"\u0310\u0312\u0314\u0316\u0318\u031a\u031c\u031e\u0320\u0322\u0324\u0326"+
+		"\u0328\u032a\u032c\u032e\u0330\u0332\u0334\u0336\u0338\u033a\u033c\u033e"+
+		"\u0340\u0342\u0344\u0346\u0348\u034a\u034c\u034e\u0350\u0352\u0354\u0356"+
+		"\u0358\u035a\u035c\u035e\u0360\u0362\u0364\u0366\u0368\u036a\u036c\u036e"+
+		"\u0370\u0372\u0374\u0376\u0378\u037a\u037c\u037e\u0380\u0382\u0384\u0386"+
+		"\u0388\u038a\u038c\u038e\u0390\u0392\u0394\u0396\u0398\u039a\u039c\u039e"+
+		"\u03a0\u03a2\u03a4\u03a6\u03a8\u03aa\u03ac\u03ae\u03b0\u03b2\u03b4\u03b6"+
+		"\u03b8\u03ba\u03bc\u03be\u03c0\u03c2\u03c4\u03c6\u03c8\u03ca\u03cc\u03ce"+
+		"\u03d0\u03d2\u03d4\u03d6\u03d8\u03da\u03dc\u03de\u03e0\u03e2\u03e4\u03e6"+
+		"\u03e8\u03ea\u03ec\u03ee\u03f0\u03f2\u03f4\u03f6\u03f8\u03fa\u03fc\u03fe"+
+		"\u0400\u0402\u0404\u0406\u0408\u040a\u040c\u040e\u0410\u0412\u0414\u0416"+
+		"\u0418\u041a\u041c\u041e\u0420\u0422\u0424\u0426\u0428\u042a\u042c\u042e"+
+		"\u0430\u0432\u0434\u0436\u0438\u043a\u043c\u043e\u0440\u0442\u0444\u0446"+
+		"\u0448\u044a\u044c\u044e\u0450\u0452\u0454\u0456\u0458\u045a\u045c\u045e"+
+		"\u0460\u0462\u0464\u0466\u0468\u046a\u046c\u046e\u0470\u0472\u0474\u0476"+
+		"\u0478\u047a\u047c\u047e\u0480\u0482\u0484\u0486\u0488\u048a\2!\3\3\u0276"+
+		"\u0276\6\2\u01a9\u01a9\u01ae\u01ae\u01b3\u01b3\u01be\u01be\5\2\u00d6\u00d6"+
+		"\u0103\u0104\u010b\u010b\4\2==\u0185\u0185\3\2\u01ad\u01ae\3\2\u0143\u0154"+
+		"\3\3\u01d2\u01d2\5\2\u02b3\u02b6\u02b8\u02bd\u02c2\u02c2\4\2\u01c3\u01c4"+
 		"\u01c9\u01c9\3\2\u0241\u0242\4\2\b\n\r\r\3\2\u02b1\u02b2\5\2\u02b3\u02b3"+
 		"\u02b6\u02b8\u02be\u02c0\4\2\u02b3\u02b6\u02b8\u02bd\3\2\u01c1\u01c2\5"+
 		"\2\u02b3\u02b4\u02b6\u02b6\u02b9\u02bc\5\2\u02b3\u02b4\u02b6\u02b6\u02ba"+
@@ -46191,7 +46197,7 @@ public class RpgParser extends Parser {
 		"\u02b6\u02b6\4\2\u02b3\u02b3\u02b9\u02b9\4\2\30\30\61\61\t\2\67?BCKRT"+
 		"TVY[[]t\3\2\u012c\u0139\3\2\u0086\u00d5\3\2\u01b1\u01b2\3\2\u01b9\u01bd"+
 		"\3\2\u01b4\u01b8\4\2\u01b4\u01b8\u01bf\u01bf\3\2\u01c3\u01c9\4\2\u0241"+
-		"\u0242\u0248\u0248\3\2\u00d6\u0139\2\u18a6\2\u0494\3\2\2\2\4\u04af\3\2"+
+		"\u0242\u0248\u0248\3\2\u00d6\u0139\2\u18a7\2\u0494\3\2\2\2\4\u04af\3\2"+
 		"\2\2\6\u04b1\3\2\2\2\b\u04b8\3\2\2\2\n\u04ba\3\2\2\2\f\u04bd\3\2\2\2\16"+
 		"\u04c1\3\2\2\2\20\u04c5\3\2\2\2\22\u04c8\3\2\2\2\24\u04ed\3\2\2\2\26\u04ef"+
 		"\3\2\2\2\30\u04fc\3\2\2\2\32\u0532\3\2\2\2\34\u0534\3\2\2\2\36\u0536\3"+
@@ -46347,13 +46353,13 @@ public class RpgParser extends Parser {
 		"\u159e\3\2\2\2\u044c\u15a6\3\2\2\2\u044e\u15ad\3\2\2\2\u0450\u15af\3\2"+
 		"\2\2\u0452\u15b2\3\2\2\2\u0454\u15bc\3\2\2\2\u0456\u15be\3\2\2\2\u0458"+
 		"\u15c3\3\2\2\2\u045a\u15c7\3\2\2\2\u045c\u15cd\3\2\2\2\u045e\u15d8\3\2"+
-		"\2\2\u0460\u15da\3\2\2\2\u0462\u15eb\3\2\2\2\u0464\u1611\3\2\2\2\u0466"+
-		"\u1613\3\2\2\2\u0468\u1616\3\2\2\2\u046a\u1618\3\2\2\2\u046c\u161a\3\2"+
-		"\2\2\u046e\u161c\3\2\2\2\u0470\u1629\3\2\2\2\u0472\u1635\3\2\2\2\u0474"+
-		"\u1637\3\2\2\2\u0476\u163b\3\2\2\2\u0478\u163f\3\2\2\2\u047a\u164b\3\2"+
-		"\2\2\u047c\u1653\3\2\2\2\u047e\u1656\3\2\2\2\u0480\u1669\3\2\2\2\u0482"+
-		"\u166e\3\2\2\2\u0484\u16cd\3\2\2\2\u0486\u16cf\3\2\2\2\u0488\u16d1\3\2"+
-		"\2\2\u048a\u16d3\3\2\2\2\u048c\u0493\5\u00d2j\2\u048d\u0493\5\u00d8m\2"+
+		"\2\2\u0460\u15da\3\2\2\2\u0462\u15ec\3\2\2\2\u0464\u1612\3\2\2\2\u0466"+
+		"\u1614\3\2\2\2\u0468\u1617\3\2\2\2\u046a\u1619\3\2\2\2\u046c\u161b\3\2"+
+		"\2\2\u046e\u161d\3\2\2\2\u0470\u162a\3\2\2\2\u0472\u1636\3\2\2\2\u0474"+
+		"\u1638\3\2\2\2\u0476\u163c\3\2\2\2\u0478\u1640\3\2\2\2\u047a\u164c\3\2"+
+		"\2\2\u047c\u1654\3\2\2\2\u047e\u1657\3\2\2\2\u0480\u166a\3\2\2\2\u0482"+
+		"\u166f\3\2\2\2\u0484\u16ce\3\2\2\2\u0486\u16d0\3\2\2\2\u0488\u16d2\3\2"+
+		"\2\2\u048a\u16d4\3\2\2\2\u048c\u0493\5\u00d2j\2\u048d\u0493\5\u00d8m\2"+
 		"\u048e\u0493\5\u00e0q\2\u048f\u0493\5\u0168\u00b5\2\u0490\u0493\5\4\3"+
 		"\2\u0491\u0493\5\u0158\u00ad\2\u0492\u048c\3\2\2\2\u0492\u048d\3\2\2\2"+
 		"\u0492\u048e\3\2\2\2\u0492\u048f\3\2\2\2\u0492\u0490\3\2\2\2\u0492\u0491"+
@@ -46617,204 +46623,204 @@ public class RpgParser extends Parser {
 		"\u0748\3\2\2\2\u0765\u00cd\3\2\2\2\u0766\u0768\7|\2\2\u0767\u0766\3\2"+
 		"\2\2\u0767\u0768\3\2\2\2\u0768\u0769\3\2\2\2\u0769\u076c\5\u0472\u023a"+
 		"\2\u076a\u076d\5\30\r\2\u076b\u076d\5\u0472\u023a\2\u076c\u076a\3\2\2"+
-		"\2\u076c\u076b\3\2\2\2\u076c\u076d\3";
+		"\2\u076c\u076b\3\2\2\2\u076c";
 	private static final String _serializedATNSegment1 =
-		"\2\2\2\u076d\u0771\3\2\2\2\u076e\u0770\5\32\16\2\u076f\u076e\3\2\2\2\u0770"+
-		"\u0773\3\2\2\2\u0771\u076f\3\2\2\2\u0771\u0772\3\2\2\2\u0772\u0774\3\2"+
-		"\2\2\u0773\u0771\3\2\2\2\u0774\u0775\7\u01d4\2\2\u0775\u00cf\3\2\2\2\u0776"+
-		"\u0778\7x\2\2\u0777\u0779\5\u0472\u023a\2\u0778\u0777\3\2\2\2\u0778\u0779"+
-		"\3\2\2\2\u0779\u00d1\3\2\2\2\u077a\u077b\7y\2\2\u077b\u077d\5\u0472\u023a"+
-		"\2\u077c\u077e\5\30\r\2\u077d\u077c\3\2\2\2\u077d\u077e\3\2\2\2\u077e"+
-		"\u0782\3\2\2\2\u077f\u0781\5\32\16\2\u0780\u077f\3\2\2\2\u0781\u0784\3"+
-		"\2\2\2\u0782\u0780\3\2\2\2\u0782\u0783\3\2\2\2\u0783\u0786\3\2\2\2\u0784"+
-		"\u0782\3\2\2\2\u0785\u0787\7\u01d4\2\2\u0786\u0785\3\2\2\2\u0786\u0787"+
-		"\3\2\2\2\u0787\u078b\3\2\2\2\u0788\u078a\5\u00d4k\2\u0789\u0788\3\2\2"+
-		"\2\u078a\u078d\3\2\2\2\u078b\u0789\3\2\2\2\u078b\u078c\3\2\2\2\u078c\u078f"+
-		"\3\2\2\2\u078d\u078b\3\2\2\2\u078e\u0790\5\u00d8m\2\u078f\u078e\3\2\2"+
-		"\2\u078f\u0790\3\2\2\2\u0790\u0791\3\2\2\2\u0791\u0792\5\u00d6l\2\u0792"+
-		"\u0793\7\u01d4\2\2\u0793\u079c\3\2\2\2\u0794\u0798\5\u0166\u00b4\2\u0795"+
-		"\u0797\5\u0152\u00aa\2\u0796\u0795\3\2\2\2\u0797\u079a\3\2\2\2\u0798\u0796"+
-		"\3\2\2\2\u0798\u0799\3\2\2\2\u0799\u079c\3\2\2\2\u079a\u0798\3\2\2\2\u079b"+
-		"\u077a\3\2\2\2\u079b\u0794\3\2\2\2\u079c\u00d3\3\2\2\2\u079d\u079f\7{"+
-		"\2\2\u079e\u079d\3\2\2\2\u079e\u079f\3\2\2\2\u079f\u07a0\3\2\2\2\u07a0"+
-		"\u07a3\5\u0472\u023a\2\u07a1\u07a4\5\30\r\2\u07a2\u07a4\5R*\2\u07a3\u07a1"+
-		"\3\2\2\2\u07a3\u07a2\3\2\2\2\u07a4\u07a8\3\2\2\2\u07a5\u07a7\5\32\16\2"+
-		"\u07a6\u07a5\3\2\2\2\u07a7\u07aa\3\2\2\2\u07a8\u07a6\3\2\2\2\u07a8\u07a9"+
-		"\3\2\2\2\u07a9\u07ab\3\2\2\2\u07aa\u07a8\3\2\2\2\u07ab\u07ac\7\u01d4\2"+
-		"\2\u07ac\u00d5\3\2\2\2\u07ad\u07ae\7z\2\2\u07ae\u00d7\3\2\2\2\u07af\u07b0"+
-		"\7}\2\2\u07b0\u07b2\5\u0472\u023a\2\u07b1\u07b3\5\30\r\2\u07b2\u07b1\3"+
-		"\2\2\2\u07b2\u07b3\3\2\2\2\u07b3\u07b7\3\2\2\2\u07b4\u07b6\5\32\16\2\u07b5"+
-		"\u07b4\3\2\2\2\u07b6\u07b9\3\2\2\2\u07b7\u07b5\3\2\2\2\u07b7\u07b8\3\2"+
-		"\2\2\u07b8\u07bb\3\2\2\2\u07b9\u07b7\3\2\2\2\u07ba\u07bc\7\u01d4\2\2\u07bb"+
-		"\u07ba\3\2\2\2\u07bb\u07bc\3\2\2\2\u07bc\u07c0\3\2\2\2\u07bd\u07bf\5\u00da"+
-		"n\2\u07be\u07bd\3\2\2\2\u07bf\u07c2\3\2\2\2\u07c0\u07be\3\2\2\2\u07c0"+
-		"\u07c1\3\2\2\2\u07c1\u07c3\3\2\2\2\u07c2\u07c0\3\2\2\2\u07c3\u07c4\5\u00dc"+
-		"o\2\u07c4\u07c5\7\u01d4\2\2\u07c5\u07ce\3\2\2\2\u07c6\u07ca\5\u0150\u00a9"+
-		"\2\u07c7\u07c9\5\u0156\u00ac\2\u07c8\u07c7\3\2\2\2\u07c9\u07cc\3\2\2\2"+
-		"\u07ca\u07c8\3\2\2\2\u07ca\u07cb\3\2\2\2\u07cb\u07ce\3\2\2\2\u07cc\u07ca"+
-		"\3\2\2\2\u07cd\u07af\3\2\2\2\u07cd\u07c6\3\2\2\2\u07ce\u00d9\3\2\2\2\u07cf"+
-		"\u07d1\7{\2\2\u07d0\u07cf\3\2\2\2\u07d0\u07d1\3\2\2\2\u07d1\u07d2\3\2"+
-		"\2\2\u07d2\u07d5\5\u0472\u023a\2\u07d3\u07d6\5\30\r\2\u07d4\u07d6\5R*"+
-		"\2\u07d5\u07d3\3\2\2\2\u07d5\u07d4\3\2\2\2\u07d6\u07da\3\2\2\2\u07d7\u07d9"+
-		"\5\32\16\2\u07d8\u07d7\3\2\2\2\u07d9\u07dc\3\2\2\2\u07da\u07d8\3\2\2\2"+
-		"\u07da\u07db\3\2\2\2\u07db\u07dd\3\2\2\2\u07dc\u07da\3\2\2\2\u07dd\u07de"+
-		"\7\u01d4\2\2\u07de\u00db\3\2\2\2\u07df\u07e0\7~\2\2\u07e0\u00dd\3\2\2"+
-		"\2\u07e1\u07e2\7\u0081\2\2\u07e2\u07e9\5\u0472\u023a\2\u07e3\u07ea\5."+
-		"\30\2\u07e4\u07ea\5\u0470\u0239\2\u07e5\u07ea\7\u0112\2\2\u07e6\u07ea"+
-		"\7\u0114\2\2\u07e7\u07ea\7\u0121\2\2\u07e8\u07ea\7\u00e3\2\2\u07e9\u07e3"+
-		"\3\2\2\2\u07e9\u07e4\3\2\2\2\u07e9\u07e5\3\2\2\2\u07e9\u07e6\3\2\2\2\u07e9"+
-		"\u07e7\3\2\2\2\u07e9\u07e8\3\2\2\2\u07e9\u07ea\3\2\2\2\u07ea\u07eb\3\2"+
-		"\2\2\u07eb\u07ec\7\u01d4\2\2\u07ec\u0803\3\2\2\2\u07ed\u07ee\7\b\2\2\u07ee"+
-		"\u07ef\5\u012a\u0096\2\u07ef\u07f0\7\u0266\2\2\u07f0\u07f1\7\u0267\2\2"+
-		"\u07f1\u07f2\7\u0268\2\2\u07f2\u07f3\7\u026f\2\2\u07f3\u07f4\7\u0270\2"+
-		"\2\u07f4\u07f5\7\u0271\2\2\u07f5\u07f6\7\u0272\2\2\u07f6\u07fe\7\u0273"+
-		"\2\2\u07f7\u07ff\5.\30\2\u07f8\u07ff\5\u0470\u0239\2\u07f9\u07ff\5\34"+
-		"\17\2\u07fa\u07ff\7\u0112\2\2\u07fb\u07ff\7\u0114\2\2\u07fc\u07ff\7\u0121"+
-		"\2\2\u07fd\u07ff\7\u00e3\2\2\u07fe\u07f7\3\2\2\2\u07fe\u07f8\3\2\2\2\u07fe"+
-		"\u07f9\3\2\2\2\u07fe\u07fa\3\2\2\2\u07fe\u07fb\3\2\2\2\u07fe\u07fc\3\2"+
-		"\2\2\u07fe\u07fd\3\2\2\2\u07fe\u07ff\3\2\2\2\u07ff\u0800\3\2\2\2\u0800"+
-		"\u0801\t\2\2\2\u0801\u0803\3\2\2\2\u0802\u07e1\3\2\2\2\u0802\u07ed\3\2"+
-		"\2\2\u0803\u00df\3\2\2\2\u0804\u0809\7\u0083\2\2\u0805\u0808\5\u0472\u023a"+
-		"\2\u0806\u0808\5\u0462\u0232\2\u0807\u0805\3\2\2\2\u0807\u0806\3\2\2\2"+
-		"\u0808\u080b\3\2\2\2\u0809\u0807\3\2\2\2\u0809\u080a\3\2\2\2\u080a\u080c"+
-		"\3\2\2\2\u080b\u0809\3\2\2\2\u080c\u080d\7\u01d4\2\2\u080d\u00e1\3\2\2"+
-		"\2\u080e\u080f\t\7\2\2\u080f\u00e3\3\2\2\2\u0810\u0816\5\u0114\u008b\2"+
-		"\u0811\u0816\5\u0116\u008c\2\u0812\u0816\5\u0108\u0085\2\u0813\u0816\5"+
-		"\u010a\u0086\2\u0814\u0816\5\u010c\u0087\2\u0815\u0810\3\2\2\2\u0815\u0811"+
-		"\3\2\2\2\u0815\u0812\3\2\2\2\u0815\u0813\3\2\2\2\u0815\u0814\3\2\2\2\u0816"+
-		"\u081a\3\2\2\2\u0817\u0819\5\4\3\2\u0818\u0817\3\2\2\2\u0819\u081c\3\2"+
-		"\2\2\u081a\u0818\3\2\2\2\u081a\u081b\3\2\2\2\u081b\u081d\3\2\2\2\u081c"+
-		"\u081a\3\2\2\2\u081d\u081e\5\u0124\u0093\2\u081e\u0825\3\2\2\2\u081f\u0825"+
-		"\5\u00e6t\2\u0820\u0825\5\u00f8}\2\u0821\u0825\5\u011e\u0090\2\u0822\u0825"+
-		"\5\u00f0y\2\u0823\u0825\5\u00ecw\2\u0824\u0815\3\2\2\2\u0824\u081f\3\2"+
-		"\2\2\u0824\u0820\3\2\2\2\u0824\u0821\3\2\2\2\u0824\u0822\3\2\2\2\u0824"+
-		"\u0823\3\2\2\2\u0825\u00e5\3\2\2\2\u0826\u082a\5\u0106\u0084\2\u0827\u0829"+
-		"\5\4\3\2\u0828\u0827\3\2\2\2\u0829\u082c\3\2\2\2\u082a\u0828\3\2\2\2\u082a"+
-		"\u082b\3\2\2\2\u082b\u0830\3\2\2\2\u082c\u082a\3\2\2\2\u082d\u082f\5\u00e8"+
-		"u\2\u082e\u082d\3\2\2\2\u082f\u0832\3\2\2\2\u0830\u082e\3\2\2\2\u0830"+
-		"\u0831\3\2\2\2\u0831\u0834\3\2\2\2\u0832\u0830\3\2\2\2\u0833\u0835\5\u00ea"+
-		"v\2\u0834\u0833\3\2\2\2\u0834\u0835\3\2\2\2\u0835\u0836\3\2\2\2\u0836"+
-		"\u0837\5\u0122\u0092\2\u0837\u00e7\3\2\2\2\u0838\u083c\5\u010e\u0088\2"+
-		"\u0839\u083b\5\4\3\2\u083a\u0839\3\2\2\2\u083b\u083e\3\2\2\2\u083c\u083a"+
-		"\3\2\2\2\u083c\u083d\3\2\2\2\u083d\u00e9\3\2\2\2\u083e\u083c\3\2\2\2\u083f"+
-		"\u0843\5\u0110\u0089\2\u0840\u0842\5\4\3\2\u0841\u0840\3\2\2\2\u0842\u0845"+
-		"\3\2\2\2\u0843\u0841\3\2\2\2\u0843\u0844\3\2\2\2\u0844\u00eb\3\2\2\2\u0845"+
-		"\u0843\3\2\2\2\u0846\u084a\7\13\2\2\u0847\u0849\5\u014a\u00a6\2\u0848"+
-		"\u0847\3\2\2\2\u0849\u084c\3\2\2\2\u084a\u0848\3\2\2\2\u084a\u084b\3\2"+
-		"\2\2\u084b\u084d\3\2\2\2\u084c\u084a\3\2\2\2\u084d\u084e\5\u017a\u00be"+
-		"\2\u084e\u084f\5\u0178\u00bd\2\u084f\u0850\5\u017c\u00bf\2\u0850\u0851"+
-		"\5\u02cc\u0167\2\u0851\u0859\3\2\2\2\u0852\u085a\5\u01b2\u00da\2\u0853"+
-		"\u085a\5\u01b4\u00db\2\u0854\u085a\5\u01b6\u00dc\2\u0855\u085a\5\u01b8"+
-		"\u00dd\2\u0856\u085a\5\u01ba\u00de\2\u0857\u085a\5\u01bc\u00df\2\u0858"+
-		"\u085a\5\u01be\u00e0\2\u0859\u0852\3\2\2\2\u0859\u0853\3\2\2\2\u0859\u0854"+
-		"\3\2\2\2\u0859\u0855\3\2\2\2\u0859\u0856\3\2\2\2\u0859\u0857\3\2\2\2\u0859"+
-		"\u0858\3\2\2\2\u085a\u085c\3\2\2\2\u085b\u0846\3\2\2\2\u085c\u085d\3\2"+
-		"\2\2\u085d\u085b\3\2\2\2\u085d\u085e\3\2\2\2\u085e\u085f\3\2\2\2\u085f"+
-		"\u0860\5\u00eex\2\u0860\u00ed\3\2\2\2\u0861\u0865\7\13\2\2\u0862\u0864"+
-		"\5\u014a\u00a6\2\u0863\u0862\3\2\2\2\u0864\u0867\3\2\2\2\u0865\u0863\3"+
-		"\2\2\2\u0865\u0866\3\2\2\2\u0866\u0868\3\2\2\2\u0867\u0865\3\2\2\2\u0868"+
-		"\u0869\5\u017a\u00be\2\u0869\u086a\5\u0178\u00bd\2\u086a\u086b\5\u017c"+
-		"\u00bf\2\u086b\u086e\5\u02cc\u0167\2\u086c\u086f\5\u01fe\u0100\2\u086d"+
-		"\u086f\5\u0200\u0101\2\u086e\u086c\3\2\2\2\u086e\u086d\3\2\2\2\u086f\u00ef"+
-		"\3\2\2\2\u0870\u0874\5\u00f2z\2\u0871\u0873\5\4\3\2\u0872\u0871\3\2\2"+
-		"\2\u0873\u0876\3\2\2\2\u0874\u0872\3\2\2\2\u0874\u0875\3\2\2\2\u0875\u087a"+
-		"\3\2\2\2\u0876\u0874\3\2\2\2\u0877\u0879\5\u00f6|\2\u0878\u0877\3\2\2"+
-		"\2\u0879\u087c\3\2\2\2\u087a\u0878\3\2\2\2\u087a\u087b\3\2\2\2\u087b\u087d"+
-		"\3\2\2\2\u087c\u087a\3\2\2\2\u087d\u087e\5\u00f4{\2\u087e\u00f1\3\2\2"+
-		"\2\u087f\u0880\5\u035a\u01ae\2\u0880\u0881\7\u01d4\2\2\u0881\u0890\3\2"+
-		"\2\2\u0882\u0886\7\13\2\2\u0883\u0885\5\u014a\u00a6\2\u0884\u0883\3\2"+
-		"\2\2\u0885\u0888\3\2\2\2\u0886\u0884\3\2\2\2\u0886\u0887\3\2\2\2\u0887"+
-		"\u0889\3\2\2\2\u0888\u0886\3\2\2\2\u0889\u088a\5\u017a\u00be\2\u088a\u088b"+
-		"\5\u0178\u00bd\2\u088b\u088c\5\u017c\u00bf\2\u088c\u088d\5\u02cc\u0167"+
-		"\2\u088d\u088e\5\u0246\u0124\2\u088e\u0890\3\2\2\2\u088f\u087f\3\2\2\2"+
-		"\u088f\u0882\3\2\2\2\u0890\u00f3\3\2\2\2\u0891\u0892\5\u033a\u019e\2\u0892"+
-		"\u0893\7\u01d4\2\2\u0893\u08a2\3\2\2\2\u0894\u0898\7\13\2\2\u0895\u0897"+
-		"\5\u014a\u00a6\2\u0896\u0895\3\2\2\2\u0897\u089a\3\2\2\2\u0898\u0896\3"+
-		"\2\2\2\u0898\u0899\3\2\2\2\u0899\u089b\3\2\2\2\u089a\u0898\3\2\2\2\u089b"+
-		"\u089c\5\u017a\u00be\2\u089c\u089d\5\u0178\u00bd\2\u089d\u089e\5\u017c"+
-		"\u00bf\2\u089e\u089f\5\u02cc\u0167\2\u089f\u08a0\5\u0208\u0105\2\u08a0"+
-		"\u08a2\3\2\2\2\u08a1\u0891\3\2\2\2\u08a1\u0894\3\2\2\2\u08a2\u00f5\3\2"+
-		"\2\2\u08a3\u08a4\5\u035e\u01b0\2\u08a4\u08a5\7\u01d4\2\2\u08a5\u08b4\3"+
-		"\2\2\2\u08a6\u08aa\7\13\2\2\u08a7\u08a9\5\u014a\u00a6\2\u08a8\u08a7\3"+
-		"\2\2\2\u08a9\u08ac\3\2\2\2\u08aa\u08a8\3\2\2\2\u08aa\u08ab\3\2\2\2\u08ab"+
-		"\u08ad\3\2\2\2\u08ac\u08aa\3\2\2\2\u08ad\u08ae\5\u017a\u00be\2\u08ae\u08af"+
-		"\5\u0178\u00bd\2\u08af\u08b0\5\u017c\u00bf\2\u08b0\u08b1\5\u02cc\u0167"+
-		"\2\u08b1\u08b2\5\u0256\u012c\2\u08b2\u08b4\3\2\2\2\u08b3\u08a3\3\2\2\2"+
-		"\u08b3\u08a6\3\2\2\2\u08b4\u08b8\3\2\2\2\u08b5\u08b7\5\4\3\2\u08b6\u08b5"+
-		"\3\2\2\2\u08b7\u08ba\3\2\2\2\u08b8\u08b6\3\2\2\2\u08b8\u08b9\3\2\2\2\u08b9"+
-		"\u00f7\3\2\2\2\u08ba\u08b8\3\2\2\2\u08bb\u08bf\5\u00fc\177\2\u08bc\u08be"+
-		"\5\u00fe\u0080\2\u08bd\u08bc\3\2\2\2\u08be\u08c1\3\2\2\2\u08bf\u08bd\3"+
-		"\2\2\2\u08bf\u08c0\3\2\2\2\u08c0\u08c3\3\2\2\2\u08c1\u08bf\3\2\2\2\u08c2"+
-		"\u08c4\5\u00fa~\2\u08c3\u08c2\3\2\2\2\u08c3\u08c4\3\2\2\2\u08c4\u08c5"+
-		"\3\2\2\2\u08c5\u08c6\5\u0104\u0083\2\u08c6\u00f9\3\2\2\2\u08c7\u08cb\7"+
-		"\13\2\2\u08c8\u08ca\5\u014a\u00a6\2\u08c9\u08c8\3\2\2\2\u08ca\u08cd\3"+
-		"\2\2\2\u08cb\u08c9\3\2\2\2\u08cb\u08cc\3\2\2\2\u08cc\u08ce\3\2\2\2\u08cd"+
-		"\u08cb\3\2\2\2\u08ce\u08cf\5\u017a\u00be\2\u08cf\u08d0\5\u0178\u00bd\2"+
-		"\u08d0\u08d1\5\u017c\u00bf\2\u08d1\u08d2\5\u02cc\u0167\2\u08d2\u08d3\5"+
-		"\u0268\u0135\2\u08d3\u08da\3\2\2\2\u08d4\u08d5\5\u0362\u01b2\2\u08d5\u08d7"+
-		"\7\u01d4\2\2\u08d6\u08d8\5\20\t\2\u08d7\u08d6\3\2\2\2\u08d7\u08d8\3\2"+
-		"\2\2\u08d8\u08da\3\2\2\2\u08d9\u08c7\3\2\2\2\u08d9\u08d4\3\2\2\2\u08da"+
-		"\u00fb\3\2\2\2\u08db\u08df\7\13\2\2\u08dc\u08de\5\u014a\u00a6\2\u08dd"+
-		"\u08dc\3\2\2\2\u08de\u08e1\3\2\2\2\u08df\u08dd\3\2\2\2\u08df\u08e0\3\2"+
-		"\2\2\u08e0\u08e2\3\2\2\2\u08e1\u08df\3\2\2\2\u08e2\u08e3\5\u017a\u00be"+
-		"\2\u08e3\u08e4\5\u0178\u00bd\2\u08e4\u08e5\5\u017c\u00bf\2\u08e5\u08e6"+
-		"\5\u02cc\u0167\2\u08e6\u08e7\5\u0288\u0145\2\u08e7\u08ee\3\2\2\2\u08e8"+
-		"\u08e9\5\u037c\u01bf\2\u08e9\u08eb\7\u01d4\2\2\u08ea\u08ec\5\20\t\2\u08eb"+
-		"\u08ea\3\2\2\2\u08eb\u08ec\3\2\2\2\u08ec\u08ee\3\2\2\2\u08ed\u08db\3\2"+
-		"\2\2\u08ed\u08e8\3\2\2\2\u08ee\u00fd\3\2\2\2\u08ef\u08f2\5\u0102\u0082"+
-		"\2\u08f0\u08f2\5\u0100\u0081\2\u08f1\u08ef\3\2\2\2\u08f1\u08f0\3\2\2\2"+
-		"\u08f2\u08f6\3\2\2\2\u08f3\u08f5\5\4\3\2\u08f4\u08f3\3\2\2\2\u08f5\u08f8"+
-		"\3\2\2\2\u08f6\u08f4\3\2\2\2\u08f6\u08f7\3\2\2\2\u08f7\u00ff\3\2\2\2\u08f8"+
-		"\u08f6\3\2\2\2\u08f9\u08fd\7\13\2\2\u08fa\u08fc\5\u014a\u00a6\2\u08fb"+
-		"\u08fa\3\2\2\2\u08fc\u08ff\3\2\2\2\u08fd\u08fb\3\2\2\2\u08fd\u08fe\3\2"+
-		"\2\2\u08fe\u0900\3\2\2\2\u08ff\u08fd\3\2\2\2\u0900\u0901\5\u017a\u00be"+
-		"\2\u0901\u0902\5\u0178\u00bd\2\u0902\u0903\5\u017c\u00bf\2\u0903\u0904"+
-		"\5\u02cc\u0167\2\u0904\u0905\5\u02ae\u0158\2\u0905\u0912\3\2\2\2\u0906"+
-		"\u0907\5\u038a\u01c6\2\u0907\u0909\7\u01d4\2\2\u0908\u090a\5\20\t\2\u0909"+
-		"\u0908\3\2\2\2\u0909\u090a\3\2\2\2\u090a\u090e\3\2\2\2\u090b\u090d\5\4"+
-		"\3\2\u090c\u090b\3\2\2\2\u090d\u0910\3\2\2\2\u090e\u090c\3\2\2\2\u090e"+
-		"\u090f\3\2\2\2\u090f\u0912\3\2\2\2\u0910\u090e\3\2\2\2\u0911\u08f9\3\2"+
-		"\2\2\u0911\u0906\3\2\2\2\u0912\u0101\3\2\2\2\u0913\u0917\7\13\2\2\u0914"+
-		"\u0916\5\u014a\u00a6\2\u0915\u0914\3\2\2\2\u0916\u0919\3\2\2\2\u0917\u0915"+
-		"\3\2\2\2\u0917\u0918\3\2\2\2\u0918\u091a\3\2\2\2\u0919\u0917\3\2\2\2\u091a"+
-		"\u091b\5\u017a\u00be\2\u091b\u091c\5\u0178\u00bd\2\u091c\u091d\5\u017c"+
-		"\u00bf\2\u091d\u0924\5\u02cc\u0167\2\u091e\u0925\5\u02b0\u0159\2\u091f"+
-		"\u0925\5\u02b2\u015a\2\u0920\u0925\5\u02b4\u015b\2\u0921\u0925\5\u02b6"+
-		"\u015c\2\u0922\u0925\5\u02b8\u015d\2\u0923\u0925\5\u02ba\u015e\2\u0924"+
-		"\u091e\3\2\2\2\u0924\u091f\3\2\2\2\u0924\u0920\3\2\2\2\u0924\u0921\3\2"+
-		"\2\2\u0924\u0922\3\2\2\2\u0924\u0923\3\2\2\2\u0925\u0929\3\2\2\2\u0926"+
-		"\u0928\5\u011a\u008e\2\u0927\u0926\3\2\2\2\u0928\u092b\3\2\2\2\u0929\u0927"+
-		"\3\2\2\2\u0929\u092a\3\2\2\2\u092a\u092f\3\2\2\2\u092b\u0929\3\2\2\2\u092c"+
-		"\u092e\5\u011c\u008f\2\u092d\u092c\3\2\2\2\u092e\u0931\3\2\2\2\u092f\u092d"+
-		"\3\2\2\2\u092f\u0930\3\2\2\2\u0930\u0103\3\2\2\2\u0931\u092f\3\2\2\2\u0932"+
-		"\u0936\7\13\2\2\u0933\u0935\5\u014a\u00a6\2\u0934\u0933\3\2\2\2\u0935"+
-		"\u0938\3\2\2\2\u0936\u0934\3\2\2\2\u0936\u0937\3\2\2\2\u0937\u0939\3\2"+
-		"\2\2\u0938\u0936\3\2\2\2\u0939\u093a\5\u017a\u00be\2\u093a\u093b\5\u0178"+
-		"\u00bd\2\u093b\u093c\5\u017c\u00bf\2\u093c\u093f\5\u02cc\u0167\2\u093d"+
-		"\u0940\5\u01fe\u0100\2\u093e\u0940\5\u020a\u0106\2\u093f\u093d\3\2\2\2"+
-		"\u093f\u093e\3\2\2\2\u0940\u0947\3\2\2\2\u0941\u0942\5\u033c\u019f\2\u0942"+
-		"\u0944\7\u01d4\2\2\u0943\u0945\5\20\t\2\u0944\u0943\3\2\2\2\u0944\u0945"+
-		"\3\2\2\2\u0945\u0947\3\2\2\2\u0946\u0932\3\2\2\2\u0946\u0941\3\2\2\2\u0947"+
-		"\u0105\3\2\2\2\u0948\u0961\5\u0112\u008a\2\u0949\u094d\7\13\2\2\u094a"+
-		"\u094c\5\u014a\u00a6\2\u094b\u094a\3\2\2\2\u094c\u094f\3\2\2\2\u094d\u094b"+
-		"\3\2\2\2\u094d\u094e\3\2\2\2\u094e\u0950\3\2\2\2\u094f\u094d\3\2\2\2\u0950"+
-		"\u0951\5\u017a\u00be\2\u0951\u0952\5\u0178\u00bd\2\u0952\u0953\5\u017c"+
-		"\u00bf\2\u0953\u0954\5\u02cc\u0167\2\u0954\u0956\7U\2\2\u0955\u0957\5"+
-		"\u02ca\u0166\2\u0956\u0955\3\2\2\2\u0956\u0957\3\2\2\2\u0957\u0958\3\2"+
-		"\2\2\u0958\u0959\5\u044e\u0228\2\u0959\u095a\t\b\2\2\u095a\u0961\3\2\2"+
-		"\2\u095b\u095c\5\u0350\u01a9\2\u095c\u095e\7\u01d4\2\2\u095d\u095f\5\20"+
-		"\t\2\u095e\u095d\3\2\2\2\u095e\u095f\3\2\2\2\u095f\u0961\3\2\2\2\u0960"+
-		"\u0948\3\2\2\2\u0960\u0949\3\2\2\2\u0960\u095b\3\2\2\2\u0961\u0107\3\2"+
-		"\2\2\u0962\u0966\7\13\2\2\u0963\u0965\5\u014a\u00a6\2\u0964\u0963\3\2"+
-		"\2\2\u0965\u0968\3\2\2\2\u0966\u0964\3\2\2\2\u0966\u0967\3\2\2\2\u0967"+
-		"\u0969\3\2\2\2\u0968\u0966\3\2\2\2\u0969\u096a\5\u017a\u00be\2\u096a\u096b"+
-		"\5\u0178\u00bd\2\u096b\u096c\5\u017c\u00bf\2\u096c\u096d\5\u02cc\u0167"+
-		"\2\u096d\u096e\5\u01da\u00ee\2\u096e\u0975\3\2\2\2\u096f\u0970\5\u0328"+
-		"\u0195\2\u0970\u0972\7\u01d4\2\2\u0971\u0973\5\20\t\2\u0972\u0971\3\2"+
-		"\2\2\u0972\u0973\3\2\2\2\u0973\u0975\3\2\2\2\u0974\u0962\3\2\2\2\u0974"+
-		"\u096f\3\2\2\2\u0975\u0109\3\2\2\2\u0976\u097a\7\13\2\2\u0977\u0979\5"+
-		"\u014a\u00a6\2\u0978\u0977\3\2\2\2\u0979\u097c\3\2\2\2\u097a\u0978\3\2"+
-		"\2\2\u097a\u097b\3\2\2\2\u097b\u097d\3\2\2\2\u097c\u097a\3\2\2\2\u097d"+
+		"\u076d\3\2\2\2\u076d\u0771\3\2\2\2\u076e\u0770\5\32\16\2\u076f\u076e\3"+
+		"\2\2\2\u0770\u0773\3\2\2\2\u0771\u076f\3\2\2\2\u0771\u0772\3\2\2\2\u0772"+
+		"\u0774\3\2\2\2\u0773\u0771\3\2\2\2\u0774\u0775\7\u01d4\2\2\u0775\u00cf"+
+		"\3\2\2\2\u0776\u0778\7x\2\2\u0777\u0779\5\u0472\u023a\2\u0778\u0777\3"+
+		"\2\2\2\u0778\u0779\3\2\2\2\u0779\u00d1\3\2\2\2\u077a\u077b\7y\2\2\u077b"+
+		"\u077d\5\u0472\u023a\2\u077c\u077e\5\30\r\2\u077d\u077c\3\2\2\2\u077d"+
+		"\u077e\3\2\2\2\u077e\u0782\3\2\2\2\u077f\u0781\5\32\16\2\u0780\u077f\3"+
+		"\2\2\2\u0781\u0784\3\2\2\2\u0782\u0780\3\2\2\2\u0782\u0783\3\2\2\2\u0783"+
+		"\u0786\3\2\2\2\u0784\u0782\3\2\2\2\u0785\u0787\7\u01d4\2\2\u0786\u0785"+
+		"\3\2\2\2\u0786\u0787\3\2\2\2\u0787\u078b\3\2\2\2\u0788\u078a\5\u00d4k"+
+		"\2\u0789\u0788\3\2\2\2\u078a\u078d\3\2\2\2\u078b\u0789\3\2\2\2\u078b\u078c"+
+		"\3\2\2\2\u078c\u078f\3\2\2\2\u078d\u078b\3\2\2\2\u078e\u0790\5\u00d8m"+
+		"\2\u078f\u078e\3\2\2\2\u078f\u0790\3\2\2\2\u0790\u0791\3\2\2\2\u0791\u0792"+
+		"\5\u00d6l\2\u0792\u0793\7\u01d4\2\2\u0793\u079c\3\2\2\2\u0794\u0798\5"+
+		"\u0166\u00b4\2\u0795\u0797\5\u0152\u00aa\2\u0796\u0795\3\2\2\2\u0797\u079a"+
+		"\3\2\2\2\u0798\u0796\3\2\2\2\u0798\u0799\3\2\2\2\u0799\u079c\3\2\2\2\u079a"+
+		"\u0798\3\2\2\2\u079b\u077a\3\2\2\2\u079b\u0794\3\2\2\2\u079c\u00d3\3\2"+
+		"\2\2\u079d\u079f\7{\2\2\u079e\u079d\3\2\2\2\u079e\u079f\3\2\2\2\u079f"+
+		"\u07a0\3\2\2\2\u07a0\u07a3\5\u0472\u023a\2\u07a1\u07a4\5\30\r\2\u07a2"+
+		"\u07a4\5R*\2\u07a3\u07a1\3\2\2\2\u07a3\u07a2\3\2\2\2\u07a4\u07a8\3\2\2"+
+		"\2\u07a5\u07a7\5\32\16\2\u07a6\u07a5\3\2\2\2\u07a7\u07aa\3\2\2\2\u07a8"+
+		"\u07a6\3\2\2\2\u07a8\u07a9\3\2\2\2\u07a9\u07ab\3\2\2\2\u07aa\u07a8\3\2"+
+		"\2\2\u07ab\u07ac\7\u01d4\2\2\u07ac\u00d5\3\2\2\2\u07ad\u07ae\7z\2\2\u07ae"+
+		"\u00d7\3\2\2\2\u07af\u07b0\7}\2\2\u07b0\u07b2\5\u0472\u023a\2\u07b1\u07b3"+
+		"\5\30\r\2\u07b2\u07b1\3\2\2\2\u07b2\u07b3\3\2\2\2\u07b3\u07b7\3\2\2\2"+
+		"\u07b4\u07b6\5\32\16\2\u07b5\u07b4\3\2\2\2\u07b6\u07b9\3\2\2\2\u07b7\u07b5"+
+		"\3\2\2\2\u07b7\u07b8\3\2\2\2\u07b8\u07bb\3\2\2\2\u07b9\u07b7\3\2\2\2\u07ba"+
+		"\u07bc\7\u01d4\2\2\u07bb\u07ba\3\2\2\2\u07bb\u07bc\3\2\2\2\u07bc\u07c0"+
+		"\3\2\2\2\u07bd\u07bf\5\u00dan\2\u07be\u07bd\3\2\2\2\u07bf\u07c2\3\2\2"+
+		"\2\u07c0\u07be\3\2\2\2\u07c0\u07c1\3\2\2\2\u07c1\u07c3\3\2\2\2\u07c2\u07c0"+
+		"\3\2\2\2\u07c3\u07c4\5\u00dco\2\u07c4\u07c5\7\u01d4\2\2\u07c5\u07ce\3"+
+		"\2\2\2\u07c6\u07ca\5\u0150\u00a9\2\u07c7\u07c9\5\u0156\u00ac\2\u07c8\u07c7"+
+		"\3\2\2\2\u07c9\u07cc\3\2\2\2\u07ca\u07c8\3\2\2\2\u07ca\u07cb\3\2\2\2\u07cb"+
+		"\u07ce\3\2\2\2\u07cc\u07ca\3\2\2\2\u07cd\u07af\3\2\2\2\u07cd\u07c6\3\2"+
+		"\2\2\u07ce\u00d9\3\2\2\2\u07cf\u07d1\7{\2\2\u07d0\u07cf\3\2\2\2\u07d0"+
+		"\u07d1\3\2\2\2\u07d1\u07d2\3\2\2\2\u07d2\u07d5\5\u0472\u023a\2\u07d3\u07d6"+
+		"\5\30\r\2\u07d4\u07d6\5R*\2\u07d5\u07d3\3\2\2\2\u07d5\u07d4\3\2\2\2\u07d6"+
+		"\u07da\3\2\2\2\u07d7\u07d9\5\32\16\2\u07d8\u07d7\3\2\2\2\u07d9\u07dc\3"+
+		"\2\2\2\u07da\u07d8\3\2\2\2\u07da\u07db\3\2\2\2\u07db\u07dd\3\2\2\2\u07dc"+
+		"\u07da\3\2\2\2\u07dd\u07de\7\u01d4\2\2\u07de\u00db\3\2\2\2\u07df\u07e0"+
+		"\7~\2\2\u07e0\u00dd\3\2\2\2\u07e1\u07e2\7\u0081\2\2\u07e2\u07e9\5\u0472"+
+		"\u023a\2\u07e3\u07ea\5.\30\2\u07e4\u07ea\5\u0470\u0239\2\u07e5\u07ea\7"+
+		"\u0112\2\2\u07e6\u07ea\7\u0114\2\2\u07e7\u07ea\7\u0121\2\2\u07e8\u07ea"+
+		"\7\u00e3\2\2\u07e9\u07e3\3\2\2\2\u07e9\u07e4\3\2\2\2\u07e9\u07e5\3\2\2"+
+		"\2\u07e9\u07e6\3\2\2\2\u07e9\u07e7\3\2\2\2\u07e9\u07e8\3\2\2\2\u07e9\u07ea"+
+		"\3\2\2\2\u07ea\u07eb\3\2\2\2\u07eb\u07ec\7\u01d4\2\2\u07ec\u0803\3\2\2"+
+		"\2\u07ed\u07ee\7\b\2\2\u07ee\u07ef\5\u012a\u0096\2\u07ef\u07f0\7\u0266"+
+		"\2\2\u07f0\u07f1\7\u0267\2\2\u07f1\u07f2\7\u0268\2\2\u07f2\u07f3\7\u026f"+
+		"\2\2\u07f3\u07f4\7\u0270\2\2\u07f4\u07f5\7\u0271\2\2\u07f5\u07f6\7\u0272"+
+		"\2\2\u07f6\u07fe\7\u0273\2\2\u07f7\u07ff\5.\30\2\u07f8\u07ff\5\u0470\u0239"+
+		"\2\u07f9\u07ff\5\34\17\2\u07fa\u07ff\7\u0112\2\2\u07fb\u07ff\7\u0114\2"+
+		"\2\u07fc\u07ff\7\u0121\2\2\u07fd\u07ff\7\u00e3\2\2\u07fe\u07f7\3\2\2\2"+
+		"\u07fe\u07f8\3\2\2\2\u07fe\u07f9\3\2\2\2\u07fe\u07fa\3\2\2\2\u07fe\u07fb"+
+		"\3\2\2\2\u07fe\u07fc\3\2\2\2\u07fe\u07fd\3\2\2\2\u07fe\u07ff\3\2\2\2\u07ff"+
+		"\u0800\3\2\2\2\u0800\u0801\t\2\2\2\u0801\u0803\3\2\2\2\u0802\u07e1\3\2"+
+		"\2\2\u0802\u07ed\3\2\2\2\u0803\u00df\3\2\2\2\u0804\u0809\7\u0083\2\2\u0805"+
+		"\u0808\5\u0472\u023a\2\u0806\u0808\5\u0462\u0232\2\u0807\u0805\3\2\2\2"+
+		"\u0807\u0806\3\2\2\2\u0808\u080b\3\2\2\2\u0809\u0807\3\2\2\2\u0809\u080a"+
+		"\3\2\2\2\u080a\u080c\3\2\2\2\u080b\u0809\3\2\2\2\u080c\u080d\7\u01d4\2"+
+		"\2\u080d\u00e1\3\2\2\2\u080e\u080f\t\7\2\2\u080f\u00e3\3\2\2\2\u0810\u0816"+
+		"\5\u0114\u008b\2\u0811\u0816\5\u0116\u008c\2\u0812\u0816\5\u0108\u0085"+
+		"\2\u0813\u0816\5\u010a\u0086\2\u0814\u0816\5\u010c\u0087\2\u0815\u0810"+
+		"\3\2\2\2\u0815\u0811\3\2\2\2\u0815\u0812\3\2\2\2\u0815\u0813\3\2\2\2\u0815"+
+		"\u0814\3\2\2\2\u0816\u081a\3\2\2\2\u0817\u0819\5\4\3\2\u0818\u0817\3\2"+
+		"\2\2\u0819\u081c\3\2\2\2\u081a\u0818\3\2\2\2\u081a\u081b\3\2\2\2\u081b"+
+		"\u081d\3\2\2\2\u081c\u081a\3\2\2\2\u081d\u081e\5\u0124\u0093\2\u081e\u0825"+
+		"\3\2\2\2\u081f\u0825\5\u00e6t\2\u0820\u0825\5\u00f8}\2\u0821\u0825\5\u011e"+
+		"\u0090\2\u0822\u0825\5\u00f0y\2\u0823\u0825\5\u00ecw\2\u0824\u0815\3\2"+
+		"\2\2\u0824\u081f\3\2\2\2\u0824\u0820\3\2\2\2\u0824\u0821\3\2\2\2\u0824"+
+		"\u0822\3\2\2\2\u0824\u0823\3\2\2\2\u0825\u00e5\3\2\2\2\u0826\u082a\5\u0106"+
+		"\u0084\2\u0827\u0829\5\4\3\2\u0828\u0827\3\2\2\2\u0829\u082c\3\2\2\2\u082a"+
+		"\u0828\3\2\2\2\u082a\u082b\3\2\2\2\u082b\u0830\3\2\2\2\u082c\u082a\3\2"+
+		"\2\2\u082d\u082f\5\u00e8u\2\u082e\u082d\3\2\2\2\u082f\u0832\3\2\2\2\u0830"+
+		"\u082e\3\2\2\2\u0830\u0831\3\2\2\2\u0831\u0834\3\2\2\2\u0832\u0830\3\2"+
+		"\2\2\u0833\u0835\5\u00eav\2\u0834\u0833\3\2\2\2\u0834\u0835\3\2\2\2\u0835"+
+		"\u0836\3\2\2\2\u0836\u0837\5\u0122\u0092\2\u0837\u00e7\3\2\2\2\u0838\u083c"+
+		"\5\u010e\u0088\2\u0839\u083b\5\4\3\2\u083a\u0839\3\2\2\2\u083b\u083e\3"+
+		"\2\2\2\u083c\u083a\3\2\2\2\u083c\u083d\3\2\2\2\u083d\u00e9\3\2\2\2\u083e"+
+		"\u083c\3\2\2\2\u083f\u0843\5\u0110\u0089\2\u0840\u0842\5\4\3\2\u0841\u0840"+
+		"\3\2\2\2\u0842\u0845\3\2\2\2\u0843\u0841\3\2\2\2\u0843\u0844\3\2\2\2\u0844"+
+		"\u00eb\3\2\2\2\u0845\u0843\3\2\2\2\u0846\u084a\7\13\2\2\u0847\u0849\5"+
+		"\u014a\u00a6\2\u0848\u0847\3\2\2\2\u0849\u084c\3\2\2\2\u084a\u0848\3\2"+
+		"\2\2\u084a\u084b\3\2\2\2\u084b\u084d\3\2\2\2\u084c\u084a\3\2\2\2\u084d"+
+		"\u084e\5\u017a\u00be\2\u084e\u084f\5\u0178\u00bd\2\u084f\u0850\5\u017c"+
+		"\u00bf\2\u0850\u0851\5\u02cc\u0167\2\u0851\u0859\3\2\2\2\u0852\u085a\5"+
+		"\u01b2\u00da\2\u0853\u085a\5\u01b4\u00db\2\u0854\u085a\5\u01b6\u00dc\2"+
+		"\u0855\u085a\5\u01b8\u00dd\2\u0856\u085a\5\u01ba\u00de\2\u0857\u085a\5"+
+		"\u01bc\u00df\2\u0858\u085a\5\u01be\u00e0\2\u0859\u0852\3\2\2\2\u0859\u0853"+
+		"\3\2\2\2\u0859\u0854\3\2\2\2\u0859\u0855\3\2\2\2\u0859\u0856\3\2\2\2\u0859"+
+		"\u0857\3\2\2\2\u0859\u0858\3\2\2\2\u085a\u085c\3\2\2\2\u085b\u0846\3\2"+
+		"\2\2\u085c\u085d\3\2\2\2\u085d\u085b\3\2\2\2\u085d\u085e\3\2\2\2\u085e"+
+		"\u085f\3\2\2\2\u085f\u0860\5\u00eex\2\u0860\u00ed\3\2\2\2\u0861\u0865"+
+		"\7\13\2\2\u0862\u0864\5\u014a\u00a6\2\u0863\u0862\3\2\2\2\u0864\u0867"+
+		"\3\2\2\2\u0865\u0863\3\2\2\2\u0865\u0866\3\2\2\2\u0866\u0868\3\2\2\2\u0867"+
+		"\u0865\3\2\2\2\u0868\u0869\5\u017a\u00be\2\u0869\u086a\5\u0178\u00bd\2"+
+		"\u086a\u086b\5\u017c\u00bf\2\u086b\u086e\5\u02cc\u0167\2\u086c\u086f\5"+
+		"\u01fe\u0100\2\u086d\u086f\5\u0200\u0101\2\u086e\u086c\3\2\2\2\u086e\u086d"+
+		"\3\2\2\2\u086f\u00ef\3\2\2\2\u0870\u0874\5\u00f2z\2\u0871\u0873\5\4\3"+
+		"\2\u0872\u0871\3\2\2\2\u0873\u0876\3\2\2\2\u0874\u0872\3\2\2\2\u0874\u0875"+
+		"\3\2\2\2\u0875\u087a\3\2\2\2\u0876\u0874\3\2\2\2\u0877\u0879\5\u00f6|"+
+		"\2\u0878\u0877\3\2\2\2\u0879\u087c\3\2\2\2\u087a\u0878\3\2\2\2\u087a\u087b"+
+		"\3\2\2\2\u087b\u087d\3\2\2\2\u087c\u087a\3\2\2\2\u087d\u087e\5\u00f4{"+
+		"\2\u087e\u00f1\3\2\2\2\u087f\u0880\5\u035a\u01ae\2\u0880\u0881\7\u01d4"+
+		"\2\2\u0881\u0890\3\2\2\2\u0882\u0886\7\13\2\2\u0883\u0885\5\u014a\u00a6"+
+		"\2\u0884\u0883\3\2\2\2\u0885\u0888\3\2\2\2\u0886\u0884\3\2\2\2\u0886\u0887"+
+		"\3\2\2\2\u0887\u0889\3\2\2\2\u0888\u0886\3\2\2\2\u0889\u088a\5\u017a\u00be"+
+		"\2\u088a\u088b\5\u0178\u00bd\2\u088b\u088c\5\u017c\u00bf\2\u088c\u088d"+
+		"\5\u02cc\u0167\2\u088d\u088e\5\u0246\u0124\2\u088e\u0890\3\2\2\2\u088f"+
+		"\u087f\3\2\2\2\u088f\u0882\3\2\2\2\u0890\u00f3\3\2\2\2\u0891\u0892\5\u033a"+
+		"\u019e\2\u0892\u0893\7\u01d4\2\2\u0893\u08a2\3\2\2\2\u0894\u0898\7\13"+
+		"\2\2\u0895\u0897\5\u014a\u00a6\2\u0896\u0895\3\2\2\2\u0897\u089a\3\2\2"+
+		"\2\u0898\u0896\3\2\2\2\u0898\u0899\3\2\2\2\u0899\u089b\3\2\2\2\u089a\u0898"+
+		"\3\2\2\2\u089b\u089c\5\u017a\u00be\2\u089c\u089d\5\u0178\u00bd\2\u089d"+
+		"\u089e\5\u017c\u00bf\2\u089e\u089f\5\u02cc\u0167\2\u089f\u08a0\5\u0208"+
+		"\u0105\2\u08a0\u08a2\3\2\2\2\u08a1\u0891\3\2\2\2\u08a1\u0894\3\2\2\2\u08a2"+
+		"\u00f5\3\2\2\2\u08a3\u08a4\5\u035e\u01b0\2\u08a4\u08a5\7\u01d4\2\2\u08a5"+
+		"\u08b4\3\2\2\2\u08a6\u08aa\7\13\2\2\u08a7\u08a9\5\u014a\u00a6\2\u08a8"+
+		"\u08a7\3\2\2\2\u08a9\u08ac\3\2\2\2\u08aa\u08a8\3\2\2\2\u08aa\u08ab\3\2"+
+		"\2\2\u08ab\u08ad\3\2\2\2\u08ac\u08aa\3\2\2\2\u08ad\u08ae\5\u017a\u00be"+
+		"\2\u08ae\u08af\5\u0178\u00bd\2\u08af\u08b0\5\u017c\u00bf\2\u08b0\u08b1"+
+		"\5\u02cc\u0167\2\u08b1\u08b2\5\u0256\u012c\2\u08b2\u08b4\3\2\2\2\u08b3"+
+		"\u08a3\3\2\2\2\u08b3\u08a6\3\2\2\2\u08b4\u08b8\3\2\2\2\u08b5\u08b7\5\4"+
+		"\3\2\u08b6\u08b5\3\2\2\2\u08b7\u08ba\3\2\2\2\u08b8\u08b6\3\2\2\2\u08b8"+
+		"\u08b9\3\2\2\2\u08b9\u00f7\3\2\2\2\u08ba\u08b8\3\2\2\2\u08bb\u08bf\5\u00fc"+
+		"\177\2\u08bc\u08be\5\u00fe\u0080\2\u08bd\u08bc\3\2\2\2\u08be\u08c1\3\2"+
+		"\2\2\u08bf\u08bd\3\2\2\2\u08bf\u08c0\3\2\2\2\u08c0\u08c3\3\2\2\2\u08c1"+
+		"\u08bf\3\2\2\2\u08c2\u08c4\5\u00fa~\2\u08c3\u08c2\3\2\2\2\u08c3\u08c4"+
+		"\3\2\2\2\u08c4\u08c5\3\2\2\2\u08c5\u08c6\5\u0104\u0083\2\u08c6\u00f9\3"+
+		"\2\2\2\u08c7\u08cb\7\13\2\2\u08c8\u08ca\5\u014a\u00a6\2\u08c9\u08c8\3"+
+		"\2\2\2\u08ca\u08cd\3\2\2\2\u08cb\u08c9\3\2\2\2\u08cb\u08cc\3\2\2\2\u08cc"+
+		"\u08ce\3\2\2\2\u08cd\u08cb\3\2\2\2\u08ce\u08cf\5\u017a\u00be\2\u08cf\u08d0"+
+		"\5\u0178\u00bd\2\u08d0\u08d1\5\u017c\u00bf\2\u08d1\u08d2\5\u02cc\u0167"+
+		"\2\u08d2\u08d3\5\u0268\u0135\2\u08d3\u08da\3\2\2\2\u08d4\u08d5\5\u0362"+
+		"\u01b2\2\u08d5\u08d7\7\u01d4\2\2\u08d6\u08d8\5\20\t\2\u08d7\u08d6\3\2"+
+		"\2\2\u08d7\u08d8\3\2\2\2\u08d8\u08da\3\2\2\2\u08d9\u08c7\3\2\2\2\u08d9"+
+		"\u08d4\3\2\2\2\u08da\u00fb\3\2\2\2\u08db\u08df\7\13\2\2\u08dc\u08de\5"+
+		"\u014a\u00a6\2\u08dd\u08dc\3\2\2\2\u08de\u08e1\3\2\2\2\u08df\u08dd\3\2"+
+		"\2\2\u08df\u08e0\3\2\2\2\u08e0\u08e2\3\2\2\2\u08e1\u08df\3\2\2\2\u08e2"+
+		"\u08e3\5\u017a\u00be\2\u08e3\u08e4\5\u0178\u00bd\2\u08e4\u08e5\5\u017c"+
+		"\u00bf\2\u08e5\u08e6\5\u02cc\u0167\2\u08e6\u08e7\5\u0288\u0145\2\u08e7"+
+		"\u08ee\3\2\2\2\u08e8\u08e9\5\u037c\u01bf\2\u08e9\u08eb\7\u01d4\2\2\u08ea"+
+		"\u08ec\5\20\t\2\u08eb\u08ea\3\2\2\2\u08eb\u08ec\3\2\2\2\u08ec\u08ee\3"+
+		"\2\2\2\u08ed\u08db\3\2\2\2\u08ed\u08e8\3\2\2\2\u08ee\u00fd\3\2\2\2\u08ef"+
+		"\u08f2\5\u0102\u0082\2\u08f0\u08f2\5\u0100\u0081\2\u08f1\u08ef\3\2\2\2"+
+		"\u08f1\u08f0\3\2\2\2\u08f2\u08f6\3\2\2\2\u08f3\u08f5\5\4\3\2\u08f4\u08f3"+
+		"\3\2\2\2\u08f5\u08f8\3\2\2\2\u08f6\u08f4\3\2\2\2\u08f6\u08f7\3\2\2\2\u08f7"+
+		"\u00ff\3\2\2\2\u08f8\u08f6\3\2\2\2\u08f9\u08fd\7\13\2\2\u08fa\u08fc\5"+
+		"\u014a\u00a6\2\u08fb\u08fa\3\2\2\2\u08fc\u08ff\3\2\2\2\u08fd\u08fb\3\2"+
+		"\2\2\u08fd\u08fe\3\2\2\2\u08fe\u0900\3\2\2\2\u08ff\u08fd\3\2\2\2\u0900"+
+		"\u0901\5\u017a\u00be\2\u0901\u0902\5\u0178\u00bd\2\u0902\u0903\5\u017c"+
+		"\u00bf\2\u0903\u0904\5\u02cc\u0167\2\u0904\u0905\5\u02ae\u0158\2\u0905"+
+		"\u0912\3\2\2\2\u0906\u0907\5\u038a\u01c6\2\u0907\u0909\7\u01d4\2\2\u0908"+
+		"\u090a\5\20\t\2\u0909\u0908\3\2\2\2\u0909\u090a\3\2\2\2\u090a\u090e\3"+
+		"\2\2\2\u090b\u090d\5\4\3\2\u090c\u090b\3\2\2\2\u090d\u0910\3\2\2\2\u090e"+
+		"\u090c\3\2\2\2\u090e\u090f\3\2\2\2\u090f\u0912\3\2\2\2\u0910\u090e\3\2"+
+		"\2\2\u0911\u08f9\3\2\2\2\u0911\u0906\3\2\2\2\u0912\u0101\3\2\2\2\u0913"+
+		"\u0917\7\13\2\2\u0914\u0916\5\u014a\u00a6\2\u0915\u0914\3\2\2\2\u0916"+
+		"\u0919\3\2\2\2\u0917\u0915\3\2\2\2\u0917\u0918\3\2\2\2\u0918\u091a\3\2"+
+		"\2\2\u0919\u0917\3\2\2\2\u091a\u091b\5\u017a\u00be\2\u091b\u091c\5\u0178"+
+		"\u00bd\2\u091c\u091d\5\u017c\u00bf\2\u091d\u0924\5\u02cc\u0167\2\u091e"+
+		"\u0925\5\u02b0\u0159\2\u091f\u0925\5\u02b2\u015a\2\u0920\u0925\5\u02b4"+
+		"\u015b\2\u0921\u0925\5\u02b6\u015c\2\u0922\u0925\5\u02b8\u015d\2\u0923"+
+		"\u0925\5\u02ba\u015e\2\u0924\u091e\3\2\2\2\u0924\u091f\3\2\2\2\u0924\u0920"+
+		"\3\2\2\2\u0924\u0921\3\2\2\2\u0924\u0922\3\2\2\2\u0924\u0923\3\2\2\2\u0925"+
+		"\u0929\3\2\2\2\u0926\u0928\5\u011a\u008e\2\u0927\u0926\3\2\2\2\u0928\u092b"+
+		"\3\2\2\2\u0929\u0927\3\2\2\2\u0929\u092a\3\2\2\2\u092a\u092f\3\2\2\2\u092b"+
+		"\u0929\3\2\2\2\u092c\u092e\5\u011c\u008f\2\u092d\u092c\3\2\2\2\u092e\u0931"+
+		"\3\2\2\2\u092f\u092d\3\2\2\2\u092f\u0930\3\2\2\2\u0930\u0103\3\2\2\2\u0931"+
+		"\u092f\3\2\2\2\u0932\u0936\7\13\2\2\u0933\u0935\5\u014a\u00a6\2\u0934"+
+		"\u0933\3\2\2\2\u0935\u0938\3\2\2\2\u0936\u0934\3\2\2\2\u0936\u0937\3\2"+
+		"\2\2\u0937\u0939\3\2\2\2\u0938\u0936\3\2\2\2\u0939\u093a\5\u017a\u00be"+
+		"\2\u093a\u093b\5\u0178\u00bd\2\u093b\u093c\5\u017c\u00bf\2\u093c\u093f"+
+		"\5\u02cc\u0167\2\u093d\u0940\5\u01fe\u0100\2\u093e\u0940\5\u020a\u0106"+
+		"\2\u093f\u093d\3\2\2\2\u093f\u093e\3\2\2\2\u0940\u0947\3\2\2\2\u0941\u0942"+
+		"\5\u033c\u019f\2\u0942\u0944\7\u01d4\2\2\u0943\u0945\5\20\t\2\u0944\u0943"+
+		"\3\2\2\2\u0944\u0945\3\2\2\2\u0945\u0947\3\2\2\2\u0946\u0932\3\2\2\2\u0946"+
+		"\u0941\3\2\2\2\u0947\u0105\3\2\2\2\u0948\u0961\5\u0112\u008a\2\u0949\u094d"+
+		"\7\13\2\2\u094a\u094c\5\u014a\u00a6\2\u094b\u094a\3\2\2\2\u094c\u094f"+
+		"\3\2\2\2\u094d\u094b\3\2\2\2\u094d\u094e\3\2\2\2\u094e\u0950\3\2\2\2\u094f"+
+		"\u094d\3\2\2\2\u0950\u0951\5\u017a\u00be\2\u0951\u0952\5\u0178\u00bd\2"+
+		"\u0952\u0953\5\u017c\u00bf\2\u0953\u0954\5\u02cc\u0167\2\u0954\u0956\7"+
+		"U\2\2\u0955\u0957\5\u02ca\u0166\2\u0956\u0955\3\2\2\2\u0956\u0957\3\2"+
+		"\2\2\u0957\u0958\3\2\2\2\u0958\u0959\5\u044e\u0228\2\u0959\u095a\t\b\2"+
+		"\2\u095a\u0961\3\2\2\2\u095b\u095c\5\u0350\u01a9\2\u095c\u095e\7\u01d4"+
+		"\2\2\u095d\u095f\5\20\t\2\u095e\u095d\3\2\2\2\u095e\u095f\3\2\2\2\u095f"+
+		"\u0961\3\2\2\2\u0960\u0948\3\2\2\2\u0960\u0949\3\2\2\2\u0960\u095b\3\2"+
+		"\2\2\u0961\u0107\3\2\2\2\u0962\u0966\7\13\2\2\u0963\u0965\5\u014a\u00a6"+
+		"\2\u0964\u0963\3\2\2\2\u0965\u0968\3\2\2\2\u0966\u0964\3\2\2\2\u0966\u0967"+
+		"\3\2\2\2\u0967\u0969\3\2\2\2\u0968\u0966\3\2\2\2\u0969\u096a\5\u017a\u00be"+
+		"\2\u096a\u096b\5\u0178\u00bd\2\u096b\u096c\5\u017c\u00bf\2\u096c\u096d"+
+		"\5\u02cc\u0167\2\u096d\u096e\5\u01da\u00ee\2\u096e\u0975\3\2\2\2\u096f"+
+		"\u0970\5\u0328\u0195\2\u0970\u0972\7\u01d4\2\2\u0971\u0973\5\20\t\2\u0972"+
+		"\u0971\3\2\2\2\u0972\u0973\3\2\2\2\u0973\u0975\3\2\2\2\u0974\u0962\3\2"+
+		"\2\2\u0974\u096f\3\2\2\2\u0975\u0109\3\2\2\2\u0976\u097a\7\13\2\2\u0977"+
+		"\u0979\5\u014a\u00a6\2\u0978\u0977\3\2\2\2\u0979\u097c\3\2\2\2\u097a\u0978"+
+		"\3\2\2\2\u097a\u097b\3\2\2\2\u097b\u097d\3\2\2\2\u097c\u097a\3\2\2\2\u097d"+
 		"\u097e\5\u017a\u00be\2\u097e\u097f\5\u0178\u00bd\2\u097f\u0980\5\u017c"+
 		"\u00bf\2\u0980\u0981\5\u02cc\u0167\2\u0981\u0982\5\u01e8\u00f5\2\u0982"+
 		"\u0989\3\2\2\2\u0983\u0984\5\u032a\u0196\2\u0984\u0986\7\u01d4\2\2\u0985"+
@@ -47773,38 +47779,38 @@ public class RpgParser extends Parser {
 		"\u1328\u132c\5\u0444\u0223\2\u1329\u132c\5\u0446\u0224\2\u132a\u132c\5"+
 		"\u0448\u0225\2\u132b\u12db\3\2\2\2\u132b\u12dc\3\2\2\2\u132b\u12dd\3\2"+
 		"\2\2\u132b\u12de\3\2\2\2\u132b\u12df\3\2\2\2\u132b\u12e0\3\2\2\2\u132b"+
-		"\u12e1\3\2\2\2\u132b\u12e2\3\2\2\2\u132b\u12e3";
+		"\u12e1\3\2\2\2\u132b\u12e2\3\2\2\2";
 	private static final String _serializedATNSegment2 =
-		"\3\2\2\2\u132b\u12e4\3\2\2\2\u132b\u12e5\3\2\2\2\u132b\u12e6\3\2\2\2\u132b"+
-		"\u12e7\3\2\2\2\u132b\u12e8\3\2\2\2\u132b\u12e9\3\2\2\2\u132b\u12ea\3\2"+
-		"\2\2\u132b\u12eb\3\2\2\2\u132b\u12ec\3\2\2\2\u132b\u12ed\3\2\2\2\u132b"+
-		"\u12ee\3\2\2\2\u132b\u12ef\3\2\2\2\u132b\u12f0\3\2\2\2\u132b\u12f1\3\2"+
-		"\2\2\u132b\u12f2\3\2\2\2\u132b\u12f3\3\2\2\2\u132b\u12f4\3\2\2\2\u132b"+
-		"\u12f5\3\2\2\2\u132b\u12f6\3\2\2\2\u132b\u12f7\3\2\2\2\u132b\u12f8\3\2"+
-		"\2\2\u132b\u12f9\3\2\2\2\u132b\u12fa\3\2\2\2\u132b\u12fb\3\2\2\2\u132b"+
-		"\u12fc\3\2\2\2\u132b\u12fd\3\2\2\2\u132b\u12fe\3\2\2\2\u132b\u12ff\3\2"+
-		"\2\2\u132b\u1300\3\2\2\2\u132b\u1301\3\2\2\2\u132b\u1302\3\2\2\2\u132b"+
-		"\u1303\3\2\2\2\u132b\u1304\3\2\2\2\u132b\u1305\3\2\2\2\u132b\u1306\3\2"+
-		"\2\2\u132b\u1307\3\2\2\2\u132b\u1308\3\2\2\2\u132b\u1309\3\2\2\2\u132b"+
-		"\u130a\3\2\2\2\u132b\u130b\3\2\2\2\u132b\u130c\3\2\2\2\u132b\u130d\3\2"+
-		"\2\2\u132b\u130e\3\2\2\2\u132b\u130f\3\2\2\2\u132b\u1310\3\2\2\2\u132b"+
-		"\u1311\3\2\2\2\u132b\u1312\3\2\2\2\u132b\u1313\3\2\2\2\u132b\u1314\3\2"+
-		"\2\2\u132b\u1315\3\2\2\2\u132b\u1316\3\2\2\2\u132b\u1317\3\2\2\2\u132b"+
-		"\u1318\3\2\2\2\u132b\u1319\3\2\2\2\u132b\u131a\3\2\2\2\u132b\u131b\3\2"+
-		"\2\2\u132b\u131c\3\2\2\2\u132b\u131d\3\2\2\2\u132b\u131e\3\2\2\2\u132b"+
-		"\u131f\3\2\2\2\u132b\u1320\3\2\2\2\u132b\u1321\3\2\2\2\u132b\u1322\3\2"+
-		"\2\2\u132b\u1323\3\2\2\2\u132b\u1324\3\2\2\2\u132b\u1325\3\2\2\2\u132b"+
-		"\u1326\3\2\2\2\u132b\u1327\3\2\2\2\u132b\u1328\3\2\2\2\u132b\u1329\3\2"+
-		"\2\2\u132b\u132a\3\2\2\2\u132c\u0397\3\2\2\2\u132d\u1336\7\26\2\2\u132e"+
-		"\u1333\5\u0462\u0232\2\u132f\u1330\7\32\2\2\u1330\u1332\5\u0462\u0232"+
-		"\2\u1331\u132f\3\2\2\2\u1332\u1335\3\2\2\2\u1333\u1331\3\2\2\2\u1333\u1334"+
-		"\3\2\2\2\u1334\u1337\3\2\2\2\u1335\u1333\3\2\2\2\u1336\u132e\3\2\2\2\u1336"+
-		"\u1337\3\2\2\2\u1337\u1338\3\2\2\2\u1338\u133a\7\27\2\2\u1339\u132d\3"+
-		"\2\2\2\u1339\u133a\3\2\2\2\u133a\u0399\3\2\2\2\u133b\u133c\5\u0488\u0245"+
-		"\2\u133c\u039b\3\2\2\2\u133d\u133e\5\u0488\u0245\2\u133e\u039d\3\2\2\2"+
-		"\u133f\u1340\5\u0488\u0245\2\u1340\u039f\3\2\2\2\u1341\u1345\7\u0126\2"+
-		"\2\u1342\u1345\7\u0127\2\2\u1343\u1345\5\u0470\u0239\2\u1344\u1341\3\2"+
-		"\2\2\u1344\u1342\3\2\2\2\u1344\u1343\3\2\2\2\u1345\u03a1\3\2\2\2\u1346"+
+		"\u132b\u12e3\3\2\2\2\u132b\u12e4\3\2\2\2\u132b\u12e5\3\2\2\2\u132b\u12e6"+
+		"\3\2\2\2\u132b\u12e7\3\2\2\2\u132b\u12e8\3\2\2\2\u132b\u12e9\3\2\2\2\u132b"+
+		"\u12ea\3\2\2\2\u132b\u12eb\3\2\2\2\u132b\u12ec\3\2\2\2\u132b\u12ed\3\2"+
+		"\2\2\u132b\u12ee\3\2\2\2\u132b\u12ef\3\2\2\2\u132b\u12f0\3\2\2\2\u132b"+
+		"\u12f1\3\2\2\2\u132b\u12f2\3\2\2\2\u132b\u12f3\3\2\2\2\u132b\u12f4\3\2"+
+		"\2\2\u132b\u12f5\3\2\2\2\u132b\u12f6\3\2\2\2\u132b\u12f7\3\2\2\2\u132b"+
+		"\u12f8\3\2\2\2\u132b\u12f9\3\2\2\2\u132b\u12fa\3\2\2\2\u132b\u12fb\3\2"+
+		"\2\2\u132b\u12fc\3\2\2\2\u132b\u12fd\3\2\2\2\u132b\u12fe\3\2\2\2\u132b"+
+		"\u12ff\3\2\2\2\u132b\u1300\3\2\2\2\u132b\u1301\3\2\2\2\u132b\u1302\3\2"+
+		"\2\2\u132b\u1303\3\2\2\2\u132b\u1304\3\2\2\2\u132b\u1305\3\2\2\2\u132b"+
+		"\u1306\3\2\2\2\u132b\u1307\3\2\2\2\u132b\u1308\3\2\2\2\u132b\u1309\3\2"+
+		"\2\2\u132b\u130a\3\2\2\2\u132b\u130b\3\2\2\2\u132b\u130c\3\2\2\2\u132b"+
+		"\u130d\3\2\2\2\u132b\u130e\3\2\2\2\u132b\u130f\3\2\2\2\u132b\u1310\3\2"+
+		"\2\2\u132b\u1311\3\2\2\2\u132b\u1312\3\2\2\2\u132b\u1313\3\2\2\2\u132b"+
+		"\u1314\3\2\2\2\u132b\u1315\3\2\2\2\u132b\u1316\3\2\2\2\u132b\u1317\3\2"+
+		"\2\2\u132b\u1318\3\2\2\2\u132b\u1319\3\2\2\2\u132b\u131a\3\2\2\2\u132b"+
+		"\u131b\3\2\2\2\u132b\u131c\3\2\2\2\u132b\u131d\3\2\2\2\u132b\u131e\3\2"+
+		"\2\2\u132b\u131f\3\2\2\2\u132b\u1320\3\2\2\2\u132b\u1321\3\2\2\2\u132b"+
+		"\u1322\3\2\2\2\u132b\u1323\3\2\2\2\u132b\u1324\3\2\2\2\u132b\u1325\3\2"+
+		"\2\2\u132b\u1326\3\2\2\2\u132b\u1327\3\2\2\2\u132b\u1328\3\2\2\2\u132b"+
+		"\u1329\3\2\2\2\u132b\u132a\3\2\2\2\u132c\u0397\3\2\2\2\u132d\u1336\7\26"+
+		"\2\2\u132e\u1333\5\u0462\u0232\2\u132f\u1330\7\32\2\2\u1330\u1332\5\u0462"+
+		"\u0232\2\u1331\u132f\3\2\2\2\u1332\u1335\3\2\2\2\u1333\u1331\3\2\2\2\u1333"+
+		"\u1334\3\2\2\2\u1334\u1337\3\2\2\2\u1335\u1333\3\2\2\2\u1336\u132e\3\2"+
+		"\2\2\u1336\u1337\3\2\2\2\u1337\u1338\3\2\2\2\u1338\u133a\7\27\2\2\u1339"+
+		"\u132d\3\2\2\2\u1339\u133a\3\2\2\2\u133a\u0399\3\2\2\2\u133b\u133c\5\u0488"+
+		"\u0245\2\u133c\u039b\3\2\2\2\u133d\u133e\5\u0488\u0245\2\u133e\u039d\3"+
+		"\2\2\2\u133f\u1340\5\u0488\u0245\2\u1340\u039f\3\2\2\2\u1341\u1345\7\u0126"+
+		"\2\2\u1342\u1345\7\u0127\2\2\u1343\u1345\5\u0470\u0239\2\u1344\u1341\3"+
+		"\2\2\2\u1344\u1342\3\2\2\2\u1344\u1343\3\2\2\2\u1345\u03a1\3\2\2\2\u1346"+
 		"\u1347\7\26\2\2\u1347\u134a\5\u0462\u0232\2\u1348\u1349\7\32\2\2\u1349"+
 		"\u134b\5\u0462\u0232\2\u134a\u1348\3\2\2\2\u134a\u134b\3\2\2\2\u134b\u134e"+
 		"\3\2\2\2\u134c\u134d\7\32\2\2\u134d\u134f\5\u0462\u0232\2\u134e\u134c"+
@@ -48035,170 +48041,170 @@ public class RpgParser extends Parser {
 		"\2\u15d7\u15d9\3\2\2\2\u15d8\u15cf\3\2\2\2\u15d8\u15d0\3\2\2\2\u15d8\u15d1"+
 		"\3\2\2\2\u15d8\u15d2\3\2\2\2\u15d8\u15d3\3\2\2\2\u15d8\u15d4\3\2\2\2\u15d9"+
 		"\u045f\3\2\2\2\u15da\u15db\5\u00caf\2\u15db\u15dc\5\u0462\u0232\2\u15dc"+
-		"\u0461\3\2\2\2\u15dd\u15de\b\u0232\1\2\u15de\u15df\7\u01ac\2\2\u15df\u15ec"+
-		"\5\u0462\u0232\24\u15e0\u15e1\7\26\2\2\u15e1\u15e2\5\u0462\u0232\2\u15e2"+
-		"\u15e3\7\27\2\2\u15e3\u15ec\3\2\2\2\u15e4\u15ec\5\u0460\u0231\2\u15e5"+
-		"\u15ec\5\u0456\u022c\2\u15e6\u15ec\5\u0466\u0234\2\u15e7\u15ec\5\u0472"+
-		"\u023a\2\u15e8\u15ec\5\u047e\u0240\2\u15e9\u15ec\5\u0470\u0239\2\u15ea"+
-		"\u15ec\5\u0396\u01cc\2\u15eb\u15dd\3\2\2\2\u15eb\u15e0\3\2\2\2\u15eb\u15e4"+
-		"\3\2\2\2\u15eb\u15e5\3\2\2\2\u15eb\u15e6\3\2\2\2\u15eb\u15e7\3\2\2\2\u15eb"+
-		"\u15e8\3\2\2\2\u15eb\u15e9\3\2\2\2\u15eb\u15ea\3\2\2\2\u15ec\u160e\3\2"+
-		"\2\2\u15ed\u15ee\f\22\2\2\u15ee\u15ef\7\u01af\2\2\u15ef\u160d\5\u0462"+
-		"\u0232\22\u15f0\u15f1\f\21\2\2\u15f1\u15f2\t\32\2\2\u15f2\u160d\5\u0462"+
-		"\u0232\22\u15f3\u15f4\f\20\2\2\u15f4\u15f5\7\u01b3\2\2\u15f5\u160d\5\u0462"+
-		"\u0232\21\u15f6\u15f7\f\17\2\2\u15f7\u15f8\7\u01ad\2\2\u15f8\u160d\5\u0462"+
-		"\u0232\20\u15f9\u15fa\f\16\2\2\u15fa\u15fb\7\u01ae\2\2\u15fb\u160d\5\u0462"+
-		"\u0232\17\u15fc\u15fd\f\r\2\2\u15fd\u15fe\7\u01bf\2\2\u15fe\u160d\5\u0462"+
-		"\u0232\16\u15ff\u1603\f\f\2\2\u1600\u1604\5\u046a\u0236\2\u1601\u1604"+
-		"\5\u0468\u0235\2\u1602\u1604\7\u01bf\2\2\u1603\u1600\3\2\2\2\u1603\u1601"+
-		"\3\2\2\2\u1603\u1602\3\2\2\2\u1604\u1605\3\2\2\2\u1605\u160d\5\u0462\u0232"+
-		"\r\u1606\u1607\f\13\2\2\u1607\u1608\7\u01aa\2\2\u1608\u160d\5\u0462\u0232"+
-		"\f\u1609\u160a\f\n\2\2\u160a\u160b\7\u01ab\2\2\u160b\u160d\5\u0462\u0232"+
-		"\13\u160c\u15ed\3\2\2\2\u160c\u15f0\3\2\2\2\u160c\u15f3\3\2\2\2\u160c"+
-		"\u15f6\3\2\2\2\u160c\u15f9\3\2\2\2\u160c\u15fc\3\2\2\2\u160c\u15ff\3\2"+
-		"\2\2\u160c\u1606\3\2\2\2\u160c\u1609\3\2\2\2\u160d\u1610\3\2\2\2\u160e"+
-		"\u160c\3\2\2\2\u160e\u160f\3\2\2\2\u160f\u0463\3\2\2\2\u1610\u160e\3\2"+
-		"\2\2\u1611\u1612\5\u0462\u0232\2\u1612\u0465\3\2\2\2\u1613\u1614\5\u0476"+
-		"\u023c\2\u1614\u1615\5\u046e\u0238\2\u1615\u0467\3\2\2\2\u1616\u1617\t"+
-		"\33\2\2\u1617\u0469\3\2\2\2\u1618\u1619\t\34\2\2\u1619\u046b\3\2\2\2\u161a"+
-		"\u161b\t\35\2\2\u161b\u046d\3\2\2\2\u161c\u1625\7\26\2\2\u161d\u1622\5"+
-		"\u0462\u0232\2\u161e\u161f\7\32\2\2\u161f\u1621\5\u0462\u0232\2\u1620"+
-		"\u161e\3\2\2\2\u1621\u1624\3\2\2\2\u1622\u1620\3\2\2\2\u1622\u1623\3\2"+
-		"\2\2\u1623\u1626\3\2\2\2\u1624\u1622\3\2\2\2\u1625\u161d\3\2\2\2\u1625"+
-		"\u1626\3\2\2\2\u1626\u1627\3\2\2\2\u1627\u1628\7\27\2\2\u1628\u046f\3"+
-		"\2\2\2\u1629\u162d\t\36\2\2\u162a\u162c\t\37\2\2\u162b\u162a\3\2\2\2\u162c"+
-		"\u162f\3\2\2\2\u162d\u162b\3\2\2\2\u162d\u162e\3\2\2\2\u162e\u1630\3\2"+
-		"\2\2\u162f\u162d\3\2\2\2\u1630\u1631\7\u0243\2\2\u1631\u0471\3\2\2\2\u1632"+
-		"\u1636\5\u0480\u0241\2\u1633\u1636\5\u0478\u023d\2\u1634\u1636\5\u0474"+
-		"\u023b\2\u1635\u1632\3\2\2\2\u1635\u1633\3\2\2\2\u1635\u1634\3\2\2\2\u1636"+
-		"\u0473\3\2\2\2\u1637\u1639\5\u0488\u0245\2\u1638\u163a\5\u0470\u0239\2"+
-		"\u1639\u1638\3\2\2\2\u1639\u163a\3\2\2\2\u163a\u0475\3\2\2\2\u163b\u163c"+
-		"\5\u0480\u0241\2\u163c\u0477\3\2\2\2\u163d\u1640\5\u0480\u0241\2\u163e"+
-		"\u1640\5\u047a\u023e\2\u163f\u163d\3\2\2\2\u163f\u163e\3\2\2\2\u1640\u1648"+
-		"\3\2\2\2\u1641\u1644\7\u01be\2\2\u1642\u1645\5\u0480\u0241\2\u1643\u1645"+
-		"\5\u047a\u023e\2\u1644\u1642\3\2\2\2\u1644\u1643\3\2\2\2\u1645\u1647\3"+
-		"\2\2\2\u1646\u1641\3\2\2\2\u1647\u164a\3\2\2\2\u1648\u1646\3\2\2\2\u1648"+
-		"\u1649\3\2\2\2\u1649\u0479\3\2\2\2\u164a\u1648\3\2\2\2\u164b\u164c\5\u0480"+
-		"\u0241\2\u164c\u164f\7\26\2\2\u164d\u1650\5\u0462\u0232\2\u164e\u1650"+
-		"\7\u01b0\2\2\u164f\u164d\3\2\2\2\u164f\u164e\3\2\2\2\u1650\u1651\3\2\2"+
-		"\2\u1651\u1652\7\27\2\2\u1652\u047b\3\2\2\2\u1653\u1654\5\u0480\u0241"+
-		"\2\u1654\u047d\3\2\2\2\u1655\u1657\7\u01ae\2\2\u1656\u1655\3\2\2\2\u1656"+
-		"\u1657\3\2\2\2\u1657\u1658\3\2\2\2\u1658\u165c\7\30\2\2\u1659\u165b\7"+
-		"\u01d6\2\2\u165a\u1659\3\2\2\2\u165b\u165e\3\2\2\2\u165c\u165a\3\2\2\2"+
-		"\u165c\u165d\3\2\2\2\u165d\u047f\3\2\2\2\u165e\u165c\3\2\2\2\u165f\u166a"+
-		"\5\u0482\u0242\2\u1660\u1662\7\u01b1\2\2\u1661\u1660\3\2\2\2\u1661\u1662"+
-		"\3\2\2\2\u1662\u1663\3\2\2\2\u1663\u166a\5\u0484\u0243\2\u1664\u166a\7"+
-		"\u01ac\2\2\u1665\u166a\7\u01c0\2\2\u1666\u166a\7\u01c1\2\2\u1667\u166a"+
-		"\7\u01c2\2\2\u1668\u166a\5\u0394\u01cb\2\u1669\u165f\3\2\2\2\u1669\u1661"+
-		"\3\2\2\2\u1669\u1664\3\2\2\2\u1669\u1665\3\2\2\2\u1669\u1666\3\2\2\2\u1669"+
-		"\u1667\3\2\2\2\u1669\u1668\3\2\2\2\u166a\u0481\3\2\2\2\u166b\u166c\5\u0484"+
-		"\u0243\2\u166c\u166d\7\u0264\2\2\u166d\u166f\3\2\2\2\u166e\u166b\3\2\2"+
-		"\2\u166f\u1670\3\2\2\2\u1670\u166e\3\2\2\2\u1670\u1671\3\2\2\2\u1671\u1672"+
-		"\3\2\2\2\u1672\u1673\5\u0484\u0243\2\u1673\u0483\3\2\2\2\u1674\u16ce\7"+
-		"\33\2\2\u1675\u16ce\7\u0155\2\2\u1676\u16ce\7\u0156\2\2\u1677\u16ce\7"+
-		"\u0157\2\2\u1678\u16ce\7\u0158\2\2\u1679\u16ce\7\u0159\2\2\u167a\u16ce"+
-		"\7\u015a\2\2\u167b\u16ce\7\u015b\2\2\u167c\u16ce\7\u015c\2\2\u167d\u16ce"+
-		"\7\u015d\2\2\u167e\u16ce\7\u015e\2\2\u167f\u16ce\7\u015f\2\2\u1680\u16ce"+
-		"\7\u0160\2\2\u1681\u16ce\7\u0161\2\2\u1682\u16ce\7\u0162\2\2\u1683\u16ce"+
-		"\7\u0163\2\2\u1684\u16ce\7\u0164\2\2\u1685\u16ce\7\u0165\2\2\u1686\u16ce"+
-		"\7\u0166\2\2\u1687\u16ce\7\u0167\2\2\u1688\u16ce\7\u0168\2\2\u1689\u16ce"+
-		"\7\u0169\2\2\u168a\u16ce\7\u016a\2\2\u168b\u16ce\7\u016b\2\2\u168c\u16ce"+
-		"\7\u016c\2\2\u168d\u16ce\7\u016d\2\2\u168e\u16ce\7\u016e\2\2\u168f\u16ce"+
-		"\7\u016f\2\2\u1690\u16ce\7\u0170\2\2\u1691\u16ce\7\u0171\2\2\u1692\u16ce"+
-		"\7\u0172\2\2\u1693\u16ce\7\u0173\2\2\u1694\u16ce\7\u0174\2\2\u1695\u16ce"+
-		"\7\u0175\2\2\u1696\u16ce\7\u0176\2\2\u1697\u16ce\7\u0177\2\2\u1698\u16ce"+
-		"\7\u0178\2\2\u1699\u16ce\7\u0179\2\2\u169a\u16ce\7\u017a\2\2\u169b\u16ce"+
-		"\7\u017b\2\2\u169c\u16ce\7\u017c\2\2\u169d\u16ce\7\u017d\2\2\u169e\u16ce"+
-		"\7\u017e\2\2\u169f\u16ce\7\u017f\2\2\u16a0\u16ce\7\u0180\2\2\u16a1\u16ce"+
-		"\7\u0181\2\2\u16a2\u16ce\7\u0182\2\2\u16a3\u16ce\7\u0183\2\2\u16a4\u16ce"+
-		"\7\u0184\2\2\u16a5\u16ce\7\u0185\2\2\u16a6\u16ce\7\u0186\2\2\u16a7\u16ce"+
-		"\7\u0187\2\2\u16a8\u16ce\7\u0188\2\2\u16a9\u16ce\7\u0189\2\2\u16aa\u16ce"+
-		"\7\u018a\2\2\u16ab\u16ce\7\u018b\2\2\u16ac\u16ce\7\u018c\2\2\u16ad\u16ce"+
-		"\7\u018d\2\2\u16ae\u16ce\7\u018e\2\2\u16af\u16ce\7\u018f\2\2\u16b0\u16ce"+
-		"\7\u0190\2\2\u16b1\u16ce\7\u0191\2\2\u16b2\u16ce\7\u0192\2\2\u16b3\u16ce"+
-		"\7\u0193\2\2\u16b4\u16ce\7\u0194\2\2\u16b5\u16ce\7\u0195\2\2\u16b6\u16ce"+
-		"\7\u0196\2\2\u16b7\u16ce\7\u0197\2\2\u16b8\u16ce\7\u0198\2\2\u16b9\u16ce"+
-		"\7\u0199\2\2\u16ba\u16ce\7\u019a\2\2\u16bb\u16ce\7\u019b\2\2\u16bc\u16ce"+
-		"\7\u019c\2\2\u16bd\u16ce\7\u019d\2\2\u16be\u16ce\7\u019e\2\2\u16bf\u16ce"+
-		"\7\u019f\2\2\u16c0\u16ce\7\u01a1\2\2\u16c1\u16ce\7\u01a2\2\2\u16c2\u16ce"+
-		"\7\u01a3\2\2\u16c3\u16ce\7\u01a4\2\2\u16c4\u16ce\7\u01a5\2\2\u16c5\u16ce"+
-		"\7\u01a6\2\2\u16c6\u16ce\7\u01a7\2\2\u16c7\u16ce\7\u01a8\2\2\u16c8\u16ce"+
-		"\7\u013a\2\2\u16c9\u16ce\7\u013c\2\2\u16ca\u16ce\7\u013e\2\2\u16cb\u16ce"+
-		"\7\u0140\2\2\u16cc\u16ce\5\u00e2r\2\u16cd\u1674\3\2\2\2\u16cd\u1675\3"+
-		"\2\2\2\u16cd\u1676\3\2\2\2\u16cd\u1677\3\2\2\2\u16cd\u1678\3\2\2\2\u16cd"+
-		"\u1679\3\2\2\2\u16cd\u167a\3\2\2\2\u16cd\u167b\3\2\2\2\u16cd\u167c\3\2"+
-		"\2\2\u16cd\u167d\3\2\2\2\u16cd\u167e\3\2\2\2\u16cd\u167f\3\2\2\2\u16cd"+
-		"\u1680\3\2\2\2\u16cd\u1681\3\2\2\2\u16cd\u1682\3\2\2\2\u16cd\u1683\3\2"+
-		"\2\2\u16cd\u1684\3\2\2\2\u16cd\u1685\3\2\2\2\u16cd\u1686\3\2\2\2\u16cd"+
-		"\u1687\3\2\2\2\u16cd\u1688\3\2\2\2\u16cd\u1689\3\2\2\2\u16cd\u168a\3\2"+
-		"\2\2\u16cd\u168b\3\2\2\2\u16cd\u168c\3\2\2\2\u16cd\u168d\3\2\2\2\u16cd"+
-		"\u168e\3\2\2\2\u16cd\u168f\3\2\2\2\u16cd\u1690\3\2\2\2\u16cd\u1691\3\2"+
-		"\2\2\u16cd\u1692\3\2\2\2\u16cd\u1693\3\2\2\2\u16cd\u1694\3\2\2\2\u16cd"+
-		"\u1695\3\2\2\2\u16cd\u1696\3\2\2\2\u16cd\u1697\3\2\2\2\u16cd\u1698\3\2"+
-		"\2\2\u16cd\u1699\3\2\2\2\u16cd\u169a\3\2\2\2\u16cd\u169b\3\2\2\2\u16cd"+
-		"\u169c\3\2\2\2\u16cd\u169d\3\2\2\2\u16cd\u169e\3\2\2\2\u16cd\u169f\3\2"+
-		"\2\2\u16cd\u16a0\3\2\2\2\u16cd\u16a1\3\2\2\2\u16cd\u16a2\3\2\2\2\u16cd"+
-		"\u16a3\3\2\2\2\u16cd\u16a4\3\2\2\2\u16cd\u16a5\3\2\2\2\u16cd\u16a6\3\2"+
-		"\2\2\u16cd\u16a7\3\2\2\2\u16cd\u16a8\3\2\2\2\u16cd\u16a9\3\2\2\2\u16cd"+
-		"\u16aa\3\2\2\2\u16cd\u16ab\3\2\2\2\u16cd\u16ac\3\2\2\2\u16cd\u16ad\3\2"+
-		"\2\2\u16cd\u16ae\3\2\2\2\u16cd\u16af\3\2\2\2\u16cd\u16b0\3\2\2\2\u16cd"+
-		"\u16b1\3\2\2\2\u16cd\u16b2\3\2\2\2\u16cd\u16b3\3\2\2\2\u16cd\u16b4\3\2"+
-		"\2\2\u16cd\u16b5\3\2\2\2\u16cd\u16b6\3\2\2\2\u16cd\u16b7\3\2\2\2\u16cd"+
-		"\u16b8\3\2\2\2\u16cd\u16b9\3\2\2\2\u16cd\u16ba\3\2\2\2\u16cd\u16bb\3\2"+
-		"\2\2\u16cd\u16bc\3\2\2\2\u16cd\u16bd\3\2\2\2\u16cd\u16be\3\2\2\2\u16cd"+
-		"\u16bf\3\2\2\2\u16cd\u16c0\3\2\2\2\u16cd\u16c1\3\2\2\2\u16cd\u16c2\3\2"+
-		"\2\2\u16cd\u16c3\3\2\2\2\u16cd\u16c4\3\2\2\2\u16cd\u16c5\3\2\2\2\u16cd"+
-		"\u16c6\3\2\2\2\u16cd\u16c7\3\2\2\2\u16cd\u16c8\3\2\2\2\u16cd\u16c9\3\2"+
-		"\2\2\u16cd\u16ca\3\2\2\2\u16cd\u16cb\3\2\2\2\u16cd\u16cc\3\2\2\2\u16ce"+
-		"\u0485\3\2\2\2\u16cf\u16d0\7\33\2\2\u16d0\u0487\3\2\2\2\u16d1\u16d2\t"+
-		" \2\2\u16d2\u0489\3\2\2\2\u16d3\u16d4\b\u0246\1\2\u16d4\u16d5\7\33\2\2"+
-		"\u16d5\u16dd\3\2\2\2\u16d6\u16d7\f\3\2\2\u16d7\u16d8\7\26\2\2\u16d8\u16d9"+
-		"\5\u0462\u0232\2\u16d9\u16da\7\27\2\2\u16da\u16dc\3\2\2\2\u16db\u16d6"+
-		"\3\2\2\2\u16dc\u16df\3\2\2\2\u16dd\u16db\3\2\2\2\u16dd\u16de\3\2\2\2\u16de"+
-		"\u048b\3\2\2\2\u16df\u16dd\3\2\2\2\u0203\u0492\u0494\u049a\u04af\u04b5"+
-		"\u04bf\u04cd\u04d2\u04d4\u04d8\u04e8\u04ed\u04fe\u0532\u054f\u055f\u0567"+
-		"\u056a\u057b\u057f\u0583\u058a\u059d\u05a1\u05aa\u05b6\u05c5\u05cc\u05d8"+
-		"\u05eb\u05f6\u0603\u060e\u0610\u0620\u0633\u063a\u063e\u0646\u064e\u0659"+
-		"\u0667\u0677\u0696\u06a2\u06d9\u070a\u071b\u0720\u0724\u0733\u073a\u073c"+
-		"\u073f\u0744\u0755\u075c\u075e\u0762\u0764\u0767\u076c\u0771\u0778\u077d"+
-		"\u0782\u0786\u078b\u078f\u0798\u079b\u079e\u07a3\u07a8\u07b2\u07b7\u07bb"+
-		"\u07c0\u07ca\u07cd\u07d0\u07d5\u07da\u07e9\u07fe\u0802\u0807\u0809\u0815"+
-		"\u081a\u0824\u082a\u0830\u0834\u083c\u0843\u084a\u0859\u085d\u0865\u086e"+
-		"\u0874\u087a\u0886\u088f\u0898\u08a1\u08aa\u08b3\u08b8\u08bf\u08c3\u08cb"+
-		"\u08d7\u08d9\u08df\u08eb\u08ed\u08f1\u08f6\u08fd\u0909\u090e\u0911\u0917"+
-		"\u0924\u0929\u092f\u0936\u093f\u0944\u0946\u094d\u0956\u095e\u0960\u0966"+
-		"\u0972\u0974\u097a\u0986\u0988\u098e\u099a\u099c\u09a2\u09ab\u09b3\u09b5"+
-		"\u09bb\u09c8\u09ca\u09d0\u09dd\u09e2\u09e8\u09ef\u09fc\u0a01\u0a07\u0a0e"+
-		"\u0a1b\u0a20\u0a26\u0a2b\u0a31\u0a3e\u0a44\u0a51\u0a56\u0a5d\u0a66\u0a72"+
-		"\u0a74\u0a7a\u0a83\u0a88\u0a8a\u0a90\u0a99\u0a9e\u0aa0\u0aa6\u0aaf\u0ab4"+
-		"\u0ab6\u0ac5\u0acd\u0ad7\u0ada\u0add\u0ae0\u0b10\u0b15\u0b1f\u0b28\u0b2e"+
-		"\u0b63\u0b74\u0b79\u0b82\u0b8b\u0ba6\u0bb5\u0bc7\u0bce\u0bdb\u0be5\u0be8"+
-		"\u0bec\u0bf1\u0bf8\u0bfc\u0c0e\u0c1f\u0c28\u0c30\u0c34\u0c38\u0c3e\u0c4c"+
-		"\u0c52\u0c5f\u0c63\u0c71\u0cd8\u0cdb\u0ce5\u0ceb\u0cf1\u0cf7\u0cfd\u0d30"+
-		"\u0d36\u0d3b\u0d41\u0d46\u0d62\u0d68\u0d6e\u0d74\u0d7d\u0d83\u0d8c\u0d95"+
-		"\u0d9b\u0d9f\u0da6\u0dbf\u0dd8\u0dde\u0de7\u0e02\u0e0f\u0e19\u0e22\u0e28"+
-		"\u0e2e\u0e33\u0e37\u0e3b\u0e3f\u0e43\u0e45\u0e51\u0e6a\u0e76\u0e9b\u0ea1"+
-		"\u0ea7\u0ead\u0ebb\u0ec1\u0ecb\u0ece\u0ed4\u0ed8\u0ef3\u0f04\u0f09\u0f0f"+
-		"\u0f15\u0f1b\u0f21\u0f27\u0f2d\u0f33\u0f39\u0f3f\u0f42\u0f48\u0f4e\u0f57"+
-		"\u0f5d\u0f6c\u0f73\u0f79\u0f7f\u0f85\u0f8e\u0fa0\u0fa6\u0fac\u0fc5\u0fcb"+
-		"\u0fd1\u0fd7\u0fde\u0fe5\u0feb\u0ff2\u0ff5\u0ff8\u1000\u1002\u1007\u1009"+
-		"\u100d\u1012\u1015\u1020\u1022\u1028\u103c\u1040\u1049\u1063\u106f\u1072"+
-		"\u1075\u107a\u1080\u1098\u109e\u10a4\u10a7\u10ab\u10b2\u10b6\u10bc\u10bf"+
-		"\u10c3\u10ca\u10ce\u10d2\u10db\u10f8\u1100\u1132\u1136\u113d\u113f\u1148"+
-		"\u114b\u1151\u1156\u115a\u115d\u1163\u1169\u116c\u1170\u1176\u1179\u117f"+
-		"\u1185\u118b\u1190\u1192\u1194\u1198\u119b\u11a1\u11b1\u11b3\u11b9\u11bf"+
-		"\u11c5\u11c9\u11cd\u11d4\u11da\u11df\u11e3\u11e7\u11ee\u11f4\u11f7\u1205"+
-		"\u1209\u1213\u1216\u121a\u1222\u1225\u122b\u122f\u1235\u1239\u123d\u1241"+
-		"\u1245\u124a\u124e\u1252\u1256\u125b\u125f\u1263\u1269\u126e\u1274\u1277"+
-		"\u127a\u1280\u1283\u1287\u128d\u1294\u129b\u129f\u12a3\u12a6\u12ac\u12b2"+
-		"\u12b7\u12bb\u12c1\u12c5\u12c9\u12d0\u12d7\u132b\u1333\u1336\u1339\u1344"+
-		"\u134a\u134e\u1352\u1360\u136e\u1380\u1393\u13a4\u13af\u13ba\u13c1\u13c5"+
-		"\u13c8\u13d4\u13d8\u1401\u1419\u141c\u1423\u1428\u1431\u143e\u1441\u1448"+
-		"\u1467\u1470\u14a9\u14c7\u14c9\u14d4\u14e3\u14e5\u14f5\u1503\u150a\u1515"+
-		"\u1527\u1530\u1534\u1537\u153c\u1540\u1543\u1559\u1562\u156b\u158c\u1595"+
-		"\u15a3\u15a6\u15aa\u15ad\u15b6\u15bc\u15cd\u15d8\u15eb\u1603\u160c\u160e"+
-		"\u1622\u1625\u162d\u1635\u1639\u163f\u1644\u1648\u164f\u1656\u165c\u1661"+
-		"\u1669\u1670\u16cd\u16dd";
+		"\u0461\3\2\2\2\u15dd\u15de\b\u0232\1\2\u15de\u15df\7\u02f3\2\2\u15df\u15e0"+
+		"\7\u01ac\2\2\u15e0\u15ed\5\u0462\u0232\24\u15e1\u15e2\7\26\2\2\u15e2\u15e3"+
+		"\5\u0462\u0232\2\u15e3\u15e4\7\27\2\2\u15e4\u15ed\3\2\2\2\u15e5\u15ed"+
+		"\5\u0460\u0231\2\u15e6\u15ed\5\u0456\u022c\2\u15e7\u15ed\5\u0466\u0234"+
+		"\2\u15e8\u15ed\5\u0472\u023a\2\u15e9\u15ed\5\u047e\u0240\2\u15ea\u15ed"+
+		"\5\u0470\u0239\2\u15eb\u15ed\5\u0396\u01cc\2\u15ec\u15dd\3\2\2\2\u15ec"+
+		"\u15e1\3\2\2\2\u15ec\u15e5\3\2\2\2\u15ec\u15e6\3\2\2\2\u15ec\u15e7\3\2"+
+		"\2\2\u15ec\u15e8\3\2\2\2\u15ec\u15e9\3\2\2\2\u15ec\u15ea\3\2\2\2\u15ec"+
+		"\u15eb\3\2\2\2\u15ed\u160f\3\2\2\2\u15ee\u15ef\f\22\2\2\u15ef\u15f0\7"+
+		"\u01af\2\2\u15f0\u160e\5\u0462\u0232\22\u15f1\u15f2\f\21\2\2\u15f2\u15f3"+
+		"\t\32\2\2\u15f3\u160e\5\u0462\u0232\22\u15f4\u15f5\f\20\2\2\u15f5\u15f6"+
+		"\7\u01b3\2\2\u15f6\u160e\5\u0462\u0232\21\u15f7\u15f8\f\17\2\2\u15f8\u15f9"+
+		"\7\u01ad\2\2\u15f9\u160e\5\u0462\u0232\20\u15fa\u15fb\f\16\2\2\u15fb\u15fc"+
+		"\7\u01ae\2\2\u15fc\u160e\5\u0462\u0232\17\u15fd\u15fe\f\r\2\2\u15fe\u15ff"+
+		"\7\u01bf\2\2\u15ff\u160e\5\u0462\u0232\16\u1600\u1604\f\f\2\2\u1601\u1605"+
+		"\5\u046a\u0236\2\u1602\u1605\5\u0468\u0235\2\u1603\u1605\7\u01bf\2\2\u1604"+
+		"\u1601\3\2\2\2\u1604\u1602\3\2\2\2\u1604\u1603\3\2\2\2\u1605\u1606\3\2"+
+		"\2\2\u1606\u160e\5\u0462\u0232\r\u1607\u1608\f\13\2\2\u1608\u1609\7\u01aa"+
+		"\2\2\u1609\u160e\5\u0462\u0232\f\u160a\u160b\f\n\2\2\u160b\u160c\7\u01ab"+
+		"\2\2\u160c\u160e\5\u0462\u0232\13\u160d\u15ee\3\2\2\2\u160d\u15f1\3\2"+
+		"\2\2\u160d\u15f4\3\2\2\2\u160d\u15f7\3\2\2\2\u160d\u15fa\3\2\2\2\u160d"+
+		"\u15fd\3\2\2\2\u160d\u1600\3\2\2\2\u160d\u1607\3\2\2\2\u160d\u160a\3\2"+
+		"\2\2\u160e\u1611\3\2\2\2\u160f\u160d\3\2\2\2\u160f\u1610\3\2\2\2\u1610"+
+		"\u0463\3\2\2\2\u1611\u160f\3\2\2\2\u1612\u1613\5\u0462\u0232\2\u1613\u0465"+
+		"\3\2\2\2\u1614\u1615\5\u0476\u023c\2\u1615\u1616\5\u046e\u0238\2\u1616"+
+		"\u0467\3\2\2\2\u1617\u1618\t\33\2\2\u1618\u0469\3\2\2\2\u1619\u161a\t"+
+		"\34\2\2\u161a\u046b\3\2\2\2\u161b\u161c\t\35\2\2\u161c\u046d\3\2\2\2\u161d"+
+		"\u1626\7\26\2\2\u161e\u1623\5\u0462\u0232\2\u161f\u1620\7\32\2\2\u1620"+
+		"\u1622\5\u0462\u0232\2\u1621\u161f\3\2\2\2\u1622\u1625\3\2\2\2\u1623\u1621"+
+		"\3\2\2\2\u1623\u1624\3\2\2\2\u1624\u1627\3\2\2\2\u1625\u1623\3\2\2\2\u1626"+
+		"\u161e\3\2\2\2\u1626\u1627\3\2\2\2\u1627\u1628\3\2\2\2\u1628\u1629\7\27"+
+		"\2\2\u1629\u046f\3\2\2\2\u162a\u162e\t\36\2\2\u162b\u162d\t\37\2\2\u162c"+
+		"\u162b\3\2\2\2\u162d\u1630\3\2\2\2\u162e\u162c\3\2\2\2\u162e\u162f\3\2"+
+		"\2\2\u162f\u1631\3\2\2\2\u1630\u162e\3\2\2\2\u1631\u1632\7\u0243\2\2\u1632"+
+		"\u0471\3\2\2\2\u1633\u1637\5\u0480\u0241\2\u1634\u1637\5\u0478\u023d\2"+
+		"\u1635\u1637\5\u0474\u023b\2\u1636\u1633\3\2\2\2\u1636\u1634\3\2\2\2\u1636"+
+		"\u1635\3\2\2\2\u1637\u0473\3\2\2\2\u1638\u163a\5\u0488\u0245\2\u1639\u163b"+
+		"\5\u0470\u0239\2\u163a\u1639\3\2\2\2\u163a\u163b\3\2\2\2\u163b\u0475\3"+
+		"\2\2\2\u163c\u163d\5\u0480\u0241\2\u163d\u0477\3\2\2\2\u163e\u1641\5\u0480"+
+		"\u0241\2\u163f\u1641\5\u047a\u023e\2\u1640\u163e\3\2\2\2\u1640\u163f\3"+
+		"\2\2\2\u1641\u1649\3\2\2\2\u1642\u1645\7\u01be\2\2\u1643\u1646\5\u0480"+
+		"\u0241\2\u1644\u1646\5\u047a\u023e\2\u1645\u1643\3\2\2\2\u1645\u1644\3"+
+		"\2\2\2\u1646\u1648\3\2\2\2\u1647\u1642\3\2\2\2\u1648\u164b\3\2\2\2\u1649"+
+		"\u1647\3\2\2\2\u1649\u164a\3\2\2\2\u164a\u0479\3\2\2\2\u164b\u1649\3\2"+
+		"\2\2\u164c\u164d\5\u0480\u0241\2\u164d\u1650\7\26\2\2\u164e\u1651\5\u0462"+
+		"\u0232\2\u164f\u1651\7\u01b0\2\2\u1650\u164e\3\2\2\2\u1650\u164f\3\2\2"+
+		"\2\u1651\u1652\3\2\2\2\u1652\u1653\7\27\2\2\u1653\u047b\3\2\2\2\u1654"+
+		"\u1655\5\u0480\u0241\2\u1655\u047d\3\2\2\2\u1656\u1658\7\u01ae\2\2\u1657"+
+		"\u1656\3\2\2\2\u1657\u1658\3\2\2\2\u1658\u1659\3\2\2\2\u1659\u165d\7\30"+
+		"\2\2\u165a\u165c\7\u01d6\2\2\u165b\u165a\3\2\2\2\u165c\u165f\3\2\2\2\u165d"+
+		"\u165b\3\2\2\2\u165d\u165e\3\2\2\2\u165e\u047f\3\2\2\2\u165f\u165d\3\2"+
+		"\2\2\u1660\u166b\5\u0482\u0242\2\u1661\u1663\7\u01b1\2\2\u1662\u1661\3"+
+		"\2\2\2\u1662\u1663\3\2\2\2\u1663\u1664\3\2\2\2\u1664\u166b\5\u0484\u0243"+
+		"\2\u1665\u166b\7\u01ac\2\2\u1666\u166b\7\u01c0\2\2\u1667\u166b\7\u01c1"+
+		"\2\2\u1668\u166b\7\u01c2\2\2\u1669\u166b\5\u0394\u01cb\2\u166a\u1660\3"+
+		"\2\2\2\u166a\u1662\3\2\2\2\u166a\u1665\3\2\2\2\u166a\u1666\3\2\2\2\u166a"+
+		"\u1667\3\2\2\2\u166a\u1668\3\2\2\2\u166a\u1669\3\2\2\2\u166b\u0481\3\2"+
+		"\2\2\u166c\u166d\5\u0484\u0243\2\u166d\u166e\7\u0264\2\2\u166e\u1670\3"+
+		"\2\2\2\u166f\u166c\3\2\2\2\u1670\u1671\3\2\2\2\u1671\u166f\3\2\2\2\u1671"+
+		"\u1672\3\2\2\2\u1672\u1673\3\2\2\2\u1673\u1674\5\u0484\u0243\2\u1674\u0483"+
+		"\3\2\2\2\u1675\u16cf\7\33\2\2\u1676\u16cf\7\u0155\2\2\u1677\u16cf\7\u0156"+
+		"\2\2\u1678\u16cf\7\u0157\2\2\u1679\u16cf\7\u0158\2\2\u167a\u16cf\7\u0159"+
+		"\2\2\u167b\u16cf\7\u015a\2\2\u167c\u16cf\7\u015b\2\2\u167d\u16cf\7\u015c"+
+		"\2\2\u167e\u16cf\7\u015d\2\2\u167f\u16cf\7\u015e\2\2\u1680\u16cf\7\u015f"+
+		"\2\2\u1681\u16cf\7\u0160\2\2\u1682\u16cf\7\u0161\2\2\u1683\u16cf\7\u0162"+
+		"\2\2\u1684\u16cf\7\u0163\2\2\u1685\u16cf\7\u0164\2\2\u1686\u16cf\7\u0165"+
+		"\2\2\u1687\u16cf\7\u0166\2\2\u1688\u16cf\7\u0167\2\2\u1689\u16cf\7\u0168"+
+		"\2\2\u168a\u16cf\7\u0169\2\2\u168b\u16cf\7\u016a\2\2\u168c\u16cf\7\u016b"+
+		"\2\2\u168d\u16cf\7\u016c\2\2\u168e\u16cf\7\u016d\2\2\u168f\u16cf\7\u016e"+
+		"\2\2\u1690\u16cf\7\u016f\2\2\u1691\u16cf\7\u0170\2\2\u1692\u16cf\7\u0171"+
+		"\2\2\u1693\u16cf\7\u0172\2\2\u1694\u16cf\7\u0173\2\2\u1695\u16cf\7\u0174"+
+		"\2\2\u1696\u16cf\7\u0175\2\2\u1697\u16cf\7\u0176\2\2\u1698\u16cf\7\u0177"+
+		"\2\2\u1699\u16cf\7\u0178\2\2\u169a\u16cf\7\u0179\2\2\u169b\u16cf\7\u017a"+
+		"\2\2\u169c\u16cf\7\u017b\2\2\u169d\u16cf\7\u017c\2\2\u169e\u16cf\7\u017d"+
+		"\2\2\u169f\u16cf\7\u017e\2\2\u16a0\u16cf\7\u017f\2\2\u16a1\u16cf\7\u0180"+
+		"\2\2\u16a2\u16cf\7\u0181\2\2\u16a3\u16cf\7\u0182\2\2\u16a4\u16cf\7\u0183"+
+		"\2\2\u16a5\u16cf\7\u0184\2\2\u16a6\u16cf\7\u0185\2\2\u16a7\u16cf\7\u0186"+
+		"\2\2\u16a8\u16cf\7\u0187\2\2\u16a9\u16cf\7\u0188\2\2\u16aa\u16cf\7\u0189"+
+		"\2\2\u16ab\u16cf\7\u018a\2\2\u16ac\u16cf\7\u018b\2\2\u16ad\u16cf\7\u018c"+
+		"\2\2\u16ae\u16cf\7\u018d\2\2\u16af\u16cf\7\u018e\2\2\u16b0\u16cf\7\u018f"+
+		"\2\2\u16b1\u16cf\7\u0190\2\2\u16b2\u16cf\7\u0191\2\2\u16b3\u16cf\7\u0192"+
+		"\2\2\u16b4\u16cf\7\u0193\2\2\u16b5\u16cf\7\u0194\2\2\u16b6\u16cf\7\u0195"+
+		"\2\2\u16b7\u16cf\7\u0196\2\2\u16b8\u16cf\7\u0197\2\2\u16b9\u16cf\7\u0198"+
+		"\2\2\u16ba\u16cf\7\u0199\2\2\u16bb\u16cf\7\u019a\2\2\u16bc\u16cf\7\u019b"+
+		"\2\2\u16bd\u16cf\7\u019c\2\2\u16be\u16cf\7\u019d\2\2\u16bf\u16cf\7\u019e"+
+		"\2\2\u16c0\u16cf\7\u019f\2\2\u16c1\u16cf\7\u01a1\2\2\u16c2\u16cf\7\u01a2"+
+		"\2\2\u16c3\u16cf\7\u01a3\2\2\u16c4\u16cf\7\u01a4\2\2\u16c5\u16cf\7\u01a5"+
+		"\2\2\u16c6\u16cf\7\u01a6\2\2\u16c7\u16cf\7\u01a7\2\2\u16c8\u16cf\7\u01a8"+
+		"\2\2\u16c9\u16cf\7\u013a\2\2\u16ca\u16cf\7\u013c\2\2\u16cb\u16cf\7\u013e"+
+		"\2\2\u16cc\u16cf\7\u0140\2\2\u16cd\u16cf\5\u00e2r\2\u16ce\u1675\3\2\2"+
+		"\2\u16ce\u1676\3\2\2\2\u16ce\u1677\3\2\2\2\u16ce\u1678\3\2\2\2\u16ce\u1679"+
+		"\3\2\2\2\u16ce\u167a\3\2\2\2\u16ce\u167b\3\2\2\2\u16ce\u167c\3\2\2\2\u16ce"+
+		"\u167d\3\2\2\2\u16ce\u167e\3\2\2\2\u16ce\u167f\3\2\2\2\u16ce\u1680\3\2"+
+		"\2\2\u16ce\u1681\3\2\2\2\u16ce\u1682\3\2\2\2\u16ce\u1683\3\2\2\2\u16ce"+
+		"\u1684\3\2\2\2\u16ce\u1685\3\2\2\2\u16ce\u1686\3\2\2\2\u16ce\u1687\3\2"+
+		"\2\2\u16ce\u1688\3\2\2\2\u16ce\u1689\3\2\2\2\u16ce\u168a\3\2\2\2\u16ce"+
+		"\u168b\3\2\2\2\u16ce\u168c\3\2\2\2\u16ce\u168d\3\2\2\2\u16ce\u168e\3\2"+
+		"\2\2\u16ce\u168f\3\2\2\2\u16ce\u1690\3\2\2\2\u16ce\u1691\3\2\2\2\u16ce"+
+		"\u1692\3\2\2\2\u16ce\u1693\3\2\2\2\u16ce\u1694\3\2\2\2\u16ce\u1695\3\2"+
+		"\2\2\u16ce\u1696\3\2\2\2\u16ce\u1697\3\2\2\2\u16ce\u1698\3\2\2\2\u16ce"+
+		"\u1699\3\2\2\2\u16ce\u169a\3\2\2\2\u16ce\u169b\3\2\2\2\u16ce\u169c\3\2"+
+		"\2\2\u16ce\u169d\3\2\2\2\u16ce\u169e\3\2\2\2\u16ce\u169f\3\2\2\2\u16ce"+
+		"\u16a0\3\2\2\2\u16ce\u16a1\3\2\2\2\u16ce\u16a2\3\2\2\2\u16ce\u16a3\3\2"+
+		"\2\2\u16ce\u16a4\3\2\2\2\u16ce\u16a5\3\2\2\2\u16ce\u16a6\3\2\2\2\u16ce"+
+		"\u16a7\3\2\2\2\u16ce\u16a8\3\2\2\2\u16ce\u16a9\3\2\2\2\u16ce\u16aa\3\2"+
+		"\2\2\u16ce\u16ab\3\2\2\2\u16ce\u16ac\3\2\2\2\u16ce\u16ad\3\2\2\2\u16ce"+
+		"\u16ae\3\2\2\2\u16ce\u16af\3\2\2\2\u16ce\u16b0\3\2\2\2\u16ce\u16b1\3\2"+
+		"\2\2\u16ce\u16b2\3\2\2\2\u16ce\u16b3\3\2\2\2\u16ce\u16b4\3\2\2\2\u16ce"+
+		"\u16b5\3\2\2\2\u16ce\u16b6\3\2\2\2\u16ce\u16b7\3\2\2\2\u16ce\u16b8\3\2"+
+		"\2\2\u16ce\u16b9\3\2\2\2\u16ce\u16ba\3\2\2\2\u16ce\u16bb\3\2\2\2\u16ce"+
+		"\u16bc\3\2\2\2\u16ce\u16bd\3\2\2\2\u16ce\u16be\3\2\2\2\u16ce\u16bf\3\2"+
+		"\2\2\u16ce\u16c0\3\2\2\2\u16ce\u16c1\3\2\2\2\u16ce\u16c2\3\2\2\2\u16ce"+
+		"\u16c3\3\2\2\2\u16ce\u16c4\3\2\2\2\u16ce\u16c5\3\2\2\2\u16ce\u16c6\3\2"+
+		"\2\2\u16ce\u16c7\3\2\2\2\u16ce\u16c8\3\2\2\2\u16ce\u16c9\3\2\2\2\u16ce"+
+		"\u16ca\3\2\2\2\u16ce\u16cb\3\2\2\2\u16ce\u16cc\3\2\2\2\u16ce\u16cd\3\2"+
+		"\2\2\u16cf\u0485\3\2\2\2\u16d0\u16d1\7\33\2\2\u16d1\u0487\3\2\2\2\u16d2"+
+		"\u16d3\t \2\2\u16d3\u0489\3\2\2\2\u16d4\u16d5\b\u0246\1\2\u16d5\u16d6"+
+		"\7\33\2\2\u16d6\u16de\3\2\2\2\u16d7\u16d8\f\3\2\2\u16d8\u16d9\7\26\2\2"+
+		"\u16d9\u16da\5\u0462\u0232\2\u16da\u16db\7\27\2\2\u16db\u16dd\3\2\2\2"+
+		"\u16dc\u16d7\3\2\2\2\u16dd\u16e0\3\2\2\2\u16de\u16dc\3\2\2\2\u16de\u16df"+
+		"\3\2\2\2\u16df\u048b\3\2\2\2\u16e0\u16de\3\2\2\2\u0203\u0492\u0494\u049a"+
+		"\u04af\u04b5\u04bf\u04cd\u04d2\u04d4\u04d8\u04e8\u04ed\u04fe\u0532\u054f"+
+		"\u055f\u0567\u056a\u057b\u057f\u0583\u058a\u059d\u05a1\u05aa\u05b6\u05c5"+
+		"\u05cc\u05d8\u05eb\u05f6\u0603\u060e\u0610\u0620\u0633\u063a\u063e\u0646"+
+		"\u064e\u0659\u0667\u0677\u0696\u06a2\u06d9\u070a\u071b\u0720\u0724\u0733"+
+		"\u073a\u073c\u073f\u0744\u0755\u075c\u075e\u0762\u0764\u0767\u076c\u0771"+
+		"\u0778\u077d\u0782\u0786\u078b\u078f\u0798\u079b\u079e\u07a3\u07a8\u07b2"+
+		"\u07b7\u07bb\u07c0\u07ca\u07cd\u07d0\u07d5\u07da\u07e9\u07fe\u0802\u0807"+
+		"\u0809\u0815\u081a\u0824\u082a\u0830\u0834\u083c\u0843\u084a\u0859\u085d"+
+		"\u0865\u086e\u0874\u087a\u0886\u088f\u0898\u08a1\u08aa\u08b3\u08b8\u08bf"+
+		"\u08c3\u08cb\u08d7\u08d9\u08df\u08eb\u08ed\u08f1\u08f6\u08fd\u0909\u090e"+
+		"\u0911\u0917\u0924\u0929\u092f\u0936\u093f\u0944\u0946\u094d\u0956\u095e"+
+		"\u0960\u0966\u0972\u0974\u097a\u0986\u0988\u098e\u099a\u099c\u09a2\u09ab"+
+		"\u09b3\u09b5\u09bb\u09c8\u09ca\u09d0\u09dd\u09e2\u09e8\u09ef\u09fc\u0a01"+
+		"\u0a07\u0a0e\u0a1b\u0a20\u0a26\u0a2b\u0a31\u0a3e\u0a44\u0a51\u0a56\u0a5d"+
+		"\u0a66\u0a72\u0a74\u0a7a\u0a83\u0a88\u0a8a\u0a90\u0a99\u0a9e\u0aa0\u0aa6"+
+		"\u0aaf\u0ab4\u0ab6\u0ac5\u0acd\u0ad7\u0ada\u0add\u0ae0\u0b10\u0b15\u0b1f"+
+		"\u0b28\u0b2e\u0b63\u0b74\u0b79\u0b82\u0b8b\u0ba6\u0bb5\u0bc7\u0bce\u0bdb"+
+		"\u0be5\u0be8\u0bec\u0bf1\u0bf8\u0bfc\u0c0e\u0c1f\u0c28\u0c30\u0c34\u0c38"+
+		"\u0c3e\u0c4c\u0c52\u0c5f\u0c63\u0c71\u0cd8\u0cdb\u0ce5\u0ceb\u0cf1\u0cf7"+
+		"\u0cfd\u0d30\u0d36\u0d3b\u0d41\u0d46\u0d62\u0d68\u0d6e\u0d74\u0d7d\u0d83"+
+		"\u0d8c\u0d95\u0d9b\u0d9f\u0da6\u0dbf\u0dd8\u0dde\u0de7\u0e02\u0e0f\u0e19"+
+		"\u0e22\u0e28\u0e2e\u0e33\u0e37\u0e3b\u0e3f\u0e43\u0e45\u0e51\u0e6a\u0e76"+
+		"\u0e9b\u0ea1\u0ea7\u0ead\u0ebb\u0ec1\u0ecb\u0ece\u0ed4\u0ed8\u0ef3\u0f04"+
+		"\u0f09\u0f0f\u0f15\u0f1b\u0f21\u0f27\u0f2d\u0f33\u0f39\u0f3f\u0f42\u0f48"+
+		"\u0f4e\u0f57\u0f5d\u0f6c\u0f73\u0f79\u0f7f\u0f85\u0f8e\u0fa0\u0fa6\u0fac"+
+		"\u0fc5\u0fcb\u0fd1\u0fd7\u0fde\u0fe5\u0feb\u0ff2\u0ff5\u0ff8\u1000\u1002"+
+		"\u1007\u1009\u100d\u1012\u1015\u1020\u1022\u1028\u103c\u1040\u1049\u1063"+
+		"\u106f\u1072\u1075\u107a\u1080\u1098\u109e\u10a4\u10a7\u10ab\u10b2\u10b6"+
+		"\u10bc\u10bf\u10c3\u10ca\u10ce\u10d2\u10db\u10f8\u1100\u1132\u1136\u113d"+
+		"\u113f\u1148\u114b\u1151\u1156\u115a\u115d\u1163\u1169\u116c\u1170\u1176"+
+		"\u1179\u117f\u1185\u118b\u1190\u1192\u1194\u1198\u119b\u11a1\u11b1\u11b3"+
+		"\u11b9\u11bf\u11c5\u11c9\u11cd\u11d4\u11da\u11df\u11e3\u11e7\u11ee\u11f4"+
+		"\u11f7\u1205\u1209\u1213\u1216\u121a\u1222\u1225\u122b\u122f\u1235\u1239"+
+		"\u123d\u1241\u1245\u124a\u124e\u1252\u1256\u125b\u125f\u1263\u1269\u126e"+
+		"\u1274\u1277\u127a\u1280\u1283\u1287\u128d\u1294\u129b\u129f\u12a3\u12a6"+
+		"\u12ac\u12b2\u12b7\u12bb\u12c1\u12c5\u12c9\u12d0\u12d7\u132b\u1333\u1336"+
+		"\u1339\u1344\u134a\u134e\u1352\u1360\u136e\u1380\u1393\u13a4\u13af\u13ba"+
+		"\u13c1\u13c5\u13c8\u13d4\u13d8\u1401\u1419\u141c\u1423\u1428\u1431\u143e"+
+		"\u1441\u1448\u1467\u1470\u14a9\u14c7\u14c9\u14d4\u14e3\u14e5\u14f5\u1503"+
+		"\u150a\u1515\u1527\u1530\u1534\u1537\u153c\u1540\u1543\u1559\u1562\u156b"+
+		"\u158c\u1595\u15a3\u15a6\u15aa\u15ad\u15b6\u15bc\u15cd\u15d8\u15ec\u1604"+
+		"\u160d\u160f\u1623\u1626\u162e\u1636\u163a\u1640\u1645\u1649\u1650\u1657"+
+		"\u165d\u1662\u166a\u1671\u16ce\u16de";
 	public static final String _serializedATN = Utils.join(
 		new String[] {
 			_serializedATNSegment0,

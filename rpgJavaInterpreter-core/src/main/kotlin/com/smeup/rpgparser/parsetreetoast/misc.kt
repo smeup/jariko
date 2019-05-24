@@ -10,6 +10,7 @@ import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
+import java.lang.IllegalStateException
 
 data class ToAstConfiguration(val considerPosition : Boolean = true,
                               val compileTimeInterpreter : CompileTimeInterpreter = CommonCompileTimeInterpreter)
@@ -54,8 +55,16 @@ internal fun SubroutineContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
             toPosition(conf.considerPosition))
 }
 
-internal fun FunctionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): FunctionCall {
-    return FunctionCall(ReferenceByName(this.functionName().text), this.args().expression().map { it.toAst(conf) }, toPosition(conf.considerPosition))
+internal fun FunctionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+    return when (this.functionName().text) {
+        "NOT" -> {
+            if (this.args().expression().size != 1) {
+                throw IllegalStateException("Not should have just one parameter")
+            }
+            NotExpr(this.args().expression()[0].toAst(conf), toPosition(conf.considerPosition))
+        }
+        else -> FunctionCall(ReferenceByName(this.functionName().text), this.args().expression().map { it.toAst(conf) }, toPosition(conf.considerPosition))
+    }
 }
 
 internal fun String.isInt() = this.toIntOrNull() != null
