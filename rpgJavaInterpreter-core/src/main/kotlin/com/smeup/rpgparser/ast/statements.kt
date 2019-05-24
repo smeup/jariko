@@ -17,7 +17,8 @@ enum class AssignmentOperator(val text: String) {
 }
 
 
-abstract class Statement(override val position: Position? = null) : Node(position)
+abstract class Statement(override val position: Position? = null,
+                         var muteAnnotations: List<MuteAnnotation> = emptyList()) : Node(position)
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
 
