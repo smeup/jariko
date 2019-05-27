@@ -170,8 +170,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is DisplayStmt -> {
-                    val value = interpret(statement.value)
-                    systemInterface.display(render(value))
+                    val values = mutableListOf<Value>()
+                    statement.factor1?.let { values.add(interpret(it)) }
+                    statement.response?.let { values.add(interpret(it)) }
+                    //TODO: receive input from systemInterface and assign value to response
+                    systemInterface.display(render(values))
                 }
                 is ForStmt -> {
                     eval(statement.init)
@@ -301,6 +304,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             else -> return value1 == value2
         }
     }
+
+    private fun render(values: List<Value>) = values.map { render(it) }.joinToString("")
 
     private fun render(value: Value) : String {
         return when (value) {

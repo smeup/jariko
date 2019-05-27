@@ -69,6 +69,10 @@ internal fun ParserRuleContext.rContext(): RContext {
 }
 
 internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
+    val l = this.literal()
+    if (l != null) {
+        return l.toAst(conf)
+    }
     return IntLiteral(this.CS_FactorContent().text.toLong(), position = toPosition(conf.considerPosition))
 }
 
@@ -123,9 +127,13 @@ internal fun referenceToExpression(text: String, position: Position?) : Expressi
     return expr
 }
 
+fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()
+
 internal fun CsDSPLYContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
-    val expression = this.cspec_fixed_standard_parts().result.toAst(conf)
-    return DisplayStmt(expression, toPosition(conf.considerPosition))
+    //TODO: handle optional presence of left and right without try/catch
+    val left = try { this.factor1Context()?.content?.toAst(conf) } catch (e: Exception){null}
+    val right = try { this.cspec_fixed_standard_parts()?.result?.toAst(conf)} catch (e: Exception){null}
+    return DisplayStmt(left, right, toPosition(conf.considerPosition))
 }
 
 internal fun ResultTypeContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -148,7 +156,7 @@ internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
 }
 
 internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistStmt {
-    val isEntry = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor().symbolicConstants().SPLAT_ENTRY() != null
+    val isEntry = this.factor1Context().symbolicConstants().SPLAT_ENTRY() != null
     return PlistStmt(
             this.csPARM().map { it.toAst(conf) },
             isEntry,

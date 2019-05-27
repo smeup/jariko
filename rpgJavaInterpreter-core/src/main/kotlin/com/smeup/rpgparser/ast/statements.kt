@@ -61,7 +61,7 @@ data class ClearStmt(val value: Expression,
     override fun dataDefinition() = dataDefinition
 }
 
-data class DisplayStmt(val value: Expression, override val position: Position? = null) : Statement(position)
+data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position)
 
 data class DoStmt(
         val endLimit: Expression,
