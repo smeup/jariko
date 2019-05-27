@@ -165,6 +165,12 @@ class InterpreterTest {
         assertEquals(outputOf("HELLOCASE"), listOf("Hello World!"))
     }
 
+    @Test
+    fun executeHELLOTRIM() {
+        assertEquals(outputOf("HELLOTRIM"), listOf("Hello World!"))
+    }
+
+
     //TODO
     @Test @Ignore
     fun executeHELLO1() {

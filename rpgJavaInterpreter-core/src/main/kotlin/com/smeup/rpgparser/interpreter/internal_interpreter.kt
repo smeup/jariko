@@ -575,6 +575,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = eval(expression.value2)
                 return DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
             }
+            is TrimrExpr -> {
+                //TODO expression.charactersToTrim
+                return StringValue(eval(expression.value).asString().value.trimEnd())
+            }
+            is TrimExpr -> {
+                //TODO expression.charactersToTrim
+                return StringValue(eval(expression.value).asString().value.trim())
+            }
             else -> TODO(expression.toString())
         }
     }

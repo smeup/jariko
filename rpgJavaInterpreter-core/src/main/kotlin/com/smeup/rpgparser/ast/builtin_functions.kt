@@ -25,6 +25,10 @@ data class TranslateExpr(var from: Expression, var to: Expression, var string: E
 data class TrimExpr(val value: Expression, val charactersToTrim: Expression? = null,
                     override val position: Position? = null) : Expression(position)
 
+// %TRIMR
+data class TrimrExpr(val value: Expression, val charactersToTrim: Expression? = null,
+                     override val position: Position? = null) : Expression(position)
+
 // %SUBST
 data class SubstExpr(val string: Expression, val start: Expression,
                      val length: Expression? = null, override val position: Position? = null)
