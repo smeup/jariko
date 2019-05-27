@@ -160,10 +160,15 @@ class InterpreterTest {
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
     }
 
-    //TODO
     @Test
     fun executeHELLOCASE() {
         assertEquals(outputOf("HELLOCASE"), listOf("Hello World!"))
+    }
+
+    //TODO
+    @Test @Ignore
+    fun executeHELLO1() {
+        assertEquals(outputOf("HELLO1"), listOf("Hello World"))
     }
 
     //TODO
