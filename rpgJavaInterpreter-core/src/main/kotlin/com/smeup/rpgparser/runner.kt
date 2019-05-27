@@ -22,7 +22,7 @@ class CommandLineProgram(val name: String) : RpgFacade<CommandLineParms>((Comman
         if (params.parmsList.isEmpty()) {
             return mapOf()
         }
-        val values = params.parmsList.map { parameter -> StringValue(parameter) }
+        val values = params.parmsList.map { parameter -> StringValue(parameter ?: "") }
         return rpgProgram.params()
                 .map {dataDefinition -> dataDefinition.name }
                 .zip(values)
