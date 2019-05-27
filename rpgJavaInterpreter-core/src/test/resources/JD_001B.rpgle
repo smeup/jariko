@@ -1,4 +1,4 @@
-﻿     V*=====================================================================
+     V*=====================================================================
      V* Date      Release Au Description
      V* dd/mm/yy  nn.mm   xx Brief description
      V*=====================================================================
@@ -34,6 +34,11 @@
      D* M A I N
       *---------------------------------------------------------------
       *
+     C     *ENTRY        PLIST
+     C                   PARM                    U$FUNZ
+     C                   PARM                    U$METO
+     C                   PARM                    U$SVAR
+     C                   PARM                    U$IN35
       * Initial settings
      C                   EXSR      IMP0
       * Function / Method
@@ -59,11 +64,6 @@
       *--------------------------------------------------------------*
      C     £INIZI        BEGSR
       *
-     C     *ENTRY        PLIST
-     C                   PARM                    U$FUNZ
-     C                   PARM                    U$METO
-     C                   PARM                    U$SVAR
-     C                   PARM                    U$IN35
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -111,3 +111,4 @@
       * This function doesn't do anything and is always successfull
       *
      C                   ENDSR
+
