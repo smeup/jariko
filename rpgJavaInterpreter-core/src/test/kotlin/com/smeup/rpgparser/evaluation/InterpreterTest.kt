@@ -114,6 +114,7 @@ class InterpreterTest {
         assertEquals(listOf("Hello World!"), si.displayed)
     }
 
+
     @Test
     fun executeCallToFibonacciWrittenInRpg() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
@@ -165,6 +166,14 @@ class InterpreterTest {
         assertEquals(outputOf("HELLOCASE"), listOf("Hello World!"))
     }
 
+
+    @Test
+    fun executeHELLOPLIST() {
+        val msg = "Hello World!"
+        val parms :  Map<String, Value> = mapOf("msG" to StringValue(msg))
+        assertEquals(outputOf("HELLOPLIST", parms), listOf(msg))
+    }
+
     @Test
     fun executeHELLOTRIM() {
         assertEquals(outputOf("HELLOTRIM"), listOf("Hello World!"))
@@ -172,7 +181,7 @@ class InterpreterTest {
 
 
     //TODO
-    @Test @Ignore
+    @Test
     fun executeHELLO1() {
         assertEquals(outputOf("HELLO1"), listOf("Hello World"))
     }
@@ -218,11 +227,11 @@ class InterpreterTest {
         assertTrue (lines.get(0).startsWith(value), format("Output not matching", value, lines))
     }
 
-    private fun outputOf(programName: String): LinkedList<String> {
+    private fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): LinkedList<String> {
         val cu = assertASTCanBeProduced(programName, true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf(), si)
+        val interpreter = execute(cu, initialValues, si)
         return si.displayed
     }
 

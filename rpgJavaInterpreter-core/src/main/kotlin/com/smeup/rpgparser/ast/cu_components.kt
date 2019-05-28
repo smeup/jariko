@@ -10,10 +10,17 @@ import java.util.*
 // from the CompilationUnit (which represents the whole file)
 // to its main components
 
+
+fun List<Statement>.plist() : PlistStmt? = this.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
+
 data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
                            val main: MainBody,
                            val subroutines: List<Subroutine>,
                            override val position: Position?) : Node(position) {
+
+    val entryPlist : PlistStmt?
+        get() = main.stmts.plist() ?:
+                subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
 
     private val inStatementsDataDefinitions = LinkedList<InStatementDataDefinition>()
 
@@ -31,19 +38,16 @@ data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
             return res
         }
 
-    fun hasDataDefinition(name: String) = dataDefinitions.any { it.name == name }
+    fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
-    fun getDataDefinition(name: String) = dataDefinitions.first { it.name == name }
+    fun getDataDefinition(name: String) = dataDefinitions.first { it.name.equals(name, ignoreCase = true) }
 
-    fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name == name }
+    fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
-    fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name == name }
+    fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
 }
 
-data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position) {
-    val entryPlist : PlistStmt?
-        get() = stmts.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
-}
+data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
 
 class Subroutine(override val name: String, val stmts: List<Statement>, override val position: Position? = null) : Named, Node(position)
 class Function(override val name: String, override val position: Position? = null) : Named, Node(position)

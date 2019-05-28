@@ -6,6 +6,8 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.xml.crypto.Data
 import kotlin.collections.HashMap
+import java.util.TreeMap
+
 
 abstract class LogEntry
 data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
@@ -13,16 +15,19 @@ data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() 
         return "executing ${subroutine.name}"
     }
 }
+
 data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry() {
     override fun toString(): String {
         return "evaluating $expression as $value"
     }
 }
+
 data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry() {
     override fun toString(): String {
         return "assigning to $data value $value"
     }
 }
+
 data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, val value: Value) : LogEntry() {
     override fun toString(): String {
         return "assigning to $array[$index] value $value"
@@ -35,7 +40,7 @@ class IterException : Exception()
 interface InterpretationContext {
     val name: String
     fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
-    fun shouldReinitialize() : Boolean
+    fun shouldReinitialize(): Boolean
 }
 
 object DummyInterpretationContext : InterpretationContext {
@@ -54,9 +59,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
     private val predefinedIndicators = HashMap<Int, Value>()
-    public var interpretationContext : InterpretationContext = DummyInterpretationContext
-    var traceMode : Boolean = false
-    var cycleLimit : Int? = null
+    public var interpretationContext: InterpretationContext = DummyInterpretationContext
+    var traceMode: Boolean = false
+    var cycleLimit: Int? = null
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
@@ -66,8 +71,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     /**
      * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
-    fun getEvaluatedExpressionsConcise() : List<ExpressionEvaluationLogEntry> {
-        val base= logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
+    fun getEvaluatedExpressionsConcise(): List<ExpressionEvaluationLogEntry> {
+        val base = logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
         var i = 0
         while (i < base.size) {
             val current = base[i]
@@ -87,7 +92,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
-            "$data cannot be assigned the value $value"}
+            "$data cannot be assigned the value $value"
+        }
 
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
@@ -101,7 +107,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
-                           reinitialization : Boolean = true) {
+                           reinitialization: Boolean = true) {
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
@@ -113,7 +119,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
         } else {
             initialValues.forEach { iv ->
-                val def = compilationUnit.allDataDefinitions.find { it.name == iv.key }!!
+                val def = compilationUnit.allDataDefinitions.find { it.name.equals(iv.key, ignoreCase = true) }!!
                 set(def, coerce(iv.value, def.type))
             }
         }
@@ -124,12 +130,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
-                reinitialization : Boolean = true) {
-        initialize(compilationUnit, initialValues, reinitialization)
+                reinitialization: Boolean = true) {
+        initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
         compilationUnit.main.stmts.forEach {
             execute(it)
         }
     }
+
+    private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
+        val result = TreeMap<String, Value>(String.CASE_INSENSITIVE_ORDER)
+        result.putAll(aMap)
+        return result
+    }
+
 
     private fun execute(statements: List<Statement>) {
         statements.forEach { execute(it) }
@@ -222,7 +235,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                                     isEqualOrSmaller(myIterValue, eval(statement.endLimit))) {
                                 try {
                                     execute(statement.body)
-                                } catch (e : IterException) {
+                                } catch (e: IterException) {
                                     // nothing to do here
                                 }
                                 myIterValue = myIterValue.increment()
@@ -237,7 +250,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                                     isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))) {
                                 try {
                                     execute(statement.body)
-                                } catch (e : IterException) {
+                                } catch (e: IterException) {
                                     // nothing to do here
                                 }
                                 assign(statement.index, PlusExpr(statement.index, IntLiteral(1)))
@@ -251,9 +264,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 is IterStmt -> throw IterException()
                 else -> TODO(statement.toString())
             }
-        } catch (e : InterruptForDebuggingPurposes) {
+        } catch (e: InterruptForDebuggingPurposes) {
             throw e
-        } catch (e : RuntimeException) {
+        } catch (e: RuntimeException) {
             throw RuntimeException("Issue executing statement $statement", e)
         }
     }
@@ -265,17 +278,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
 
-    private fun isEqualOrSmaller(value1: Value, value2: Value) : Boolean {
+    private fun isEqualOrSmaller(value1: Value, value2: Value): Boolean {
         val cmp = compare(value1, value2)
         return cmp == Comparison.SMALLER || cmp == Comparison.EQUAL
     }
 
-    private fun isGreaterThan(value1: Value, value2: Value) : Boolean {
+    private fun isGreaterThan(value1: Value, value2: Value): Boolean {
         val cmp = compare(value1, value2)
         return cmp == Comparison.GREATER
     }
 
-    private fun compare(value1: Value, value2: Value) : Comparison {
+    private fun compare(value1: Value, value2: Value): Comparison {
         return when {
             value1 is IntValue && value2 is IntValue -> when {
                 value1.value == value2.value -> Comparison.EQUAL
@@ -297,7 +310,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun areEquals(value1: Value, value2: Value) : Boolean {
+    private fun areEquals(value1: Value, value2: Value): Boolean {
         return when {
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
@@ -307,7 +320,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun render(values: List<Value>) = values.map { render(it) }.joinToString("")
 
-    private fun render(value: Value) : String {
+    private fun render(value: Value): String {
         return when (value) {
             is StringValue -> value.valueWithoutPadding
             is BooleanValue -> value.value.toString()
@@ -317,7 +330,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun eval(expression: Expression) : Value {
+    private fun eval(expression: Expression): Value {
         return when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
@@ -326,13 +339,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun assign(dataDefinition: AbstractDataDefinition, value: Value) : Value {
+    private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
         return coercedValue
     }
 
-    private fun assign(target: AssignableExpression, value: Value) : Value {
+    private fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -352,12 +365,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun assign(target: AssignableExpression, value: Expression) : Value {
+    private fun assign(target: AssignableExpression, value: Expression): Value {
         return assign(target, eval(value))
     }
 
     // TODO put it outside InternalInterpreter
-    fun coerce(value: Value, type: Type) : Value {
+    fun coerce(value: Value, type: Type): Value {
         // TODO to be completed
         return when (value) {
             is BlanksValue -> {
@@ -385,9 +398,23 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     is StringType -> {
                         var s = value.value.padEnd(type.length.toInt(), '\u0000')
                         if (value.value.length > type.length) {
-                           s = s.substring(0, type.length.toInt())
+                            s = s.substring(0, type.length.toInt())
                         }
                         return StringValue(s)
+                    }
+                    is ArrayType -> {
+                        createArrayValue(type.element, type.nElements) {
+                            //TODO
+                            blankValue(type.element)
+                        }
+                    }
+                    //TODO
+                    is NumberType -> {
+                        if (type.integer) {
+                            IntValue(value.value.toLong())
+                        } else {
+                            TODO(DecimalValue(BigDecimal.valueOf(value.value.toLong(), type.decimalDigits)).toString())
+                        }
                     }
                     else -> TODO(type.toString())
                 }
@@ -396,13 +423,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    fun interpret(expression: Expression) : Value {
+    fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
         log(ExpressionEvaluationLogEntry(expression, value))
         return value
     }
 
-    private fun interpretConcrete(expression: Expression) : Value {
+    private fun interpretConcrete(expression: Expression): Value {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
             is IntLiteral -> IntValue(expression.value)
@@ -603,17 +630,16 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 
-
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
 
 fun blankValue(type: Type): Value {
-    return when (type){
+    return when (type) {
         is ArrayType -> createArrayValue(type.element, type.nElements) {
             blankValue(type.element)
         }
         is DataStructureType -> StringValue.blank(type.size.toInt())
-        is StringType ->  StringValue.blank(type.size.toInt())
+        is StringType -> StringValue.blank(type.size.toInt())
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL

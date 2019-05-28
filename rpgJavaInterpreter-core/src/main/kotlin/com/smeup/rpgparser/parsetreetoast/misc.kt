@@ -73,7 +73,12 @@ internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
     if (l != null) {
         return l.toAst(conf)
     }
-    return IntLiteral(this.CS_FactorContent().text.toLong(), position = toPosition(conf.considerPosition))
+    val text = this.CS_FactorContent().text
+    return when (text.first()) {
+        in '0'..'9' -> IntLiteral(text.toLong(), position = toPosition(conf.considerPosition))
+        '\'' -> StringLiteral(text, position = toPosition(conf.considerPosition))
+        else -> DataRefExpr(ReferenceByName(text))
+    }
 }
 
 internal fun SymbolicConstantsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
@@ -130,9 +135,17 @@ internal fun referenceToExpression(text: String, position: Position?) : Expressi
 fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()
 
 internal fun CsDSPLYContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
-    //TODO: handle optional presence of left and right without try/catch
-    val left = try { this.factor1Context()?.content?.toAst(conf) } catch (e: Exception){null}
-    val right = try { this.cspec_fixed_standard_parts()?.result?.toAst(conf)} catch (e: Exception){null}
+    val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
+        this.factor1Context().content.toAst(conf)
+    } else {
+        null
+    }
+    val right = if (this.cspec_fixed_standard_parts()?.result?.text?.isNotBlank() ?: false) {
+        this.cspec_fixed_standard_parts().result.toAst(conf)
+    }  else {
+        null
+    }
+    require(left != null || right != null)
     return DisplayStmt(left, right, toPosition(conf.considerPosition))
 }
 
