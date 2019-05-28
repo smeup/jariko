@@ -5,7 +5,7 @@
 # If you pass the name of a configuration, it searches it in the ftpas.yml file in your user home,
 # getting the connection parameters from there or, of they are not present, asking them from console
 # You can find a sample config file in ./ftpas.sample.yaml
-# Remember you can use * and . in member specification
+# Remember you can use * in member specification
 # Example call:
 # ruby ftpas.rb lab
 
