@@ -3,6 +3,7 @@
      V* dd/mm/yy  nn.mm   xx Brief description
      V*=====================================================================
      V* 27/05/19  V5R1    AD Anonymous Developer
+     V* 29/05/19  V5R1    AD More verbose with dsply
      V*=====================================================================
      H/COPY QILEGEN,£INIZH
       *---------------------------------------------------------------
@@ -31,6 +32,8 @@
       * . Method
      D §§METO          S             10
       *---------------------------------------------------------------
+     D DSP             S             50
+      *---------------------------------------------------------------
      D* M A I N
       *---------------------------------------------------------------
       *
@@ -39,6 +42,14 @@
      C                   PARM                    U$METO
      C                   PARM                    U$SVAR
      C                   PARM                    U$IN35
+      *
+     C                   EVAL      DSP='JD_001B: ENTRY:' +                      COSTANTE
+     C                             ' U$FUNZ='+%TRIM(U$FUNZ)+
+     C                             ' U$METO='+%TRIM(U$METO)+
+     C                             ' U$SVAR='+%TRIM(U$SVAR)+
+     C                             ' U$IN35='+%TRIM(U$IN35)
+     C                   DSPLY                   DSP
+      *
       * Initial settings
      C                   EXSR      IMP0
       * Function / Method
@@ -56,6 +67,9 @@
       * Final settings
      C                   EXSR      FIN0
       * End
+     C                   EVAL      DSP='JD_001B: END PROGRAM (RT)'              COSTANTE
+     C                   DSPLY                   DSP
+      *
      C                   SETON                                        RT
       *---------------------------------------------------------------
      C/COPY QILEGEN,£INZSR
@@ -64,6 +78,8 @@
       *--------------------------------------------------------------*
      C     £INIZI        BEGSR
       *
+     C                   EVAL      DSP='JD_001B: £INIZI EXECUTED'               COSTANTE
+     C                   DSPLY                   DSP
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -71,6 +87,8 @@
       *--------------------------------------------------------------*
      C     IMP0          BEGSR
       *
+     C                   EVAL      DSP='JD_001B: IMP0 EXECUTED'                 COSTANTE
+     C                   DSPLY                   DSP
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -78,6 +96,8 @@
       *--------------------------------------------------------------*
      C     FIN0          BEGSR
       *
+     C                   EVAL      DSP='JD_001B: FIN0 EXECUTED'                 COSTANTE
+     C                   DSPLY                   DSP
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -88,6 +108,9 @@
      C                   EVAL      U$IN35=*BLANKS
      C                   EVAL      $$SVAR=U$SVAR
       *
+     C                   EVAL      DSP='JD_001B: FINZ EXECUTED'                 COSTANTE
+     C                   DSPLY                   DSP
+      *
      C                   ENDSR
       *--------------------------------------------------------------*
     RD* Invoke
@@ -97,10 +120,17 @@
      C                   EVAL      U$IN35=*BLANKS
       * Invoke url
      C                   EVAL      XXSVAR=%TRIMR($$SVAR)+U$SVAR
+      *
+     C                   EVAL      DSP='JD_001B: CALLING PGM JD_URL'            COSTANTE
+     C                   DSPLY                   DSP
+      *
      C                   CALL      'JD_URL'
      C                   PARM                    §§FUNZ
      C                   PARM                    §§METO
      C                   PARM                    XXSVAR
+      *
+     C                   EVAL      DSP='JD_001B: JD_URL CALLED, FESE EXECUTED'  COSTANTE
+     C                   DSPLY                   DSP
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -109,6 +139,7 @@
      C     FCLO          BEGSR
       *
       * This function doesn't do anything and is always successfull
+     C                   EVAL      DSP='JD_001B: FCLO EXECUTED'                 COSTANTE
+     C                   DSPLY                   DSP
       *
      C                   ENDSR
-
