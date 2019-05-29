@@ -27,7 +27,7 @@ object JavaSystemInterface : SystemInterface {
                 try {
                     val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
                     instantiateProgram(javaClass)
-                } catch (e: ClassNotFoundException) {
+                } catch (e: Exception) {
                     null
                 }
 
