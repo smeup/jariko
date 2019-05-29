@@ -4,6 +4,7 @@ import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.interpreter.Program
 import com.smeup.rpgparser.interpreter.SymbolTable
 import com.smeup.rpgparser.interpreter.SystemInterface
+import com.smeup.rpgparser.rgpinterop.RpgSystem
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
 
@@ -23,16 +24,25 @@ object JavaSystemInterface : SystemInterface {
 
     override fun findProgram(programName: String): Program? {
         return programs.computeIfAbsent(programName) {
-            javaInteropPackages.asSequence().map { packageName ->
-                try {
-                    val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
-                    instantiateProgram(javaClass)
-                } catch (e: Exception) {
-                    null
-                }
-
-            }.filter { it != null }.firstOrNull()
+            findInPackages(programName) ?: findInFileSystem(programName)
         }
+    }
+
+    private fun findInFileSystem(programName: String): Program? {
+        //TODO: remove static reference!!!
+        return RpgSystem.getProgram(programName)
+    }
+
+    private fun findInPackages(programName: String): Program? {
+        return javaInteropPackages.asSequence().map { packageName ->
+            try {
+                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
+                instantiateProgram(javaClass)
+            } catch (e: Exception) {
+                null
+            }
+
+        }.filter { it != null }.firstOrNull()
     }
 
     private fun instantiateProgram(javaClass: Class<*>): Program? {
