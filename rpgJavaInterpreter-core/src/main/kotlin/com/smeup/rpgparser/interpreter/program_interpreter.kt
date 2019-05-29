@@ -29,7 +29,8 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
             ii
         }
         interpreter.traceMode = traceMode
-        interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall)
+        interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall ||
+                                                          interpreter.interpretationContext.shouldReinitialize())
     }
 
 }
