@@ -42,6 +42,8 @@ class ResourceProgramFinder(val path: String): RpgProgramFinder {
     }
 }
 
+val traceMode: Boolean = false
+
 fun main(args : Array<String>) {
     if (args.isEmpty()) {
         println("Please provide the name of a .rpgle file to interpret")
@@ -51,6 +53,8 @@ fun main(args : Array<String>) {
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
-    CommandLineProgram(args[0]).singleCall(CommandLineParms(args.asList().subList(1, args.size)))
+    val commandLineProgram = CommandLineProgram(args[0])
+    commandLineProgram.traceMode = traceMode
+    commandLineProgram.singleCall(CommandLineParms(args.asList().subList(1, args.size)))
 }
 
