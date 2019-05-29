@@ -42,7 +42,7 @@ class ResourceProgramFinder(val path: String): RpgProgramFinder {
     }
 }
 
-val traceMode: Boolean = false
+var traceMode: Boolean = false
 
 fun main(args : Array<String>) {
     if (args.isEmpty()) {
