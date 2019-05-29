@@ -419,6 +419,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     else -> TODO(type.toString())
                 }
             }
+            is ArrayValue -> {
+                when (type) {
+                    is StringType -> {
+                        return value.asString()
+                    }
+                    is ArrayType -> {
+                        return value
+                    }
+                    else -> TODO(type.toString())
+                }
+            }
             else -> value
         }
     }

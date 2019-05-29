@@ -16,7 +16,7 @@ abstract class Value {
 data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
-            is StringType -> expectedType.length == value.length.toLong()
+            is StringType -> expectedType.length >= value.length.toLong()
             is DataStructureType -> expectedType.fields.all { it.type is StringType } &&
                     expectedType.elementSize == value.length
             else -> false
@@ -141,9 +141,16 @@ abstract class ArrayValue : Value() {
         return elements
     }
 
+    override fun asString() : StringValue {
+        return StringValue(elements().map { it.asString() }.joinToString(""))
+    }
+
     override fun assignableTo(expectedType: Type): Boolean {
         if (expectedType is ArrayType) {
             return elements().all { it.assignableTo(expectedType.element) }
+        }
+        if (expectedType is StringType) {
+            return expectedType.length >= arrayLength() * elementSize()
         }
         return false
     }
