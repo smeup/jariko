@@ -67,32 +67,32 @@ If you want to force the execution of all checks:
 
 ## How to use this code in your project
 
-At the moment, we use [Jitpack](https://jitpack.io/) to publish the project.
+At the moment, we use [Jitpack](https://jitpack.io/) to publish the [project](https://jitpack.io/#smeup/smeup-rpg).
 
 If you use Maven, add these lines to your pom.xml in order to add the repository
 
-	<repositories>
-		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-		</repository>
-	</repositories>
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 	
 Then add the following dependencies for the core library:
 	
-		<dependency>
-			<groupId>com.github.smeup.smeup-rpg</groupId>
-			<artifactId>rpgJavaInterpreter-core</artifactId>
-			<version>master-SNAPSHOT</version>
-		</dependency>
-		
+    <dependency>
+        <groupId>com.github.smeup.smeup-rpg</groupId>
+        <artifactId>rpgJavaInterpreter-core</artifactId>
+        <version>master-SNAPSHOT</version>
+    </dependency>
+
 And this if you want to include the examples too:
 		
-		<dependency>
-			<groupId>com.github.smeup.smeup-rpg</groupId>
-			<artifactId>examples</artifactId>
-			<version>master-SNAPSHOT</version>
-		</dependency>
+    <dependency>
+        <groupId>com.github.smeup.smeup-rpg</groupId>
+        <artifactId>examples</artifactId>
+        <version>master-SNAPSHOT</version>
+    </dependency>
 
 ## Credits
 
