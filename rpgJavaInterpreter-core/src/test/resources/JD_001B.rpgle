@@ -36,18 +36,19 @@
       *---------------------------------------------------------------
      D* M A I N
       *---------------------------------------------------------------
-      *
      C     *ENTRY        PLIST
      C                   PARM                    U$FUNZ
      C                   PARM                    U$METO
      C                   PARM                    U$SVAR
      C                   PARM                    U$IN35
       *
-     C                   EVAL      DSP='JD_001B: ENTRY:' +                      COSTANTE
-     C                             ' U$FUNZ='+%TRIM(U$FUNZ)+
-     C                             ' U$METO='+%TRIM(U$METO)+
-     C                             ' U$SVAR='+%TRIM(U$SVAR)+
-     C                             ' U$IN35='+%TRIM(U$IN35)
+     C                   EVAL      DSP='JD_001B Entry parms:'                   COSTANTE
+     C                   DSPLY                   DSP
+      *
+     C                   EVAL      DSP='FUNZ='+%TRIM(U$FUNZ)+                   COSTANTE
+     C                             ',METO='+%TRIM(U$METO)+
+     C                             ',SVAR='+%TRIM(U$SVAR)+
+     C                             ',IN35='+%TRIM(U$IN35)
      C                   DSPLY                   DSP
       *
       * Initial settings
@@ -67,7 +68,7 @@
       * Final settings
      C                   EXSR      FIN0
       * End
-     C                   EVAL      DSP='JD_001B: END PROGRAM (RT)'              COSTANTE
+     C                   EVAL      DSP='END PROGRAM (RT)'                       COSTANTE
      C                   DSPLY                   DSP
       *
      C                   SETON                                        RT
@@ -78,7 +79,7 @@
       *--------------------------------------------------------------*
      C     £INIZI        BEGSR
       *
-     C                   EVAL      DSP='JD_001B: £INIZI EXECUTED'               COSTANTE
+     C                   EVAL      DSP='£INIZI EXECUTED'                        COSTANTE
      C                   DSPLY                   DSP
       *
      C                   ENDSR
@@ -87,7 +88,7 @@
       *--------------------------------------------------------------*
      C     IMP0          BEGSR
       *
-     C                   EVAL      DSP='JD_001B: IMP0 EXECUTED'                 COSTANTE
+     C                   EVAL      DSP='IMP0 EXECUTED'                          COSTANTE
      C                   DSPLY                   DSP
       *
      C                   ENDSR
@@ -96,7 +97,7 @@
       *--------------------------------------------------------------*
      C     FIN0          BEGSR
       *
-     C                   EVAL      DSP='JD_001B: FIN0 EXECUTED'                 COSTANTE
+     C                   EVAL      DSP='FIN0 EXECUTED'                          COSTANTE
      C                   DSPLY                   DSP
       *
      C                   ENDSR
@@ -108,7 +109,7 @@
      C                   EVAL      U$IN35=*BLANKS
      C                   EVAL      $$SVAR=U$SVAR
       *
-     C                   EVAL      DSP='JD_001B: FINZ EXECUTED'                 COSTANTE
+     C                   EVAL      DSP='FINZ EXECUTED'                          COSTANTE
      C                   DSPLY                   DSP
       *
      C                   ENDSR
@@ -119,9 +120,11 @@
       *
      C                   EVAL      U$IN35=*BLANKS
       * Invoke url
+     C                   EVAL      §§FUNZ='URL'
+     C                   EVAL      §§METO='HTTP'
      C                   EVAL      XXSVAR=%TRIMR($$SVAR)+U$SVAR
       *
-     C                   EVAL      DSP='JD_001B: CALLING PGM JD_URL'            COSTANTE
+     C                   EVAL      DSP='CALLING PGM JD_URL'                     COSTANTE
      C                   DSPLY                   DSP
       *
      C                   CALL      'JD_URL'
@@ -129,7 +132,7 @@
      C                   PARM                    §§METO
      C                   PARM                    XXSVAR
       *
-     C                   EVAL      DSP='JD_001B: JD_URL CALLED, FESE EXECUTED'  COSTANTE
+     C                   EVAL      DSP='JD_URL CALLED, FESE EXECUTED'           COSTANTE
      C                   DSPLY                   DSP
       *
      C                   ENDSR
@@ -139,7 +142,7 @@
      C     FCLO          BEGSR
       *
       * This function doesn't do anything and is always successfull
-     C                   EVAL      DSP='JD_001B: FCLO EXECUTED'                 COSTANTE
+     C                   EVAL      DSP='FCLO EXECUTED'                          COSTANTE
      C                   DSPLY                   DSP
       *
      C                   ENDSR
