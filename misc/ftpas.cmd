@@ -1,1 +1,1 @@
-ruby %~dp0\ftpas.rb
+ruby %~dp0ftpas.rb %*

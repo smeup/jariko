@@ -24,7 +24,7 @@ def fromConfigOrConsole(conf, key, hidden=false)
         if hidden == true
             x = STDIN.noecho(&:gets).chomp
         else
-            x = gets.chomp
+            x = STDIN.gets.chomp
         end
     end
     return x
