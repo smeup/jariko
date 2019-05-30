@@ -24,8 +24,8 @@ data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
 
     private val inStatementsDataDefinitions = LinkedList<InStatementDataDefinition>()
 
-    fun addInStatementDataDefinition(dataDefinition: InStatementDataDefinition) {
-        inStatementsDataDefinitions.add(dataDefinition)
+    fun addInStatementDataDefinitions(dataDefinitions: List<InStatementDataDefinition>) {
+        inStatementsDataDefinitions.addAll(dataDefinitions)
     }
 
     @Derived

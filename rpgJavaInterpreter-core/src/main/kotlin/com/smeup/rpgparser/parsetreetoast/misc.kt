@@ -179,7 +179,13 @@ internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
 
 internal fun CsPARMContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistParam {
     val paramName = this.cspec_fixed_standard_parts().result.CS_FactorContent().text
-    return PlistParam(ReferenceByName(paramName), toPosition(conf.considerPosition))
+    val lenStr = this.cspec_fixed_standard_parts().len.text.trim()
+    val len = if (lenStr.isNotBlank()) {
+        lenStr.toLong()
+    } else {
+        null
+    }
+    return PlistParam(ReferenceByName(paramName), len, toPosition(conf.considerPosition))
 }
 
 internal fun CsSETONContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SetOnStmt {

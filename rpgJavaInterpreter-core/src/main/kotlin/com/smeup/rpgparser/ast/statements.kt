@@ -2,13 +2,15 @@ package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.interpreter.StringType
+import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 
 interface StatementThatCanDefineData {
-    fun dataDefinition() : InStatementDataDefinition?
+    fun dataDefinition() : List<InStatementDataDefinition>
 }
 
 enum class AssignmentOperator(val text: String) {
@@ -36,7 +38,18 @@ data class EvalStmt(val target: AssignableExpression,
     : Statement(position)
 
 data class CallStmt(val expression: Expression, val params: List<PlistParam>,
-                    override val position: Position? = null) : Statement(position)
+                    override val position: Position? = null) : Statement(position) , StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val result = mutableListOf<InStatementDataDefinition>()
+        params.forEach() {
+            if (it.len != null) {
+                //TODO Type
+                result.add(InStatementDataDefinition(it.param.name, StringType(it.len), it.position))
+            }
+        }
+        return result
+    }
+}
 
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),
@@ -53,12 +66,17 @@ data class PlistStmt(val params: List<PlistParam>,
                      val isEntry: Boolean,
                      override val position: Position? = null) : Statement(position)
 
-data class PlistParam(val param: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) : Node(position)
+data class PlistParam(val param: ReferenceByName<AbstractDataDefinition>, val len: Long?, override val position: Position? = null) : Node(position)
 
 data class ClearStmt(val value: Expression,
                      @Derived val dataDefinition: InStatementDataDefinition? = null,
                      override val position: Position? = null) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition() = dataDefinition
+    override fun dataDefinition() : List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
 }
 
 data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position)
