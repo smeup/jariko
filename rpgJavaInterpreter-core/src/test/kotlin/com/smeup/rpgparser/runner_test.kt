@@ -23,4 +23,19 @@ class RunnerTest {
         assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 3"))
     }
 
+    @Test
+    fun commandLineProgramsDoesNotRetainStatusOnSetOnLR() {
+        val program = getProgram("COUNTLR", JavaSystemInterface)
+
+        program.singleCall(listOf())
+        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 1"))
+
+        JavaSystemInterface.consoleOutput.clear()
+        program.singleCall(listOf())
+        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 1"))
+
+        JavaSystemInterface.consoleOutput.clear()
+        program.singleCall(listOf())
+        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 1"))
+    }
 }
