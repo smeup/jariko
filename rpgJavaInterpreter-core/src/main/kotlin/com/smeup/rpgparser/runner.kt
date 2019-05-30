@@ -1,15 +1,10 @@
 package com.smeup.rpgparser
 
-import com.smeup.rpgparser.ast.CompilationUnit
-import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.interpreter.Function
-import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rgpinterop.*
 import org.apache.commons.io.input.BOMInputStream
 import java.io.File
-import java.io.InputStream
 
 class CommandLineParms(val parmsList: List<String>)
 
@@ -17,7 +12,7 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
     override fun nameFor(rpgFacade: RpgFacade<CommandLineParms>): String = name
 }
 
-class CommandLineProgram(val name: String) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name))) {
+class CommandLineProgram(val name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name))) {
     override fun toInitialValues(params: CommandLineParms) : Map<String, Value> {
         if (params.parmsList.isEmpty()) {
             return mapOf()
@@ -28,6 +23,8 @@ class CommandLineProgram(val name: String) : RpgFacade<CommandLineParms>((Comman
                 .zip(values)
                 .toMap()
     }
+
+    fun singleCall(parms: List<String>) =  singleCall(CommandLineParms(parms))
 }
 
 class ResourceProgramFinder(val path: String): RpgProgramFinder {
@@ -42,19 +39,19 @@ class ResourceProgramFinder(val path: String): RpgProgramFinder {
     }
 }
 
-var traceMode: Boolean = false
+fun getProgram(name: String, systemInterface: SystemInterface = JavaSystemInterface) : CommandLineProgram {
+    RpgSystem.addProgramFinder(DirRpgProgramFinder())
+    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
+    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
+    RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+    return CommandLineProgram(name, systemInterface)
+}
 
 fun main(args : Array<String>) {
     if (args.isEmpty()) {
         println("Please provide the name of a .rpgle file to interpret")
         return
     }
-    RpgSystem.addProgramFinder(DirRpgProgramFinder())
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
-    RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
-    val commandLineProgram = CommandLineProgram(args[0])
-    commandLineProgram.traceMode = traceMode
-    commandLineProgram.singleCall(CommandLineParms(args.asList().subList(1, args.size)))
+    getProgram(args[0]).singleCall(args.asList().subList(1, args.size))
 }
 

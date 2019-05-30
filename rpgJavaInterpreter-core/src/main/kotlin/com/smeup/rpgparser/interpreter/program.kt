@@ -48,5 +48,12 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         interpreter.execute(this.cu, paramValues)
         return params().map { interpreter[it.name] }
     }
+
+    override fun equals(other: Any?)
+            = (other is RpgProgram) && other.name == name
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
 }
 
