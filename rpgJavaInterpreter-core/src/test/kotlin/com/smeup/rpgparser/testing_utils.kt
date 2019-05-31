@@ -137,7 +137,8 @@ class CollectorSystemInterface : SystemInterface {
 }
 
 fun execute(cu: CompilationUnit,
-            initialValues: Map<String, Value>, systemInterface: SystemInterface? = null,
+            initialValues: Map<String, Value>,
+            systemInterface: SystemInterface? = null,
             traceMode : Boolean = false,
             cycleLimit: Int? = null) : InternalInterpreter {
     val interpreter = InternalInterpreter(systemInterface ?: DummySystemInterface)

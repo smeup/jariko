@@ -224,13 +224,20 @@ class InterpreterTest {
     private fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): LinkedList<String> {
         val cu = assertASTCanBeProduced(programName, true)
         cu.resolve()
-        val si = CollectorSystemInterface()
+        val si = ExtendedCollectorSystemInterface(CollectorSystemInterface())
         execute(cu, initialValues, si)
-        return si.displayed
+        return si.collectorSI.displayed
     }
 
 
-    private fun rpgProgram(name: String) : RpgProgram {
-        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
+    class ExtendedCollectorSystemInterface(val collectorSI: CollectorSystemInterface): SystemInterface by collectorSI {
+        override fun findProgram(name: String): Program? {
+            return collectorSI.findProgram(name) ?: rpgProgram(name)
+        }
     }
 }
+
+private fun rpgProgram(name: String) : RpgProgram {
+    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
+}
+
