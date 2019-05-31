@@ -325,7 +325,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is StringValue -> value.valueWithoutPadding
             is BooleanValue -> value.value.toString()
             is IntValue -> value.value.toString()
-            is DecimalValue -> value.value.toString()
+            is DecimalValue -> value.value.toString() //TODO: formatting rules
             else -> TODO(value.javaClass.canonicalName)
         }
     }

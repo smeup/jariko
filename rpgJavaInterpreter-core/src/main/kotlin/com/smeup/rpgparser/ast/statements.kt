@@ -40,14 +40,9 @@ data class EvalStmt(val target: AssignableExpression,
 data class CallStmt(val expression: Expression, val params: List<PlistParam>,
                     override val position: Position? = null) : Statement(position) , StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
-        val result = mutableListOf<InStatementDataDefinition>()
-        params.forEach() {
-            if (it.len != null) {
-                //TODO Type
-                result.add(InStatementDataDefinition(it.param.name, StringType(it.len), it.position))
-            }
+        return params.mapNotNull() {
+            it.dataDefinition
         }
-        return result
     }
 }
 
@@ -66,7 +61,10 @@ data class PlistStmt(val params: List<PlistParam>,
                      val isEntry: Boolean,
                      override val position: Position? = null) : Statement(position)
 
-data class PlistParam(val param: ReferenceByName<AbstractDataDefinition>, val len: Long?, override val position: Position? = null) : Node(position)
+data class PlistParam(val param: ReferenceByName<AbstractDataDefinition>,
+                      //TODO @Derived????
+                      @Derived val dataDefinition: InStatementDataDefinition? = null,
+                      override val position: Position? = null) : Node(position)
 
 data class ClearStmt(val value: Expression,
                      @Derived val dataDefinition: InStatementDataDefinition? = null,

@@ -210,6 +210,12 @@ class InterpreterTest {
         assertEquals(outputOf("HELLOVARST"), listOf("Eq", "Hello-World", "Hello-World"))
     }
 
+    //TODO
+    @Test
+    fun executeCLEARDEC() {
+        assertStartsWith(outputOf("CLEARDEC"), "Counter:")
+    }
+
     @Test
     fun executeTIMESTDIFF() {
         assertStartsWith(outputOf("TIMESTDIFF"), "Elapsed time:")

@@ -5,11 +5,13 @@ import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.DIVIDE_ASSIGNMENT
 import com.smeup.rpgparser.ast.AssignmentOperator.NORMAL_ASSIGNMENT
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.Token
 
 data class ToAstConfiguration(val considerPosition: Boolean = true, 
                               val compileTimeInterpreter : CompileTimeInterpreter = CommonCompileTimeInterpreter)
@@ -155,18 +157,6 @@ internal fun ResultTypeContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
     return DataRefExpr(ReferenceByName(this.text), toPosition(conf.considerPosition))
 }
 
-internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
-    val name = this.cspec_fixed_standard_parts().result.text
-    var dataDeclaration : InStatementDataDefinition? = null
-    if (!this.cspec_fixed_standard_parts().len.text.isBlank()) {
-        val length = this.cspec_fixed_standard_parts().len.text.trim().toInt()
-        dataDeclaration = InStatementDataDefinition(name, StringType(length.toLong()), toPosition(conf.considerPosition))
-    }
-    return ClearStmt(
-            referenceToExpression(name, toPosition(conf.considerPosition)),
-            dataDeclaration,
-            toPosition(conf.considerPosition))
-}
 
 internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistStmt {
     val isEntry = this.factor1Context().symbolicConstants().SPLAT_ENTRY() != null
@@ -178,14 +168,39 @@ internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
 }
 
 internal fun CsPARMContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistParam {
-    val paramName = this.cspec_fixed_standard_parts().result.CS_FactorContent().text
-    val lenStr = this.cspec_fixed_standard_parts().len.text.trim()
-    val len = if (lenStr.isNotBlank()) {
-        lenStr.toLong()
+    val paramName = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return PlistParam(ReferenceByName(paramName), this.cspec_fixed_standard_parts().toDataDefinition(paramName, position), position)
+}
+
+internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
+    val name = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return ClearStmt(
+            referenceToExpression(name, toPosition(conf.considerPosition)),
+            this.cspec_fixed_standard_parts().toDataDefinition(name, position),
+            position)
+}
+
+internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, position: Position?): InStatementDataDefinition? {
+    val len = this.len.asLong()
+    if (len == null) {
+        return null
+    }
+    val decimals = this.decimalPositions.asLong()
+    if (decimals == null) {
+        return InStatementDataDefinition(name, StringType(len), position)
+    }
+    return InStatementDataDefinition(name, NumberType(len.toInt(), decimals.toInt()), position)
+}
+
+internal fun Token.asLong(): Long? {
+    val tokenString = this.text.trim()
+    return if (tokenString.isNotBlank()) {
+        tokenString.toLongOrNull()
     } else {
         null
     }
-    return PlistParam(ReferenceByName(paramName), len, toPosition(conf.considerPosition))
 }
 
 internal fun CsSETONContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SetOnStmt {
