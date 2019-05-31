@@ -24,7 +24,7 @@ class Dummy
 
 fun assertIsIntValue(value: Value, intValue: Long) {
     assertTrue(value is IntValue, "IntValue expected but found instead $value")
-    assertEquals(intValue, (value as IntValue).value)
+    assertEquals(intValue, value.value)
 }
 
 fun inputStreamFor(exampleName: String) : InputStream {

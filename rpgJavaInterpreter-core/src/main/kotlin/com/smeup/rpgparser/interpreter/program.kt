@@ -33,19 +33,19 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         }
     }
 
-    override fun execute(systemInterface: SystemInterface, paramValues: Map<String, Value>) : List<Value> {
-        require(paramValues.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
+    override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+        require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
         val interpreter = InternalInterpreter(systemInterface)
-        for (pv in paramValues) {
+        for (pv in params) {
             val expectedType = params().find { it.name == pv.key }!!.type
             val coercedValue = interpreter.coerce(pv.value, expectedType)
             require(coercedValue.assignableTo(expectedType)) {
                 "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
             }
         }
-        interpreter.execute(this.cu, paramValues)
+        interpreter.execute(this.cu, params)
         return params().map { interpreter[it.name] }
     }
 

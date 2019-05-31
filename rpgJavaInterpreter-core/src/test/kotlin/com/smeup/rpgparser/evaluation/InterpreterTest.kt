@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
@@ -47,62 +48,48 @@ class InterpreterTest {
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
         val assignments = interpreter.getAssignments()
+        assertEquals(assignments[0].value, StringValue("10"))
         assertIsIntValue(interpreter["NBR"], 10)
         assertEquals(listOf("10"), si.displayed)
     }
 
-    @Test
-    fun executeCALCFIB_for_value_0() {
+    private fun assertFibonacci(input: String, output: String) {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("0")), si)
-        assertEquals(listOf("FIBONACCI OF: 0 IS: 0"), si.displayed)
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue(input)), si)
+        assertEquals(listOf("FIBONACCI OF: $input IS: $output"), si.displayed)
+        assertEquals(interpreter.getExecutedSubroutineNames()[0], "FIB")
+    }
+
+    @Test
+    fun executeCALCFIB_for_value_0() {
+        assertFibonacci("0", "0")
     }
 
     @Test
     fun executeCALCFIB_for_value_1() {
-        val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
-        val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("1")), si)
-        assertEquals(listOf("FIBONACCI OF: 1 IS: 1"), si.displayed)
+        assertFibonacci("1", "1")
     }
 
     @Test
     fun executeCALCFIB_for_value_2() {
-        val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
-        val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("2")), si)
-        assertEquals(listOf("FIBONACCI OF: 2 IS: 1"), si.displayed)
+        assertFibonacci("2", "1")
     }
 
     @Test
     fun executeCALCFIB_for_value_3() {
-        val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
-        val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")), si)
-        assertEquals(listOf("FIBONACCI OF: 3 IS: 2"), si.displayed)
+        assertFibonacci("3", "2")
     }
 
     @Test
     fun executeCALCFIB_for_value_4() {
-        val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
-        val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("4")), si)
-        assertEquals(listOf("FIBONACCI OF: 4 IS: 3"), si.displayed)
+        assertFibonacci("4", "3")
     }
 
     @Test
     fun executeCALCFIB_for_value_10() {
-        val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
-        val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
-        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+        assertFibonacci("10", "55")
     }
 
     @Test
@@ -112,6 +99,7 @@ class InterpreterTest {
         val si = CollectorSystemInterface()
         val interpreter = execute(cu, mapOf(), si)
         assertEquals(listOf("Hello World!"), si.displayed)
+        assertEquals(interpreter.getExecutedSubroutines().size, 0)
     }
 
 
@@ -123,6 +111,7 @@ class InterpreterTest {
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+        assertEquals(interpreter.getExecutedSubroutines().size, 0)
     }
 
     @Test
@@ -147,6 +136,7 @@ class InterpreterTest {
         }
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+        assertEquals(interpreter.getExecutedSubroutines().size, 0)
     }
 
     @Test
@@ -180,7 +170,6 @@ class InterpreterTest {
     }
 
 
-    //TODO
     @Test
     fun executeHELLO1() {
         assertEquals(outputOf("HELLO1"), listOf("Hello World"))
@@ -210,7 +199,6 @@ class InterpreterTest {
         assertEquals(outputOf("HELLOVARST"), listOf("Eq", "Hello-World", "Hello-World"))
     }
 
-    //TODO
     @Test
     fun executeCLEARDEC() {
         assertStartsWith(outputOf("CLEARDEC"), "Counter:")
@@ -227,7 +215,7 @@ class InterpreterTest {
     }
 
     private fun assertStartsWith(lines: List<String>, value: String) {
-        if (lines == null || lines.isEmpty()) {
+        if (lines.isEmpty()) {
             fail("Empty output")
         }
         assertTrue (lines.get(0).startsWith(value), format("Output not matching", value, lines))
@@ -237,7 +225,7 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced(programName, true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, initialValues, si)
+        execute(cu, initialValues, si)
         return si.displayed
     }
 

@@ -30,20 +30,20 @@ class JDExamplesTest {
 
         val svarsk = interpreter["U\$SVARSK"]
         assertTrue(svarsk is ArrayValue)
-        assertEquals(200, (svarsk as ArrayValue).arrayLength())
-        val svarskElement = (svarsk as ArrayValue).getElement(1)
+        assertEquals(200, svarsk.arrayLength())
+        val svarskElement = svarsk.getElement(1)
         assertEquals(blankString(1050), svarskElement)
 
         val svarcd = interpreter["\$\$SVARCD"]
         assertTrue(svarcd is ArrayValue)
-        assertEquals(200, (svarcd as ArrayValue).arrayLength())
-        val svarcdElement = (svarcd as ArrayValue).getElement(1)
+        assertEquals(200, svarcd.arrayLength())
+        val svarcdElement = svarcd.getElement(1)
         assertEquals(blankString(50), svarcdElement)
 
         val svarva = interpreter["\$\$SVARVA"]
         assertTrue(svarva is ArrayValue)
-        assertEquals(200, (svarva as ArrayValue).arrayLength())
-        val svarvaElement = (svarva as ArrayValue).getElement(1)
+        assertEquals(200, svarva.arrayLength())
+        val svarvaElement = svarva.getElement(1)
         assertEquals(blankString(1000), svarvaElement)
     }
 
@@ -51,7 +51,7 @@ class JDExamplesTest {
     fun executeJD_000_base() {
         val cu = assertASTCanBeProduced("JD_000_base", true)
         cu.resolve()
-        val interpreter = execute(cu, mapOf(), traceMode = true)
+        execute(cu, mapOf(), traceMode = true)
     }
 
 //    TODO: to solve this we should handle params being data declarations, sometimes

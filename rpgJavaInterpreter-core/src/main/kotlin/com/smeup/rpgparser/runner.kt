@@ -12,12 +12,12 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
     override fun nameFor(rpgFacade: RpgFacade<CommandLineParms>): String = name
 }
 
-class CommandLineProgram(val name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name))) {
+class CommandLineProgram(val name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)),  systemInterface) {
     override fun toInitialValues(params: CommandLineParms) : Map<String, Value> {
         if (params.parmsList.isEmpty()) {
             return mapOf()
         }
-        val values = params.parmsList.map { parameter -> StringValue(parameter ?: "") }
+        val values = params.parmsList.map { parameter -> StringValue(parameter ) }
         return rpgProgram.params()
                 .map {dataDefinition -> dataDefinition.name }
                 .zip(values)

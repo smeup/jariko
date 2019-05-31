@@ -556,9 +556,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is NotExpr -> {
                 return BooleanValue(!eval(expression.base).asBoolean().value)
             }
-            is TrimExpr -> {
-                return StringValue(eval(expression.value).asString().value.trim())
-            }
             is ScanExpr -> {
                 var startIndex = 0
                 if (expression.start != null) {
@@ -618,7 +615,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return StringValue(eval(expression.value).asString().value.trimEnd())
             }
             is TrimExpr -> {
-                //TODO expression.charactersToTrim
                 return StringValue(eval(expression.value).asString().value.trim())
             }
             else -> TODO(expression.toString())

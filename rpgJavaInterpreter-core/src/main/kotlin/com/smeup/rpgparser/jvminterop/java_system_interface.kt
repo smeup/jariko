@@ -22,9 +22,9 @@ object JavaSystemInterface : SystemInterface {
         println(value)
     }
 
-    override fun findProgram(programName: String): Program? {
-        return programs.computeIfAbsent(programName) {
-            findInPackages(programName) ?: findInFileSystem(programName)
+    override fun findProgram(name: String): Program? {
+        return programs.computeIfAbsent(name) {
+            findInPackages(name) ?: findInFileSystem(name)
         }
     }
 
