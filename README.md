@@ -94,9 +94,16 @@ And this if you want to include the examples too:
         <version>master-SNAPSHOT</version>
     </dependency>
 
+Side note for maven users who use mirrors: remember to change your .m2/settings.xml with settings like this:
+
+    <mirrors>
+        <mirror>
+            <id>myNexus</id>
+            <mirrorOf>*,!jitpack.io</mirrorOf>
+
 ## Credits
 
-The grammar used in this project is based on the work from Ryan Eberly. It is derived from his project [rpgleparser](https://github.com/rpgleparser/rpgleparser).
+The grammar used in this project is based on the work from [Ryan Eberly](https://www.linkedin.com/in/ryan-eberly-428b438/). It is derived from his project [rpgleparser](https://github.com/rpgleparser/rpgleparser).
 
 Some RPG Examples are from [Claudio Neroni](https://www.neroni.it) 
 
