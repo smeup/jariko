@@ -12,7 +12,7 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
     override fun nameFor(rpgFacade: RpgFacade<CommandLineParms>): String = name
 }
 
-class CommandLineProgram(val name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)),  systemInterface) {
+class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)),  systemInterface) {
     override fun toInitialValues(params: CommandLineParms) : Map<String, Value> {
         if (params.parmsList.isEmpty()) {
             return mapOf()
@@ -40,14 +40,15 @@ class ResourceProgramFinder(val path: String): RpgProgramFinder {
 }
 
 //Method for Java programs
-fun getProgram(name: String) : CommandLineProgram = getProgram(name,  JavaSystemInterface())
+fun getProgram(nameOrSource: String) : CommandLineProgram = getProgram(nameOrSource,  JavaSystemInterface())
 
-fun getProgram(name: String, systemInterface: SystemInterface = JavaSystemInterface()) : CommandLineProgram {
+fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSystemInterface()) : CommandLineProgram {
+    RpgSystem.addProgramFinder(SourceProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
-    return CommandLineProgram(name, systemInterface)
+    return CommandLineProgram(nameOrSource, systemInterface)
 }
 
 fun main(args : Array<String>) {

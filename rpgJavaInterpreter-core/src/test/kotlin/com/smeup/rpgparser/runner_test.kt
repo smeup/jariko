@@ -43,4 +43,19 @@ class RunnerTest {
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
     }
+
+    @Test
+    fun commandLineProgramsCanReadSourcesFromString() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     C     'Hello World' DSPLY
+|     C                   SETON                                          LR
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+
+        program.singleCall(listOf())
+        assertEquals(systemInterface.consoleOutput, listOf("Hello World"))
+    }
 }

@@ -30,6 +30,7 @@ class ClassProgramName<P> : ProgramNameSource<P> {
     override fun nameFor(rpgFacade: RpgFacade<P>) : String = rpgFacade.javaClass.simpleName
 }
 
+
 abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
                              val systemInterface: SystemInterface) {
 

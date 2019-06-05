@@ -1,12 +1,22 @@
 package com.smeup.rpgparser.rgpinterop
 
 import com.smeup.rpgparser.interpreter.RpgProgram
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.util.*
 
 interface RpgProgramFinder {
     fun findRpgProgram(name: String) : RpgProgram?
+}
+
+class SourceProgramFinder : RpgProgramFinder {
+    override fun findRpgProgram(source: String): RpgProgram? {
+        if (source.contains("\n") || source.contains("\r")) {
+            return  RpgProgram.fromInputStream(ByteArrayInputStream(source.toByteArray(Charsets.UTF_8)))
+        }
+        return null
+    }
 }
 
 class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
