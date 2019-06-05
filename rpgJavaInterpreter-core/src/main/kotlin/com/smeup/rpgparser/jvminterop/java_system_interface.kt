@@ -5,10 +5,11 @@ import com.smeup.rpgparser.interpreter.Program
 import com.smeup.rpgparser.interpreter.SymbolTable
 import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.rgpinterop.RpgSystem
+import java.io.PrintStream
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
 
-object JavaSystemInterface : SystemInterface {
+class JavaSystemInterface(private val outputStream: PrintStream = System.out) : SystemInterface {
     val consoleOutput = LinkedList<String>()
     private val javaInteropPackages = LinkedList<String>()
     private val programs = HashMap<String, Program?>()
@@ -19,7 +20,7 @@ object JavaSystemInterface : SystemInterface {
 
     override fun display(value: String) {
         consoleOutput.add(value)
-        println(value)
+        outputStream.println(value)
     }
 
     override fun findProgram(name: String): Program? {

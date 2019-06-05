@@ -9,35 +9,38 @@ class RunnerTest {
 
     @Test
     fun commandLineProgramsRetainsStatusOnSetOnRT() {
-        val program = getProgram("COUNTRT", JavaSystemInterface)
+        val systemInterface = JavaSystemInterface()
 
-        JavaSystemInterface.consoleOutput.clear()
-        program.singleCall(listOf())
-        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 1"))
+        val program = getProgram("COUNTRT", systemInterface)
 
-        JavaSystemInterface.consoleOutput.clear()
+        systemInterface.consoleOutput.clear()
         program.singleCall(listOf())
-        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 2"))
+        assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
 
-        JavaSystemInterface.consoleOutput.clear()
+        systemInterface.consoleOutput.clear()
         program.singleCall(listOf())
-        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 3"))
+        assertEquals(systemInterface.consoleOutput, listOf("Counter: 2"))
+
+        systemInterface.consoleOutput.clear()
+        program.singleCall(listOf())
+        assertEquals(systemInterface.consoleOutput, listOf("Counter: 3"))
     }
 
     @Test
     fun commandLineProgramsDoesNotRetainStatusOnSetOnLR() {
-        val program = getProgram("COUNTLR", JavaSystemInterface)
+        val systemInterface = JavaSystemInterface()
+        val program = getProgram("COUNTLR", systemInterface)
 
-        JavaSystemInterface.consoleOutput.clear()
+        systemInterface.consoleOutput.clear()
         program.singleCall(listOf())
-        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 1"))
+        assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
 
-        JavaSystemInterface.consoleOutput.clear()
+        systemInterface.consoleOutput.clear()
         program.singleCall(listOf())
-        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 1"))
+        assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
 
-        JavaSystemInterface.consoleOutput.clear()
+        systemInterface.consoleOutput.clear()
         program.singleCall(listOf())
-        assertEquals(JavaSystemInterface.consoleOutput, listOf("Counter: 1"))
+        assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
     }
 }

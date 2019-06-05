@@ -40,9 +40,9 @@ class ResourceProgramFinder(val path: String): RpgProgramFinder {
 }
 
 //Method for Java programs
-fun getProgram(name: String) : CommandLineProgram = getProgram(name,  JavaSystemInterface)
+fun getProgram(name: String) : CommandLineProgram = getProgram(name,  JavaSystemInterface())
 
-fun getProgram(name: String, systemInterface: SystemInterface = JavaSystemInterface) : CommandLineProgram {
+fun getProgram(name: String, systemInterface: SystemInterface = JavaSystemInterface()) : CommandLineProgram {
     RpgSystem.addProgramFinder(DirRpgProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))

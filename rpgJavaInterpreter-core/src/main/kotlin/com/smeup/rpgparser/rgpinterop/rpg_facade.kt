@@ -31,7 +31,7 @@ class ClassProgramName<P> : ProgramNameSource<P> {
 }
 
 abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
-                             val systemInterface: SystemInterface = JavaSystemInterface) {
+                             val systemInterface: SystemInterface) {
 
     var traceMode = false
 
