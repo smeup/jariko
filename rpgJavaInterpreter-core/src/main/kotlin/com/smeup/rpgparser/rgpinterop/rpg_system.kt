@@ -13,6 +13,7 @@ interface RpgProgramFinder {
 class SourceProgramFinder : RpgProgramFinder {
     override fun findRpgProgram(source: String): RpgProgram? {
         if (source.contains("\n") || source.contains("\r")) {
+            println(source)
             return  RpgProgram.fromInputStream(ByteArrayInputStream(source.toByteArray(Charsets.UTF_8)))
         }
         return null

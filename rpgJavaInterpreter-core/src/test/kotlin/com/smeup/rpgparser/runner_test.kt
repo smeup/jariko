@@ -58,4 +58,21 @@ class RunnerTest {
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Hello World"))
     }
+
+    @Test
+    fun commandLineProgramsCanReadSourcesFromUTF8String() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     D Msg§            S             12
+|     C                   Eval      Msg§ = 'Hello World!'
+|     C                   dsply                   Msg§
+|     C                   SETON                                          LR
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+
+        program.singleCall(listOf())
+        assertEquals(systemInterface.consoleOutput, listOf("Hello World!"))
+    }
 }
