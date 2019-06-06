@@ -7,23 +7,23 @@ import java.io.FileInputStream
 import java.util.*
 
 interface RpgProgramFinder {
-    fun findRpgProgram(name: String) : RpgProgram?
+    fun findRpgProgram(nameOrSource: String) : RpgProgram?
 }
 
 class SourceProgramFinder : RpgProgramFinder {
-    override fun findRpgProgram(source: String): RpgProgram? {
-        if (source.contains("\n") || source.contains("\r")) {
-            return  RpgProgram.fromInputStream(ByteArrayInputStream(source.toByteArray(Charsets.UTF_8)))
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+        if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
+            return  RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)))
         }
         return null
     }
 }
 
 class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
-    override fun findRpgProgram(name: String): RpgProgram? {
-        val file = File(prefix() + nameAndSuffix(name))
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+        val file = File(prefix() + nameAndSuffix(nameOrSource))
         return if (file.exists()) {
-            RpgProgram.fromInputStream(FileInputStream(file), name)
+            RpgProgram.fromInputStream(FileInputStream(file), nameOrSource)
         } else {
             println("Not found file ${file.absolutePath}")
             null

@@ -68,7 +68,6 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
         return when {
             jvmValue is String -> StringValue(jvmValue)
             else -> {
-                val rpgType = property.toRpgType()
                 if (jvmValue is String) {
                     StringValue(jvmValue)
                 } else {

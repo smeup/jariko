@@ -28,8 +28,8 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
 }
 
 class ResourceProgramFinder(val path: String): RpgProgramFinder {
-    override fun findRpgProgram(name: String): RpgProgram? {
-        val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$name.rpgle")
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+        val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
         return if (resourceStream != null) {
             RpgProgram.fromInputStream(BOMInputStream(resourceStream))
         } else {
