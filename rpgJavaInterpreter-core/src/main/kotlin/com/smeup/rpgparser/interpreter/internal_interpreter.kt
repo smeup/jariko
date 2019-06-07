@@ -225,8 +225,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
 
                     val params = statement.params.mapIndexed { index, it ->
-                        if (it.dataDefinition != null && !exists(it.param.name) && it.dataDefinition.initializationValue != null) {
-                            assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
+                        if (it.dataDefinition != null && !exists(it.param.name)) {
+                            if (it.dataDefinition.initializationValue != null) {
+                                assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
+                            } else {
+                                assign(it.dataDefinition, eval(BlanksRefExpr()))
+                            }
                         }
                         program.params()[index].name to get(it.param.name)
                     }.toMap()

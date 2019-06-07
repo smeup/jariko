@@ -214,9 +214,9 @@ class InterpreterTest {
         assertEquals(outputOf("CALCFIBCA5"), listOf("FIBONACCI OF: 10 IS: 55"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeJD_000() {
-        assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com"))
+        assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"))
     }
 
     private fun assertStartsWith(lines: List<String>, value: String) {
