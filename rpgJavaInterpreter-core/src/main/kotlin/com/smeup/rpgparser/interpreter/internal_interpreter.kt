@@ -193,11 +193,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 is ForStmt -> {
                     eval(statement.init)
-                    // TODO consider DOWNTO
                     try {
-                        while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
+                        while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
                             execute(statement.body)
-                            increment(statement.iterDataDefinition())
+                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
                         }
                     } catch (e: LeaveException) {
                         // leaving
@@ -284,6 +283,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
+    private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
+        if (downward) {
+            isEqualOrGreater(index, end)
+        } else {
+            isEqualOrSmaller(index, end)
+        }
+
+    private fun step(byValue: Expression, downward: Boolean): Long {
+        val sign = if (downward) {
+            -1
+        } else {
+            1
+        }
+        return eval(byValue).asInt().value * sign
+    }
+
     enum class Comparison {
         SMALLER,
         EQUAL,
@@ -294,6 +309,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private fun isEqualOrSmaller(value1: Value, value2: Value): Boolean {
         val cmp = compare(value1, value2)
         return cmp == Comparison.SMALLER || cmp == Comparison.EQUAL
+    }
+
+    private fun isEqualOrGreater(value1: Value, value2: Value): Boolean {
+        val cmp = compare(value1, value2)
+        return cmp == Comparison.GREATER || cmp == Comparison.EQUAL
     }
 
     private fun isGreaterThan(value1: Value, value2: Value): Boolean {
@@ -314,10 +334,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun increment(dataDefinition: AbstractDataDefinition) {
+    private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
         val value = this[dataDefinition]
         if (value is IntValue) {
-            this[dataDefinition] = IntValue(value.value + 1)
+            this[dataDefinition] = IntValue(value.value + amount)
         } else {
             throw UnsupportedOperationException()
         }

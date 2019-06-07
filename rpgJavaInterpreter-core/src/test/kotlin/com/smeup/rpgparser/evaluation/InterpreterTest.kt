@@ -219,7 +219,7 @@ class InterpreterTest {
         assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeFORDOWNBY() {
         assertEquals(outputOf("FORDOWNBY"), listOf("12", "9", "6", "3"))
     }
