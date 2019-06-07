@@ -95,6 +95,8 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
 data class ForStmt(
         var init: Expression,
         val endValue: Expression,
+        val byValue: Expression,
+        val downward: Boolean = false,
         val body: List<Statement>, override val position: Position? = null) : Statement(position) {
     fun iterDataDefinition(): AbstractDataDefinition {
         if (init is AssignmentExpr) {

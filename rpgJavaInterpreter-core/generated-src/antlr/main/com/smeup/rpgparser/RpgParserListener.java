@@ -2708,6 +2708,26 @@ public interface RpgParserListener extends ParseTreeListener {
 	 */
 	void exitCsFOR(RpgParser.CsFORContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link RpgParser#byExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterByExpression(RpgParser.ByExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RpgParser#byExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitByExpression(RpgParser.ByExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RpgParser#stopExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterStopExpression(RpgParser.StopExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RpgParser#stopExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitStopExpression(RpgParser.StopExpressionContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link RpgParser#csFORCE}.
 	 * @param ctx the parse tree
 	 */
