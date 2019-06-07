@@ -88,6 +88,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return base
     }
 
+    fun exists(dataName: String) = globalSymbolTable.contains(dataName)
+
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -221,7 +223,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 is CallStmt -> {
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
-                    val params = statement.params.mapIndexed { index, it -> program.params()[index].name to get(it.param.name) }.toMap()
+
+                    val params = statement.params.mapIndexed { index, it ->
+                        if (it.dataDefinition != null && !exists(it.param.name) && it.dataDefinition.initializationValue != null) {
+                            assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
+                        }
+                        program.params()[index].name to get(it.param.name)
+                    }.toMap()
+
                     val paramValuesAtTheEnd = program.execute(systemInterface, params)
                     paramValuesAtTheEnd.forEachIndexed { index, value ->
                         assign(statement.params[index].param.referred!!, value)

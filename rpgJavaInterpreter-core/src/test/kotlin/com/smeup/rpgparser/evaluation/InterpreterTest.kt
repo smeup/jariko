@@ -209,6 +209,11 @@ class InterpreterTest {
         assertStartsWith(outputOf("TIMESTDIFF"), "Elapsed time:")
     }
 
+    @Test
+    fun executeCALCFIBCA5() {
+        assertEquals(outputOf("CALCFIBCA5"), listOf("FIBONACCI OF: 10 IS: 55"))
+    }
+
     @Test @Ignore
     fun executeJD_000() {
         assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com"))

@@ -63,5 +63,6 @@ data class FieldDefinition(override val name: String,
 
 class InStatementDataDefinition(override val name: String,
                                 override val type: Type,
-                                override val position: Position? = null)
+                                override val position: Position? = null,
+                                val initializationValue : Expression? = null)
             : AbstractDataDefinition(name, type, position)

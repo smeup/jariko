@@ -170,7 +170,7 @@ internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
 internal fun CsPARMContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistParam {
     val paramName = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
-    return PlistParam(ReferenceByName(paramName), this.cspec_fixed_standard_parts().toDataDefinition(paramName, position), position)
+    return PlistParam(ReferenceByName(paramName), this.cspec_fixed_standard_parts().toDataDefinition(paramName, position, conf), position)
 }
 
 internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
@@ -178,21 +178,26 @@ internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
     val position = toPosition(conf.considerPosition)
     return ClearStmt(
             referenceToExpression(name, toPosition(conf.considerPosition)),
-            this.cspec_fixed_standard_parts().toDataDefinition(name, position),
+            this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf),
             position)
 }
 
-internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, position: Position?): InStatementDataDefinition? {
+internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, position: Position?, conf: ToAstConfiguration): InStatementDataDefinition? {
     val len = this.len.asLong()
     if (len == null) {
         return null
     }
     val decimals = this.decimalPositions.asLong()
-    if (decimals == null) {
-        return InStatementDataDefinition(name, StringType(len), position)
-    }
-    return InStatementDataDefinition(name, NumberType(len.toInt(), decimals.toInt()), position)
+    val initialValue = this.factor2?.content?.toAst(conf)
+    return InStatementDataDefinition(name, dataType(len, decimals), position, initializationValue = initialValue)
 }
+
+private fun dataType(len: Long, decimals: Long?): Type =
+    if (decimals == null) {
+        StringType(len)
+    } else {
+        NumberType(len.toInt(), decimals.toInt())
+    }
 
 internal fun Token.asLong(): Long? {
     val tokenString = this.text.trim()
