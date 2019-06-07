@@ -219,6 +219,12 @@ class InterpreterTest {
         assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"))
     }
 
+    @Test @Ignore
+    fun executeFORDOWNBY() {
+        assertEquals(outputOf("FORDOWNBY"), listOf("12", "9", "6", "3"))
+    }
+
+
     private fun assertStartsWith(lines: List<String>, value: String) {
         if (lines.isEmpty()) {
             fail("Empty output")
