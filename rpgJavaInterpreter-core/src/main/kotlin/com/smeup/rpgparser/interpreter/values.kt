@@ -106,6 +106,35 @@ data class IntValue(val value: Long) : Value() {
     override fun asInt() = this
     fun increment() = IntValue(value + 1)
 
+    override fun takeLast(n: Int): Value {
+        return IntValue(lastDigits(value, n))
+    }
+
+    private fun lastDigits(n: Long, digits: Int): Long {
+        return (n % Math.pow(10.0, digits.toDouble())).toLong()
+    }
+
+    private fun firstDigits(n: Long, digits: Int): Long {
+        var localNr = n
+        if (n < 0) {
+            localNr = n * -1
+        }
+        val div = Math.pow(10.0, digits.toDouble()).toInt()
+        while (localNr / div > 0) {
+            localNr /= 10
+        }
+        return localNr * java.lang.Long.signum(n)
+    }
+
+    override fun takeFirst(n: Int): Value {
+        return IntValue(firstDigits(value, n))
+    }
+
+    override fun concatenate(other: Value): Value {
+        require(other is IntValue)
+        return IntValue((value.toString() + other.value.toString()).toLong())
+    }
+
     companion object {
         val ZERO = IntValue(0)
     }

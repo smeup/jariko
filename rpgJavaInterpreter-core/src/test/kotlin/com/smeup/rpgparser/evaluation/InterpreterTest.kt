@@ -229,6 +229,11 @@ class InterpreterTest {
         assertEquals(outputOf("MOVEFIXFIX"), listOf("ABCDE", "56789", "", "MNOPX"))
     }
 
+    @Test
+    fun executeMOVENBRNBR() {
+        assertEquals(outputOf("MOVENBRNBR"), listOf("12345", "45678", "123", "99991"))
+    }
+
     @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
