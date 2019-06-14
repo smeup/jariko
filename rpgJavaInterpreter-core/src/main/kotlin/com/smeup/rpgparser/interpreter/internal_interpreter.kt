@@ -158,6 +158,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     execute(statement.subroutine.referred!!.stmts)
                 }
                 is EvalStmt -> assign(statement.target, statement.expression)
+                is MoveStmt -> move(statement.target, statement.expression)
                 is SelectStmt -> {
                     for (case in statement.cases) {
                         if (interpret(case.condition).asBoolean().value) {
@@ -400,6 +401,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun assign(target: AssignableExpression, value: Expression): Value {
         return assign(target, eval(value))
+    }
+
+    private fun move(target: AssignableExpression, value: Expression): Value {
+        when (target) {
+            is DataRefExpr -> {
+                var newValue = eval(value).takeLast(target.size().toInt())
+                if (value.type().size < target.size()) {
+                    newValue = get(target.variable.referred!!).takeFirst((target.size()- value.type().size ).toInt()).concatenate(newValue)
+                }
+                return assign(target, newValue)
+            }
+            else -> TODO()
+        }
     }
 
     // TODO put it outside InternalInterpreter

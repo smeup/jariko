@@ -10,6 +10,9 @@ abstract class Value {
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
     open fun asTimeStamp() : TimeStampValue = throw UnsupportedOperationException()
     abstract fun assignableTo(expectedType: Type): Boolean
+    open fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
+    open fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
+    open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
 }
 
@@ -21,6 +24,19 @@ data class StringValue(var value: String) : Value() {
                     expectedType.elementSize == value.length
             else -> false
         }
+    }
+
+    override fun takeLast(n: Int): Value {
+        return StringValue(value.takeLast(n))
+    }
+
+    override fun takeFirst(n: Int): Value {
+        return StringValue(value.take(n))
+    }
+
+    override fun concatenate(other: Value): Value {
+        require(other is StringValue)
+        return StringValue(value + other.value)
     }
 
     val valueWithoutPadding : String

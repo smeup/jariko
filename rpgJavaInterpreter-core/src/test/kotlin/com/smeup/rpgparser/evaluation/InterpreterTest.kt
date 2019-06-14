@@ -224,6 +224,22 @@ class InterpreterTest {
         assertEquals(outputOf("FORDOWNBY"), listOf("12", "9", "6", "3"))
     }
 
+    @Test
+    fun executeMOVEFIXFIX() {
+        assertEquals(outputOf("MOVEFIXFIX"), listOf("ABCDE", "56789", "", "MNOPX"))
+    }
+
+    @Test @Ignore
+    fun executeJCODFISD() {
+        val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
+                                               "FISICA" to BooleanValue(false),
+                                               "OMONIM" to BooleanValue(false),
+                                               "SINTAX" to BooleanValue(false),
+                                               "CHKDIG" to BooleanValue(false)
+                                           )
+        assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
+    }
+
 
     private fun assertStartsWith(lines: List<String>, value: String) {
         if (lines.isEmpty()) {

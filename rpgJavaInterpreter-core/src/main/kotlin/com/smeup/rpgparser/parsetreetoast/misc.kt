@@ -110,6 +110,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAst
         this.csITER() != null -> IterStmt(toPosition(conf.considerPosition))
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
+        this.csMOVE() != null -> this.csMOVE().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -135,6 +136,7 @@ internal fun referenceToExpression(text: String, position: Position?) : Expressi
 }
 
 fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()
+
 
 internal fun CsDSPLYContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
     val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
@@ -182,13 +184,17 @@ internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
             position)
 }
 
+internal fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
+    return this.factor2?.content?.toAst(conf)
+}
+
 internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, position: Position?, conf: ToAstConfiguration): InStatementDataDefinition? {
     val len = this.len.asLong()
     if (len == null) {
         return null
     }
     val decimals = this.decimalPositions.asLong()
-    val initialValue = this.factor2?.content?.toAst(conf)
+    val initialValue = this.factor2Expression(conf)
     return InStatementDataDefinition(name, dataType(len, decimals), position, initializationValue = initialValue)
 }
 
@@ -240,6 +246,14 @@ internal fun CsEVALContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
             operator=this.operator.toAssignmentOperator(),
             position=toPosition(conf.considerPosition))
 }
+
+internal fun CsMOVEContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): MoveStmt {
+    val target = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: $this.text")
+    val name = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return MoveStmt(DataRefExpr(ReferenceByName(name), position), target, position)
+}
+
 
 internal fun TargetContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
     return when (this) {
