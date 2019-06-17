@@ -215,6 +215,32 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCAL01_callingRPGPgm() {
+        assertEquals(outputOf("CAL01"), listOf("1"))
+    }
+
+    @Test
+    fun executeCAL01_callingJavaPgm() {
+        val si = CollectorSystemInterface()
+        var javaPgmCalled = false
+        si.programs["CAL02"] = object : JvmProgramRaw("CAL02", listOf(
+                ProgramParam("NBR", NumberType(8, 0)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                javaPgmCalled = true
+                val nbr = params["NBR"]
+                if (nbr!!.asInt().value.toInt() == 0) {
+                    return listOf(IntValue(1))
+                } else {
+                    return listOf(IntValue(2))
+                }
+            }
+        }
+        execute("CAL01", emptyMap(), si)
+        assertTrue(javaPgmCalled, "Java pgm CAL02 was not called")
+        assertEquals(si.displayed, listOf("1"))
+    }
+
+    @Test
     fun executeJD_000() {
         assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"))
     }
@@ -229,7 +255,7 @@ class InterpreterTest {
                 returnStatus to StringValue(" ")
         )
         val si = CollectorSystemInterface()
-        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
