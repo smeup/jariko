@@ -31,6 +31,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
         interpreter.traceMode = traceMode
         interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall ||
                                                           interpreter.interpretationContext.shouldReinitialize())
+        //TODO initialValues.map { interpreter[it.name] }
     }
 
 }

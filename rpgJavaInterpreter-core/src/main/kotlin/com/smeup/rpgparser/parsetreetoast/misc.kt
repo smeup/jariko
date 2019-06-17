@@ -278,5 +278,12 @@ internal fun CsCALLContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
     val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
     return CallStmt(literal.toAst(conf),
             this.csPARM().map { it.toAst(conf) },
+            this.cspec_fixed_standard_parts().lo.asIndex(),
             toPosition(conf.considerPosition))
+}
+
+
+internal fun ResultIndicatorContext.asIndex () : Int? {
+    //TODO: verify if we should cover other cases (e.g. external indicators)
+    return this.GeneralIndicator()?.text?.toIntOrNull()
 }

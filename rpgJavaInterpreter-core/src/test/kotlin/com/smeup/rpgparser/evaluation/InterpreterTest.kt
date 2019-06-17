@@ -15,6 +15,8 @@ import kotlin.test.fail
 
 class InterpreterTest {
 
+    private val TRACE = true
+
     @Test
     fun executeCALCFIB_initialDeclarations_dec() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
@@ -267,6 +269,28 @@ class InterpreterTest {
         assertEquals(" ", parms[returnStatus]!!.value)
     }
 
+    @Test @Ignore
+    fun executeJD_003_withErrors() {
+        val returnStatus = "U\$IN35"
+        val parms = mapOf(
+                "U\$FUNZ" to StringValue("INZ"),
+                "U\$METO" to StringValue(""),
+                "U\$SVARSK" to StringValue(""),
+                returnStatus to StringValue(" ")
+        )
+        val si = CollectorSystemInterface()
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
+                ProgramParam("addr", StringType(10)),
+                ProgramParam("buffer", StringType(10)),
+                ProgramParam("bufferLen", NumberType(2, 0)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                throw RuntimeException("Something went wrong")
+            }
+        }
+        execute("JD_003", parms, si)
+        assertEquals("1", parms[returnStatus]!!.value)
+    }
+
     @Test
     fun executeFORDOWNBY() {
         assertEquals(outputOf("FORDOWNBY"), listOf("12", "9", "6", "3"))
@@ -309,7 +333,7 @@ class InterpreterTest {
     private fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): CollectorSystemInterface {
         val cu = assertASTCanBeProduced(programName, true)
         cu.resolve()
-        execute(cu, initialValues, si, traceMode = true)
+        execute(cu, initialValues, si, traceMode = TRACE)
         return si
     }
 

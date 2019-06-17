@@ -43,7 +43,7 @@ data class MoveStmt(val target: AssignableExpression,
     : Statement(position)
 
 
-data class CallStmt(val expression: Expression, val params: List<PlistParam>,
+data class CallStmt(val expression: Expression, val params: List<PlistParam>, val errorIndicator: Int? = null,
                     override val position: Position? = null) : Statement(position) , StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         return params.mapNotNull() {

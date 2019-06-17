@@ -235,8 +235,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         program.params()[index].name to get(it.param.name)
                     }.toMap()
 
-                    val paramValuesAtTheEnd = program.execute(systemInterface, params)
-                    paramValuesAtTheEnd.forEachIndexed { index, value ->
+                    val paramValuesAtTheEnd =
+                        try {
+                            program.execute(systemInterface, params)
+                        } catch (e: Exception) { //TODO Catch a more specific exception?
+                            if (statement.errorIndicator == null) {
+                                throw e
+                            }
+                            predefinedIndicators[statement.errorIndicator] = BooleanValue.TRUE
+                            null
+                        }
+                    paramValuesAtTheEnd?.forEachIndexed { index, value ->
                         assign(statement.params[index].param.referred!!, value)
                     }
                 }
