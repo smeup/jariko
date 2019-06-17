@@ -219,6 +219,28 @@ class InterpreterTest {
         assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"))
     }
 
+    @Test @Ignore
+    fun executeJD_003() {
+        val returnStatus = "U\$IN35"
+        val parms = mapOf(
+                "U\$FUNZ" to StringValue("INZ"),
+                "U\$METO" to StringValue(""),
+                "U\$SVARSK" to StringValue(""),
+                returnStatus to StringValue(" ")
+        )
+        val si = CollectorSystemInterface()
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
+                ProgramParam("addr", StringType(10)),
+                ProgramParam("buffer", StringType(10)),
+                ProgramParam("bufferLen", NumberType(2, 0)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                return listOf(StringValue(""), StringValue(""), IntValue(0))
+            }
+        }
+        execute("JD_003", parms, si)
+        assertEquals(" ", parms[returnStatus]!!.value)
+    }
+
     @Test
     fun executeFORDOWNBY() {
         assertEquals(outputOf("FORDOWNBY"), listOf("12", "9", "6", "3"))
@@ -254,17 +276,20 @@ class InterpreterTest {
     }
 
     private fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): LinkedList<String> {
-        val cu = assertASTCanBeProduced(programName, true)
-        cu.resolve()
-        val si = ExtendedCollectorSystemInterface(CollectorSystemInterface())
-        execute(cu, initialValues, si)
-        return si.collectorSI.displayed
+        val si = execute(programName, initialValues)
+        return si.displayed
     }
 
+    private fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): CollectorSystemInterface {
+        val cu = assertASTCanBeProduced(programName, true)
+        cu.resolve()
+        execute(cu, initialValues, si, traceMode = true)
+        return si
+    }
 
-    class ExtendedCollectorSystemInterface(val collectorSI: CollectorSystemInterface): SystemInterface by collectorSI {
+    class ExtendedCollectorSystemInterface(): CollectorSystemInterface() {
         override fun findProgram(name: String): Program? {
-            return collectorSI.findProgram(name) ?: rpgProgram(name)
+            return super.findProgram(name) ?: rpgProgram(name)
         }
     }
 }
