@@ -9,13 +9,14 @@ import junit.framework.Assert.format
 import org.junit.Ignore
 import org.junit.Test
 import java.util.*
+import kotlin.reflect.jvm.internal.impl.protobuf.Internal
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class InterpreterTest {
 
-    private val TRACE = true
+    private val TRACE = false
 
     @Test
     fun executeCALCFIB_initialDeclarations_dec() {
@@ -269,7 +270,7 @@ class InterpreterTest {
         assertEquals(" ", parms[returnStatus]!!.value)
     }
 
-    @Test @Ignore
+    @Test
     fun executeJD_003_withErrors() {
         val returnStatus = "U\$IN35"
         val parms = mapOf(
@@ -287,8 +288,8 @@ class InterpreterTest {
                 throw RuntimeException("Something went wrong")
             }
         }
-        execute("JD_003", parms, si)
-        assertEquals("1", parms[returnStatus]!!.value)
+        val interpreter = execute("JD_003", parms, si)
+        assertEquals("1", interpreter[returnStatus].asString().value)
     }
 
     @Test
@@ -326,15 +327,15 @@ class InterpreterTest {
     }
 
     private fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): LinkedList<String> {
-        val si = execute(programName, initialValues)
+        val interpreter = execute(programName, initialValues)
+        val si = interpreter.systemInterface as CollectorSystemInterface
         return si.displayed
     }
 
-    private fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): CollectorSystemInterface {
+    private fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): InternalInterpreter {
         val cu = assertASTCanBeProduced(programName, true)
         cu.resolve()
-        execute(cu, initialValues, si, traceMode = TRACE)
-        return si
+        return execute(cu, initialValues, si, traceMode = TRACE)
     }
 
     class ExtendedCollectorSystemInterface(): CollectorSystemInterface() {
