@@ -16,8 +16,6 @@ import kotlin.test.fail
 
 class InterpreterTest {
 
-    private val TRACE = false
-
     @Test
     fun executeCALCFIB_initialDeclarations_dec() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
@@ -244,55 +242,6 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeJD_000() {
-        assertEquals(outputOf("JD_000"), listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"))
-    }
-
-    @Test @Ignore
-    fun executeJD_003() {
-        val returnStatus = "U\$IN35"
-        val parms = mapOf(
-                "U\$FUNZ" to StringValue("INZ"),
-                "U\$METO" to StringValue(""),
-                "U\$SVARSK" to StringValue(""),
-                returnStatus to StringValue(" ")
-        )
-        val si = CollectorSystemInterface()
-        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
-                ProgramParam("addr", StringType(10)),
-                ProgramParam("buffer", StringType(10)),
-                ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
-                return listOf(StringValue(""), StringValue(""), IntValue(0))
-            }
-        }
-        execute("JD_003", parms, si)
-        assertEquals(" ", parms[returnStatus]!!.value)
-    }
-
-    @Test
-    fun executeJD_003_withErrors() {
-        val returnStatus = "U\$IN35"
-        val parms = mapOf(
-                "U\$FUNZ" to StringValue("INZ"),
-                "U\$METO" to StringValue(""),
-                "U\$SVARSK" to StringValue(""),
-                returnStatus to StringValue(" ")
-        )
-        val si = CollectorSystemInterface()
-        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
-                ProgramParam("addr", StringType(10)),
-                ProgramParam("buffer", StringType(10)),
-                ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
-                throw RuntimeException("Something went wrong")
-            }
-        }
-        val interpreter = execute("JD_003", parms, si)
-        assertEquals("1", interpreter[returnStatus].asString().value)
-    }
-
-    @Test
     fun executeFORDOWNBY() {
         assertEquals(outputOf("FORDOWNBY"), listOf("12", "9", "6", "3"))
     }
@@ -318,34 +267,7 @@ class InterpreterTest {
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
     }
 
-
-    private fun assertStartsWith(lines: List<String>, value: String) {
-        if (lines.isEmpty()) {
-            fail("Empty output")
-        }
-        assertTrue (lines.get(0).startsWith(value), format("Output not matching", value, lines))
-    }
-
-    private fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): LinkedList<String> {
-        val interpreter = execute(programName, initialValues)
-        val si = interpreter.systemInterface as CollectorSystemInterface
-        return si.displayed
-    }
-
-    private fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): InternalInterpreter {
-        val cu = assertASTCanBeProduced(programName, true)
-        cu.resolve()
-        return execute(cu, initialValues, si, traceMode = TRACE)
-    }
-
-    class ExtendedCollectorSystemInterface(): CollectorSystemInterface() {
-        override fun findProgram(name: String): Program? {
-            return super.findProgram(name) ?: rpgProgram(name)
-        }
-    }
 }
 
-private fun rpgProgram(name: String) : RpgProgram {
-    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
-}
+
 

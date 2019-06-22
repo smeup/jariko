@@ -5,6 +5,7 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
+import com.smeup.rpgparser.outputOf
 import com.smeup.rpgparser.parsetreetoast.resolve
 import org.junit.Test
 import java.util.*
@@ -121,6 +122,11 @@ class JDExamplesTest {
         // Assigned inside FINZ
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
+    }
+
+    @Test
+    fun executeJD_000() {
+        assertEquals(listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"), outputOf("JD_000"))
     }
 
     @Test
@@ -412,4 +418,74 @@ class JDExamplesTest {
         assertEquals("Targa".padEnd(50, '\u0000') + "ZZ000AA".padEnd(1000, '\u0000'), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
     }
 
+//    @Test
+//    fun executeJD_003() {
+//        val callsToNfyeve = LinkedList<Map<String, Value>>()
+//        val returnStatus = "U\$IN35"
+//        val parms = mapOf(
+//                "U\$FUNZ" to StringValue("INZ"),
+//                "U\$METO" to StringValue(""),
+//                "U\$SVARSK" to StringValue(""),
+//                returnStatus to StringValue(" ")
+//        )
+//        val si = CollectorSystemInterface()
+//        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
+//                ProgramParam("addr", StringType(10)),
+//                ProgramParam("buffer", StringType(10)),
+//                ProgramParam("bufferLen", NumberType(2, 0)))) {
+//            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+//                val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"AB123XX\" />"
+//                return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
+//            }
+//        }
+//        si.functions["P_RxELE"] = object : JvmFunction("P_RxELE", listOf(
+//                FunctionParam("tag", StringType(50)),
+//                FunctionParam("pos", StringType(50)),
+//                FunctionParam("index", NumberType(2, 0)),
+//                FunctionParam("xml", StringType(5000)))) {
+//            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+//                return StringValue("<Auto Targa=\"AB123XX\"/>")
+//            }
+//        }
+//        si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
+//                FunctionParam("Element", StringType(500)),
+//                FunctionParam("AttributeName", StringType(50)))) {
+//            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+//                return StringValue("AB123XX")
+//            }
+//        }
+//        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
+//                ProgramParam("funz", StringType(10)),
+//                ProgramParam("meto", StringType(10)),
+//                ProgramParam("var", StringType(10)))) {
+//            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+//                callsToNfyeve.add(params)
+//                throw InterruptForDebuggingPurposes()
+//            }
+//        }
+//        execute("JD_003", parms, si)
+//        assertEquals(" ", parms[returnStatus]!!.value)
+//    }
+
+    @Test
+    fun executeJD_003_withErrors() {
+        val returnStatus = "U\$IN35"
+        val parms = mapOf(
+                "U\$FUNZ" to StringValue("INZ"),
+                "U\$METO" to StringValue(""),
+                "U\$SVARSK" to StringValue(""),
+                returnStatus to StringValue(" ")
+        )
+        val si = CollectorSystemInterface()
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
+                ProgramParam("addr", StringType(10)),
+                ProgramParam("buffer", StringType(10)),
+                ProgramParam("bufferLen", NumberType(2, 0)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                throw RuntimeException("Something went wrong")
+            }
+        }
+        val interpreter = execute("JD_003", parms, si)
+        assertEquals("1", interpreter[returnStatus].asString().value)
+    }
 }
