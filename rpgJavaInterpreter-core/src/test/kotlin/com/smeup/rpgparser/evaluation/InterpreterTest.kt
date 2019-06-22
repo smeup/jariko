@@ -5,14 +5,10 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
-import junit.framework.Assert.format
 import org.junit.Ignore
 import org.junit.Test
-import java.util.*
-import kotlin.reflect.jvm.internal.impl.protobuf.Internal
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class InterpreterTest {
 
