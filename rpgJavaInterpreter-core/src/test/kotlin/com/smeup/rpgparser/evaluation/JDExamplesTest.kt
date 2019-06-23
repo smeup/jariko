@@ -1,12 +1,10 @@
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.CollectorSystemInterface
-import com.smeup.rpgparser.assertASTCanBeProduced
-import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
-import com.smeup.rpgparser.outputOf
 import com.smeup.rpgparser.parsetreetoast.resolve
+import org.junit.Ignore
 import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals
@@ -55,26 +53,30 @@ class JDExamplesTest {
         execute(cu, mapOf(), traceMode = true)
     }
 
-//    TODO: to solve this we should handle params being data declarations, sometimes
-//    @Test
-//    fun executeJD_000() {
-//        val si = CollectorSystemInterface()
-//        val callsToJDURL = LinkedList<Map<String, Value>>()
-//        si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
-//                ProgramParam("funz", StringType(10)),
-//                ProgramParam("method", StringType(10)),
-//                ProgramParam("URL", StringType(1000)))) {
-//            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
-//                callsToJDURL.add(params)
-//                return emptyList()
-//            }
-//        }
-//        val cu = assertASTCanBeProduced("JD_000", true)
-//        cu.resolve()
-//        val interpreter = execute(cu, mapOf(), systemInterface = si)
-//        assertEquals(callsToJDURL.size, 1)
-//        assertEquals(callsToJDURL[0]["\$\$URL"], StringValue("https://www.myurl.com".padEnd(1000, '\u0000')))
-//    }
+    @Test @Ignore
+    fun executeJD_000_countsNrOfCalls() {
+        val si = ExtendedCollectorSystemInterface()
+        val callsToJDURL = LinkedList<Map<String, Value>>()
+        si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("method", StringType(10)),
+                ProgramParam("URL", StringType(1000)))) {
+            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+                callsToJDURL.add(params)
+                return emptyList()
+            }
+        }
+        val cu = assertASTCanBeProduced("JD_000", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf(), systemInterface = si, traceMode = true)
+        assertEquals( 1, callsToJDURL.size)
+        assertEquals(StringValue("https://www.myurl.com".padEnd(1000, '\u0000')), callsToJDURL[0]["\$\$URL"])
+    }
+
+    @Test
+    fun executeJD_000() {
+        assertEquals(listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"), outputOf("JD_000"))
+    }
 
     @Test
     fun executeJD_001_plist() {
@@ -124,10 +126,6 @@ class JDExamplesTest {
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
 
-    @Test
-    fun executeJD_000() {
-        assertEquals(listOf("", "", "Url", "http://xxx.smaup.com", "", "", "Url", "http://xxx.smaup.com"), outputOf("JD_000"))
-    }
 
     @Test
     fun executeJD_001_complete_url_not_found() {
