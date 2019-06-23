@@ -10,6 +10,12 @@ import java.util.TreeMap
 
 
 abstract class LogEntry
+data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
+    override fun toString(): String {
+        return "calling ${callStmt}"
+    }
+}
+
 data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
     override fun toString(): String {
         return "executing ${subroutine.name}"
@@ -221,6 +227,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is CallStmt -> {
+                    log(CallExecutionLogEntry(statement))
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
 
