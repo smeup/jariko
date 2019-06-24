@@ -117,7 +117,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 val n = params["ppdat"]!!.asString().valueWithoutPadding.toInt()
                 var t1 = 0
                 var t2 = 1
@@ -142,7 +142,7 @@ class InterpreterTest {
         cu.resolve()
         val si = CollectorSystemInterface()
         val rpgProgram = RpgProgram(cu)
-        rpgProgram.execute(si, mapOf("ppdat" to StringValue("10")))
+        rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
         assertEquals(1, rpgProgram.params().size)
         assertEquals(ProgramParam("ppdat", StringType(8)), rpgProgram.params()[0])
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
@@ -222,7 +222,7 @@ class InterpreterTest {
         var javaPgmCalled = false
         si.programs["CAL02"] = object : JvmProgramRaw("CAL02", listOf(
                 ProgramParam("NBR", NumberType(8, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 javaPgmCalled = true
                 val nbr = params["NBR"]
                 if (nbr!!.asInt().value.toInt() == 0) {

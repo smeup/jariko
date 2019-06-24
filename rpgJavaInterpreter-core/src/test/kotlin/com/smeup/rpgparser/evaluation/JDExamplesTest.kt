@@ -61,7 +61,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", StringType(1000)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToJDURL.add(params)
                 return emptyList()
             }
@@ -146,7 +146,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", ArrayType(StringType(1050), 200)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToJDURL.add(params)
                 return emptyList()
             }
@@ -186,7 +186,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToListFld.add(params)
                 return emptyList()
             }
@@ -195,7 +195,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -219,7 +219,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToListFld.add(params)
                 return emptyList()
             }
@@ -228,7 +228,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -268,7 +268,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToListFld.add(params)
                 return listOf(params["foldern"]!!,
                         StringValue.padded("myFile.png", 10),
@@ -280,7 +280,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -329,7 +329,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToRcvsck.add(params)
                 return emptyList()
             }
@@ -338,7 +338,7 @@ class JDExamplesTest {
 //                ProgramParam("funz", StringType(10)),
 //                ProgramParam("meto", StringType(10)),
 //                ProgramParam("var", StringType(10)))) {
-//            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+//            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
 //                callsToNfyeve.add(params)
 //                throw InterruptForDebuggingPurposes()
 //            }
@@ -362,7 +362,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToRcvsck.add(params)
                 return listOf(params["addr"]!!, StringValue("<myxml></myxml>"), IntValue("<myxml></myxml>".length.toLong()))
             }
@@ -393,7 +393,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -431,7 +431,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"AB123XX\" />"
                 return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
             }
@@ -456,7 +456,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -479,7 +479,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 throw RuntimeException("Something went wrong")
             }
         }
@@ -504,7 +504,7 @@ class JDExamplesTest {
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)),
                 ProgramParam("ierror", BooleanType))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"${targa}\" />"
                 return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
             }
@@ -513,7 +513,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -540,7 +540,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"${targa}\" />"
                 return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
             }
@@ -549,7 +549,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }

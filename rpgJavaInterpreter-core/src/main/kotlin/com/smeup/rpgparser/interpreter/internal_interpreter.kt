@@ -7,6 +7,7 @@ import java.util.*
 import javax.xml.crypto.Data
 import kotlin.collections.HashMap
 import java.util.TreeMap
+import kotlin.collections.LinkedHashMap
 
 
 abstract class LogEntry
@@ -240,7 +241,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             }
                         }
                         program.params()[index].name to get(it.param.name)
-                    }.toMap()
+                    }.toMap(LinkedHashMap())
 
                     val paramValuesAtTheEnd =
                         try {

@@ -9,7 +9,7 @@ data class ProgramParam(val name: String, val type: Type)
 
 interface Program {
     fun params() : List<ProgramParam>
-    fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value>
+    fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value>
 }
 
 class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Program {
@@ -33,7 +33,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         }
     }
 
-    override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
         require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
