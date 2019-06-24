@@ -3,6 +3,7 @@ package com.smeup.rpgparser.lexing
 import com.smeup.rpgparser.RpgLexer.*
 import com.smeup.rpgparser.assertCanBeLexed
 import com.smeup.rpgparser.assertToken
+import org.junit.Ignore
 import org.junit.Test as test
 
 class RpgTokensListTest {
@@ -71,5 +72,14 @@ class RpgTokensListTest {
         val tokens = assertCanBeLexed("HELLO")
         assertToken(LastRecordIndicator, "LR", tokens[48])
         assertToken(EOF, "<EOF>", tokens.last())
+    }
+
+    @test @Ignore
+    fun lexVARNAMEDLEN() {
+        val tokens = assertCanBeLexed("VARNAMEDLEN")
+        assertToken(OP_EVAL, "EVAL", tokens[31])
+        assertToken(ID, "LEN", tokens[32])
+        assertToken(EQUAL, "=", tokens[33])
+        assertToken(ID, "LEN_PIPE", tokens[34])
     }
 }

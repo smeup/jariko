@@ -263,6 +263,11 @@ class InterpreterTest {
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
     }
 
+    @Test @Ignore
+    fun executeVARNAMEDLEN() {
+        assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
+    }
+
 }
 
 
