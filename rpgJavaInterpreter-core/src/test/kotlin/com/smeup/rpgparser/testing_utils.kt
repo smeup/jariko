@@ -71,7 +71,7 @@ fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = fal
         if (!considerPosition) {
             throw IllegalStateException("Mute annotations can be injected only when retaining the position")
         }
-        ast.injectMuteAnnotation(parseTreeRoot)
+        ast.injectMuteAnnotation(parseTreeRoot, )
     }
     return ast
 }
@@ -80,7 +80,7 @@ fun assertCodeCanBeParsed(code: String) : RContext {
     val result = RpgParserFacade().parse(inputStreamForCode(code))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
-    return result.root!!
+    return result.root!!.rContext
 }
 
 fun assertExpressionCanBeParsed(code: String) : ExpressionContext {

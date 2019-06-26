@@ -57,6 +57,8 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
         }
         "N" -> BooleanType
         "Z" -> TimeStampType
+        "A" -> StringType(elementSize!!.toLong())
+        "S" -> StringType(elementSize!!.toLong())
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     val type = if (dim != null) {
