@@ -21,7 +21,7 @@ class DataDefinitionTest {
 |     $code
         """.trimMargin("|")
         val rContext = assertCodeCanBeParsed(completeCode)
-        return rContext.toAst(toAstConfiguration)
+        return rContext.toAst("<UNNAMED>", toAstConfiguration)
     }
 
     @test fun singleDataParsing() {

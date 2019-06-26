@@ -13,7 +13,8 @@ import java.util.*
 
 fun List<Statement>.plist() : PlistStmt? = this.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
 
-data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
+data class CompilationUnit(val name: String,
+                           val dataDefinitions: List<DataDefinition>,
                            val main: MainBody,
                            val subroutines: List<Subroutine>,
                            override val position: Position?) : Node(position) {

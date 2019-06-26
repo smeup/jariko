@@ -26,7 +26,7 @@ fun List<Node>.position() : Position? {
     }
 }
 
-fun RContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : CompilationUnit {
+fun RContext.toAst(name: String, conf : ToAstConfiguration = ToAstConfiguration()) : CompilationUnit {
     val dataDefinitions = this.statement()
             .mapNotNull {
                 when {
@@ -44,6 +44,7 @@ fun RContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Compilati
     }
     val subroutines = this.subroutine().map { it.toAst(conf) }
     return CompilationUnit(
+            name,
             dataDefinitions,
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines,
