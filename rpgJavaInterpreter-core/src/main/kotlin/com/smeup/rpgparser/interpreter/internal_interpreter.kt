@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
+import com.strumenta.kolasu.model.ReferenceByName
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -105,10 +106,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return base
     }
 
-    fun exists(dataName: String) = globalSymbolTable.contains(dataName)
+    private fun exists(dataName: String) = globalSymbolTable.contains(dataName)
+
+    private fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
+
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
             "$data cannot be assigned the value $value"
@@ -117,6 +121,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
     }
+
 
     private fun log(logEntry: LogEntry) {
         if (traceMode) {
@@ -243,11 +248,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
 
                     val params = statement.params.mapIndexed { index, it ->
-                        if (it.dataDefinition != null && !exists(it.param.name)) {
+                        if (it.dataDefinition != null) {
                             if (it.dataDefinition.initializationValue != null) {
-                                assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
+                                if(!exists(it.param.name)) {
+                                    assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
+                                } else {
+                                    assign(dataDefinitionByName(it.param.name)!!, eval(it.dataDefinition.initializationValue))
+                                }
                             } else {
-                                assign(it.dataDefinition, eval(BlanksRefExpr()))
+                                if(!exists(it.param.name)) {
+                                    assign(it.dataDefinition, eval(BlanksRefExpr()))
+                                }
                             }
                         }
                         program.params()[index].name to get(it.param.name)
@@ -313,6 +324,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             throw RuntimeException("Issue executing statement $statement", e)
         }
     }
+
+
 
     private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
         if (downward) {

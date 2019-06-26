@@ -33,7 +33,7 @@ class SymbolTable {
         throw IllegalArgumentException("Cannot find searchedValued for $dataName")
     }
 
-    private fun dataDefinitionByName(dataName: String) =
+    fun dataDefinitionByName(dataName: String) =
             values.keys.firstOrNull { it.name.equals(dataName, ignoreCase = true) }
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
