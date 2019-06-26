@@ -11,13 +11,6 @@ import kotlin.collections.LinkedHashMap
 
 
 abstract class LogEntry
-
-data class ProgramExecutionLogEntry(val name: String) : LogEntry() {
-    override fun toString(): String {
-        return "executing program ${name}"
-    }
-}
-
 data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
     override fun toString(): String {
         return "calling ${callStmt}"
@@ -148,7 +141,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
                 reinitialization: Boolean = true) {
         initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
-        log(ProgramExecutionLogEntry(compilationUnit.name))
         compilationUnit.main.stmts.forEach {
             execute(it)
         }

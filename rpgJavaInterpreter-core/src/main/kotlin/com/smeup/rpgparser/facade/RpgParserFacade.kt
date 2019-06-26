@@ -29,7 +29,7 @@ data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
 typealias RpgParserResult = ParsingResult<RContext>
 typealias RpgLexerResult = ParsingResult<List<Token>>
 
-class RpgParserFacade (val name: String) {
+class RpgParserFacade {
 
     private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80) : ANTLRInputStream {
         val code = inputStreamToString(inputStream)
@@ -130,11 +130,10 @@ class RpgParserFacade (val name: String) {
     }
 
     fun parseAndProduceAst(inputStream: InputStream) : CompilationUnit {
-        val name = "<UNNAMED>"
-        val result = RpgParserFacade(name).parse(inputStream)
+        val result = RpgParserFacade().parse(inputStream)
         require(result.correct)
                 { "Errors: ${result.errors.joinToString(separator = ", ")}" }
-        return result.root!!.toAst(name)
+        return result.root!!.toAst()
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true) : ParsingResult<ExpressionContext> {

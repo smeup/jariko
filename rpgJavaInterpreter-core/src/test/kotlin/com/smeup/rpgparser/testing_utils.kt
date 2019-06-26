@@ -44,7 +44,7 @@ fun inputStreamForCode(code: String) : InputStream {
 }
 
 fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true) : List<Token> {
-    val result = RpgParserFacade(exampleName).lex(inputStreamFor(exampleName))
+    val result = RpgParserFacade().lex(inputStreamFor(exampleName))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return if (onlyVisibleTokens) {
@@ -55,7 +55,7 @@ fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true) : L
 }
 
 fun assertCanBeParsed(exampleName: String) : RContext {
-    val result = RpgParserFacade(exampleName).parse(inputStreamFor(exampleName))
+    val result = RpgParserFacade().parse(inputStreamFor(exampleName))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!
@@ -63,18 +63,19 @@ fun assertCanBeParsed(exampleName: String) : RContext {
 
 fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = false) : CompilationUnit {
     val parseTreeRoot = assertCanBeParsed(exampleName)
-    return parseTreeRoot.toAst(exampleName, ToAstConfiguration(considerPosition = considerPosition))
+    return parseTreeRoot.toAst(ToAstConfiguration(
+            considerPosition = considerPosition))
 }
 
 fun assertCodeCanBeParsed(code: String) : RContext {
-    val result = RpgParserFacade("<UNNAMED>").parse(inputStreamForCode(code))
+    val result = RpgParserFacade().parse(inputStreamForCode(code))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!
 }
 
 fun assertExpressionCanBeParsed(code: String) : ExpressionContext {
-    val result = RpgParserFacade("<UNNAMED>").parseExpression(inputStreamForCode(code))
+    val result = RpgParserFacade().parseExpression(inputStreamForCode(code))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!
@@ -85,9 +86,9 @@ fun expressionAst(code: String) : Expression {
 }
 
 fun assertStatementCanBeParsed(code: String) : StatementContext {
-    val result = RpgParserFacade("<UNNAMED>").parseStatement(inputStreamForCode(code))
+    val result = RpgParserFacade().parseStatement(inputStreamForCode(code))
     if (!result.correct) {
-        val lexingResult = RpgParserFacade("<UNNAMED>").lex(inputStreamForCode(code))
+        val lexingResult = RpgParserFacade().lex(inputStreamForCode(code))
         if (lexingResult.correct) {
             println("Lexing completed successfully:")
             println("CODE <<<$code>>>")
