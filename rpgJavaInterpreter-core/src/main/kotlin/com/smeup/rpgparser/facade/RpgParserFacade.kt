@@ -94,13 +94,13 @@ class RpgParserFacade {
         })
         val commonTokenStream = CommonTokenStream(lexer)
         val parser = RpgParser(commonTokenStream)
+        parser.removeErrorListeners()
         parser.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.SYNTACTIC, errorMessage
                         ?: "unspecified"))
             }
         })
-        parser.removeErrorListeners()
         return parser
     }
 

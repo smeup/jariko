@@ -1,0 +1,14 @@
+lab:
+  server: my.server.com
+  user: myUser
+  password:
+  library: someLib
+  file: QRPGSRC
+  member: JD*
+mf:
+  server: 10.50.1.2
+  user: pippo
+  password:
+  library: lib1
+  file: qrpglesrc
+  member: 

@@ -140,7 +140,7 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     }
 
     override fun size(): Long {
-        TODO("not implemented")
+        return variable.referred!!.type.size
     }
 
     override fun render() = variable.name
@@ -150,7 +150,7 @@ data class ArrayAccessExpr(val array: Expression, val index: Expression, overrid
     : AssignableExpression(position) {
 
     override fun size(): Long {
-        TODO("not implemented")
+        TODO("size")
     }
 }
 

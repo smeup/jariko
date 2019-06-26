@@ -35,11 +35,16 @@ internal fun RpgParser.BlockContext.toAst(conf : ToAstConfiguration = ToAstConfi
 }
 
 internal fun RpgParser.ForstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ForStmt {
-    val assignment = this.beginfor().csFOR().expression(0).toAst(conf)
-    val endValue = this.beginfor().csFOR().expression(1).toAst(conf)
+    val csFOR = this.beginfor().csFOR()
+    val assignment = csFOR.expression(0).toAst(conf)
+    val endValue = csFOR.stopExpression()?.expression()?.toAst() ?: IntLiteral(1)
+    val downward = csFOR.FREE_DOWNTO() != null
+    val byValue = csFOR.byExpression()?.expression()?.toAst() ?: IntLiteral(1)
     return ForStmt(
             assignment,
             endValue,
+            byValue ,
+            downward,
             this.statement().map { it.toAst(conf) },
             toPosition(conf.considerPosition))
 }

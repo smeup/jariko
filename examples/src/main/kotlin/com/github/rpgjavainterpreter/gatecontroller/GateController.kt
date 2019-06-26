@@ -15,7 +15,7 @@ data class VarElement(
 data class JD_001_params(@property:Param("U\$FUNZ") val funz: String,
                          @property:Param("U\$SVARSK") @property:Size(200) val svarsk: Array<VarElement>)
 
-class JD_001 : RpgFacade<JD_001_params>() {
+class JD_001(javaSystemInterface: JavaSystemInterface) : RpgFacade<JD_001_params>(systemInterface = javaSystemInterface) {
 
     fun call(originalUrl: String, stringToReplace: String, replacement: String) {
         singleCall(JD_001_params("INZ", arrayOf(
@@ -34,7 +34,7 @@ data class JD_003_params(@property:Param("U\$FUNZ") val funz: String,
                          @property:Param("U\$SVARSK") @property:Size(200) val svarsk: Array<VarElement>,
                          @property:Param("U\$IN35") @property:Size(1) val in35: String)
 
-class JD_003 : RpgFacade<JD_003_params>() {
+class JD_003(javaSystemInterface: JavaSystemInterface) : RpgFacade<JD_003_params>(systemInterface = javaSystemInterface) {
 
     fun call() {
         var flag: String = " "
@@ -50,7 +50,8 @@ class JD_003 : RpgFacade<JD_003_params>() {
 
 fun main(args: Array<String>) {
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-    JavaSystemInterface.addJavaInteropPackage("com.github.rpgjavainterpreter.gatecontroller")
-    JD_001().call("https://xxx.myurl.com", "x", "w")
-//    JD_003().call()
+    val javaSystemInterface = JavaSystemInterface()
+    javaSystemInterface.addJavaInteropPackage("com.github.rpgjavainterpreter.gatecontroller")
+    JD_001(javaSystemInterface).call("https://xxx.myurl.com", "x", "w")
+//    JD_003(javaSystemInterface).call()
 }

@@ -5,11 +5,13 @@ import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.DIVIDE_ASSIGNMENT
 import com.smeup.rpgparser.ast.AssignmentOperator.NORMAL_ASSIGNMENT
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.Token
 
 data class ToAstConfiguration(val considerPosition: Boolean = true, 
                               val compileTimeInterpreter : CompileTimeInterpreter = CommonCompileTimeInterpreter)
@@ -69,7 +71,16 @@ internal fun ParserRuleContext.rContext(): RContext {
 }
 
 internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
-    return IntLiteral(this.CS_FactorContent().text.toLong(), position = toPosition(conf.considerPosition))
+    val l = this.literal()
+    if (l != null) {
+        return l.toAst(conf)
+    }
+    val text = this.CS_FactorContent().text
+    return when (text.first()) {
+        in '0'..'9' -> IntLiteral(text.toLong(), position = toPosition(conf.considerPosition))
+        '\'' -> StringLiteral(text, position = toPosition(conf.considerPosition))
+        else -> DataRefExpr(ReferenceByName(text))
+    }
 }
 
 internal fun SymbolicConstantsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
@@ -99,6 +110,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAst
         this.csITER() != null -> IterStmt(toPosition(conf.considerPosition))
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
+        this.csMOVE() != null -> this.csMOVE().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -123,9 +135,22 @@ internal fun referenceToExpression(text: String, position: Position?) : Expressi
     return expr
 }
 
+fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()
+
+
 internal fun CsDSPLYContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
-    val expression = this.cspec_fixed_standard_parts().result.toAst(conf)
-    return DisplayStmt(expression, toPosition(conf.considerPosition))
+    val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
+        this.factor1Context().content.toAst(conf)
+    } else {
+        null
+    }
+    val right = if (this.cspec_fixed_standard_parts()?.result?.text?.isNotBlank() ?: false) {
+        this.cspec_fixed_standard_parts().result.toAst(conf)
+    }  else {
+        null
+    }
+    require(left != null || right != null)
+    return DisplayStmt(left, right, toPosition(conf.considerPosition))
 }
 
 internal fun ResultTypeContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -134,21 +159,9 @@ internal fun ResultTypeContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
     return DataRefExpr(ReferenceByName(this.text), toPosition(conf.considerPosition))
 }
 
-internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
-    val name = this.cspec_fixed_standard_parts().result.text
-    var dataDeclaration : InStatementDataDefinition? = null
-    if (!this.cspec_fixed_standard_parts().len.text.isBlank()) {
-        val length = this.cspec_fixed_standard_parts().len.text.trim().toInt()
-        dataDeclaration = InStatementDataDefinition(name, StringType(length.toLong()), toPosition(conf.considerPosition))
-    }
-    return ClearStmt(
-            referenceToExpression(name, toPosition(conf.considerPosition)),
-            dataDeclaration,
-            toPosition(conf.considerPosition))
-}
 
 internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistStmt {
-    val isEntry = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor().symbolicConstants().SPLAT_ENTRY() != null
+    val isEntry = this.factor1Context().symbolicConstants().SPLAT_ENTRY() != null
     return PlistStmt(
             this.csPARM().map { it.toAst(conf) },
             isEntry,
@@ -157,8 +170,48 @@ internal fun CsPLISTContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
 }
 
 internal fun CsPARMContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): PlistParam {
-    val paramName = this.cspec_fixed_standard_parts().result.CS_FactorContent().text
-    return PlistParam(ReferenceByName(paramName), toPosition(conf.considerPosition))
+    val paramName = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return PlistParam(ReferenceByName(paramName), this.cspec_fixed_standard_parts().toDataDefinition(paramName, position, conf), position)
+}
+
+internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
+    val name = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return ClearStmt(
+            referenceToExpression(name, toPosition(conf.considerPosition)),
+            this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf),
+            position)
+}
+
+internal fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
+    return this.factor2?.content?.toAst(conf)
+}
+
+internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, position: Position?, conf: ToAstConfiguration): InStatementDataDefinition? {
+    val len = this.len.asLong()
+    if (len == null) {
+        return null
+    }
+    val decimals = this.decimalPositions.asLong()
+    val initialValue = this.factor2Expression(conf)
+    return InStatementDataDefinition(name, dataType(len, decimals), position, initializationValue = initialValue)
+}
+
+private fun dataType(len: Long, decimals: Long?): Type =
+    if (decimals == null) {
+        StringType(len)
+    } else {
+        NumberType(len.toInt(), decimals.toInt())
+    }
+
+internal fun Token.asLong(): Long? {
+    val tokenString = this.text.trim()
+    return if (tokenString.isNotBlank()) {
+        tokenString.toLongOrNull()
+    } else {
+        null
+    }
 }
 
 internal fun CsSETONContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SetOnStmt {
@@ -194,6 +247,14 @@ internal fun CsEVALContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
             position=toPosition(conf.considerPosition))
 }
 
+internal fun CsMOVEContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): MoveStmt {
+    val target = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: $this.text")
+    val name = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return MoveStmt(DataRefExpr(ReferenceByName(name), position), target, position)
+}
+
+
 internal fun TargetContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
     return when (this) {
         is SimpleTargetContext -> DataRefExpr(ReferenceByName(this.name.text), toPosition(conf.considerPosition))
@@ -217,5 +278,12 @@ internal fun CsCALLContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
     val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
     return CallStmt(literal.toAst(conf),
             this.csPARM().map { it.toAst(conf) },
+            this.cspec_fixed_standard_parts().lo.asIndex(),
             toPosition(conf.considerPosition))
+}
+
+
+internal fun ResultIndicatorContext.asIndex () : Int? {
+    //TODO: verify if we should cover other cases (e.g. external indicators)
+    return this.GeneralIndicator()?.text?.toIntOrNull()
 }

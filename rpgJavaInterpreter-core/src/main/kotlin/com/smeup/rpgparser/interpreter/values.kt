@@ -10,17 +10,33 @@ abstract class Value {
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
     open fun asTimeStamp() : TimeStampValue = throw UnsupportedOperationException()
     abstract fun assignableTo(expectedType: Type): Boolean
+    open fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
+    open fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
+    open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
 }
 
 data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
-            is StringType -> expectedType.length == value.length.toLong()
+            is StringType -> expectedType.length >= value.length.toLong()
             is DataStructureType -> expectedType.fields.all { it.type is StringType } &&
                     expectedType.elementSize == value.length
             else -> false
         }
+    }
+
+    override fun takeLast(n: Int): Value {
+        return StringValue(value.takeLast(n))
+    }
+
+    override fun takeFirst(n: Int): Value {
+        return StringValue(value.take(n))
+    }
+
+    override fun concatenate(other: Value): Value {
+        require(other is StringValue)
+        return StringValue(value + other.value)
     }
 
     val valueWithoutPadding : String
@@ -90,6 +106,35 @@ data class IntValue(val value: Long) : Value() {
     override fun asInt() = this
     fun increment() = IntValue(value + 1)
 
+    override fun takeLast(n: Int): Value {
+        return IntValue(lastDigits(value, n))
+    }
+
+    private fun lastDigits(n: Long, digits: Int): Long {
+        return (n % Math.pow(10.0, digits.toDouble())).toLong()
+    }
+
+    private fun firstDigits(n: Long, digits: Int): Long {
+        var localNr = n
+        if (n < 0) {
+            localNr = n * -1
+        }
+        val div = Math.pow(10.0, digits.toDouble()).toInt()
+        while (localNr / div > 0) {
+            localNr /= 10
+        }
+        return localNr * java.lang.Long.signum(n)
+    }
+
+    override fun takeFirst(n: Int): Value {
+        return IntValue(firstDigits(value, n))
+    }
+
+    override fun concatenate(other: Value): Value {
+        require(other is IntValue)
+        return IntValue((value.toString() + other.value.toString()).toLong())
+    }
+
     companion object {
         val ZERO = IntValue(0)
     }
@@ -141,9 +186,16 @@ abstract class ArrayValue : Value() {
         return elements
     }
 
+    override fun asString() : StringValue {
+        return StringValue(elements().map { it.asString() }.joinToString(""))
+    }
+
     override fun assignableTo(expectedType: Type): Boolean {
         if (expectedType is ArrayType) {
             return elements().all { it.assignableTo(expectedType.element) }
+        }
+        if (expectedType is StringType) {
+            return expectedType.length >= arrayLength() * elementSize()
         }
         return false
     }

@@ -30,11 +30,13 @@ class ClassProgramName<P> : ProgramNameSource<P> {
     override fun nameFor(rpgFacade: RpgFacade<P>) : String = rpgFacade.javaClass.simpleName
 }
 
-abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>()) {
+
+abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
+                             val systemInterface: SystemInterface) {
 
     var traceMode = false
 
-    protected val programInterpreter = ProgramInterpreter(JavaSystemInterface)
+    protected val programInterpreter = ProgramInterpreter(systemInterface)
     protected val rpgProgram by lazy { RpgSystem.getProgram(programNameSource.nameFor(this)) }
 
     fun singleCall(params: P) : P? {
@@ -66,7 +68,6 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
         return when {
             jvmValue is String -> StringValue(jvmValue)
             else -> {
-                val rpgType = property.toRpgType()
                 if (jvmValue is String) {
                     StringValue(jvmValue)
                 } else {

@@ -6,23 +6,35 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.xml.crypto.Data
 import kotlin.collections.HashMap
+import java.util.TreeMap
+import kotlin.collections.LinkedHashMap
+
 
 abstract class LogEntry
+data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
+    override fun toString(): String {
+        return "calling ${callStmt}"
+    }
+}
+
 data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
     override fun toString(): String {
         return "executing ${subroutine.name}"
     }
 }
+
 data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry() {
     override fun toString(): String {
         return "evaluating $expression as $value"
     }
 }
+
 data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry() {
     override fun toString(): String {
         return "assigning to $data value $value"
     }
 }
+
 data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, val value: Value) : LogEntry() {
     override fun toString(): String {
         return "assigning to $array[$index] value $value"
@@ -35,7 +47,7 @@ class IterException : Exception()
 interface InterpretationContext {
     val name: String
     fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
-    fun shouldReinitialize() : Boolean
+    fun shouldReinitialize(): Boolean
 }
 
 object DummyInterpretationContext : InterpretationContext {
@@ -54,9 +66,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
     private val predefinedIndicators = HashMap<Int, Value>()
-    public var interpretationContext : InterpretationContext = DummyInterpretationContext
-    var traceMode : Boolean = false
-    var cycleLimit : Int? = null
+    public var interpretationContext: InterpretationContext = DummyInterpretationContext
+    var traceMode: Boolean = false
+    var cycleLimit: Int? = null
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
@@ -66,8 +78,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     /**
      * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
-    fun getEvaluatedExpressionsConcise() : List<ExpressionEvaluationLogEntry> {
-        val base= logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
+    fun getEvaluatedExpressionsConcise(): List<ExpressionEvaluationLogEntry> {
+        val base = logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
         var i = 0
         while (i < base.size) {
             val current = base[i]
@@ -83,11 +95,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return base
     }
 
+    fun exists(dataName: String) = globalSymbolTable.contains(dataName)
+
     operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
     operator fun get(dataName: String) = globalSymbolTable[dataName]
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
-            "$data cannot be assigned the value $value"}
+            "$data cannot be assigned the value $value"
+        }
 
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
@@ -101,7 +116,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
-                           reinitialization : Boolean = true) {
+                           reinitialization: Boolean = true) {
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
@@ -113,7 +128,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
         } else {
             initialValues.forEach { iv ->
-                val def = compilationUnit.allDataDefinitions.find { it.name == iv.key }!!
+                val def = compilationUnit.allDataDefinitions.find { it.name.equals(iv.key, ignoreCase = true) }!!
                 set(def, coerce(iv.value, def.type))
             }
         }
@@ -124,12 +139,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
-                reinitialization : Boolean = true) {
-        initialize(compilationUnit, initialValues, reinitialization)
+                reinitialization: Boolean = true) {
+        initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
         compilationUnit.main.stmts.forEach {
             execute(it)
         }
     }
+
+    private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
+        val result = TreeMap<String, Value>(String.CASE_INSENSITIVE_ORDER)
+        result.putAll(aMap)
+        return result
+    }
+
 
     private fun execute(statements: List<Statement>) {
         statements.forEach { execute(it) }
@@ -143,6 +165,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     execute(statement.subroutine.referred!!.stmts)
                 }
                 is EvalStmt -> assign(statement.target, statement.expression)
+                is MoveStmt -> move(statement.target, statement.expression)
                 is SelectStmt -> {
                     for (case in statement.cases) {
                         if (interpret(case.condition).asBoolean().value) {
@@ -170,16 +193,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is DisplayStmt -> {
-                    val value = interpret(statement.value)
-                    systemInterface.display(render(value))
+                    val values = mutableListOf<Value>()
+                    statement.factor1?.let { values.add(interpret(it)) }
+                    statement.response?.let { values.add(interpret(it)) }
+                    //TODO: receive input from systemInterface and assign value to response
+                    systemInterface.display(render(values))
                 }
                 is ForStmt -> {
                     eval(statement.init)
-                    // TODO consider DOWNTO
                     try {
-                        while (isEqualOrSmaller(this[statement.iterDataDefinition()], eval(statement.endValue))) {
+                        while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
                             execute(statement.body)
-                            increment(statement.iterDataDefinition())
+                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
                         }
                     } catch (e: LeaveException) {
                         // leaving
@@ -203,11 +228,32 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is CallStmt -> {
+                    log(CallExecutionLogEntry(statement))
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
-                    val params = statement.params.mapIndexed { index, it -> program.params()[index].name to get(it.param.name) }.toMap()
-                    val paramValuesAtTheEnd = program.execute(systemInterface, params)
-                    paramValuesAtTheEnd.forEachIndexed { index, value ->
+
+                    val params = statement.params.mapIndexed { index, it ->
+                        if (it.dataDefinition != null && !exists(it.param.name)) {
+                            if (it.dataDefinition.initializationValue != null) {
+                                assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
+                            } else {
+                                assign(it.dataDefinition, eval(BlanksRefExpr()))
+                            }
+                        }
+                        program.params()[index].name to get(it.param.name)
+                    }.toMap(LinkedHashMap())
+
+                    val paramValuesAtTheEnd =
+                        try {
+                            program.execute(systemInterface, params)
+                        } catch (e: Exception) { //TODO Catch a more specific exception?
+                            if (statement.errorIndicator == null) {
+                                throw e
+                            }
+                            predefinedIndicators[statement.errorIndicator] = BooleanValue.TRUE
+                            null
+                        }
+                    paramValuesAtTheEnd?.forEachIndexed { index, value ->
                         assign(statement.params[index].param.referred!!, value)
                     }
                 }
@@ -219,7 +265,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                                     isEqualOrSmaller(myIterValue, eval(statement.endLimit))) {
                                 try {
                                     execute(statement.body)
-                                } catch (e : IterException) {
+                                } catch (e: IterException) {
                                     // nothing to do here
                                 }
                                 myIterValue = myIterValue.increment()
@@ -234,7 +280,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                                     isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))) {
                                 try {
                                     execute(statement.body)
-                                } catch (e : IterException) {
+                                } catch (e: IterException) {
                                     // nothing to do here
                                 }
                                 assign(statement.index, PlusExpr(statement.index, IntLiteral(1)))
@@ -248,11 +294,27 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 is IterStmt -> throw IterException()
                 else -> TODO(statement.toString())
             }
-        } catch (e : InterruptForDebuggingPurposes) {
+        } catch (e: InterruptForDebuggingPurposes) {
             throw e
-        } catch (e : RuntimeException) {
+        } catch (e: RuntimeException) {
             throw RuntimeException("Issue executing statement $statement", e)
         }
+    }
+
+    private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
+        if (downward) {
+            isEqualOrGreater(index, end)
+        } else {
+            isEqualOrSmaller(index, end)
+        }
+
+    private fun step(byValue: Expression, downward: Boolean): Long {
+        val sign = if (downward) {
+            -1
+        } else {
+            1
+        }
+        return eval(byValue).asInt().value * sign
     }
 
     enum class Comparison {
@@ -262,17 +324,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
 
-    private fun isEqualOrSmaller(value1: Value, value2: Value) : Boolean {
+    private fun isEqualOrSmaller(value1: Value, value2: Value): Boolean {
         val cmp = compare(value1, value2)
         return cmp == Comparison.SMALLER || cmp == Comparison.EQUAL
     }
 
-    private fun isGreaterThan(value1: Value, value2: Value) : Boolean {
+    private fun isEqualOrGreater(value1: Value, value2: Value): Boolean {
+        val cmp = compare(value1, value2)
+        return cmp == Comparison.GREATER || cmp == Comparison.EQUAL
+    }
+
+    private fun isGreaterThan(value1: Value, value2: Value): Boolean {
         val cmp = compare(value1, value2)
         return cmp == Comparison.GREATER
     }
 
-    private fun compare(value1: Value, value2: Value) : Comparison {
+    private fun compare(value1: Value, value2: Value): Comparison {
         return when {
             value1 is IntValue && value2 is IntValue -> when {
                 value1.value == value2.value -> Comparison.EQUAL
@@ -285,16 +352,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun increment(dataDefinition: AbstractDataDefinition) {
+    private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
         val value = this[dataDefinition]
         if (value is IntValue) {
-            this[dataDefinition] = IntValue(value.value + 1)
+            this[dataDefinition] = IntValue(value.value + amount)
         } else {
             throw UnsupportedOperationException()
         }
     }
 
-    private fun areEquals(value1: Value, value2: Value) : Boolean {
+    private fun areEquals(value1: Value, value2: Value): Boolean {
         return when {
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
@@ -302,17 +369,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun render(value: Value) : String {
+    private fun render(values: List<Value>) = values.map { render(it) }.joinToString("")
+
+    private fun render(value: Value): String {
         return when (value) {
             is StringValue -> value.valueWithoutPadding
             is BooleanValue -> value.value.toString()
             is IntValue -> value.value.toString()
-            is DecimalValue -> value.value.toString()
+            is DecimalValue -> value.value.toString() //TODO: formatting rules
             else -> TODO(value.javaClass.canonicalName)
         }
     }
 
-    private fun eval(expression: Expression) : Value {
+    private fun eval(expression: Expression): Value {
         return when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
@@ -321,13 +390,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun assign(dataDefinition: AbstractDataDefinition, value: Value) : Value {
+    private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
         return coercedValue
     }
 
-    private fun assign(target: AssignableExpression, value: Value) : Value {
+    private fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -347,12 +416,25 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun assign(target: AssignableExpression, value: Expression) : Value {
+    private fun assign(target: AssignableExpression, value: Expression): Value {
         return assign(target, eval(value))
     }
 
+    private fun move(target: AssignableExpression, value: Expression): Value {
+        when (target) {
+            is DataRefExpr -> {
+                var newValue = eval(value).takeLast(target.size().toInt())
+                if (value.type().size < target.size()) {
+                    newValue = get(target.variable.referred!!).takeFirst((target.size()- value.type().size ).toInt()).concatenate(newValue)
+                }
+                return assign(target, newValue)
+            }
+            else -> TODO()
+        }
+    }
+
     // TODO put it outside InternalInterpreter
-    fun coerce(value: Value, type: Type) : Value {
+    fun coerce(value: Value, type: Type): Value {
         // TODO to be completed
         return when (value) {
             is BlanksValue -> {
@@ -380,9 +462,34 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     is StringType -> {
                         var s = value.value.padEnd(type.length.toInt(), '\u0000')
                         if (value.value.length > type.length) {
-                           s = s.substring(0, type.length.toInt())
+                            s = s.substring(0, type.length.toInt())
                         }
                         return StringValue(s)
+                    }
+                    is ArrayType -> {
+                        createArrayValue(type.element, type.nElements) {
+                            //TODO
+                            blankValue(type.element)
+                        }
+                    }
+                    //TODO
+                    is NumberType -> {
+                        if (type.integer) {
+                            IntValue(value.value.toLong())
+                        } else {
+                            TODO(DecimalValue(BigDecimal.valueOf(value.value.toLong(), type.decimalDigits)).toString())
+                        }
+                    }
+                    else -> TODO(type.toString())
+                }
+            }
+            is ArrayValue -> {
+                when (type) {
+                    is StringType -> {
+                        return value.asString()
+                    }
+                    is ArrayType -> {
+                        return value
                     }
                     else -> TODO(type.toString())
                 }
@@ -391,13 +498,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    fun interpret(expression: Expression) : Value {
+    fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
         log(ExpressionEvaluationLogEntry(expression, value))
         return value
     }
 
-    private fun interpretConcrete(expression: Expression) : Value {
+    private fun interpretConcrete(expression: Expression): Value {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
             is IntLiteral -> IntValue(expression.value)
@@ -513,9 +620,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is NotExpr -> {
                 return BooleanValue(!eval(expression.base).asBoolean().value)
             }
-            is TrimExpr -> {
-                return StringValue(eval(expression.value).asString().value.trim())
-            }
             is ScanExpr -> {
                 var startIndex = 0
                 if (expression.start != null) {
@@ -570,6 +674,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = eval(expression.value2)
                 return DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
             }
+            is TrimrExpr -> {
+                //TODO expression.charactersToTrim
+                return StringValue(eval(expression.value).asString().value.trimEnd())
+            }
+            is TrimExpr -> {
+                return StringValue(eval(expression.value).asString().value.trim())
+            }
             else -> TODO(expression.toString())
         }
     }
@@ -590,17 +701,16 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 
-
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
 
 fun blankValue(type: Type): Value {
-    return when (type){
+    return when (type) {
         is ArrayType -> createArrayValue(type.element, type.nElements) {
             blankValue(type.element)
         }
         is DataStructureType -> StringValue.blank(type.size.toInt())
-        is StringType ->  StringValue.blank(type.size.toInt())
+        is StringType -> StringValue.blank(type.size.toInt())
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
