@@ -74,12 +74,4 @@ class RpgTokensListTest {
         assertToken(EOF, "<EOF>", tokens.last())
     }
 
-    @test @Ignore
-    fun lexVARNAMEDLEN() {
-        val tokens = assertCanBeLexed("VARNAMEDLEN")
-        assertToken(OP_EVAL, "EVAL", tokens[31])
-        assertToken(ID, "LEN", tokens[32])
-        assertToken(EQUAL, "=", tokens[33])
-        assertToken(ID, "LEN_PIPE", tokens[34])
-    }
 }
