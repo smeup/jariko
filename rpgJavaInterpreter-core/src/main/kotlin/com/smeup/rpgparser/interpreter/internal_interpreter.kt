@@ -17,6 +17,16 @@ data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
     }
 }
 
+data class CallEndLogEntry(val callStmt: CallStmt, val exception: Exception? = null) : LogEntry() {
+    override fun toString(): String {
+        if (exception == null) {
+            return "end of ${callStmt}"
+        } else {
+            return "exception ${exception} in calling ${callStmt}"
+        }
+    }
+}
+
 data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
     override fun toString(): String {
         return "executing ${subroutine.name}"
@@ -245,8 +255,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
                     val paramValuesAtTheEnd =
                         try {
-                            program.execute(systemInterface, params)
+                            program.execute(systemInterface, params).apply {
+                                log(CallEndLogEntry(statement))
+                            }
                         } catch (e: Exception) { //TODO Catch a more specific exception?
+                            log(CallEndLogEntry(statement))
                             if (statement.errorIndicator == null) {
                                 throw e
                             }
