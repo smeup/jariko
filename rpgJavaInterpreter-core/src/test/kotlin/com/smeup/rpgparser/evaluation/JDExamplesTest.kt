@@ -8,6 +8,7 @@ import org.junit.Ignore
 import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -68,9 +69,11 @@ class JDExamplesTest {
         }
         val cu = assertASTCanBeProduced("JD_000", true)
         cu.resolve()
-        val interpreter = execute(cu, mapOf(), systemInterface = si, traceMode = true)
+        val interpreter = execute(cu, mapOf(), systemInterface = si, traceMode = false)
         assertEquals( 1, callsToJDURL.size)
-//        assertEquals(StringValue("https://www.myurl.com".padEnd(1000, '\u0000')), callsToJDURL[0]["\$\$URL"])
+        val urlCalled = callsToJDURL[0].get("URL")
+        assertNotNull(urlCalled)
+        assert(urlCalled is ArrayValue)
     }
 
     @Test

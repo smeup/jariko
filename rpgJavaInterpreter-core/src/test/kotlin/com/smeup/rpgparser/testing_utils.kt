@@ -169,7 +169,7 @@ fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): 
     return si.displayed
 }
 
-private val TRACE = true
+private const val TRACE = false
 
 fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true)
