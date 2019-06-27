@@ -99,7 +99,7 @@ Side note for maven users who use mirrors: remember to change your .m2/settings.
     <mirrors>
         <mirror>
             <id>myNexus</id>
-            <mirrorOf>*,!jitpack.io</mirrorOf>
+            <mirrorOf>!jitpack.io, *</mirrorOf>
 
 ## Credits
 
