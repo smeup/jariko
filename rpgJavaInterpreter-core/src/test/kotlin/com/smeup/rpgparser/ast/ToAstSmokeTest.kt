@@ -132,7 +132,7 @@ class ToAstSmokeTest {
         assertEquals(1, cu.subroutines.size)
     }
 
-    @Test @Ignore
+    @Test
     fun buildAstForMUTE10_01() {
         assertASTCanBeProduced("MUTE10_01")
         assertASTCanBeProduced("MUTE10_01A")

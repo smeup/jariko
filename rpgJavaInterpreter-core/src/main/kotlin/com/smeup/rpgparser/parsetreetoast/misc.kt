@@ -112,6 +112,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAst
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
         this.csMOVE() != null -> this.csMOVE().toAst(conf)
         this.csTIME() != null -> this.csTIME().toAst(conf)
+        this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -252,6 +253,19 @@ internal fun CsEVALContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
             this.fixedexpression.expression().toAst(conf),
             operator=this.operator.toAssignmentOperator(),
             position=toPosition(conf.considerPosition))
+}
+
+internal fun CsSUBDURContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SubDurStmt {
+    val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
+        this.factor1Context().content.toAst(conf)
+    } else {
+        null
+    }
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUBDUR operation requires factor 2: $this.text")
+    //TODO handle duration code after the :
+    val target = this.cspec_fixed_standard_parts().result.text.split(":")
+    val position = toPosition(conf.considerPosition)
+    return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, position)
 }
 
 internal fun CsMOVEContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): MoveStmt {
