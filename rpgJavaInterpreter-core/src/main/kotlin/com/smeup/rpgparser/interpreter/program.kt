@@ -14,12 +14,13 @@ interface Program {
 
 class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Program {
     override fun params(): List<ProgramParam> {
-        val plistParams = cu.entryPlist ?: throw RuntimeException("[$name] no entry plist found")
+        val plistParams = cu.entryPlist
         // TODO derive proper type from the data specification
-        return plistParams.params.map {
+        return plistParams?.params?.map {
             val type = cu.getDataDefinition(it.param.name).type
             ProgramParam(it.param.name, type)
-        }
+        } ?:
+        emptyList()
     }
 
     init {

@@ -15,7 +15,7 @@ import kotlin.test.fail
 class MUTEExamplesTest {
 
     @Test @Ignore
-    fun executeJD_000() {
+    fun executeMUTE10_01() {
         assertEquals(LinkedList<String>(), outputOf("MUTE10_01"))
     }
 
