@@ -10,7 +10,7 @@ import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
 class JavaSystemInterface(private val outputStream: PrintStream,
-                          private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>? = RpgSystem::getProgram) : SystemInterface {
+                          private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?) : SystemInterface {
 
     //For calls from Java programs
     constructor (os: PrintStream) : this(os, RpgSystem::getProgram)
