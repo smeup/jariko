@@ -1,15 +1,16 @@
 package com.smeup.rpgparser.jvminterop
 
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
-import com.smeup.rpgparser.interpreter.Program
-import com.smeup.rpgparser.interpreter.SymbolTable
-import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import java.io.PrintStream
+import java.lang.Exception
 import java.util.*
+import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
-class JavaSystemInterface(private val outputStream: PrintStream = System.out) : SystemInterface {
+class JavaSystemInterface(private val outputStream: PrintStream = System.out,
+                          private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>? = RpgSystem::getProgram) : SystemInterface {
     val consoleOutput = LinkedList<String>()
     private val javaInteropPackages = LinkedList<String>()
     private val programs = HashMap<String, Program?>()
@@ -30,8 +31,7 @@ class JavaSystemInterface(private val outputStream: PrintStream = System.out) : 
     }
 
     private fun findInFileSystem(programName: String): Program? {
-        //TODO: remove static reference!!!
-        return RpgSystem.getProgram(programName)
+        return programSource?.call(programName)
     }
 
     private fun findInPackages(programName: String): Program? {
@@ -39,7 +39,7 @@ class JavaSystemInterface(private val outputStream: PrintStream = System.out) : 
             try {
                 val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
                 instantiateProgram(javaClass)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 null
             }
 

@@ -17,4 +17,5 @@ class GateControllerTest {
         JD_001(javaSystemInterface).call("https://xxx.myurl.com", "x", "w")
         assertEquals(listOf("Invoked  , URL=https://www.myurl.com"), javaSystemInterface.consoleOutput)
     }
+
 }
