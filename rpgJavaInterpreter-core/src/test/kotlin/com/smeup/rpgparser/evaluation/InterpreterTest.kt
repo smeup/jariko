@@ -206,6 +206,12 @@ class InterpreterTest {
         assertStartsWith(outputOf("TIMESTDIFF"), "Elapsed time:")
     }
 
+    @Test @Ignore
+    fun executeSUBDURTEST() {
+        assertStartsWith(outputOf("SUBDURTEST"), "1100")
+    }
+
+
     @Test
     fun executeCALCFIBCA5() {
         assertEquals(outputOf("CALCFIBCA5"), listOf("FIBONACCI OF: 10 IS: 55"))
