@@ -22,12 +22,20 @@ internal fun RpgParser.BlockContext.toAst(conf : ToAstConfiguration = ToAstConfi
             val iter = if (result.text.isBlank()) null else result.toAst(conf) as AssignableExpression
             val factor = this.begindo().factor()
             val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
-            DoStmt(
-                    this.begindo().csDO().cspec_fixed_standard_parts().factor2.symbolicConstants().toAst(conf),
-                    iter,
-                    this.statement().map { it.toAst(conf) },
-                    start,
-                    position = toPosition(conf.considerPosition))
+            val factor2 = this.begindo().csDO().cspec_fixed_standard_parts().factor2 ?: null
+            val endLimit =
+                    if (factor2 == null) {
+                        IntLiteral(1)
+                    } else if (factor2.symbolicConstants() != null) {
+                        factor2.symbolicConstants().toAst()
+                    } else {
+                        factor2.content.toAst(conf)
+                    }
+            DoStmt(endLimit,
+                   iter,
+                   this.statement().map { it.toAst(conf) },
+                   start,
+                   position = toPosition(conf.considerPosition))
         }
         this.forstatement() != null -> this.forstatement().toAst(conf)
         else -> TODO(this.text.toString())

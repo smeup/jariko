@@ -83,6 +83,10 @@ data class ClearStmt(val value: Expression,
     }
 }
 
+data class TimeStmt(val value: Expression,
+                     override val position: Position? = null) : Statement(position)
+
+
 data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position)
 
 data class DoStmt(

@@ -207,6 +207,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
                     }
                 }
+                is TimeStmt -> {
+                    return when (statement.value) {
+                        is DataRefExpr -> {
+                            assign(statement.value, TimeStampValue(Date()))
+                            Unit
+                        }
+                        else -> throw UnsupportedOperationException("I do not know how to set TIME to ${statement.value}")
+                    }
+                }
                 is DisplayStmt -> {
                     val values = mutableListOf<Value>()
                     statement.factor1?.let { values.add(interpret(it)) }

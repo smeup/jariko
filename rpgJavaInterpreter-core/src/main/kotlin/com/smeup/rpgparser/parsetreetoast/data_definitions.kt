@@ -36,7 +36,7 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
             like = it.simpleExpression().toAst(conf) as AssignableExpression
         }
         it.keyword_inz()?.let {
-            initializationValue = it.simpleExpression().toAst(conf)
+            initializationValue = it.simpleExpression()?.toAst(conf)
         }
         it.keyword_dim()?.let {
             dim = it.simpleExpression().toAst(conf)

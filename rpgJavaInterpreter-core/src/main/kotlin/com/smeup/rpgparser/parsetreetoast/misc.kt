@@ -111,6 +111,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAst
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
         this.csMOVE() != null -> this.csMOVE().toAst(conf)
+        this.csTIME() != null -> this.csTIME().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -184,7 +185,13 @@ internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration
             position)
 }
 
-internal fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
+internal fun CsTIMEContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): TimeStmt {
+    val name = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return TimeStmt(referenceToExpression(name, toPosition(conf.considerPosition)), position)
+}
+
+fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
     return this.factor2?.content?.toAst(conf)
 }
 
