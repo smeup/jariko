@@ -9,7 +9,7 @@ import java.util.*
 import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
-class JavaSystemInterface(private val outputStream: PrintStream,
+open class JavaSystemInterface(private val outputStream: PrintStream,
                           private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?) : SystemInterface {
 
     //For calls from Java programs
@@ -51,7 +51,7 @@ class JavaSystemInterface(private val outputStream: PrintStream,
         }.filter { it != null }.firstOrNull()
     }
 
-    private fun instantiateProgram(javaClass: Class<*>): Program? {
+    open fun instantiateProgram(javaClass: Class<*>): Program? {
         return if (javaClass.kotlin.isSubclassOf(Program::class)) {
             javaClass.kotlin.constructors.filter { it.parameters.isEmpty() }.first().call() as Program
         } else {
