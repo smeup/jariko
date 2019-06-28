@@ -84,7 +84,7 @@ Then add the following dependencies for the core library:
     <dependency>
         <groupId>com.github.smeup.smeup-rpg</groupId>
         <artifactId>rpgJavaInterpreter-core</artifactId>
-        <version>master-SNAPSHOT</version>
+        <version>-SNAPSHOT</version>
     </dependency>
 
 And this if you want to include the examples too:
@@ -92,7 +92,7 @@ And this if you want to include the examples too:
     <dependency>
         <groupId>com.github.smeup.smeup-rpg</groupId>
         <artifactId>examples</artifactId>
-        <version>master-SNAPSHOT</version>
+        <version>-SNAPSHOT</version>
     </dependency>
 
 Side note for maven users who use mirrors: remember to change your .m2/settings.xml with settings like this:
