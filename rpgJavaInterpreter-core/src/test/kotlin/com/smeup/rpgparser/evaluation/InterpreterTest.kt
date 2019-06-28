@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class InterpreterTest {
@@ -272,6 +273,14 @@ class InterpreterTest {
     @Test @Ignore
     fun executeVARNAMEDLEN() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
+    }
+
+    @Test
+    fun executeProgramWithRuntimeError() {
+        //TODO better error assertion
+        assertFailsWith(Throwable::class) {
+            execute("ERROR01", emptyMap())
+        }
     }
 
 }

@@ -41,8 +41,7 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
 
     fun singleCall(params: P) : P? {
         programInterpreter.execute(rpgProgram, toInitialValues(params), traceMode = traceMode)
-        // TODO populate P correctly
-        return null
+        return params
     }
 
     open protected fun toInitialValues(params: P) : Map<String, Value> {

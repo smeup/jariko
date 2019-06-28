@@ -709,6 +709,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = eval(expression.value2)
                 return DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
             }
+            is DivExpr -> {
+                val v1 = eval(expression.left)
+                val v2 = eval(expression.right)
+                //TODO check type
+                return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
+            }
             is TrimrExpr -> {
                 //TODO expression.charactersToTrim
                 return StringValue(eval(expression.value).asString().value.trimEnd())
