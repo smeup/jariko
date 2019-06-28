@@ -6,6 +6,7 @@ import com.smeup.rpgparser.jvminterop.Size
 import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
@@ -40,14 +41,27 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
     protected val rpgProgram by lazy { RpgSystem.getProgram(programNameSource.nameFor(this)) }
 
     fun singleCall(params: P) : P? {
-        programInterpreter.execute(rpgProgram, toInitialValues(params), traceMode = traceMode)
-        return params
+        val initialValues = toInitialValues(params)
+        programInterpreter.execute(rpgProgram, initialValues, traceMode = traceMode)
+        return toResults(params, initialValues)
     }
 
-    open protected fun toInitialValues(params: P) : Map<String, Value> {
+    open protected fun toResults(params: P, resultValues: LinkedHashMap<String, Value>) : P {
         val any : Any = params!!
         val kclass = any::class
         val initialValues = HashMap<String, Value>()
+        //TODO This is a fake implementation
+//        kclass.memberProperties.forEach {
+//            toRpgValue(it, it.call(params)) = resultValues[it.rpgName]
+//        }
+        return params
+    }
+
+
+    open protected fun toInitialValues(params: P) : LinkedHashMap<String, Value> {
+        val any : Any = params!!
+        val kclass = any::class
+        val initialValues = LinkedHashMap<String, Value>()
         kclass.memberProperties.forEach {
             initialValues[it.rpgName] = toRpgValue(it, it.call(params))
         }

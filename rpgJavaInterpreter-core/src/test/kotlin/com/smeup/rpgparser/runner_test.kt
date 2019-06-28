@@ -12,10 +12,12 @@ class RunnerTest {
     fun programsReturnValues() {
         val systemInterface = JavaSystemInterface()
         val program = getProgram("CALCFIB", systemInterface)
+
         val parms = program.singleCall(listOf("7")) ?: fail("Result values should not be null")
+
         val parmList = parms.parmsList ?: fail("Result value list should not be null")
         assertEquals(1, parmList.size)
-        assertEquals("7", parmList[0])
+        assertEquals("13", parmList[0])
     }
 
     @Test

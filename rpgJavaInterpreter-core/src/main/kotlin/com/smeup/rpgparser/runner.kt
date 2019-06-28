@@ -13,15 +13,23 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
 }
 
 class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)),  systemInterface) {
-    override fun toInitialValues(params: CommandLineParms) : Map<String, Value> {
-        if (params.parmsList.isEmpty()) {
-            return mapOf()
-        }
+    override fun toInitialValues(params: CommandLineParms) : LinkedHashMap<String, Value> {
+        val result = LinkedHashMap<String, Value> ()
         val values = params.parmsList.map { parameter -> StringValue(parameter ) }
-        return rpgProgram.params()
+        val zipped = rpgProgram.params()
                 .map {dataDefinition -> dataDefinition.name }
                 .zip(values)
-                .toMap()
+        zipped.forEach{
+            result[it.first] = it.second
+        }
+        return result;
+    }
+
+    override fun toResults(params: CommandLineParms, resultValues: LinkedHashMap<String, Value>) : CommandLineParms {
+        if (params.parmsList.isEmpty()) {
+            return params
+        }
+        return CommandLineParms(resultValues.values.map { it.asString().valueWithoutPadding })
     }
 
     fun singleCall(parms: List<String>) =  singleCall(CommandLineParms(parms))
