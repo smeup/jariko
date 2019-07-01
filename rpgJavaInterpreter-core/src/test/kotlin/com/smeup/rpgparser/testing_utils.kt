@@ -182,7 +182,15 @@ fun rpgProgram(name: String) : RpgProgram {
 }
 
 class ExtendedCollectorSystemInterface(): CollectorSystemInterface() {
+    private val rpgPrograms = HashMap<String, RpgProgram>()
+
     override fun findProgram(name: String): Program? {
-        return super.findProgram(name) ?: rpgProgram(name)
+        return super.findProgram(name) ?: findRpgProgram(name)
+    }
+
+    private fun findRpgProgram(name: String): Program? {
+        return rpgPrograms.getOrPut(name) {
+            rpgProgram(name)
+        }
     }
 }
