@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import java.math.BigDecimal
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.streams.toList
 
@@ -291,3 +292,9 @@ fun blankString(length: Int) = StringValue("\u0000".repeat(length))
 fun Long.asValue() = IntValue(this)
 
 fun String.asValue() = StringValue(this)
+
+private const val FORMAT_DATE_ISO = "yyyy-MM-dd-HH.mm.ss.SSS"
+
+fun String.asIsoDate(): Date {
+    return SimpleDateFormat(FORMAT_DATE_ISO).parse(this.take(FORMAT_DATE_ISO.length))
+}

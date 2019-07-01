@@ -1,11 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
-import com.strumenta.kolasu.model.ReferenceByName
 import java.math.BigDecimal
-import java.time.LocalDateTime
 import java.util.*
-import javax.xml.crypto.Data
 import kotlin.collections.HashMap
 import java.util.TreeMap
 import kotlin.collections.LinkedHashMap
@@ -323,6 +320,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         }
                     }
                 }
+                is SubDurStmt -> {
+                    when (statement.target) {
+                        is DataRefExpr -> {
+                            //TODO: partial implementation just for *MS - Add more cases
+                            val minuend = if (statement.factor1 == null) {
+                                interpret(statement.target)
+                            } else {
+                                interpret(statement.factor1)
+                            }
+                            val subtrahend = interpret(statement.factor2)
+                            val newValue = (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
+                            assign(statement.target, IntValue(newValue))
+                        }
+                        else -> throw UnsupportedOperationException("Data reference required: " + statement)
+                    }
+                }
                 is LeaveStmt -> throw LeaveException()
                 is IterStmt -> throw IterException()
                 else -> TODO(statement.toString())
@@ -458,7 +471,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private fun move(target: AssignableExpression, value: Expression): Value {
         when (target) {
             is DataRefExpr -> {
-                var newValue = eval(value).takeLast(target.size().toInt())
+                var newValue = interpret(value).takeLast(target.size().toInt())
                 if (value.type().size < target.size()) {
                     newValue = get(target.variable.referred!!).takeFirst((target.size()- value.type().size ).toInt()).concatenate(newValue)
                 }
@@ -700,7 +713,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 if (expression.value == null) {
                     return TimeStampValue(Date())
                 } else {
-                    TODO("TimeStamp parsing")
+                    val evaluated = eval(expression.value)
+                    if (evaluated is StringValue) {
+                        return TimeStampValue(evaluated.value.asIsoDate())
+                    }
+                    TODO("TimeStamp parsing: " + evaluated)
                 }
             }
             is DiffExpr -> {

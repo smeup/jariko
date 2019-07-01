@@ -3,9 +3,15 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
+import java.util.*
 import kotlin.test.assertEquals
 
 class ExpressionEvaluationTest {
+
+    @Test
+    fun stringIsoDate() {
+        assertEquals(Date(1316030808592) ,"2011-09-14-22.06.48.592000".asIsoDate())
+    }
 
     @Test
     fun evaluateStringLiteral() {

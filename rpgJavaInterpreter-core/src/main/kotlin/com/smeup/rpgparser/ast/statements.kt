@@ -39,7 +39,7 @@ data class EvalStmt(val target: AssignableExpression,
 
 data class SubDurStmt(val factor1: Expression?,
                       val target: AssignableExpression,
-                      var factor2: Expression,
+                      val factor2: Expression,
                       override val position: Position? = null)
     : Statement(position)
 

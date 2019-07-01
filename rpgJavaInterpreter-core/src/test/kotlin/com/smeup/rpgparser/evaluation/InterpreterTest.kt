@@ -207,7 +207,7 @@ class InterpreterTest {
         assertStartsWith(outputOf("TIMESTDIFF"), "Elapsed time:")
     }
 
-    @Test @Ignore
+    @Test
     fun executeSUBDURTEST() {
         assertStartsWith(outputOf("SUBDURTEST"), "1100")
     }
