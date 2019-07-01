@@ -271,7 +271,7 @@ class InterpreterTest {
     }
 
     @Test @Ignore
-    fun executeVARNAMEDLEN() {
+    fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }
 
