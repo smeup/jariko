@@ -173,10 +173,12 @@ class RpgParserFacade {
                 if (index + 2 < lexResult.root?.size) {
                     val token1 = lexResult.root!![index + 1]
                     val token2 = lexResult.root!![index + 2]
-                    if (token0.type == LEAD_WS5_Comments && token0.text == "M"
+                    // Please note the leading spaces added
+                    if (token0.type == LEAD_WS5_Comments && token0.text == "".padStart(4) + "M"
                             && token1.type == COMMENT_SPEC_FIXED && token1.text == "U*"
                             && token2.type == COMMENTS_TEXT) {
-                        mutes[token2.line] = parseMute(token2.text, errors)
+                        // Please note the leading spaces added to the token
+                        mutes[token2.line] = parseMute("".padStart(8) + token2.text, errors)
                     }
                 }
             }
