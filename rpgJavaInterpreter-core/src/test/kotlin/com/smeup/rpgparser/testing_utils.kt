@@ -59,7 +59,7 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false) : R
             .parse(inputStreamFor(exampleName))
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
-    return result.root!!
+    return result.root!!.rContext
 }
 
 fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = false,
@@ -71,7 +71,7 @@ fun assertASTCanBeProduced(exampleName: String, considerPosition : Boolean = fal
         if (!considerPosition) {
             throw IllegalStateException("Mute annotations can be injected only when retaining the position")
         }
-        ast.injectMuteAnnotation(parseTreeRoot, )
+        //ast.injectMuteAnnotation(parseTreeRoot, )
     }
     return ast
 }

@@ -1,9 +1,9 @@
      DFIELD1           S              5A                                        Tappo
      DFIELD2           S              5A
      DFIELD3           S             15A
-     DNUMBER1          S             15S 0
-     DNUMBER2          S             15S 0
-     DNUMBER3          S             15S 0
+     DNUMBER1          S             15 0
+     DNUMBER2          S             15 0
+     DNUMBER3          S             15 0
       *
      C                   CLEAR                   FIELD1
      C                   CLEAR                   FIELD2
