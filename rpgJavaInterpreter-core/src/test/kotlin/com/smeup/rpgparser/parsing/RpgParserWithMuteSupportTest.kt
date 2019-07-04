@@ -4,7 +4,7 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import org.junit.Test
 
 class RpgParserWithMuteSupportTest {
-
+    // test commit
     @Test
     fun muteAnnotationsAttribution() {
         val cu = assertASTCanBeProduced("MUTE05_02",
