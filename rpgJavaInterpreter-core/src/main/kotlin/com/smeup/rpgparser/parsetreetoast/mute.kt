@@ -3,11 +3,21 @@ package com.smeup.rpgparser.parsetreetoast
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.interpreter.LogEntry
+import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.pos
 
+data class MuteAnnotationExecutionLogEntry(val annotation: MuteAnnotation, var result : Value) : LogEntry() {
+    override fun toString(): String {
+        return when(annotation) {
+            is MuteComparisonAnnotation -> "executing MuteComparisonAnnotation: ${annotation.position} ${result} ${annotation.val1} ${annotation.comparison} ${annotation.val2} "
+            else -> this.toString()
+        }
+    }
+}
 
 fun MuteParser.LiteralContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
     return StringLiteral(this.content?.text ?: "", toPosition(conf.considerPosition))
@@ -67,7 +77,7 @@ fun injectMuteAnnotationHelper(statments : List<Statement>,
 
 fun CompilationUnit.injectMuteAnnotation(parseTreeRoot: RpgParser.RContext,
                                          mutes: Map<Int, MuteParser.MuteLineContext>) {
-    // TODO implement a better statement explorer
+    // TODO implement a better statement explorer for subroutines
     injectMuteAnnotationHelper(this.main.stmts,mutes)
 
 
