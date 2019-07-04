@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.parsetreetoast.MuteAnnotationExecutionLogEntry
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -127,12 +128,31 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 reinitialization : Boolean = true) {
         initialize(compilationUnit, initialValues, reinitialization)
         compilationUnit.main.stmts.forEach {
-            execute(it)
+            executeWithMute(it)
         }
     }
 
     private fun execute(statements: List<Statement>) {
-        statements.forEach { execute(it) }
+        statements.forEach { executeWithMute(it) }
+    }
+
+    private fun executeWithMute(statement: Statement) {
+        execute(statement)
+
+
+        statement.muteAnnotations.forEach{
+            when (it) {
+                is MuteComparisonAnnotation -> {
+                    if (it.comparison == "EQ" ) {
+                        val exp = EqualityExpr(it.val1, it.val2,it.position )
+                        val value = interpretConcrete(exp)
+
+                        log(MuteAnnotationExecutionLogEntry(it,value))
+                    }
+                }
+            }
+
+        }
     }
 
     private fun execute(statement: Statement) {
