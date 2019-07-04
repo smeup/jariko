@@ -91,7 +91,7 @@ class RpgParserFacade {
         return RpgLexerResult(errors, tokens)
     }
 
-    private fun createMuteParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean) : MuteParser {
+    fun createMuteParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean) : MuteParser {
         val lexer = MuteLexer(if (longLines) inputStreamWithLongLines(inputStream) else ANTLRInputStream(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
