@@ -9,9 +9,12 @@ import kotlin.test.assertEquals
 
 class ExpressionEvaluationTest {
 
-    @Test @Ignore
+    @Test
     fun stringIsoDate() {
-        assertEquals(Date(1316030808592) ,"2011-09-14-22.06.48.592000".asIsoDate())
+        val calendar = Calendar.getInstance();
+        calendar.set(2011, 8, 14, 22, 6, 48)
+        calendar.set(Calendar.MILLISECOND, 592)
+        assertEquals(calendar.time.time,"2011-09-14-22.06.48.592000".asIsoDate().time)
     }
 
     @Test
