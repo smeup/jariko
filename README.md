@@ -57,6 +57,25 @@ If you want to force the execution of all checks:
  ```
  _try to clean the .gradle directory_)
 
+## Creating a jar with all dependencies to run some examples
+You can create a jar that includes all the dependencies:
+
+```
+./gradlew fatJar
+```
+
+This will produce the file
+
+``` 
+rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-all.jar
+```
+
+So you can run an RPGLE file from the command line with (from the directory that contains this jar):
+
+``` 
+java -jar rpgJavaInterpreter-core-all.jar path/to/my/RPGLE
+```
+
 ## How the repository is organized
 
 * _generated-src_ contains the code generated from the grammar
