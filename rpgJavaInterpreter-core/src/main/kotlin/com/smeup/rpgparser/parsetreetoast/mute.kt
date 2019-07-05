@@ -65,11 +65,11 @@ fun injectMuteAnnotationHelper(statments : List<Statement>,
                                mutes: Map<Int, MuteParser.MuteLineContext>) {
     statments.forEach {
         // the mute annotation must be attached to the next statement
-        // TODO maurizio develop a  better strategy to find the closest next statement
-        var line = it.position!!.start.line + 1
+        // TODO maurizio develop a better strategy to find the closest next statement
+        val line = it.position!!.start.line + 1
         if( line in mutes ) {
-            var mute = mutes[line]
-            it.muteAnnotations.add( mute!!.toAst(  position = pos(line,mute.start.charPositionInLine,line,mute.stop.charPositionInLine)) )
+            val mute = mutes[line]
+            it.muteAnnotations.add( mute!!.toAst(position = pos(line,mute.start.charPositionInLine, line, mute.stop.charPositionInLine)))
 
         }
     }
@@ -79,6 +79,4 @@ fun CompilationUnit.injectMuteAnnotation(parseTreeRoot: RpgParser.RContext,
                                          mutes: Map<Int, MuteParser.MuteLineContext>) {
     // TODO implement a better statement explorer for subroutines
     injectMuteAnnotationHelper(this.main.stmts,mutes)
-
-
 }

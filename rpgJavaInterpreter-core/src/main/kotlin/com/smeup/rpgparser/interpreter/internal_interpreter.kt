@@ -7,21 +7,22 @@ import java.util.*
 import kotlin.collections.HashMap
 import java.util.TreeMap
 import kotlin.collections.LinkedHashMap
-
+import com.smeup.rpgparser.ast.Comparison.EQ
+import java.lang.UnsupportedOperationException
 
 abstract class LogEntry
 data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
     override fun toString(): String {
-        return "calling ${callStmt}"
+        return "calling $callStmt"
     }
 }
 
 data class CallEndLogEntry(val callStmt: CallStmt, val exception: Exception? = null) : LogEntry() {
     override fun toString(): String {
-        if (exception == null) {
-            return "end of ${callStmt}"
+        return if (exception == null) {
+            "end of $callStmt"
         } else {
-            return "exception ${exception} in calling ${callStmt}"
+            "exception $exception in calling $callStmt"
         }
     }
 }
@@ -173,7 +174,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private fun executeWithMute(statement: Statement) {
         execute(statement)
 
-
         statement.muteAnnotations.forEach{
             when (it) {
                 is MuteComparisonAnnotation -> {
@@ -187,6 +187,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         else -> throw UnsupportedOperationException("Unsupported comparison: ${it.comparison}")
                     }
                 }
+                else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
 
         }
