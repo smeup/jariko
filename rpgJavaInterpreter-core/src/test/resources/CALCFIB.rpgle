@@ -14,6 +14,7 @@
      C                   eval      dsp= 'FIBONACCI OF: ' +  ppdat +
      C                                 ' IS: ' + %CHAR(RESULT)
      C                   dsply                   dsp
+     C                   eval      ppdat = %CHAR(RESULT)
      C                   seton                                        lr
       *--------------------------------------------------------------*
      C     FIB           BEGSR

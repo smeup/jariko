@@ -1,14 +1,14 @@
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.CollectorSystemInterface
-import com.smeup.rpgparser.assertASTCanBeProduced
-import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
+import org.junit.Ignore
 import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -30,20 +30,20 @@ class JDExamplesTest {
 
         val svarsk = interpreter["U\$SVARSK"]
         assertTrue(svarsk is ArrayValue)
-        assertEquals(200, (svarsk as ArrayValue).arrayLength())
-        val svarskElement = (svarsk as ArrayValue).getElement(1)
+        assertEquals(200, svarsk.arrayLength())
+        val svarskElement = svarsk.getElement(1)
         assertEquals(blankString(1050), svarskElement)
 
         val svarcd = interpreter["\$\$SVARCD"]
         assertTrue(svarcd is ArrayValue)
-        assertEquals(200, (svarcd as ArrayValue).arrayLength())
-        val svarcdElement = (svarcd as ArrayValue).getElement(1)
+        assertEquals(200, svarcd.arrayLength())
+        val svarcdElement = svarcd.getElement(1)
         assertEquals(blankString(50), svarcdElement)
 
         val svarva = interpreter["\$\$SVARVA"]
         assertTrue(svarva is ArrayValue)
-        assertEquals(200, (svarva as ArrayValue).arrayLength())
-        val svarvaElement = (svarva as ArrayValue).getElement(1)
+        assertEquals(200, svarva.arrayLength())
+        val svarvaElement = svarva.getElement(1)
         assertEquals(blankString(1000), svarvaElement)
     }
 
@@ -51,29 +51,35 @@ class JDExamplesTest {
     fun executeJD_000_base() {
         val cu = assertASTCanBeProduced("JD_000_base", true)
         cu.resolve()
-        val interpreter = execute(cu, mapOf(), traceMode = true)
+        execute(cu, mapOf(), traceMode = true)
     }
 
-//    TODO: to solve this we should handle params being data declarations, sometimes
-//    @Test
-//    fun executeJD_000() {
-//        val si = CollectorSystemInterface()
-//        val callsToJDURL = LinkedList<Map<String, Value>>()
-//        si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
-//                ProgramParam("funz", StringType(10)),
-//                ProgramParam("method", StringType(10)),
-//                ProgramParam("URL", StringType(1000)))) {
-//            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
-//                callsToJDURL.add(params)
-//                return emptyList()
-//            }
-//        }
-//        val cu = assertASTCanBeProduced("JD_000", true)
-//        cu.resolve()
-//        val interpreter = execute(cu, mapOf(), systemInterface = si)
-//        assertEquals(callsToJDURL.size, 1)
-//        assertEquals(callsToJDURL[0]["\$\$URL"], StringValue("https://www.myurl.com".padEnd(1000, '\u0000')))
-//    }
+    @Test
+    fun executeJD_000_countsNrOfCalls() {
+        val si = ExtendedCollectorSystemInterface()
+        val callsToJDURL = LinkedList<Map<String, Value>>()
+        si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("method", StringType(10)),
+                ProgramParam("URL", StringType(1000)))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+                callsToJDURL.add(params)
+                return emptyList()
+            }
+        }
+        val cu = assertASTCanBeProduced("JD_000", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf(), systemInterface = si, traceMode = false)
+        assertEquals( 1, callsToJDURL.size)
+        val urlCalled = callsToJDURL[0].get("URL")
+        assertNotNull(urlCalled)
+        assert(urlCalled is ArrayValue)
+    }
+
+    @Test
+    fun executeJD_000() {
+        assertEquals(listOf("", "", "Url", "http://xxx.smaup.com"), outputOf("JD_000"))
+    }
 
     @Test
     fun executeJD_001_plist() {
@@ -123,6 +129,7 @@ class JDExamplesTest {
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
 
+
     @Test
     fun executeJD_001_complete_url_not_found() {
         val cu = assertASTCanBeProduced("JD_001", true)
@@ -142,7 +149,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", ArrayType(StringType(1050), 200)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToJDURL.add(params)
                 return emptyList()
             }
@@ -182,7 +189,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToListFld.add(params)
                 return emptyList()
             }
@@ -191,7 +198,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -215,7 +222,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToListFld.add(params)
                 return emptyList()
             }
@@ -224,7 +231,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -264,7 +271,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToListFld.add(params)
                 return listOf(params["foldern"]!!,
                         StringValue.padded("myFile.png", 10),
@@ -276,7 +283,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -325,7 +332,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToRcvsck.add(params)
                 return emptyList()
             }
@@ -334,7 +341,7 @@ class JDExamplesTest {
 //                ProgramParam("funz", StringType(10)),
 //                ProgramParam("meto", StringType(10)),
 //                ProgramParam("var", StringType(10)))) {
-//            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+//            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
 //                callsToNfyeve.add(params)
 //                throw InterruptForDebuggingPurposes()
 //            }
@@ -358,7 +365,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToRcvsck.add(params)
                 return listOf(params["addr"]!!, StringValue("<myxml></myxml>"), IntValue("<myxml></myxml>".length.toLong()))
             }
@@ -389,7 +396,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: Map<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -410,6 +417,150 @@ class JDExamplesTest {
         assertEquals("addressToListen", callsToRcvsck[0]["addr"]!!.asString().value)
         assertEquals(1, callsToNfyeve.size)
         assertEquals("Targa".padEnd(50, '\u0000') + "ZZ000AA".padEnd(1000, '\u0000'), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
+    }
+
+    @Test
+    fun executeJD_003_noErrors() {
+        val callsToNfyeve = LinkedList<Map<String, Value>>()
+        val returnStatus = "U\$IN35"
+        val parms = mapOf(
+                "U\$FUNZ" to StringValue("INZ"),
+                "U\$METO" to StringValue(""),
+                "U\$SVARSK" to StringValue(""),
+                returnStatus to StringValue(" ")
+        )
+        val si = CollectorSystemInterface()
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
+                ProgramParam("addr", StringType(10)),
+                ProgramParam("buffer", StringType(10)),
+                ProgramParam("bufferLen", NumberType(2, 0)))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+                val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"AB123XX\" />"
+                return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
+            }
+        }
+        si.functions["P_RxELE"] = object : JvmFunction("P_RxELE", listOf(
+                FunctionParam("tag", StringType(50)),
+                FunctionParam("pos", StringType(50)),
+                FunctionParam("index", NumberType(2, 0)),
+                FunctionParam("xml", StringType(5000)))) {
+            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+                return StringValue("<Auto Targa=\"AB123XX\"/>")
+            }
+        }
+        si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
+                FunctionParam("Element", StringType(500)),
+                FunctionParam("AttributeName", StringType(50)))) {
+            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+                return StringValue("AB123XX")
+            }
+        }
+        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("meto", StringType(10)),
+                ProgramParam("var", StringType(10)))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+                callsToNfyeve.add(params)
+                throw InterruptForDebuggingPurposes()
+            }
+        }
+        execute("JD_003", parms, si)
+        assertEquals(" ", parms[returnStatus]!!.value)
+    }
+
+    @Test
+    fun executeJD_003_withErrors() {
+        val returnStatus = "U\$IN35"
+        val parms = mapOf(
+                "U\$FUNZ" to StringValue("INZ"),
+                "U\$METO" to StringValue(""),
+                "U\$SVARSK" to StringValue(""),
+                returnStatus to StringValue(" ")
+        )
+        val si = CollectorSystemInterface()
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
+                ProgramParam("addr", StringType(10)),
+                ProgramParam("buffer", StringType(10)),
+                ProgramParam("bufferLen", NumberType(2, 0)))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+                throw RuntimeException("Something went wrong")
+            }
+        }
+        val interpreter = execute("JD_003", parms, si)
+        assertEquals("1", interpreter[returnStatus].asString().value)
+    }
+
+    @Test
+    fun executeJD_003_V2() {
+        val callsToNfyeve = LinkedList<Map<String, Value>>()
+        val targa = "AB123XX"
+        val returnStatus = "U\$IN35"
+        val parms = mapOf(
+                "U\$FUNZ" to StringValue("INZ"),
+                "U\$METO" to StringValue(""),
+                "U\$SVARSK" to StringValue(""),
+                returnStatus to StringValue(" ")
+        )
+        val si = CollectorSystemInterface()
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
+                ProgramParam("addr", StringType(10)),
+                ProgramParam("buffer", StringType(10)),
+                ProgramParam("bufferLen", NumberType(2, 0)),
+                ProgramParam("ierror", BooleanType))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+                val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"${targa}\" />"
+                return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
+            }
+        }
+        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("meto", StringType(10)),
+                ProgramParam("var", StringType(10)))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+                callsToNfyeve.add(params)
+                throw InterruptForDebuggingPurposes()
+            }
+        }
+        execute("JD_003_V2", parms, si)
+        assertEquals(1, callsToNfyeve.size)
+        assertTrue((callsToNfyeve[0]["var"] as ConcreteArrayValue).getElement(1).asString().value.contains(targa))
+        assertEquals(" ", parms[returnStatus]!!.value)
+    }
+
+    @Test @Ignore
+    fun executeJD_003_full() {
+        val callsToNfyeve = LinkedList<Map<String, Value>>()
+        val targa = "AB123XX"
+        val returnStatus = "U\$IN35"
+        val parms = mapOf(
+                "U\$FUNZ" to StringValue("INZ"),
+                "U\$METO" to StringValue(""),
+                "U\$SVARSK" to StringValue(""),
+                returnStatus to StringValue(" ")
+        )
+        val si = CollectorSystemInterface()
+        si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
+                ProgramParam("addr", StringType(10)),
+                ProgramParam("buffer", StringType(10)),
+                ProgramParam("bufferLen", NumberType(2, 0)))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+                val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"${targa}\" />"
+                return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
+            }
+        }
+        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
+                ProgramParam("funz", StringType(10)),
+                ProgramParam("meto", StringType(10)),
+                ProgramParam("var", StringType(10)))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+                callsToNfyeve.add(params)
+                throw InterruptForDebuggingPurposes()
+            }
+        }
+        execute("JD_003_full", parms, si)
+        assertEquals(1, callsToNfyeve.size)
+        assertTrue((callsToNfyeve[0]["var"] as ConcreteArrayValue).getElement(1).asString().value.contains(targa))
+        assertEquals(" ", parms[returnStatus]!!.value)
     }
 
 }

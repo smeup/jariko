@@ -1376,13 +1376,17 @@ csFOR:
 	operation=OP_FOR operationExtender=cs_operationExtender? expression   //For(E) I
     (EQUAL expression )? // = 1
     (
-    (FREE_BY expression )?    // By 1
-    ((FREE_TO | FREE_DOWNTO) expression )?
+    (FREE_BY byExpression )?    // By 1
+    ((FREE_TO | FREE_DOWNTO) stopExpression )?
     | 
-    ((FREE_TO | FREE_DOWNTO) expression )?
-    (FREE_BY expression )?    // By 1
+    ((FREE_TO | FREE_DOWNTO) stopExpression )?
+    (FREE_BY byExpression )?    // By 1
     )
     (C_FREE_NEWLINE | EOF); // TO 10 ;
+byExpression:
+	expression;
+stopExpression:
+	expression;
 csFORCE:
 	operation=OP_FORCE
 	cspec_fixed_standard_parts;

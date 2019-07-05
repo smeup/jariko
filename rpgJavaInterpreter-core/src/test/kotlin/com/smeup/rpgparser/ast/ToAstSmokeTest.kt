@@ -2,6 +2,7 @@ package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -129,5 +130,13 @@ class ToAstSmokeTest {
         assertEquals(5, cu.dataDefinitions.size)
         assertEquals(6, cu.main.stmts.size)
         assertEquals(1, cu.subroutines.size)
+    }
+
+    @Test
+    fun buildAstForMUTE10_01() {
+        assertASTCanBeProduced("MUTE10_01")
+        assertASTCanBeProduced("MUTE10_01A")
+        assertASTCanBeProduced("MUTE10_01B")
+        assertASTCanBeProduced("MUTE10_01C")
     }
 }

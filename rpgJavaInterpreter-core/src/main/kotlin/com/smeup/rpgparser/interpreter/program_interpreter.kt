@@ -7,7 +7,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
     private val dataWrapUpPolicy = HashMap<RpgProgram, DataWrapUpChoice>()
     private val interpreters = HashMap<RpgProgram, InternalInterpreter>()
 
-    fun execute(rpgProgram: RpgProgram, initialValues: Map<String, Value>, traceMode : Boolean = false) {
+    fun execute(rpgProgram: RpgProgram, initialValues: LinkedHashMap<String, Value>, traceMode : Boolean = false) {
         var firstCall = false
         val interpreter = interpreters.getOrPut(rpgProgram) {
             firstCall = true
@@ -29,7 +29,9 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
             ii
         }
         interpreter.traceMode = traceMode
-        interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall)
+        interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall ||
+                                                          interpreter.interpretationContext.shouldReinitialize())
+        initialValues.keys.forEach { initialValues[it] = interpreter[it] }
     }
 
 }

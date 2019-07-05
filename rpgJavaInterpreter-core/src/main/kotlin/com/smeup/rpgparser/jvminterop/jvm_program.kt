@@ -46,7 +46,7 @@ abstract class JvmProgramByReflection : Program {
         }
     }
 
-    override fun execute(systemInterface: SystemInterface, params: Map<String, Value>): List<Value> {
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
         val f = runMethod(this::class)
         if (f == null) {
             throw RuntimeException("No run method found")
