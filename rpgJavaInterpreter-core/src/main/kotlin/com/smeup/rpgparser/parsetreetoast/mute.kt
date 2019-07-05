@@ -51,10 +51,10 @@ fun MuteParser.ExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfigur
 
 
 fun MuteParser.MuteLineContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(), position: Position? = null ) : MuteAnnotation {
-    val annotation = this.muteAnnotation()
-    return when(annotation) {
+    return when(val annotation = this.muteAnnotation()) {
         is MuteParser.MuteComparisonAnnotationContext -> {
-            MuteComparisonAnnotation( annotation.val1.toAst(conf) , annotation.val2.toAst(conf), annotation.cp.text , position = position )
+            MuteComparisonAnnotation(annotation.val1.toAst(conf), annotation.val2.toAst(conf), Comparison.valueOf(annotation.cp.text),
+                    position = position )
         }
         else -> TODO(this.text.toString())
     }

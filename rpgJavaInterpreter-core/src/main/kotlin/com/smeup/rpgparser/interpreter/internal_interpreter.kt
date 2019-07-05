@@ -177,11 +177,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         statement.muteAnnotations.forEach{
             when (it) {
                 is MuteComparisonAnnotation -> {
-                    if (it.comparison == "EQ" ) {
-                        val exp = EqualityExpr(it.val1, it.val2,it.position )
-                        val value = interpretConcrete(exp)
+                    when (it.comparison) {
+                        EQ -> {
+                            val exp = EqualityExpr(it.val1, it.val2, it.position)
+                            val value = interpretConcrete(exp)
 
-                        log(MuteAnnotationExecutionLogEntry(it,value))
+                            log(MuteAnnotationExecutionLogEntry(it, value))
+                        }
+                        else -> throw UnsupportedOperationException("Unsupported comparison: ${it.comparison}")
                     }
                 }
             }
