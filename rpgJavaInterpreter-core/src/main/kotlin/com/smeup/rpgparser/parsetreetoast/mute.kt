@@ -49,7 +49,6 @@ fun MuteParser.ExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfigur
     }
 }
 
-
 fun MuteParser.MuteLineContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(), position: Position? = null ) : MuteAnnotation {
     return when(val annotation = this.muteAnnotation()) {
         is MuteParser.MuteComparisonAnnotationContext -> {
@@ -67,7 +66,7 @@ fun injectMuteAnnotationHelper(statments : List<Statement>,
         // the mute annotation must be attached to the next statement
         // TODO maurizio develop a better strategy to find the closest next statement
         val line = it.position!!.start.line + 1
-        if( line in mutes ) {
+        if (line in mutes) {
             val mute = mutes[line]
             it.muteAnnotations.add( mute!!.toAst(position = pos(line,mute.start.charPositionInLine, line, mute.stop.charPositionInLine)))
 
