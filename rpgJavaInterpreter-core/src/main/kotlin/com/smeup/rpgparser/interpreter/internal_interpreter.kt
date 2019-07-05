@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.MuteParser.*
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.parsetreetoast.MuteAnnotationExecutionLogEntry
 import java.math.BigDecimal
@@ -8,6 +9,11 @@ import kotlin.collections.HashMap
 import java.util.TreeMap
 import kotlin.collections.LinkedHashMap
 import com.smeup.rpgparser.ast.Comparison.EQ
+import com.smeup.rpgparser.ast.Comparison.NE
+import com.smeup.rpgparser.ast.Comparison.GT
+import com.smeup.rpgparser.ast.Comparison.LT
+import com.smeup.rpgparser.ast.Comparison.GE
+import com.smeup.rpgparser.ast.Comparison.LE
 import java.lang.UnsupportedOperationException
 
 abstract class LogEntry
@@ -177,15 +183,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         statement.muteAnnotations.forEach{
             when (it) {
                 is MuteComparisonAnnotation -> {
+                    val exp : Expression;
                     when (it.comparison) {
-                        EQ -> {
-                            val exp = EqualityExpr(it.val1, it.val2, it.position)
-                            val value = interpretConcrete(exp)
-
-                            log(MuteAnnotationExecutionLogEntry(it, value))
-                        }
+                        EQ -> exp = EqualityExpr(it.val1, it.val2, it.position)
+                        NE -> exp = DifferentThanExpr(it.val1, it.val2, it.position)
+                        GT -> exp = GreaterThanExpr(it.val1, it.val2, it.position)
+                        GE -> exp = GreaterEqualThanExpr(it.val1, it.val2, it.position)
+                        LT -> exp = LessThanExpr(it.val1, it.val2, it.position)
+                        LE -> exp = LessEqualThanExpr(it.val1, it.val2, it.position)
                         else -> throw UnsupportedOperationException("Unsupported comparison: ${it.comparison}")
                     }
+                    val value = interpretConcrete(exp)
+                    log(MuteAnnotationExecutionLogEntry(it, value))
                 }
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
@@ -604,6 +613,23 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val right = interpret(expression.right)
                 return isGreaterThan(left, right).asValue()
             }
+
+            is GreaterEqualThanExpr ->  {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return (isGreaterThan(left, right) || areEquals(left, right)).asValue()
+            }
+            is LessThanExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return (!isGreaterThan(left, right)).asValue()
+            }
+            is LessEqualThanExpr-> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return (isEqualOrSmaller(left,right)).asValue()
+            }
+
             is BlanksRefExpr -> {
                 return BlanksValue
             }
