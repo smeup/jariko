@@ -70,7 +70,7 @@ This will produce the file
 rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-all.jar
 ```
 
-So you can run an RPGLE file from the command line with (from the directory that contains this jar):
+So you can run an RPGLE file from the command line this way (after moving to the directory that contains this jar):
 
 ``` 
 java -jar rpgJavaInterpreter-core-all.jar path/to/my/RPGLE
