@@ -60,19 +60,22 @@ fun MuteParser.MuteLineContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
 }
 
 
-fun injectMuteAnnotationHelper(statments : List<Statement>,
-                               mutes: Map<Int, MuteParser.MuteLineContext>) {
-    statments.forEach {
-        // the mute annotation must be attached to the next statement
-        // TODO maurizio develop a better strategy to find the closest next statement
-        val line = it.position!!.start.line + 1
-        if (line in mutes) {
-            val mute = mutes[line]
-            it.muteAnnotations.add( mute!!.toAst(position = pos(line,mute.start.charPositionInLine, line, mute.stop.charPositionInLine)))
 
+fun injectMuteAnnotationHelper( statments : List<Statement> ,
+                                mutes: Map<Int, MuteParser.MuteLineContext>) {
+
+    // Find the first statement after the mute line
+    mutes.forEach { (line,mute) ->
+        val followingStatement = statments.find {
+            it.position!!.start.line > line
+        } ?: throw NoSuchElementException("No statements after mute at line: ${line}" )
+        if (followingStatement != null) {
+            followingStatement.muteAnnotations.add( mute!!.toAst(  position = pos(line,mute.start.charPositionInLine,line,mute.stop.charPositionInLine)) )
         }
     }
+
 }
+
 
 fun CompilationUnit.injectMuteAnnotation(parseTreeRoot: RpgParser.RContext,
                                          mutes: Map<Int, MuteParser.MuteLineContext>) {
