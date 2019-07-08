@@ -259,7 +259,7 @@ class InterpreterTest {
         assertEquals(outputOf("MOVENBRNBR"), listOf("12345", "45678", "123", "99991"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeDOWTEST() {
         assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
     }

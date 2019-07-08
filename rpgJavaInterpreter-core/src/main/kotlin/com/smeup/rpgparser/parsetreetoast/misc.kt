@@ -2,10 +2,8 @@ package com.smeup.rpgparser.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.ast.*
-import com.smeup.rpgparser.ast.AssignmentOperator.DIVIDE_ASSIGNMENT
-import com.smeup.rpgparser.ast.AssignmentOperator.NORMAL_ASSIGNMENT
+import com.smeup.rpgparser.ast.AssignmentOperator.*
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
@@ -290,6 +288,7 @@ internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Ass
     return when {
         this.CDIV() != null -> DIVIDE_ASSIGNMENT
         this.EQUAL() != null -> NORMAL_ASSIGNMENT
+        this.CPLUS() != null -> PLUS_ASSIGNMENT
         else -> throw UnsupportedOperationException(this.text)
     }
 }

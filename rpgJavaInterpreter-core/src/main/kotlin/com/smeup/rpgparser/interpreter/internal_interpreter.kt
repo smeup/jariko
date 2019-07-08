@@ -317,6 +317,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         }
                     }
                 }
+                is DowStmt -> {
+                    try {
+                        while (eval(statement.endExpression).asBoolean().value) {
+                            execute(statement.body)
+                        }
+                    } catch (e: LeaveException) {
+                        // nothing to do here
+                    }
+                }
                 is SubDurStmt -> {
                     when (statement.target) {
                         is DataRefExpr -> {
@@ -576,6 +585,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 return isGreaterThan(left, right).asValue()
+            }
+            is LessEqualThanExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return isEqualOrSmaller(left, right).asValue()
             }
             is BlanksRefExpr -> {
                 return BlanksValue

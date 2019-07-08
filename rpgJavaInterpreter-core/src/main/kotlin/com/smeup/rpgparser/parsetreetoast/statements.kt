@@ -37,6 +37,12 @@ internal fun RpgParser.BlockContext.toAst(conf : ToAstConfiguration = ToAstConfi
                    start,
                    position = toPosition(conf.considerPosition))
         }
+        this.begindow() != null -> {
+            val endExpression = this.begindow().csDOW().fixedexpression.expression().toAst(conf)
+            DowStmt(endExpression,
+                    this.statement().map { it.toAst(conf) },
+                    position = toPosition(conf.considerPosition))
+        }
         this.forstatement() != null -> this.forstatement().toAst(conf)
         else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }

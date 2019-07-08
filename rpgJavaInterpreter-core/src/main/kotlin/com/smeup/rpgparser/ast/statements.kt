@@ -15,6 +15,7 @@ interface StatementThatCanDefineData {
 
 enum class AssignmentOperator(val text: String) {
     DIVIDE_ASSIGNMENT("/="),
+    PLUS_ASSIGNMENT("+="),
     NORMAL_ASSIGNMENT("=");
 }
 
@@ -101,6 +102,11 @@ data class DoStmt(
         val index: AssignableExpression?,
         val body: List<Statement>,
         val startLimit: Expression = IntLiteral(1),
+        override val position: Position? = null) : Statement(position)
+
+data class DowStmt(
+        val endExpression: Expression,
+        val body: List<Statement>,
         override val position: Position? = null) : Statement(position)
 
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
