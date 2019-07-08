@@ -74,7 +74,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
     private val predefinedIndicators = HashMap<Int, Value>()
-    public var interpretationContext: InterpretationContext = DummyInterpretationContext
+    var interpretationContext: InterpretationContext = DummyInterpretationContext
     var traceMode: Boolean = false
 
     fun getLogs() = logs
