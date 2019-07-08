@@ -15,8 +15,13 @@ import kotlin.test.fail
 class MUTEExamplesTest {
 
     @Test @Ignore
-    fun executeMUTE10_01() {
+    fun executeMUTE10_01_perf_calls() {
         assertEquals(LinkedList<String>(), outputOf("MUTE10_01"))
+    }
+
+    @Test @Ignore
+    fun executeMUTE10_04_perf_strings() {
+        assertEquals(LinkedList<String>(), outputOf("MUTE10_04"))
     }
 
 }

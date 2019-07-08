@@ -260,6 +260,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeDOWTEST() {
+        assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
+    }
+
+    @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
                                                "FISICA" to BooleanValue(false),
