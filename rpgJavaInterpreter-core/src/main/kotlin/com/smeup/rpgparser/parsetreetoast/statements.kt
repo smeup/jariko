@@ -38,7 +38,7 @@ internal fun RpgParser.BlockContext.toAst(conf : ToAstConfiguration = ToAstConfi
                    position = toPosition(conf.considerPosition))
         }
         this.forstatement() != null -> this.forstatement().toAst(conf)
-        else -> TODO(this.text.toString())
+        else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }
 }
 
