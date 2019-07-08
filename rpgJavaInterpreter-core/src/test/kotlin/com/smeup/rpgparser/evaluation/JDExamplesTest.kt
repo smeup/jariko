@@ -69,7 +69,7 @@ class JDExamplesTest {
         }
         val cu = assertASTCanBeProduced("JD_000", true)
         cu.resolve()
-        val interpreter = execute(cu, mapOf(), systemInterface = si, traceMode = false)
+        execute(cu, mapOf(), systemInterface = si, traceMode = false)
         assertEquals( 1, callsToJDURL.size)
         val urlCalled = callsToJDURL[0].get("URL")
         assertNotNull(urlCalled)
@@ -224,6 +224,9 @@ class JDExamplesTest {
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToListFld.add(params)
+                if (callsToListFld.size >= 5) {
+                    throw InterruptForDebuggingPurposes()
+                }
                 return emptyList()
             }
         }
@@ -247,7 +250,7 @@ class JDExamplesTest {
                         2 -> "Filter".padEnd(50, '\u0000') + "*.png".padEnd(1000, '\u0000')
                         else -> "".padEnd(1050, '\u0000')
                     }.asValue()
-                }), systemInterface = si, traceMode = true, cycleLimit = 5)
+                }), systemInterface = si, traceMode = true)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(5, callsToListFld.size)
@@ -273,6 +276,9 @@ class JDExamplesTest {
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToListFld.add(params)
+                if (callsToListFld.size >= 5) {
+                    throw InterruptForDebuggingPurposes()
+                }
                 return listOf(params["foldern"]!!,
                         StringValue.padded("myFile.png", 10),
                         StringValue.padded("FILE", 10),
@@ -299,7 +305,7 @@ class JDExamplesTest {
                         2 -> "Filter".padEnd(50, '\u0000') + "*.png".padEnd(1000, '\u0000')
                         else -> "".padEnd(1050, '\u0000')
                     }.asValue()
-                }), systemInterface = si, traceMode = true, cycleLimit = 5)
+                }), systemInterface = si, traceMode = true)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(1, callsToListFld.size)
@@ -327,33 +333,24 @@ class JDExamplesTest {
     fun executeJD_003_base() {
         val si = CollectorSystemInterface()
         val callsToRcvsck = LinkedList<Map<String, Value>>()
-//        val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["JD_RCVSCK"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToRcvsck.add(params)
+                if (callsToRcvsck.size >= 2) {
+                    throw InterruptForDebuggingPurposes()
+                }
                 return emptyList()
             }
         }
-//        si.programs["JD_NFYEVE"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
-//                ProgramParam("funz", StringType(10)),
-//                ProgramParam("meto", StringType(10)),
-//                ProgramParam("var", StringType(10)))) {
-//            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
-//                callsToNfyeve.add(params)
-//                throw InterruptForDebuggingPurposes()
-//            }
-//        }
         val cu = assertASTCanBeProduced("JD_003", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()),
-                systemInterface = si, traceMode = true, cycleLimit = 5)
+                systemInterface = si, traceMode = true)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
-//        assertEquals(1, callsToListFld.size)
-//        assertEquals(1, callsToNfyeve.size)
     }
 
     @Test
@@ -367,6 +364,9 @@ class JDExamplesTest {
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 callsToRcvsck.add(params)
+                if (callsToRcvsck.size >= 5) {
+                    throw InterruptForDebuggingPurposes()
+                }
                 return listOf(params["addr"]!!, StringValue("<myxml></myxml>"), IntValue("<myxml></myxml>".length.toLong()))
             }
         }
@@ -410,7 +410,7 @@ class JDExamplesTest {
                         else -> "".padEnd(1050, '\u0000')
                     }.asValue()
                 }),
-                systemInterface = si, traceMode = true, cycleLimit = 5)
+                systemInterface = si, traceMode = true)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(1, callsToRcvsck.size)

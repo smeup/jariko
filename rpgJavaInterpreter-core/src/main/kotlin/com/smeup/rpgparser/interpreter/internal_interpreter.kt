@@ -76,7 +76,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val predefinedIndicators = HashMap<Int, Value>()
     public var interpretationContext: InterpretationContext = DummyInterpretationContext
     var traceMode: Boolean = false
-    var cycleLimit: Int? = null
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
@@ -291,8 +290,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     if (statement.index == null) {
                         var myIterValue = eval(statement.startLimit).asInt()
                         try {
-                            while ((cycleLimit == null || (cycleLimit as Int) >= myIterValue.value) &&
-                                    isEqualOrSmaller(myIterValue, eval(statement.endLimit))) {
+                            while (isEqualOrSmaller(myIterValue, eval(statement.endLimit))) {
                                 try {
                                     execute(statement.body)
                                 } catch (e: IterException) {
@@ -306,8 +304,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     } else {
                         assign(statement.index, statement.startLimit)
                         try {
-                            while ((cycleLimit == null || (cycleLimit as Int) >= eval(statement.index).asInt().value) &&
-                                    isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))) {
+                            while (isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))) {
                                 try {
                                     execute(statement.body)
                                 } catch (e: IterException) {
