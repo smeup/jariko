@@ -265,6 +265,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executePLUSEQUAL() {
+        assertEquals(outputOf("PLUSEQUAL"), listOf("COUNTER IS NOW 6"))
+    }
+
+    @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
                                                "FISICA" to BooleanValue(false),
