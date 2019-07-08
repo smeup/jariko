@@ -220,17 +220,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     //TODO: receive input from systemInterface and assign value to response
                     systemInterface.display(render(values))
                 }
-                is ForStmt -> {
-                    eval(statement.init)
-                    try {
-                        while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
-                            execute(statement.body)
-                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
-                        }
-                    } catch (e: LeaveException) {
-                        // leaving
-                    }
-                }
                 is IfStmt -> {
                     val condition = eval(statement.condition).asBoolean().value
                     if (condition) {
@@ -285,6 +274,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         }
                     paramValuesAtTheEnd?.forEachIndexed { index, value ->
                         assign(statement.params[index].param.referred!!, value)
+                    }
+                }
+                is ForStmt -> {
+                    eval(statement.init)
+                    try {
+                        while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
+                            execute(statement.body)
+                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
+                        }
+                    } catch (e: LeaveException) {
+                        // leaving
                     }
                 }
                 is DoStmt -> {
