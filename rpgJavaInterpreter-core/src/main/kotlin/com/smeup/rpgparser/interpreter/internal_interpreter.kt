@@ -740,6 +740,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     TODO("TimeStamp parsing: " + evaluated)
                 }
             }
+            is EditcExpr -> {
+                val n = eval(expression.value)
+                val format = eval(expression.format)
+                return formattedString(n, format as StringValue)
+            }
             is DiffExpr -> {
                 //TODO expression.durationCode
                 val v1 = eval(expression.value1)
@@ -766,6 +771,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             else -> TODO(expression.toString())
         }
+    }
+
+    private fun formattedString(n: Value, format: StringValue): StringValue {
+        return n.asString()
     }
 
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
