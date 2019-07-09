@@ -22,6 +22,7 @@ subprojects {
     apply plugin: 'antlr'
     apply plugin: 'idea'
     apply plugin: 'jacoco'
+    apply plugin: 'maven'
 
     repositories {
         mavenLocal()
@@ -32,6 +33,7 @@ subprojects {
     project.group   = "com.github.rpgjavainterpreter"
     project.version = "0.1"
 }
+
 repositories {
     mavenCentral()
 }
