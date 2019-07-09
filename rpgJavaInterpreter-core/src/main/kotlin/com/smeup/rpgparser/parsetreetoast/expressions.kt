@@ -51,13 +51,13 @@ internal fun RpgParser.LiteralContext.toAst(conf : ToAstConfiguration = ToAstCon
 }
 
 internal fun RpgParser.NumberContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : NumberLiteral {
-    require(this.NumberPart().isEmpty())
-    require(this.MINUS() == null)
+    val position = this.toPosition(conf.considerPosition)
+    require(this.NumberPart().isEmpty(), { "Number not empty ${position}" })
     val text = this.NUMBER().text
     return if (text.contains('.')) {
-        RealLiteral(text.toDouble(), this.toPosition(conf.considerPosition))
+        RealLiteral(text.toDouble(), position)
     } else {
-        IntLiteral(text.toLong(), this.toPosition(conf.considerPosition))
+        IntLiteral(text.toLong(), position)
     }
 }
 

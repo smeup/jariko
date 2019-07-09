@@ -18,7 +18,7 @@ internal fun RpgParser.BifContext.toAst(conf : ToAstConfiguration = ToAstConfigu
         this.bif_char() != null -> this.bif_char().toAst(conf)
         this.bif_timestamp() != null -> this.bif_timestamp().toAst(conf)
         this.bif_diff() != null -> this.bif_diff().toAst(conf)
-        else -> TODO(this.text.toString())
+        else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }
 }
 

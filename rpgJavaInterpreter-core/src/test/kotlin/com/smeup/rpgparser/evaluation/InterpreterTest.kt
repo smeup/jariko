@@ -280,6 +280,13 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeBIFEDITC() {
+        assertEquals(outputOf("BIFEDITC"), listOf(" 123,456   123,456  1,234.56  1,234.56       .00",
+                                                              "123456  123456  123456  123456"))
+    }
+
+
+    @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
                                                "FISICA" to BooleanValue(false),
