@@ -90,7 +90,7 @@ jacocoTestReport {
         csv.enabled false
     }
     afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
+        getClassDirectories().from = files(classDirectories.files.collect {
             fileTree(dir: it,
                     exclude: ['**/RpgLexer*',
                               '**/RpgParser*',
