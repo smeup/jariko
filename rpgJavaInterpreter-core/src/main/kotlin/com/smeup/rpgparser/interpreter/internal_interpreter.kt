@@ -570,6 +570,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
             is IntLiteral -> IntValue(expression.value)
+            is RealLiteral -> DecimalValue(BigDecimal(expression.value))
             is NumberOfElementsExpr -> {
                 val value = interpret(expression.value)
                 when (value) {
