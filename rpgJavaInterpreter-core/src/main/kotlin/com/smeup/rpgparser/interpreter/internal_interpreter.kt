@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.ast.AssignmentOperator.*
 import java.math.BigDecimal
 import java.util.*
 import kotlin.collections.HashMap
@@ -175,7 +176,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
                     execute(statement.subroutine.referred!!.stmts)
                 }
-                is EvalStmt -> assign(statement.target, statement.expression)
+                is EvalStmt -> assign(statement.target, statement.expression, statement.operator)
                 is MoveStmt -> move(statement.target, statement.expression)
                 is SelectStmt -> {
                     for (case in statement.cases) {
@@ -470,8 +471,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun assign(target: AssignableExpression, value: Expression): Value {
-        return assign(target, eval(value))
+    private fun assign(target: AssignableExpression, value: Expression, operator: AssignmentOperator = NORMAL_ASSIGNMENT): Value {
+        return when (operator) {
+            NORMAL_ASSIGNMENT -> assign(target, eval(value))
+            PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
+            MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
+            MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
+            DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
+        }
     }
 
     private fun move(target: AssignableExpression, value: Expression): Value {

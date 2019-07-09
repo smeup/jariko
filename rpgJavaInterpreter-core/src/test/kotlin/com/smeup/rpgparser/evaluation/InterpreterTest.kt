@@ -264,9 +264,14 @@ class InterpreterTest {
         assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePLUSEQUAL() {
         assertEquals(outputOf("PLUSEQUAL"), listOf("COUNTER IS NOW 6"))
+    }
+
+    @Test
+    fun executeASSIGN() {
+        assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12"))
     }
 
     @Test @Ignore

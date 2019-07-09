@@ -14,9 +14,11 @@ interface StatementThatCanDefineData {
 }
 
 enum class AssignmentOperator(val text: String) {
-    DIVIDE_ASSIGNMENT("/="),
+    NORMAL_ASSIGNMENT("="),
     PLUS_ASSIGNMENT("+="),
-    NORMAL_ASSIGNMENT("=");
+    MINUS_ASSIGNMENT("-="),
+    MULT_ASSIGNMENT("*="),
+    DIVIDE_ASSIGNMENT("/=");
 }
 
 

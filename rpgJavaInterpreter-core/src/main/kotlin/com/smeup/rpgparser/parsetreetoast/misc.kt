@@ -286,9 +286,11 @@ internal fun TargetContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
 
 internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
     return when {
-        this.CDIV() != null -> DIVIDE_ASSIGNMENT
         this.EQUAL() != null -> NORMAL_ASSIGNMENT
         this.CPLUS() != null -> PLUS_ASSIGNMENT
+        this.CMINUS() != null -> MINUS_ASSIGNMENT
+        this.CMULT() != null -> MULT_ASSIGNMENT
+        this.CDIV() != null -> DIVIDE_ASSIGNMENT
         else -> throw UnsupportedOperationException(this.text)
     }
 }
