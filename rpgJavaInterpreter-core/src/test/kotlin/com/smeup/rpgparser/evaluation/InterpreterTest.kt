@@ -274,6 +274,11 @@ class InterpreterTest {
         assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"))
     }
 
+    @Test
+    fun executePOWER() {
+        assertEquals(outputOf("POWER"), listOf("i is now 8"))
+    }
+
     @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
