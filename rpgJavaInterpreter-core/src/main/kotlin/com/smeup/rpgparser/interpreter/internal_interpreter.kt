@@ -478,6 +478,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
+            EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
         }
     }
 
@@ -749,6 +750,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = eval(expression.right)
                 //TODO check type
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
+            }
+            is ExpExpr -> {
+                val v1 = eval(expression.left)
+                val v2 = eval(expression.right)
+                return DecimalValue(BigDecimal(Math.pow(v1.asInt().value.toDouble(), v2.asInt().value.toDouble())))
             }
             is TrimrExpr -> {
                 //TODO expression.charactersToTrim

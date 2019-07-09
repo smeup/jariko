@@ -18,7 +18,8 @@ enum class AssignmentOperator(val text: String) {
     PLUS_ASSIGNMENT("+="),
     MINUS_ASSIGNMENT("-="),
     MULT_ASSIGNMENT("*="),
-    DIVIDE_ASSIGNMENT("/=");
+    DIVIDE_ASSIGNMENT("/="),
+    EXP_ASSIGNMENT("**=");
 }
 
 

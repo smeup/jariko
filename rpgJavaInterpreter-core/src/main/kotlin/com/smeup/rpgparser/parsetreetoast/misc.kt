@@ -291,6 +291,7 @@ internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Ass
         this.CMINUS() != null -> MINUS_ASSIGNMENT
         this.CMULT() != null -> MULT_ASSIGNMENT
         this.CDIV() != null -> DIVIDE_ASSIGNMENT
+        this.CEXP() != null -> EXP_ASSIGNMENT
         else -> throw UnsupportedOperationException(this.text)
     }
 }

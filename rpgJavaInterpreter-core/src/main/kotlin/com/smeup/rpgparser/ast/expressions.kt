@@ -121,6 +121,11 @@ data class DivExpr(var left: Expression, var right: Expression, override val pos
     override fun render() = "${left.render()} / ${right.render()}"
 }
 
+data class ExpExpr(var left: Expression, var right: Expression, override val position: Position? = null)
+    : Expression(position) {
+    override fun render() = "${left.render()} ** ${right.render()}"
+}
+
 ///
 /// Misc
 ///

@@ -271,7 +271,7 @@ class InterpreterTest {
 
     @Test
     fun executeASSIGN() {
-        assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12"))
+        assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"))
     }
 
     @Test @Ignore
