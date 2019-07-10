@@ -37,7 +37,7 @@ typealias RpgLexerResult = ParsingResult<List<Token>>
 
 class RpgParserFacade {
 
-    var muteSupport : Boolean = false
+    var muteSupport : Boolean = true
 
     private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80) : ANTLRInputStream {
         val code = inputStreamToString(inputStream)
@@ -112,7 +112,7 @@ class RpgParserFacade {
         return parser
     }
 
-    private fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean) : RpgParser {
+    fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean) : RpgParser {
         val lexer = RpgLexer(if (longLines) inputStreamWithLongLines(inputStream) else ANTLRInputStream(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
