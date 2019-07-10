@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
@@ -9,12 +8,10 @@ import com.smeup.rpgparser.ast.Expression
 import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsetreetoast.resolve
 import com.smeup.rpgparser.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.ReferenceByName
-import junit.framework.Assert
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
@@ -24,14 +21,13 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
 
 fun assertIsIntValue(value: Value, intValue: Long) {
     assertTrue(value is IntValue, "IntValue expected but found instead $value")
-    assertEquals(intValue, value.value)
+    assertEquals(intValue, (value as IntValue).value)
 }
 
 fun inputStreamFor(exampleName: String) : InputStream {
@@ -140,7 +136,7 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name:String) = DataRefExpr(ReferenceByName(name))
 
-open class CollectorSystemInterface : SystemInterface {
+class CollectorSystemInterface : SystemInterface {
     val displayed = LinkedList<String>()
     val programs = HashMap<String, Program>()
     val functions = HashMap<String, Function>()
@@ -154,9 +150,8 @@ open class CollectorSystemInterface : SystemInterface {
 }
 
 fun execute(cu: CompilationUnit,
-            initialValues: Map<String, Value>,
-            systemInterface: SystemInterface? = null,
-            traceMode : Boolean = false,
+            initialValues: Map<String, Value>, systemInterface: SystemInterface? = null,
+            traceMode : Boolean = true,
             cycleLimit: Int? = null) : InternalInterpreter {
     val interpreter = InternalInterpreter(systemInterface ?: DummySystemInterface)
     interpreter.traceMode = traceMode
@@ -167,43 +162,4 @@ fun execute(cu: CompilationUnit,
         // nothing to do here
     }
     return interpreter
-}
-
-fun assertStartsWith(lines: List<String>, value: String) {
-    if (lines.isEmpty()) {
-        fail("Empty output")
-    }
-    assertTrue (lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
-}
-
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): LinkedList<String> {
-    val interpreter = execute(programName, initialValues)
-    val si = interpreter.systemInterface as CollectorSystemInterface
-    return si.displayed
-}
-
-private const val TRACE = false
-
-fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): InternalInterpreter {
-    val cu = assertASTCanBeProduced(programName, true)
-    cu.resolve()
-    return execute(cu, initialValues, si, traceMode = TRACE)
-}
-
-fun rpgProgram(name: String) : RpgProgram {
-    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
-}
-
-class ExtendedCollectorSystemInterface(): CollectorSystemInterface() {
-    private val rpgPrograms = HashMap<String, RpgProgram>()
-
-    override fun findProgram(name: String): Program? {
-        return super.findProgram(name) ?: findRpgProgram(name)
-    }
-
-    private fun findRpgProgram(name: String): Program? {
-        return rpgPrograms.getOrPut(name) {
-            rpgProgram(name)
-        }
-    }
 }

@@ -1,15 +1,14 @@
 parser grammar MuteParser;
 
-import RpgParser;
 
 options {   tokenVocab = MuteLexer; }
 
 muteLine: muteAnnotation EOF ;
 
-muteAnnotation : ID OPEN_PAREN val1=expression CLOSE_PAREN
-                 ID OPEN_PAREN val2=expression CLOSE_PAREN
-                 ID OPEN_PAREN cp=expression   CLOSE_PAREN #muteComparisonAnnotation
+muteAnnotation : VAL1 val1=EXP
+                 VAL2 val2=EXP
+                 COMP cp=muteComparisonOperator #muteComparisonAnnotation
                | #muteTypeAnnotation
                ;
 
-comparisonOperator: EQ | NE | LT | LE | GT | GE ;
+muteComparisonOperator: EQ | NE | LT | LE | GT | GE ;

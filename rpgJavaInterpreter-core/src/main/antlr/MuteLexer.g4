@@ -1,18 +1,22 @@
 lexer grammar MuteLexer;
 
-import RpgLexer;
+OPEN_PAREN : '(';
+CLOSE_PAREN : ')';
 
-VAL1 : 'val1';
-VAL2 : 'val2';
 
-EQ : 'EQ' ;
-NE : 'NE' ;
-GT : 'GT' ;
-GE : 'GE' ;
-LT : 'LT' ;
-LE : 'LE' ;
+VAL1 : 'VAL1';
+VAL2 : 'VAL2';
+
+EQ : '(EQ)' ;
+NE : '(NE)' ;
+GT : '(GT)' ;
+GE : '(GE)' ;
+LT : '(LT)' ;
+LE : '(LE)' ;
 
 COMP : 'COMP' ;
 TYPE : 'Type' ;
 
+WS : [ \r\t\n]+ -> skip ;
+EXP: '(' .*? ')';
 
