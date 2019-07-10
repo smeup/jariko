@@ -109,12 +109,18 @@ class ExpressionsTest {
     }
 
     @test @Ignore
-    fun expressionWithoutBlanksParsing() {
+    fun multExpressionWithoutBlanksParsing() {
         val expected = expression("x = y * 2")
         val actual = expression("x=y*2")
         assertEquals(expected, actual)
     }
 
+    @test
+    fun arithmeticExpressionWithoutBlanksParsing() {
+        assertEquals(expression("x = y + 2"), expression("x=y+2"))
+        assertEquals(expression("x = y - 2"), expression("x=y-2"))
+        assertEquals(expression("x = y / 2"), expression("x=y/2"))
+    }
 }
 
 
