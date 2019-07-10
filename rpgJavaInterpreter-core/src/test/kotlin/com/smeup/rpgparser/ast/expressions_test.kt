@@ -107,4 +107,12 @@ class ExpressionsTest {
         )
     }
 
+    @test fun expressionWithoutBlanksParsing() {
+        val expected = expression("x = y * 2")
+        val actual = expression("x=y*2")
+        assertEquals(expected, actual)
+    }
+
 }
+
+
