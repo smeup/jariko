@@ -280,6 +280,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeMultiplicationAndDivisionWithoutSpaces() {
+        assertEquals(listOf("x is now 6", "y is now 2", "z is now 0"), outputOf("CALC"))
+    }
+
+    @Test @Ignore
     fun executeBIFEDITC_1() {
         assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00"), outputOf("BIFEDITC_1"))
     }
