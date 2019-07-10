@@ -35,7 +35,7 @@ class ClassProgramName<P> : ProgramNameSource<P> {
 abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
                              val systemInterface: SystemInterface) {
 
-    var traceMode = false
+    var traceMode = true
 
     protected val programInterpreter = ProgramInterpreter(systemInterface)
     protected val rpgProgram by lazy { RpgSystem.getProgram(programNameSource.nameFor(this)) }
