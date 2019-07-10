@@ -4,6 +4,7 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import java.math.BigDecimal
 
 abstract class Expression(override val position: Position? = null) : Node(position) {
     open fun render() : String = this.javaClass.simpleName
@@ -18,7 +19,7 @@ abstract class NumberLiteral(override val position: Position? = null) : Expressi
 data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position) {
     override fun render() = value.toString()
 }
-data class RealLiteral(val value: Double, override val position: Position? = null) : NumberLiteral(position) {
+data class RealLiteral(val value: BigDecimal, override val position: Position? = null) : NumberLiteral(position) {
     override fun render() = value.toString()
 }
 

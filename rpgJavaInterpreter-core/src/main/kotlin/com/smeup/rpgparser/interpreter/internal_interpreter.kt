@@ -3,9 +3,10 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.*
 import java.math.BigDecimal
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.collections.HashMap
-import java.util.TreeMap
 import kotlin.collections.LinkedHashMap
 
 
@@ -570,7 +571,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
             is IntLiteral -> IntValue(expression.value)
-            is RealLiteral -> DecimalValue(BigDecimal(expression.value))
+            is RealLiteral -> DecimalValue(expression.value)
             is NumberOfElementsExpr -> {
                 val value = interpret(expression.value)
                 when (value) {
@@ -743,7 +744,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is EditcExpr -> {
                 val n = eval(expression.value)
                 val format = eval(expression.format)
-                return formattedString(n, format as StringValue)
+                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got ${format} at ${expression.position}")
+                return n.asDecimal().formatAs(format.value)
             }
             is DiffExpr -> {
                 //TODO expression.durationCode
@@ -773,9 +775,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun formattedString(n: Value, format: StringValue): StringValue {
-        return n.asString()
-    }
 
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
@@ -792,6 +791,13 @@ private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
+private fun DecimalValue.formatAs(format: String): StringValue {
+    return when(format) {
+        "1" -> StringValue(DecimalFormat("#,###.##", DecimalFormatSymbols(Locale.US)).format(this.value.abs()))
+        "Z" -> StringValue(this.value.abs().toString().replace(".", ""))
+        else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
+    }
+}
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
