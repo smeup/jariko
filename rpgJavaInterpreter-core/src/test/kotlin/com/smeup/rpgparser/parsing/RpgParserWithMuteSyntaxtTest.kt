@@ -50,8 +50,9 @@ public class RpgParserWithMuteSyntaxtTest {
 
     @Test
     fun parseMUTE01_ast() {
-        val result = assertASTCanBeProduced("mute/MUTE01_SYNTAX",considerPosition = true ,withMuteSupport = true)
-        print("")
+        val cu = assertASTCanBeProduced("mute/MUTE01_SYNTAX",considerPosition = true ,withMuteSupport = true)
+
+        // TODO add assert ro verify annotaion are attached to the expected statements
     }
 
 }
