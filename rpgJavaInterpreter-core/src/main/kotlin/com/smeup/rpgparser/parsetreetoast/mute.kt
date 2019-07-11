@@ -45,42 +45,37 @@ fun MuteParser.MuteLineContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
 }
 
 
-fun injectMuteAnnotationHelper( statements : List<Statement> ,
+fun injectMuteAnnotationHelper( statements : List<Statement> , start : Int,
                                 map: Map<Int, MuteParser.MuteLineContext>) {
 
-    if(statements.isNotEmpty()) {
+    // makes a consumable list of annotation
+    val mutes: MutableMap<Int, MuteParser.MuteLineContext> = map.toSortedMap()
 
-        // makes a consumable list of annotation
-        val mutes: MutableMap<Int, MuteParser.MuteLineContext> = map.toMutableMap().toSortedMap()
-        //
-        var start = statements.first().position!!.start.line
+    // Vist each statment
+    statements.forEach {
+        val stmt = it
+        println("${stmt}")
+        val toRemove = it.accept(mutes,start)
 
-        // Vist each statment
-        statements.forEach {
-            val stmt = it
-            println("${stmt}")
-            val toRemove = it.accept(mutes,start)
-
-            toRemove.forEach {
-                mutes.remove(it)
-            }
+        toRemove.forEach {
+            mutes.remove(it)
         }
-        // at the end the mutes collectiom must be empty
-        // if not empty means the annotation can't be attached
-        // to any statement
     }
+    // at the end the mutes collectiom must be empty
+    // if not empty means the annotation can't be attached
+    // to any statement
+    print("")
 
 }
 
 
 fun CompilationUnit.injectMuteAnnotation(parseTreeRoot: RpgParser.RContext,
                                          mutes: Map<Int, MuteParser.MuteLineContext>) {
-    // TODO implement a better statement explorer for subroutines
-
-
+    // TODO maurizio implement a statement explorer
+    injectMuteAnnotationHelper(this.main.stmts,1,mutes)
     this.subroutines.forEach {
-        injectMuteAnnotationHelper(it.stmts,mutes)
+        injectMuteAnnotationHelper(it.stmts,it.position!!.start.line,mutes)
     }
 
-    injectMuteAnnotationHelper(this.main.stmts,mutes)
+
 }
