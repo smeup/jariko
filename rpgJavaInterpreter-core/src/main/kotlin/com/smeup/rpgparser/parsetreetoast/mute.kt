@@ -45,17 +45,29 @@ fun MuteParser.MuteLineContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
 }
 
 
-fun injectMuteAnnotationHelper( statments : List<Statement> ,
-                                mutes: Map<Int, MuteParser.MuteLineContext>) {
+fun injectMuteAnnotationHelper( statements : List<Statement> ,
+                                map: Map<Int, MuteParser.MuteLineContext>) {
 
-    // Find the first statement after the mute line
-    mutes.forEach { (line,mute) ->
-        val followingStatement = statments.find {
-            it.position!!.start.line > line
-        } ?: throw NoSuchElementException("No statements after mute at line: ${line}" )
-        if (followingStatement != null) {
-            followingStatement.muteAnnotations.add( mute!!.toAst(  position = pos(line,mute.start.charPositionInLine,line,mute.stop.charPositionInLine)) )
+    if(statements.isNotEmpty()) {
+
+        // makes a consumable list of annotation
+        val mutes: MutableMap<Int, MuteParser.MuteLineContext> = map.toMutableMap().toSortedMap()
+        //
+        var start = statements.first().position!!.start.line
+
+        // Vist each statment
+        statements.forEach {
+            val stmt = it
+            println("${stmt}")
+            val toRemove = it.accept(mutes,start)
+
+            toRemove.forEach {
+                mutes.remove(it)
+            }
         }
+        // at the end the mutes collectiom must be empty
+        // if not empty means the annotation can't be attached
+        // to any statement
     }
 
 }
