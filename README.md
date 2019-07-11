@@ -73,10 +73,12 @@ rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-all.jar
 So you can run an RPGLE file from the command line this way (after moving to the directory that contains this jar):
 
 ``` 
-java -jar rpgJavaInterpreter-core-all.jar path/to/my/RPGLE
+java -jar rpgJavaInterpreter-core-all.jar path/to/my/RPGLE [parameters]
 ```
 
 [In this short video you can see how to run the examples](https://youtu.be/llw2vNeupA4)
+
+If you omit the program name, you will be able to call programs in a [simple shell](https://youtu.be/uNd6h5H2wTM).
 
 ## How the repository is organized
 

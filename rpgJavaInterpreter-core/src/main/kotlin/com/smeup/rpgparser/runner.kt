@@ -61,9 +61,13 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
 
 fun main(args : Array<String>) {
     if (args.isEmpty()) {
-        println("Please provide the name of a .rpgle file to interpret")
-        return
+        SimpleShell().repl(::executePgmWithStringArgs)
+    } else {
+        executePgmWithStringArgs(args)
     }
+}
+
+fun executePgmWithStringArgs(args: Array<String>) {
     getProgram(args[0]).singleCall(args.asList().subList(1, args.size))
 }
 
