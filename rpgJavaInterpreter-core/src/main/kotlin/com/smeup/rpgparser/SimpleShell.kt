@@ -13,11 +13,9 @@ class SimpleShell {
         val console = BufferedReader(InputStreamReader(System.`in`))
 
         while (true) {
-            // read what the user entered
             print("rpg>")
             commandLine = console.readLine().trim()
             run {
-                // if the user entered a return, just loop again
                 if (exitCommands.contains(commandLine.toLowerCase())) {
                     println("Goodbye")
                     System.exit(0)
