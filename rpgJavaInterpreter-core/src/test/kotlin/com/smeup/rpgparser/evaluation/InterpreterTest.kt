@@ -285,6 +285,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeMULTILNE() {
+        assertEquals(listOf("V1x.5_"), outputOf("MULTILINE"))
+    }
+
+    @Test @Ignore
     fun executeBIFEDITC_1() {
         assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00"), outputOf("BIFEDITC_1"))
     }
