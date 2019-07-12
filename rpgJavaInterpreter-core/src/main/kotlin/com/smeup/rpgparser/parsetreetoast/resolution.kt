@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.parsetreetoast
 
 import com.smeup.rpgparser.ast.*
-import com.smeup.rpgparser.com.smeup.rpgparser.utils.enrichExceptionWith
+import com.smeup.rpgparser.utils.enrichExceptionWith
 import com.strumenta.kolasu.model.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {

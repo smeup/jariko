@@ -1,4 +1,4 @@
-package com.smeup.rpgparser.com.smeup.rpgparser.utils
+package com.smeup.rpgparser.utils
 
 fun enrichExceptionWith(v: Any?, block: () -> Unit) {
     try {
