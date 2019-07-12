@@ -4,6 +4,7 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import java.math.BigDecimal
 
 abstract class Expression(override val position: Position? = null) : Node(position) {
     open fun render() : String = this.javaClass.simpleName
@@ -18,7 +19,7 @@ abstract class NumberLiteral(override val position: Position? = null) : Expressi
 data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position) {
     override fun render() = value.toString()
 }
-data class RealLiteral(val value: Double, override val position: Position? = null) : NumberLiteral(position) {
+data class RealLiteral(val value: BigDecimal, override val position: Position? = null) : NumberLiteral(position) {
     override fun render() = value.toString()
 }
 
@@ -121,6 +122,11 @@ data class DivExpr(var left: Expression, var right: Expression, override val pos
     override fun render() = "${left.render()} / ${right.render()}"
 }
 
+data class ExpExpr(var left: Expression, var right: Expression, override val position: Position? = null)
+    : Expression(position) {
+    override fun render() = "${left.render()} ** ${right.render()}"
+}
+
 ///
 /// Misc
 ///
@@ -140,7 +146,7 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     }
 
     override fun size(): Long {
-        TODO("not implemented")
+        return variable.referred!!.type.size
     }
 
     override fun render() = variable.name
@@ -150,7 +156,7 @@ data class ArrayAccessExpr(val array: Expression, val index: Expression, overrid
     : AssignableExpression(position) {
 
     override fun size(): Long {
-        TODO("not implemented")
+        TODO("size")
     }
 }
 

@@ -80,7 +80,8 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                         it.dspec() != null -> {
                             val name = it.dspec().ds_name().text
                             if (name == declName) {
-                                TODO()
+                                //TODO verify...
+                                return it.dspec().TO_POSITION().text.trim().toInt()
                             }
                         }
                         it.dcl_ds() != null -> {

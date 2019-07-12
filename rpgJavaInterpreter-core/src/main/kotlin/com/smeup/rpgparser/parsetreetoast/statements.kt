@@ -22,24 +22,43 @@ internal fun RpgParser.BlockContext.toAst(conf : ToAstConfiguration = ToAstConfi
             val iter = if (result.text.isBlank()) null else result.toAst(conf) as AssignableExpression
             val factor = this.begindo().factor()
             val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
-            DoStmt(
-                    this.begindo().csDO().cspec_fixed_standard_parts().factor2.symbolicConstants().toAst(conf),
-                    iter,
+            val factor2 = this.begindo().csDO().cspec_fixed_standard_parts().factor2 ?: null
+            val endLimit =
+                    if (factor2 == null) {
+                        IntLiteral(1)
+                    } else if (factor2.symbolicConstants() != null) {
+                        factor2.symbolicConstants().toAst()
+                    } else {
+                        factor2.content.toAst(conf)
+                    }
+            DoStmt(endLimit,
+                   iter,
+                   this.statement().map { it.toAst(conf) },
+                   start,
+                   position = toPosition(conf.considerPosition))
+        }
+        this.begindow() != null -> {
+            val endExpression = this.begindow().csDOW().fixedexpression.expression().toAst(conf)
+            DowStmt(endExpression,
                     this.statement().map { it.toAst(conf) },
-                    start,
                     position = toPosition(conf.considerPosition))
         }
         this.forstatement() != null -> this.forstatement().toAst(conf)
-        else -> TODO(this.text.toString())
+        else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }
 }
 
 internal fun RpgParser.ForstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ForStmt {
-    val assignment = this.beginfor().csFOR().expression(0).toAst(conf)
-    val endValue = this.beginfor().csFOR().expression(1).toAst(conf)
+    val csFOR = this.beginfor().csFOR()
+    val assignment = csFOR.expression(0).toAst(conf)
+    val endValue = csFOR.stopExpression()?.expression()?.toAst() ?: IntLiteral(1)
+    val downward = csFOR.FREE_DOWNTO() != null
+    val byValue = csFOR.byExpression()?.expression()?.toAst() ?: IntLiteral(1)
     return ForStmt(
             assignment,
             endValue,
+            byValue ,
+            downward,
             this.statement().map { it.toAst(conf) },
             toPosition(conf.considerPosition))
 }

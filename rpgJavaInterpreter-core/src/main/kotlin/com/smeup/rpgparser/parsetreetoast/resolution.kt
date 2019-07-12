@@ -7,10 +7,7 @@ private fun CompilationUnit.findInStatementDataDefinitions() {
     // TODO could they be also annidated?
     // TODO could they also be in subroutines?
     this.main.stmts.filterIsInstance(StatementThatCanDefineData::class.java).forEach {
-        val dd = it.dataDefinition()
-        if (dd != null) {
-            this.addInStatementDataDefinition(dd)
-        }
+        this.addInStatementDataDefinitions(it.dataDefinition())
     }
 }
 

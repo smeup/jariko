@@ -36,7 +36,7 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
             like = it.simpleExpression().toAst(conf) as AssignableExpression
         }
         it.keyword_inz()?.let {
-            initializationValue = it.simpleExpression().toAst(conf)
+            initializationValue = it.simpleExpression()?.toAst(conf)
         }
         it.keyword_dim()?.let {
             dim = it.simpleExpression().toAst(conf)
@@ -55,6 +55,7 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
         } else {
             StringType(elementSize!!.toLong())
         }
+        "A" -> StringType(elementSize!!.toLong())
         "N" -> BooleanType
         "Z" -> TimeStampType
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")

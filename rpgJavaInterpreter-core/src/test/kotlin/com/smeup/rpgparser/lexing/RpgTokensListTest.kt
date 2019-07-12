@@ -3,6 +3,7 @@ package com.smeup.rpgparser.lexing
 import com.smeup.rpgparser.RpgLexer.*
 import com.smeup.rpgparser.assertCanBeLexed
 import com.smeup.rpgparser.assertToken
+import org.junit.Ignore
 import org.junit.Test as test
 
 class RpgTokensListTest {
@@ -72,4 +73,5 @@ class RpgTokensListTest {
         assertToken(LastRecordIndicator, "LR", tokens[48])
         assertToken(EOF, "<EOF>", tokens.last())
     }
+
 }
