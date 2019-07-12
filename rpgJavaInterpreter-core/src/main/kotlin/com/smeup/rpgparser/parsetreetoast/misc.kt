@@ -2,10 +2,8 @@ package com.smeup.rpgparser.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.ast.*
-import com.smeup.rpgparser.ast.AssignmentOperator.DIVIDE_ASSIGNMENT
-import com.smeup.rpgparser.ast.AssignmentOperator.NORMAL_ASSIGNMENT
+import com.smeup.rpgparser.ast.AssignmentOperator.*
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
@@ -297,8 +295,12 @@ internal fun TargetContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
 
 internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
     return when {
-        this.CDIV() != null -> DIVIDE_ASSIGNMENT
         this.EQUAL() != null -> NORMAL_ASSIGNMENT
+        this.CPLUS() != null -> PLUS_ASSIGNMENT
+        this.CMINUS() != null -> MINUS_ASSIGNMENT
+        this.CMULT() != null -> MULT_ASSIGNMENT
+        this.CDIV() != null -> DIVIDE_ASSIGNMENT
+        this.CEXP() != null -> EXP_ASSIGNMENT
         else -> throw UnsupportedOperationException(this.text)
     }
 }

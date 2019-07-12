@@ -1,3 +1,5 @@
+def antlrVersion = '4.5.1'
+
 buildscript {
     ext.kotlin_version = '1.3.30'
     ext.antlr_version = '4.7.1'
@@ -28,9 +30,13 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
+
+
 dependencies {
   antlr "org.antlr:antlr4:$antlr_version"
   compile "org.antlr:antlr4-runtime:$antlr_version"
+  antlr "org.antlr:antlr4:$antlrVersion"
+  compile "org.antlr:antlr4-runtime:$antlrVersion"
   compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version".toString()
   compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version".toString()
   compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version".toString()
@@ -39,6 +45,11 @@ dependencies {
   testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
   testCompile 'junit:junit:4.12'
   compile 'commons-io:commons-io:2.6'
+}
+
+configurations.all() {
+    resolutionStrategy.force "org.antlr:antlr4-runtime:$antlrVersion"
+    resolutionStrategy.force "org.antlr:antlr4-tool:$antlrVersion"
 }
 
 generateGrammarSource {
@@ -82,7 +93,7 @@ jacocoTestReport {
         csv.enabled false
     }
     afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
+        getClassDirectories().from = files(classDirectories.files.collect {
             fileTree(dir: it,
                     exclude: ['**/RpgLexer*',
                               '**/RpgParser*',
@@ -101,4 +112,14 @@ task runExample (type: JavaExec) {
     }
     main="com.smeup.rpgparser.RunnerKt"
     classpath = sourceSets.test.runtimeClasspath
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'com.smeup.rpgparser.RunnerKt'
+    }
+    archiveBaseName = project.name + '-all'
+    archiveVersion = ''
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }

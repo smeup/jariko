@@ -2,11 +2,12 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.MuteParser.*
 import com.smeup.rpgparser.ast.*
-import com.smeup.rpgparser.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.ast.AssignmentOperator.*
 import java.math.BigDecimal
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.collections.HashMap
-import java.util.TreeMap
 import kotlin.collections.LinkedHashMap
 import com.smeup.rpgparser.ast.Comparison.EQ
 import com.smeup.rpgparser.ast.Comparison.NE
@@ -19,16 +20,16 @@ import java.lang.UnsupportedOperationException
 abstract class LogEntry
 data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
     override fun toString(): String {
-        return "calling $callStmt"
+        return "calling ${callStmt}"
     }
 }
 
 data class CallEndLogEntry(val callStmt: CallStmt, val exception: Exception? = null) : LogEntry() {
     override fun toString(): String {
-        return if (exception == null) {
-            "end of $callStmt"
+        if (exception == null) {
+            return "end of ${callStmt}"
         } else {
-            "exception $exception in calling $callStmt"
+            return "exception ${exception} in calling ${callStmt}"
         }
     }
 }
@@ -209,7 +210,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
                     execute(statement.subroutine.referred!!.stmts)
                 }
-                is EvalStmt -> assign(statement.target, statement.expression)
+                is EvalStmt -> assign(statement.target, statement.expression, statement.operator)
                 is MoveStmt -> move(statement.target, statement.expression)
                 is SelectStmt -> {
                     for (case in statement.cases) {
@@ -252,17 +253,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     statement.response?.let { values.add(interpret(it)) }
                     //TODO: receive input from systemInterface and assign value to response
                     systemInterface.display(render(values))
-                }
-                is ForStmt -> {
-                    eval(statement.init)
-                    try {
-                        while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
-                            execute(statement.body)
-                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
-                        }
-                    } catch (e: LeaveException) {
-                        // leaving
-                    }
                 }
                 is IfStmt -> {
                     val condition = eval(statement.condition).asBoolean().value
@@ -320,6 +310,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         assign(statement.params[index].param.referred!!, value)
                     }
                 }
+                is ForStmt -> {
+                    eval(statement.init)
+                    try {
+                        while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
+                            execute(statement.body)
+                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
+                        }
+                    } catch (e: LeaveException) {
+                        // leaving
+                    }
+                }
                 is DoStmt -> {
                     if (statement.index == null) {
                         var myIterValue = eval(statement.startLimit).asInt()
@@ -351,6 +352,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         } catch (e: LeaveException) {
                             // nothing to do here
                         }
+                    }
+                }
+                is DowStmt -> {
+                    try {
+                        while (eval(statement.endExpression).asBoolean().value) {
+                            execute(statement.body)
+                        }
+                    } catch (e: LeaveException) {
+                        // nothing to do here
                     }
                 }
                 is SubDurStmt -> {
@@ -497,8 +507,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun assign(target: AssignableExpression, value: Expression): Value {
-        return assign(target, eval(value))
+    private fun assign(target: AssignableExpression, value: Expression, operator: AssignmentOperator = NORMAL_ASSIGNMENT): Value {
+        return when (operator) {
+            NORMAL_ASSIGNMENT -> assign(target, eval(value))
+            PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
+            MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
+            MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
+            DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
+            EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
+        }
     }
 
     private fun move(target: AssignableExpression, value: Expression): Value {
@@ -589,6 +606,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
             is IntLiteral -> IntValue(expression.value)
+            is RealLiteral -> DecimalValue(expression.value)
             is NumberOfElementsExpr -> {
                 val value = interpret(expression.value)
                 when (value) {
@@ -770,6 +788,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     TODO("TimeStamp parsing: " + evaluated)
                 }
             }
+            is EditcExpr -> {
+                val n = eval(expression.value)
+                val format = eval(expression.format)
+                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got ${format} at ${expression.position}")
+                return n.asDecimal().formatAs(format.value)
+            }
             is DiffExpr -> {
                 //TODO expression.durationCode
                 val v1 = eval(expression.value1)
@@ -782,6 +806,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 //TODO check type
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
             }
+            is ExpExpr -> {
+                val v1 = eval(expression.left)
+                val v2 = eval(expression.right)
+                return DecimalValue(BigDecimal(Math.pow(v1.asInt().value.toDouble(), v2.asInt().value.toDouble())))
+            }
             is TrimrExpr -> {
                 //TODO expression.charactersToTrim
                 return StringValue(eval(expression.value).asString().value.trimEnd())
@@ -792,6 +821,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             else -> TODO(expression.toString())
         }
     }
+
 
     fun blankValue(size: Int) = StringValue(" ".repeat(size))
 
@@ -808,6 +838,13 @@ private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
+private fun DecimalValue.formatAs(format: String): StringValue {
+    return when(format) {
+        "1" -> StringValue(DecimalFormat("#,###.##", DecimalFormatSymbols(Locale.US)).format(this.value.abs()))
+        "Z" -> StringValue(this.value.abs().toString().replace(".", ""))
+        else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
+    }
+}
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()

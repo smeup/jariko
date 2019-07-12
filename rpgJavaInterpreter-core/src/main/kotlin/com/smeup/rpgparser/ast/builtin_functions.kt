@@ -43,6 +43,12 @@ data class DecExpr(val value: Expression, var intDigits : Expression, val decDig
                    override val position: Position? = null)
     : Expression(position)
 
+// %EDITC
+//TODO add other parameters
+data class EditcExpr(val value: Expression, val format : Expression,
+                     override val position: Position? = null)
+    : Expression(position)
+
 // %CHAR
 data class CharExpr(val value: Expression, override val position: Position? = null)
     : Expression(position)

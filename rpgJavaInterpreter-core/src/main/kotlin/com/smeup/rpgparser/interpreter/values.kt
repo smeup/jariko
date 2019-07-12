@@ -7,6 +7,7 @@ import kotlin.streams.toList
 
 abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
+    open fun asDecimal() : DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
     open fun asString() : StringValue = throw UnsupportedOperationException()
     open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
     open fun asTimeStamp() : TimeStampValue = throw UnsupportedOperationException()
@@ -105,6 +106,10 @@ data class IntValue(val value: Long) : Value() {
     }
 
     override fun asInt() = this
+    //TODO Verify conversion
+    override fun asDecimal(): DecimalValue = DecimalValue(BigDecimal(value))
+
+
     fun increment() = IntValue(value + 1)
 
     override fun takeLast(n: Int): Value {
@@ -141,6 +146,11 @@ data class IntValue(val value: Long) : Value() {
     }
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
+    //TODO Verify conversion
+    override fun asInt(): IntValue = IntValue(value.longValueExact())
+
+    override fun asDecimal(): DecimalValue = this
+
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         return expectedType is NumberType

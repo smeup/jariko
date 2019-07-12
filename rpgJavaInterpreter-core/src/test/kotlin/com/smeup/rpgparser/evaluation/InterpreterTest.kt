@@ -259,6 +259,42 @@ class InterpreterTest {
         assertEquals(outputOf("MOVENBRNBR"), listOf("12345", "45678", "123", "99991"))
     }
 
+    @Test
+    fun executeDOWTEST() {
+        assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
+    }
+
+    @Test
+    fun executePLUSEQUAL() {
+        assertEquals(outputOf("PLUSEQUAL"), listOf("COUNTER IS NOW 6"))
+    }
+
+    @Test
+    fun executeASSIGN() {
+        assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"))
+    }
+
+    @Test
+    fun executePOWER() {
+        assertEquals(outputOf("POWER"), listOf("i is now 8"))
+    }
+
+    @Test @Ignore
+    fun executeMultiplicationAndDivisionWithoutSpaces() {
+        assertEquals(listOf("x is now 6", "y is now 2", "z is now 0"), outputOf("CALC"))
+    }
+
+    @Test @Ignore
+    fun executeBIFEDITC_1() {
+        assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00"), outputOf("BIFEDITC_1"))
+    }
+
+    @Test @Ignore
+    fun executeBIFEDITC_Z() {
+        assertEquals(listOf("x  123456  123456  123456  123456        "), outputOf("BIFEDITC_Z"))
+    }
+
+
     @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
