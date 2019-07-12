@@ -15,6 +15,7 @@ import com.smeup.rpgparser.ast.Comparison.GT
 import com.smeup.rpgparser.ast.Comparison.LT
 import com.smeup.rpgparser.ast.Comparison.GE
 import com.smeup.rpgparser.ast.Comparison.LE
+import com.smeup.rpgparser.parsetreetoast.MuteAnnotationExecutionLogEntry
 import java.lang.UnsupportedOperationException
 
 abstract class LogEntry

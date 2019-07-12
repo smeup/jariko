@@ -1,4 +1,4 @@
-def antlrVersion = '4.5.1'
+def antlrVersion = '4.7.1'
 
 buildscript {
     ext.kotlin_version = '1.3.30'
