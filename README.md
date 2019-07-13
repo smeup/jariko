@@ -87,7 +87,9 @@ If you omit the program name, you will be able to call programs in a [simple she
 * _src_ contains the source code for the project and the tests
 * _out_, and _build_ contain temporary files
 * _misc_ contains utilities for downloading sources from AS400 (for example [this ruby script](misc/ftpas.rb))
+* _misc/docker_: support for [Docker see instructions](misc/docker/docker.md)
 * _docs_ contains documentation
+
 
 ## How to use this code in your project
 
