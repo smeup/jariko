@@ -2,7 +2,7 @@ FROM openjdk:8-alpine
 
 ENV pgmDir /opt/rpgJavaInterpreter
 
-RUN mkdir -p ${pgmDir}
+RUN mkdir -p ${pgmDir}/examples/rpg
 
 COPY rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-all.jar ${pgmDir}
 COPY rpgJavaInterpreter-core/src/test/resources/HELLO.rpgle ${pgmDir}

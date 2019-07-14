@@ -1,5 +1,6 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.utils.measureAndCatch
 import java.io.*
 import kotlin.system.measureTimeMillis
 
@@ -22,7 +23,7 @@ class SimpleShell {
                 }
                 val args = commandLine.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 if (!args.isEmpty()) {
-                    val timeElapsed = measureTimeMillis {
+                    val timeElapsed = measureAndCatch {
                         r(args)
                     }
                     println("Function executed in $timeElapsed milliseconds")

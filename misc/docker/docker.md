@@ -3,11 +3,11 @@
 From the root directory of the project, run:
 
 ```
-docker build -f misc/docker/Dockerfile -t interpreterContainer .
+docker build -f misc/docker/Dockerfile -t interpretercontainer .
 ```
 
-This will create the interpreterContainer container. Then
+This will create the `interpretercontainer` container. Then
 
 ```
-docker docker run -it interpreterContainer
+docker run -it interpretercontainer
 ```
