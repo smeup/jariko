@@ -304,6 +304,16 @@ class InterpreterTest {
         assertEquals(listOf("001001d01d01A01A01c01c01B01B01b01b01C01C019019011011", "10"), outputOf("BIFARRAY"))
     }
 
+    @Test
+    fun executeSCANTEST() {
+        assertEquals(listOf("0", "4"), outputOf("SCANTEST"))
+    }
+
+    @Test
+    fun executeSUBSTTEST() {
+        assertEquals(listOf("x)yy"), outputOf("SUBSTTEST"))
+    }
+
     @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
