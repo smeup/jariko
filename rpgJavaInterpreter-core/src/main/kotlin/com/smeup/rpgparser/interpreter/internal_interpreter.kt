@@ -395,6 +395,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return cmp == Comparison.GREATER
     }
 
+    private fun isSmallerThan(value1: Value, value2: Value): Boolean {
+        val cmp = compare(value1, value2)
+        return cmp == Comparison.SMALLER
+    }
+
+
     private fun compare(value1: Value, value2: Value): Comparison {
         return when {
             value1 is IntValue && value2 is IntValue -> when {
@@ -596,10 +602,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val right = interpret(expression.right)
                 return isGreaterThan(left, right).asValue()
             }
+            is GreaterEqualThanExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return isEqualOrGreater(left, right).asValue()
+            }
             is LessEqualThanExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
                 return isEqualOrSmaller(left, right).asValue()
+            }
+            is LessThanExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return isSmallerThan(left, right).asValue()
             }
             is BlanksRefExpr -> {
                 return BlanksValue

@@ -118,7 +118,7 @@
      C                   EVAL      $C=$C+1
      C                   ENDIF
      C                   EVAL      S1=%TRIM(SI($S))+'.'+%TRIM(%EDITC($C:'Z'))
-     C                   EVAL      I1=$C*10
+     C                   EVAL      I1=$C * 10
      C                   IF        I1 > 29900
      C                   EVAL      I1=29900
      C                   ENDIF
@@ -140,7 +140,7 @@
      C                   EVAL      $C=$C+1
      C                   ENDIF
      C                   EVAL      S1=%TRIM(SI($S))+'.'+%TRIM(%EDITC($C:'Z'))
-     C                   EVAL      I1=$C*10
+     C                   EVAL      I1=$C * 10
      C                   IF        I1 > 29900
      C                   EVAL      I1=29900
      C                   ENDIF

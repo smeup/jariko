@@ -39,11 +39,22 @@ Then import in IDEA using these options:
 
 ## Running tests
 
-All tests can be executed by running:
+All tests (except for performance tests) can be executed by running:
 
 ```
 ./gradlew check
 ```
+
+To run performance tests (i.e. tests tagged with the annotation `@Category(PerformanceTest::class)`) run:
+```
+./gradlew testPerformance
+```
+
+To run all tests:
+```
+./gradlew testAll
+```
+
 
 If you want to force the execution of all checks:
 

@@ -7,7 +7,7 @@ import kotlin.system.measureTimeMillis
 
 class SimpleShell {
 
-    val exitCommands = hashSetOf<String>("exit", "quit", "signoff", "off")
+    private val exitCommands = hashSetOf<String>("exit", "quit", "signoff", "off")
 
     fun repl(r: (parms: Array<String>) -> Unit) {
         var commandLine: String

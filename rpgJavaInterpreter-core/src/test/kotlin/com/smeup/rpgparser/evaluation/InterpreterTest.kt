@@ -299,6 +299,10 @@ class InterpreterTest {
         assertEquals(listOf("x  123456  123456  123456  123456        "), outputOf("BIFEDITC_Z"))
     }
 
+    @Test @Ignore
+    fun executeBIFARRAY() {
+        assertEquals(listOf("001001d01d01A01A01c01c01B01B01b01b01C01C019019011011", "10"), outputOf("BIFARRAY"))
+    }
 
     @Test @Ignore
     fun executeJCODFISD() {

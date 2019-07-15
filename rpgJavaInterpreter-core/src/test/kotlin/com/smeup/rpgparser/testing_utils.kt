@@ -26,6 +26,8 @@ import kotlin.test.fail
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
 
+interface PerformanceTest
+
 fun assertIsIntValue(value: Value, intValue: Long) {
     assertTrue(value is IntValue, "IntValue expected but found instead $value")
     assertEquals(intValue, value.value)
