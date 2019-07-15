@@ -11,3 +11,9 @@ This will create the `interpretercontainer` container. Then
 ```
 docker run -it interpretercontainer
 ```
+
+If you want to execute rpg programs from your current directory, you can mount it in the `/rpg` direcotry of the conatiner:
+
+```
+docker run -it -v $PWD:/rpg interpretercontainer
+```

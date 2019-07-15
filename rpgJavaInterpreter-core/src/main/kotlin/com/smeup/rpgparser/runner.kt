@@ -56,6 +56,7 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
     RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+    RpgSystem.addProgramFinder(ResourceProgramFinder("/rpg"))
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
