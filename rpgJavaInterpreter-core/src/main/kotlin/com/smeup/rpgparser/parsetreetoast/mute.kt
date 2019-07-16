@@ -4,12 +4,10 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.facade.RpgParserFacade
+import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.Value
-import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
-import com.strumenta.kolasu.model.ReferenceByName
-import com.strumenta.kolasu.model.pos
 import com.strumenta.kolasu.validation.Error
 import org.apache.commons.io.input.BOMInputStream
 import java.util.*
@@ -45,37 +43,78 @@ fun MuteParser.MuteLineContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
 }
 
 
-fun injectMuteAnnotationHelper( statements : List<Statement> , start : Int,
+fun injectMuteAnnotationToStatements( statements : List<Statement> , start : Int, end: Int,
                                 map: Map<Int, MuteParser.MuteLineContext>) {
 
+    // Consider only the annotation in the scope
+    val filtered: Map<Int, MuteParser.MuteLineContext> = map.filterKeys {
+        it in start..end
+    }
     // makes a consumable list of annotation
-    val mutes: MutableMap<Int, MuteParser.MuteLineContext> = map.toSortedMap()
+    val mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext> = filtered.toSortedMap()
+
 
     // Vist each statment
     statements.forEach {
-        val stmt = it
-        println("${stmt}")
-        val toRemove = it.accept(mutes,start)
+
+        val toRemove = it.accept(mutesToProcess,start,end)
 
         toRemove.forEach {
-            mutes.remove(it)
+            mutesToProcess.remove(it)
         }
     }
-    // at the end the mutes collectiom must be empty
-    // if not empty means the annotation can't be attached
+    // at the end the mutesToProcess collection should be empty
+    // otherwise it means the remaining annotations can't be attached
     // to any statement
-    print("")
+    mutesToProcess.forEach {
+        print("Could not attach the annotation @line ${it.key}")
+    }
+
+}
+fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>,map: Map<Int, MuteParser.MuteLineContext>) {
+
+
+    if(definitions.size > 0) {
+        val start : Int = definitions.first().position!!.start.line
+        val end   : Int = definitions.last().position!!.end.line
+        // Consider only the annotation in the scope
+        val filtered: Map<Int, MuteParser.MuteLineContext> = map.filterKeys {
+            it in start..end
+        }
+        // makes a consumable list of annotation
+        val mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext> = filtered.toSortedMap()
+
+        definitions.forEach {
+            val toRemove = it.accept(mutesToProcess,start,end)
+
+            toRemove.forEach {
+                mutesToProcess.remove(it)
+            }
+        }
+    }
 
 }
 
 
 fun CompilationUnit.injectMuteAnnotation(parseTreeRoot: RpgParser.RContext,
                                          mutes: Map<Int, MuteParser.MuteLineContext>) {
-    // TODO maurizio implement a statement explorer
-    injectMuteAnnotationHelper(this.main.stmts,1,mutes)
+
+
+    //injectMuteAnnotationHelper( this.dataDefinitions,)
+    injectMuteAnnotationToDataDefinitions(this.dataDefinitions,mutes)
+    // Process the main body statements
+    injectMuteAnnotationToStatements( this.main.stmts,
+                                this.main.stmts.position()!!.start.line,
+                                this.main.stmts.position()!!.end.line,
+                                mutes)
+    // Process subroutines body statements
     this.subroutines.forEach {
-        injectMuteAnnotationHelper(it.stmts,it.position!!.start.line,mutes)
+        injectMuteAnnotationToStatements( it.stmts,
+                                    it.position!!.start.line,
+                                    it.position!!.end.line,
+                                    mutes)
     }
 
 
 }
+
