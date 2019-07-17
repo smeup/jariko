@@ -176,7 +176,13 @@ data class DoStmt(
         val index: AssignableExpression?,
         val body: List<Statement>,
         val startLimit: Expression = IntLiteral(1),
-        override val position: Position? = null) : Statement(position)
+        override val position: Position? = null) : Statement(position) {
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<MuteAnnotationResolved> {
+        // TODO check if the annotation is the last statement
+        return acceptBody(body,mutes, start, end)
+
+    }
+}
 
 data class DowStmt(
         val endExpression: Expression,

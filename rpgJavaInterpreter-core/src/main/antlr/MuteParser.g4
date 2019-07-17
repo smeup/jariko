@@ -1,6 +1,5 @@
 parser grammar MuteParser;
 
-
 options {   tokenVocab = MuteLexer; }
 
 muteLine: muteAnnotation EOF ;

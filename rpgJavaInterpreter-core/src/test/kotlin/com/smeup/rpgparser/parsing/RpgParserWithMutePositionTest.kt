@@ -136,4 +136,30 @@ public class RpgParserWithMutePositionTest {
 
 
     }
+
+
+    @Test
+    fun parseMUTE02_position_do() {
+        val resolved : List<MuteAnnotationResolved>
+        val result = assertCanBeParsed("mute/MUTE04_POSITION",withMuteSupport = true)
+        val cu = result.root!!.rContext.toAst().apply {
+            resolved = this.injectMuteAnnotation(result.root!!.rContext, result.root!!.muteContexts!!)
+        }
+
+        showResults(resolved)
+        // Subroutine annotation are attached to closest next statement
+        assertTrue (resolved.size == 2)
+
+        var annotation = getResolvedAnnotation(11,resolved)
+        assertTrue (  annotation != null )
+        assertTrue (  annotation.statementLine == 12 )
+
+        annotation = getResolvedAnnotation(15,resolved)
+        assertTrue (  annotation != null )
+        assertTrue (  annotation.statementLine == 16 )
+
+
+
+
+    }
 }
