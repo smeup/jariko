@@ -16,6 +16,7 @@ fun List<Statement>.plist() : PlistStmt? = this.asSequence().mapNotNull { it as?
 data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
                            val main: MainBody,
                            val subroutines: List<Subroutine>,
+                           val compileTimeArrays: List<CompileTimeArray>,
                            override val position: Position?) : Node(position) {
 
     val entryPlist : PlistStmt?
@@ -51,6 +52,8 @@ data class MainBody(val stmts: List<Statement>, override val position: Position?
 
 class Subroutine(override val name: String, val stmts: List<Statement>, override val position: Position? = null) : Named, Node(position)
 class Function(override val name: String, override val position: Position? = null) : Named, Node(position)
+
+class CompileTimeArray(override val name: String, val lines: List<String>, override val position: Position? = null) : Named, Node(position)
 
 enum class DataWrapUpChoice {
     LR,

@@ -41,11 +41,19 @@ fun RContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Compilati
         }
     }
     val subroutines = this.subroutine().map { it.toAst(conf) }
+    val compileTimeArrays = this.endSource().map { it.toAst(conf) }
     return CompilationUnit(
             dataDefinitions,
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines,
+            compileTimeArrays,
             position = this.toPosition(conf.considerPosition))
+}
+
+internal fun EndSourceContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
+    return CompileTimeArray(this.endSourceHead().text, //TODO: change grammar to get **CNAME name
+            this.endSourceLine().map { it.text },
+            toPosition(conf.considerPosition))
 }
 
 internal fun SubroutineContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Subroutine {
