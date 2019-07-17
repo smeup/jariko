@@ -151,7 +151,7 @@ class InterpreterTest {
 
     @Test
     fun executeHELLOCASE() {
-        assertEquals(outputOf("HELLOCASE"), listOf("Hello World!"))
+        assertEquals(listOf("Hello World!"), outputOf("HELLOCASE"))
     }
 
 
@@ -159,42 +159,41 @@ class InterpreterTest {
     fun executeHELLOPLIST() {
         val msg = "Hello World!"
         val parms :  Map<String, Value> = mapOf("msG" to StringValue(msg))
-        assertEquals(outputOf("HELLOPLIST", parms), listOf(msg))
+        assertEquals(listOf(msg), outputOf("HELLOPLIST", parms))
     }
 
     @Test
     fun executeHELLOTRIM() {
-        assertEquals(outputOf("HELLOTRIM"), listOf("Hello World!"))
+        assertEquals(listOf("Hello World!"), outputOf("HELLOTRIM"))
     }
 
 
     @Test
     fun executeHELLO1() {
-        assertEquals(outputOf("HELLO1"), listOf("Hello World"))
+        assertEquals(listOf("Hello World"), outputOf("HELLO1"))
     }
 
     //TODO
     @Test @Ignore
     fun executeHELLOCHARS() {
-        assertEquals(outputOf("HELLOCHARS"), listOf("OK"))
+        assertEquals(listOf("OK"), outputOf("HELLOCHARS"))
     }
 
     //TODO
     @Test @Ignore
     fun executeHELLOEQU() {
-        assertEquals(outputOf("HELLOEQU"), listOf("Cb is equal to C and Cb does not differ from C"))
+        assertEquals(listOf("Cb is equal to C and Cb does not differ from C"), outputOf("HELLOEQU"))
     }
 
     //TODO
     @Test @Ignore
     fun executeHELLOPAD() {
-        assertEquals(outputOf("HELLOPAD"), listOf("X padded"))
+        assertEquals(listOf("X padded"), outputOf("HELLOPAD"))
     }
 
-    //TODO
-    @Test @Ignore
+    @Test
     fun executeHELLOVARST() {
-        assertEquals(outputOf("HELLOVARST"), listOf("Eq", "Hello-World", "Hello-World"))
+        assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
     }
 
     @Test
@@ -215,12 +214,12 @@ class InterpreterTest {
 
     @Test
     fun executeCALCFIBCA5() {
-        assertEquals(outputOf("CALCFIBCA5"), listOf("FIBONACCI OF: 10 IS: 55"))
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), outputOf("CALCFIBCA5"))
     }
 
     @Test
     fun executeCAL01_callingRPGPgm() {
-        assertEquals(outputOf("CAL01"), listOf("1"))
+        assertEquals(listOf("1"), outputOf("CAL01"))
     }
 
     @Test
