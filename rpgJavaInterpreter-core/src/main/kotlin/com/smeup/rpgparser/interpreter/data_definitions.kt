@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.ast.Expression
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
@@ -11,6 +12,14 @@ open class AbstractDataDefinition(override val name: String,
                                   override val position: Position? = null) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     fun elementSize() = type.elementSize()
+
+    fun accept(mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<Int>  {
+        // List of mutes successully attached to the data definition
+        val mutesAttached : MutableList<Int> = mutableListOf()
+        // TODO ask Federico/Franco
+
+        return mutesAttached
+    }
 }
 
 data class DataDefinition(override val name: String,
@@ -35,6 +44,8 @@ data class DataDefinition(override val name: String,
     fun endOffset(fieldDefinition: FieldDefinition): Int {
         return (startOffset(fieldDefinition) + fieldDefinition.elementSize()).toInt()
     }
+
+
 }
 
 data class FieldDefinition(override val name: String,

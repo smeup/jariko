@@ -8,6 +8,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.pos
 import com.strumenta.kolasu.validation.Error
 import org.apache.commons.io.input.BOMInputStream
 import java.util.*
@@ -44,7 +45,7 @@ fun MuteParser.MuteLineContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
 
 
 fun injectMuteAnnotationToStatements( statements : List<Statement> , start : Int, end: Int,
-                                map: Map<Int, MuteParser.MuteLineContext>) {
+                                map: Map<Int, MuteParser.MuteLineContext>)  : List<MuteAnnotationResolved> {
 
     // Consider only the annotation in the scope
     val filtered: Map<Int, MuteParser.MuteLineContext> = map.filterKeys {
@@ -52,15 +53,16 @@ fun injectMuteAnnotationToStatements( statements : List<Statement> , start : Int
     }
     // makes a consumable list of annotation
     val mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext> = filtered.toSortedMap()
-
+    val mutesResolved : MutableList<MuteAnnotationResolved> = mutableListOf()
 
     // Vist each statment
     statements.forEach {
 
-        val toRemove = it.accept(mutesToProcess,start,end)
+        val resolved  = it.accept(mutesToProcess,start,end)
+        mutesResolved.addAll( resolved )
 
-        toRemove.forEach {
-            mutesToProcess.remove(it)
+        resolved.forEach {
+            mutesToProcess.remove(it.muteLine)
         }
     }
     // at the end the mutesToProcess collection should be empty
@@ -69,6 +71,7 @@ fun injectMuteAnnotationToStatements( statements : List<Statement> , start : Int
     mutesToProcess.forEach {
         print("Could not attach the annotation @line ${it.key}")
     }
+    return mutesResolved
 
 }
 fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>,map: Map<Int, MuteParser.MuteLineContext>) {
@@ -97,24 +100,39 @@ fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>,map:
 
 
 fun CompilationUnit.injectMuteAnnotation(parseTreeRoot: RpgParser.RContext,
-                                         mutes: Map<Int, MuteParser.MuteLineContext>) {
+                                         mutes: Map<Int, MuteParser.MuteLineContext>) : List<MuteAnnotationResolved>  {
 
-
+    val resolved : MutableList<MuteAnnotationResolved> = mutableListOf()
     //injectMuteAnnotationHelper( this.dataDefinitions,)
-    injectMuteAnnotationToDataDefinitions(this.dataDefinitions,mutes)
+    //injectMuteAnnotationToDataDefinitions(this.dataDefinitions,mutes)
     // Process the main body statements
-    injectMuteAnnotationToStatements( this.main.stmts,
+    resolved.addAll(injectMuteAnnotationToStatements( this.main.stmts,
                                 this.main.stmts.position()!!.start.line,
                                 this.main.stmts.position()!!.end.line,
-                                mutes)
+                                mutes))
     // Process subroutines body statements
     this.subroutines.forEach {
-        injectMuteAnnotationToStatements( it.stmts,
+        resolved.addAll(injectMuteAnnotationToStatements( it.stmts,
                                     it.position!!.start.line,
                                     it.position!!.end.line,
-                                    mutes)
+                                    mutes))
     }
 
-
+    return resolved
 }
 
+
+fun acceptBody(body: List<Statement>,mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int) : MutableList<MuteAnnotationResolved> {
+    val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
+
+    // Process the body statements
+    body.forEach {
+        val toRemove = it.accept(mutes, start, end)
+        toRemove.forEach {
+            mutes.remove(it.muteLine)
+            muteAttached.add(it)
+        }
+    }
+
+    return muteAttached
+}

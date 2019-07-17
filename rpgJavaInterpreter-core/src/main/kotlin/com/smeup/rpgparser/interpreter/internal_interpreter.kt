@@ -127,6 +127,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
+        // TODO add here the annotation evaluation ??
     }
 
 

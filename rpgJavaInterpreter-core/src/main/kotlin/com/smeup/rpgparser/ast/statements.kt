@@ -3,6 +3,7 @@ package com.smeup.rpgparser.ast
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 
@@ -22,24 +23,24 @@ enum class AssignmentOperator(val text: String) {
 
 abstract class Statement(override val position: Position? = null,
                          var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()) : Node(position) {
-    open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int) : MutableList<Int> {
+    open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int) : MutableList<MuteAnnotationResolved> {
 
         // List of mutes successully attached to the statements
-        val muteAttached : MutableList<Int> = mutableListOf()
+        val muteAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
 
         // Extracts the annotation declared before the statement
         val muteToProcess = mutes.filterKeys{
             it < this.position!!.start.line
         }
-        if(muteToProcess != null) {
-            muteToProcess.forEach { (line, mute) ->
-                this.muteAnnotations.add( mute!!.toAst(
-                        position = pos( line,this.position!!.start.column,line, this.position!!.end.column))
-                )
-                muteAttached.add(line)
-                println("MuteComparisonAnnotation @line:${line} attached to statement @line:${this.position!!.start.line}")
-            }
+
+        muteToProcess.forEach { (line, mute) ->
+            this.muteAnnotations.add( mute!!.toAst(
+                    position = pos( line,this.position!!.start.column,line, this.position!!.end.column))
+            )
+            muteAttached.add(MuteAnnotationResolved(line,this.position!!.start.line))
+
         }
+
         return muteAttached
     }
 }
@@ -49,46 +50,31 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
 data class SelectStmt(var cases: List<SelectCase>,
                       var other: SelectOtherClause? = null,
                       override val position: Position? = null) : Statement(position) {
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<Int> {
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<MuteAnnotationResolved> {
 
-        val muteAttached : MutableList<Int> = mutableListOf()
+        val muteAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
+
         cases.forEach {
-            val muteToRemove = it.accept( mutes , start , end )
-            muteToRemove.forEach {
-                mutes.remove(it)
-            }
+            muteAttached.addAll(
+                    acceptBody(it.body,mutes, it.position!!.start.line , it.position!!.end.line )
+            )
         }
-        if( other != null ) {
-            muteAttached.addAll( other!!.accept( mutes , start, end ) )
-        }
+
+
+        muteAttached.addAll(
+                acceptBody(other!!.body,mutes, other!!.position!!.start.line , other!!.position!!.end.line )
+        )
+
         return muteAttached
     }
 }
 
 
-data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position) {
-    open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext> ,start: Int = -1,end: Int) : MutableList<Int> {
+data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-        val muteAttached : MutableList<Int> = mutableListOf()
 
-        body.forEach {
-            muteAttached.addAll( it.accept(mutes, start, end))
-        }
-        return muteAttached
-    }
-}
+data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position) {
-    open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = -1,end: Int) : MutableList<Int> {
-
-        val muteAttached : MutableList<Int> = mutableListOf()
-
-        body.forEach {
-            muteAttached.addAll( it.accept(mutes, start, end))
-        }
-        return muteAttached
-    }
-}
 
 data class EvalStmt(val target: AssignableExpression,
                     var expression: Expression,
@@ -121,11 +107,41 @@ data class CallStmt(val expression: Expression, val params: List<PlistParam>, va
 data class IfStmt(val condition: Expression, val body: List<Statement>,
                   val elseIfClauses: List<ElseIfClause> = emptyList(),
                   val elseClause: ElseClause? = null,
-                  override val position: Position? = null) : Statement(position)
+                  override val position: Position? = null) : Statement(position) {
+
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<MuteAnnotationResolved> {
+        // check if the annotation is just before the ELSE
+        val muteAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
+
+
+        // Process the body statements
+        muteAttached.addAll(
+                acceptBody(body,mutes, this.position!!.start.line , this.position!!.end.line )
+        )
+
+        // Process the ELSE IF
+        elseIfClauses.forEach {
+            muteAttached.addAll(
+                    acceptBody(it.body,mutes, it.position!!.start.line , it.position!!.end.line )
+            )
+        }
+
+        // Process the ELSE
+        if( elseClause != null ) {
+            muteAttached.addAll(
+                    acceptBody(elseClause.body,mutes, elseClause.position!!.start.line , elseClause.position!!.end.line )
+            )
+        }
+
+        return muteAttached
+    }
+}
+
 
 data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
+
 
 data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
 
@@ -190,42 +206,9 @@ data class ForStmt(
             throw UnsupportedOperationException()
         }
     }
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<Int> {
-        // check if the annotation is just before the ENDFOR
-        val muteAttached : MutableList<Int> = mutableListOf()
-        val toRemove : MutableList<Int> = mutableListOf()
-        // Process the annototation between the first and the last line of the LOOP
-        val muteToProcess = mutes.filterKeys{
-            it  >= this.position!!.start.line && it  < this.position!!.end.line
-        }
-
-        // Attach the annotations to the last statement
-        muteToProcess.forEach{ (line,mute) ->
-            if(line > body.last().position!!.end.line ) {
-                body.last().muteAnnotations.add( mute!!.toAst(
-                        position = pos( line,body.last().position!!.end.line,line,
-                                body.last().position!!.end.column))
-                )
-                println("MuteComparisonAnnotation @line:${line} attached to statement @line:${body.last().position!!.end.line}")
-                toRemove.add(line)
-            }
-        }
-        // Removes the annotations attached to the last line
-        toRemove.forEach {
-            mutes.remove(it)
-            muteAttached.add(it)
-        }
-
-        // Process the body statements
-        body.forEach {
-            val toRemove = it.accept(mutes, start, end)
-            toRemove.forEach {
-                mutes.remove(it)
-                muteAttached.add(it)
-            }
-        }
-
-        return muteAttached
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<MuteAnnotationResolved> {
+        // TODO check if the annotation is the last statement
+        return acceptBody(body,mutes, start, end)
 
     }
 }
