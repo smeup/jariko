@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing
 
 
 
+import com.smeup.rpgparser.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.facade.RpgParserResult
 import com.smeup.rpgparser.inputStreamFor
@@ -12,6 +13,29 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 public class RpgParserWithMuteScopeTest {
+
+    var printResults : Boolean = true
+
+    // Useful display function for debugging
+    private fun showResults(resolved: List<MuteAnnotationResolved> ) {
+        if( this.printResults ) {
+            val sorted  = resolved.sortedWith(compareBy({ it.muteLine }))
+            sorted.forEach {
+                println("Mute at line ${it.muteLine} attached to statement ${it.statementLine}" )
+            }
+
+        }
+    }
+
+    private fun getResolvedAnnotation(line: Int,  annotations: List<MuteAnnotationResolved> ) : MuteAnnotationResolved? {
+        annotations.forEach {
+            if(it.muteLine == line) {
+                return it
+            }
+        }
+        return null
+
+    }
 
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false) : RpgParserResult {
@@ -27,23 +51,29 @@ public class RpgParserWithMuteScopeTest {
 
     @Test
     fun parseMUTE01_scope() {
+        val resolved : List<MuteAnnotationResolved>
         val result = assertCanBeParsed("mute/MUTE01_SCOPE",withMuteSupport = true)
 
         val cu = result.root!!.rContext.toAst().apply {
-            this.injectMuteAnnotation(result.root!!.rContext, result.root!!.muteContexts!!)
+            resolved  = this.injectMuteAnnotation(result.root!!.rContext, result.root!!.muteContexts!!)
         }
-        // Data decalaration annotation are attachd at the first statement in main ??
-        //assertTrue( cu.main.stmts[0].muteAnnotations.size == 2 )
-        //assertTrue( cu.main.stmts[0].position!!.start.line == 11 )
 
-        // Main annotation are attached to the closest next statement (line 15)
-        assertTrue( cu.main.stmts[2].muteAnnotations.size == 2 )
-        assertTrue( cu.main.stmts[2].position!!.start.line == 16 )
+        showResults(resolved)
+
+        assertEquals(resolved.size, 3)
+        var annotation = getResolvedAnnotation(14,resolved)
+        assertTrue (actual = annotation != null)
+        assertEquals(annotation.statementLine, 16)
+
+        annotation = getResolvedAnnotation(15,resolved)
+        assertTrue (actual = annotation != null)
+        assertEquals(annotation.statementLine, 16)
+
+        annotation = getResolvedAnnotation(22,resolved)
+        assertTrue (actual = annotation != null)
+        assertEquals(annotation.statementLine, 23)
 
 
-        // Subroutine annotation are attached to closest next statement
-        assertTrue ( cu.subroutines[0].stmts[0].muteAnnotations.size == 1)
-        assertTrue ( cu.subroutines[0].stmts[0].position!!.start.line == 23)
 
     }
 }
