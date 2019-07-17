@@ -13,9 +13,9 @@
       * Test: annotation attached to line 15
     MU* VAL1(DFIELD1) VAL2(4) COMP(LE)
      C                   EVAL      A = B
-     C                   EVAL      B = RESULT
-      * Test: annotation attached to line 16
+      * Test: annotation attached to line 18
     MU* VAL1(COUNT) VAL2(4) COMP(LE)
+     C                   EVAL      B = RESULT
      C                   ENDFOR
      C                   SETON                                        LR
       *--------------------------------------------------------------*
