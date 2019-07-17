@@ -299,6 +299,29 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeCTDATA() {
+        assertEquals(expected =
+                    ("001\n" +
+                    "d01\n" +
+                    "A01\n" +
+                    "c01\n" +
+                    "B01\n" +
+                    "b01\n" +
+                    "C01\n" +
+                    "901\n" +
+                    "101\n" +
+                    "D01\n" +
+                    "H01\n" +
+                    "E01\n" +
+                    "201\n" +
+                    "e01\n" +
+                    "a01\n" +
+                    "x01\n" +
+                    "X01").lines(),
+                    actual = outputOf("CTDATA"))
+    }
+
+    @Test @Ignore
     fun executeBIFARRAY() {
         assertEquals(listOf("001001d01d01A01A01c01c01B01B01b01b01C01C019019011011", "10"), outputOf("BIFARRAY"))
     }
@@ -336,6 +359,7 @@ class InterpreterTest {
             execute("ERROR01", emptyMap())
         }
     }
+
 
 }
 
