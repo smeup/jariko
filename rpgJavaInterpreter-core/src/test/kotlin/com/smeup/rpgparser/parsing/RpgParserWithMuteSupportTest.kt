@@ -14,7 +14,7 @@ import java.util.*
 
 class RpgParserWithMuteSupportTest {
     // Please note the 8 leading spaces
-    val comparisonAnnotation = "".padStart(8) + "VAL1(FIELD1) VAL2(FIELD1) COMP(EQ)"
+    val comparisonAnnotation = "".padStart(8) + "VAL1(NUMBER1) VAL2(1) COMP(EQ)"
 
     // Test if the lexer extracts the expected number of tokens
     @Test

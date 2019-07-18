@@ -60,18 +60,30 @@ public class RpgParserWithMuteScopeTest {
 
         showResults(resolved)
 
-        assertEquals(resolved.size, 3)
-        var annotation = getResolvedAnnotation(14,resolved)
+        assertEquals(resolved.size, 5)
+
+
+        // Data definitions
+        var annotation = getResolvedAnnotation(3,resolved)
         assertTrue (actual = annotation != null)
-        assertEquals(annotation.statementLine, 16)
+        assertEquals(annotation.statementLine,4)
+
+
+        annotation = getResolvedAnnotation(10,resolved)
+        assertTrue (actual = annotation != null)
+        assertEquals(annotation.statementLine, 9)
 
         annotation = getResolvedAnnotation(15,resolved)
         assertTrue (actual = annotation != null)
-        assertEquals(annotation.statementLine, 16)
+        assertEquals(annotation.statementLine, 17)
 
-        annotation = getResolvedAnnotation(22,resolved)
+        annotation = getResolvedAnnotation(16,resolved)
         assertTrue (actual = annotation != null)
-        assertEquals(annotation.statementLine, 23)
+        assertEquals(annotation.statementLine, 17)
+
+        annotation = getResolvedAnnotation(23,resolved)
+        assertTrue (actual = annotation != null)
+        assertEquals(annotation.statementLine, 24)
 
 
 
