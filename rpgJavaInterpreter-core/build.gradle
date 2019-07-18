@@ -83,7 +83,7 @@ test {
     }
 }
 
-task testPerformace(type: Test) {
+task testPerformance(type: Test) {
     testLogging {
         events "passed", "skipped", "failed"
     }
