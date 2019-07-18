@@ -12,4 +12,4 @@ COPY rpgJavaInterpreter-core/src/test/resources/MUTE10_04.rpgle ${pgmDir}
 
 WORKDIR ${pgmDir}
 
-ENTRYPOINT ["java", "-jar",  "rpgJavaInterpreter-core-all.jar"]
+ENTRYPOINT ["java", "-Xmx2048m", "-jar",  "rpgJavaInterpreter-core-all.jar"]
