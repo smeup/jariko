@@ -298,6 +298,11 @@ class InterpreterTest {
         assertEquals(listOf("x  123456  123456  123456  123456        "), outputOf("BIFEDITC_Z"))
     }
 
+    @Test
+    fun executeARRAY01() {
+        assertEquals(listOf("X-Y"), outputOf("ARRAY01"))
+    }
+
     @Test @Ignore
     fun executeCTDATA() {
         assertEquals(expected =
