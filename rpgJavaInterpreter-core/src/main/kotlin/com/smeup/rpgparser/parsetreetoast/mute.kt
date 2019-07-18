@@ -74,12 +74,15 @@ fun injectMuteAnnotationToStatements( statements : List<Statement> , start : Int
     return mutesResolved
 
 }
-fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>,map: Map<Int, MuteParser.MuteLineContext>) {
+fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>,map: Map<Int, MuteParser.MuteLineContext>)
+        : List<MuteAnnotationResolved>{
 
+    val mutesResolved : MutableList<MuteAnnotationResolved> = mutableListOf()
 
     if(definitions.size > 0) {
         val start : Int = definitions.first().position!!.start.line
-        val end   : Int = definitions.last().position!!.end.line
+        val end   : Int = definitions.last().position!!.end.line + 1
+
         // Consider only the annotation in the scope
         val filtered: Map<Int, MuteParser.MuteLineContext> = map.filterKeys {
             it in start..end
@@ -88,14 +91,15 @@ fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>,map:
         val mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext> = filtered.toSortedMap()
 
         definitions.forEach {
-            val toRemove = it.accept(mutesToProcess,start,end)
+            val resolved  = it.accept(mutesToProcess,start,end)
+            mutesResolved.addAll( resolved )
 
-            toRemove.forEach {
-                mutesToProcess.remove(it)
+            resolved.forEach {
+                mutesToProcess.remove(it.muteLine)
             }
         }
     }
-
+    return mutesResolved
 }
 
 
@@ -104,7 +108,7 @@ fun CompilationUnit.injectMuteAnnotation(parseTreeRoot: RpgParser.RContext,
 
     val resolved : MutableList<MuteAnnotationResolved> = mutableListOf()
     //injectMuteAnnotationHelper( this.dataDefinitions,)
-    //injectMuteAnnotationToDataDefinitions(this.dataDefinitions,mutes)
+    resolved.addAll(injectMuteAnnotationToDataDefinitions(this.dataDefinitions,mutes) )
     // Process the main body statements
     resolved.addAll(injectMuteAnnotationToStatements( this.main.stmts,
                                 this.main.stmts.position()!!.start.line,

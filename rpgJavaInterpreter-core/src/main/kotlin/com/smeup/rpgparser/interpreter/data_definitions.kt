@@ -2,21 +2,37 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.ast.Expression
-import com.strumenta.kolasu.model.Derived
-import com.strumenta.kolasu.model.Named
-import com.strumenta.kolasu.model.Node
-import com.strumenta.kolasu.model.Position
+import com.smeup.rpgparser.ast.MuteAnnotation
+import com.smeup.rpgparser.ast.MuteAnnotationResolved
+import com.smeup.rpgparser.parsetreetoast.toAst
+import com.strumenta.kolasu.model.*
 
 open class AbstractDataDefinition(override val name: String,
                                   open val type: Type,
-                                  override val position: Position? = null) : Node(position), Named {
+                                  override val position: Position? = null,
+                                  var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
+                                  ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     fun elementSize() = type.elementSize()
 
-    fun accept(mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<Int>  {
-        // List of mutes successully attached to the data definition
-        val mutesAttached : MutableList<Int> = mutableListOf()
-        // TODO ask Federico/Franco
+    fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int)
+            : MutableList<MuteAnnotationResolved>  {
+        // List of mutes successully attached to the  definition
+        val mutesAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
+        // Extracts the annotation declared before the statement
+        // Note the second expression evaluate an annotation in the
+        // very last line
+        val muteToProcess = mutes.filterKeys{
+            it < this.position!!.start.line || this.position!!.start.line == (end - 1)
+        }
+
+        muteToProcess.forEach { (line, mute) ->
+            this.muteAnnotations.add( mute!!.toAst(
+                    position = pos( line,this.position!!.start.column,line, this.position!!.end.column))
+            )
+            mutesAttached.add(MuteAnnotationResolved(line,this.position!!.start.line))
+
+        }
 
         return mutesAttached
     }

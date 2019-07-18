@@ -148,6 +148,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     it.initializationValue != null -> interpret(it.initializationValue)
                     else -> blankValue(it)
                 }, it.type))
+                executeMutes(it.muteAnnotations)
             }
         } else {
             initialValues.forEach { iv ->
@@ -180,10 +181,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         statements.forEach { executeWithMute(it) }
     }
 
+
     private fun executeWithMute(statement: Statement) {
         execute(statement)
+        executeMutes(statement.muteAnnotations)
+    }
 
-        statement.muteAnnotations.forEach{
+    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>) {
+       muteAnnotations.forEach{
             when (it) {
                 is MuteComparisonAnnotation -> {
                     val exp : Expression;

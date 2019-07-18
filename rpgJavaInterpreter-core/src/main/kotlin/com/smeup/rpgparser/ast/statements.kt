@@ -26,7 +26,7 @@ abstract class Statement(override val position: Position? = null,
     open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int) : MutableList<MuteAnnotationResolved> {
 
         // List of mutes successully attached to the statements
-        val muteAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
+        val mutesAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
 
         // Extracts the annotation declared before the statement
         val muteToProcess = mutes.filterKeys{
@@ -37,11 +37,11 @@ abstract class Statement(override val position: Position? = null,
             this.muteAnnotations.add( mute!!.toAst(
                     position = pos( line,this.position!!.start.column,line, this.position!!.end.column))
             )
-            muteAttached.add(MuteAnnotationResolved(line,this.position!!.start.line))
+            mutesAttached.add(MuteAnnotationResolved(line,this.position!!.start.line))
 
         }
 
-        return muteAttached
+        return mutesAttached
     }
 }
 
