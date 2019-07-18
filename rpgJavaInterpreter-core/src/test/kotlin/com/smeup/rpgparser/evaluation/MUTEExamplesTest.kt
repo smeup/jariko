@@ -22,7 +22,7 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_04_perf_strings() {
-        assertEquals(LinkedList<String>(), outputOf("MUTE10_04"))
+        assertEquals(listOf<String>("Loop 1", "Loop 2", "Loop 3", "Loop 4", "Loop 5", "Loop 6"), outputOf("MUTE10_04"))
     }
 
 }

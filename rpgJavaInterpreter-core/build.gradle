@@ -84,6 +84,7 @@ test {
 }
 
 task testPerformance(type: Test) {
+    maxHeapSize = "2048m"
     testLogging {
         events "passed", "skipped", "failed"
     }
