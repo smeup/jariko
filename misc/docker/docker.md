@@ -17,3 +17,9 @@ If you want to execute rpg programs from your current directory, you can mount i
 ```
 docker run -it -v $PWD:/rpg interpretercontainer
 ```
+
+You can find a prebuilt docker image on dockerhub. Run it, for example, this way:
+
+```
+docker run -it -v $PWD:/rpg rpginterpreter/interpretercontainer
+```
