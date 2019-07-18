@@ -303,7 +303,7 @@ class InterpreterTest {
         assertEquals(listOf("X-Y"), outputOf("ARRAY01"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeCTDATA() {
         assertEquals(expected =
                     ("001\n" +
@@ -323,7 +323,7 @@ class InterpreterTest {
                     "a01\n" +
                     "x01\n" +
                     "X01").lines(),
-                    actual = outputOf("CTDATA"))
+                    actual = outputOf("CTDATA").map (String::trim))
     }
 
     @Test @Ignore

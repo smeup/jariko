@@ -31,6 +31,9 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
     var like : AssignableExpression? = null
     var dim : Expression? = null
     var initializationValue : Expression? = null
+    var elementsPerLineExpression : Expression? = null
+    var compileTimeArray = false
+
     this.keyword().forEach {
         it.keyword_like()?.let {
             like = it.simpleExpression().toAst(conf) as AssignableExpression
@@ -40,6 +43,12 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
         }
         it.keyword_dim()?.let {
             dim = it.simpleExpression().toAst(conf)
+        }
+        it.keyword_perrcd()?.let {
+            elementsPerLineExpression = it.simpleExpression()?.toAst(conf)
+        }
+        it.keyword_ctdata()?.let {
+            compileTimeArray = true
         }
     }
     val elementSize = when {
@@ -61,7 +70,16 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
         else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
     }
     val type = if (dim != null) {
-        ArrayType(baseType, conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt())
+        var compileTimeRecordsPerLine : Int? = null
+        if (compileTimeArray) {
+            if (elementsPerLineExpression != null) {
+                compileTimeRecordsPerLine = conf.compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
+            } else {
+                compileTimeRecordsPerLine = 1
+            }
+            require(compileTimeRecordsPerLine > 0)
+        }
+        ArrayType(baseType, conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine)
     } else {
         baseType
     }

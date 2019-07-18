@@ -46,6 +46,11 @@ data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
     fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
+
+    fun compileTimeArray(name: String): CompileTimeArray {
+        //TODO: add support for named compile time array
+        return compileTimeArrays[0]
+    }
 }
 
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)

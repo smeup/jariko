@@ -2,6 +2,8 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.*
+import com.smeup.rpgparser.utils.chunkAs
+import com.smeup.rpgparser.utils.resizeTo
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -136,6 +138,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 set(it, coerce(when {
                     it.name in initialValues -> initialValues[it.name]!!
                     it.initializationValue != null -> interpret(it.initializationValue)
+                    it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
                     else -> blankValue(it)
                 }, it.type))
             }
@@ -145,6 +148,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 set(def, coerce(iv.value, def.type))
             }
         }
+    }
+
+    private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
+        var l: MutableList<Value> =
+            compileTimeArray.lines.chunkAs(arrayType.compileTimeRecordsPerLine!!, arrayType.element.size.toInt())
+                    .map {
+                        coerce(StringValue(it), arrayType.element)
+                    }
+                    .resizeTo(arrayType.nElements, blankValue(arrayType.element))
+                    .toMutableList()
+
+        return ConcreteArrayValue(l, arrayType.element)
     }
 
     fun simplyInitialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>) {
@@ -799,6 +814,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return blankValue(dataDefinition.type)
     }
 }
+
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
     return type.canBeAssigned(value)
