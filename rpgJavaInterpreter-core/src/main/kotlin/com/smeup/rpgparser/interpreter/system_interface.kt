@@ -10,7 +10,10 @@ interface SystemInterface {
     fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
 }
 
+
 object DummySystemInterface : SystemInterface {
+
+
     override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
         return null
     }

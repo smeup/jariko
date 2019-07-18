@@ -1,12 +1,13 @@
      DFIELD1           S             15A   INZ('AAAA')
-      * Test: both annotations are attached to line 11
+      * Test: annotation attached to line 4
     MU* VAL1(FIELD1) VAL2('AAAA') COMP(EQ)
      DCOUNT            S              8  0
      D NBR             S              8  0 INZ(10)
-    MU* VAL1(NBR) VAL2(10) COMP(EQ)
      D RESULT          S              8  0 INZ(0)
      DA                S              8  0 INZ(0)
+      * Test: annotation attached to line 9
      DB                S              8  0 INZ(1)
+    MU* VAL1(NBR) VAL2(10) COMP(EQ)
       *
      C                   CLEAR                   FIELD1
      C                   EVAL      FIELD1 = 'A ' + ' B'

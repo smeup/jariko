@@ -32,7 +32,6 @@
     MU* VAL1(NUMBER1) VAL2(NUMBER1+NUMBER2) COMP(EQ)
     MU* VAL1(NUMBER1) VAL2(NUMBER1+NUMBER2+1) COMP(LT)
     MU* VAL1(NUMBER1) VAL2(NUMBER1*NUMBER2) COMP(GT)
-
      C                   EVAL      NUMBER2 =  3
      C                   EVAL      NUMBER3 = NUMBER1 + NUMBER2 * 2
      C                   EVAL      NUMBER3 = (NUMBER1 + NUMBER2) * 2
