@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.ast
 
+import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 
@@ -19,4 +20,5 @@ data class MuteComparisonAnnotation(val val1: Expression, val val2: Expression, 
 
 
 data class MuteAnnotationResolved(val muteLine : Int, val statementLine: Int )
+data class MuteAnnotationExecuted(val expression: Expression, val result : Value)
 

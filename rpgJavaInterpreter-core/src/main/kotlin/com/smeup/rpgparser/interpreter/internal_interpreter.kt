@@ -84,6 +84,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val logs = LinkedList<LogEntry>()
     private val predefinedIndicators = HashMap<Int, Value>()
+    val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
     public var interpretationContext: InterpretationContext = DummyInterpretationContext
     var traceMode: Boolean = false
     var cycleLimit: Int? = null
@@ -203,6 +204,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     val value = interpretConcrete(exp)
                     log(MuteAnnotationExecutionLogEntry(it, value))
+                    executedAnnotation.put(it.position!!.start.line,MuteAnnotationExecuted(exp,value))
                 }
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
