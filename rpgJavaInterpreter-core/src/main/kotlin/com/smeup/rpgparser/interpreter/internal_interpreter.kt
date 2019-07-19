@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.*
+import com.smeup.rpgparser.utils.asLong
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
@@ -640,7 +641,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val decDigits = interpret(expression.decDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
-                    IntValue(valueAsString.removeNullChars().toLong())
+                    IntValue(valueAsString.removeNullChars().asLong())
                 } else {
                     DecimalValue(BigDecimal(valueAsString))
                 }
@@ -675,7 +676,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is CharExpr -> {
                 val value = interpret(expression.value)
-                return StringValue(render(value))
+                return StringValue(render(value).trim())
             }
             is LookupExpr -> {
                 val searchValued = interpret(expression.searchedValued)

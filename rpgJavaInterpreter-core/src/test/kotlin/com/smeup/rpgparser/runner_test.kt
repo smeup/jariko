@@ -17,7 +17,7 @@ class RunnerTest {
 
         val parmList = parms.parmsList ?: fail("Result value list should not be null")
         assertEquals(1, parmList.size)
-        assertEquals("13", parmList[0])
+        assertEquals("13", parmList[0].trim())
     }
 
     @Test
@@ -26,15 +26,16 @@ class RunnerTest {
 
         val program = getProgram("COUNTRT", systemInterface)
 
-        systemInterface.consoleOutput.clear()
+        systemInterface.clearConsole()
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
 
-        systemInterface.consoleOutput.clear()
+        systemInterface.clearConsole()
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 2"))
 
-        systemInterface.consoleOutput.clear()
+        systemInterface.clearConsole()
+
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 3"))
     }
@@ -44,15 +45,15 @@ class RunnerTest {
         val systemInterface = JavaSystemInterface()
         val program = getProgram("COUNTLR", systemInterface)
 
-        systemInterface.consoleOutput.clear()
+        systemInterface.clearConsole()
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
 
-        systemInterface.consoleOutput.clear()
+        systemInterface.clearConsole()
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
 
-        systemInterface.consoleOutput.clear()
+        systemInterface.clearConsole()
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
     }

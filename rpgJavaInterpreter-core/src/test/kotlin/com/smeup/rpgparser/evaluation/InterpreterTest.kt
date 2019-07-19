@@ -5,6 +5,7 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
+import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -119,7 +120,7 @@ class InterpreterTest {
         val si = CollectorSystemInterface()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
-                val n = params["ppdat"]!!.asString().valueWithoutPadding.toInt()
+                val n = params["ppdat"]!!.asString().valueWithoutPadding.asInt()
                 var t1 = 0
                 var t2 = 1
 

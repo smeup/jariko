@@ -51,3 +51,6 @@ fun String.divideAtIndex(i: Int): Pair<String, String> {
     val intRange = IntRange(i, this.length - 1)
     return Pair(this.take(i), this.slice(intRange))
 }
+
+fun String.asLong(): Long = this.trim().toLong()
+fun String.asInt(): Int = this.trim().toInt()
