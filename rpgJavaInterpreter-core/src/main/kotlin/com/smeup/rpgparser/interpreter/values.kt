@@ -5,6 +5,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.streams.toList
 
+const val PAD_CHAR =  '\u0000'
+const val PAD_STRING = PAD_CHAR.toString()
+
 abstract class Value {
     open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asDecimal() : DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
@@ -45,8 +48,8 @@ data class StringValue(var value: String) : Value() {
         get() = value.removeNullChars()
 
     companion object {
-        fun blank(length: Int) = StringValue("\u0000".repeat(length))
-        fun padded(value: String, size: Int) = StringValue(value.padEnd(size, '\u0000'))
+        fun blank(length: Int) = StringValue(PAD_STRING.repeat(length))
+        fun padded(value: String, size: Int) = StringValue(value.padEnd(size, PAD_CHAR))
     }
 
     override fun equals(other: Any?): Boolean {
@@ -297,7 +300,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
 
-fun blankString(length: Int) = StringValue("\u0000".repeat(length))
+fun blankString(length: Int) = StringValue(PAD_STRING.repeat(length))
 
 fun Long.asValue() = IntValue(this)
 

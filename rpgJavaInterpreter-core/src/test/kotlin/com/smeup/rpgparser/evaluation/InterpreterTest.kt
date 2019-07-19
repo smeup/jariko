@@ -173,7 +173,7 @@ class InterpreterTest {
         assertEquals(listOf("Hello World"), outputOf("HELLO1"))
     }
 
-    //TODO
+    //TODO §
     @Test @Ignore
     fun executeHELLOCHARS() {
         assertEquals(listOf("OK"), outputOf("HELLOCHARS"))
@@ -185,10 +185,16 @@ class InterpreterTest {
         assertEquals(listOf("Cb is equal to C and Cb does not differ from C"), outputOf("HELLOEQU"))
     }
 
-    //TODO
+    //TODO §
     @Test @Ignore
     fun executeHELLOPAD() {
         assertEquals(listOf("X padded"), outputOf("HELLOPAD"))
+    }
+
+    //TODO §
+    @Test @Ignore
+    fun executeLEN() {
+        assertEquals(listOf("Hello World! 23"), outputOf("LEN"))
     }
 
     @Test
@@ -283,10 +289,18 @@ class InterpreterTest {
         assertEquals(listOf("x is now 6", "y is now 2", "z is now 0"), outputOf("CALC"))
     }
 
+    //TODO §
     @Test @Ignore
     fun executeMULTILNE() {
         assertEquals(listOf("V1x.5_"), outputOf("MULTILINE"))
     }
+
+    //TODO §
+    @Test @Ignore
+    fun executeXLATEBIF() {
+        assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
+    }
+
 
     @Test @Ignore
     fun executeBIFEDITC_1() {
@@ -393,7 +407,7 @@ class InterpreterTest {
     }
 
 
-    @Test @Ignore
+    @Test
     fun executeBIFARRAY() {
         assertEquals(listOf("001001d01d01A01A01c01c01B01B01b01b01C01C019019011011", "10"), outputOf("BIFARRAY"))
     }

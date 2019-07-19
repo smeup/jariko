@@ -94,7 +94,7 @@ class JDExamplesTest {
         assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
         assertEquals(StringValue("Bar"), interpreter["U\$METO"])
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK"])
-        assertEquals(StringValue("\u0000"), interpreter["U\$IN35"])
+        assertEquals(StringValue(PAD_STRING), interpreter["U\$IN35"])
     }
 
     @Test
@@ -160,9 +160,9 @@ class JDExamplesTest {
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
-                        0 -> "Url".padEnd(50, '\u0000') + "https://xxx.myurl.com".padEnd(1000, '\u0000')
-                        1 -> "x".padEnd(50, '\u0000') + "w".padEnd(1000, '\u0000')
-                        else -> "".padEnd(1050, '\u0000')
+                        0 -> "Url".padEnd(50, PAD_CHAR) + "https://xxx.myurl.com".padEnd(1000, PAD_CHAR)
+                        1 -> "x".padEnd(50, PAD_CHAR) + "w".padEnd(1000, PAD_CHAR)
+                        else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
                 }), systemInterface = si)
         interpreter.traceMode = true
@@ -175,8 +175,8 @@ class JDExamplesTest {
             fail("Expected array, found $a")
         }
         assertEquals(a.getElement(1).asString(),
-                     StringValue("Url".padEnd(50, '\u0000') +
-                                 "https://www.myurl.com".padEnd(1000, '\u0000')))
+                     StringValue("Url".padEnd(50, PAD_CHAR) +
+                                 "https://www.myurl.com".padEnd(1000, PAD_CHAR)))
     }
 
     @Test
@@ -245,10 +245,10 @@ class JDExamplesTest {
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
-                        0 -> "Folder".padEnd(50, '\u0000') + "my/path/to/folder".padEnd(1000, '\u0000')
-                        1 -> "Mode".padEnd(50, '\u0000') + "ADD".padEnd(1000, '\u0000')
-                        2 -> "Filter".padEnd(50, '\u0000') + "*.png".padEnd(1000, '\u0000')
-                        else -> "".padEnd(1050, '\u0000')
+                        0 -> "Folder".padEnd(50, PAD_CHAR) + "my/path/to/folder".padEnd(1000, PAD_CHAR)
+                        1 -> "Mode".padEnd(50, PAD_CHAR) + "ADD".padEnd(1000, PAD_CHAR)
+                        2 -> "Filter".padEnd(50, PAD_CHAR) + "*.png".padEnd(1000, PAD_CHAR)
+                        else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
                 }), systemInterface = si, traceMode = true)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
@@ -300,10 +300,10 @@ class JDExamplesTest {
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
-                        0 -> "Folder".padEnd(50, '\u0000') + "my/path/to/folder".padEnd(1000, '\u0000')
-                        1 -> "Mode".padEnd(50, '\u0000') + "ADD".padEnd(1000, '\u0000')
-                        2 -> "Filter".padEnd(50, '\u0000') + "*.png".padEnd(1000, '\u0000')
-                        else -> "".padEnd(1050, '\u0000')
+                        0 -> "Folder".padEnd(50, PAD_CHAR) + "my/path/to/folder".padEnd(1000, PAD_CHAR)
+                        1 -> "Mode".padEnd(50, PAD_CHAR) + "ADD".padEnd(1000, PAD_CHAR)
+                        2 -> "Filter".padEnd(50, PAD_CHAR) + "*.png".padEnd(1000, PAD_CHAR)
+                        else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
                 }), systemInterface = si, traceMode = true)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
@@ -318,14 +318,14 @@ class JDExamplesTest {
                 ), callsToListFld[0])
         assertEquals(1, callsToNfyeve.size)
         val v = callsToNfyeve[0]["var"] as ArrayValue
-        assertEquals(StringValue("Object name".padEnd(50, '\u0000')
-                + "myFile.png".padEnd(1000, '\u0000')),
+        assertEquals(StringValue("Object name".padEnd(50, PAD_CHAR)
+                + "myFile.png".padEnd(1000, PAD_CHAR)),
                 v.getElement(1))
-        assertEquals(StringValue("Object type".padEnd(50, '\u0000')
-                + "FILE".padEnd(1000, '\u0000')),
+        assertEquals(StringValue("Object type".padEnd(50, PAD_CHAR)
+                + "FILE".padEnd(1000, PAD_CHAR)),
                 v.getElement(2))
-        assertEquals(StringValue("Operation type".padEnd(50, '\u0000')
-                + "ADD".padEnd(1000, '\u0000')),
+        assertEquals(StringValue("Operation type".padEnd(50, PAD_CHAR)
+                + "ADD".padEnd(1000, PAD_CHAR)),
                 v.getElement(3))
     }
 
@@ -406,8 +406,8 @@ class JDExamplesTest {
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
-                        0 -> "SOCKET".padEnd(50, '\u0000') + "addressToListenTo".padEnd(1000, '\u0000')
-                        else -> "".padEnd(1050, '\u0000')
+                        0 -> "SOCKET".padEnd(50, PAD_CHAR) + "addressToListenTo".padEnd(1000, PAD_CHAR)
+                        else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
                 }),
                 systemInterface = si, traceMode = true)
@@ -416,7 +416,7 @@ class JDExamplesTest {
         assertEquals(1, callsToRcvsck.size)
         assertEquals("addressToListen", callsToRcvsck[0]["addr"]!!.asString().value)
         assertEquals(1, callsToNfyeve.size)
-        assertEquals("Targa".padEnd(50, '\u0000') + "ZZ000AA".padEnd(1000, '\u0000'), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
+        assertEquals("Targa".padEnd(50, PAD_CHAR) + "ZZ000AA".padEnd(1000, PAD_CHAR), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
     }
 
     @Test

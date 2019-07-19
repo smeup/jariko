@@ -18,7 +18,7 @@ data class ScanExpr(var value: Expression, val source: Expression, val start: Ex
 
 // %XLATE
 data class TranslateExpr(var from: Expression, var to: Expression, var string: Expression,
-                         val startPos: Expression? = null, override val position: Position? = null)
+                         val startPos: Expression, override val position: Position? = null)
     : Expression(position)
 
 // %TRIM

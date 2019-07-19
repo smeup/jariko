@@ -163,10 +163,10 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue (lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): LinkedList<String> {
+fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): List<String> {
     val interpreter = execute(programName, initialValues)
     val si = interpreter.systemInterface as CollectorSystemInterface
-    return si.displayed
+    return si.displayed.map(String::trimEnd)
 }
 
 private const val TRACE = false

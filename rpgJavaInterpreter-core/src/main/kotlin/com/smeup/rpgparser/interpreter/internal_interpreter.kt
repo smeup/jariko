@@ -3,6 +3,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.*
 import com.smeup.rpgparser.utils.chunkAs
+import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
 import java.math.BigDecimal
 import java.text.DecimalFormat
@@ -544,7 +545,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is StringValue -> {
                 when (type) {
                     is StringType -> {
-                        var s = value.value.padEnd(type.length.toInt(), '\u0000')
+                        var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
                         if (value.value.length > type.length) {
                             s = s.substring(0, type.length.toInt())
                         }
@@ -690,6 +691,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is HiValExpr -> return HiValValue
             is TranslateExpr -> {
+//                val originalChars = eval(expression.from).asString().valueWithoutPadding
+//                val newChars = eval(expression.to).asString().valueWithoutPadding
+//                val start = eval(expression.startPos).asInt().value.toInt()
+//                val s = eval(expression.string).asString().valueWithoutPadding
+//                val pair = s.divideAtIndex(start -1)
+//                var right = pair.second
+//                originalChars.forEachIndexed { i, c ->
+//                    right = right.replace(c, newChars[i])
+//                }
+//                return StringValue(pair.first + right)
                 val originalChars = eval(expression.from).asString().valueWithoutPadding
                 val newChars = eval(expression.to).asString().valueWithoutPadding
                 var s = eval(expression.string).asString().valueWithoutPadding

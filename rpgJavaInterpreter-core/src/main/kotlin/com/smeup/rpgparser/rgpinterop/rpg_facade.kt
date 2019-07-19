@@ -87,7 +87,7 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
                     val parts = LinkedList<String>()
                     jvmValue!!.javaClass.kotlin.memberProperties.forEach {
                         val stringLength = (it.rpgType() as StringType).length.toInt()
-                        parts.add(propertyStringValue(it, jvmValue).padEnd(stringLength, '\u0000'))
+                        parts.add(propertyStringValue(it, jvmValue).padEnd(stringLength, PAD_CHAR))
                     }
                     return StringValue(parts.joinToString(separator = ""))
                 }
