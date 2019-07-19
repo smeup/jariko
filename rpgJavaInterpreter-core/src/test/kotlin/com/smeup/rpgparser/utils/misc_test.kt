@@ -22,4 +22,14 @@ class MiscTest {
         assertEquals(listOf<String>("a", "b", "x"),
                      listOf<String>("a", "b").resizeTo(3, "x"))
     }
+
+    @Test
+    fun divideAtIndexTest() {
+        assertEquals(Pair("", "abcde"), "abcde".divideAtIndex(0))
+        assertEquals(Pair("", "abcde"), "abcde".divideAtIndex(-1))
+        assertEquals(Pair("abcde", ""), "abcde".divideAtIndex(20))
+        assertEquals(Pair("abcde", ""), "abcde".divideAtIndex(4))
+        assertEquals(Pair("a", "bcde"), "abcde".divideAtIndex(1))
+        assertEquals(Pair("ab", "cde"), "abcde".divideAtIndex(2))
+    }
 }

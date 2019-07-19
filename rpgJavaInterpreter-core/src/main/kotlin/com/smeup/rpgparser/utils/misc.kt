@@ -38,3 +38,16 @@ fun <T> List<T>.resizeTo(n: Int, defaultValue: T): List<T> {
     }
     return this
 }
+
+fun String.divideAtIndex(i: Int): Pair<String, String> {
+    if (i + 1 >= this.length) {
+        return Pair(this, "")
+    }
+
+    if (i < 0) {
+        return Pair("", this)
+    }
+
+    val intRange = IntRange(i, this.length - 1)
+    return Pair(this.take(i), this.slice(intRange))
+}
