@@ -363,7 +363,7 @@ class InterpreterTest {
     }
 
 
-    @Test @Ignore
+    @Test
     fun executeARRAY04_arrayWithCommentsAndDataReference() {
         assertEquals(expected =
                ("abc\n" +

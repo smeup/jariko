@@ -83,9 +83,9 @@ internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
     }
     val text = this.CS_FactorContent().text
     return when (text.first()) {
-        in '0'..'9' -> IntLiteral(text.toLong(), position = toPosition(conf.considerPosition))
-        '\'' -> StringLiteral(text, position = toPosition(conf.considerPosition))
-        else -> DataRefExpr(ReferenceByName(text))
+        in '0'..'9' -> IntLiteral(text.toLong(), toPosition(conf.considerPosition))
+        '\'' -> StringLiteral(text, toPosition(conf.considerPosition))
+        else ->  referenceToExpression(text, toPosition(conf.considerPosition))
     }
 }
 
@@ -128,7 +128,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAst
 internal fun referenceToExpression(text: String, position: Position?) : Expression {
     var expr : Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
-        DataRefExpr(ReferenceByName(varName))
+        DataRefExpr(ReferenceByName(varName), position)
     }
     if (text.contains("(")) {
         // TODO support annidated parenthesis, if necessary
@@ -136,12 +136,21 @@ internal fun referenceToExpression(text: String, position: Position?) : Expressi
             TODO("Support annidated parenthesis")
         }
         val indexText = text.substring(text.indexOf("(") + 1, text.lastIndexOf(")"))
-        expr = ArrayAccessExpr(expr, IntLiteral(indexText.toLong(),
-                if (position == null) null else Position(position.start.plus(text.substring(0, text.indexOf("("))),
-                        position.start.plus(text.substring(0, text.lastIndexOf(")"))))))
+        val indexValue = indexText.toLongOrNull();
+        val indexExpression =
+                if (indexValue == null) {
+                    DataRefExpr(ReferenceByName(indexText), computeNewPosition(position, text))
+                } else {
+                    IntLiteral(indexValue, computeNewPosition(position, text))
+                }
+        expr = ArrayAccessExpr(expr, indexExpression)
     }
     return expr
 }
+
+private fun computeNewPosition(position: Position?, text: String) =
+        if (position == null) null else Position(position.start.plus(text.substring(0, text.indexOf("("))),
+                position.start.plus(text.substring(0, text.lastIndexOf(")"))))
 
 fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()
 
