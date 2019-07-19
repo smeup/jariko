@@ -381,6 +381,17 @@ class InterpreterTest {
                 actual = outputOf("ARRAY04").map (String::trim))
     }
 
+    @Test @Ignore
+    fun executeARRAY05NAM_namedCompileTimeArrays() {
+        assertEquals(expected =
+               ("100\n" +
+                "100\n" +
+                "100\n" +
+                "100\n" +
+                "100").lines(),
+                actual = outputOf("ARRAY05NAM").map (String::trim))
+    }
+
 
     @Test @Ignore
     fun executeBIFARRAY() {

@@ -559,9 +559,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     //TODO
                     is NumberType -> {
                         if (type.integer) {
-                            IntValue(value.value.toLong())
+                            IntValue(value.value.trim().toLong())
                         } else {
-                            TODO(DecimalValue(BigDecimal.valueOf(value.value.toLong(), type.decimalDigits)).toString())
+                            TODO(DecimalValue(BigDecimal.valueOf(value.value.trim().toLong(), type.decimalDigits)).toString())
                         }
                     }
                     else -> TODO(type.toString())
