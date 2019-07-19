@@ -326,6 +326,62 @@ class InterpreterTest {
                     actual = outputOf("CTDATA").map (String::trim))
     }
 
+    @Test
+    fun executeARRAY02_arrayWithComments() {
+        assertEquals(expected =
+               ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+                actual = outputOf("ARRAY02").map (String::trim))
+    }
+
+    @Test
+    fun executeARRAY03_arrayWithCommentsPERRCD_1() {
+        assertEquals(expected =
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+                actual = outputOf("ARRAY02").map (String::trim))
+    }
+
+
+    @Test @Ignore
+    fun executeARRAY04_arrayWithCommentsAndDataReference() {
+        assertEquals(expected =
+               ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+                actual = outputOf("ARRAY04").map (String::trim))
+    }
+
+
     @Test @Ignore
     fun executeBIFARRAY() {
         assertEquals(listOf("001001d01d01A01A01c01c01B01B01b01b01C01C019019011011", "10"), outputOf("BIFARRAY"))
