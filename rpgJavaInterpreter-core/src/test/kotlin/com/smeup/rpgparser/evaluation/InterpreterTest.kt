@@ -290,8 +290,7 @@ class InterpreterTest {
         assertEquals(listOf("x is now 6", "y is now 2", "z is now 0"), outputOf("CALC"))
     }
 
-    //TODO §
-    @Test @Ignore
+    @Test
     fun executeMULTILNE() {
         assertEquals(listOf("V1x.5_"), outputOf("MULTILINE"))
     }

@@ -802,10 +802,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is TrimrExpr -> {
                 //TODO expression.charactersToTrim
-                return StringValue(eval(expression.value).asString().value.trimEnd())
+                return StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
             }
             is TrimExpr -> {
-                return StringValue(eval(expression.value).asString().value.trim())
+                return StringValue(eval(expression.value).asString().value.removeNullChars().trim())
             }
             else -> TODO(expression.toString())
         }
