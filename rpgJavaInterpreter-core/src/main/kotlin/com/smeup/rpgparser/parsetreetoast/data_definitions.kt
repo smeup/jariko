@@ -4,11 +4,12 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.ast.AssignableExpression
 import com.smeup.rpgparser.ast.Expression
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 
 fun RpgParser.Dcl_dsContext.elementSizeOf() : Int {
     val header = this.parm_fixed().first()
-    return header.TO_POSITION().text.trim().toInt()
+    return header.TO_POSITION().text.asInt()
 }
 
 internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
@@ -127,7 +128,7 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf : ToAstConfiguration = 
 
 internal fun RpgParser.Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
     val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
-        this.TO_POSITION().text.trim().toInt()
+        this.TO_POSITION().text.asInt()
     } else {
         null
     }

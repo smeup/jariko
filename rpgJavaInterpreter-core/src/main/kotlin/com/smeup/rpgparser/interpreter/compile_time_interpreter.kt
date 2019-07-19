@@ -8,6 +8,7 @@ import com.smeup.rpgparser.ast.NumberOfElementsExpr
 import com.smeup.rpgparser.parsetreetoast.elementSizeOf
 import com.smeup.rpgparser.parsetreetoast.name
 import com.smeup.rpgparser.parsetreetoast.type
+import com.smeup.rpgparser.utils.asInt
 
 /**
  * This is a very limited interpreter used at compile time, mainly
@@ -81,7 +82,7 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                             val name = it.dspec().ds_name().text
                             if (name == declName) {
                                 //TODO verify...
-                                return it.dspec().TO_POSITION().text.trim().toInt()
+                                return it.dspec().TO_POSITION().text.asInt()
                             }
                         }
                         it.dcl_ds() != null -> {
