@@ -192,8 +192,7 @@ class InterpreterTest {
         assertEquals(listOf("X padded"), outputOf("HELLOPAD"))
     }
 
-    //TODO §
-    @Test @Ignore
+    @Test
     fun executeLEN() {
         assertEquals(listOf("Hello World! 23"), outputOf("LEN"))
     }

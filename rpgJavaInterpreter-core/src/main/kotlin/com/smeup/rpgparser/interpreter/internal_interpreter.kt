@@ -748,7 +748,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is LenExpr -> {
                 val value = eval(expression.value)
                 return when (value) {
-                    is StringValue -> value.valueWithoutPadding.length.asValue()
+                    is StringValue -> value.value.length.asValue()
                     else -> TODO(value.toString())
                 }
             }
