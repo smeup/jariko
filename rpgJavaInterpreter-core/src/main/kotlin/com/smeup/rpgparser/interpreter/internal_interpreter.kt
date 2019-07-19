@@ -691,23 +691,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is HiValExpr -> return HiValValue
             is TranslateExpr -> {
-//                val originalChars = eval(expression.from).asString().valueWithoutPadding
-//                val newChars = eval(expression.to).asString().valueWithoutPadding
-//                val start = eval(expression.startPos).asInt().value.toInt()
-//                val s = eval(expression.string).asString().valueWithoutPadding
-//                val pair = s.divideAtIndex(start -1)
-//                var right = pair.second
-//                originalChars.forEachIndexed { i, c ->
-//                    right = right.replace(c, newChars[i])
-//                }
-//                return StringValue(pair.first + right)
                 val originalChars = eval(expression.from).asString().valueWithoutPadding
                 val newChars = eval(expression.to).asString().valueWithoutPadding
-                var s = eval(expression.string).asString().valueWithoutPadding
+                val start = eval(expression.startPos).asInt().value.toInt()
+                val s = eval(expression.string).asString().valueWithoutPadding
+                val pair = s.divideAtIndex(start -1)
+                var right = pair.second
                 originalChars.forEachIndexed { i, c ->
-                    s = s.replace(c, newChars[i])
+                    right = right.replace(c, newChars[i])
                 }
-                return StringValue(s)
+                return StringValue(pair.first + right)
             }
             is LogicalAndExpr -> {
                 val left = eval(expression.left).asBoolean().value

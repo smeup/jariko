@@ -295,8 +295,7 @@ class InterpreterTest {
         assertEquals(listOf("V1x.5_"), outputOf("MULTILINE"))
     }
 
-    //TODO §
-    @Test @Ignore
+    @Test
     fun executeXLATEBIF() {
         assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
     }
