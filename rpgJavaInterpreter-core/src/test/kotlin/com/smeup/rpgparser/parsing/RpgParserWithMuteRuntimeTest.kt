@@ -97,6 +97,40 @@ public class RpgParserWithMuteRuntimeTest {
 
 
     }
+    @Test
+    fun parseMUTE02_runtime() {
+        val cu = assertASTCanBeProduced("mute/MUTE02_RUNTIME", true)
+        cu.resolve()
+        val interpreter = execute(cu, mapOf())
 
+        assertEquals(interpreter.executedAnnotation.size, 5)
+
+
+        // VAL1(VAR1) VAL2(%TRIM(' AAAA ')) COMP(EQ)
+        var annotation = interpreter.executedAnnotation[3]
+        assertTrue (actual = annotation != null)
+        assertTrue (annotation.result.asBoolean().value)
+
+        //  VAL1(VALUE1) VAL2('AAA:') COMP(EQ)
+        annotation = interpreter.executedAnnotation[10]
+        assertTrue (actual = annotation != null)
+        assertTrue (annotation.result.asBoolean().value)
+
+        //  VAL1(VALUE1) VAL2('  AAA:') COMP(EQ)
+        annotation = interpreter.executedAnnotation[12]
+        assertTrue (actual = annotation != null)
+        assertTrue (annotation.result.asBoolean().value)
+
+        //  VAL1(%TRIMR(VAR1) +':') VAL2('  AAA:') COMP(EQ)
+        annotation = interpreter.executedAnnotation[13]
+        assertTrue (actual = annotation != null)
+        assertTrue (annotation.result.asBoolean().value)
+
+        //  VAL1(VALUE1) VAL2('AAA                         :') COMP(NE)
+        annotation = interpreter.executedAnnotation[15]
+        assertTrue (actual = annotation != null)
+        assertTrue (annotation.result.asBoolean().value)
+
+    }
 
 }

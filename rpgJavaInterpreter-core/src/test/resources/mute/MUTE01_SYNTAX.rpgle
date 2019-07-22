@@ -7,6 +7,8 @@
      DCOUNT            S              8  0
      DA                S              8  0 INZ(0)
      DB                S              8  0 INZ(1)
+     DB                S              8  0 INZ(1)
+     DAR1              S              3S 0 DIM(10)
       *
      C                   CLEAR                   FIELD1
      C                   CLEAR                   FIELD2
@@ -37,7 +39,10 @@
      C                   EVAL      NUMBER3 = (NUMBER1 + NUMBER2) * 2
     MU* VAL1(NUMBER2) VAL2(NUMBER1+1-NUMBER3) COMP(LT)
      C                   EVAL      NUMBER3 = (NUMBER1 + NUMBER2) * 2
+     C                   EVAL      AR1(1) = (NUMBER1 + NUMBER2) * 2
       *
+    MU* VAL1(*AR1(1)) VAL2(NUMBER1+1-NUMBER3) COMP(LT)
+    MU* VAL1(%TRIM(DFIELD3)) VAL2(NUMBER1+1-NUMBER3) COMP(LT)
      C                   SETON                                        LR
       *
       *
