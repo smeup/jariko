@@ -19,7 +19,7 @@
     MU* VAL1(B) VAL2(1) COMP(GT)
     MU* VAL1(B) VAL2(1) COMP(LT)
       * Test: tricky if you remove the CLEAR
-     C                   CLEAR                   FIELD1
+     C                   CLEAR                   COUNT
      C                   EXSR      TEST
      C                   SETON                                        LR
       *--------------------------------------------------------------*
