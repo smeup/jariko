@@ -54,6 +54,7 @@ data class MoveStmt(val target: AssignableExpression,
     : Statement(position)
 
 
+
 data class CallStmt(val expression: Expression, val params: List<PlistParam>, val errorIndicator: Int? = null,
                     override val position: Position? = null) : Statement(position) , StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
@@ -93,6 +94,20 @@ data class ClearStmt(val value: Expression,
         return emptyList()
     }
 }
+
+data class ZAddStmt(val target: AssignableExpression,
+                    @Derived val dataDefinition: InStatementDataDefinition? = null,
+                    var expression: Expression,
+                    override val position: Position? = null)
+    : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
+
 
 data class TimeStmt(val value: Expression,
                      override val position: Position? = null) : Statement(position)

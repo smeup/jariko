@@ -222,6 +222,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
                     }
                 }
+                is ZAddStmt -> {
+                    assign(statement.target, eval(statement.expression))
+                }
                 is TimeStmt -> {
                     return when (statement.value) {
                         is DataRefExpr -> {

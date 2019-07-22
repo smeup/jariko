@@ -421,6 +421,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeZADD() {
+        assertEquals(listOf("5", "11", "88"), outputOf("ZADD"))
+    }
+
+    @Test
     fun executeSUBSTTEST() {
         assertEquals(listOf("x)yy"), outputOf("SUBSTTEST"))
     }
