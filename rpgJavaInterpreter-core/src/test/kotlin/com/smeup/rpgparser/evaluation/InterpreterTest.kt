@@ -416,6 +416,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCLEARSUBR() {
+        assertEquals(listOf("Result = 5"), outputOf("CLEARSUBR"))
+    }
+
+    @Test
     fun executeSUBSTTEST() {
         assertEquals(listOf("x)yy"), outputOf("SUBSTTEST"))
     }

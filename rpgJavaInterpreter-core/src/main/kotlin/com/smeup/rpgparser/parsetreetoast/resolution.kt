@@ -6,12 +6,19 @@ import com.strumenta.kolasu.model.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
     // TODO could they be also annidated?
-    // TODO could they also be in subroutines?
-    this.main.stmts.filterIsInstance(StatementThatCanDefineData::class.java).forEach {
+    this.allStatements().filterIsInstance(StatementThatCanDefineData::class.java).forEach {
         this.addInStatementDataDefinitions(it.dataDefinition())
     }
 }
 
+private fun CompilationUnit.allStatements(): List<Statement> {
+    val result = mutableListOf<Statement>()
+    result.addAll(this.main.stmts)
+    this.subroutines.forEach {
+        result.addAll(it.stmts)
+    }
+    return result
+}
 
 fun CompilationUnit.resolve() {
     this.assignParents()
