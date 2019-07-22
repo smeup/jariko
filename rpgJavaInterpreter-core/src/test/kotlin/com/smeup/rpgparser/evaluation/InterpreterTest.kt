@@ -393,6 +393,7 @@ class InterpreterTest {
                 actual = outputOf("ARRAY04").map (String::trim))
     }
 
+    //TODO Changes in grammar needed
     @Test @Ignore
     fun executeARRAY05NAM_namedCompileTimeArrays() {
         assertEquals(expected =
@@ -449,6 +450,7 @@ class InterpreterTest {
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
     }
 
+    //TODO Changes in grammar needed
     @Test @Ignore
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))

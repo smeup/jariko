@@ -104,6 +104,7 @@ class ExpressionsTest {
         )
     }
 
+    //TODO Changes in grammar needed
     @test @Ignore
     fun multExpressionWithoutBlanksParsing() {
         val expected = expression("x = y * 2")
