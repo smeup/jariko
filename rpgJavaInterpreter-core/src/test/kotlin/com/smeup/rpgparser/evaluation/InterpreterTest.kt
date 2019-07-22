@@ -359,7 +359,7 @@ class InterpreterTest {
     @Test
     fun executeARRAY03_arrayWithCommentsPERRCD_1() {
         assertEquals(expected =
-        ("abc\n" +
+               ("abc\n" +
                 "123\n" +
                 "abc\n" +
                 "123\n" +
