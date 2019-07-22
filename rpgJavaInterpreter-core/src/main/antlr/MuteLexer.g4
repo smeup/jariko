@@ -18,5 +18,5 @@ COMP : 'COMP' ;
 TYPE : 'Type' ;
 
 WS : [ \r\t\n]+ -> skip ;
-EXP: '('.*?')';
+EXP: '['.*?']';
 

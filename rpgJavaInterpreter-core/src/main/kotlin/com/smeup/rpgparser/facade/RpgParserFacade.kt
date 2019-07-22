@@ -158,6 +158,35 @@ class RpgParserFacade {
         return root
     }
 
+
+    fun preprocess(text : String) : String {
+        var s = text
+        var level = 0
+        var end = s.lastIndexOf("COMP")
+
+        s.forEachIndexed { i, c ->
+            if( i < end ) {
+                if( c == '(') {
+                    level++
+                    if (level === 1) {
+                        s = s.replaceRange( i, i+1, "[")
+
+                    }
+                }
+                if( c == ')') {
+                    if (level === 1) {
+                        s = s.replaceRange( i, i+1, "]")
+
+                    }
+                    if (level > 0) level--
+                }
+            }
+
+        }
+        return s
+
+    }
+
     fun parse(inputStream: InputStream) : RpgParserResult {
         val errors = LinkedList<Error>()
         val code = inputStreamToString(inputStream)
@@ -178,7 +207,8 @@ class RpgParserFacade {
                             && token1.type == COMMENT_SPEC_FIXED && token1.text == "U*"
                             && token2.type == COMMENTS_TEXT) {
                         // Please note the leading spaces added to the token
-                        mutes[token2.line] = parseMute("".padStart(8) + token2.text, errors)
+                        var preproc = preprocess( token2.text );
+                        mutes[token2.line] = parseMute("".padStart(8) + preproc, errors)
                     }
                 }
             }
