@@ -425,6 +425,14 @@ class InterpreterTest {
         assertEquals(listOf("5", "11", "88"), outputOf("ZADD"))
     }
 
+    @Test @Ignore
+    fun executeZADDERR() {
+        //TODO better error assertion
+        assertFailsWith(Throwable::class) {
+            execute("ZADDERR", emptyMap())
+        }
+    }
+
     @Test
     fun executeSUBSTTEST() {
         assertEquals(listOf("x)yy"), outputOf("SUBSTTEST"))
