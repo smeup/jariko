@@ -426,6 +426,11 @@ class InterpreterTest {
         assertEquals(listOf("5", "11", "88"), outputOf("ZADD"))
     }
 
+    @Test
+    fun executeLOGICAL_conditions() {
+        assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
+    }
+
     @Test @Ignore
     fun executeZADDERR() {
         //TODO better error assertion
