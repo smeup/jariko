@@ -65,6 +65,7 @@ class AssignmentsLogHandler(private val printStream: PrintStream = System.out) :
     override fun handle(logEntry: LogEntry) {
         if (logEntry is AssignmentLogEntry) {
             printStream.println("[LOG] ${logEntry.data.name} = ${logEntry.value} -- ${logEntry.data.position}")
+            printStream.flush()
         }
     }
 }
@@ -160,7 +161,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
 
     private fun log(logEntry: LogEntry) {
-        logHandlers.forEach {it.handle(logEntry)}
+        logHandlers.forEach {
+            try {
+                it.handle(logEntry)
+            } catch (t: Throwable) {
+                //TODO: how should we handle exceptions?
+            }
+        }
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,

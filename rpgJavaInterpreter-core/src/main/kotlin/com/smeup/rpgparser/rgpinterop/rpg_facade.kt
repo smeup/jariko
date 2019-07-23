@@ -40,8 +40,12 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
 
     var traceMode: Boolean
         get() =  logHandlers.any { it is SimpleLogHandler}
-        set(value) {
-            logHandlers.add(SimpleLogHandler)
+        set(simpleLogHandler) {
+            if (simpleLogHandler) {
+                logHandlers.add(SimpleLogHandler)
+            } else {
+                logHandlers.remove(SimpleLogHandler)
+            }
         }
 
     protected val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
