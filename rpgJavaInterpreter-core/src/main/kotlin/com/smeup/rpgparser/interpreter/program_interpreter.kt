@@ -2,7 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.DataWrapUpChoice
 
-class ProgramInterpreter(val systemInterface: SystemInterface) {
+class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: List<InterpreterLogHandler> = emptyList()) {
 
     private val dataWrapUpPolicy = HashMap<RpgProgram, DataWrapUpChoice>()
     private val interpreters = HashMap<RpgProgram, InternalInterpreter>()
@@ -28,7 +28,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
             }
             ii
         }
-        interpreter.traceMode = traceMode
+        interpreter.logHandlers = logHandlers
         interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall ||
                                                           interpreter.interpretationContext.shouldReinitialize())
         initialValues.keys.forEach { initialValues[it] = interpreter[it] }

@@ -51,7 +51,7 @@ class JDExamplesTest {
     fun executeJD_000_base() {
         val cu = assertASTCanBeProduced("JD_000_base", true)
         cu.resolve()
-        execute(cu, mapOf(), traceMode = true)
+        execute(cu, mapOf())
     }
 
     @Test
@@ -69,7 +69,7 @@ class JDExamplesTest {
         }
         val cu = assertASTCanBeProduced("JD_000", true)
         cu.resolve()
-        execute(cu, mapOf(), systemInterface = si, traceMode = false)
+        execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
         assertEquals( 1, callsToJDURL.size)
         val urlCalled = callsToJDURL[0].get("URL")
         assertNotNull(urlCalled)
@@ -85,12 +85,14 @@ class JDExamplesTest {
     fun executeJD_001_plist() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
+        val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { blankString(1050) },
-                "U\$IN35" to blankString(1)))
-        assertEquals(listOf("IMP0", "FIN0"), interpreter.getExecutedSubroutineNames())
+                "U\$IN35" to blankString(1)),
+                logHandlers = listOf(logHandler))
+        assertEquals(listOf("IMP0", "FIN0"), logHandler.getExecutedSubroutineNames())
         assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
         assertEquals(StringValue("Bar"), interpreter["U\$METO"])
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK"])
@@ -101,12 +103,14 @@ class JDExamplesTest {
     fun executeJD_001_settingVars() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
+        val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { blankString(1050) },
-                "U\$IN35" to blankString(1)))
-        assertEquals(listOf("IMP0", "FIN0"), interpreter.getExecutedSubroutineNames())
+                "U\$IN35" to blankString(1)),
+                logHandlers = listOf(logHandler))
+        assertEquals(listOf("IMP0", "FIN0"), logHandler.getExecutedSubroutineNames())
         // Initialized inside IMP0
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["\$\$SVAR"])
     }
@@ -115,13 +119,15 @@ class JDExamplesTest {
     fun executeJD_001_inzFunz() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
+        val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
                 "U\$METO" to StringValue("Bar"),
                 "U\$SVARSK" to createArrayValue(StringType(1050),200) { blankString(1050) },
-                "U\$IN35" to StringValue("X")))
-        assertEquals(6, interpreter.getEvaluatedExpressionsConcise().size)
-        assertEquals(listOf("IMP0", "FINZ", "FIN0"), interpreter.getExecutedSubroutineNames())
+                "U\$IN35" to StringValue("X")),
+                logHandlers = listOf(logHandler))
+        assertEquals(6, logHandler.getEvaluatedExpressionsConcise().size)
+        assertEquals(listOf("IMP0", "FINZ", "FIN0"), logHandler.getExecutedSubroutineNames())
         // Initialized inside IMP0
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["\$\$SVAR"])
         // Assigned inside FINZ
@@ -165,9 +171,7 @@ class JDExamplesTest {
                         else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
                 }), systemInterface = si)
-        interpreter.traceMode = true
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
-        interpreter.traceMode = false
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(callsToJDURL.size, 1)
         val a = callsToJDURL[0]["URL"]
@@ -205,7 +209,7 @@ class JDExamplesTest {
         }
         val cu = assertASTCanBeProduced("JD_002", true)
         cu.resolve()
-        val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()), systemInterface = si, traceMode = true)
+        val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(1, callsToListFld.size)
@@ -250,7 +254,7 @@ class JDExamplesTest {
                         2 -> "Filter".padEnd(50, PAD_CHAR) + "*.png".padEnd(1000, PAD_CHAR)
                         else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
-                }), systemInterface = si, traceMode = true)
+                }), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(5, callsToListFld.size)
@@ -305,7 +309,7 @@ class JDExamplesTest {
                         2 -> "Filter".padEnd(50, PAD_CHAR) + "*.png".padEnd(1000, PAD_CHAR)
                         else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
-                }), systemInterface = si, traceMode = true)
+                }), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(1, callsToListFld.size)
@@ -348,7 +352,7 @@ class JDExamplesTest {
         val cu = assertASTCanBeProduced("JD_003", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()),
-                systemInterface = si, traceMode = true)
+                systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
     }
@@ -410,7 +414,7 @@ class JDExamplesTest {
                         else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
                 }),
-                systemInterface = si, traceMode = true)
+                systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(1, callsToRcvsck.size)

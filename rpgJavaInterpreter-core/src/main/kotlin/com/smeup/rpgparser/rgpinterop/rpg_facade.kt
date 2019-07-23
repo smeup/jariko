@@ -7,6 +7,7 @@ import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
+import kotlin.math.log
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
@@ -35,9 +36,15 @@ class ClassProgramName<P> : ProgramNameSource<P> {
 abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
                              val systemInterface: SystemInterface) {
 
-    var traceMode = false
+    var logHandlers = mutableListOf<InterpreterLogHandler>()
 
-    protected val programInterpreter = ProgramInterpreter(systemInterface)
+    var traceMode: Boolean
+        get() =  logHandlers.any { it is SimpleLogHandler}
+        set(value) {
+            logHandlers.add(SimpleLogHandler)
+        }
+
+    protected val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
     protected val rpgProgram by lazy { RpgSystem.getProgram(programNameSource.nameFor(this)) }
 
     fun singleCall(params: P) : P? {

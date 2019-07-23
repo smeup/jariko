@@ -45,8 +45,9 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIB_2", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
-        val assignments = interpreter.getAssignments()
+        val logHandler = ListLogHandler()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
+        val assignments = logHandler.getAssignments()
         assertEquals(assignments[0].value, StringValue("10"))
         assertIsIntValue(interpreter["NBR"], 10)
         assertEquals(listOf("10"), si.displayed)
@@ -56,9 +57,10 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue(input)), si)
+        val logHandler = ListLogHandler()
+        execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: $input IS: $output"), si.displayed)
-        assertEquals(interpreter.getExecutedSubroutineNames()[0], "FIB")
+        assertEquals(logHandler.getExecutedSubroutineNames()[0], "FIB")
     }
 
     @Test
@@ -96,9 +98,10 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("HELLO", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf(), si)
+        val logHandler = ListLogHandler()
+        execute(cu, mapOf(), si, listOf(logHandler))
         assertEquals(listOf("Hello World!"), si.displayed)
-        assertEquals(interpreter.getExecutedSubroutines().size, 0)
+        assertEquals(logHandler.getExecutedSubroutines().size, 0)
     }
 
 
@@ -107,10 +110,11 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
         cu.resolve()
         val si = CollectorSystemInterface()
+        val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
-        assertEquals(interpreter.getExecutedSubroutines().size, 0)
+        assertEquals(logHandler.getExecutedSubroutines().size, 0)
     }
 
     @Test
@@ -118,6 +122,7 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
         cu.resolve()
         val si = CollectorSystemInterface()
+        val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
                 val n = params["ppdat"]!!.asString().valueWithoutPadding.asInt()
@@ -133,9 +138,9 @@ class InterpreterTest {
                 return listOf(params["ppdat"]!!)
             }
         }
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
-        assertEquals(interpreter.getExecutedSubroutines().size, 0)
+        assertEquals(logHandler.getExecutedSubroutines().size, 0)
     }
 
     @Test

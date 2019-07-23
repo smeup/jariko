@@ -6,12 +6,14 @@ import com.smeup.rpgparser.utils.asLong
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
+import java.io.PrintStream
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
+import kotlin.math.log
 
 
 abstract class LogEntry
@@ -55,33 +57,36 @@ data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, va
     }
 }
 
-class LeaveException : Exception()
-class IterException : Exception()
-
-interface InterpretationContext {
-    val name: String
-    fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
-    fun shouldReinitialize(): Boolean
+interface InterpreterLogHandler {
+    fun handle(logEntry: LogEntry): Unit
 }
 
-object DummyInterpretationContext : InterpretationContext {
-    override val name: String
-        get() = "<UNSPECIFIED>"
+class AssignmentsLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
+    override fun handle(logEntry: LogEntry) {
+        if (logEntry is AssignmentLogEntry) {
+            printStream.println("[LOG] ${logEntry.data.name} = ${logEntry.value} -- ${logEntry.data.position}")
+        }
+    }
+}
 
-    override fun shouldReinitialize() = false
-
-    override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
-        // nothing to do
+object SimpleLogHandler : InterpreterLogHandler {
+    override fun handle(logEntry: LogEntry) {
+        println("[LOG] $logEntry")
     }
 
+    fun fromFlag(flag: Boolean) = if (flag) {
+        listOf(this)
+    } else {
+        emptyList()
+    }
 }
 
-class InternalInterpreter(val systemInterface: SystemInterface) {
-    private val globalSymbolTable = SymbolTable()
+class ListLogHandler: InterpreterLogHandler {
     private val logs = LinkedList<LogEntry>()
-    private val predefinedIndicators = HashMap<Int, Value>()
-    var interpretationContext: InterpretationContext = DummyInterpretationContext
-    var traceMode: Boolean = false
+
+    override fun handle(logEntry: LogEntry) {
+        logs.add(logEntry)
+    }
 
     fun getLogs() = logs
     fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
@@ -107,6 +112,35 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
         return base
     }
+}
+
+
+class LeaveException : Exception()
+class IterException : Exception()
+
+interface InterpretationContext {
+    val name: String
+    fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
+    fun shouldReinitialize(): Boolean
+}
+
+object DummyInterpretationContext : InterpretationContext {
+    override val name: String
+        get() = "<UNSPECIFIED>"
+
+    override fun shouldReinitialize() = false
+
+    override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
+        // nothing to do
+    }
+
+}
+
+class InternalInterpreter(val systemInterface: SystemInterface) {
+    private val globalSymbolTable = SymbolTable()
+    private val predefinedIndicators = HashMap<Int, Value>()
+    var interpretationContext: InterpretationContext = DummyInterpretationContext
+    var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     private fun exists(dataName: String) = globalSymbolTable.contains(dataName)
 
@@ -126,10 +160,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
 
     private fun log(logEntry: LogEntry) {
-        if (traceMode) {
-            println("[LOG] $logEntry")
-        }
-        logs.add(logEntry)
+        logHandlers.forEach {it.handle(logEntry)}
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,

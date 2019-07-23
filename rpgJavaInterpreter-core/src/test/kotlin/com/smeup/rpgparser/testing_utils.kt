@@ -16,6 +16,7 @@ import junit.framework.Assert
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
+import sun.rmi.log.LogHandler
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -142,12 +143,13 @@ open class CollectorSystemInterface : SystemInterface {
     }
 }
 
+
 fun execute(cu: CompilationUnit,
             initialValues: Map<String, Value>,
             systemInterface: SystemInterface? = null,
-            traceMode : Boolean = false) : InternalInterpreter {
+            logHandlers : List<InterpreterLogHandler> = emptyList()) : InternalInterpreter {
     val interpreter = InternalInterpreter(systemInterface ?: DummySystemInterface)
-    interpreter.traceMode = traceMode
+    interpreter.logHandlers = logHandlers
     try {
         interpreter.execute(cu, initialValues)
     } catch (e: InterruptForDebuggingPurposes) {
@@ -174,7 +176,7 @@ private const val TRACE = false
 fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true)
     cu.resolve()
-    return execute(cu, initialValues, si, traceMode = TRACE)
+    return execute(cu, initialValues, si, SimpleLogHandler.fromFlag(TRACE))
 }
 
 fun rpgProgram(name: String) : RpgProgram {
