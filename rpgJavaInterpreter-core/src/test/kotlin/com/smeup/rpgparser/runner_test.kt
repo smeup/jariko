@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.interpreter.AssignmentsLogHandler
+import com.smeup.rpgparser.interpreter.EvalLogHandler
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.utils.StringOutputStream
 import org.junit.Test
@@ -105,13 +106,17 @@ class RunnerTest {
         """.trimMargin()
         val program = getProgram(source,  systemInterface)
         val logOutputStream = StringOutputStream()
+        val printStream = PrintStream(logOutputStream)
+        val assignmentsLogHandler = AssignmentsLogHandler(printStream)
+        val evalLogHandler = EvalLogHandler(printStream)
 
-        val assignmentsLogHandler = AssignmentsLogHandler(PrintStream(logOutputStream))
-
+        program.logHandlers.add(evalLogHandler)
         program.logHandlers.add(assignmentsLogHandler)
 
         program.singleCall(listOf())
 
         assertTrue(logOutputStream.written)
+
+        println(logOutputStream)
     }
 }

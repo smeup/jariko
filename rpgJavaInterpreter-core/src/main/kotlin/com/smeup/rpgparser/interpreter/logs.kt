@@ -62,7 +62,15 @@ interface InterpreterLogHandler {
 class AssignmentsLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
     override fun handle(logEntry: LogEntry) {
         if (logEntry is AssignmentLogEntry) {
-            printStream.println("[LOG] ${logEntry.data.name} = ${logEntry.value} -- Line: ${logEntry.data.position.line()}")
+            printStream.println("[LOG] ${logEntry.data.name} = ${logEntry.value}")
+        }
+    }
+}
+
+class EvalLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
+    override fun handle(logEntry: LogEntry) {
+        if (logEntry is ExpressionEvaluationLogEntry) {
+            printStream.println("[LOG] Evaluating ${logEntry.expression.type()} = ${logEntry.value} -- Line: ${logEntry.expression.position.line()}")
         }
     }
 }
