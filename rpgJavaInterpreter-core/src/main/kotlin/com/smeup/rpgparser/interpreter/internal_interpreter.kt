@@ -15,51 +15,6 @@ import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.math.log
 
-
-abstract class LogEntry
-data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
-    override fun toString(): String {
-        return "calling ${callStmt}"
-    }
-}
-
-data class CallEndLogEntry(val callStmt: CallStmt, val exception: Exception? = null) : LogEntry() {
-    override fun toString(): String {
-        if (exception == null) {
-            return "end of ${callStmt}"
-        } else {
-            return "exception ${exception} in calling ${callStmt}"
-        }
-    }
-}
-
-data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
-    override fun toString(): String {
-        return "executing ${subroutine.name}"
-    }
-}
-
-data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry() {
-    override fun toString(): String {
-        return "evaluating $expression as $value"
-    }
-}
-
-data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry() {
-    override fun toString(): String {
-        return "assigning to $data value $value"
-    }
-}
-
-data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, val value: Value) : LogEntry() {
-    override fun toString(): String {
-        return "assigning to $array[$index] value $value"
-    }
-}
-
-
-
-
 class LeaveException : Exception()
 class IterException : Exception()
 
@@ -105,13 +60,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
 
     private fun log(logEntry: LogEntry) {
-        logHandlers.forEach {
-            try {
-                it.handle(logEntry)
-            } catch (t: Throwable) {
-                //TODO: how should we handle exceptions?
-            }
-        }
+        logHandlers.log(logEntry)
     }
 
     private fun initialize(compilationUnit: CompilationUnit, initialValues: Map<String, Value>,
@@ -804,6 +753,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return blankValue(dataDefinition.type)
     }
 }
+
 
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {

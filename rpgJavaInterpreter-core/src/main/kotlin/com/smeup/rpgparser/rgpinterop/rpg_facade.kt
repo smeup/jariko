@@ -36,7 +36,7 @@ class ClassProgramName<P> : ProgramNameSource<P> {
 abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
                              val systemInterface: SystemInterface) {
 
-    var logHandlers = mutableListOf<InterpreterLogHandler>()
+    val logHandlers = mutableListOf<InterpreterLogHandler>()
 
     var traceMode: Boolean
         get() =  logHandlers.any { it is SimpleLogHandler}
@@ -49,11 +49,13 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
         }
 
     protected val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
-    protected val rpgProgram by lazy { RpgSystem.getProgram(programNameSource.nameFor(this)) }
+    private val programName by lazy {programNameSource.nameFor(this) }
+    protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
 
     fun singleCall(params: P) : P? {
         val initialValues = toInitialValues(params)
-        programInterpreter.execute(rpgProgram, initialValues, traceMode = traceMode)
+        logHandlers.log(StartProgramLog(programName, initialValues))
+        programInterpreter.execute(rpgProgram, initialValues)
         return toResults(params, initialValues)
     }
 

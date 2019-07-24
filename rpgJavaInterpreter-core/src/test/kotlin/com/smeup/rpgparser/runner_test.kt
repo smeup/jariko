@@ -1,9 +1,13 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.interpreter.AssignmentsLogHandler
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.utils.StringOutputStream
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
+import java.io.PrintStream
+import kotlin.test.assertTrue
 
 
 class RunnerTest {
@@ -88,5 +92,26 @@ class RunnerTest {
 
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Hello World!"))
+    }
+
+    @Test
+    fun commandLineProgramCanBeInstrumentedWithAssignmentsLogHandler() {
+        val systemInterface = JavaSystemInterface()
+        val source = """
+|     D Msg§            S             12
+|     C                   Eval      Msg§ = 'Hello World!'
+|     C                   dsply                   Msg§
+|     C                   SETON                                          LR
+        """.trimMargin()
+        val program = getProgram(source,  systemInterface)
+        val logOutputStream = StringOutputStream()
+
+        val assignmentsLogHandler = AssignmentsLogHandler(PrintStream(logOutputStream))
+
+        program.logHandlers.add(assignmentsLogHandler)
+
+        program.singleCall(listOf())
+
+        assertTrue(logOutputStream.written)
     }
 }

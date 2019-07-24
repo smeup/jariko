@@ -1,7 +1,59 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.ast.CallStmt
+import com.smeup.rpgparser.ast.Expression
+import com.smeup.rpgparser.ast.Subroutine
+import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
 import java.util.*
+
+abstract class LogEntry
+
+data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
+    override fun toString(): String {
+        return "calling ${callStmt}"
+    }
+}
+
+data class CallEndLogEntry(val callStmt: CallStmt, val exception: Exception? = null) : LogEntry() {
+    override fun toString(): String {
+        if (exception == null) {
+            return "end of ${callStmt}"
+        } else {
+            return "exception ${exception} in calling ${callStmt}"
+        }
+    }
+}
+
+data class SubroutineExecutionLogEntry(val subroutine: Subroutine) : LogEntry() {
+    override fun toString(): String {
+        return "executing ${subroutine.name}"
+    }
+}
+
+data class ExpressionEvaluationLogEntry(val expression: Expression, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "evaluating $expression as $value"
+    }
+}
+
+data class AssignmentLogEntry(val data: AbstractDataDefinition, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "assigning to $data value $value"
+    }
+}
+
+data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, val value: Value) : LogEntry() {
+    override fun toString(): String {
+        return "assigning to $array[$index] value $value"
+    }
+}
+
+data class StartProgramLog(val programName: String, val initialValues: Map<String, Value>): LogEntry() {
+    override fun toString(): String {
+        return "calling $programName with initial values $initialValues"
+    }
+}
 
 interface InterpreterLogHandler {
     fun handle(logEntry: LogEntry): Unit
@@ -10,7 +62,7 @@ interface InterpreterLogHandler {
 class AssignmentsLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
     override fun handle(logEntry: LogEntry) {
         if (logEntry is AssignmentLogEntry) {
-            printStream.println("[LOG] ${logEntry.data.name} = ${logEntry.value} -- ${logEntry.data.position}")
+            printStream.println("[LOG] ${logEntry.data.name} = ${logEntry.value} -- Line: ${logEntry.data.position.line()}")
         }
     }
 }
@@ -59,3 +111,15 @@ class ListLogHandler: InterpreterLogHandler {
         return base
     }
 }
+
+fun List<InterpreterLogHandler>.log(logEntry: LogEntry) {
+    this.forEach {
+        try {
+            it.handle(logEntry)
+        } catch (t: Throwable) {
+            //TODO: how should we handle exceptions?
+        }
+    }
+}
+
+fun Position?.line() = this?.start?.line?.toString() ?: ""
