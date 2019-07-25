@@ -36,7 +36,9 @@ class ClassProgramName<P> : ProgramNameSource<P> {
 abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
                              val systemInterface: SystemInterface) {
 
-    val logHandlers = mutableListOf<InterpreterLogHandler>()
+    private val logHandlers = mutableListOf<InterpreterLogHandler>()
+    fun addLogHandler(handler: InterpreterLogHandler) = logHandlers.add(handler)
+    fun removeLogHandler(handler: InterpreterLogHandler) = logHandlers.remove(handler)
 
     var traceMode: Boolean
         get() =  logHandlers.any { it is SimpleLogHandler}

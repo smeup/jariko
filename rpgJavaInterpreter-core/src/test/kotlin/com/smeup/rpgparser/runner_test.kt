@@ -110,8 +110,8 @@ class RunnerTest {
         val assignmentsLogHandler = AssignmentsLogHandler(printStream)
         val evalLogHandler = EvalLogHandler(printStream)
 
-        program.logHandlers.add(evalLogHandler)
-        program.logHandlers.add(assignmentsLogHandler)
+        program.addLogHandler(evalLogHandler)
+        program.addLogHandler(assignmentsLogHandler)
 
         program.singleCall(listOf())
 
