@@ -179,8 +179,7 @@ class InterpreterTest {
         assertEquals(listOf("Hello World"), outputOf("HELLO1"))
     }
 
-    //TODO §
-    @Test @Ignore
+    @Test
     fun executeHELLOCHARS() {
         assertEquals(listOf("OK"), outputOf("HELLOCHARS"))
     }
@@ -190,8 +189,7 @@ class InterpreterTest {
         assertEquals(listOf("Cb is equal to C and Cb does not differ from C"), outputOf("HELLOEQU"))
     }
 
-    //TODO §
-    @Test @Ignore
+    @Test
     fun executeHELLOPAD() {
         assertEquals(listOf("X padded"), outputOf("HELLOPAD"))
     }

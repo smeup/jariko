@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 
 class GateControllerTest {
 
-    @Test @Ignore
+    @Test
     fun runExample1() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpg")))
