@@ -125,7 +125,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
                     execute(statement.subroutine.referred!!.stmts)
                 }
-                is EvalStmt -> assign(statement.target, statement.expression, statement.operator)
+                is EvalStmt -> {
+// Some sort of line breakpoint :-)
+//                    if (statement.position.line().equals("129")) {
+//                        println(statement)
+//                    }
+                    assign(statement.target, statement.expression, statement.operator)
+                }
                 is MoveStmt -> move(statement.target, statement.expression)
                 is SelectStmt -> {
                     for (case in statement.cases) {
@@ -378,7 +384,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return when {
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
-            else -> return value1 == value2
+            value1 is StringValue && value2 is StringValue -> {
+                val v1 = value1.value.trimEnd().removeNullChars()
+                val v2 = value2.value.trimEnd().removeNullChars()
+                v1.equals(v2)
+            }
+            else -> value1 == value2
         }
     }
 
@@ -615,7 +626,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is LookupExpr -> {
                 val searchValued = interpret(expression.searchedValued)
                 val array = interpret(expression.array) as ArrayValue
-                val index = array.elements().indexOfFirst { it == searchValued }
+                val index = array.elements().indexOfFirst {
+                    areEquals(it, searchValued)
+                }
                 return if (index == -1) 0.asValue() else (index + 1).asValue()
             }
             is ArrayAccessExpr -> {
@@ -632,8 +645,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val s = eval(expression.string).asString().valueWithoutPadding
                 val pair = s.divideAtIndex(start -1)
                 var right = pair.second
+                val substitutionMap = mutableMapOf<Char, Char>()
                 originalChars.forEachIndexed { i, c ->
-                    right = right.replace(c, newChars[i])
+                    if (newChars.length > i) {
+                        substitutionMap[c] = newChars[i]
+                    }
+                }
+                substitutionMap.forEach {
+                    right = right.replace(it.key, it.value)
                 }
                 return StringValue(pair.first + right)
             }

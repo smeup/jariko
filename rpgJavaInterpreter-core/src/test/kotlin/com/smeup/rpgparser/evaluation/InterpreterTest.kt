@@ -185,8 +185,7 @@ class InterpreterTest {
         assertEquals(listOf("OK"), outputOf("HELLOCHARS"))
     }
 
-    //TODO
-    @Test @Ignore
+    @Test
     fun executeHELLOEQU() {
         assertEquals(listOf("Cb is equal to C and Cb does not differ from C"), outputOf("HELLOEQU"))
     }
@@ -304,6 +303,10 @@ class InterpreterTest {
         assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
     }
 
+    @Test
+    fun executeXLATEBIF2() {
+        assertEquals(listOf("http://xxx.smaup.comuuuuuu"), outputOf("XLATEBIF2"))
+    }
 
     @Test @Ignore
     fun executeBIFEDITC_1() {

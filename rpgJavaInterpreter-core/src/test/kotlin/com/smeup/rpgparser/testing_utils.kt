@@ -16,7 +16,6 @@ import junit.framework.Assert
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
-import sun.rmi.log.LogHandler
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -166,17 +165,17 @@ fun assertStartsWith(lines: List<String>, value: String) {
 }
 
 fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): List<String> {
-    val interpreter = execute(programName, initialValues)
+    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE))
     val si = interpreter.systemInterface as CollectorSystemInterface
     return si.displayed.map(String::trimEnd)
 }
 
 private const val TRACE = false
 
-fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): InternalInterpreter {
+fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE)): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true)
     cu.resolve()
-    return execute(cu, initialValues, si, SimpleLogHandler.fromFlag(TRACE))
+    return execute(cu, initialValues, si, logHandlers)
 }
 
 fun rpgProgram(name: String) : RpgProgram {

@@ -179,8 +179,8 @@ class JDExamplesTest {
             fail("Expected array, found $a")
         }
         assertEquals(a.getElement(1).asString(),
-                     StringValue("Url".padEnd(50, PAD_CHAR) +
-                                 "https://www.myurl.com".padEnd(1000, PAD_CHAR)))
+                     StringValue("Url".padEnd(50) +
+                                 "https://www.myurl.com".padEnd(1000)))
     }
 
     @Test
@@ -322,14 +322,14 @@ class JDExamplesTest {
                 ), callsToListFld[0])
         assertEquals(1, callsToNfyeve.size)
         val v = callsToNfyeve[0]["var"] as ArrayValue
-        assertEquals(StringValue("Object name".padEnd(50, PAD_CHAR)
-                + "myFile.png".padEnd(1000, PAD_CHAR)),
+        assertEquals(StringValue("Object name".padEnd(50)
+                + "myFile.png".padEnd(1000)),
                 v.getElement(1))
-        assertEquals(StringValue("Object type".padEnd(50, PAD_CHAR)
-                + "FILE".padEnd(1000, PAD_CHAR)),
+        assertEquals(StringValue("Object type".padEnd(50)
+                + "FILE".padEnd(1000)),
                 v.getElement(2))
-        assertEquals(StringValue("Operation type".padEnd(50, PAD_CHAR)
-                + "ADD".padEnd(1000, PAD_CHAR)),
+        assertEquals(StringValue("Operation type".padEnd(50)
+                + "ADD".padEnd(1000)),
                 v.getElement(3))
     }
 
@@ -420,7 +420,7 @@ class JDExamplesTest {
         assertEquals(1, callsToRcvsck.size)
         assertEquals("addressToListen", callsToRcvsck[0]["addr"]!!.asString().value)
         assertEquals(1, callsToNfyeve.size)
-        assertEquals("Targa".padEnd(50, PAD_CHAR) + "ZZ000AA".padEnd(1000, PAD_CHAR), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
+        assertEquals("Targa".padEnd(50) + "ZZ000AA".padEnd(1000), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
     }
 
     @Test
@@ -502,7 +502,11 @@ class JDExamplesTest {
         val parms = mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
                 "U\$METO" to StringValue(""),
-                "U\$SVARSK" to StringValue(""),
+                "U\$SVARSK" to ConcreteArrayValue(
+                        (mutableListOf(StringValue("PORT".padEnd(50 ) + "192.168.10.1".padEnd(1000))) +
+                                MutableList(199) {StringValue("".padEnd(1050))}).toMutableList()
+                        ,
+                        StringType(1050)),
                 returnStatus to StringValue(" ")
         )
         val si = CollectorSystemInterface()
@@ -525,10 +529,12 @@ class JDExamplesTest {
                 throw InterruptForDebuggingPurposes()
             }
         }
-        execute("JD_003_V2", parms, si)
+        val logHandlers = emptyList<InterpreterLogHandler>() //listOf(EvalLogHandler(), AssignmentsLogHandler())
+
+        execute("JD_003_V2", parms, si, logHandlers)
         assertEquals(1, callsToNfyeve.size)
-        assertTrue((callsToNfyeve[0]["var"] as ConcreteArrayValue).getElement(1).asString().value.contains(targa))
-        assertEquals(" ", parms[returnStatus]!!.value)
+        assertTrue((callsToNfyeve[0]["var"] as ConcreteArrayValue).getElement(2).asString().value.contains(targa))
+        assertEquals(" ", parms[returnStatus]!!.asString().value)
     }
 
     @Test @Ignore

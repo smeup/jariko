@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.streams.toList
 
-const val PAD_CHAR =  '\u0000'
+const val PAD_CHAR = '\u0000'
 const val PAD_STRING = PAD_CHAR.toString()
 
 abstract class Value {
@@ -71,7 +71,7 @@ data class StringValue(var value: String) : Value() {
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
         require(endOffset - startOffset == substringValue.value.length)
         val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue
+        value = newValue.replace('\u0000', ' ')
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int) : StringValue {
