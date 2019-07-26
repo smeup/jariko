@@ -778,6 +778,7 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
+    fun signumChar() = (if (this.value < BigDecimal.ZERO) "-" else " ")
 
     fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
     fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
@@ -804,6 +805,7 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
     fun f4(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + points(type as NumberType)) else f3()
 
+    fun fJ(): String = f1() + signumChar()
 
     fun fZ(): String {
         val s = if (this.value.isZero()) {
@@ -819,6 +821,7 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         "2" -> StringValue(f2())
         "3" -> StringValue(f3())
         "4" -> StringValue(f4())
+        "J" -> StringValue(fJ())
         "Z" -> StringValue(fZ())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }

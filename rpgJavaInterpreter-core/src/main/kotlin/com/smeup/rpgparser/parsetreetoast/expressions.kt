@@ -53,7 +53,7 @@ internal fun RpgParser.LiteralContext.toAst(conf : ToAstConfiguration = ToAstCon
 internal fun RpgParser.NumberContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : NumberLiteral {
     val position = this.toPosition(conf.considerPosition)
     require(this.NumberPart().isEmpty(), { "Number not empty ${position}" })
-    val text = this.NUMBER().text
+    val text = (this.MINUS()?.text ?: "") + this.NUMBER().text
     return if (text.contains('.')) {
         RealLiteral(text.toBigDecimal(), position)
     } else {

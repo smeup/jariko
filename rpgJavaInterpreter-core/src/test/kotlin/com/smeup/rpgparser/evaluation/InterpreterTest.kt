@@ -335,6 +335,19 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeBIFEDITC_J() {
+        assertEquals(listOf("x   123,456    123,456-  1,234.56 X",
+                            "x  1,234.56-       .00 X",
+                            "x  1,234.50 X"),
+                     outputOf("BIFEDITC_J"))
+    }
+
+    @Test
+    fun executeNEGATIVINI() {
+        assertEquals(listOf("< 0"), outputOf("NEGATIVINI"))
+    }
+
+    @Test
     fun executeBIFEDITC_Z() {
         assertEquals(listOf("x  123456  123456  123456  123456        X"), outputOf("BIFEDITC_Z"))
     }
