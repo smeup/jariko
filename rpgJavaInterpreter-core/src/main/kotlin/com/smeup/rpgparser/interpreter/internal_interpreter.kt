@@ -778,7 +778,7 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
-    fun z(): String {
+    fun fZ(): String {
         val s = if (this.value.isZero()) {
             ""
         } else {
@@ -787,9 +787,28 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         return s.padStart(type.size.toInt())
     }
 
+    fun nrOfPunctuationsIn(s: String) = s.count { it == ',' }
+
+    fun f1(): String {
+        fun leadingBlanks(s: String) = if (s.startsWith(".")) "  " else " "
+
+        if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
+
+        val decimals = "." + "".padEnd(type.decimalDigits, '0')
+        var s = DecimalFormat("#,###" + decimals, DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+        if (s.endsWith(".")) {
+            s = s.take(s.length -1)
+        }
+
+        return leadingBlanks(s) + s.padStart(type.size.toInt() + nrOfPunctuationsIn(s))
+    }
+
+    fun f2(): String = if (this.value.isZero()) "" else f1()
+
     return when(format) {
-        "1" -> StringValue(DecimalFormat("#,###.##", DecimalFormatSymbols(Locale.US)).format(this.value.abs()))
-        "Z" -> StringValue(z())
+        "1" -> StringValue(f1())
+        "2" -> StringValue(f2())
+        "Z" -> StringValue(fZ())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
 }

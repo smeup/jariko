@@ -306,9 +306,9 @@ class InterpreterTest {
         assertEquals(listOf("http://xxx.smaup.comuuuuuu"), outputOf("XLATEBIF2"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeBIFEDITC_1() {
-        assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00"), outputOf("BIFEDITC_1"))
+        assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00X"), outputOf("BIFEDITC_1"))
     }
 
     @Test
