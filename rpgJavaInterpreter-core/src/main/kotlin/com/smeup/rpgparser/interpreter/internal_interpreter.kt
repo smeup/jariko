@@ -803,7 +803,7 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         return leadingBlanks(s) + s.padStart(type.size.toInt() + nrOfPunctuationsIn(s))
     }
 
-    fun f2(): String = if (this.value.isZero()) "" else f1()
+    fun f2(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + 2) else f1()
 
     return when(format) {
         "1" -> StringValue(f1())
