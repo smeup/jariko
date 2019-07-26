@@ -807,6 +807,20 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
     fun fJ(): String = f1() + signumChar()
 
+    fun fK(): String = f2() + signumChar()
+
+    fun fL(): String = f3() + signumChar()
+
+    fun fM(): String = f4() + signumChar()
+
+    fun fN(): String = signumChar() + f1()
+
+    fun fO(): String = signumChar() + f2()
+
+    fun fP(): String = signumChar() + f3()
+
+    fun fQ(): String = signumChar() + f4()
+
     fun fZ(): String {
         val s = if (this.value.isZero()) {
             ""
@@ -822,6 +836,13 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         "3" -> StringValue(f3())
         "4" -> StringValue(f4())
         "J" -> StringValue(fJ())
+        "K" -> StringValue(fK())
+        "L" -> StringValue(fL())
+        "M" -> StringValue(fM())
+        "N" -> StringValue(fN())
+        "O" -> StringValue(fO())
+        "P" -> StringValue(fP())
+        "Q" -> StringValue(fQ())
         "Z" -> StringValue(fZ())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
