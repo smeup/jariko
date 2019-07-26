@@ -778,14 +778,6 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
-    fun fZ(): String {
-        val s = if (this.value.isZero()) {
-            ""
-        } else {
-            this.value.abs().toString().replace(".", "")
-        }
-        return s.padStart(type.size.toInt())
-    }
 
     fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
     fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
@@ -798,15 +790,25 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
     fun f1(): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
-        var s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+        val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
         return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
     }
 
-    fun f2(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + 2) else f1()
+    fun f2(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + nrOfPunctuationsIn(type as NumberType)) else f1()
+
     fun f3(): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
-        var s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+        val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
         return s.padStart(type.size.toInt() + points(type))
+    }
+
+    fun fZ(): String {
+        val s = if (this.value.isZero()) {
+            ""
+        } else {
+            this.value.abs().toString().replace(".", "")
+        }
+        return s.padStart(type.size.toInt())
     }
 
     return when(format) {
