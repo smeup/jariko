@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.utils
 
+import java.math.BigDecimal
 import kotlin.system.measureTimeMillis
 
 fun enrichExceptionWith(v: Any?, block: () -> Unit) {
@@ -54,3 +55,6 @@ fun String.divideAtIndex(i: Int): Pair<String, String> {
 
 fun String.asLong(): Long = this.trim().toLong()
 fun String.asInt(): Int = this.trim().toInt()
+
+fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
+fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this) == 0

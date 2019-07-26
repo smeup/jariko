@@ -2,18 +2,13 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.ast.AssignmentOperator.*
-import com.smeup.rpgparser.utils.asLong
-import com.smeup.rpgparser.utils.chunkAs
-import com.smeup.rpgparser.utils.divideAtIndex
-import com.smeup.rpgparser.utils.resizeTo
-import java.io.PrintStream
+import com.smeup.rpgparser.utils.*
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
-import kotlin.math.log
 
 class LeaveException : Exception()
 class IterException : Exception()
@@ -734,7 +729,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val n = eval(expression.value)
                 val format = eval(expression.format)
                 if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got ${format} at ${expression.position}")
-                return n.asDecimal().formatAs(format.value)
+                return n.asDecimal().formatAs(format.value, expression.value.type())
             }
             is DiffExpr -> {
                 //TODO expression.durationCode
@@ -782,13 +777,23 @@ private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
-private fun DecimalValue.formatAs(format: String): StringValue {
+private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
+    fun z(): String {
+        val s = if (this.value.isZero()) {
+            ""
+        } else {
+            this.value.abs().toString().replace(".", "")
+        }
+        return s.padStart(type.size.toInt())
+    }
+
     return when(format) {
         "1" -> StringValue(DecimalFormat("#,###.##", DecimalFormatSymbols(Locale.US)).format(this.value.abs()))
-        "Z" -> StringValue(this.value.abs().toString().replace(".", ""))
+        "Z" -> StringValue(z())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
 }
+
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()

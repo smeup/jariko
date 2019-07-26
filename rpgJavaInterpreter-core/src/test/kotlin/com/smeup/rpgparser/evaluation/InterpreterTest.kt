@@ -311,9 +311,9 @@ class InterpreterTest {
         assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00"), outputOf("BIFEDITC_1"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeBIFEDITC_Z() {
-        assertEquals(listOf("x  123456  123456  123456  123456        "), outputOf("BIFEDITC_Z"))
+        assertEquals(listOf("x  123456  123456  123456  123456        X"), outputOf("BIFEDITC_Z"))
     }
 
     @Test
