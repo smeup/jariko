@@ -342,6 +342,15 @@ class InterpreterTest {
                      outputOf("BIFEDITC_J"))
     }
 
+    @Test @Ignore
+    fun executeBIFEDITC_Y() {
+        assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
+                            "x  12/34/56   0/00/00X",
+                            "x  12/34/50 12/34/5678  0/00/12X",
+                            "x   1/23/45X" ),
+                     outputOf("BIFEDITC_Y"))
+    }
+
     @Test
     fun executeNEGATIVINI() {
         assertEquals(listOf("< 0"), outputOf("NEGATIVINI"))

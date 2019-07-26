@@ -821,11 +821,31 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
     fun fQ(): String = signumChar() + f4()
 
+    fun fY(): String {
+        val s = if (this.value.isZero()) {
+            "0/00/00"
+        } else {
+            val symbols = object : DecimalFormatSymbols() {
+                override fun getGroupingSeparator(): Char {
+                    return '/'
+                }
+            }
+            val format = if (type.size.toInt() == 8) {
+                "##,####" //TODO this doesn't work
+            } else {
+                "##,##,##"
+            }
+            DecimalFormat(format, symbols).format(this.value.abs().unscaledValue())
+        }
+        return s.padStart(type.size.toInt())
+    }
+
+
     fun fZ(): String {
         val s = if (this.value.isZero()) {
             ""
         } else {
-            this.value.abs().toString().replace(".", "")
+            this.value.abs().unscaledValue().toString()
         }
         return s.padStart(type.size.toInt())
     }
@@ -843,6 +863,7 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         "O" -> StringValue(fO())
         "P" -> StringValue(fP())
         "Q" -> StringValue(fQ())
+        "Y" -> StringValue(fY())
         "Z" -> StringValue(fZ())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
