@@ -302,13 +302,13 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeXLATEBIF2() {
-        assertEquals(listOf("http://xxx.smaup.comuuuuuu"), outputOf("XLATEBIF2"))
+    fun executeBIFEDITC_1() {
+        assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00X"), outputOf("BIFEDITC_1"))
     }
 
     @Test
-    fun executeBIFEDITC_1() {
-        assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00X"), outputOf("BIFEDITC_1"))
+    fun executeXLATEBIF2() {
+        assertEquals(listOf("http://xxx.smaup.comuuuuuu"), outputOf("XLATEBIF2"))
     }
 
     @Test
@@ -319,6 +319,13 @@ class InterpreterTest {
                      outputOf("BIFEDITC_2"))
     }
 
+    @Test
+    fun executeBIFEDITC_3() {
+        assertEquals(listOf("x  123456  123456  1234.56X",
+                            "x  1234.56      .00X",
+                            "x  1234.50X"),
+                     outputOf("BIFEDITC_3"))
+    }
 
     @Test
     fun executeBIFEDITC_Z() {

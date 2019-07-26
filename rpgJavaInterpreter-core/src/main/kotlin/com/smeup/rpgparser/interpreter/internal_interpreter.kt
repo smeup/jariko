@@ -787,27 +787,32 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         return s.padStart(type.size.toInt())
     }
 
-    fun nrOfPunctuationsIn(s: String) = s.count { it == ',' }
+    fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
+    fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
+
+    fun nrOfPunctuationsIn(t: NumberType): Int {
+        return commas(t) + points(t)
+    }
+
+    fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
 
     fun f1(): String {
-        fun leadingBlanks(s: String) = if (s.startsWith(".")) "  " else " "
-
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
-
-        val decimals = "." + "".padEnd(type.decimalDigits, '0')
-        var s = DecimalFormat("#,###" + decimals, DecimalFormatSymbols(Locale.US)).format(this.value.abs())
-        if (s.endsWith(".")) {
-            s = s.take(s.length -1)
-        }
-
-        return leadingBlanks(s) + s.padStart(type.size.toInt() + nrOfPunctuationsIn(s))
+        var s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+        return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
     }
 
     fun f2(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + 2) else f1()
+    fun f3(): String {
+        if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
+        var s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+        return s.padStart(type.size.toInt() + points(type))
+    }
 
     return when(format) {
         "1" -> StringValue(f1())
         "2" -> StringValue(f2())
+        "3" -> StringValue(f3())
         "Z" -> StringValue(fZ())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
