@@ -326,6 +326,13 @@ class InterpreterTest {
                             "x  1234.50X"),
                      outputOf("BIFEDITC_3"))
     }
+    @Test
+    fun executeBIFEDITC_4() {
+        assertEquals(listOf("x  123456  123456  1234.56X",
+                            "x  1234.56         X",
+                            "x  1234.50X"),
+                     outputOf("BIFEDITC_4"))
+    }
 
     @Test
     fun executeBIFEDITC_Z() {

@@ -802,6 +802,9 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         return s.padStart(type.size.toInt() + points(type))
     }
 
+    fun f4(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + points(type as NumberType)) else f3()
+
+
     fun fZ(): String {
         val s = if (this.value.isZero()) {
             ""
@@ -815,6 +818,7 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         "1" -> StringValue(f1())
         "2" -> StringValue(f2())
         "3" -> StringValue(f3())
+        "4" -> StringValue(f4())
         "Z" -> StringValue(fZ())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
