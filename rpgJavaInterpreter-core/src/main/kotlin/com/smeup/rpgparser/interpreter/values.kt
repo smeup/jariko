@@ -9,11 +9,11 @@ const val PAD_CHAR = '\u0000'
 const val PAD_STRING = PAD_CHAR.toString()
 
 abstract class Value {
-    open fun asInt() : IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
-    open fun asDecimal() : DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
-    open fun asString() : StringValue = throw UnsupportedOperationException()
-    open fun asBoolean() : BooleanValue = throw UnsupportedOperationException()
-    open fun asTimeStamp() : TimeStampValue = throw UnsupportedOperationException()
+    open fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
+    open fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
+    open fun asString(): StringValue = throw UnsupportedOperationException()
+    open fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
+    open fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException()
     abstract fun assignableTo(expectedType: Type): Boolean
     open fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
     open fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
@@ -44,7 +44,7 @@ data class StringValue(var value: String) : Value() {
         return StringValue(value + other.value)
     }
 
-    val valueWithoutPadding : String
+    val valueWithoutPadding: String
         get() = value.removeNullChars()
 
     companion object {
@@ -74,7 +74,7 @@ data class StringValue(var value: String) : Value() {
         value = newValue.replace('\u0000', ' ')
     }
 
-    fun getSubstring(startOffset: Int, endOffset: Int) : StringValue {
+    fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
         require(startOffset >= 0)
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
@@ -88,12 +88,12 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun asString() = this
-    fun isBlank() : Boolean {
+    fun isBlank(): Boolean {
         return this.valueWithoutPadding.isBlank()
     }
 }
 
-fun String.removeNullChars() : String {
+fun String.removeNullChars(): String {
     val firstNullChar = this.chars().toList().indexOfFirst { it == 0 }
     return if (firstNullChar == -1) {
         this
@@ -109,9 +109,8 @@ data class IntValue(val value: Long) : Value() {
     }
 
     override fun asInt() = this
-    //TODO Verify conversion
+    // TODO Verify conversion
     override fun asDecimal(): DecimalValue = DecimalValue(BigDecimal(value))
-
 
     fun increment() = IntValue(value + 1)
 
@@ -149,7 +148,7 @@ data class IntValue(val value: Long) : Value() {
     }
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
-    //TODO Verify conversion
+    // TODO Verify conversion
     override fun asInt(): IntValue = IntValue(value.longValueExact())
 
     override fun asDecimal(): DecimalValue = this
@@ -162,7 +161,6 @@ data class DecimalValue(val value: BigDecimal) : Value() {
     companion object {
         val ZERO = DecimalValue(BigDecimal.ZERO)
     }
-
 }
 data class BooleanValue(val value: Boolean) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
@@ -188,11 +186,11 @@ data class TimeStampValue(val value: Date) : Value() {
     }
 }
 abstract class ArrayValue : Value() {
-    abstract fun arrayLength() : Int
-    abstract fun elementSize() : Int
+    abstract fun arrayLength(): Int
+    abstract fun elementSize(): Int
     abstract fun setElement(index: Int, value: Value)
-    abstract fun getElement(index: Int) : Value
-    fun elements() : List<Value> {
+    abstract fun getElement(index: Int): Value
+    fun elements(): List<Value> {
         val elements = LinkedList<Value>()
         for (i in 0 until (arrayLength())) {
             elements.add(getElement(i + 1))
@@ -200,7 +198,7 @@ abstract class ArrayValue : Value() {
         return elements
     }
 
-    override fun asString() : StringValue {
+    override fun asString(): StringValue {
         return StringValue(elements().map { it.asString() }.joinToString(""))
     }
 
@@ -228,12 +226,11 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
         elements[index - 1] = value
     }
 
-    override fun getElement(index: Int) : Value {
+    override fun getElement(index: Int): Value {
         require(index >= 1)
         require(index <= arrayLength())
         return elements[index - 1]
     }
-
 }
 object BlanksValue : Value() {
     override fun toString(): String {
@@ -266,7 +263,7 @@ class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
 
 class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition) : ArrayValue() {
     override fun elementSize(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
     override fun arrayLength() = container.arrayLength()
@@ -275,7 +272,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         require(index >= 1)
         require(index <= arrayLength())
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
-        val containerElement =  container.getElement(index)
+        val containerElement = container.getElement(index)
         if (containerElement is StringValue) {
             if (value is StringValue) {
                 containerElement.setSubstring(field.startOffset, field.endOffset, value)
@@ -287,7 +284,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         }
     }
 
-    override fun getElement(index: Int) : Value {
+    override fun getElement(index: Int): Value {
         val containerElement = container.getElement(index)
         if (containerElement is StringValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
@@ -295,7 +292,6 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
             TODO()
         }
     }
-
 }
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)

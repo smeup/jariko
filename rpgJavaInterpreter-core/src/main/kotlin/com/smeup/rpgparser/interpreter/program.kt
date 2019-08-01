@@ -1,15 +1,15 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.ast.CompilationUnit
+import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.parsetreetoast.resolve
 import java.io.InputStream
 
 data class ProgramParam(val name: String, val type: Type)
 
 interface Program {
-    fun params() : List<ProgramParam>
-    fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value>
+    fun params(): List<ProgramParam>
+    fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value>
 }
 
 class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Program {
@@ -19,8 +19,8 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         return plistParams?.params?.map {
             val type = cu.getDataDefinition(it.param.name).type
             ProgramParam(it.param.name, type)
-        } ?:
-        emptyList()
+        }
+        ?: emptyList()
     }
 
     init {
@@ -28,13 +28,13 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
     }
 
     companion object {
-        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED>") : RpgProgram {
+        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED>"): RpgProgram {
             val cu = RpgParserFacade().parseAndProduceAst(inputStream)
             return RpgProgram(cu, name)
         }
     }
 
-    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
         require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
@@ -50,11 +50,10 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
         return params().map { interpreter[it.name] }
     }
 
-    override fun equals(other: Any?)
-            = (other is RpgProgram) && other.name == name
+    override fun equals(other: Any?) =
+            (other is RpgProgram) && other.name == name
 
     override fun hashCode(): Int {
         return name.hashCode()
     }
 }
-

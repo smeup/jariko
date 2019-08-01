@@ -10,18 +10,19 @@ import java.util.*
 // from the CompilationUnit (which represents the whole file)
 // to its main components
 
+fun List<Statement>.plist(): PlistStmt? = this.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
 
-fun List<Statement>.plist() : PlistStmt? = this.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
+data class CompilationUnit(
+    val dataDefinitions: List<DataDefinition>,
+    val main: MainBody,
+    val subroutines: List<Subroutine>,
+    val compileTimeArrays: List<CompileTimeArray>,
+    override val position: Position?
+) : Node(position) {
 
-data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
-                           val main: MainBody,
-                           val subroutines: List<Subroutine>,
-                           val compileTimeArrays: List<CompileTimeArray>,
-                           override val position: Position?) : Node(position) {
-
-    val entryPlist : PlistStmt?
-        get() = main.stmts.plist() ?:
-                subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
+    val entryPlist: PlistStmt?
+        get() = main.stmts.plist()
+                ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
 
     private val inStatementsDataDefinitions = LinkedList<InStatementDataDefinition>()
 
@@ -30,7 +31,7 @@ data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
     }
 
     @Derived
-    val allDataDefinitions : List<AbstractDataDefinition>
+    val allDataDefinitions: List<AbstractDataDefinition>
         get() {
             val res = LinkedList<AbstractDataDefinition>()
             res.addAll(dataDefinitions)
@@ -48,7 +49,7 @@ data class CompilationUnit(val dataDefinitions: List<DataDefinition>,
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
 
     fun compileTimeArray(name: String): CompileTimeArray {
-        //TODO: add support for named compile time array
+        // TODO: add support for named compile time array
         return compileTimeArrays[0]
     }
 }

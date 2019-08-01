@@ -18,7 +18,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: 
                 override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
                     dataWrapUpPolicy[rpgProgram] = dataWrapUpChoice
                 }
-                override fun shouldReinitialize() : Boolean {
+                override fun shouldReinitialize(): Boolean {
                     return if (rpgProgram in dataWrapUpPolicy) {
                         dataWrapUpPolicy[rpgProgram]!! == DataWrapUpChoice.LR
                     } else {
@@ -33,5 +33,4 @@ class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: 
                                                           interpreter.interpretationContext.shouldReinitialize())
         initialValues.keys.forEach { initialValues[it] = interpreter[it] }
     }
-
 }

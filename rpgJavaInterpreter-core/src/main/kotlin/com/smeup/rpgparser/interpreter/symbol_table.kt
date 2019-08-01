@@ -3,9 +3,9 @@ package com.smeup.rpgparser.interpreter
 class SymbolTable {
     private val values = HashMap<AbstractDataDefinition, Value>()
 
-    fun contains(dataName: String) : Boolean = dataDefinitionByName(dataName) != null
+    fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
 
-    operator fun get(data: AbstractDataDefinition) : Value {
+    operator fun get(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
             val containerValue = get(data.container)
             return if (data.container.isArray()) {
@@ -17,7 +17,7 @@ class SymbolTable {
         return values[data] ?: throw IllegalArgumentException("Cannot find searched value for $data")
     }
 
-    operator fun get(dataName: String) : Value {
+    operator fun get(dataName: String): Value {
         val data = dataDefinitionByName(dataName)
         if (data != null) {
             return values[data] ?: throw IllegalArgumentException("Cannot find searched value for $data")
@@ -39,5 +39,4 @@ class SymbolTable {
     operator fun set(data: AbstractDataDefinition, value: Value) {
         values[data] = value
     }
-
 }

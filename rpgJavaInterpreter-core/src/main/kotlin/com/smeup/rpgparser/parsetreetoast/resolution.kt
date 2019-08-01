@@ -27,14 +27,14 @@ fun CompilationUnit.resolve() {
 
     this.specificProcess(DataRefExpr::class.java) { dre ->
         if (!dre.variable.resolved) {
-            require(dre.variable.tryToResolve(this.allDataDefinitions,caseInsensitive = true)) {
+            require(dre.variable.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
                 "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
             }
         }
     }
     this.specificProcess(ExecuteSubroutine::class.java) { esr ->
         if (!esr.subroutine.resolved) {
-            require(esr.subroutine.tryToResolve(this.subroutines,caseInsensitive = true)) {
+            require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
                 "Subroutine call not resolved: ${esr.subroutine.name}"
             }
         }

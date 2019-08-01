@@ -6,11 +6,11 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
-import org.junit.Ignore
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import org.junit.Ignore
+import org.junit.Test
 
 class InterpreterTest {
 
@@ -104,7 +104,6 @@ class InterpreterTest {
         assertEquals(logHandler.getExecutedSubroutines().size, 0)
     }
 
-
     @Test
     fun executeCallToFibonacciWrittenInRpg() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
@@ -124,7 +123,7 @@ class InterpreterTest {
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 val n = params["ppdat"]!!.asString().valueWithoutPadding.asInt()
                 var t1 = 0
                 var t2 = 1
@@ -160,11 +159,10 @@ class InterpreterTest {
         assertEquals(listOf("Hello World!"), outputOf("HELLOCASE"))
     }
 
-
     @Test
     fun executeHELLOPLIST() {
         val msg = "Hello World!"
-        val parms :  Map<String, Value> = mapOf("msG" to StringValue(msg))
+        val parms: Map<String, Value> = mapOf("msG" to StringValue(msg))
         assertEquals(listOf(msg), outputOf("HELLOPLIST", parms))
     }
 
@@ -172,7 +170,6 @@ class InterpreterTest {
     fun executeHELLOTRIM() {
         assertEquals(listOf("Hello World!"), outputOf("HELLOTRIM"))
     }
-
 
     @Test
     fun executeHELLO1() {
@@ -219,7 +216,6 @@ class InterpreterTest {
         assertStartsWith(outputOf("SUBDURTEST"), "1100")
     }
 
-
     @Test
     fun executeCALCFIBCA5() {
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), outputOf("CALCFIBCA5"))
@@ -236,7 +232,7 @@ class InterpreterTest {
         var javaPgmCalled = false
         si.programs["CAL02"] = object : JvmProgramRaw("CAL02", listOf(
                 ProgramParam("NBR", NumberType(8, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 javaPgmCalled = true
                 val nbr = params["NBR"]
                 if (nbr!!.asInt().value.toInt() == 0) {
@@ -347,7 +343,7 @@ class InterpreterTest {
         assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
                             "x  12/34/56   0/00/00X",
                             "x  12/34/50 12/34/5678  0/00/12X",
-                            "x   1/23/45X" ),
+                            "x   1/23/45X"),
                      outputOf("BIFEDITC_Y"))
     }
 
@@ -386,7 +382,7 @@ class InterpreterTest {
                     "a01\n" +
                     "x01\n" +
                     "X01").lines(),
-                    actual = outputOf("CTDATA").map (String::trim))
+                    actual = outputOf("CTDATA").map(String::trim))
     }
 
     @Test
@@ -404,7 +400,7 @@ class InterpreterTest {
                 "123\n" +
                 "abc\n" +
                 "xxx").lines(),
-                actual = outputOf("ARRAY02").map (String::trim))
+                actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
@@ -422,9 +418,8 @@ class InterpreterTest {
                 "123\n" +
                 "abc\n" +
                 "xxx").lines(),
-                actual = outputOf("ARRAY02").map (String::trim))
+                actual = outputOf("ARRAY02").map(String::trim))
     }
-
 
     @Test
     fun executeARRAY04_arrayWithCommentsAndDataReference() {
@@ -441,10 +436,10 @@ class InterpreterTest {
                 "123\n" +
                 "abc\n" +
                 "xxx").lines(),
-                actual = outputOf("ARRAY04").map (String::trim))
+                actual = outputOf("ARRAY04").map(String::trim))
     }
 
-    //TODO Changes in grammar needed
+    // TODO Changes in grammar needed
     @Test @Ignore
     fun executeARRAY05NAM_namedCompileTimeArrays() {
         assertEquals(expected =
@@ -453,9 +448,8 @@ class InterpreterTest {
                 "100\n" +
                 "100\n" +
                 "100").lines(),
-                actual = outputOf("ARRAY05NAM").map (String::trim))
+                actual = outputOf("ARRAY05NAM").map(String::trim))
     }
-
 
     @Test
     fun executeBIFARRAY() {
@@ -484,7 +478,7 @@ class InterpreterTest {
 
     @Test @Ignore
     fun executeZADDERR() {
-        //TODO better error assertion
+        // TODO better error assertion
         assertFailsWith(Throwable::class) {
             execute("ZADDERR", emptyMap())
         }
@@ -506,7 +500,7 @@ class InterpreterTest {
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
     }
 
-    //TODO Changes in grammar needed
+    // TODO Changes in grammar needed
     @Test @Ignore
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
@@ -514,14 +508,9 @@ class InterpreterTest {
 
     @Test
     fun executeProgramWithRuntimeError() {
-        //TODO better error assertion
+        // TODO better error assertion
         assertFailsWith(Throwable::class) {
             execute("ERROR01", emptyMap())
         }
     }
-
-
 }
-
-
-

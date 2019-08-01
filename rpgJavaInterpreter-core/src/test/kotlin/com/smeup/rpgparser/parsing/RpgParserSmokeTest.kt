@@ -1,9 +1,7 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class RpgParserSmokeTest {
 
@@ -156,5 +154,4 @@ class RpgParserSmokeTest {
     fun parseHELLOVARST() {
         assertCanBeParsed("HELLOVARST")
     }
-
 }

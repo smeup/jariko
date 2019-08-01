@@ -5,7 +5,7 @@ import com.smeup.rpgparser.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 
-fun RpgParser.StatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
+fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.cspec_fixed() != null -> this.cspec_fixed().toAst(conf)
         this.block() != null -> this.block().toAst(conf)
@@ -13,7 +13,7 @@ fun RpgParser.StatementContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
     }
 }
 
-internal fun RpgParser.BlockContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Statement {
+internal fun RpgParser.BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
         this.selectstatement() != null -> this.selectstatement().toAst(conf)
@@ -48,7 +48,7 @@ internal fun RpgParser.BlockContext.toAst(conf : ToAstConfiguration = ToAstConfi
     }
 }
 
-internal fun RpgParser.ForstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ForStmt {
+internal fun RpgParser.ForstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ForStmt {
     val csFOR = this.beginfor().csFOR()
     val assignment = csFOR.expression(0).toAst(conf)
     val endValue = csFOR.stopExpression()?.expression()?.toAst() ?: IntLiteral(1)
@@ -57,13 +57,13 @@ internal fun RpgParser.ForstatementContext.toAst(conf : ToAstConfiguration = ToA
     return ForStmt(
             assignment,
             endValue,
-            byValue ,
+            byValue,
             downward,
             this.statement().map { it.toAst(conf) },
             toPosition(conf.considerPosition))
 }
 
-internal fun RpgParser.SelectstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectStmt {
+internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectStmt {
     val whenClauses = this.whenstatement().map { it.toAst(conf) }
     // Unfortunately the other clause ends up being part of the when clause so we should
     // unfold it
@@ -73,7 +73,7 @@ internal fun RpgParser.SelectstatementContext.toAst(conf : ToAstConfiguration = 
     else
         this.whenstatement().last().statement().map { it.toAst(conf) }
     val indexOfOther = statementsOfLastWhen.indexOfFirst { it is OtherStmt }
-    var other : SelectOtherClause? = null
+    var other: SelectOtherClause? = null
     if (indexOfOther != -1) {
         val otherPosition = if (conf.considerPosition) {
             Position(statementsOfLastWhen[indexOfOther].position!!.start, statementsOfLastWhen.last().position!!.end)
@@ -86,7 +86,7 @@ internal fun RpgParser.SelectstatementContext.toAst(conf : ToAstConfiguration = 
     return SelectStmt(whenClauses, other, toPosition(conf.considerPosition))
 }
 
-internal fun RpgParser.WhenstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectCase {
+internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectCase {
     // Unfortunately the other clause ends up being part of the when clause so we should
     // unfold it
     // TODO change this in the grammar
@@ -102,11 +102,11 @@ internal fun RpgParser.WhenstatementContext.toAst(conf : ToAstConfiguration = To
     )
 }
 
-internal fun RpgParser.OtherContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
+internal fun RpgParser.OtherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
     TODO()
 }
 
-internal fun RpgParser.IfstatementContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): IfStmt {
+internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IfStmt {
     return IfStmt(this.beginif().fixedexpression.expression().toAst(conf),
             this.thenBody.map { it.toAst(conf) },
             this.elseIfClause().map { it.toAst(conf) },
@@ -114,11 +114,11 @@ internal fun RpgParser.IfstatementContext.toAst(conf : ToAstConfiguration = ToAs
             toPosition(conf.considerPosition))
 }
 
-internal fun RpgParser.ElseClauseContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ElseClause {
+internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {
     return ElseClause(this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
 }
 
-internal fun RpgParser.ElseIfClauseContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ElseIfClause {
+internal fun RpgParser.ElseIfClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseIfClause {
     return ElseIfClause(
             this.elseifstmt().fixedexpression.expression().toAst(conf),
             this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))

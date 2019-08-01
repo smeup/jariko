@@ -7,12 +7,12 @@ import com.strumenta.kolasu.model.ReferenceByName
 import java.math.BigDecimal
 
 abstract class Expression(override val position: Position? = null) : Node(position) {
-    open fun render() : String = this.javaClass.simpleName
+    open fun render(): String = this.javaClass.simpleName
 }
 
-///
-/// Literals
-///
+// /
+// / Literals
+// /
 
 abstract class NumberLiteral(override val position: Position? = null) : Expression(position)
 
@@ -27,9 +27,9 @@ data class StringLiteral(val value: String, override val position: Position? = n
     override fun render() = "\"$value\""
 }
 
-///
-/// Figurative constants
-///
+// /
+// / Figurative constants
+// /
 
 abstract class FigurativeConstantRef(override val position: Position? = null) : Expression(position)
 
@@ -43,100 +43,100 @@ data class HiValExpr(override val position: Position? = null) : FigurativeConsta
 
 data class LowValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 
-///
-/// Comparisons
-///
+// /
+// / Comparisons
+// /
 
-data class EqualityExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class EqualityExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} = ${right.render()}"
 }
 
-data class AssignmentExpr(var target: AssignableExpression, var value: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class AssignmentExpr(var target: AssignableExpression, var value: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${target.render()} = ${value.render()}"
 }
 
-data class GreaterThanExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class GreaterThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} > ${right.render()}"
 }
 
-data class GreaterEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class GreaterEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} >= ${right.render()}"
 }
 
-data class LessThanExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class LessThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} < ${right.render()}"
 }
 
-data class LessEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class LessEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} <= ${right.render()}"
 }
 
-data class DifferentThanExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class DifferentThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} <> ${right.render()}"
 }
 
-///
-/// Logical operations
-///
+// /
+// / Logical operations
+// /
 
 data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position)
 
-data class LogicalOrExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class LogicalOrExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} || ${right.render()}"
 }
 
-data class LogicalAndExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class LogicalAndExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} && ${right.render()}"
 }
 
-///
-/// Arithmetic operations
-///
+// /
+// / Arithmetic operations
+// /
 
-data class PlusExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class PlusExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} + ${right.render()}"
 }
 
-data class MinusExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class MinusExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} - ${right.render()}"
 }
 
-data class MultExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class MultExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} * ${right.render()}"
 }
 
-data class DivExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class DivExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} / ${right.render()}"
 }
 
-data class ExpExpr(var left: Expression, var right: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class ExpExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "${left.render()} ** ${right.render()}"
 }
 
-///
-/// Misc
-///
+// /
+// / Misc
+// /
 
 abstract class AssignableExpression(override val position: Position? = null) : Expression(position) {
-    abstract fun size() : Long
+    abstract fun size(): Long
 }
 
-data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null)
-    : AssignableExpression(position) {
+data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) :
+    AssignableExpression(position) {
 
     init {
         require(variable.name.isNotBlank()) { "The variable name should not blank" }
@@ -152,8 +152,8 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     override fun render() = variable.name
 }
 
-data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null)
-    : AssignableExpression(position) {
+data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) :
+    AssignableExpression(position) {
 
     override fun size(): Long {
         TODO("size")
@@ -162,13 +162,16 @@ data class ArrayAccessExpr(val array: Expression, val index: Expression, overrid
 
 // A Function call is not distinguishable from an array access
 // TODO replace them in the AST during the resolution phase
-data class FunctionCall(val function: ReferenceByName<Function>, val args: List<Expression>,
-                        override val position: Position? = null) : Expression(position)
+data class FunctionCall(
+    val function: ReferenceByName<Function>,
+    val args: List<Expression>,
+    override val position: Position? = null
+) : Expression(position)
 
 fun dataRefTo(dataDefinition: AbstractDataDefinition) =
         DataRefExpr(ReferenceByName(dataDefinition.name, dataDefinition))
 
-data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null)
-    : Expression(position) {
+data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) :
+    Expression(position) {
     override fun render() = "%ELEM(${value.render()})"
 }

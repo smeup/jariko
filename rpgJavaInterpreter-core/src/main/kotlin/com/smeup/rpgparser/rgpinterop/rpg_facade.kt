@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.rgpinterop
 
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.Size
 import java.lang.RuntimeException
 import java.util.*
@@ -25,23 +24,24 @@ private val <R> KProperty<R>.rpgName: String
     }
 
 interface ProgramNameSource<P> {
-    fun nameFor(rpgFacade: RpgFacade<P>) : String
+    fun nameFor(rpgFacade: RpgFacade<P>): String
 }
 
 class ClassProgramName<P> : ProgramNameSource<P> {
-    override fun nameFor(rpgFacade: RpgFacade<P>) : String = rpgFacade.javaClass.simpleName
+    override fun nameFor(rpgFacade: RpgFacade<P>): String = rpgFacade.javaClass.simpleName
 }
 
-
-abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
-                             val systemInterface: SystemInterface) {
+abstract class RpgFacade<P> (
+    val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
+    val systemInterface: SystemInterface
+) {
 
     private val logHandlers = mutableListOf<InterpreterLogHandler>()
     fun addLogHandler(handler: InterpreterLogHandler) = logHandlers.add(handler)
     fun removeLogHandler(handler: InterpreterLogHandler) = logHandlers.remove(handler)
 
     var traceMode: Boolean
-        get() =  logHandlers.any { it is SimpleLogHandler}
+        get() = logHandlers.any { it is SimpleLogHandler }
         set(simpleLogHandler) {
             if (simpleLogHandler) {
                 logHandlers.add(SimpleLogHandler)
@@ -51,30 +51,29 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
         }
 
     protected val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
-    private val programName by lazy {programNameSource.nameFor(this) }
+    private val programName by lazy { programNameSource.nameFor(this) }
     protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
 
-    fun singleCall(params: P) : P? {
+    fun singleCall(params: P): P? {
         val initialValues = toInitialValues(params)
         logHandlers.log(StartProgramLog(programName, initialValues))
         programInterpreter.execute(rpgProgram, initialValues)
         return toResults(params, initialValues)
     }
 
-    open protected fun toResults(params: P, resultValues: LinkedHashMap<String, Value>) : P {
-        val any : Any = params!!
+    protected open fun toResults(params: P, resultValues: LinkedHashMap<String, Value>): P {
+        val any: Any = params!!
         val kclass = any::class
         val initialValues = HashMap<String, Value>()
-        //TODO This is a fake implementation
+        // TODO This is a fake implementation
 //        kclass.memberProperties.forEach {
 //            toRpgValue(it, it.call(params)) = resultValues[it.rpgName]
 //        }
         return params
     }
 
-
-    open protected fun toInitialValues(params: P) : LinkedHashMap<String, Value> {
-        val any : Any = params!!
+    protected open fun toInitialValues(params: P): LinkedHashMap<String, Value> {
+        val any: Any = params!!
         val kclass = any::class
         val initialValues = LinkedHashMap<String, Value>()
         kclass.memberProperties.forEach {
@@ -83,7 +82,7 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
         return initialValues
     }
 
-    private fun propertyStringValue(property: KProperty1<Any, *>, container: Any) : String {
+    private fun propertyStringValue(property: KProperty1<Any, *>, container: Any): String {
         val value = property.get(container)
         if (value is String) {
             return value
@@ -129,15 +128,14 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
                 }
                 return rpgArray
             }
-            else ->{
+            else -> {
                 val classifier = property.returnType.classifier
                 println((classifier as KClass<*>).qualifiedName == "kotlin.Array")
                 val array = Array<Any>::class
-                TODO("Property ${property}")
+                TODO("Property $property")
             }
         }
     }
-
 }
 
 private fun KType.toRpgType(size: Size? = null): Type {

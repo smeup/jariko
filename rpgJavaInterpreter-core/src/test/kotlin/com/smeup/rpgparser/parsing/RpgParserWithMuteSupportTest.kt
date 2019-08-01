@@ -6,25 +6,24 @@ import com.smeup.rpgparser.facade.RpgParserFacade
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
+import java.util.*
 import org.antlr.v4.runtime.*
 import org.apache.commons.io.input.BOMInputStream
 import org.junit.Ignore
 import org.junit.Test
-import java.util.*
 
 class RpgParserWithMuteSupportTest {
     // Please note the 8 leading spaces
     val comparisonAnnotation = "".padStart(8) + "VAL1(array(1)) VAL2(1) COMP(EQ)"
-    //val comparisonAnnotation = "".padStart(8) + "VAL1(NUMBER1) VAL2(1) COMP(EQ)"
+    // val comparisonAnnotation = "".padStart(8) + "VAL1(NUMBER1) VAL2(1) COMP(EQ)"
 
     // Test if the lexer extracts the expected number of tokens
-
 
     @Test
     @Ignore
     fun muteAnnotationsAttributionLex() {
 
-        //val preprocessed = preprocess(comparisonAnnotation)
+        // val preprocessed = preprocess(comparisonAnnotation)
         val errors = LinkedList<Error>()
         val lexer = MuteLexer(ANTLRInputStream(BOMInputStream(comparisonAnnotation.byteInputStream(Charsets.UTF_8))))
         lexer.removeErrorListeners()
@@ -56,10 +55,8 @@ class RpgParserWithMuteSupportTest {
 
         val root = muteParser.muteLine()
 
-
         assert(errors.size == 0)
     }
-
 
     @Test
     fun muteAnnotationsAttribution() {
@@ -69,5 +66,4 @@ class RpgParserWithMuteSupportTest {
 
         print("")
     }
-
 }

@@ -11,8 +11,10 @@ import org.junit.Test as test
 
 class DataDefinitionTest {
 
-    fun processDataDefinition(code: String,
-                              toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)) : CompilationUnit {
+    fun processDataDefinition(
+        code: String,
+        toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
+    ): CompilationUnit {
         val completeCode = """
 |     H/COPY QILEGEN,£INIZH
 |      *---------------------------------------------------------------
@@ -38,7 +40,6 @@ class DataDefinitionTest {
         val cu = processDataDefinition("D OK              S              1n")
         cu.assertDataDefinitionIsPresent("OK", BooleanType)
     }
-
 
     @test fun singleDataParsingOther() {
         val cu = processDataDefinition("D U\$FUNZ          S             99")

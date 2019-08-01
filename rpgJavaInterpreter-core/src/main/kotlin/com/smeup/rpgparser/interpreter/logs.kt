@@ -11,16 +11,16 @@ abstract class LogEntry
 
 data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
     override fun toString(): String {
-        return "calling ${callStmt}"
+        return "calling $callStmt"
     }
 }
 
 data class CallEndLogEntry(val callStmt: CallStmt, val exception: Exception? = null) : LogEntry() {
     override fun toString(): String {
         if (exception == null) {
-            return "end of ${callStmt}"
+            return "end of $callStmt"
         } else {
-            return "exception ${exception} in calling ${callStmt}"
+            return "exception $exception in calling $callStmt"
         }
     }
 }
@@ -49,7 +49,7 @@ data class AssignmentOfElementLogEntry(val array: Expression, val index: Int, va
     }
 }
 
-data class StartProgramLog(val programName: String, val initialValues: Map<String, Value>): LogEntry() {
+data class StartProgramLog(val programName: String, val initialValues: Map<String, Value>) : LogEntry() {
     override fun toString(): String {
         return "calling $programName with initial values $initialValues"
     }
@@ -87,7 +87,7 @@ object SimpleLogHandler : InterpreterLogHandler {
     }
 }
 
-class ListLogHandler: InterpreterLogHandler {
+class ListLogHandler : InterpreterLogHandler {
     private val logs = LinkedList<LogEntry>()
 
     override fun handle(logEntry: LogEntry) {
@@ -125,7 +125,7 @@ fun List<InterpreterLogHandler>.log(logEntry: LogEntry) {
         try {
             it.handle(logEntry)
         } catch (t: Throwable) {
-            //TODO: how should we handle exceptions?
+            // TODO: how should we handle exceptions?
         }
     }
 }

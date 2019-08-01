@@ -4,13 +4,13 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
-import org.junit.Ignore
-import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
+import org.junit.Ignore
+import org.junit.Test
 
 class JDExamplesTest {
     @Test
@@ -62,7 +62,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", StringType(1000)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToJDURL.add(params)
                 return emptyList()
             }
@@ -70,7 +70,7 @@ class JDExamplesTest {
         val cu = assertASTCanBeProduced("JD_000", true)
         cu.resolve()
         execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
-        assertEquals( 1, callsToJDURL.size)
+        assertEquals(1, callsToJDURL.size)
         val urlCalled = callsToJDURL[0].get("URL")
         assertNotNull(urlCalled)
         assert(urlCalled is ArrayValue)
@@ -123,7 +123,7 @@ class JDExamplesTest {
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
                 "U\$METO" to StringValue("Bar"),
-                "U\$SVARSK" to createArrayValue(StringType(1050),200) { blankString(1050) },
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { blankString(1050) },
                 "U\$IN35" to StringValue("X")),
                 logHandlers = listOf(logHandler))
         assertEquals(6, logHandler.getEvaluatedExpressionsConcise().size)
@@ -134,7 +134,6 @@ class JDExamplesTest {
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK_INI"])
         assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
-
 
     @Test
     fun executeJD_001_complete_url_not_found() {
@@ -155,7 +154,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", ArrayType(StringType(1050), 200)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToJDURL.add(params)
                 return emptyList()
             }
@@ -193,7 +192,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToListFld.add(params)
                 return emptyList()
             }
@@ -202,7 +201,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -226,7 +225,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToListFld.add(params)
                 if (callsToListFld.size >= 5) {
                     throw InterruptForDebuggingPurposes()
@@ -238,7 +237,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -278,7 +277,7 @@ class JDExamplesTest {
                 ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToListFld.add(params)
                 if (callsToListFld.size >= 5) {
                     throw InterruptForDebuggingPurposes()
@@ -293,7 +292,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -322,14 +321,14 @@ class JDExamplesTest {
                 ), callsToListFld[0])
         assertEquals(1, callsToNfyeve.size)
         val v = callsToNfyeve[0]["var"] as ArrayValue
-        assertEquals(StringValue("Object name".padEnd(50)
-                + "myFile.png".padEnd(1000)),
+        assertEquals(StringValue("Object name".padEnd(50) +
+                "myFile.png".padEnd(1000)),
                 v.getElement(1))
-        assertEquals(StringValue("Object type".padEnd(50)
-                + "FILE".padEnd(1000)),
+        assertEquals(StringValue("Object type".padEnd(50) +
+                "FILE".padEnd(1000)),
                 v.getElement(2))
-        assertEquals(StringValue("Operation type".padEnd(50)
-                + "ADD".padEnd(1000)),
+        assertEquals(StringValue("Operation type".padEnd(50) +
+                "ADD".padEnd(1000)),
                 v.getElement(3))
     }
 
@@ -341,7 +340,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToRcvsck.add(params)
                 if (callsToRcvsck.size >= 2) {
                     throw InterruptForDebuggingPurposes()
@@ -366,7 +365,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToRcvsck.add(params)
                 if (callsToRcvsck.size >= 5) {
                     throw InterruptForDebuggingPurposes()
@@ -400,7 +399,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -438,7 +437,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"AB123XX\" />"
                 return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
             }
@@ -463,7 +462,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -486,7 +485,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 throw RuntimeException("Something went wrong")
             }
         }
@@ -503,9 +502,8 @@ class JDExamplesTest {
                 "U\$FUNZ" to StringValue("INZ"),
                 "U\$METO" to StringValue(""),
                 "U\$SVARSK" to ConcreteArrayValue(
-                        (mutableListOf(StringValue("PORT".padEnd(50 ) + "192.168.10.1".padEnd(1000))) +
-                                MutableList(199) {StringValue("".padEnd(1050))}).toMutableList()
-                        ,
+                        (mutableListOf(StringValue("PORT".padEnd(50) + "192.168.10.1".padEnd(1000))) +
+                                MutableList(199) { StringValue("".padEnd(1050)) }).toMutableList(),
                         StringType(1050)),
                 returnStatus to StringValue(" ")
         )
@@ -515,7 +513,7 @@ class JDExamplesTest {
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)),
                 ProgramParam("ierror", BooleanType))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"${targa}\" />"
                 return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
             }
@@ -524,12 +522,12 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
         }
-        val logHandlers = emptyList<InterpreterLogHandler>() //listOf(EvalLogHandler(), AssignmentsLogHandler())
+        val logHandlers = emptyList<InterpreterLogHandler>() // listOf(EvalLogHandler(), AssignmentsLogHandler())
 
         execute("JD_003_V2", parms, si, logHandlers)
         assertEquals(1, callsToNfyeve.size)
@@ -553,7 +551,7 @@ class JDExamplesTest {
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"${targa}\" />"
                 return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
             }
@@ -562,7 +560,7 @@ class JDExamplesTest {
                 ProgramParam("funz", StringType(10)),
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
-            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 callsToNfyeve.add(params)
                 throw InterruptForDebuggingPurposes()
             }
@@ -572,5 +570,4 @@ class JDExamplesTest {
         assertTrue((callsToNfyeve[0]["var"] as ConcreteArrayValue).getElement(1).asString().value.contains(targa))
         assertEquals(" ", parms[returnStatus]!!.value)
     }
-
 }

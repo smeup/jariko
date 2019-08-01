@@ -7,7 +7,7 @@ fun enrichExceptionWith(v: Any?, block: () -> Unit) {
     try {
         block()
     } catch (t: Throwable) {
-        throw RuntimeException("Error ${t} - ${v}", t)
+        throw RuntimeException("Error $t - $v", t)
     }
 }
 
@@ -23,7 +23,7 @@ fun measureAndCatch(block: () -> Unit): Long {
 
 fun List<String>.chunkAs(elementsPerLine: Int, elmentSize: Int): List<String> {
     if (elementsPerLine == 1) {
-        return  this
+        return this
     }
     return this.map {
         it.chunked(elmentSize).take(elementsPerLine)
@@ -35,7 +35,7 @@ fun <T> List<T>.resizeTo(n: Int, defaultValue: T): List<T> {
         return this.take(n)
     }
     if (this.size < n) {
-        return this + MutableList(n - this.size) {defaultValue}
+        return this + MutableList(n - this.size) { defaultValue }
     }
     return this
 }

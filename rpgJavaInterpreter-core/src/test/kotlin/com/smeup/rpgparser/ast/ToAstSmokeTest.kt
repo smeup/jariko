@@ -1,10 +1,8 @@
 package com.smeup.rpgparser.ast
 
 import com.smeup.rpgparser.assertASTCanBeProduced
-import com.smeup.rpgparser.assertCanBeParsed
-import org.junit.Ignore
-import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.Test
 
 class ToAstSmokeTest {
 

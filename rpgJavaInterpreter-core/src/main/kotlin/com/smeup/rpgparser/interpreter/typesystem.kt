@@ -2,7 +2,6 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.DataRefExpr
 import com.smeup.rpgparser.ast.Expression
-import com.sun.org.apache.xpath.internal.operations.Bool
 
 // Supported data types:
 // * Character Format
@@ -38,21 +37,18 @@ data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) 
 data class StringType(val length: Long) : Type() {
     override val size: Long
         get() = length
-
 }
 object BooleanType : Type() {
     override val size: Long
         get() = 1
-
 }
 object TimeStampType : Type() {
     override val size: Long
         get() = 26
-
 }
 data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
     override val size: Long
-        get()= (entireDigits + decimalDigits).toLong()
+        get() = (entireDigits + decimalDigits).toLong()
     val integer: Boolean
         get() = decimalDigits == 0
     val decimal: Boolean
@@ -60,7 +56,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
 }
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
     override val size: Long
-        get()= element.size * nElements
+        get() = element.size * nElements
 
     override fun numberOfElements(): Int {
         return nElements
@@ -75,7 +71,7 @@ data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecor
 
 data class FieldType(val name: String, val type: Type)
 
-fun Expression.type() : Type {
+fun Expression.type(): Type {
     return when (this) {
         is DataRefExpr -> this.variable.referred!!.type
         else -> TODO(this.javaClass.canonicalName)

@@ -7,13 +7,13 @@ import java.io.FileInputStream
 import java.util.*
 
 interface RpgProgramFinder {
-    fun findRpgProgram(nameOrSource: String) : RpgProgram?
+    fun findRpgProgram(nameOrSource: String): RpgProgram?
 }
 
 class SourceProgramFinder : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
-            return  RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)))
+            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)))
         }
         return null
     }
@@ -34,7 +34,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         if (directory != null) {
             return directory.absolutePath + File.separator
         }
-        return  ""
+        return ""
     }
 
     private fun nameAndSuffix(name: String): String {

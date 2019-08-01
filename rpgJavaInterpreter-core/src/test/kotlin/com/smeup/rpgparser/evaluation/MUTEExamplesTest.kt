@@ -2,16 +2,11 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.jvminterop.JvmProgramRaw
-import com.smeup.rpgparser.parsetreetoast.resolve
+import java.util.*
+import kotlin.test.assertEquals
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
-import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class MUTEExamplesTest {
 
@@ -32,7 +27,7 @@ class MUTEExamplesTest {
 
     @Test @Ignore
     fun executeMUTE11_02() {
-        //TODO
+        // TODO
         assertEquals(listOf("TODO"), outputOf("MUTE11_02"))
     }
 }

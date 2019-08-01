@@ -8,7 +8,7 @@ import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 
 interface StatementThatCanDefineData {
-    fun dataDefinition() : List<InStatementDataDefinition>
+    fun dataDefinition(): List<InStatementDataDefinition>
 }
 
 enum class AssignmentOperator(val text: String) {
@@ -20,25 +20,25 @@ enum class AssignmentOperator(val text: String) {
     EXP_ASSIGNMENT("**=");
 }
 
-
-abstract class Statement(override val position: Position? = null,
-                         var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()) : Node(position) {
-    open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int) : MutableList<MuteAnnotationResolved> {
+abstract class Statement(
+    override val position: Position? = null,
+    var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
+) : Node(position) {
+    open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int): MutableList<MuteAnnotationResolved> {
 
         // List of mutes successully attached to the statements
-        val mutesAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
+        val mutesAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
         // Extracts the annotation declared before the statement
-        val muteToProcess = mutes.filterKeys{
+        val muteToProcess = mutes.filterKeys {
             it < this.position!!.start.line
         }
 
         muteToProcess.forEach { (line, mute) ->
-            this.muteAnnotations.add( mute!!.toAst(
-                    position = pos( line,this.position!!.start.column,line, this.position!!.end.column))
+            this.muteAnnotations.add(mute!!.toAst(
+                    position = pos(line, this.position!!.start.column, line, this.position!!.end.column))
             )
-            mutesAttached.add(MuteAnnotationResolved(line,this.position!!.start.line))
-
+            mutesAttached.add(MuteAnnotationResolved(line, this.position!!.start.line))
         }
 
         return mutesAttached
@@ -47,16 +47,18 @@ abstract class Statement(override val position: Position? = null,
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
 
-data class SelectStmt(var cases: List<SelectCase>,
-                      var other: SelectOtherClause? = null,
-                      override val position: Position? = null) : Statement(position) {
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<MuteAnnotationResolved> {
+data class SelectStmt(
+    var cases: List<SelectCase>,
+    var other: SelectOtherClause? = null,
+    override val position: Position? = null
+) : Statement(position) {
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
 
-        val muteAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
+        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
         cases.forEach {
             muteAttached.addAll(
-                    acceptBody(it.body,mutes, it.position!!.start.line , it.position!!.end.line )
+                    acceptBody(it.body, mutes, it.position!!.start.line, it.position!!.end.line)
             )
         }
 
@@ -70,35 +72,39 @@ data class SelectStmt(var cases: List<SelectCase>,
     }
 }
 
-
 data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
-
 
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 
+data class EvalStmt(
+    val target: AssignableExpression,
+    var expression: Expression,
+    val operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT,
+    override val position: Position? = null
+) :
+    Statement(position)
 
-data class EvalStmt(val target: AssignableExpression,
-                    var expression: Expression,
-                    val operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT,
-                    override val position: Position? = null)
-    : Statement(position)
+data class SubDurStmt(
+    val factor1: Expression?,
+    val target: AssignableExpression,
+    val factor2: Expression,
+    override val position: Position? = null
+) :
+    Statement(position)
 
-data class SubDurStmt(val factor1: Expression?,
-                      val target: AssignableExpression,
-                      val factor2: Expression,
-                      override val position: Position? = null)
-    : Statement(position)
+data class MoveStmt(
+    val target: AssignableExpression,
+    var expression: Expression,
+    override val position: Position? = null
+) :
+    Statement(position)
 
-
-data class MoveStmt(val target: AssignableExpression,
-                    var expression: Expression,
-                    override val position: Position? = null)
-    : Statement(position)
-
-
-
-data class CallStmt(val expression: Expression, val params: List<PlistParam>, val errorIndicator: Int? = null,
-                    override val position: Position? = null) : Statement(position) , StatementThatCanDefineData {
+data class CallStmt(
+    val expression: Expression,
+    val params: List<PlistParam>,
+    val errorIndicator: Int? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         return params.mapNotNull() {
             it.dataDefinition
@@ -106,32 +112,34 @@ data class CallStmt(val expression: Expression, val params: List<PlistParam>, va
     }
 }
 
-data class IfStmt(val condition: Expression, val body: List<Statement>,
-                  val elseIfClauses: List<ElseIfClause> = emptyList(),
-                  val elseClause: ElseClause? = null,
-                  override val position: Position? = null) : Statement(position) {
+data class IfStmt(
+    val condition: Expression,
+    val body: List<Statement>,
+    val elseIfClauses: List<ElseIfClause> = emptyList(),
+    val elseClause: ElseClause? = null,
+    override val position: Position? = null
+) : Statement(position) {
 
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<MuteAnnotationResolved> {
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
         // check if the annotation is just before the ELSE
-        val muteAttached : MutableList<MuteAnnotationResolved> = mutableListOf()
-
+        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
         // Process the body statements
         muteAttached.addAll(
-                acceptBody(body,mutes, this.position!!.start.line , this.position!!.end.line )
+                acceptBody(body, mutes, this.position!!.start.line, this.position!!.end.line)
         )
 
         // Process the ELSE IF
         elseIfClauses.forEach {
             muteAttached.addAll(
-                    acceptBody(it.body,mutes, it.position!!.start.line , it.position!!.end.line )
+                    acceptBody(it.body, mutes, it.position!!.start.line, it.position!!.end.line)
             )
         }
 
         // Process the ELSE
-        if( elseClause != null ) {
+        if (elseClause != null) {
             muteAttached.addAll(
-                    acceptBody(elseClause.body,mutes, elseClause.position!!.start.line , elseClause.position!!.end.line )
+                    acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position!!.end.line)
             )
         }
 
@@ -139,39 +147,30 @@ data class IfStmt(val condition: Expression, val body: List<Statement>,
     }
 }
 
-
 data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-
 data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
 
-data class PlistStmt(val params: List<PlistParam>,
-                     val isEntry: Boolean,
-                     override val position: Position? = null) : Statement(position)
+data class PlistStmt(
+    val params: List<PlistParam>,
+    val isEntry: Boolean,
+    override val position: Position? = null
+) : Statement(position)
 
-data class PlistParam(val param: ReferenceByName<AbstractDataDefinition>,
-                      //TODO @Derived????
-                      @Derived val dataDefinition: InStatementDataDefinition? = null,
-                      override val position: Position? = null) : Node(position)
+data class PlistParam(
+    val param: ReferenceByName<AbstractDataDefinition>,
+                      // TODO @Derived????
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Node(position)
 
-data class ClearStmt(val value: Expression,
-                     @Derived val dataDefinition: InStatementDataDefinition? = null,
-                     override val position: Position? = null) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition() : List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
-        }
-        return emptyList()
-    }
-}
-
-data class ZAddStmt(val target: AssignableExpression,
-                    @Derived val dataDefinition: InStatementDataDefinition? = null,
-                    var expression: Expression,
-                    override val position: Position? = null)
-    : Statement(position), StatementThatCanDefineData {
+data class ClearStmt(
+    val value: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
             return listOf(dataDefinition)
@@ -180,30 +179,46 @@ data class ZAddStmt(val target: AssignableExpression,
     }
 }
 
+data class ZAddStmt(
+    val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    var expression: Expression,
+    override val position: Position? = null
+) :
+    Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
 
-data class TimeStmt(val value: Expression,
-                     override val position: Position? = null) : Statement(position)
-
+data class TimeStmt(
+    val value: Expression,
+    override val position: Position? = null
+) : Statement(position)
 
 data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position)
 
 data class DoStmt(
-        val endLimit: Expression,
-        val index: AssignableExpression?,
-        val body: List<Statement>,
-        val startLimit: Expression = IntLiteral(1),
-        override val position: Position? = null) : Statement(position) {
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<MuteAnnotationResolved> {
+    val endLimit: Expression,
+    val index: AssignableExpression?,
+    val body: List<Statement>,
+    val startLimit: Expression = IntLiteral(1),
+    override val position: Position? = null
+) : Statement(position) {
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
         // TODO check if the annotation is the last statement
-        return acceptBody(body,mutes, start, end)
-
+        return acceptBody(body, mutes, start, end)
     }
 }
 
 data class DowStmt(
-        val endExpression: Expression,
-        val body: List<Statement>,
-        override val position: Position? = null) : Statement(position)
+    val endExpression: Expression,
+    val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position)
 
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 
@@ -212,11 +227,13 @@ data class IterStmt(override val position: Position? = null) : Statement(positio
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 
 data class ForStmt(
-        var init: Expression,
-        val endValue: Expression,
-        val byValue: Expression,
-        val downward: Boolean = false,
-        val body: List<Statement>, override val position: Position? = null) : Statement(position) {
+    var init: Expression,
+    val endValue: Expression,
+    val byValue: Expression,
+    val downward: Boolean = false,
+    val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position) {
     fun iterDataDefinition(): AbstractDataDefinition {
         if (init is AssignmentExpr) {
             if ((init as AssignmentExpr).target is DataRefExpr) {
@@ -228,9 +245,8 @@ data class ForStmt(
             throw UnsupportedOperationException()
         }
     }
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int) : MutableList<MuteAnnotationResolved> {
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
         // TODO check if the annotation is the last statement
-        return acceptBody(body,mutes, start, end)
-
+        return acceptBody(body, mutes, start, end)
     }
 }

@@ -2,8 +2,8 @@ package com.smeup.rpgparser.lexing
 
 import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.assertCanBeLexed
-import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.Test
 
 /**
  * We just test that the original code is lexed without errors.

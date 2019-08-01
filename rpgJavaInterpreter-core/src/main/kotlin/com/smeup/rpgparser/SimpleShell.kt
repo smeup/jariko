@@ -2,8 +2,6 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.utils.measureAndCatch
 import java.io.*
-import kotlin.system.measureTimeMillis
-
 
 class SimpleShell {
 
@@ -32,4 +30,3 @@ class SimpleShell {
         }
     }
 }
-

@@ -7,12 +7,12 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 
-fun RpgParser.Dcl_dsContext.elementSizeOf() : Int {
+fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
     val header = this.parm_fixed().first()
     return header.TO_POSITION().text.asInt()
 }
 
-internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
+internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
     //    C UCS-2 (Fixed or Variable-length format)
@@ -29,10 +29,10 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
     //    Z Timestamp
     //    * Basing pointer or procedure pointer
 
-    var like : AssignableExpression? = null
-    var dim : Expression? = null
-    var initializationValue : Expression? = null
-    var elementsPerLineExpression : Expression? = null
+    var like: AssignableExpression? = null
+    var dim: Expression? = null
+    var initializationValue: Expression? = null
+    var elementsPerLineExpression: Expression? = null
     var compileTimeArray = false
 
     this.keyword().forEach {
@@ -72,7 +72,7 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
         else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
     }
     val type = if (dim != null) {
-        var compileTimeRecordsPerLine : Int? = null
+        var compileTimeRecordsPerLine: Int? = null
         if (compileTimeArray) {
             if (elementsPerLineExpression != null) {
                 compileTimeRecordsPerLine = conf.compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
@@ -92,12 +92,12 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
             position = this.toPosition(true))
 }
 
-val RpgParser.Dcl_dsContext.nameIsInFirstLine : Boolean
+val RpgParser.Dcl_dsContext.nameIsInFirstLine: Boolean
     get() {
         return this.ds_name().text.trim().isNotEmpty()
     }
 
-val RpgParser.Dcl_dsContext.name : String
+val RpgParser.Dcl_dsContext.name: String
     get() {
         return if (nameIsInFirstLine) {
             this.ds_name().text.trim()
@@ -108,14 +108,14 @@ val RpgParser.Dcl_dsContext.name : String
         }
     }
 
-val RpgParser.Dcl_dsContext.hasHeader : Boolean
+val RpgParser.Dcl_dsContext.hasHeader: Boolean
     get() {
         return this.ds_name().text.trim().isEmpty()
     }
 
-fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf : ToAstConfiguration = ToAstConfiguration()) : Type {
+fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = ToAstConfiguration()): Type {
     val header = this.parm_fixed().first()
-    val dim : Expression? = header.keyword().asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
+    val dim: Expression? = header.keyword().asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val others = this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
     val elementSize = this.elementSizeOf()
@@ -127,7 +127,7 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf : ToAstConfiguration = 
     }
 }
 
-internal fun RpgParser.Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
+internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
     val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
         this.TO_POSITION().text.asInt()
     } else {
@@ -135,7 +135,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConf
     }
     require(this.parm_fixed().isNotEmpty())
     val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
-    val type : Type = this.type(size)
+    val type: Type = this.type(size)
     val nElements = if (type is ArrayType) {
         type.nElements
     } else {
@@ -148,7 +148,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConf
             position = this.toPosition(true))
 }
 
-fun RpgParser.Parm_fixedContext.explicitStartOffset() : Int? {
+fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     val text = this.FROM_POSITION().text.trim()
     return if (text.isBlank()) {
         null
@@ -157,7 +157,7 @@ fun RpgParser.Parm_fixedContext.explicitStartOffset() : Int? {
     }
 }
 
-fun RpgParser.Parm_fixedContext.explicitEndOffset() : Int? {
+fun RpgParser.Parm_fixedContext.explicitEndOffset(): Int? {
     val text = this.TO_POSITION().text.trim()
     return if (text.isBlank()) {
         null
@@ -167,8 +167,9 @@ fun RpgParser.Parm_fixedContext.explicitEndOffset() : Int? {
 }
 
 internal fun RpgParser.Parm_fixedContext.toAst(
-        nElements: Int?,
-        conf : ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
+    nElements: Int?,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): FieldDefinition {
     var baseType = this.toType()
     if (nElements != null) {
         baseType = ArrayType(baseType, nElements)

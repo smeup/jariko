@@ -4,17 +4,18 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import java.io.PrintStream
-import java.lang.Exception
 import java.util.*
 import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
-open class JavaSystemInterface(private val outputStream: PrintStream,
-                          private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?) : SystemInterface {
+open class JavaSystemInterface(
+    private val outputStream: PrintStream,
+    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?
+) : SystemInterface {
 
-    //For calls from Java programs
+    // For calls from Java programs
     constructor (os: PrintStream) : this(os, RpgSystem::getProgram)
-    constructor(): this(System.out)
+    constructor() : this(System.out)
 
     private val consoleOutputList = LinkedList<String>()
 
@@ -55,7 +56,6 @@ open class JavaSystemInterface(private val outputStream: PrintStream,
             } catch (e: Throwable) {
                 null
             }
-
         }.filter { it != null }.firstOrNull()
     }
 
@@ -68,7 +68,6 @@ open class JavaSystemInterface(private val outputStream: PrintStream,
     }
 
     override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
-
 }

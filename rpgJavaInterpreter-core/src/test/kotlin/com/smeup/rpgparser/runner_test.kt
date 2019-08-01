@@ -4,12 +4,11 @@ import com.smeup.rpgparser.interpreter.AssignmentsLogHandler
 import com.smeup.rpgparser.interpreter.EvalLogHandler
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.utils.StringOutputStream
-import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.fail
 import java.io.PrintStream
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-
+import kotlin.test.fail
+import org.junit.Test
 
 class RunnerTest {
 
@@ -104,7 +103,7 @@ class RunnerTest {
 |     C                   dsply                   Msg§
 |     C                   SETON                                          LR
         """.trimMargin()
-        val program = getProgram(source,  systemInterface)
+        val program = getProgram(source, systemInterface)
         val logOutputStream = StringOutputStream()
         val printStream = PrintStream(logOutputStream)
         val assignmentsLogHandler = AssignmentsLogHandler(printStream)

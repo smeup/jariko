@@ -11,7 +11,7 @@ import org.junit.Test as test
 
 class StatementsTest {
 
-    private fun statement(code: String) : Statement {
+    private fun statement(code: String): Statement {
         val stmtContext = assertStatementCanBeParsed("     C                   $code                                                          ")
         return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
     }
@@ -177,5 +177,4 @@ class StatementsTest {
                 PlusExpr(dataRef("A"), dataRef("B"))),
                 statement("EVAL      RESULT = A + B"))
     }
-
 }

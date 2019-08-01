@@ -17,8 +17,8 @@ import com.smeup.rpgparser.utils.asInt
  * It should consider only statically evaluatable elements
  */
 interface CompileTimeInterpreter {
-    fun evaluate(rContext: RpgParser.RContext, expression: Expression) : Value
-    fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression) : Int
+    fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value
+    fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression): Int
 }
 
 object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter()
@@ -37,24 +37,23 @@ class InjectableCompileTimeInterpreter : BaseCompileTimeInterpreter() {
     fun overrideDecl(name: String, type: Type) {
         mockedDecls[name] = type
     }
-
 }
 
 open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
-    override fun evaluate(rContext: RpgParser.RContext, expression: Expression) : Value {
+    override fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value {
         return when (expression) {
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
             is IntLiteral -> IntValue(expression.value)
             else -> TODO(expression.toString())
         }
     }
-    private fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, expression: Expression) : Int {
-        return when (expression){
+    private fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, expression: Expression): Int {
+        return when (expression) {
             is DataRefExpr -> evaluateNumberOfElementsOf(rContext, expression.variable.name)
             else -> TODO(expression.toString())
         }
     }
-    protected open fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String) : Int {
+    protected open fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
         rContext.statement()
                 .forEach {
                     when {
@@ -74,14 +73,14 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                 }
         TODO("Not found: $declName")
     }
-    open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String) : Int {
+    open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String): Int {
         rContext.statement()
                 .forEach {
                     when {
                         it.dspec() != null -> {
                             val name = it.dspec().ds_name().text
                             if (name == declName) {
-                                //TODO verify...
+                                // TODO verify...
                                 return it.dspec().TO_POSITION().text.asInt()
                             }
                         }
@@ -95,8 +94,8 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                 }
         TODO("Not found: $declName")
     }
-    override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression) : Int {
-        return when (expression){
+    override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression): Int {
+        return when (expression) {
             is DataRefExpr -> evaluateElementSizeOf(rContext, expression.variable.name)
             else -> TODO(expression.toString())
         }

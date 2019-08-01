@@ -4,13 +4,13 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
-import org.junit.Ignore
 import kotlin.test.assertEquals
+import org.junit.Ignore
 import org.junit.Test as test
 
 class ExpressionsTest {
 
-    private fun expression(code: String) : Expression {
+    private fun expression(code: String): Expression {
         val exprContext = assertExpressionCanBeParsed("                                   $code")
         return exprContext.toAst(ToAstConfiguration(considerPosition = false))
     }
@@ -55,7 +55,7 @@ class ExpressionsTest {
     }
 
     @test fun translateExprParsing() {
-        assertEquals(TranslateExpr(dataRef("lo"), dataRef("up"), StringLiteral("rpg dept"),  IntLiteral(1)),
+        assertEquals(TranslateExpr(dataRef("lo"), dataRef("up"), StringLiteral("rpg dept"), IntLiteral(1)),
                      expression("%XLATE(lo:up:'rpg dept')"))
     }
 
@@ -104,7 +104,7 @@ class ExpressionsTest {
         )
     }
 
-    //TODO Changes in grammar needed
+    // TODO Changes in grammar needed
     @test @Ignore
     fun multExpressionWithoutBlanksParsing() {
         val expected = expression("x = y * 2")
@@ -119,7 +119,6 @@ class ExpressionsTest {
 //        assertEquals(expected, actual)
 //    }
 
-
     @test
     fun arithmeticExpressionWithoutBlanksParsing() {
         assertEquals(expression("x = y + 2"), expression("x=y+2"))
@@ -128,5 +127,3 @@ class ExpressionsTest {
         assertEquals(expression("x = y ** 2"), expression("x=y**2"))
     }
 }
-
-

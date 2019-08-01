@@ -11,8 +11,8 @@ import kotlin.reflect.full.functions
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Size(val size: Int)
 
-abstract class JvmProgramRaw(val name: String = "<UNNAMED>", val params: List<ProgramParam>)
-    : Program {
+abstract class JvmProgramRaw(val name: String = "<UNNAMED>", val params: List<ProgramParam>) :
+    Program {
     override fun params() = params
 }
 
@@ -21,7 +21,7 @@ abstract class JvmProgramByReflection : Program {
     companion object {
         private val methods = HashMap<KClass<*>, KFunction<*>?>()
 
-        fun runMethod(kClass: KClass<*>) : KFunction<*>? {
+        fun runMethod(kClass: KClass<*>): KFunction<*>? {
             return methods.computeIfAbsent(kClass) {
                 val runMethods = kClass.functions.filter { it.name == "run" }.toList()
                 if (runMethods.size != 1) {
@@ -66,7 +66,6 @@ abstract class JvmProgramByReflection : Program {
             return emptyList()
         }
     }
-
 }
 
 private fun Value.toJavaValue(parameter: KParameter): Any {

@@ -2,19 +2,18 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.ast.*
 import com.smeup.rpgparser.interpreter.*
-import org.junit.Test
 import java.util.*
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
+import org.junit.Test
 
 class ExpressionEvaluationTest {
 
     @Test
     fun stringIsoDate() {
-        val calendar = Calendar.getInstance();
+        val calendar = Calendar.getInstance()
         calendar.set(2011, 8, 14, 22, 6, 48)
         calendar.set(Calendar.MILLISECOND, 592)
-        assertEquals(calendar.time.time,"2011-09-14-22.06.48.592000".asIsoDate().time)
+        assertEquals(calendar.time.time, "2011-09-14-22.06.48.592000".asIsoDate().time)
     }
 
     @Test
@@ -52,7 +51,7 @@ class ExpressionEvaluationTest {
                         mapOf(dataDefinition to IntValue(11))))
     }
 
-    private fun interpret(expr: Expression, initializations : Map<AbstractDataDefinition, Value> = mapOf()) : Value {
+    private fun interpret(expr: Expression, initializations: Map<AbstractDataDefinition, Value> = mapOf()): Value {
         val systemInterface = DummySystemInterface
         val interpreter = InternalInterpreter(systemInterface)
         initializations.forEach {
@@ -60,5 +59,4 @@ class ExpressionEvaluationTest {
         }
         return interpreter.interpret(expr)
     }
-
 }

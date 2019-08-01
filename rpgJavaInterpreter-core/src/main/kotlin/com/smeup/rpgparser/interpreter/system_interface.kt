@@ -6,13 +6,11 @@ package com.smeup.rpgparser.interpreter
  */
 interface SystemInterface {
     fun display(value: String)
-    fun findProgram(name: String) : Program?
+    fun findProgram(name: String): Program?
     fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
 }
 
-
 object DummySystemInterface : SystemInterface {
-
 
     override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
         return null
@@ -25,5 +23,4 @@ object DummySystemInterface : SystemInterface {
     override fun display(value: String) {
         // doing nothing
     }
-
 }

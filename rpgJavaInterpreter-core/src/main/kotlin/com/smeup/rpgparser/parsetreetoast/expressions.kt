@@ -5,7 +5,7 @@ import com.smeup.rpgparser.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.ReferenceByName
 
-internal fun RpgParser.SimpleExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
         this.number() != null -> this.number()!!.toAst(conf)
         this.identifier() != null -> this.identifier().toAst(conf)
@@ -15,7 +15,7 @@ internal fun RpgParser.SimpleExpressionContext.toAst(conf : ToAstConfiguration =
     }
 }
 
-fun RpgParser.ExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
         this.number() != null -> this.number()!!.toAst(conf)
         this.identifier() != null -> this.identifier().toAst(conf)
@@ -46,13 +46,13 @@ fun RpgParser.ExpressionContext.toAst(conf : ToAstConfiguration = ToAstConfigura
     }
 }
 
-internal fun RpgParser.LiteralContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return StringLiteral(this.content?.text ?: "", toPosition(conf.considerPosition))
 }
 
-internal fun RpgParser.NumberContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : NumberLiteral {
+internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): NumberLiteral {
     val position = this.toPosition(conf.considerPosition)
-    require(this.NumberPart().isEmpty(), { "Number not empty ${position}" })
+    require(this.NumberPart().isEmpty(), { "Number not empty $position" })
     val text = (this.MINUS()?.text ?: "") + this.NUMBER().text
     return if (text.contains('.')) {
         RealLiteral(text.toBigDecimal(), position)
@@ -61,7 +61,7 @@ internal fun RpgParser.NumberContext.toAst(conf : ToAstConfiguration = ToAstConf
     }
 }
 
-internal fun RpgParser.IdentifierContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Expression {
+internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when (this.text.toUpperCase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> TODO()
@@ -78,7 +78,7 @@ internal fun RpgParser.IdentifierContext.toAst(conf : ToAstConfiguration = ToAst
     }
 }
 
-internal fun String.indicatorIndex() : Int? {
+internal fun String.indicatorIndex(): Int? {
     return if (this.startsWith("*IN")) {
         this.substring("*IN".length).toIntOrNull()
     } else {

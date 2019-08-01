@@ -27,5 +27,4 @@ class InterpreterSmokeTest {
         cu.resolve()
         execute(cu, mapOf())
     }
-
 }
