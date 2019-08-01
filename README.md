@@ -142,6 +142,10 @@ Side note for maven users who use mirrors: remember to change your .m2/settings.
             <id>myNexus</id>
             <mirrorOf>!jitpack.io,*</mirrorOf>
 
+## Autoformatting
+
+It can be performed using the task `formatKotlin`.
+
 ## Credits
 
 The grammar used in this project is based on the work from [Ryan Eberly](https://www.linkedin.com/in/ryan-eberly-428b438/). It is derived from his project [rpgleparser](https://github.com/rpgleparser/rpgleparser).
