@@ -41,7 +41,7 @@ public class RpgParserWithMuteRuntimeTest {
 
         }
         if (withMuteSupport) {
-            ast.injectMuteAnnotation(parseTreeRoot.root!!.rContext, parseTreeRoot.root!!.muteContexts!!)
+            ast.injectMuteAnnotation(parseTreeRoot.root!!.muteContexts!!)
         }
         return ast
     }

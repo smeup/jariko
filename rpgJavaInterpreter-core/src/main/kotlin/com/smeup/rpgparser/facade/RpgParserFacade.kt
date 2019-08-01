@@ -14,6 +14,7 @@ import com.strumenta.kolasu.model.endPoint
 import com.strumenta.kolasu.model.startPoint
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
+import jdk.internal.util.xml.impl.Input
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.apache.commons.io.input.BOMInputStream
@@ -23,6 +24,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import kotlin.collections.HashMap
 
+typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 
 data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
     val correct : Boolean
@@ -187,6 +189,31 @@ class RpgParserFacade {
 
     }
 
+    private fun findMutes(code: String, errors: MutableList<Error>) =
+            findMutes(code.byteInputStream(Charsets.UTF_8), errors)
+
+    private fun findMutes(code: InputStream, errors: MutableList<Error>) : MutesMap {
+        val lexResult = lex(BOMInputStream(code))
+        errors.addAll(lexResult.errors)
+        // Find sequence 3, 5, 590
+        val mutes : MutesMap = HashMap()
+        lexResult.root?.forEachIndexed { index, token0 ->
+            if (index + 2 < lexResult.root?.size) {
+                val token1 = lexResult.root!![index + 1]
+                val token2 = lexResult.root!![index + 2]
+                // Please note the leading spaces added
+                if (token0.type == LEAD_WS5_Comments && token0.text == "".padStart(4) + "M"
+                        && token1.type == COMMENT_SPEC_FIXED && token1.text == "U*"
+                        && token2.type == COMMENTS_TEXT) {
+                    // Please note the leading spaces added to the token
+                    var preproc = preprocess(token2.text)
+                    mutes[token2.line] = parseMute("".padStart(8) + preproc, errors)
+                }
+            }
+        }
+        return mutes
+    }
+
     fun parse(inputStream: InputStream) : RpgParserResult {
         val errors = LinkedList<Error>()
         val code = inputStreamToString(inputStream)
@@ -194,24 +221,7 @@ class RpgParserFacade {
         val root = parser.r()
         var mutes : Map<Int, MuteParser.MuteLineContext>? = null
         if (muteSupport) {
-            val lexResult = lex(BOMInputStream(code.byteInputStream(Charsets.UTF_8)))
-            errors.addAll(lexResult.errors)
-            // Find sequence 3, 5, 590
-            mutes = HashMap<Int, MuteParser.MuteLineContext>()
-            lexResult.root?.forEachIndexed { index, token0 ->
-                if (index + 2 < lexResult.root?.size) {
-                    val token1 = lexResult.root!![index + 1]
-                    val token2 = lexResult.root!![index + 2]
-                    // Please note the leading spaces added
-                    if (token0.type == LEAD_WS5_Comments && token0.text == "".padStart(4) + "M"
-                            && token1.type == COMMENT_SPEC_FIXED && token1.text == "U*"
-                            && token2.type == COMMENTS_TEXT) {
-                        // Please note the leading spaces added to the token
-                        var preproc = preprocess( token2.text );
-                        mutes[token2.line] = parseMute("".padStart(8) + preproc, errors)
-                    }
-                }
-            }
+            mutes = findMutes(code, errors)
         }
         verifyParseTree(parser, errors, root)
         return RpgParserResult(errors, ParseTrees(root, mutes))
@@ -223,7 +233,7 @@ class RpgParserFacade {
                 { "Errors: ${result.errors.joinToString(separator = ", ")}" }
         return result.root!!.rContext.toAst().apply {
             if (muteSupport) {
-                this.injectMuteAnnotation(result.root!!.rContext, result.root!!.muteContexts!!)
+                this.injectMuteAnnotation(result.root!!.muteContexts!!)
             }
         }
     }
@@ -237,15 +247,21 @@ class RpgParserFacade {
         return ParsingResult(errors, root)
     }
 
-    fun parseStatement(inputStream: InputStream, longLines: Boolean = true) : ParsingResult<RpgParser.StatementContext> {
-        if (muteSupport) {
-            TODO("Mute support to be implemented")
-        }
+    fun parseStatement(inputStream: InputStream, longLines: Boolean = true) : ParsingResult<StatementContext> {
         val errors = LinkedList<Error>()
         val parser = createParser(inputStream, errors, longLines = longLines)
         val root = parser.statement()
         verifyParseTree(parser, errors, root)
-        return ParsingResult(errors, root)
+        val result = ParsingResult(errors, root)
+        var mutes : MutesMap? = null
+        if (muteSupport) {
+            inputStream.reset()
+            mutes = findMutes(inputStream, errors)
+            result.root!!.toAst().apply {
+                this.injectMuteAnnotation(mutes)
+            }
+        }
+        return result
     }
 
 }

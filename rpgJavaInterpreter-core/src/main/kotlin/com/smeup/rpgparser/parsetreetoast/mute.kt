@@ -103,8 +103,20 @@ fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>,map:
 }
 
 
-fun CompilationUnit.injectMuteAnnotation(parseTreeRoot: RpgParser.RContext,
-                                         mutes: Map<Int, MuteParser.MuteLineContext>) : List<MuteAnnotationResolved>  {
+fun Statement.injectMuteAnnotation(mutes: Map<Int, MuteParser.MuteLineContext>) : List<MuteAnnotationResolved>  {
+
+    val resolved : MutableList<MuteAnnotationResolved> = mutableListOf()
+    // Process the main body statements
+    val stmts = listOf(this)
+    resolved.addAll(injectMuteAnnotationToStatements(stmts,
+            this.position!!.start.line,
+            this.position!!.end.line,
+            mutes))
+
+    return resolved
+}
+
+fun CompilationUnit.injectMuteAnnotation(mutes: Map<Int, MuteParser.MuteLineContext>) : List<MuteAnnotationResolved>  {
 
     val resolved : MutableList<MuteAnnotationResolved> = mutableListOf()
     //injectMuteAnnotationHelper( this.dataDefinitions,)

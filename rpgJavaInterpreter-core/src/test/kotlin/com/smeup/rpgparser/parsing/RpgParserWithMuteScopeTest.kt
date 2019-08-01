@@ -55,7 +55,7 @@ public class RpgParserWithMuteScopeTest {
         val result = assertCanBeParsed("mute/MUTE01_SCOPE",withMuteSupport = true)
 
         val cu = result.root!!.rContext.toAst().apply {
-            resolved  = this.injectMuteAnnotation(result.root!!.rContext, result.root!!.muteContexts!!)
+            resolved  = this.injectMuteAnnotation(result.root!!.muteContexts!!)
         }
 
         showResults(resolved)
