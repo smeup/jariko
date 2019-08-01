@@ -11,6 +11,7 @@
      C                   EVAL      VALUE1 = %TRIM(VAR1) +':'
     MU* VAL1(VALUE1) VAL2('  AAA:') COMP(EQ)
      C                   EVAL      VALUE1 = %TRIM(VAR1) +':'
-    MU* VAL1(AR(1)) VAL2(4) COMP(NE)
+    MU* VAL1(%TRIMR(VAR1) +':') VAL2('  AAA:') COMP(EQ)
+    MU* VAL1(VALUE1) VAL2('AAA                         :') COMP(NE)
      C                   EVAL      AR(1) = 5
      C                   SETON                                        LR
