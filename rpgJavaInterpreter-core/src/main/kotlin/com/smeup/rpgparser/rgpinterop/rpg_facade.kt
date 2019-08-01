@@ -7,6 +7,7 @@ import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
+import kotlin.math.log
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
@@ -35,14 +36,28 @@ class ClassProgramName<P> : ProgramNameSource<P> {
 abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
                              val systemInterface: SystemInterface) {
 
-    var traceMode = true
+    private val logHandlers = mutableListOf<InterpreterLogHandler>()
+    fun addLogHandler(handler: InterpreterLogHandler) = logHandlers.add(handler)
+    fun removeLogHandler(handler: InterpreterLogHandler) = logHandlers.remove(handler)
 
-    protected val programInterpreter = ProgramInterpreter(systemInterface)
-    protected val rpgProgram by lazy { RpgSystem.getProgram(programNameSource.nameFor(this)) }
+    var traceMode: Boolean
+        get() =  logHandlers.any { it is SimpleLogHandler}
+        set(simpleLogHandler) {
+            if (simpleLogHandler) {
+                logHandlers.add(SimpleLogHandler)
+            } else {
+                logHandlers.remove(SimpleLogHandler)
+            }
+        }
+
+    protected val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
+    private val programName by lazy {programNameSource.nameFor(this) }
+    protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
 
     fun singleCall(params: P) : P? {
         val initialValues = toInitialValues(params)
-        programInterpreter.execute(rpgProgram, initialValues, traceMode = traceMode)
+        logHandlers.log(StartProgramLog(programName, initialValues))
+        programInterpreter.execute(rpgProgram, initialValues)
         return toResults(params, initialValues)
     }
 
@@ -87,7 +102,7 @@ abstract class RpgFacade<P> (val programNameSource: ProgramNameSource<P> = Class
                     val parts = LinkedList<String>()
                     jvmValue!!.javaClass.kotlin.memberProperties.forEach {
                         val stringLength = (it.rpgType() as StringType).length.toInt()
-                        parts.add(propertyStringValue(it, jvmValue).padEnd(stringLength, '\u0000'))
+                        parts.add(propertyStringValue(it, jvmValue).padEnd(stringLength, PAD_CHAR))
                     }
                     return StringValue(parts.joinToString(separator = ""))
                 }

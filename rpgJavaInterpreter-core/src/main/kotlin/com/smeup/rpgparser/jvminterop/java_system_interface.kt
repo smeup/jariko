@@ -16,7 +16,15 @@ open class JavaSystemInterface(private val outputStream: PrintStream,
     constructor (os: PrintStream) : this(os, RpgSystem::getProgram)
     constructor(): this(System.out)
 
-    val consoleOutput = LinkedList<String>()
+    private val consoleOutputList = LinkedList<String>()
+
+    val consoleOutput: List<String>
+        get() = consoleOutputList.map(String::trimEnd)
+
+    fun clearConsole() {
+        consoleOutputList.clear()
+    }
+
     private val javaInteropPackages = LinkedList<String>()
     private val programs = HashMap<String, Program?>()
 
@@ -25,7 +33,7 @@ open class JavaSystemInterface(private val outputStream: PrintStream,
     }
 
     override fun display(value: String) {
-        consoleOutput.add(value)
+        consoleOutputList.add(value)
         outputStream.println(value)
     }
 

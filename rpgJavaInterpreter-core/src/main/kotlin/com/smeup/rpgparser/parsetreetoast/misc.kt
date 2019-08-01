@@ -42,11 +42,19 @@ fun RContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : Compilati
         }
     }
     val subroutines = this.subroutine().map { it.toAst(conf) }
+    val compileTimeArrays = this.endSource().map { it.toAst(conf) }
     return CompilationUnit(
             dataDefinitions,
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines,
+            compileTimeArrays,
             position = this.toPosition(conf.considerPosition))
+}
+
+internal fun EndSourceContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
+    return CompileTimeArray(this.endSourceHead().text, //TODO: change grammar to get **CNAME name
+            this.endSourceLine().map { it.text },
+            toPosition(conf.considerPosition))
 }
 
 internal fun SubroutineContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): Subroutine {
@@ -84,9 +92,9 @@ internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
     }
     val text = this.CS_FactorContent().text
     return when (text.first()) {
-        in '0'..'9' -> IntLiteral(text.toLong(), position = toPosition(conf.considerPosition))
-        '\'' -> StringLiteral(text, position = toPosition(conf.considerPosition))
-        else -> DataRefExpr(ReferenceByName(text))
+        in '0'..'9' -> IntLiteral(text.toLong(), toPosition(conf.considerPosition))
+        '\'' -> StringLiteral(text, toPosition(conf.considerPosition))
+        else ->  referenceToExpression(text, toPosition(conf.considerPosition))
     }
 }
 
@@ -120,6 +128,8 @@ internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAst
         this.csMOVE() != null -> this.csMOVE().toAst(conf)
         this.csTIME() != null -> this.csTIME().toAst(conf)
         this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
+        this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
+//        this.csCOMP() != null -> this.csCOMP().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -129,7 +139,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf : ToAstConfiguration = ToAst
 internal fun referenceToExpression(text: String, position: Position?) : Expression {
     var expr : Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
-        DataRefExpr(ReferenceByName(varName))
+        DataRefExpr(ReferenceByName(varName), position)
     }
     if (text.contains("(")) {
         // TODO support annidated parenthesis, if necessary
@@ -137,15 +147,32 @@ internal fun referenceToExpression(text: String, position: Position?) : Expressi
             TODO("Support annidated parenthesis")
         }
         val indexText = text.substring(text.indexOf("(") + 1, text.lastIndexOf(")"))
-        expr = ArrayAccessExpr(expr, IntLiteral(indexText.toLong(),
-                if (position == null) null else Position(position.start.plus(text.substring(0, text.indexOf("("))),
-                        position.start.plus(text.substring(0, text.lastIndexOf(")"))))))
+        val indexValue = indexText.toLongOrNull();
+        val indexExpression =
+                if (indexValue == null) {
+                    DataRefExpr(ReferenceByName(indexText), computeNewPosition(position, text))
+                } else {
+                    IntLiteral(indexValue, computeNewPosition(position, text))
+                }
+        expr = ArrayAccessExpr(expr, indexExpression)
     }
     return expr
 }
 
+private fun computeNewPosition(position: Position?, text: String) =
+    if (position == null) {
+        null
+    } else {
+        Position(position.start.plus(text.substring(0, text.indexOf("("))),
+                 position.start.plus(text.substring(0, text.lastIndexOf(")"))))
+    }
+
 fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()
 
+//internal fun CsCOMPContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CompStmt {
+//
+//}
+//
 
 internal fun CsDSPLYContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
     val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
@@ -182,15 +209,6 @@ internal fun CsPARMContext.toAst(conf : ToAstConfiguration = ToAstConfiguration(
     val paramName = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
     return PlistParam(ReferenceByName(paramName), this.cspec_fixed_standard_parts().toDataDefinition(paramName, position, conf), position)
-}
-
-internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
-    val name = this.cspec_fixed_standard_parts().result.text
-    val position = toPosition(conf.considerPosition)
-    return ClearStmt(
-            referenceToExpression(name, toPosition(conf.considerPosition)),
-            this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf),
-            position)
 }
 
 internal fun CsTIMEContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): TimeStmt {
@@ -276,12 +294,28 @@ internal fun CsSUBDURContext.toAst(conf : ToAstConfiguration = ToAstConfiguratio
 }
 
 internal fun CsMOVEContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): MoveStmt {
-    val target = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: $this.text")
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: $this.text")
     val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
-    return MoveStmt(DataRefExpr(ReferenceByName(name), position), target, position)
+    return MoveStmt(DataRefExpr(ReferenceByName(name), position), expression, position)
 }
 
+internal fun CsZ_ADDContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ZAddStmt {
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-ADD operation requires factor 2: $this.text")
+    val name = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
+    return ZAddStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
+}
+
+internal fun CsCLEARContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): ClearStmt {
+    val name = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return ClearStmt(
+            referenceToExpression(name, toPosition(conf.considerPosition)),
+            this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf),
+            position)
+}
 
 internal fun TargetContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
     return when (this) {

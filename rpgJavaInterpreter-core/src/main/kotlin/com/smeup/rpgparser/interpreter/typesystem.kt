@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.ast.DataRefExpr
 import com.smeup.rpgparser.ast.Expression
+import com.sun.org.apache.xpath.internal.operations.Bool
 
 // Supported data types:
 // * Character Format
@@ -57,7 +58,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
     val decimal: Boolean
         get() = !integer
 }
-data class ArrayType(val element: Type, val nElements: Int) : Type() {
+data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
     override val size: Long
         get()= element.size * nElements
 
@@ -69,6 +70,7 @@ data class ArrayType(val element: Type, val nElements: Int) : Type() {
         return element.size
     }
 
+    fun compileTimeArray(): Boolean = compileTimeRecordsPerLine != null
 }
 
 data class FieldType(val name: String, val type: Type)

@@ -5,6 +5,7 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsetreetoast.resolve
+import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -44,8 +45,9 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIB_2", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
-        val assignments = interpreter.getAssignments()
+        val logHandler = ListLogHandler()
+        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
+        val assignments = logHandler.getAssignments()
         assertEquals(assignments[0].value, StringValue("10"))
         assertIsIntValue(interpreter["NBR"], 10)
         assertEquals(listOf("10"), si.displayed)
@@ -55,9 +57,10 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIB", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue(input)), si)
+        val logHandler = ListLogHandler()
+        execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: $input IS: $output"), si.displayed)
-        assertEquals(interpreter.getExecutedSubroutineNames()[0], "FIB")
+        assertEquals(logHandler.getExecutedSubroutineNames()[0], "FIB")
     }
 
     @Test
@@ -95,9 +98,10 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("HELLO", true)
         cu.resolve()
         val si = CollectorSystemInterface()
-        val interpreter = execute(cu, mapOf(), si)
+        val logHandler = ListLogHandler()
+        execute(cu, mapOf(), si, listOf(logHandler))
         assertEquals(listOf("Hello World!"), si.displayed)
-        assertEquals(interpreter.getExecutedSubroutines().size, 0)
+        assertEquals(logHandler.getExecutedSubroutines().size, 0)
     }
 
 
@@ -106,10 +110,11 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
         cu.resolve()
         val si = CollectorSystemInterface()
+        val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
-        assertEquals(interpreter.getExecutedSubroutines().size, 0)
+        assertEquals(logHandler.getExecutedSubroutines().size, 0)
     }
 
     @Test
@@ -117,9 +122,10 @@ class InterpreterTest {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
         cu.resolve()
         val si = CollectorSystemInterface()
+        val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) : List<Value> {
-                val n = params["ppdat"]!!.asString().valueWithoutPadding.toInt()
+                val n = params["ppdat"]!!.asString().valueWithoutPadding.asInt()
                 var t1 = 0
                 var t2 = 1
 
@@ -132,9 +138,9 @@ class InterpreterTest {
                 return listOf(params["ppdat"]!!)
             }
         }
-        val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si)
+        execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
-        assertEquals(interpreter.getExecutedSubroutines().size, 0)
+        assertEquals(logHandler.getExecutedSubroutines().size, 0)
     }
 
     @Test
@@ -151,7 +157,7 @@ class InterpreterTest {
 
     @Test
     fun executeHELLOCASE() {
-        assertEquals(outputOf("HELLOCASE"), listOf("Hello World!"))
+        assertEquals(listOf("Hello World!"), outputOf("HELLOCASE"))
     }
 
 
@@ -159,42 +165,43 @@ class InterpreterTest {
     fun executeHELLOPLIST() {
         val msg = "Hello World!"
         val parms :  Map<String, Value> = mapOf("msG" to StringValue(msg))
-        assertEquals(outputOf("HELLOPLIST", parms), listOf(msg))
+        assertEquals(listOf(msg), outputOf("HELLOPLIST", parms))
     }
 
     @Test
     fun executeHELLOTRIM() {
-        assertEquals(outputOf("HELLOTRIM"), listOf("Hello World!"))
+        assertEquals(listOf("Hello World!"), outputOf("HELLOTRIM"))
     }
 
 
     @Test
     fun executeHELLO1() {
-        assertEquals(outputOf("HELLO1"), listOf("Hello World"))
+        assertEquals(listOf("Hello World"), outputOf("HELLO1"))
     }
 
-    //TODO
-    @Test @Ignore
+    @Test
     fun executeHELLOCHARS() {
-        assertEquals(outputOf("HELLOCHARS"), listOf("OK"))
+        assertEquals(listOf("OK"), outputOf("HELLOCHARS"))
     }
 
-    //TODO
-    @Test @Ignore
+    @Test
     fun executeHELLOEQU() {
-        assertEquals(outputOf("HELLOEQU"), listOf("Cb is equal to C and Cb does not differ from C"))
+        assertEquals(listOf("Cb is equal to C and Cb does not differ from C"), outputOf("HELLOEQU"))
     }
 
-    //TODO
-    @Test @Ignore
+    @Test
     fun executeHELLOPAD() {
-        assertEquals(outputOf("HELLOPAD"), listOf("X padded"))
+        assertEquals(listOf("X padded"), outputOf("HELLOPAD"))
     }
 
-    //TODO
-    @Test @Ignore
+    @Test
+    fun executeLEN() {
+        assertEquals(listOf("Hello World! 23"), outputOf("LEN"))
+    }
+
+    @Test
     fun executeHELLOVARST() {
-        assertEquals(outputOf("HELLOVARST"), listOf("Eq", "Hello-World", "Hello-World"))
+        assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
     }
 
     @Test
@@ -215,12 +222,12 @@ class InterpreterTest {
 
     @Test
     fun executeCALCFIBCA5() {
-        assertEquals(outputOf("CALCFIBCA5"), listOf("FIBONACCI OF: 10 IS: 55"))
+        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), outputOf("CALCFIBCA5"))
     }
 
     @Test
     fun executeCAL01_callingRPGPgm() {
-        assertEquals(outputOf("CAL01"), listOf("1"))
+        assertEquals(listOf("1"), outputOf("CAL01"))
     }
 
     @Test
@@ -284,16 +291,209 @@ class InterpreterTest {
         assertEquals(listOf("x is now 6", "y is now 2", "z is now 0"), outputOf("CALC"))
     }
 
-    @Test @Ignore
+    @Test
+    fun executeMULTILNE() {
+        assertEquals(listOf("V1x.5_"), outputOf("MULTILINE"))
+    }
+
+    @Test
+    fun executeXLATEBIF() {
+        assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
+    }
+
+    @Test
     fun executeBIFEDITC_1() {
-        assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00"), outputOf("BIFEDITC_1"))
+        assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00X"), outputOf("BIFEDITC_1"))
+    }
+
+    @Test
+    fun executeXLATEBIF2() {
+        assertEquals(listOf("http://xxx.smaup.comuuuuuu"), outputOf("XLATEBIF2"))
+    }
+
+    @Test
+    fun executeBIFEDITC_2() {
+        assertEquals(listOf("x   123,456   123,456  1,234.56X",
+                            "x  1,234.56          X",
+                            "x  1,234.50X"),
+                     outputOf("BIFEDITC_2"))
+    }
+
+    @Test
+    fun executeBIFEDITC_3() {
+        assertEquals(listOf("x  123456  123456  1234.56X",
+                            "x  1234.56      .00X",
+                            "x  1234.50X"),
+                     outputOf("BIFEDITC_3"))
+    }
+    @Test
+    fun executeBIFEDITC_4() {
+        assertEquals(listOf("x  123456  123456  1234.56X",
+                            "x  1234.56         X",
+                            "x  1234.50X"),
+                     outputOf("BIFEDITC_4"))
+    }
+
+    @Test
+    fun executeBIFEDITC_J() {
+        assertEquals(listOf("x   123,456    123,456-  1,234.56 X",
+                            "x  1,234.56-       .00 X",
+                            "x  1,234.50 X"),
+                     outputOf("BIFEDITC_J"))
     }
 
     @Test @Ignore
-    fun executeBIFEDITC_Z() {
-        assertEquals(listOf("x  123456  123456  123456  123456        "), outputOf("BIFEDITC_Z"))
+    fun executeBIFEDITC_Y() {
+        assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
+                            "x  12/34/56   0/00/00X",
+                            "x  12/34/50 12/34/5678  0/00/12X",
+                            "x   1/23/45X" ),
+                     outputOf("BIFEDITC_Y"))
     }
 
+    @Test
+    fun executeNEGATIVINI() {
+        assertEquals(listOf("< 0"), outputOf("NEGATIVINI"))
+    }
+
+    @Test
+    fun executeBIFEDITC_Z() {
+        assertEquals(listOf("x  123456  123456  123456  123456        X"), outputOf("BIFEDITC_Z"))
+    }
+
+    @Test
+    fun executeARRAY01() {
+        assertEquals(listOf("X-Y"), outputOf("ARRAY01"))
+    }
+
+    @Test
+    fun executeCTDATA() {
+        assertEquals(expected =
+                    ("001\n" +
+                    "d01\n" +
+                    "A01\n" +
+                    "c01\n" +
+                    "B01\n" +
+                    "b01\n" +
+                    "C01\n" +
+                    "901\n" +
+                    "101\n" +
+                    "D01\n" +
+                    "H01\n" +
+                    "E01\n" +
+                    "201\n" +
+                    "e01\n" +
+                    "a01\n" +
+                    "x01\n" +
+                    "X01").lines(),
+                    actual = outputOf("CTDATA").map (String::trim))
+    }
+
+    @Test
+    fun executeARRAY02_arrayWithComments() {
+        assertEquals(expected =
+               ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+                actual = outputOf("ARRAY02").map (String::trim))
+    }
+
+    @Test
+    fun executeARRAY03_arrayWithCommentsPERRCD_1() {
+        assertEquals(expected =
+               ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+                actual = outputOf("ARRAY02").map (String::trim))
+    }
+
+
+    @Test
+    fun executeARRAY04_arrayWithCommentsAndDataReference() {
+        assertEquals(expected =
+               ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+                actual = outputOf("ARRAY04").map (String::trim))
+    }
+
+    //TODO Changes in grammar needed
+    @Test @Ignore
+    fun executeARRAY05NAM_namedCompileTimeArrays() {
+        assertEquals(expected =
+               ("100\n" +
+                "100\n" +
+                "100\n" +
+                "100\n" +
+                "100").lines(),
+                actual = outputOf("ARRAY05NAM").map (String::trim))
+    }
+
+
+    @Test
+    fun executeBIFARRAY() {
+        assertEquals(listOf("001001d01d01A01A01c01c01B01B01b01b01C01C019019011011", "10"), outputOf("BIFARRAY"))
+    }
+
+    @Test
+    fun executeSCANTEST() {
+        assertEquals(listOf("0", "4"), outputOf("SCANTEST"))
+    }
+
+    @Test
+    fun executeCLEARSUBR() {
+        assertEquals(listOf("Result = 5"), outputOf("CLEARSUBR"))
+    }
+
+    @Test
+    fun executeZADD() {
+        assertEquals(listOf("5", "11", "88"), outputOf("ZADD"))
+    }
+
+    @Test
+    fun executeLOGICAL_conditions() {
+        assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
+    }
+
+    @Test @Ignore
+    fun executeZADDERR() {
+        //TODO better error assertion
+        assertFailsWith(Throwable::class) {
+            execute("ZADDERR", emptyMap())
+        }
+    }
+
+    @Test
+    fun executeSUBSTTEST() {
+        assertEquals(listOf("x)yy"), outputOf("SUBSTTEST"))
+    }
 
     @Test @Ignore
     fun executeJCODFISD() {
@@ -306,6 +506,7 @@ class InterpreterTest {
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
     }
 
+    //TODO Changes in grammar needed
     @Test @Ignore
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
@@ -318,6 +519,7 @@ class InterpreterTest {
             execute("ERROR01", emptyMap())
         }
     }
+
 
 }
 

@@ -18,12 +18,10 @@ data class JD_001_params(@property:Param("U\$FUNZ") val funz: String,
 class JD_001(javaSystemInterface: JavaSystemInterface) : RpgFacade<JD_001_params>(systemInterface = javaSystemInterface) {
 
     fun call(originalUrl: String, stringToReplace: String, replacement: String) {
-        singleCall(JD_001_params("INZ", arrayOf(
-                VarElement("Url", originalUrl),
-                VarElement(stringToReplace, replacement))))
-        singleCall(JD_001_params("ESE", arrayOf(
-                VarElement("Url", originalUrl),
-                VarElement(stringToReplace, replacement))))
+        singleCall(JD_001_params("INZ", arrayOf(VarElement("Url", originalUrl),
+                                                     VarElement(stringToReplace, replacement))))
+        singleCall(JD_001_params("ESE", arrayOf(VarElement("Url", originalUrl),
+                                                     VarElement(stringToReplace, replacement))))
         singleCall(JD_001_params("CLO", emptyArray()))
     }
 

@@ -39,6 +39,7 @@
      C                   TIME                    $TIMST
      C                   EVAL      $S=0
      C                   EVAL      $C=1
+     C     'Loop 1'      DSPLY
      C                   DOW       %LEN(%TRIM(V1)) < 30000
      C                   EVAL      $S=$S+1
      C                   IF        $S > 17
@@ -57,6 +58,7 @@
      C                   TIME                    $TIMST
      C                   EVAL      $S=0
      C                   EVAL      $C=1
+     C     'Loop 2'      DSPLY
      C                   DOW       %LEN(V2) < 30000
      C                   EVAL      $S=$S+1
      C                   IF        $S > 17
@@ -75,6 +77,7 @@
      C                   TIME                    $TIMST
      C                   EVAL      $S=0
      C                   EVAL      $C=1
+     C     'Loop 3'      DSPLY
      C                   DO        4000
      C                   EVAL      $S=$S+1
      C                   IF        $S > 17
@@ -93,6 +96,7 @@
      C                   TIME                    $TIMST
      C                   EVAL      $S=0
      C                   EVAL      $C=1
+     C     'Loop 4'      DSPLY
      C                   DO        4000
      C                   EVAL      $S=$S+1
      C                   IF        $S > 17
@@ -111,6 +115,7 @@
      C                   TIME                    $TIMST
      C                   EVAL      $S=0
      C                   EVAL      $C=1
+     C     'Loop 5'      DSPLY
      C                   DO        4000
      C                   EVAL      $S=$S+1
      C                   IF        $S > 17
@@ -118,7 +123,7 @@
      C                   EVAL      $C=$C+1
      C                   ENDIF
      C                   EVAL      S1=%TRIM(SI($S))+'.'+%TRIM(%EDITC($C:'Z'))
-     C                   EVAL      I1=$C*10
+     C                   EVAL      I1=$C * 10
      C                   IF        I1 > 29900
      C                   EVAL      I1=29900
      C                   ENDIF
@@ -133,6 +138,7 @@
      C                   TIME                    $TIMST
      C                   EVAL      $S=0
      C                   EVAL      $C=1
+     C     'Loop 6'      DSPLY
      C                   DO        4000
      C                   EVAL      $S=$S+1
      C                   IF        $S > 17
@@ -140,7 +146,7 @@
      C                   EVAL      $C=$C+1
      C                   ENDIF
      C                   EVAL      S1=%TRIM(SI($S))+'.'+%TRIM(%EDITC($C:'Z'))
-     C                   EVAL      I1=$C*10
+     C                   EVAL      I1=$C * 10
      C                   IF        I1 > 29900
      C                   EVAL      I1=29900
      C                   ENDIF

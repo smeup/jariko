@@ -46,6 +46,7 @@ data class DataDefinition(override val name: String,
             : AbstractDataDefinition(name, type, position) {
 
     fun isArray() = type is ArrayType
+    fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
     fun startOffset(fieldDefinition: FieldDefinition): Int {
         var start = 0
         for (f in fields) {

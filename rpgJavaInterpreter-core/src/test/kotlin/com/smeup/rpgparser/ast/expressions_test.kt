@@ -55,12 +55,8 @@ class ExpressionsTest {
     }
 
     @test fun translateExprParsing() {
-        assertEquals(TranslateExpr(
-                dataRef("lo"),
-                dataRef("up"),
-                StringLiteral("rpg dept")),
-                expression("%XLATE(lo:up:'rpg dept')")
-        )
+        assertEquals(TranslateExpr(dataRef("lo"), dataRef("up"), StringLiteral("rpg dept"),  IntLiteral(1)),
+                     expression("%XLATE(lo:up:'rpg dept')"))
     }
 
     @test fun translateExprParsingWithStartPos() {
@@ -108,6 +104,7 @@ class ExpressionsTest {
         )
     }
 
+    //TODO Changes in grammar needed
     @test @Ignore
     fun multExpressionWithoutBlanksParsing() {
         val expected = expression("x = y * 2")

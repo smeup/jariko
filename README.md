@@ -39,11 +39,22 @@ Then import in IDEA using these options:
 
 ## Running tests
 
-All tests can be executed by running:
+All tests (except for performance tests) can be executed by running:
 
 ```
 ./gradlew check
 ```
+
+To run performance tests (i.e. tests tagged with the annotation `@Category(PerformanceTest::class)`) run:
+```
+./gradlew testPerformance
+```
+
+To run all tests:
+```
+./gradlew testAll
+```
+
 
 If you want to force the execution of all checks:
 
@@ -78,6 +89,10 @@ java -jar rpgJavaInterpreter-core-all.jar path/to/my/RPGLE [parameters]
 
 [In this short video you can see how to run the examples](https://youtu.be/llw2vNeupA4)
 
+See also this animation:
+
+![Alt text](docs/Command_line_interpreter.gif?raw=true "Running interpreter from the command line")
+
 If you omit the program name, you will be able to call programs in a [simple shell](https://youtu.be/uNd6h5H2wTM).
 
 ## How the repository is organized
@@ -87,7 +102,9 @@ If you omit the program name, you will be able to call programs in a [simple she
 * _src_ contains the source code for the project and the tests
 * _out_, and _build_ contain temporary files
 * _misc_ contains utilities for downloading sources from AS400 (for example [this ruby script](misc/ftpas.rb))
+* _misc/docker_: support for [Docker, see instructions](misc/docker/docker.md)
 * _docs_ contains documentation
+
 
 ## How to use this code in your project
 

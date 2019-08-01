@@ -13,7 +13,7 @@
      C                                          %EDITC(Input2:'1') + ' ' +
      C                                          %EDITC(Input3:'1') + ' ' +
      C                                          %EDITC(Input4:'1') + ' ' +
-     C                                          %EDITC(Input5:'1')
+     C                                          %EDITC(Input5:'1') + 'X'
      C     Editcode_1    dsply
      *********************************************************************
      C                   Seton                                        LR

@@ -29,6 +29,8 @@ import kotlin.test.fail
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
 
+interface PerformanceTest
+
 fun assertIsIntValue(value: Value, intValue: Long) {
     assertTrue(value is IntValue, "IntValue expected but found instead $value")
     assertEquals(intValue, value.value)
@@ -153,12 +155,13 @@ open class CollectorSystemInterface : SystemInterface {
     }
 }
 
+
 fun execute(cu: CompilationUnit,
             initialValues: Map<String, Value>,
             systemInterface: SystemInterface? = null,
-            traceMode : Boolean = false) : InternalInterpreter {
+            logHandlers : List<InterpreterLogHandler> = emptyList()) : InternalInterpreter {
     val interpreter = InternalInterpreter(systemInterface ?: DummySystemInterface)
-    interpreter.traceMode = traceMode
+    interpreter.logHandlers = logHandlers
     try {
         interpreter.execute(cu, initialValues)
     } catch (e: InterruptForDebuggingPurposes) {
@@ -174,18 +177,18 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue (lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): LinkedList<String> {
-    val interpreter = execute(programName, initialValues)
+fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): List<String> {
+    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE))
     val si = interpreter.systemInterface as CollectorSystemInterface
-    return si.displayed
+    return si.displayed.map(String::trimEnd)
 }
 
 private const val TRACE = false
 
-fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): InternalInterpreter {
+fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE)): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true)
     cu.resolve()
-    return execute(cu, initialValues, si, traceMode = TRACE)
+    return execute(cu, initialValues, si, logHandlers)
 }
 
 fun rpgProgram(name: String) : RpgProgram {

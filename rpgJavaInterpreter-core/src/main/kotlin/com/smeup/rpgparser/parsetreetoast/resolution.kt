@@ -1,16 +1,24 @@
 package com.smeup.rpgparser.parsetreetoast
 
 import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.utils.enrichExceptionWith
 import com.strumenta.kolasu.model.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
     // TODO could they be also annidated?
-    // TODO could they also be in subroutines?
-    this.main.stmts.filterIsInstance(StatementThatCanDefineData::class.java).forEach {
+    this.allStatements().filterIsInstance(StatementThatCanDefineData::class.java).forEach {
         this.addInStatementDataDefinitions(it.dataDefinition())
     }
 }
 
+private fun CompilationUnit.allStatements(): List<Statement> {
+    val result = mutableListOf<Statement>()
+    result.addAll(this.main.stmts)
+    this.subroutines.forEach {
+        result.addAll(it.stmts)
+    }
+    return result
+}
 
 fun CompilationUnit.resolve() {
     this.assignParents()
@@ -36,10 +44,12 @@ fun CompilationUnit.resolve() {
         if (fc.args.size == 1) {
             val data = this.allDataDefinitions.firstOrNull { it.name == fc.function.name }
             if (data != null) {
-                fc.replace(ArrayAccessExpr(
-                        array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
-                        index = fc.args[0],
-                        position = fc.position))
+                enrichExceptionWith(fc.position) {
+                    fc.replace(ArrayAccessExpr(
+                            array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
+                            index = fc.args[0],
+                            position = fc.position))
+                }
             }
         }
     }

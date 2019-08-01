@@ -107,7 +107,7 @@ internal fun RpgParser.Bif_xlateContext.toAst(conf : ToAstConfiguration = ToAstC
             this.from.toAst(conf),
             this.to.toAst(conf),
             this.string.toAst(conf),
-            this.startpos?.toAst(conf),
+            this.startpos?.toAst(conf) ?:  IntLiteral(1),
             toPosition(conf.considerPosition))
 }
 

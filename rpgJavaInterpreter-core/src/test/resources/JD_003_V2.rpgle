@@ -113,10 +113,6 @@
       * If buffer received
 4    C                   IF        BUFLEN>0
      C                   EVAL      $XML=%SUBST(BUFFER:1:BUFLEN)
-     ‚* * Search <Auto> attribute
-     ‚*C                   EVAL      $RIGA=P_RxELE('Auto':'POS':01:$XML)          COSTANTE
-     ‚*C                   IF        $RIGA<>''
-     ‚*C                   EVAL      $TARGA=P_RxVAL($RIGA:'Targa')                COSTANTE
       * Search Targa attribute (license plate)
      C                   EVAL      $X=%SCAN('Targa="':$XML)
 5    C                   IF        $X>0

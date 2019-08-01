@@ -4,11 +4,12 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.ast.AssignableExpression
 import com.smeup.rpgparser.ast.Expression
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 
 fun RpgParser.Dcl_dsContext.elementSizeOf() : Int {
     val header = this.parm_fixed().first()
-    return header.TO_POSITION().text.trim().toInt()
+    return header.TO_POSITION().text.asInt()
 }
 
 internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
@@ -31,6 +32,9 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
     var like : AssignableExpression? = null
     var dim : Expression? = null
     var initializationValue : Expression? = null
+    var elementsPerLineExpression : Expression? = null
+    var compileTimeArray = false
+
     this.keyword().forEach {
         it.keyword_like()?.let {
             like = it.simpleExpression().toAst(conf) as AssignableExpression
@@ -40,6 +44,12 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
         }
         it.keyword_dim()?.let {
             dim = it.simpleExpression().toAst(conf)
+        }
+        it.keyword_perrcd()?.let {
+            elementsPerLineExpression = it.simpleExpression()?.toAst(conf)
+        }
+        it.keyword_ctdata()?.let {
+            compileTimeArray = true
         }
     }
     val elementSize = when {
@@ -58,12 +68,20 @@ internal fun RpgParser.DspecContext.toAst(conf : ToAstConfiguration = ToAstConfi
         "A" -> StringType(elementSize!!.toLong())
         "N" -> BooleanType
         "Z" -> TimeStampType
-        "A" -> StringType(elementSize!!.toLong())
         "S" -> StringType(elementSize!!.toLong())
-        else -> throw UnsupportedOperationException("<${this.DATA_TYPE().text}>")
+        else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
     }
     val type = if (dim != null) {
-        ArrayType(baseType, conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt())
+        var compileTimeRecordsPerLine : Int? = null
+        if (compileTimeArray) {
+            if (elementsPerLineExpression != null) {
+                compileTimeRecordsPerLine = conf.compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
+            } else {
+                compileTimeRecordsPerLine = 1
+            }
+            require(compileTimeRecordsPerLine > 0)
+        }
+        ArrayType(baseType, conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine)
     } else {
         baseType
     }
@@ -111,7 +129,7 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf : ToAstConfiguration = 
 
 internal fun RpgParser.Dcl_dsContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()) : DataDefinition {
     val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
-        this.TO_POSITION().text.trim().toInt()
+        this.TO_POSITION().text.asInt()
     } else {
         null
     }

@@ -81,6 +81,25 @@ test {
     testLogging {
         events "passed", "skipped", "failed"
     }
+    useJUnit {
+        excludeCategories 'com.smeup.rpgparser.PerformanceTest'
+    }
+}
+
+task testPerformance(type: Test) {
+    maxHeapSize = "2048m"
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+    useJUnit {
+        includeCategories 'com.smeup.rpgparser.PerformanceTest'
+    }
+}
+
+task testAll(type: Test) {
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 jacoco {
