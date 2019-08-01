@@ -60,10 +60,11 @@ data class SelectStmt(var cases: List<SelectCase>,
             )
         }
 
-
-        muteAttached.addAll(
-                acceptBody(other!!.body,mutes, other!!.position!!.start.line , other!!.position!!.end.line )
-        )
+        if (other != null) {
+            muteAttached.addAll(
+                    acceptBody(other!!.body, mutes, other!!.position!!.start.line, other!!.position!!.end.line)
+            )
+        }
 
         return muteAttached
     }
