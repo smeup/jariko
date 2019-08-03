@@ -362,6 +362,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeVAR01() {
+        assertEquals(listOf("NOT EQ"), outputOf("VAR01"))
+    }
+
+    @Test
     fun executeARRAY01() {
         assertEquals(listOf("X-Y"), outputOf("ARRAY01"))
     }
