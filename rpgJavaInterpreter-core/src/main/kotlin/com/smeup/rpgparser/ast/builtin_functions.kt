@@ -95,5 +95,6 @@ data class DiffExpr(
     Expression(position)
 
 // TODO Move and handle different types of duration
+// TODO document what a duration code is
 data class DurationCodeExpr(override var position: Position? = null) :
     Expression(position)

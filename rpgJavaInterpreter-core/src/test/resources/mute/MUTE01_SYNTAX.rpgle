@@ -39,10 +39,10 @@
      C                   EVAL      NUMBER3 = (NUMBER1 + NUMBER2) * 2
     MU* VAL1(NUMBER2) VAL2(NUMBER1+1-NUMBER3) COMP(LT)
      C                   EVAL      NUMBER3 = (NUMBER1 + NUMBER2) * 2
-     C                   EVAL      AR1(1) = (NUMBER1 + NUMBER2) * 2
+     C                   EVAL      AR1(1) = ''
       *
-    MU* VAL1(*AR1(1)) VAL2(NUMBER1+1-NUMBER3) COMP(LT)
-    MU* VAL1(%TRIM(DFIELD3)) VAL2(NUMBER1+1-NUMBER3) COMP(LT)
+    MU* VAL1( AR1(1) ) VAL2('') COMP(EQ)
+    MU* VAL1(%TRIM(FIELD3)) VAL2('') COMP(EQ)
      C                   SETON                                        LR
       *
       *

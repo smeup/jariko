@@ -153,6 +153,7 @@ data class ElseIfClause(val condition: Expression, val body: List<Statement>, ov
 
 data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
 
+// A Plist is a list of parameters
 data class PlistStmt(
     val params: List<PlistParam>,
     val isEntry: Boolean,
