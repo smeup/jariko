@@ -166,7 +166,7 @@ private fun computeNewPosition(position: Position?, text: String) =
         null
     } else {
         Position(position.start.plus(text.substring(0, text.indexOf("("))),
-                 position.start.plus(text.substring(0, text.lastIndexOf(")"))))
+            position.start.plus(text.substring(0, text.lastIndexOf(")"))))
     }
 
 fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()

@@ -27,7 +27,7 @@ class JavaSystemInterfaceTest {
         assertNull(program)
     }
 
- // We could do this, but with poor performances
+// We could do this, but with poor performances
 //    @Test
 //    fun findsPgmsByUpperCaseName() {
 //        val javaSystemInterface = createJavaSystemInterface()

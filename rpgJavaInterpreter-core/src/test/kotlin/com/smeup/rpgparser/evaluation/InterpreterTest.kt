@@ -312,7 +312,7 @@ class InterpreterTest {
         assertEquals(listOf("x   123,456   123,456  1,234.56X",
                             "x  1,234.56          X",
                             "x  1,234.50X"),
-                     outputOf("BIFEDITC_2"))
+            outputOf("BIFEDITC_2"))
     }
 
     @Test
@@ -320,14 +320,14 @@ class InterpreterTest {
         assertEquals(listOf("x  123456  123456  1234.56X",
                             "x  1234.56      .00X",
                             "x  1234.50X"),
-                     outputOf("BIFEDITC_3"))
+            outputOf("BIFEDITC_3"))
     }
     @Test
     fun executeBIFEDITC_4() {
         assertEquals(listOf("x  123456  123456  1234.56X",
                             "x  1234.56         X",
                             "x  1234.50X"),
-                     outputOf("BIFEDITC_4"))
+            outputOf("BIFEDITC_4"))
     }
 
     @Test
@@ -335,7 +335,7 @@ class InterpreterTest {
         assertEquals(listOf("x   123,456    123,456-  1,234.56 X",
                             "x  1,234.56-       .00 X",
                             "x  1,234.50 X"),
-                     outputOf("BIFEDITC_J"))
+            outputOf("BIFEDITC_J"))
     }
 
     @Test @Ignore
@@ -344,7 +344,7 @@ class InterpreterTest {
                             "x  12/34/56   0/00/00X",
                             "x  12/34/50 12/34/5678  0/00/12X",
                             "x   1/23/45X"),
-                     outputOf("BIFEDITC_Y"))
+            outputOf("BIFEDITC_Y"))
     }
 
     @Test
@@ -393,67 +393,67 @@ class InterpreterTest {
     @Test
     fun executeARRAY02_arrayWithComments() {
         assertEquals(expected =
-               ("abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "xxx").lines(),
-                actual = outputOf("ARRAY02").map(String::trim))
+            ("abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "xxx").lines(),
+            actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
     fun executeARRAY03_arrayWithCommentsPERRCD_1() {
         assertEquals(expected =
-               ("abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "xxx").lines(),
-                actual = outputOf("ARRAY02").map(String::trim))
+            ("abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "xxx").lines(),
+            actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
     fun executeARRAY04_arrayWithCommentsAndDataReference() {
         assertEquals(expected =
-               ("abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "123\n" +
-                "abc\n" +
-                "xxx").lines(),
-                actual = outputOf("ARRAY04").map(String::trim))
+            ("abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "123\n" +
+            "abc\n" +
+            "xxx").lines(),
+            actual = outputOf("ARRAY04").map(String::trim))
     }
 
     // TODO Changes in grammar needed
     @Test @Ignore
     fun executeARRAY05NAM_namedCompileTimeArrays() {
         assertEquals(expected =
-               ("100\n" +
-                "100\n" +
-                "100\n" +
-                "100\n" +
-                "100").lines(),
-                actual = outputOf("ARRAY05NAM").map(String::trim))
+            ("100\n" +
+            "100\n" +
+            "100\n" +
+            "100\n" +
+            "100").lines(),
+            actual = outputOf("ARRAY05NAM").map(String::trim))
     }
 
     @Test
@@ -497,11 +497,11 @@ class InterpreterTest {
     @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
-                                               "FISICA" to BooleanValue(false),
-                                               "OMONIM" to BooleanValue(false),
-                                               "SINTAX" to BooleanValue(false),
-                                               "CHKDIG" to BooleanValue(false)
-                                           )
+            "FISICA" to BooleanValue(false),
+            "OMONIM" to BooleanValue(false),
+            "SINTAX" to BooleanValue(false),
+            "CHKDIG" to BooleanValue(false)
+            )
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
     }
 

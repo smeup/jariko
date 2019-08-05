@@ -56,7 +56,7 @@ class ExpressionsTest {
 
     @test fun translateExprParsing() {
         assertEquals(TranslateExpr(dataRef("lo"), dataRef("up"), StringLiteral("rpg dept"), IntLiteral(1)),
-                     expression("%XLATE(lo:up:'rpg dept')"))
+            expression("%XLATE(lo:up:'rpg dept')"))
     }
 
     @test fun translateExprParsingWithStartPos() {

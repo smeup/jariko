@@ -168,7 +168,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>) {
-       muteAnnotations.forEach {
+        muteAnnotations.forEach {
             when (it) {
                 is MuteComparisonAnnotation -> {
                     val exp: Expression

@@ -1,6 +1,5 @@
 package com.smeup.rpgparser
 
-
 import com.smeup.rpgparser.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.DummySystemInterface
@@ -16,29 +15,27 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
 
+data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int)
 
-data class ExecutionResult(val resolved: Int, val executed : Int, val failed: Int)
-
-fun executeWithMutes(filename : String,verbose : Boolean = false) : ExecutionResult {
+fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResult {
     var failed = 0
     var executed = 0
-    var resolved : List<MuteAnnotationResolved> = listOf()
+    var resolved: List<MuteAnnotationResolved> = listOf()
 
     val result = RpgParserFacade()
             .apply { this.muteSupport = true }
             .parse(File(filename).inputStream())
 
-    if(result.correct) {
+    if (result.correct) {
         val cu = result.root!!.rContext.toAst().apply {
-            resolved  = this.injectMuteAnnotation(result.root!!.muteContexts!!)
+            resolved = this.injectMuteAnnotation(result.root!!.muteContexts!!)
 
-            if( verbose ) {
-                val sorted  = resolved.sortedWith(compareBy { it.muteLine })
+            if (verbose) {
+                val sorted = resolved.sortedWith(compareBy { it.muteLine })
                 sorted.forEach {
-                    println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}" )
+                    println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
                 }
             }
-
         }
         println()
         cu.resolve()
@@ -49,15 +46,14 @@ fun executeWithMutes(filename : String,verbose : Boolean = false) : ExecutionRes
             interpreter.executedAnnotation.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
 
-                    if( verbose ) {
-                        println("Mute annotation at line ${line} ${annotation.expression.render()} failed")
+                    if (verbose) {
+                        println("Mute annotation at line $line ${annotation.expression.render()} failed")
                     }
                     failed++
                 }
                 executed++
             }
         } catch (e: Exception) {
-
         }
     } else {
         result.errors.forEach {
@@ -65,9 +61,9 @@ fun executeWithMutes(filename : String,verbose : Boolean = false) : ExecutionRes
         }
     }
 
-    println("Total annotation: ${resolved.size}, executed: ${executed}, failed: ${failed}" )
+    println("Total annotation: ${resolved.size}, executed: $executed, failed: $failed")
     println()
-    return ExecutionResult(resolved.size,executed,failed)
+    return ExecutionResult(resolved.size, executed, failed)
 }
 
 fun main(args: Array<String>) {
@@ -82,58 +78,50 @@ fun main(args: Array<String>) {
         args[0]
     })
 
-    //Check if the Path is a directory
+    // Check if the Path is a directory
     if (Files.isDirectory(path)) {
         val fileDirMap = Files.list(path).collect(Collectors.partitioningBy({ it -> Files.isDirectory(it) }))
 
         fileDirMap[false]?.forEach { it ->
-            val filename = it.toString();
+            val filename = it.toString()
 
             if (filename.endsWith(".rpgle")) {
                 println(filename)
                 try {
-                    val result = executeWithMutes(filename,verbose)
-                    resolved+= result.resolved
-                    executed+= result.executed
-                    failed+= result.failed
+                    val result = executeWithMutes(filename, verbose)
+                    resolved += result.resolved
+                    executed += result.executed
+                    failed += result.failed
                     files++
                 } catch (e: NotImplementedError) {
                     System.err.println(e)
                 } catch (e: NullPointerException) {
                     System.err.println(e)
-
                 } catch (e: UnsupportedOperationException) {
                     System.err.println(e)
-
                 } catch (e: IllegalArgumentException) {
                     println(e)
-
                 }
             }
         }
         Thread.sleep(2000)
-        println("Total files: ${files}, resolved: ${resolved}, executed: ${executed}, failed:${failed}" )
-
+        println("Total files: $files, resolved: $resolved, executed: $executed, failed:$failed")
     } else {
-        val filename = path.toString();
+        val filename = path.toString()
         if (filename.endsWith(".rpgle")) {
             println(filename)
             try {
-                executeWithMutes(filename,verbose)
+                executeWithMutes(filename, verbose)
                 files++
             } catch (e: NotImplementedError) {
                 System.err.println(e)
             } catch (e: NullPointerException) {
                 System.err.println(e)
-
             } catch (e: UnsupportedOperationException) {
                 System.err.println(e)
-
             } catch (e: IllegalArgumentException) {
                 println(e)
-
             }
         }
     }
-
 }

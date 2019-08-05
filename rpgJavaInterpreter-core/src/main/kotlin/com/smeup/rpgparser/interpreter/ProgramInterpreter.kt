@@ -30,7 +30,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: 
         }
         interpreter.logHandlers = logHandlers
         interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall ||
-                                                          interpreter.interpretationContext.shouldReinitialize())
+            interpreter.interpretationContext.shouldReinitialize())
         initialValues.keys.forEach { initialValues[it] = interpreter[it] }
     }
 }

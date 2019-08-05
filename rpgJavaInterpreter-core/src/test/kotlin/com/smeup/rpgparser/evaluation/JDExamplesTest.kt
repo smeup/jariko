@@ -178,8 +178,8 @@ class JDExamplesTest {
             fail("Expected array, found $a")
         }
         assertEquals(a.getElement(1).asString(),
-                     StringValue("Url".padEnd(50) +
-                                 "https://www.myurl.com".padEnd(1000)))
+            StringValue("Url".padEnd(50) +
+                "https://www.myurl.com".padEnd(1000)))
     }
 
     @Test

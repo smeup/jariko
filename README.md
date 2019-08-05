@@ -144,7 +144,7 @@ Side note for maven users who use mirrors: remember to change your .m2/settings.
 
 ## Autoformatting
 
-It can be performed using the task `formatKotlin`.
+It can be performed using the task `ktlintFormat`.
 
 ## Credits
 
