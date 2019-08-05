@@ -206,6 +206,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(MuteAnnotationExecutionLogEntry(it, value))
                     executedAnnotation.put(it.position!!.start.line,MuteAnnotationExecuted(exp,value))
                 }
+                is MuteTypeAnnotation -> {
+                    // Skip
+                }
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }
 

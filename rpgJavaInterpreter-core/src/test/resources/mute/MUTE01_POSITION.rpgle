@@ -8,10 +8,10 @@
      C                   CLEAR                   FIELD1
      C                   FOR       COUNT = 2 TO NBR
       * Test: annotation attached to line 12
-    MU* VAL1(DFIELD1) VAL2(4) COMP(LE)
+    MU* VAL1(COUNT) VAL2(4) COMP(LE)
      C                   EVAL      RESULT = A + B
       * Test: annotation attached to line 15
-    MU* VAL1(DFIELD1) VAL2(4) COMP(LE)
+    MU* VAL1(COUNT) VAL2(4) COMP(LE)
      C                   EVAL      A = B
       * Test: annotation attached to line 18
     MU* VAL1(COUNT) VAL2(4) COMP(LE)

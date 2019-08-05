@@ -112,22 +112,22 @@ public class RpgParserWithMuteRuntimeTest {
         assertTrue (annotation.result.asBoolean().value)
 
         //  VAL1(VALUE1) VAL2('AAA:') COMP(EQ)
-        annotation = interpreter.executedAnnotation[10]
+        annotation = interpreter.executedAnnotation[11]
         assertTrue (actual = annotation != null)
         assertTrue (annotation.result.asBoolean().value)
 
         //  VAL1(VALUE1) VAL2('  AAA:') COMP(EQ)
-        annotation = interpreter.executedAnnotation[12]
-        assertTrue (actual = annotation != null)
-        assertTrue (annotation.result.asBoolean().value)
-
-        //  VAL1(%TRIMR(VAR1) +':') VAL2('  AAA:') COMP(EQ)
         annotation = interpreter.executedAnnotation[13]
         assertTrue (actual = annotation != null)
         assertTrue (annotation.result.asBoolean().value)
 
+        //  VAL1(%TRIMR(VAR1) +':') VAL2('  AAA:') COMP(EQ)
+        annotation = interpreter.executedAnnotation[14]
+        assertTrue (actual = annotation != null)
+        assertFalse (annotation.result.asBoolean().value)
+
         //  VAL1(VALUE1) VAL2('AAA                         :') COMP(NE)
-        annotation = interpreter.executedAnnotation[15]
+        annotation = interpreter.executedAnnotation[16]
         assertTrue (actual = annotation != null)
         assertTrue (annotation.result.asBoolean().value)
 

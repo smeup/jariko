@@ -15,8 +15,9 @@ enum class Comparison {
     LE
 }
 
-data class MuteComparisonAnnotation(val val1: Expression, val val2: Expression, val comparison: Comparison,
-                                    override val position: Position? = null  ) : MuteAnnotation(position)
+data class MuteTypeAnnotation(override var position: Position? = null  ) : MuteAnnotation(position)
+data class MuteComparisonAnnotation(var val1: Expression, var val2: Expression, var comparison: Comparison,
+                                    override var position: Position? = null  ) : MuteAnnotation(position)
 
 
 data class MuteAnnotationResolved(val muteLine : Int, val statementLine: Int )

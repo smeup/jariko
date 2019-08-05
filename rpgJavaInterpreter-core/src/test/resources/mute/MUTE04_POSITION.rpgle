@@ -6,13 +6,13 @@
      DB                S              8  0 INZ(1)
       *
      C                   CLEAR                   FIELD1
-     C                   DO        FIELD1
+     C                   DO        COUNT
       * Test: annotation attached to line 12
-    MU* VAL1(DFIELD1) VAL2(0) COMP(EQ)
-     C                   EVAL      FIELD1 = FIELD1 + 1
-     C                   IF        FIELD1 > 10
+    MU* VAL1(COUNT) VAL2(0) COMP(EQ)
+     C                   EVAL      COUNT = COUNT + 1
+     C                   IF        COUNT > 10
       * Test: annotation attached to line 16
-    MU* VAL1(DFIELD1) VAL2(0) COMP(EQ)
+    MU* VAL1(COUNT) VAL2(0) COMP(EQ)
      C                   EVAL      A = 1
      C                   ENDIF
      C                   ENDDO

@@ -3,12 +3,14 @@
     MU* VAL1(VAR1) VAL2(%TRIM(' AAAA ')) COMP(EQ)
      D AR              S              3  0 DIM(10)
      DB                S              8  0 INZ(1)
+    MU* Type="NOXMI"
       *
      C                   CLEAR                   VALUE1
      C                   EVAL      VAR1   = '  AAA              ' + ':'
      C                   EVAL      VALUE1 = '  AAA              ' + ':'
     MU* VAL1(VALUE1) VAL2('AAA:') COMP(EQ)
      C                   EVAL      VALUE1 = %TRIM(VAR1) +':'
+    MU* VAL1(%TRIMR(VAR1) +':') VAL2('  AAA:') COMP(EQ)
     MU* VAL1(VALUE1) VAL2('  AAA:') COMP(EQ)
      C                   EVAL      VALUE1 = %TRIM(VAR1) +':'
     MU* VAL1(AR(1)) VAL2(4) COMP(NE)

@@ -39,6 +39,10 @@ fun MuteParser.MuteLineContext.toAst(conf : ToAstConfiguration = ToAstConfigurat
             MuteComparisonAnnotation( val1, val2, Comparison.valueOf(annotation.cp.text.substring(1,annotation.cp.text.lastIndex)), position = position )
 
         }
+        is MuteParser.MuteTypeAnnotationContext -> {
+            // Type="NOXMI" annotation are not supported
+            MuteTypeAnnotation(position = position )
+        }
         else -> TODO(this.text.toString())
     }
 }
