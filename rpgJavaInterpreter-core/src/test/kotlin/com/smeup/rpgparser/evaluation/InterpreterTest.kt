@@ -4,7 +4,7 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
-import com.smeup.rpgparser.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -282,6 +282,7 @@ class InterpreterTest {
         assertEquals(outputOf("POWER"), listOf("i is now 8"))
     }
 
+    // TODO understand why this test does not pass
     @Test @Ignore
     fun executeMultiplicationAndDivisionWithoutSpaces() {
         assertEquals(listOf("x is now 6", "y is now 2", "z is now 0"), outputOf("CALC"))
@@ -338,6 +339,7 @@ class InterpreterTest {
             outputOf("BIFEDITC_J"))
     }
 
+    // TODO understand why this test cannot be activated
     @Test @Ignore
     fun executeBIFEDITC_Y() {
         assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
@@ -481,6 +483,7 @@ class InterpreterTest {
         assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
     }
 
+    // TODO understand why this test does not pass
     @Test @Ignore
     fun executeZADDERR() {
         // TODO better error assertion
@@ -494,6 +497,7 @@ class InterpreterTest {
         assertEquals(listOf("x)yy"), outputOf("SUBSTTEST"))
     }
 
+    // TODO understand why this test does not pass
     @Test @Ignore
     fun executeJCODFISD() {
         val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),

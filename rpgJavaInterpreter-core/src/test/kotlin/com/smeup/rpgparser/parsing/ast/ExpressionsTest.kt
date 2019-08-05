@@ -1,8 +1,8 @@
-package com.smeup.rpgparser.ast
+package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.*
-import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import kotlin.test.assertEquals
 import org.junit.Ignore

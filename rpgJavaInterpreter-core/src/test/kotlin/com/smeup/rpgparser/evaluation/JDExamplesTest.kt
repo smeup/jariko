@@ -3,7 +3,7 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
-import com.smeup.rpgparser.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -535,6 +535,7 @@ class JDExamplesTest {
         assertEquals(" ", parms[returnStatus]!!.asString().value)
     }
 
+    // TODO understand why this test does not pass
     @Test @Ignore
     fun executeJD_003_full() {
         val callsToNfyeve = LinkedList<Map<String, Value>>()

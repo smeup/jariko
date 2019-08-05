@@ -2,15 +2,15 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.ast.CompilationUnit
-import com.smeup.rpgparser.ast.DataRefExpr
-import com.smeup.rpgparser.ast.Expression
-import com.smeup.rpgparser.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.DataRefExpr
+import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
-import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsetreetoast.resolve
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import java.io.InputStream
 import java.lang.IllegalStateException

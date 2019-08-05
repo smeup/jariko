@@ -1,7 +1,7 @@
-package com.smeup.rpgparser.parsetreetoast
+package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
-import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 
 internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {

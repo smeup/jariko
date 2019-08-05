@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.ast.DataWrapUpChoice
+import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 
 class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: List<InterpreterLogHandler> = emptyList()) {
 

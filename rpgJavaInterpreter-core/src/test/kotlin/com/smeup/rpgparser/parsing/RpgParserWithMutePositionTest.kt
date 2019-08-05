@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.ast.MuteAnnotationResolved
-import com.smeup.rpgparser.facade.RpgParserFacade
-import com.smeup.rpgparser.facade.RpgParserResult
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.inputStreamFor
-import com.smeup.rpgparser.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import kotlin.test.assertTrue
 import org.junit.Test
 

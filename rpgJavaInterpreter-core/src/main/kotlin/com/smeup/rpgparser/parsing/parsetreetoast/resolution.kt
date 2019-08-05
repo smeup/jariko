@@ -1,6 +1,6 @@
-package com.smeup.rpgparser.parsetreetoast
+package com.smeup.rpgparser.parsing.parsetreetoast
 
-import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichExceptionWith
 import com.strumenta.kolasu.model.*
 

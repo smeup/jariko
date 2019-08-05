@@ -1,8 +1,8 @@
-package com.smeup.rpgparser.parsetreetoast
+package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.ast.*
-import com.smeup.rpgparser.ast.AssignmentOperator.*
+import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Node

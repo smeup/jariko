@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.ast.DataRefExpr
-import com.smeup.rpgparser.ast.Expression
+import com.smeup.rpgparser.parsing.ast.DataRefExpr
+import com.smeup.rpgparser.parsing.ast.Expression
 
 // Supported data types:
 // * Character Format

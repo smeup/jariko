@@ -1,10 +1,10 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.MuteParser
-import com.smeup.rpgparser.ast.Expression
-import com.smeup.rpgparser.ast.MuteAnnotation
-import com.smeup.rpgparser.ast.MuteAnnotationResolved
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.MuteAnnotation
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 
 open class AbstractDataDefinition(

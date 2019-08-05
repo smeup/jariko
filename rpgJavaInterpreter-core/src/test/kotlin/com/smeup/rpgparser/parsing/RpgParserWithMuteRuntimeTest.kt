@@ -1,14 +1,14 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.execute
-import com.smeup.rpgparser.facade.RpgParserFacade
-import com.smeup.rpgparser.facade.RpgParserResult
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.inputStreamFor
-import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsetreetoast.resolve
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

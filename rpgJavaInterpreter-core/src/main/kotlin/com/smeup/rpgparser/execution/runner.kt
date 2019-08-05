@@ -1,4 +1,4 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface

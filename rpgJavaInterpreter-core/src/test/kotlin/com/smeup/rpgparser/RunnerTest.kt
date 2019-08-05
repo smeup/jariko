@@ -1,5 +1,6 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.AssignmentsLogHandler
 import com.smeup.rpgparser.interpreter.EvalLogHandler
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface

@@ -1,10 +1,10 @@
-package com.smeup.rpgparser.ast
+package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.smeup.rpgparser.parsetreetoast.acceptBody
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 
 interface StatementThatCanDefineData {

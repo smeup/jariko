@@ -2,7 +2,7 @@ package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.MuteLexer
 import com.smeup.rpgparser.assertASTCanBeProduced
-import com.smeup.rpgparser.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.*
 import org.apache.commons.io.input.BOMInputStream
 import org.junit.Ignore
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class RpgParserWithMuteSupportTest {
     // Please note the 8 leading spaces
@@ -19,6 +20,7 @@ class RpgParserWithMuteSupportTest {
 
     // Test if the lexer extracts the expected number of tokens
 
+    // TODO understand why this test does not pass
     @Test
     @Ignore
     fun muteAnnotationsAttributionLex() {
@@ -42,9 +44,10 @@ class RpgParserWithMuteSupportTest {
                 tokens.add(t)
             }
         } while (t.type != Token.EOF)
-        assert(tokens.size == 7)
+        assertEquals(7, tokens.size)
     }
 
+    // TODO understand why this test does not pass
     // Test if the parser returns errors
     @Test
     @Ignore
@@ -55,7 +58,7 @@ class RpgParserWithMuteSupportTest {
 
         val root = muteParser.muteLine()
 
-        assert(errors.size == 0)
+        assertEquals(0, errors.size)
     }
 
     @Test

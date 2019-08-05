@@ -1,12 +1,12 @@
-package com.smeup.rpgparser
+package com.smeup.rpgparser.mute
 
-import com.smeup.rpgparser.ast.MuteAnnotationResolved
-import com.smeup.rpgparser.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
-import com.smeup.rpgparser.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsetreetoast.resolve
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import java.io.File
 import java.lang.Exception
 import java.lang.NullPointerException

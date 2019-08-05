@@ -1,8 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.ast.CallStmt
-import com.smeup.rpgparser.ast.Expression
-import com.smeup.rpgparser.ast.Subroutine
+import com.smeup.rpgparser.parsing.ast.CallStmt
+import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.Subroutine
 import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
 import java.util.*

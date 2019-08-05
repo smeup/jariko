@@ -1,8 +1,8 @@
-package com.smeup.rpgparser.parsetreetoast
+package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.MuteParser
-import com.smeup.rpgparser.ast.*
-import com.smeup.rpgparser.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.Value
@@ -124,15 +124,15 @@ fun CompilationUnit.injectMuteAnnotation(mutes: Map<Int, MuteParser.MuteLineCont
     resolved.addAll(injectMuteAnnotationToDataDefinitions(this.dataDefinitions, mutes))
     // Process the main body statements
     resolved.addAll(injectMuteAnnotationToStatements(this.main.stmts,
-                                this.main.stmts.position()!!.start.line,
-                                this.main.stmts.position()!!.end.line,
-                                mutes))
+            this.main.stmts.position()!!.start.line,
+            this.main.stmts.position()!!.end.line,
+            mutes))
     // Process subroutines body statements
     this.subroutines.forEach {
         resolved.addAll(injectMuteAnnotationToStatements(it.stmts,
-                                    it.position!!.start.line,
-                                    it.position!!.end.line,
-                                    mutes))
+                it.position!!.start.line,
+                it.position!!.end.line,
+                mutes))
     }
 
     return resolved

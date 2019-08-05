@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.ast.*
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.interpreter.*
 import java.util.*
 import kotlin.test.assertEquals

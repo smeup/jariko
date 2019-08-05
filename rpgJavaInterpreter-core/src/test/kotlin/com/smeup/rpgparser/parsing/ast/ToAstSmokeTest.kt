@@ -1,4 +1,4 @@
-package com.smeup.rpgparser.ast
+package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import kotlin.test.assertEquals

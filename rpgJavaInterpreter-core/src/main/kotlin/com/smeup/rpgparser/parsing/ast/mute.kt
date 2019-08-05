@@ -1,4 +1,4 @@
-package com.smeup.rpgparser.ast
+package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Node

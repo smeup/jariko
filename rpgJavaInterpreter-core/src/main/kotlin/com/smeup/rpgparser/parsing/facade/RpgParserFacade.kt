@@ -1,13 +1,13 @@
-package com.smeup.rpgparser.facade
+package com.smeup.rpgparser.parsing.facade
 
 import com.smeup.rpgparser.MuteLexer
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.ast.CompilationUnit
-import com.smeup.rpgparser.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.endPoint

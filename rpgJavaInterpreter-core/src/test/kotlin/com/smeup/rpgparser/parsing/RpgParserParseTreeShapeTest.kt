@@ -3,9 +3,9 @@ package com.smeup.rpgparser.parsing
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.assertExpressionCanBeParsed
-import com.smeup.rpgparser.ast.GreaterThanExpr
-import com.smeup.rpgparser.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.ast.GreaterThanExpr
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test

@@ -1,13 +1,13 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.RpgParser
-import com.smeup.rpgparser.ast.DataRefExpr
-import com.smeup.rpgparser.ast.Expression
-import com.smeup.rpgparser.ast.IntLiteral
-import com.smeup.rpgparser.ast.NumberOfElementsExpr
-import com.smeup.rpgparser.parsetreetoast.elementSizeOf
-import com.smeup.rpgparser.parsetreetoast.name
-import com.smeup.rpgparser.parsetreetoast.type
+import com.smeup.rpgparser.parsing.ast.DataRefExpr
+import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.IntLiteral
+import com.smeup.rpgparser.parsing.ast.NumberOfElementsExpr
+import com.smeup.rpgparser.parsing.parsetreetoast.elementSizeOf
+import com.smeup.rpgparser.parsing.parsetreetoast.name
+import com.smeup.rpgparser.parsing.parsetreetoast.type
 import com.smeup.rpgparser.utils.asInt
 
 /**
