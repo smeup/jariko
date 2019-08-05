@@ -30,10 +30,10 @@ fun executeWithMutes(filename : String,verbose : Boolean = false) : ExecutionRes
 
     if(result.correct) {
         val cu = result.root!!.rContext.toAst().apply {
-            resolved  = this.injectMuteAnnotation(result.root!!.rContext, result.root!!.muteContexts!!)
+            resolved  = this.injectMuteAnnotation(result.root!!.muteContexts!!)
 
             if( verbose ) {
-                val sorted  = resolved.sortedWith(compareBy({ it.muteLine }))
+                val sorted  = resolved.sortedWith(compareBy { it.muteLine })
                 sorted.forEach {
                     println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}" )
                 }
@@ -60,7 +60,7 @@ fun executeWithMutes(filename : String,verbose : Boolean = false) : ExecutionRes
 
         }
     } else {
-        result.errors.forEach { it ->
+        result.errors.forEach {
             System.err.println(it)
         }
     }
