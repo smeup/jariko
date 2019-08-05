@@ -1,9 +1,9 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.MuteAnnotation
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
+import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 
@@ -16,9 +16,9 @@ open class AbstractDataDefinition(
     fun numberOfElements() = type.numberOfElements()
     fun elementSize() = type.elementSize()
 
-    fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int):
+    fun accept(mutes: MutesMap, start: Int, end: Int):
             MutableList<MuteAnnotationResolved> {
-        // List of mutes successully attached to the  definition
+        // List of mutes successfully attached to the  definition
         val mutesAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
         // Extracts the annotation declared before the statement
         // Note the second expression evaluate an annotation in the
@@ -28,7 +28,7 @@ open class AbstractDataDefinition(
         }
 
         muteToProcess.forEach { (line, mute) ->
-            this.muteAnnotations.add(mute!!.toAst(
+            this.muteAnnotations.add(mute.toAst(
                     position = pos(line, this.position!!.start.column, line, this.position!!.end.column))
             )
             mutesAttached.add(MuteAnnotationResolved(line, this.position!!.start.line))

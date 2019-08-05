@@ -3,9 +3,10 @@ package com.smeup.rpgparser.execution
 import com.smeup.rpgparser.utils.measureAndCatch
 import java.io.*
 
+// TODO describe what this program does
 class SimpleShell {
 
-    private val exitCommands = hashSetOf<String>("exit", "quit", "signoff", "off")
+    private val exitCommands = hashSetOf("exit", "quit", "signoff", "off")
 
     fun repl(r: (parms: Array<String>) -> Unit) {
         var commandLine: String

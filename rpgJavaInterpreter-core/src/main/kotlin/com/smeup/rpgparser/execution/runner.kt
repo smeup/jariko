@@ -63,6 +63,7 @@ fun executePgmWithStringArgs(args: Array<String>) {
     getProgram(args[0]).singleCall(args.asList().subList(1, args.size))
 }
 
+// TODO describe what this program does
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
         SimpleShell().repl(::executePgmWithStringArgs)
@@ -70,4 +71,3 @@ fun main(args: Array<String>) {
         executePgmWithStringArgs(args)
     }
 }
-

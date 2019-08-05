@@ -14,7 +14,7 @@ import com.smeup.rpgparser.utils.asInt
  * This is a very limited interpreter used at compile time, mainly
  * while examining data definitions.
  *
- * It should consider only statically evaluatable elements
+ * It should consider only statically evaluatable elements.
  */
 interface CompileTimeInterpreter {
     fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value
