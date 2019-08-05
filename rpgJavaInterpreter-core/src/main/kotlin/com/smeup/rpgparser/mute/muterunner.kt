@@ -12,6 +12,7 @@ import java.lang.Exception
 import java.lang.NullPointerException
 import java.lang.UnsupportedOperationException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Collectors
 
@@ -46,9 +47,12 @@ fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResul
             interpreter.executedAnnotation.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
 
+                    println("Mute annotation at line $line ${annotation.expression.render()} failed")
                     if (verbose) {
-                        println("Mute annotation at line $line ${annotation.expression.render()} failed")
+                        println("  Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
+                        println("  Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
                     }
+
                     failed++
                 }
                 executed++
@@ -66,53 +70,25 @@ fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResul
     return ExecutionResult(resolved.size, executed, failed)
 }
 
-fun main(args: Array<String>) {
-    var files = 0
-    var resolved = 0
-    var executed = 0
-    var failed = 0
-    var verbose = true
-    val path = Paths.get(if (args.isEmpty()) {
-        "."
-    } else {
-        args[0]
-    })
+data class MuteRunnerStatus(var files: Int = 0, var resolved: Int = 0, var executed: Int = 0, var failed: Int = 0)
 
-    // Check if the Path is a directory
-    if (Files.isDirectory(path)) {
-        val fileDirMap = Files.list(path).collect(Collectors.partitioningBy({ it -> Files.isDirectory(it) }))
+object MuteRunner {
+    var verbose : Boolean = true
+    var status = MuteRunnerStatus()
 
-        fileDirMap[false]?.forEach { it ->
-            val filename = it.toString()
-
-            if (filename.endsWith(".rpgle")) {
-                println(filename)
-                try {
-                    val result = executeWithMutes(filename, verbose)
-                    resolved += result.resolved
-                    executed += result.executed
-                    failed += result.failed
-                    files++
-                } catch (e: NotImplementedError) {
-                    System.err.println(e)
-                } catch (e: NullPointerException) {
-                    System.err.println(e)
-                } catch (e: UnsupportedOperationException) {
-                    System.err.println(e)
-                } catch (e: IllegalArgumentException) {
-                    println(e)
-                }
-            }
-        }
-        Thread.sleep(2000)
-        println("Total files: $files, resolved: $resolved, executed: $executed, failed:$failed")
-    } else {
+    private fun processPath(path: Path) {
         val filename = path.toString()
+
         if (filename.endsWith(".rpgle")) {
-            println(filename)
+            if (verbose) {
+                println(filename)
+            }
             try {
-                executeWithMutes(filename, verbose)
-                files++
+                val result = executeWithMutes(filename, verbose)
+                status.resolved += result.resolved
+                status.executed += result.executed
+                status.failed += result.failed
+                status.files++
             } catch (e: NotImplementedError) {
                 System.err.println(e)
             } catch (e: NullPointerException) {
@@ -120,8 +96,49 @@ fun main(args: Array<String>) {
             } catch (e: UnsupportedOperationException) {
                 System.err.println(e)
             } catch (e: IllegalArgumentException) {
-                println(e)
+                System.err.println(e)
             }
         }
     }
+
+    fun processPaths(pathsToProcess: List<Path>) {
+        pathsToProcess.forEach { path ->
+            // Check if the Path is a directory
+            if (Files.isDirectory(path)) {
+                val fileDirMap = Files.list(path).collect(Collectors.partitioningBy { Files.isDirectory(it) })
+                fileDirMap[false]?.forEach {
+                    processPath(it)
+                }
+            } else {
+                processPath(path)
+            }
+        }
+    }
+
+}
+
+/**
+ * This program accepts the flags -verbose (default) and -silent.
+ * All the other arguments are treated as paths to examine. If no paths are specified
+ * the current directory is used.
+ */
+fun main(args: Array<String>) {
+    println("MUTE Runner")
+    val pathsToProcess = mutableListOf<Path>()
+    args.forEach {
+        when (it) {
+            "-verbose" -> MuteRunner.verbose = true
+            "-silent" -> MuteRunner.verbose = false
+            else -> pathsToProcess.add(Paths.get(it))
+        }
+    }
+    if (pathsToProcess.isEmpty()) {
+        pathsToProcess.add(Paths.get("."))
+    }
+    if (MuteRunner.verbose) {
+        println("(running in verbose mode)")
+        println("paths to process: $pathsToProcess")
+    }
+    MuteRunner.processPaths(pathsToProcess)
+    println("Total files: ${MuteRunner.status.files}, resolved: ${MuteRunner.status.resolved}, executed: ${MuteRunner.status.executed}, failed:${MuteRunner.status.failed}")
 }

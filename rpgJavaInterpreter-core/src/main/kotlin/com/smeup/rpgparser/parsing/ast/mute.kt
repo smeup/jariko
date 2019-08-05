@@ -24,4 +24,4 @@ data class MuteComparisonAnnotation(
 data class MuteTypeAnnotation(override var position: Position? = null) : MuteAnnotation(position)
 
 data class MuteAnnotationResolved(val muteLine: Int, val statementLine: Int)
-data class MuteAnnotationExecuted(val expression: Expression, val result: Value)
+data class MuteAnnotationExecuted(val expression: Expression, val value1Expression: Expression, val value2Expression: Expression, val result: Value, val value1Result: Value, val value2Result: Value)

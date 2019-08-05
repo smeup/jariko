@@ -95,7 +95,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
-        var l: MutableList<Value> =
+        val l: MutableList<Value> =
             compileTimeArray.lines.chunkAs(arrayType.compileTimeRecordsPerLine!!, arrayType.element.size.toInt())
                     .map {
                         coerce(StringValue(it), arrayType.element)
@@ -140,19 +140,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         muteAnnotations.forEach {
             when (it) {
                 is MuteComparisonAnnotation -> {
-                    val exp: Expression
-                    when (it.comparison) {
-                        EQ -> exp = EqualityExpr(it.val1, it.val2, it.position)
-                        NE -> exp = DifferentThanExpr(it.val1, it.val2, it.position)
-                        GT -> exp = GreaterThanExpr(it.val1, it.val2, it.position)
-                        GE -> exp = GreaterEqualThanExpr(it.val1, it.val2, it.position)
-                        LT -> exp = LessThanExpr(it.val1, it.val2, it.position)
-                        LE -> exp = LessEqualThanExpr(it.val1, it.val2, it.position)
-                        else -> throw UnsupportedOperationException("Unsupported comparison: ${it.comparison}")
+                    val exp: Expression = when (it.comparison) {
+                        EQ -> EqualityExpr(it.val1, it.val2, it.position)
+                        NE -> DifferentThanExpr(it.val1, it.val2, it.position)
+                        GT -> GreaterThanExpr(it.val1, it.val2, it.position)
+                        GE -> GreaterEqualThanExpr(it.val1, it.val2, it.position)
+                        LT -> LessThanExpr(it.val1, it.val2, it.position)
+                        LE -> LessEqualThanExpr(it.val1, it.val2, it.position)
                     }
+                    val value1 = interpretConcrete(it.val1)
+                    val value2 = interpretConcrete(it.val2)
+                    // TODO use value1 and value2 without re-evaluate them as they could have side-effects
                     val value = interpretConcrete(exp)
                     log(MuteAnnotationExecutionLogEntry(it, value))
-                    executedAnnotation.put(it.position!!.start.line, MuteAnnotationExecuted(exp, value))
+                    executedAnnotation[it.position!!.start.line] = MuteAnnotationExecuted(exp, it.val1, it.val2, value, value1, value2)
                 }
                 is MuteTypeAnnotation -> {
                     // Skip
@@ -170,10 +171,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     execute(statement.subroutine.referred!!.stmts)
                 }
                 is EvalStmt -> {
-// Some sort of line breakpoint :-)
-//                    if (statement.position.line().equals("129")) {
-//                        println(statement)
-//                    }
                     assign(statement.target, statement.expression, statement.operator)
                 }
                 is MoveStmt -> move(statement.target, statement.expression)

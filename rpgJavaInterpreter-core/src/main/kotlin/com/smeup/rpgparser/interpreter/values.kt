@@ -232,6 +232,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
         return elements[index - 1]
     }
 }
+
 object BlanksValue : Value() {
     override fun toString(): String {
         return "BlanksValue"
