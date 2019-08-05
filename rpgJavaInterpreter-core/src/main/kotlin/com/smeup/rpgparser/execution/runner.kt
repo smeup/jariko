@@ -47,9 +47,7 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     }
 }
 
-// Method for Java programs
-fun getProgram(nameOrSource: String): CommandLineProgram = getProgram(nameOrSource, JavaSystemInterface())
-
+@JvmOverloads
 fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSystemInterface()): CommandLineProgram {
     RpgSystem.addProgramFinder(SourceProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder())
@@ -61,6 +59,10 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
+fun executePgmWithStringArgs(args: Array<String>) {
+    getProgram(args[0]).singleCall(args.asList().subList(1, args.size))
+}
+
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
         SimpleShell().repl(::executePgmWithStringArgs)
@@ -69,6 +71,3 @@ fun main(args: Array<String>) {
     }
 }
 
-fun executePgmWithStringArgs(args: Array<String>) {
-    getProgram(args[0]).singleCall(args.asList().subList(1, args.size))
-}
