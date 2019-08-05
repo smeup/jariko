@@ -40,39 +40,14 @@ object DummyInterpretationContext : InterpretationContext {
 
 class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
-    // TODO use logHandlers instead
-    private val logs = LinkedList<LogEntry>()
     private val predefinedIndicators = HashMap<Int, Value>()
     val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
-    public var interpretationContext: InterpretationContext = DummyInterpretationContext
-    var traceMode: Boolean = false
+    var interpretationContext: InterpretationContext = DummyInterpretationContext
+    /**
+     * This is useful for debugging, so we can avoid infinite loops
+     */
     var cycleLimit: Int? = null
     var logHandlers: List<InterpreterLogHandler> = emptyList()
-
-    fun getLogs() = logs
-    fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
-    fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
-    fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
-    fun getAssignments() = logs.filterIsInstance(AssignmentLogEntry::class.java)
-    /**
-     * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
-     */
-    fun getEvaluatedExpressionsConcise(): List<ExpressionEvaluationLogEntry> {
-        val base = logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
-        var i = 0
-        while (i < base.size) {
-            val current = base[i]
-            val found = base.subList(0, i).reversed().firstOrNull {
-                it.expression == current.expression
-            }?.value == current.value
-            if (found) {
-                base.removeAt(i)
-            } else {
-                i++
-            }
-        }
-        return base
-    }
 
     private fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
@@ -94,11 +69,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         globalSymbolTable[data] = coerce(value, data.type)
         // TODO add here the annotation evaluation ??
     }
-
-//
-//    private fun log(logEntry: LogEntry) {
-//        logHandlers.log(logEntry)
-//    }
 
     private fun initialize(
         compilationUnit: CompilationUnit,
