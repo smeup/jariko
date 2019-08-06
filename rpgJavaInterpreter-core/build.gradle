@@ -145,3 +145,9 @@ task fatJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
+
+task runMutesTests(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.smeup.rpgparser.mute.MuterunnerKt'
+    args '../mutes_for_ci'
+}

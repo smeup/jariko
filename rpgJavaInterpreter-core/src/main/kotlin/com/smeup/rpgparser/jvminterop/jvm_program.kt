@@ -72,7 +72,7 @@ private fun Value.toJavaValue(parameter: KParameter): Any {
     return when (parameter.type) {
         String::class.createType() -> this.asString().valueWithoutPadding
         Int::class.createType() -> this.asInt().value
-        else -> TODO()
+        else -> TODO("We do not know how to convert a parameter of type ${parameter.type}")
     }
 }
 
@@ -81,13 +81,13 @@ private fun KParameter.toProgramParam(): ProgramParam {
 }
 
 private fun KParameter.toRpgType(): Type {
-    when (this.type) {
+    return when (this.type) {
         String::class.createType() -> {
-            return StringType(this.findAnnotation<Size>()?.size?.toLong()
+            StringType(this.findAnnotation<Size>()?.size?.toLong()
                     ?: throw RuntimeException("Size annotation required for string param ${this.name}"))
         }
         Int::class.createType() -> {
-            return NumberType(this.findAnnotation<Size>()?.size
+            NumberType(this.findAnnotation<Size>()?.size
                     ?: throw RuntimeException("Size annotation required for int param ${this.name}"), 0)
         }
         else -> TODO(this.type.toString())

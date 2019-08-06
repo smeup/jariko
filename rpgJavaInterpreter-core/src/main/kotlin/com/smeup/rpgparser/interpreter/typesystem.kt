@@ -74,6 +74,6 @@ data class FieldType(val name: String, val type: Type)
 fun Expression.type(): Type {
     return when (this) {
         is DataRefExpr -> this.variable.referred!!.type
-        else -> TODO(this.javaClass.canonicalName)
+        else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
 }

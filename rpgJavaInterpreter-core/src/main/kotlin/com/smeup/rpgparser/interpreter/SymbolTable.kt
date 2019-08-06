@@ -1,9 +1,10 @@
 package com.smeup.rpgparser.interpreter
 
+
 class SymbolTable {
     private val values = HashMap<AbstractDataDefinition, Value>()
 
-    fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
+    operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
 
     operator fun get(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
