@@ -73,7 +73,7 @@ fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResul
 data class MuteRunnerStatus(var files: Int = 0, var resolved: Int = 0, var executed: Int = 0, var failed: Int = 0)
 
 object MuteRunner {
-    var verbose : Boolean = true
+    var verbose: Boolean = true
     var status = MuteRunnerStatus()
 
     private fun processPath(path: Path) {
@@ -114,7 +114,6 @@ object MuteRunner {
             }
         }
     }
-
 }
 
 /**

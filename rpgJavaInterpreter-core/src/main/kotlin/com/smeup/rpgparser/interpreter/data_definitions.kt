@@ -19,16 +19,23 @@ open class AbstractDataDefinition(
     fun accept(mutes: MutesMap, start: Int, end: Int):
             MutableList<MuteAnnotationResolved> {
         // List of mutes successfully attached to the  definition
-        val mutesAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
+        val mutesAttached = mutableListOf<MuteAnnotationResolved>()
         // Extracts the annotation declared before the statement
         // Note the second expression evaluate an annotation in the
         // very last line
         val muteToProcess = mutes.filterKeys {
+            // TODO CodeReview: we could perhaps refactor this as
+            // fun MutesMap.relevantForPosition(position: Position, end: Int) = this.filterKeys {
+            //    it < position.start.line || position.start.line == (end - 1)
+            // }
+            // however the code is not super clear to me: why is not using >= end - 1?
+            // why is using end but not start?
             it < this.position!!.start.line || this.position!!.start.line == (end - 1)
         }
 
         muteToProcess.forEach { (line, mute) ->
             this.muteAnnotations.add(mute.toAst(
+                    // TODO CodeReview: we could add unit tests to verify we set the correct position for mutes
                     position = pos(line, this.position!!.start.column, line, this.position!!.end.column))
             )
             mutesAttached.add(MuteAnnotationResolved(line, this.position!!.start.line))

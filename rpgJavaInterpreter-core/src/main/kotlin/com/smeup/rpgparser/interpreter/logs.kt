@@ -17,10 +17,10 @@ data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
 
 data class CallEndLogEntry(val callStmt: CallStmt, val exception: Exception? = null) : LogEntry() {
     override fun toString(): String {
-        if (exception == null) {
-            return "end of $callStmt"
+        return if (exception == null) {
+            "end of $callStmt"
         } else {
-            return "exception $exception in calling $callStmt"
+            "exception $exception in calling $callStmt"
         }
     }
 }
@@ -56,7 +56,7 @@ data class StartProgramLog(val programName: String, val initialValues: Map<Strin
 }
 
 interface InterpreterLogHandler {
-    fun handle(logEntry: LogEntry): Unit
+    fun handle(logEntry: LogEntry)
 }
 
 class AssignmentsLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
@@ -88,22 +88,25 @@ object SimpleLogHandler : InterpreterLogHandler {
 }
 
 class ListLogHandler : InterpreterLogHandler {
-    private val logs = LinkedList<LogEntry>()
+    private val _logs = LinkedList<LogEntry>()
 
     override fun handle(logEntry: LogEntry) {
-        logs.add(logEntry)
+        _logs.add(logEntry)
     }
 
-    fun getLogs() = logs
-    fun getExecutedSubroutines() = logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
+    // Immutable view of the internal mutable list
+    val logs: List<LogEntry>
+        get() = _logs
+
+    fun getExecutedSubroutines() = _logs.asSequence().filterIsInstance(SubroutineExecutionLogEntry::class.java).map { it.subroutine }.toList()
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
-    fun getEvaluatedExpressions() = logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
-    fun getAssignments() = logs.filterIsInstance(AssignmentLogEntry::class.java)
+    fun getEvaluatedExpressions() = _logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
+    fun getAssignments() = _logs.filterIsInstance(AssignmentLogEntry::class.java)
     /**
      * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
     fun getEvaluatedExpressionsConcise(): List<ExpressionEvaluationLogEntry> {
-        val base = logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
+        val base = _logs.asSequence().filterIsInstance(ExpressionEvaluationLogEntry::class.java).toMutableList()
         var i = 0
         while (i < base.size) {
             val current = base[i]

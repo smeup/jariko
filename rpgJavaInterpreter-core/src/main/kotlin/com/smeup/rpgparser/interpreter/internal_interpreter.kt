@@ -68,6 +68,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
         // TODO add here the annotation evaluation ??
+        // TODO CodeReview should we remove this comment?
     }
 
     private fun initialize(
@@ -79,7 +80,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
                 set(it, coerce(when {
-                    it.name in initialValues -> initialValues[it.name]!!
+                    it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
                     it.initializationValue != null -> interpret(it.initializationValue)
                     it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
                     else -> blankValue(it)
@@ -406,7 +407,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
             value2 is HiValValue -> Comparison.SMALLER
-            else -> TODO("Value 1 is $value1, Value 2 is $value2")
+            else -> TODO("Unable to compare: value 1 is $value1, Value 2 is $value2")
         }
     }
 
@@ -426,7 +427,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             value1 is StringValue && value2 is StringValue -> {
                 val v1 = value1.value.trimEnd().removeNullChars()
                 val v2 = value2.value.trimEnd().removeNullChars()
-                v1.equals(v2)
+                v1 == v2
             }
             else -> value1 == value2
         }
@@ -440,7 +441,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is BooleanValue -> value.value.toString()
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
-            else -> TODO(value.javaClass.canonicalName)
+            else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
     }
 
