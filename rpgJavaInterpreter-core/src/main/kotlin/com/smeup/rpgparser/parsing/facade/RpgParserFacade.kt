@@ -96,7 +96,7 @@ class RpgParserFacade {
     }
 
     fun createMuteParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): MuteParser {
-        val lexer = MuteLexer(if (longLines) inputStreamWithLongLines(inputStream) else ANTLRInputStream(inputStream))
+        val lexer = MuteLexer(if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
@@ -117,7 +117,7 @@ class RpgParserFacade {
     }
 
     fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): RpgParser {
-        val lexer = RpgLexer(if (longLines) inputStreamWithLongLines(inputStream) else ANTLRInputStream(inputStream))
+        val lexer = RpgLexer(if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
@@ -161,7 +161,7 @@ class RpgParserFacade {
         return root
     }
 
-    fun preprocess(text: String): String {
+    private fun preprocess(text: String): String {
         var s = text
         var level = 0
         var end = s.lastIndexOf("COMP")
@@ -170,12 +170,12 @@ class RpgParserFacade {
             if (i < end) {
                 if (c == '(') {
                     level++
-                    if (level === 1) {
+                    if (level == 1) {
                         s = s.replaceRange(i, i + 1, "[")
                     }
                 }
                 if (c == ')') {
-                    if (level === 1) {
+                    if (level == 1) {
                         s = s.replaceRange(i, i + 1, "]")
                     }
                     if (level > 0) level--
@@ -194,9 +194,9 @@ class RpgParserFacade {
         // Find sequence 3, 5, 590
         val mutes: MutesMap = HashMap()
         lexResult.root?.forEachIndexed { index, token0 ->
-            if (index + 2 < lexResult.root?.size) {
-                val token1 = lexResult.root!![index + 1]
-                val token2 = lexResult.root!![index + 2]
+            if (index + 2 < lexResult.root.size) {
+                val token1 = lexResult.root[index + 1]
+                val token2 = lexResult.root[index + 2]
                 // Please note the leading spaces added
                 if (token0.type == LEAD_WS5_Comments && token0.text == "".padStart(4) + "M" &&
                         token1.type == COMMENT_SPEC_FIXED && token1.text == "U*" &&
