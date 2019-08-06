@@ -7,7 +7,6 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.facade.MutesImmutableMap
-import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.validation.Error
 import java.util.*
@@ -119,9 +118,9 @@ fun Statement.injectMuteAnnotation(mutes: Map<Int, MuteParser.MuteLineContext>):
     return resolved
 }
 
-private fun expandStartLineWhenNeeded(startLine: Int, mutes: MutesImmutableMap) : Int {
+private fun expandStartLineWhenNeeded(startLine: Int, mutes: MutesImmutableMap): Int {
     var line = startLine
-    while (line -1 in mutes.keys) {
+    while (line - 1 in mutes.keys) {
         line--
     }
     return line

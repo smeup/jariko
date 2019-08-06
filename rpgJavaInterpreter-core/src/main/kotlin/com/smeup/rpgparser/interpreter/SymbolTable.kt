@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-
 class SymbolTable {
     private val values = HashMap<AbstractDataDefinition, Value>()
 

@@ -169,7 +169,7 @@ fun main(args: Array<String>) {
         println()
         println("FAILURE")
     }
-    if (!MuteRunner.successful){
+    if (!MuteRunner.successful) {
         System.exit(FAILURE_EXIT_CODE)
     }
 }

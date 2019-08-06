@@ -151,3 +151,5 @@ task runMutesTests(type: JavaExec) {
     main = 'com.smeup.rpgparser.mute.MuterunnerKt'
     args '../mutes_for_ci'
 }
+
+check.dependsOn runMutesTests
