@@ -6,6 +6,8 @@ import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.parsing.facade.MutesImmutableMap
+import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.validation.Error
 import java.util.*
@@ -117,14 +119,24 @@ fun Statement.injectMuteAnnotation(mutes: Map<Int, MuteParser.MuteLineContext>):
     return resolved
 }
 
-fun CompilationUnit.injectMuteAnnotation(mutes: Map<Int, MuteParser.MuteLineContext>): List<MuteAnnotationResolved> {
+private fun expandStartLineWhenNeeded(startLine: Int, mutes: MutesImmutableMap) : Int {
+    var line = startLine
+    while (line -1 in mutes.keys) {
+        line--
+    }
+    return line
+}
+
+fun CompilationUnit.injectMuteAnnotation(mutes: MutesImmutableMap): List<MuteAnnotationResolved> {
 
     val resolved: MutableList<MuteAnnotationResolved> = mutableListOf()
     // injectMuteAnnotationHelper( this.dataDefinitions,)
     resolved.addAll(injectMuteAnnotationToDataDefinitions(this.dataDefinitions, mutes))
     // Process the main body statements
+    // There is an issue when annotations appear just above the first statement
+    // so we want to expand the research area to cover preceding annotations
     resolved.addAll(injectMuteAnnotationToStatements(this.main.stmts,
-            this.main.stmts.position()!!.start.line,
+            expandStartLineWhenNeeded(this.main.stmts.position()!!.start.line, mutes),
             this.main.stmts.position()!!.end.line,
             mutes))
     // Process subroutines body statements

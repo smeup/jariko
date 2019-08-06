@@ -24,6 +24,7 @@ import org.antlr.v4.runtime.tree.ErrorNode
 import org.apache.commons.io.input.BOMInputStream
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
+typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
 
 data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
     val correct: Boolean
@@ -32,7 +33,7 @@ data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
 
 data class ParseTrees(
     val rContext: RContext,
-    val muteContexts: Map<Int, MuteParser.MuteLineContext>? = null
+    val muteContexts: MutesImmutableMap? = null
 )
 
 typealias RpgParserResult = ParsingResult<ParseTrees>
@@ -214,7 +215,7 @@ class RpgParserFacade {
         val code = inputStreamToString(inputStream)
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
         val root = parser.r()
-        var mutes: Map<Int, MuteParser.MuteLineContext>? = null
+        var mutes: MutesImmutableMap? = null
         if (muteSupport) {
             mutes = findMutes(code, errors)
         }
