@@ -16,13 +16,10 @@ import kotlin.test.assertEquals
 class RpgParserWithMuteSupportTest {
     // Please note the 8 leading spaces
     val comparisonAnnotation = "".padStart(8) + "VAL1(array(1)) VAL2(1) COMP(EQ)"
-    // val comparisonAnnotation = "".padStart(8) + "VAL1(NUMBER1) VAL2(1) COMP(EQ)"
+    val comparisonAnnotationPreProcessed = "".padStart(8) + "VAL1[array(1)] VAL2[1] COMP(EQ)"
 
     // Test if the lexer extracts the expected number of tokens
-
-    // TODO understand why this test does not pass
     @Test
-    @Ignore
     fun muteAnnotationsAttributionLex() {
 
         // val preprocessed = preprocess(comparisonAnnotation)
@@ -44,16 +41,14 @@ class RpgParserWithMuteSupportTest {
                 tokens.add(t)
             }
         } while (t.type != Token.EOF)
-        assertEquals(7, tokens.size)
+        assertEquals(11, tokens.size)
     }
 
-    // TODO understand why this test does not pass
     // Test if the parser returns errors
     @Test
-    @Ignore
     fun muteAnnotationsAttributionParse() {
         val errors = LinkedList<Error>()
-        val muteParser = RpgParserFacade().createMuteParser(BOMInputStream(comparisonAnnotation.byteInputStream(Charsets.UTF_8)), errors,
+        val muteParser = RpgParserFacade().createMuteParser(BOMInputStream(comparisonAnnotationPreProcessed.byteInputStream(Charsets.UTF_8)), errors,
                 longLines = true)
 
         val root = muteParser.muteLine()
