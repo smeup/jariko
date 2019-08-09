@@ -9,7 +9,6 @@ import com.strumenta.kolasu.validation.ErrorType
 import java.util.*
 import org.antlr.v4.runtime.*
 import org.apache.commons.io.input.BOMInputStream
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
