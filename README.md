@@ -37,6 +37,11 @@ Then import in IDEA using these options:
 
 [Here is a short video on how to setup a Linux workstation to develop this project](https://youtu.be/4Kd1b-VPTEs)
 
+## RPG Unit tests: the MUTE mechanism
+
+We support special annotations to be used to write unit tests in RPG.
+For details see mute.md.
+
 ## Running tests
 
 All tests (except for performance tests) can be executed by running:
