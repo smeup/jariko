@@ -28,7 +28,7 @@ The Mute annotations are verified _after_ executing the statement they annotate.
     MU* VAL1(B) VAL2(8) COMP(EQ)
     MU* VAL1(RESULT) VAL2(13) COMP(EQ)
      C                   EVAL      RESULT = A + B
-``     
+```     
 
 ## Command line utility
 
