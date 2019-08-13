@@ -61,9 +61,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
-        require(data.canBeAssigned(value)) {
-            "$data cannot be assigned the value $value"
-        }
+        //require(data.canBeAssigned(value)) {
+        //    "$data cannot be assigned the value $value"
+        //}
 
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)
@@ -467,7 +467,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
-                require(arrayValue.assignableTo(target.array.type()))
+                //require(arrayValue.assignableTo(target.array.type()))
                 val indexValue = interpret(target.index)
                 val elementType = (target.array.type() as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)
@@ -525,6 +525,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             DecimalValue.ZERO
                         }
                     }
+                    is DataStructureType -> {
+                        blankValue(type)
+                    }
                     else -> TODO(type.toString())
                 }
             }
@@ -550,6 +553,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         } else {
                             TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
                         }
+                    }
+                    is DataStructureType -> {
+                        blankValue(type)
                     }
                     else -> TODO(type.toString())
                 }

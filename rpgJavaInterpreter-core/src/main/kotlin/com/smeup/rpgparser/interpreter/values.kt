@@ -203,6 +203,10 @@ abstract class ArrayValue : Value() {
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
+        if(expectedType is DataStructureType) {
+        // TODO really?
+            return true
+        }
         if (expectedType is ArrayType) {
             return elements().all { it.assignableTo(expectedType.element) }
         }
@@ -222,7 +226,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
-        require(value.assignableTo(elementType))
+        //require(value.assignableTo(elementType))
         elements[index - 1] = value
     }
 
@@ -277,8 +281,13 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         if (containerElement is StringValue) {
             if (value is StringValue) {
                 containerElement.setSubstring(field.startOffset, field.endOffset, value)
+            } else if (value is IntValue){
+                var s = value.value.toString();
+                val pad =  s.padStart( field.endOffset - field.startOffset )
+                containerElement.setSubstring(field.startOffset, field.endOffset,StringValue(pad))
             } else {
                 TODO()
+
             }
         } else {
             TODO()
