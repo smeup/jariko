@@ -15,7 +15,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
-import java.util.stream.Collectors
+import kotlin.streams.toList
 
 data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int, val exceptions: LinkedList<Throwable>)
 
@@ -85,7 +85,7 @@ object MuteRunner {
     var verbose: Boolean = true
     var status = MuteRunnerStatus()
 
-    private fun processPath(path: Path) {
+    private fun processPathForFile(path: Path) {
         val filename = path.toString()
 
         if (filename.endsWith(".rpgle")) {
@@ -119,12 +119,11 @@ object MuteRunner {
         pathsToProcess.forEach { path ->
             // Check if the Path is a directory
             if (Files.isDirectory(path)) {
-                val fileDirMap = Files.list(path).collect(Collectors.partitioningBy { Files.isDirectory(it) })
-                fileDirMap[false]?.forEach {
-                    processPath(it)
+                Files.list(path).forEach {
+                    processPaths(listOf(it))
                 }
             } else {
-                processPath(path)
+                processPathForFile(path)
             }
         }
     }
