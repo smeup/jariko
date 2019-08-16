@@ -7,13 +7,59 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import java.lang.RuntimeException
+import kotlin.math.max
 
-fun RpgParser.Dcl_dsContext.elementSizeOf(fieldTypes : List<FieldType>): Int {
-    val header = this.parm_fixed().first()
-    val toPosition = header.TO_POSITION().text
+private fun RpgParser.Parm_fixedContext.startOffset() : Int {
+    val explicitStartOffset = this.explicitStartOffset()
+    if (explicitStartOffset != null) {
+        return explicitStartOffset
+    }
+    // TODO consider overlay
+    // If it is the first field than it should start at position 0
+    return this.prevField()?.endOffset() ?: 0
+}
+
+private fun RpgParser.Parm_fixedContext.prevField(): RpgParser.Parm_fixedContext? {
+    val fields = (this.parent as RpgParser.Dcl_dsContext).fieldLines()
+    val index = fields.indexOf(this)
+    if (index == 0) {
+        return null
+    }
+    return fields[index - 1]
+}
+
+private fun RpgParser.Parm_fixedContext.endOffset() : Int {
+    val explicitEndOffset = if (this.explicitStartOffset() != null) this.explicitEndOffset() else null
+    if (explicitEndOffset != null) {
+        return explicitEndOffset
+    }
+    return startOffset() + this.toType().size.toInt()
+}
+
+private fun inferDsSizeFromFieldLines(fieldLines: List<RpgParser.Parm_fixedContext>) : Int {
+    require(fieldLines.isNotEmpty())
+    var maxEnd = 0
+    fieldLines.forEach {
+        val end = it.endOffset()
+        maxEnd = max(maxEnd, end)
+    }
+    return maxEnd
+}
+
+fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
+    var toPosition = ""
+    if (this.nameIsInFirstLine) {
+        toPosition = this.TO_POSITION().text
+    } else {
+        val header = this.parm_fixed().first()
+        toPosition = header.TO_POSITION().text
+    }
     if (toPosition.isBlank()) {
         // The element size has to be calculated, as it is not explicitly specified
-        return TODO()
+        val fieldLines = this.fieldLines()
+
+        //return fieldTypes.map { it.type. }
+        return inferDsSizeFromFieldLines(fieldLines)
     } else {
         return toPosition.trim().toInt()
     }
@@ -130,7 +176,7 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = T
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val others = this.fieldLines()
     val fieldTypes : List<FieldType> = others.map { it.toFieldType() }
-    val elementSize = this.elementSizeOf(fieldTypes)
+    val elementSize = this.elementSizeOf()
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
         baseType

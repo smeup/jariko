@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
+import java.lang.IllegalStateException
+
 class SymbolTable {
     private val values = HashMap<AbstractDataDefinition, Value>()
 
@@ -11,7 +13,9 @@ class SymbolTable {
             return if (data.container.isArray()) {
                 ProjectedArrayValue(containerValue as ArrayValue, data)
             } else {
-                (containerValue as StructValue).elements[data]!!
+                val structValue = (containerValue as? StructValue)
+                        ?: throw IllegalStateException("Container expected to be a struct value: $containerValue")
+                structValue.elements[data]!!
             }
         }
         return values[data] ?: throw IllegalArgumentException("Cannot find searched value for $data")

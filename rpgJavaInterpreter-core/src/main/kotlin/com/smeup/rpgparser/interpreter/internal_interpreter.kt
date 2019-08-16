@@ -61,9 +61,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
-        //require(data.canBeAssigned(value)) {
-        //    "$data cannot be assigned the value $value"
-        //}
+        require(data.canBeAssigned(value)) {
+            "$data cannot be assigned the value $value"
+        }
 
         log(AssignmentLogEntry(data, value))
         globalSymbolTable[data] = coerce(value, data.type)

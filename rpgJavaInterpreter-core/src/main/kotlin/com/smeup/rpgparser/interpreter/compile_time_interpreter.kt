@@ -86,9 +86,7 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                         it.dcl_ds() != null -> {
                             val name = it.dcl_ds().name
                             if (name == declName) {
-                                val others = it.dcl_ds().fieldLines()
-                                val fieldTypes : List<FieldType> = others.map { it.toFieldType() }
-                                return it.dcl_ds().elementSizeOf(fieldTypes)
+                                return it.dcl_ds().elementSizeOf()
                             }
                         }
                     }
