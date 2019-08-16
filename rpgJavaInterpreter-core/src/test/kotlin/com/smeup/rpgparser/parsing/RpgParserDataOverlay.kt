@@ -49,7 +49,6 @@ class RpgParserDataOverlay {
         val cu = assertASTCanBeProduced("struct/OVERLAY_04", true)
         cu.resolve()
         execute(cu, mapOf())
-
     }
 
     @Test
@@ -60,8 +59,5 @@ class RpgParserDataOverlay {
         cu.resolve()
         execute(cu, mapOf())
     }
-
-
-
 
 }

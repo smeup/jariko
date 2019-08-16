@@ -441,6 +441,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is BooleanValue -> value.value.toString()
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
+            is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
     }
@@ -928,6 +929,6 @@ fun blankValue(type: Type): Value {
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
-        is CharacterType -> CharacterValue(' ')
+        is CharacterType -> CharacterValue(Array(type.nChars.toInt()) { ' ' })
     }
 }

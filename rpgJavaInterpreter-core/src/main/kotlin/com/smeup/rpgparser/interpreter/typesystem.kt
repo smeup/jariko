@@ -49,9 +49,9 @@ object TimeStampType : Type() {
         get() = 26
 }
 
-object CharacterType : Type() {
+data class CharacterType(val nChars: Int) : Type() {
     override val size: Long
-        get() = 26
+        get() = nChars.toLong()
 }
 
 data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {

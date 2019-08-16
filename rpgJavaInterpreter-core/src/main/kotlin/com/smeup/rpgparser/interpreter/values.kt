@@ -177,7 +177,7 @@ data class BooleanValue(val value: Boolean) : Value() {
     }
 }
 
-data class CharacterValue(val value: Char) : Value() {
+data class CharacterValue(val value: Array<Char>) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is CharacterType
     }

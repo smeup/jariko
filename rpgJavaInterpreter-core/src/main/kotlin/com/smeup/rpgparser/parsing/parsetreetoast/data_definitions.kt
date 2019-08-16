@@ -1,15 +1,22 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.AssignableExpression
 import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
+import java.lang.RuntimeException
 
-fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
+fun RpgParser.Dcl_dsContext.elementSizeOf(fieldTypes : List<FieldType>): Int {
     val header = this.parm_fixed().first()
-    return header.TO_POSITION().text.asInt()
+    val toPosition = header.TO_POSITION().text
+    if (toPosition.isBlank()) {
+        // The element size has to be calculated, as it is not explicitly specified
+        return TODO()
+    } else {
+        return toPosition.trim().toInt()
+    }
 }
 
 internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
@@ -113,13 +120,18 @@ val RpgParser.Dcl_dsContext.hasHeader: Boolean
         return this.ds_name().text.trim().isEmpty()
     }
 
+fun RpgParser.Dcl_dsContext.fieldLines() : List<RpgParser.Parm_fixedContext> {
+    return this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
+}
+
 fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = ToAstConfiguration()): Type {
     val header = this.parm_fixed().first()
     val dim: Expression? = header.keyword().asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
-    val others = this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
-    val elementSize = this.elementSizeOf()
-    val baseType = DataStructureType(others.map { it.toFieldType() }, size ?: elementSize)
+    val others = this.fieldLines()
+    val fieldTypes : List<FieldType> = others.map { it.toFieldType() }
+    val elementSize = this.elementSizeOf(fieldTypes)
+    val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
         baseType
     } else {
@@ -196,10 +208,11 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
             val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
-            StringType(elementSize!!.toLong())
+            StringType(elementSize?.toLong()
+                    ?: throw RuntimeException("The string has no specified length"))
         }
         "N" -> BooleanType
-        "A" -> CharacterType
+        "A" -> CharacterType(elementSize!!)
         else -> throw UnsupportedOperationException("<${DATA_TYPE().text}>")
     }
 }

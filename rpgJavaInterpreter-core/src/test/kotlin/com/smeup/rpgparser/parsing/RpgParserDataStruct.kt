@@ -6,10 +6,7 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Test
 
-
 class RpgParserDataStruct {
-
-
 
     @Test
     fun parseSTRUCT_01() {
@@ -63,7 +60,5 @@ class RpgParserDataStruct {
         execute(cu, mapOf())
 
     }
-
-
 
 }
