@@ -505,77 +505,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    // TODO put it outside InternalInterpreter
-    fun coerce(value: Value, type: Type): Value {
-        // TODO to be completed
-        return when (value) {
-            is BlanksValue -> {
-                when (type) {
-                    is StringType -> {
-                        blankValue(type.length.toInt())
-                    }
-                    is ArrayType -> {
-                        createArrayValue(type.element, type.nElements) {
-                            blankValue(type.element)
-                        }
-                    }
-                    is NumberType -> {
-                        if (type.integer) {
-                            IntValue.ZERO
-                        } else {
-                            DecimalValue.ZERO
-                        }
-                    }
-                    is DataStructureType -> {
-                        blankValue(type)
-                    }
-                    else -> TODO(type.toString())
-                }
-            }
-            is StringValue -> {
-                when (type) {
-                    is StringType -> {
-                        var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
-                        if (value.value.length > type.length) {
-                            s = s.substring(0, type.length.toInt())
-                        }
-                        return StringValue(s)
-                    }
-                    is ArrayType -> {
-                        createArrayValue(type.element, type.nElements) {
-                            // TODO
-                            blankValue(type.element)
-                        }
-                    }
-                    // TODO
-                    is NumberType -> {
-                        if (type.integer) {
-                            IntValue(value.value.asLong())
-                        } else {
-                            TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
-                        }
-                    }
-                    is DataStructureType -> {
-                        blankValue(type)
-                    }
-                    else -> TODO(type.toString())
-                }
-            }
-            is ArrayValue -> {
-                when (type) {
-                    is StringType -> {
-                        return value.asString()
-                    }
-                    is ArrayType -> {
-                        return value
-                    }
-                    else -> TODO(type.toString())
-                }
-            }
-            else -> value
-        }
-    }
-
     fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
         log(ExpressionEvaluationLogEntry(expression, value))
@@ -810,8 +739,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    fun blankValue(size: Int) = StringValue(" ".repeat(size))
-
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return blankValue(dataDefinition.type)
@@ -932,3 +859,80 @@ fun blankValue(type: Type): Value {
         is CharacterType -> CharacterValue(Array(type.nChars.toInt()) { ' ' })
     }
 }
+
+// TODO put it outside InternalInterpreter
+fun coerce(value: Value, type: Type): Value {
+    // TODO to be completed
+    return when (value) {
+        is BlanksValue -> {
+            when (type) {
+                is StringType -> {
+                    blankValue(type.length.toInt())
+                }
+                is ArrayType -> {
+                    createArrayValue(type.element, type.nElements) {
+                        blankValue(type.element)
+                    }
+                }
+                is NumberType -> {
+                    if (type.integer) {
+                        IntValue.ZERO
+                    } else {
+                        DecimalValue.ZERO
+                    }
+                }
+                is DataStructureType -> {
+                    blankValue(type)
+                }
+                else -> TODO(type.toString())
+            }
+        }
+        is StringValue -> {
+            when (type) {
+                is StringType -> {
+                    var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
+                    if (value.value.length > type.length) {
+                        s = s.substring(0, type.length.toInt())
+                    }
+                    return StringValue(s)
+                }
+                is ArrayType -> {
+                    createArrayValue(type.element, type.nElements) {
+                        // TODO
+                        blankValue(type.element)
+                    }
+                }
+                // TODO
+                is NumberType -> {
+                    if (type.integer) {
+                        if (value.isBlank()) {
+                            IntValue(0)
+                        } else {
+                            IntValue(value.value.asLong())
+                        }
+                    } else {
+                        TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
+                    }
+                }
+                is DataStructureType -> {
+                    blankValue(type)
+                }
+                else -> TODO(type.toString())
+            }
+        }
+        is ArrayValue -> {
+            when (type) {
+                is StringType -> {
+                    return value.asString()
+                }
+                is ArrayType -> {
+                    return value
+                }
+                else -> TODO(type.toString())
+            }
+        }
+        else -> value
+    }
+}
+
+fun blankValue(size: Int) = StringValue(" ".repeat(size))
