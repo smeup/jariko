@@ -80,7 +80,6 @@ class RpgParserDataStruct {
         val cu = assertASTCanBeProduced("struct/STRUCT_05", true)
         cu.resolve()
         execute(cu, mapOf())
-
     }
 
 }
