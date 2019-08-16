@@ -147,6 +147,7 @@ data class IntValue(val value: Long) : Value() {
         val ZERO = IntValue(0)
     }
 }
+
 data class DecimalValue(val value: BigDecimal) : Value() {
     // TODO Verify conversion
     override fun asInt(): IntValue = IntValue(value.longValueExact())
@@ -162,6 +163,7 @@ data class DecimalValue(val value: BigDecimal) : Value() {
         val ZERO = DecimalValue(BigDecimal.ZERO)
     }
 }
+
 data class BooleanValue(val value: Boolean) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is BooleanType
@@ -174,6 +176,13 @@ data class BooleanValue(val value: Boolean) : Value() {
         val TRUE = BooleanValue(true)
     }
 }
+
+data class CharacterValue(val value: Char) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is CharacterType
+    }
+}
+
 data class TimeStampValue(val value: Date) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is TimeStampType
@@ -185,6 +194,7 @@ data class TimeStampValue(val value: Date) : Value() {
         val LOVAL = TimeStampValue(GregorianCalendar(0, Calendar.JANUARY, 0).time)
     }
 }
+
 abstract class ArrayValue : Value() {
     abstract fun arrayLength(): Int
     abstract fun elementSize(): Int

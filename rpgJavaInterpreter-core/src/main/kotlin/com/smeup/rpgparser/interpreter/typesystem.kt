@@ -38,14 +38,22 @@ data class StringType(val length: Long) : Type() {
     override val size: Long
         get() = length
 }
+
 object BooleanType : Type() {
     override val size: Long
         get() = 1
 }
+
 object TimeStampType : Type() {
     override val size: Long
         get() = 26
 }
+
+object CharacterType : Type() {
+    override val size: Long
+        get() = 26
+}
+
 data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
     override val size: Long
         get() = (entireDigits + decimalDigits).toLong()

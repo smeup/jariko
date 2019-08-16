@@ -928,5 +928,6 @@ fun blankValue(type: Type): Value {
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
+        is CharacterType -> CharacterValue(' ')
     }
 }

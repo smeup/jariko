@@ -199,6 +199,7 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
             StringType(elementSize!!.toLong())
         }
         "N" -> BooleanType
+        "A" -> CharacterType
         else -> throw UnsupportedOperationException("<${DATA_TYPE().text}>")
     }
 }
