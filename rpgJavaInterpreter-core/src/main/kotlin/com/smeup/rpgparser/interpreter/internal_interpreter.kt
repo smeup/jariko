@@ -14,6 +14,8 @@ import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
@@ -442,6 +444,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
             is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
+            is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
     }

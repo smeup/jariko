@@ -250,7 +250,7 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
 
     return when (DATA_TYPE()?.text?.trim()) {
         null -> TODO()
-        "" -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+        "", "S" -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
             val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
