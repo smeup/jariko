@@ -70,6 +70,6 @@ Total files: 1, resolved: 3, executed: 3, failed:0
 SUCCESS
 ```
 
-## Mute as parte of the CI
+## Mute as part of the CI
 
 The utility to verify Mute annotation is run as part of the CI configuration. All Mute files contained in the directory _mutes_for_ci_ are automatically verified when running `./gradlew check`.
