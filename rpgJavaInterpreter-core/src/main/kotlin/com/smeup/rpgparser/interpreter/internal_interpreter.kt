@@ -862,23 +862,18 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
     fun fQ(): String = signumChar() + f4()
 
+    fun toBlnk(c: Char) = if (c == '0') ' ' else c
+
+    //TODO refactor!
     fun fY(): String {
-        val s = if (this.value.isZero()) {
-            "0/00/00"
+        var stringN = this.value.abs().unscaledValue().toString().trim()
+        return if (stringN.length <= 6) {
+            stringN = stringN.padStart(6, '0')
+            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size.toInt() + 2)
         } else {
-            val symbols = object : DecimalFormatSymbols() {
-                override fun getGroupingSeparator(): Char {
-                    return '/'
-                }
-            }
-            val format = if (type.size.toInt() == 8) {
-                "##,####" // TODO this doesn't work
-            } else {
-                "##,##,##"
-            }
-            DecimalFormat(format, symbols).format(this.value.abs().unscaledValue())
+            stringN = stringN.padStart(8, '0')
+            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size.toInt() + 2)
         }
-        return s.padStart(type.size.toInt())
     }
 
     fun fZ(): String {
