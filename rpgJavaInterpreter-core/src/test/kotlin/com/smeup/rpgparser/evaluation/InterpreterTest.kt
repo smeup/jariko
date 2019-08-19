@@ -282,8 +282,7 @@ class InterpreterTest {
         assertEquals(outputOf("POWER"), listOf("i is now 8"))
     }
 
-    // TODO understand why this test does not pass
-    @Test @Ignore
+    @Test
     fun executeMultiplicationAndDivisionWithoutSpaces() {
         assertEquals(listOf("x is now 6", "y is now 2", "z is now 0"), outputOf("CALC"))
     }
