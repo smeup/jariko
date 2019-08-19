@@ -339,8 +339,7 @@ class InterpreterTest {
             outputOf("BIFEDITC_J"))
     }
 
-    // TODO understand why this test cannot be activated
-    @Test @Ignore
+    @Test
     fun executeBIFEDITC_Y() {
         assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
                             "x  12/34/56   0/00/00X",
