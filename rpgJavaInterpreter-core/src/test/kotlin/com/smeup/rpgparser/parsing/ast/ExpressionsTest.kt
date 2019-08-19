@@ -5,7 +5,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import kotlin.test.assertEquals
-import org.junit.Ignore
 import org.junit.Test as test
 
 class ExpressionsTest {
@@ -104,8 +103,7 @@ class ExpressionsTest {
         )
     }
 
-    // TODO Changes in grammar needed
-    @test @Ignore
+    @test
     fun multExpressionWithoutBlanksParsing() {
         val expected = expression("x = y * 2")
         val actual = expression("x=y*2")
