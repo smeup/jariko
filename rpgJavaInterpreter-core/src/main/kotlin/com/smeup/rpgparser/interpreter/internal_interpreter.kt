@@ -864,7 +864,6 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
     fun toBlnk(c: Char) = if (c == '0') ' ' else c
 
-    //TODO refactor!
     fun fY(): String {
         var stringN = this.value.abs().unscaledValue().toString().trim()
         return if (stringN.length <= 6) {
