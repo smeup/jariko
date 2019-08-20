@@ -98,7 +98,7 @@ DIR_FREE_OTHER_TEXT: ~[\r\n]* -> popMode,skip;
 
 mode EndOfSourceMode;
 EOS_EOL : NEWLINE -> type(EOL);
-NEXT_ARRAY :  '**' {getCharPositionInLine()==2}? .*? EOS_EOL ;
+NEXT_ARRAY :  '**' {getCharPositionInLine()==2}? .*? EOS_EOL -> type(END_SOURCE) ;
 EOS_Text : ~[\r\n]+ ;
 
 // -----------------  ---------------------
