@@ -38,7 +38,7 @@ statement:
 
 endSourceBlock: (endSource)+;
 endSource: endSourceHead endSourceLine*;
-endSourceHead: END_SOURCE | (NEXT_ARRAY EOS_Text (EOF | EOL));
+endSourceHead: END_SOURCE | NEXT_ARRAY ;
 endSourceLine: EOS_Text (EOF | EOL)?;
 
 star_comments: COMMENT_SPEC_FIXED comments?;//comments COMMENTS_EOL;
