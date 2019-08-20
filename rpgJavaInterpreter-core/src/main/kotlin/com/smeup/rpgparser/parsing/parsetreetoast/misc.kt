@@ -54,7 +54,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
-    return CompileTimeArray(this.endSourceHead().text, // TODO: change grammar to get **CNAME name
+    fun cName(s: String) = s.substringAfter("CTDATA ").replace("\\s".toRegex(), "")
+    return CompileTimeArray(cName(this.endSourceHead().text), // TODO: change grammar to get **CTDATA name
             this.endSourceLine().map { it.text },
             toPosition(conf.considerPosition))
 }

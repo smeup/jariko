@@ -47,8 +47,7 @@ data class CompilationUnit(
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
 
     fun compileTimeArray(name: String): CompileTimeArray {
-        // TODO: add support for named compile time array
-        return compileTimeArrays[0]
+        return compileTimeArrays.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: compileTimeArrays[0]
     }
 }
 
