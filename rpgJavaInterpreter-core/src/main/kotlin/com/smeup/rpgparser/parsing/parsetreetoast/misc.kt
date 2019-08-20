@@ -44,7 +44,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         }
     }
     val subroutines = this.subroutine().map { it.toAst(conf) }
-    val compileTimeArrays = this.endSource().map { it.toAst(conf) }
+    val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     return CompilationUnit(
             dataDefinitions,
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
