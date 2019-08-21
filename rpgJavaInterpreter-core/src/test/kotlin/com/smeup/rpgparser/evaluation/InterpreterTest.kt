@@ -444,8 +444,7 @@ class InterpreterTest {
             actual = outputOf("ARRAY04").map(String::trim))
     }
 
-    // TODO Changes in grammar needed
-    @Test @Ignore
+    @Test
     fun executeARRAY05NAM_namedCompileTimeArrays() {
         assertEquals(expected =
             ("100\n" +

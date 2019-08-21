@@ -39,7 +39,7 @@ statement:
 endSourceBlock: (endSource)+;
 endSource: endSourceHead endSourceLine*;
 endSourceHead: END_SOURCE  ;
-endSourceLine: endSourceLineText (EOF | EOL)?;
+endSourceLine: endSourceLineText EOL?;
 endSourceLineText: EOS_Text;
 
 star_comments: COMMENT_SPEC_FIXED comments?;//comments COMMENTS_EOL;
