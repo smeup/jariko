@@ -480,6 +480,12 @@ class InterpreterTest {
         assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
     }
 
+    // TODO implement DataStructureType coercion
+    @Test @Ignore
+    fun executeDSNUMERIC() {
+        assertEquals(listOf("Result is: 3"), outputOf("DSNUMERIC"))
+    }
+
     // TODO understand why this test does not pass
     @Test @Ignore
     fun executeZADDERR() {
