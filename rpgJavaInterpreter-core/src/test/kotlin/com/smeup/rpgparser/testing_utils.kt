@@ -146,12 +146,14 @@ open class CollectorSystemInterface : SystemInterface {
     val displayed = LinkedList<String>()
     val programs = HashMap<String, Program>()
     val functions = HashMap<String, Function>()
+    var printOutput = false
 
     override fun findProgram(name: String) = programs[name]
     override fun findFunction(globalSymbolTable: SymbolTable, name: String) = functions[name]
 
     override fun display(value: String) {
         displayed.add(value)
+        if (printOutput) println(value)
     }
 }
 

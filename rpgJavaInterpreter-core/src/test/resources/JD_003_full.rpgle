@@ -24,12 +24,10 @@
      D £JAXATP_V                   1000    OVERLAY(£JAXATP:*NEXT)
      D £JAXATP_L                      5  0 OVERLAY(£JAXATP:*NEXT)
       *--------------------------------------------------------------*
-      * Restituisce il valore di un'attributo dei TAG
      DP_RxVAL          PR         30000    VARYING
      D $XmlTag                    30000    CONST VARYING
      D $XmlAtt                       64    CONST
       *
-      * Restituisce il valore di un'attributo di tipo aaa(
      DP_RxATT          PR         30000    VARYING
      D $XmlTag                    30000    CONST VARYING
      D $XmlATT                       64    CONST VARYING
@@ -131,6 +129,8 @@
       *---------------------------------------------------------------
      D* M A I N
       *---------------------------------------------------------------
+     C                   DSPLY                   'Funz:'
+     C                   DSPLY                   U$FUNZ
       *
       * Initial settings
      C                   EXSR      IMP0
@@ -158,6 +158,7 @@
       *--------------------------------------------------------------*
      C     FINZ          BEGSR
       *
+     C                   DSPLY                   'INZ'
      C                   CLEAR                   ADDRSK
 1    C                   FOR       $X=1 TO %ELEM($$SVARCD)
       * Get address to listen to the socket

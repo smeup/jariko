@@ -25,7 +25,7 @@ data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
-            is DataStructureType -> expectedType.fields.all { it.type is StringType } &&
+            is DataStructureType -> // expectedType.fields.all { it.type is StringType } &&
                     expectedType.elementSize == value.length
             else -> false
         }

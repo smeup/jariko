@@ -2,12 +2,19 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.CallStmt
 import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.Statement
 import com.smeup.rpgparser.parsing.ast.Subroutine
 import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
 import java.util.*
 
 abstract class LogEntry
+
+data class LineLogEntry(val stmt: Statement) : LogEntry() {
+    override fun toString(): String {
+        return "Line ${stmt.position.line()}"
+    }
+}
 
 data class CallExecutionLogEntry(val callStmt: CallStmt) : LogEntry() {
     override fun toString(): String {
@@ -57,6 +64,14 @@ data class StartProgramLog(val programName: String, val initialValues: Map<Strin
 
 interface InterpreterLogHandler {
     fun handle(logEntry: LogEntry)
+}
+
+class LinesLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
+    override fun handle(logEntry: LogEntry) {
+        if (logEntry is LineLogEntry) {
+            printStream.println("[LOG] $logEntry")
+        }
+    }
 }
 
 class AssignmentsLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
