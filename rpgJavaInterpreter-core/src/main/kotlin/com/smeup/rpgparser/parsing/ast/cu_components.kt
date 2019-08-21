@@ -35,8 +35,23 @@ data class CompilationUnit(
             res.addAll(dataDefinitions)
             dataDefinitions.forEach { it.fields.let { res.addAll(it) } }
             res.addAll(inStatementsDataDefinitions)
+            checkDuplicatedDataDefinition(res)
             return res
         }
+
+    private fun checkDuplicatedDataDefinition(dataDefinitions: LinkedList<AbstractDataDefinition>) {
+        val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
+        dataDefinitions.forEach {
+            val dataDefinition = dataDefinitionMap[it.name]
+            if (dataDefinition == null) {
+                dataDefinitionMap[it.name] = it
+            } else {
+                require(dataDefinition.type == it.type) {
+                    "Incongruous definitions of ${it.name}"
+                }
+            }
+        }
+    }
 
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 

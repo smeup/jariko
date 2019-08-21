@@ -486,13 +486,17 @@ class InterpreterTest {
         assertEquals(listOf("Result is: 3"), outputOf("DSNUMERIC"))
     }
 
-    // TODO understand why this test does not pass
-    @Test @Ignore
+    @Test
     fun executeZADDERR() {
         // TODO better error assertion
         assertFailsWith(Throwable::class) {
             execute("ZADDERR", emptyMap())
         }
+    }
+
+    @Test
+    fun executeZADD_DefiningData() {
+        assertEquals(listOf("88"), outputOf("ZADD2"))
     }
 
     @Test
