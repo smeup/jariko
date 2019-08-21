@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -59,7 +60,7 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RC
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStreamFor(exampleName))
     assertTrue(result.correct,
-            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+            message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
     return result.root!!.rContext
 }
 

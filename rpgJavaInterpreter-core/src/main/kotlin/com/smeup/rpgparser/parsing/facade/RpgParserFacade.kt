@@ -5,6 +5,7 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.interpreter.line
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -29,6 +30,12 @@ typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
 data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
     val correct: Boolean
         get() = errors.isEmpty()
+}
+
+fun List<Error>.firstLine(): String {
+    return this.firstOrNull {
+        it.position != null
+    }?.position.line() ?: "unknown"
 }
 
 data class ParseTrees(

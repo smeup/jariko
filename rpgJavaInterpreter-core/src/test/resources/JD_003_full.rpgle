@@ -85,10 +85,10 @@
      DP_RxSPL          PR         30000    VARYING
      D $String                    30000    CONST VARYING
      D $Split                         1    CONST
-***************************************************************
+      ***************************************************************
      D £G49SI          DS          1024
      D £G49SE          DS         30000
-***************************************************************
+      ***************************************************************
       * Buffer received from socket
      D BUFFER          S          30000
       * Lenght buffer received
@@ -129,8 +129,6 @@
       *---------------------------------------------------------------
      D* M A I N
       *---------------------------------------------------------------
-     C                   DSPLY                   'Funz:'
-     C                   DSPLY                   U$FUNZ
       *
       * Initial settings
      C                   EXSR      IMP0
@@ -158,7 +156,6 @@
       *--------------------------------------------------------------*
      C     FINZ          BEGSR
       *
-     C                   DSPLY                   'INZ'
      C                   CLEAR                   ADDRSK
 1    C                   FOR       $X=1 TO %ELEM($$SVARCD)
       * Get address to listen to the socket
@@ -266,7 +263,7 @@
       *
      C                   ENDSR
       *--------------------------------------------------------------*
-***************************************************************
+      ***************************************************************
      V*================================================================
       *--------------------------------------------------------------*
     RD* Parser XML risposta (Estrae gli attributo scelto)
@@ -370,7 +367,7 @@
      D $POS            S              5  0
      D $INZ            S              5  0
      D $LEN_XML        S              5  0
-     D LEN             S              5  0
+     D LEN_            S              5  0
      D AAA001          S              1
      D AAA010          S             10    VARYING
      D AAA006          S             06
@@ -402,7 +399,7 @@
 2    C                   IF        $POS>0
      C                   EVAL      AAA001='|'
      C                   EVAL      AAA010='_$_PIPE_$_'
-     C                   EVAL      LEN=LEN_PIPE
+     C                   EVAL      LEN_=LEN_PIPE
      C                   EXSR      SR0001
 2e   C                   ENDIF
      C                   GOTO      G9MAIN
@@ -413,7 +410,7 @@
 1    C                   IF        $POS>0
      C                   EVAL      AAA001='&'
      C                   EVAL      AAA010='&amp;'
-     C                   EVAL      LEN=LEN_AMP
+     C                   EVAL      LEN_=LEN_AMP
      C                   EXSR      SR0001_AMP
 1e   C                   ENDIF
       * sostituzione >
@@ -421,7 +418,7 @@
 1    C                   IF        $POS>0
      C                   EVAL      AAA001='>'
      C                   EVAL      AAA010='&gt;'
-     C                   EVAL      LEN=LEN_GT
+     C                   EVAL      LEN_=LEN_GT
      C                   EXSR      SR0001
 1e   C                   ENDIF
       * sostituzione <
@@ -429,7 +426,7 @@
 1    C                   IF        $POS>0
      C                   EVAL      AAA001='<'
      C                   EVAL      AAA010='&lt;'
-     C                   EVAL      LEN=LEN_LT
+     C                   EVAL      LEN_=LEN_LT
      C                   EXSR      SR0001
 1e   C                   ENDIF
       * sostituzione '
@@ -439,7 +436,7 @@
      C                             %parms=1)
      C                   EVAL      AAA001=''''
      C                   EVAL      AAA010='&apos;'
-     C                   EVAL      LEN=LEN_APOS
+     C                   EVAL      LEN_=LEN_APOS
      C                   EXSR      SR0001
 1e   C                   ENDIF
       * sostituzione "
@@ -447,7 +444,7 @@
 1    C                   IF        $POS>0
      C                   EVAL      AAA001='"'
      C                   EVAL      AAA010='&quot;'
-     C                   EVAL      LEN=LEN_QUOT
+     C                   EVAL      LEN_=LEN_QUOT
      C                   EXSR      SR0001
 1e   C                   ENDIF
       *
@@ -456,7 +453,7 @@
 1    C                   IF        $POS>0
      C                   EVAL      AAA001=C_CR
      C                   EVAL      AAA010='&#xD;'
-     C                   EVAL      LEN=LEN_CR
+     C                   EVAL      LEN_=LEN_CR
      C                   EXSR      SR0001
 1e   C                   ENDIF
       *
@@ -465,7 +462,7 @@
 1    C                   IF        $POS>0
      C                   EVAL      AAA001=C_LF
      C                   EVAL      AAA010='&#xA;'
-     C                   EVAL      LEN=LEN_LF
+     C                   EVAL      LEN_=LEN_LF
      C                   EXSR      SR0001
 1e   C                   ENDIF
       *
@@ -474,7 +471,7 @@
 1    C                   IF        $POS>0
      C                   EVAL      AAA001=C_TAB
      C                   EVAL      AAA010='&#x9;'
-     C                   EVAL      LEN=LEN_TAB
+     C                   EVAL      LEN_=LEN_TAB
      C                   EXSR      SR0001
 1e   C                   ENDIF
       *
@@ -484,7 +481,7 @@
      C     SR0001        BEGSR
 1    C                   DOW       $POS>0
      C                   EVAL      $XmlVAL=%REPLACE(AAA010:$XmlVAL:$POS:01)
-     C                   EVAL      $INZ=$POS+LEN
+     C                   EVAL      $INZ=$POS+LEN_
 2    C                   IF        $INZ>%LEN($XmlVAL)
      C                   LEAVE
 2e   C                   ENDIF
@@ -521,7 +518,7 @@
      C                   EVAL      $INZ=$POS+LEN_TAB
 2x   C                   OTHER
      C                   EVAL      $XmlVAL=%REPLACE(AAA010:$XmlVAL:$POS:01)
-     C                   EVAL      $INZ=$POS+LEN
+     C                   EVAL      $INZ=$POS+LEN_
      C                   EVAL      $LEN_XML=%LEN($XmlVal)
 2e   C                   ENDSL
 2    C                   IF        $INZ>$LEN_XML
