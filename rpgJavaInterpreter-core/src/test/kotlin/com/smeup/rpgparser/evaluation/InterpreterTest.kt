@@ -495,6 +495,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeZADDNOERR() {
+        assertEquals(listOf("88"), outputOf("ZADDNOERR"))
+    }
+
+    @Test
     fun executeZADD_DefiningData() {
         assertEquals(listOf("88"), outputOf("ZADD2"))
     }
