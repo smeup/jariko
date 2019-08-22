@@ -61,6 +61,13 @@ class DataDefinitionTest {
         cu.assertDataDefinitionIsPresent("U\$FUNZ", ArrayType(StringType(10), 200))
     }
 
+    @test fun singleDSParsing() {
+        val cu = processDataDefinition("D £G49SI          DS          1024")
+        val dataDefinition = cu.getDataDefinition("£G49SI")
+        assert(dataDefinition.type is DataStructureType)
+        assertEquals(1024, dataDefinition.type.size)
+    }
+
     @test fun structParsing() {
         val cu = processDataDefinition("D                 DS\n" +
                 "     D \$\$SVAR                      1050    DIM(200)\n" +

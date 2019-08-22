@@ -486,6 +486,12 @@ class InterpreterTest {
         assertEquals(listOf("Result is: 3"), outputOf("DSNUMERIC"))
     }
 
+    // TODO implement DataStructureType coercion
+    @Test @Ignore
+    fun executeDSCHARS() {
+        assertEquals(listOf("Result is: X 1Y 2"), outputOf("DSCHARS"))
+    }
+
     @Test
     fun executeZADDERR() {
         // TODO better error assertion
