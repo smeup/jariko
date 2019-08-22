@@ -149,16 +149,11 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     } else {
         null
     }
-    val fields = if (others.isEmpty()) {
-        listOf<FieldDefinition>(FieldDefinition(this.name, type = StringType(size!!.toLong()), position = this.toPosition(conf.considerPosition)))
-    } else {
-        others.map { it.toAst(nElements, conf) }
-    }
 
     return DataDefinition(
             this.name,
             type,
-            fields = fields,
+            fields = others.map { it.toAst(nElements, conf) },
             position = this.toPosition(true))
 }
 

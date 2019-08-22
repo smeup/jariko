@@ -566,6 +566,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
                         }
                     }
+                    is DataStructureType -> {
+                        TODO("Converting String to $type")
+                    }
                     else -> TODO("Converting String to $type")
                 }
             }
