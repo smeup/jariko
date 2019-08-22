@@ -47,7 +47,7 @@ data class CompilationUnit(
                 dataDefinitionMap[it.name] = it
             } else {
                 require(dataDefinition.type == it.type) {
-                    "Incongruous definitions of ${it.name}"
+                    "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
                 }
             }
         }
