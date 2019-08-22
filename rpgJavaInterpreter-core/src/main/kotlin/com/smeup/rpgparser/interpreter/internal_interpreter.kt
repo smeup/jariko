@@ -62,7 +62,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
-            data.canBeAssigned(value)
             "Line ${data.position.line()}: $data cannot be assigned the value $value"
         }
 
