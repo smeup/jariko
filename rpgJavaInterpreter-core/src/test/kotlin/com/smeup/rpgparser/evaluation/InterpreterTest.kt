@@ -509,10 +509,9 @@ class InterpreterTest {
         assertEquals(listOf("x)yy"), outputOf("SUBSTTEST"))
     }
 
-    // TODO this test shows that we still can't handle %SUBST(X)=Y
-    @Test @Ignore
+    @Test
     fun executeASSIGNSUBS() {
-        assertEquals(listOf("-xyz--"), outputOf("ASSIGNSUBS"), message = "We can't handle %SUBST(X)=Y")
+        assertEquals(listOf("-xyz--", "-xyz", "-xyz -"), outputOf("ASSIGNSUBS"), message = "We can't handle %SUBST(X)=Y")
     }
 
     // TODO understand why this test does not pass

@@ -478,6 +478,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 arrayValue.setElement(index, evaluatedValue)
                 return evaluatedValue
             }
+            is SubstExpr -> {
+                val oldValue = eval(target.string).asString().value
+                val length = if (target.length != null) eval(target.length).asInt().value.toInt() else null
+                val start = eval(target.start).asInt().value.toInt() - 1
+
+                val newValue = if (length == null) {
+                    StringValue(oldValue.replaceRange(start, oldValue.length, value.asString().value))
+                } else {
+                    val paddedValue = value.asString().value.padEnd(length)
+                    StringValue(oldValue.replaceRange(start, start + length, paddedValue))
+                }
+
+                return assign(target.string as AssignableExpression, newValue)
+            }
             else -> TODO(target.toString())
         }
     }

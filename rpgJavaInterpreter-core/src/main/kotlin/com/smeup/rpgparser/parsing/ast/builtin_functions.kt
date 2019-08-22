@@ -52,8 +52,11 @@ data class SubstExpr(
     val start: Expression,
     val length: Expression? = null,
     override val position: Position? = null
-) :
-    Expression(position)
+) : AssignableExpression(position) {
+    override fun size(): Long {
+        TODO("size")
+    }
+}
 
 // %LEN
 data class LenExpr(var value: Expression, override val position: Position? = null) :
