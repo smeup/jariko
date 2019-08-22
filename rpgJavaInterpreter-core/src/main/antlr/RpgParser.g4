@@ -2618,4 +2618,6 @@ SPLAT_ALL
 
 target:
       name=ID #simpleTarget
-    | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget ;
+    | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
+    | bif_subst #substTarget
+    ;

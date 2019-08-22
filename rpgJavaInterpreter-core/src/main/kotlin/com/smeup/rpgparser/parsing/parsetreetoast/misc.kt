@@ -325,7 +325,7 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         is IndexedTargetContext -> ArrayAccessExpr(array = this.base.toAst(conf),
                 index = this.index.toAst(conf),
                 position = toPosition(conf.considerPosition))
-        else -> TODO()
+        else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)}")
     }
 }
 

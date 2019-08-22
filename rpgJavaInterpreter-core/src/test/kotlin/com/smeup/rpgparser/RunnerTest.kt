@@ -20,7 +20,7 @@ class RunnerTest {
 
         val parms = program.singleCall(listOf("7")) ?: fail("Result values should not be null")
 
-        val parmList = parms.parmsList ?: fail("Result value list should not be null")
+        val parmList = parms.parmsList
         assertEquals(1, parmList.size)
         assertEquals("13", parmList[0].trim())
     }
