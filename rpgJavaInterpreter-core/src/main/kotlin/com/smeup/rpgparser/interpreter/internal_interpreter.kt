@@ -540,7 +540,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             DecimalValue.ZERO
                         }
                     }
-                    else -> TODO(type.toString())
+                    else -> TODO("Converting BlanksValue to $type")
                 }
             }
             is StringValue -> {
@@ -566,7 +566,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
                         }
                     }
-                    else -> TODO(type.toString())
+                    else -> TODO("Converting String to $type")
                 }
             }
             is ArrayValue -> {
@@ -577,7 +577,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     is ArrayType -> {
                         return value
                     }
-                    else -> TODO(type.toString())
+                    else -> TODO("Converting ArrayValue to $type")
                 }
             }
             else -> value
