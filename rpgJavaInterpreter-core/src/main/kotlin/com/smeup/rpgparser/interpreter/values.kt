@@ -168,6 +168,8 @@ data class BooleanValue(val value: Boolean) : Value() {
 
     override fun asBoolean() = this
 
+    override fun asString() = StringValue(if (value) "1" else "0")
+
     companion object {
         val FALSE = BooleanValue(false)
         val TRUE = BooleanValue(true)

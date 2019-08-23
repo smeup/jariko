@@ -439,7 +439,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private fun render(value: Value): String {
         return when (value) {
             is StringValue -> value.valueWithoutPadding
-            is BooleanValue -> value.value.toString()
+            is BooleanValue -> value.asString().value // TODO check if it's the best solution
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
@@ -564,6 +564,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             IntValue(value.value.asLong())
                         } else {
                             TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
+                        }
+                    }
+                    is BooleanType -> {
+                        if ("1" == value.value.trim()) {
+                            BooleanValue.TRUE
+                        } else {
+                            BooleanValue.FALSE
                         }
                     }
                     is DataStructureType -> {

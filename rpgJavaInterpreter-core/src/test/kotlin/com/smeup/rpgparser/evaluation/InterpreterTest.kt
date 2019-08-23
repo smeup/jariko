@@ -480,6 +480,12 @@ class InterpreterTest {
         assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
     }
 
+    // TODO implement comparison between types: see InternalInterpreter::areEquals
+    @Test @Ignore
+    fun executeBOOLSTRING_conversion() {
+        assertEquals(listOf("B<>1", "B=0", "0"), outputOf("BOOLSTRING"))
+    }
+
     // TODO implement DataStructureType coercion
     @Test @Ignore
     fun executeDSNUMERIC() {
