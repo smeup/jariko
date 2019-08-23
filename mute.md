@@ -1,4 +1,4 @@
-# Mute
+# Mute: MUltiplatform TEsts
 
 This interpreter can process annotations in RPG code to be used to define assertions for testing purposes. These annotations are called Mute for historical reasons.
 
@@ -73,3 +73,9 @@ SUCCESS
 ## Mute as part of the CI
 
 The utility to verify Mute annotation is run as part of the CI configuration. All Mute files contained in the directory _mutes_for_ci_ are automatically verified when running `./gradlew check`.
+
+##Mute gradle task
+You can run mute tests in the directory _mutes_for_ci_ using this gradle task:
+```
+./gradlew runMuteTests
+```
