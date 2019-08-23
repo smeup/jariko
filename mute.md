@@ -74,7 +74,8 @@ SUCCESS
 
 The utility to verify Mute annotation is run as part of the CI configuration. All Mute files contained in the directory _mutes_for_ci_ are automatically verified when running `./gradlew check`.
 
-##Mute gradle task
+## Mute gradle task
+
 You can run mute tests in the directory _mutes_for_ci_ using this gradle task:
 ```
 ./gradlew runMuteTests
