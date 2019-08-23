@@ -132,7 +132,7 @@ task runExample (type: JavaExec) {
     if(project.hasProperty('args')){
         args(project.getProperties().get("args").split(','))
     }
-    main="com.smeup.rpgparser.RunnerKt"
+    main="com.smeup.rpgparser.execution.RunnerKt"
     classpath = sourceSets.test.runtimeClasspath
 }
 
