@@ -138,7 +138,7 @@ task runExample (type: JavaExec) {
 
 task fatJar(type: Jar) {
     manifest {
-        attributes 'Main-Class': 'com.smeup.rpgparser.RunnerKt'
+        attributes 'Main-Class': 'com.smeup.rpgparser.execution.RunnerKt'
     }
     archiveBaseName = project.name + '-all'
     archiveVersion = ''
