@@ -500,7 +500,6 @@ class InterpreterTest {
 
     @Test
     fun executeFRSTCHRCOM_CommentInFirstChars() {
-        // TODO There still could be some problems for comments like **----
         assertEquals(listOf("Hello!"), outputOf("FRSTCHRCOM"))
     }
 
