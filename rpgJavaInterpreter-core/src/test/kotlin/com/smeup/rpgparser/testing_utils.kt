@@ -148,6 +148,14 @@ open class CollectorSystemInterface : SystemInterface {
     val programs = HashMap<String, Program>()
     val functions = HashMap<String, Function>()
     var printOutput = false
+    private var databaseInterface: DatabaseInterface = DummyDatabaseInterface
+        set(value) {
+            field = value
+        }
+
+    override val db: DatabaseInterface
+        get() = databaseInterface
+
 
     override fun findProgram(name: String) = programs[name]
     override fun findFunction(globalSymbolTable: SymbolTable, name: String) = functions[name]
