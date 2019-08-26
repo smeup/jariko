@@ -11,17 +11,13 @@ interface SystemInterface {
     val db: DatabaseInterface
 }
 
-interface DatabaseInterface {
+interface DatabaseInterface
 
-}
-
-object DummyDatabaseInterface : DatabaseInterface {
-
-}
+object DummyDatabaseInterface : DatabaseInterface
 
 object DummySystemInterface : SystemInterface {
     override val db: DatabaseInterface
-        get() =DummyDatabaseInterface
+        get() = DummyDatabaseInterface
 
     override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
         return null
