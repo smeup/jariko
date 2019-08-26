@@ -8,9 +8,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import java.io.File
-import java.lang.Exception
-import java.lang.NullPointerException
-import java.lang.UnsupportedOperationException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -59,7 +56,7 @@ fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResul
                 }
                 executed++
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             exceptions.add(e)
         }
     } else {
@@ -68,7 +65,10 @@ fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResul
         }
     }
 
-    println("Total annotation: ${resolved.size}, executed: $executed, failed: $failed")
+    println("$filename - Total annotation: ${resolved.size}, executed: $executed, failed: $failed, exceptions: ${exceptions.size}")
+    exceptions.forEach {
+        println(it)
+    }
     println()
     return ExecutionResult(resolved.size, executed, failed, exceptions)
 }
@@ -99,16 +99,7 @@ object MuteRunner {
                 status.failed += result.failed
                 status.files++
                 status.exceptions.addAll(result.exceptions)
-            } catch (e: NotImplementedError) {
-                status.exceptions.add(e)
-                System.err.println(e)
-            } catch (e: NullPointerException) {
-                status.exceptions.add(e)
-                System.err.println(e)
-            } catch (e: UnsupportedOperationException) {
-                status.exceptions.add(e)
-                System.err.println(e)
-            } catch (e: IllegalArgumentException) {
+            } catch (e: Throwable) {
                 status.exceptions.add(e)
                 System.err.println(e)
             }
