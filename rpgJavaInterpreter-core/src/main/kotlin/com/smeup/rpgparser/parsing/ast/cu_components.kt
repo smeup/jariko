@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.strumenta.kolasu.model.*
 import java.util.*
@@ -11,6 +12,7 @@ import java.util.*
 // to its main components
 
 data class CompilationUnit(
+    val fileDefinitions: List<FileDefinition>,
     val dataDefinitions: List<DataDefinition>,
     val main: MainBody,
     val subroutines: List<Subroutine>,
@@ -64,6 +66,10 @@ data class CompilationUnit(
     fun compileTimeArray(name: String): CompileTimeArray {
         return compileTimeArrays.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: compileTimeArrays[0]
     }
+
+    fun hasFileDefinition(name: String) = fileDefinitions.any { it.name.equals(name, ignoreCase = true) }
+
+    fun getFileDefinition(name: String) = fileDefinitions.first { it.name.equals(name, ignoreCase = true) }
 }
 
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)

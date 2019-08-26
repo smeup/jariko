@@ -16,6 +16,12 @@ fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
     }
 }
 
+internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
+    return FileDefinition(
+            this.FS_RecordName().text.trim(),
+            position = this.toPosition(true))
+}
+
 internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)

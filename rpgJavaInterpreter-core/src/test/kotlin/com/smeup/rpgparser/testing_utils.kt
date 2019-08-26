@@ -130,6 +130,12 @@ fun CompilationUnit.assertDataDefinitionIsPresent(
     return dataDefinition
 }
 
+fun CompilationUnit.assertFileDefinitionIsPresent(name: String): FileDefinition {
+    assertTrue(this.hasFileDefinition(name), message = "File definition $name not found in Compilation Unit")
+    val fileDefinition = this.getFileDefinition(name)
+    return fileDefinition
+}
+
 fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {
     assertEquals(expectedTokenType, token.type)
     if (trimmed) {

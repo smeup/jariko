@@ -2,6 +2,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import org.junit.Ignore
 import org.junit.Test
 
 class InterpreterSmokeTest {
@@ -24,6 +25,13 @@ class InterpreterSmokeTest {
     @Test
     fun executeJD_003() {
         val cu = assertASTCanBeProduced("JD_003")
+        cu.resolve()
+        execute(cu, mapOf())
+    }
+
+    @Test @Ignore
+    fun executeCHAINHOSTS() {
+        val cu = assertASTCanBeProduced("CHAINHOSTS")
         cu.resolve()
         execute(cu, mapOf())
     }

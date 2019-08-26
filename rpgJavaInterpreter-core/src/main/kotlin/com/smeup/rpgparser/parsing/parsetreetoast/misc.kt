@@ -28,6 +28,13 @@ fun List<Node>.position(): Position? {
 }
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+    val fileDefinitions = this.statement()
+            .mapNotNull {
+                when {
+                    it.fspec_fixed() != null -> it.fspec_fixed().toAst(conf)
+                    else -> null
+                }
+            }
     val dataDefinitions = this.statement()
             .mapNotNull {
                 when {
@@ -46,6 +53,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     return CompilationUnit(
+            fileDefinitions,
             dataDefinitions,
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines,
