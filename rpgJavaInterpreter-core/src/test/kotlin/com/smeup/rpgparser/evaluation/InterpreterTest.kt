@@ -498,6 +498,12 @@ class InterpreterTest {
         assertEquals(listOf("Result is: X 1Y 2"), outputOf("DSCHARS"))
     }
 
+    // TODO solve problems with ** as first chars in line
+    @Test @Ignore
+    fun executeFRSTCHRCOM_CommentInFirstChars() {
+        assertEquals(listOf("Hello!"), outputOf("FRSTCHRCOM"))
+    }
+
     @Test
     fun executeZADDERR() {
         // TODO better error assertion
