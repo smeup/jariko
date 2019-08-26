@@ -30,6 +30,21 @@ class Dummy
 
 interface PerformanceTest
 
+fun parseFragmentToCompilationUnit(
+    code: String,
+    toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
+): CompilationUnit {
+    val completeCode = """
+|     H/COPY QILEGEN,£INIZH
+|      *---------------------------------------------------------------
+|     I/COPY QILEGEN,£TABB£1DS
+|     I/COPY QILEGEN,£PDS
+|     $code
+        """.trimMargin("|")
+    val rContext = assertCodeCanBeParsed(completeCode)
+    return rContext.toAst(toAstConfiguration)
+}
+
 fun assertIsIntValue(value: Value, intValue: Long) {
     assertTrue(value is IntValue, "IntValue expected but found instead $value")
     assertEquals(intValue, value.value)
