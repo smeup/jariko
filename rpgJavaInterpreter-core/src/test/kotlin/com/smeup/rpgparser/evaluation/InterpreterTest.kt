@@ -498,9 +498,9 @@ class InterpreterTest {
         assertEquals(listOf("Result is: X 1Y 2"), outputOf("DSCHARS"))
     }
 
-    // TODO solve problems with ** as first chars in line
-    @Test @Ignore
+    @Test
     fun executeFRSTCHRCOM_CommentInFirstChars() {
+        // TODO There still could be some problems for comments like **----
         assertEquals(listOf("Hello!"), outputOf("FRSTCHRCOM"))
     }
 

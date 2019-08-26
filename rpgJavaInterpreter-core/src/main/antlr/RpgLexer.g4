@@ -20,7 +20,7 @@ lexer grammar RpgLexer;
 
 // Parser Rules
 	//End Source.  Not more parsing after this.
-END_SOURCE :  '**' {getCharPositionInLine()==2}? .*? EOL  -> pushMode(EndOfSourceMode) ;
+END_SOURCE :  '**' {getCharPositionInLine()==2}? (~'*') .*? EOL  -> pushMode(EndOfSourceMode) ;
     //Ignore or skip leading 5 white space.
 LEAD_WS5 :  '     ' {getCharPositionInLine()==5}? -> skip;
 LEAD_WS5_Comments :  WORD5 {getCharPositionInLine()==5}? -> channel(HIDDEN);
