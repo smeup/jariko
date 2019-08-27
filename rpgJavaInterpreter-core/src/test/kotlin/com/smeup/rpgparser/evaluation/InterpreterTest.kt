@@ -475,7 +475,7 @@ class InterpreterTest {
         assertEquals(listOf("5", "11", "88"), outputOf("ZADD"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeCHECK() {
         assertEquals(listOf("Wrong char at 6", "Wrong char at 7", "No wrong chars 0"), outputOf("CHECK"))
     }

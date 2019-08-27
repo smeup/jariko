@@ -49,6 +49,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     var cycleLimit: Int? = null
     var logHandlers: List<InterpreterLogHandler> = emptyList()
 
+    var lastFound = false
+
     private fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
     }
@@ -348,6 +350,27 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 is LeaveStmt -> throw LeaveException()
                 is IterStmt -> throw IterException()
+                is CheckStmt -> {
+                    var baseString = interpret(statement.baseString).asString().value.removeNullChars()
+                    if (statement.baseString is DataRefExpr) {
+                        baseString = baseString.padEnd(statement.baseString.size().toInt())
+                    }
+                    val charSet = interpret(statement.comparatorString).asString().value
+                    val wrongIndex = statement.wrongCharPosition
+                    lastFound = false
+                    if (wrongIndex != null) {
+                        assign(wrongIndex, IntValue.ZERO)
+                    }
+                    baseString.substring(statement.start - 1).forEachIndexed {
+                        i, c -> if (!charSet.contains(c)) {
+                            if (wrongIndex != null) {
+                                assign(wrongIndex, IntValue((i + statement.start).toLong()))
+                            }
+                            lastFound = true
+                            return
+                        }
+                    }
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e: InterruptForDebuggingPurposes) {
@@ -823,6 +846,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is TrimExpr -> {
                 return StringValue(eval(expression.value).asString().value.removeNullChars().trim())
+            }
+            is FoundExpr -> {
+                if (expression.name == null) {
+                    return BooleanValue(lastFound)
+                }
+                TODO("Line ${expression?.position?.line()} - %FOUND expression with file names is not implemented yet")
             }
             else -> TODO(expression.toString())
         }

@@ -107,6 +107,15 @@ data class ChainStmt(
 ) :
     Statement(position)
 
+data class CheckStmt(
+    val comparatorString: Expression, // Factor1
+    val baseString: Expression,
+    val start: Int = 1,
+    val wrongCharPosition: AssignableExpression?,
+    override val position: Position? = null
+) :
+        Statement(position)
+
 data class CallStmt(
     val expression: Expression,
     val params: List<PlistParam>,

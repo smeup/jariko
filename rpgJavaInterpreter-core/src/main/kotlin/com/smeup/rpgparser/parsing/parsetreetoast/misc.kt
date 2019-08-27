@@ -141,7 +141,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
         this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
         this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
-//        this.csCHECK() != null -> this.csCHECK().toAst(conf)
+        this.csCHECK() != null -> this.csCHECK().toAst(conf)
 //        this.csCOMP() != null -> this.csCOMP().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
@@ -202,7 +202,7 @@ internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return DisplayStmt(left, right, toPosition(conf.considerPosition))
 }
 
-internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataRefExpr {
     // TODO this should have been parsed differently because here we have to figure out
     // what kind of expression is this
     return DataRefExpr(ReferenceByName(this.text), toPosition(conf.considerPosition))
@@ -313,6 +313,25 @@ internal fun CsCHAINContext.toAst(conf: ToAstConfiguration): Statement {
             factor1,
             factor2,
             toPosition(conf.considerPosition))
+}
+
+internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: $this.text")
+    val baseStringTokens = this.cspec_fixed_standard_parts().factor2.text.split(":")
+    val startPosition =
+        when (baseStringTokens.size) {
+            !in 1..2 -> throw UnsupportedOperationException("Wrong base string expression for CHECK at line ${position?.line()}: ${this.cspec_fixed_standard_parts().factor2.text}")
+            2 -> baseStringTokens[1].toInt()
+            else -> 1
+        }
+    val reference = baseStringTokens[0]
+    return CheckStmt(
+            factor1,
+            DataRefExpr(ReferenceByName(reference), position),
+            startPosition,
+            this.cspec_fixed_standard_parts()?.result?.toAst(conf),
+            position)
 }
 
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
