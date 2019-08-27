@@ -45,6 +45,14 @@ fun parseFragmentToCompilationUnit(
     return rContext.toAst(toAstConfiguration)
 }
 
+fun parseFragmentToCompilationUnit(
+    codeLines: List<String>,
+    toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
+): CompilationUnit {
+    val codeLinesAsSingleString = codeLines.joinToString("\n|     ")
+    return parseFragmentToCompilationUnit(codeLinesAsSingleString, toAstConfiguration)
+}
+
 fun assertIsIntValue(value: Value, intValue: Long) {
     assertTrue(value is IntValue, "IntValue expected but found instead $value")
     assertEquals(intValue, value.value)

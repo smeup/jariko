@@ -30,6 +30,7 @@ data class CompilationUnit(
         inStatementsDataDefinitions.addAll(dataDefinitions)
     }
 
+    // TODO check if we should use a backing field or a backing property for performance issues
     @Derived
     val allDataDefinitions: List<AbstractDataDefinition>
         get() {

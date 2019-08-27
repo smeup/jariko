@@ -53,10 +53,11 @@ class DataDefinitionTest {
     }
 
     @test fun structParsing() {
-        val cu = parseFragmentToCompilationUnit("D                 DS\n" +
-                "     D \$\$SVAR                      1050    DIM(200)\n" +
-                "     D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name\n" +
-                "     D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value")
+        val cu = parseFragmentToCompilationUnit(listOf(
+                "D                 DS",
+                "D \$\$SVAR                      1050    DIM(200)",
+                "D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name",
+                "D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value"))
         cu.assertDataDefinitionIsPresent("\$\$SVAR", ArrayType(DataStructureType(
                 listOf(
                         FieldType("\$\$SVARCD", StringType(50)),
