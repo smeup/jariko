@@ -140,6 +140,8 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csTIME() != null -> this.csTIME().toAst(conf)
         this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
         this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
+        this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
+//        this.csCHECK() != null -> this.csCHECK().toAst(conf)
 //        this.csCOMP() != null -> this.csCOMP().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
@@ -301,6 +303,16 @@ internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     val target = this.cspec_fixed_standard_parts().result.text.split(":")
     val position = toPosition(conf.considerPosition)
     return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, position)
+}
+
+internal fun CsCHAINContext.toAst(conf: ToAstConfiguration): Statement {
+    // TODO check composite keys
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHAIN operation requires factor 1: $this.text")
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("CHAIN operation requires factor 2: $this.text")
+    return ChainStmt(
+            factor1,
+            factor2,
+            toPosition(conf.considerPosition))
 }
 
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {

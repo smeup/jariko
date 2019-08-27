@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
@@ -33,6 +34,6 @@ class InterpreterSmokeTest {
     fun executeCHAINHOSTS() {
         val cu = assertASTCanBeProduced("CHAINHOSTS")
         cu.resolve()
-        execute(cu, mapOf())
+        execute(cu, mapOf("ipToFind" to StringValue("127.0.0.1")))
     }
 }

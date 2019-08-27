@@ -475,6 +475,11 @@ class InterpreterTest {
         assertEquals(listOf("5", "11", "88"), outputOf("ZADD"))
     }
 
+    @Test @Ignore
+    fun executeCHECK() {
+        assertEquals(listOf("Wrong char at 6", "Wrong char at 7", "No wrong chars 0"), outputOf("CHECK"))
+    }
+
     @Test
     fun executeLOGICAL_conditions() {
         assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))

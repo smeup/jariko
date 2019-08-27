@@ -80,6 +80,13 @@ data class EditcExpr(
 ) :
     Expression(position)
 
+// %FOUND
+data class FoundExpr(
+    var name: String? = null,
+    override val position: Position? = null
+) :
+        Expression(position)
+
 // %CHAR
 data class CharExpr(var value: Expression, override val position: Position? = null) :
     Expression(position)
