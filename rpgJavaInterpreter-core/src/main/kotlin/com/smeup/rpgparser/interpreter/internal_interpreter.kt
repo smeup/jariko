@@ -851,7 +851,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 if (expression.name == null) {
                     return BooleanValue(lastFound)
                 }
-                TODO("Line ${expression?.position?.line()} - %FOUND expression with file names is not implemented yet")
+                TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
             }
             else -> TODO(expression.toString())
         }

@@ -235,7 +235,7 @@ class RpgParserFacade {
         require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
         return result.root!!.rContext.toAst().apply {
             if (muteSupport) {
-                this.injectMuteAnnotation(result.root!!.muteContexts!!)
+                this.injectMuteAnnotation(result.root.muteContexts!!)
             }
         }
     }
@@ -255,7 +255,7 @@ class RpgParserFacade {
         val root = parser.statement()
         verifyParseTree(parser, errors, root)
         val result = ParsingResult(errors, root)
-        var mutes: MutesMap? = null
+        var mutes: MutesMap?
         if (muteSupport) {
             inputStream.reset()
             mutes = findMutes(inputStream, errors)
