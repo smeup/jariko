@@ -11,9 +11,13 @@ interface SystemInterface {
     val db: DatabaseInterface
 }
 
-interface DatabaseInterface
+interface DatabaseInterface {
+    abstract fun fieldsOf(name: String): Collection<AbstractDataDefinition>
+}
 
-object DummyDatabaseInterface : DatabaseInterface
+object DummyDatabaseInterface : DatabaseInterface {
+    override fun fieldsOf(name: String): Collection<AbstractDataDefinition> = emptyList()
+}
 
 object DummySystemInterface : SystemInterface {
     override val db: DatabaseInterface
