@@ -1,9 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.interpreter.AbstractDataDefinition
-import com.smeup.rpgparser.interpreter.DataDefinition
-import com.smeup.rpgparser.interpreter.FileDefinition
-import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.*
 import java.util.*
 
@@ -19,6 +16,8 @@ data class CompilationUnit(
     val compileTimeArrays: List<CompileTimeArray>,
     override val position: Position?
 ) : Node(position) {
+
+    var databaseInterface :DatabaseInterface = DummyDatabaseInterface
 
     val entryPlist: PlistStmt?
         get() = main.stmts.plist()
@@ -38,6 +37,9 @@ data class CompilationUnit(
             res.addAll(dataDefinitions)
             dataDefinitions.forEach { it.fields.let { res.addAll(it) } }
             res.addAll(inStatementsDataDefinitions)
+            fileDefinitions.forEach {
+                res.addAll(databaseInterface.fieldsOf(it.name))
+            }
             checkDuplicatedDataDefinition(res)
             return res
         }
