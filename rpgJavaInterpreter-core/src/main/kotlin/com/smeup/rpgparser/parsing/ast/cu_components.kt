@@ -30,19 +30,21 @@ data class CompilationUnit(
         inStatementsDataDefinitions.addAll(dataDefinitions)
     }
 
-    // TODO check if we should use a backing field or a backing property for performance issues
+    private var _allDataDefinitions = mutableListOf<AbstractDataDefinition>()
+
     @Derived
     val allDataDefinitions: List<AbstractDataDefinition>
         get() {
-            val res = LinkedList<AbstractDataDefinition>()
-            res.addAll(dataDefinitions)
-            dataDefinitions.forEach { it.fields.let { res.addAll(it) } }
-            res.addAll(inStatementsDataDefinitions)
-            checkDuplicatedDataDefinition(res)
-            return res
+            if (_allDataDefinitions.isEmpty()) {
+                _allDataDefinitions.addAll(dataDefinitions)
+                dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
+                _allDataDefinitions.addAll(inStatementsDataDefinitions)
+                checkDuplicatedDataDefinition(_allDataDefinitions)
+            }
+            return _allDataDefinitions
         }
 
-    private fun checkDuplicatedDataDefinition(dataDefinitions: LinkedList<AbstractDataDefinition>) {
+    private fun checkDuplicatedDataDefinition(dataDefinitions: List<AbstractDataDefinition>) {
         val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
         dataDefinitions.forEach {
             val dataDefinition = dataDefinitionMap[it.name]
