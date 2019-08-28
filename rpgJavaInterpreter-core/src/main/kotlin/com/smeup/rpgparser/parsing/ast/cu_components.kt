@@ -17,7 +17,7 @@ data class CompilationUnit(
     override val position: Position?
 ) : Node(position) {
 
-    var databaseInterface :DatabaseInterface = DummyDatabaseInterface
+    var databaseInterface: DatabaseInterface = DummyDatabaseInterface
 
     val entryPlist: PlistStmt?
         get() = main.stmts.plist()
@@ -39,7 +39,11 @@ data class CompilationUnit(
                 dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
                 fileDefinitions.forEach {
-                    _allDataDefinitions.addAll(databaseInterface.fieldsOf(it.name))
+                    val metadata = databaseInterface.metadataOf(it.name)
+                    if (metadata != null) {
+                        it.formatName = metadata.formatName
+                        _allDataDefinitions.addAll(metadata.fields)
+                    }
                 }
                 checkDuplicatedDataDefinition(_allDataDefinitions)
             }

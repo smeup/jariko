@@ -102,7 +102,7 @@ data class MoveStmt(
 // TODO add other parameters
 data class ChainStmt(
     val searchArg: Expression, // Factor1
-    val name: String?, // Factor 2
+    val name: String, // Factor 2
     override val position: Position? = null
 ) :
     Statement(position)

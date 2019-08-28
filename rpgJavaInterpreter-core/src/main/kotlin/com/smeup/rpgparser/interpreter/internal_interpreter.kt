@@ -38,6 +38,24 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
+data class FileInformation(var found: Boolean)
+
+class FileInformationMap {
+    private val byFileName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
+    private val byFormatName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
+
+    fun add(fileDefinition: FileDefinition) {
+        val fileInformation = FileInformation(false)
+        byFileName[fileDefinition.name] = fileInformation
+        val formatName = fileDefinition.formatName
+        if (formatName != null) {
+            byFormatName[formatName] = fileInformation
+        }
+    }
+
+    operator fun get(nameOrFormat: String): FileInformation? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+}
+
 class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
@@ -50,6 +68,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     var lastFound = false
+    val fileInformations = FileInformationMap()
 
     private fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
@@ -78,6 +97,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
+        // TODO verify if these values should be reinitialised or not
+        compilationUnit.fileDefinitions.forEach {
+            fileInformations.add(it)
+        }
+
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
@@ -370,6 +394,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             return
                         }
                     }
+                }
+                is ChainStmt -> {
+                    // -- TODO handle record formats
+                    require(fileInformations[statement.name] != null) {
+                        "Line: ${statement.position.line()} - File definition ${statement.name} not found"
+                    }
+
+                    // --
+                    val record = systemInterface.db.chain(statement.name, eval(statement.searchArg))
+                    if (record != null) {
+                        lastFound = true
+                        record.forEach { assign(it.first, it.second) }
+                    } else {
+                        lastFound = false
+                    }
+                    fileInformations[statement.name]!!.found = lastFound
                 }
                 else -> TODO(statement.toString())
             }

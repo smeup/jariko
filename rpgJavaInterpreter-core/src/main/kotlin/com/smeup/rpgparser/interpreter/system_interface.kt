@@ -12,11 +12,15 @@ interface SystemInterface {
 }
 
 interface DatabaseInterface {
-    abstract fun fieldsOf(name: String): Collection<AbstractDataDefinition>
+    fun metadataOf(name: String): FileMetadata?
+    fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>?
 }
 
+data class FileMetadata(val formatName: String, val fields: Collection<AbstractDataDefinition>)
+
 object DummyDatabaseInterface : DatabaseInterface {
-    override fun fieldsOf(name: String): Collection<AbstractDataDefinition> = emptyList()
+    override fun metadataOf(name: String): FileMetadata? = null
+    override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? = null
 }
 
 object DummySystemInterface : SystemInterface {
