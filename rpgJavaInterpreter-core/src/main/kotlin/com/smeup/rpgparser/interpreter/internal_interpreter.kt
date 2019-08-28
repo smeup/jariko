@@ -48,7 +48,7 @@ class FileInformationMap {
         val fileInformation = FileInformation(false)
         byFileName[fileDefinition.name] = fileInformation
         val formatName = fileDefinition.formatName
-        if (formatName != null) {
+        if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
             byFormatName[formatName] = fileInformation
         }
     }
@@ -68,7 +68,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     var lastFound = false
-    val fileInformations = FileInformationMap()
+    private val fileInfos = FileInformationMap()
 
     private fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
@@ -99,7 +99,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     ) {
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.forEach {
-            fileInformations.add(it)
+            fileInfos.add(it)
         }
 
         // Assigning initial values received from outside and consider INZ clauses
@@ -397,7 +397,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 is ChainStmt -> {
                     // -- TODO handle record formats
-                    require(fileInformations[statement.name] != null) {
+                    require(fileInfos[statement.name] != null) {
                         "Line: ${statement.position.line()} - File definition ${statement.name} not found"
                     }
 
@@ -409,7 +409,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     } else {
                         lastFound = false
                     }
-                    fileInformations[statement.name]!!.found = lastFound
+                    fileInfos[statement.name]!!.found = lastFound
                 }
                 else -> TODO(statement.toString())
             }
