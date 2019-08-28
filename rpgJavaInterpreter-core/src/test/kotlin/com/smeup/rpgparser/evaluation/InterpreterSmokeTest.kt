@@ -50,4 +50,22 @@ class InterpreterSmokeTest {
         cu.resolve(mockDBInterface)
         execute(cu, mapOf("ipToFind" to StringValue("127.0.0.1")))
     }
+
+    @Test
+    fun executeCHAIN2FILE() {
+        val cu = assertASTCanBeProduced("CHAIN2FILE")
+
+        val mockDBInterface: DatabaseInterface = object : DatabaseInterface {
+            val hostField = DataDefinition("DESTST", StringType(40))
+
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, listOf(hostField))
+
+            override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? {
+                return null
+            }
+        }
+
+        cu.resolve(mockDBInterface)
+        execute(cu, mapOf())
+    }
 }
