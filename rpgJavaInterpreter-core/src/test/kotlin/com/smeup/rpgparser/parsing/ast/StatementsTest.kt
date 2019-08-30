@@ -177,4 +177,16 @@ class StatementsTest {
                 PlusExpr(dataRef("A"), dataRef("B"))),
                 statement("EVAL      RESULT = A + B"))
     }
+
+    @test fun parseEvalWithUnqualifiedDsAccessAndAssignmentOfLiteral() {
+        assertStatementCanBeParsed("EVAL      DS1=1", addPrefix = true)
+    }
+
+    @test fun parseEvalWithUnqualifiedDsAccess() {
+        val parseTree = assertStatementCanBeParsed("EVAL      DS1=*ON", addPrefix = true)
+    }
+
+    @test fun parseEvalWithQualifiedDsAccess() {
+        assertStatementCanBeParsed("EVAL      DS1.AR2=*ON", addPrefix = true)
+    }
 }

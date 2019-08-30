@@ -1,14 +1,16 @@
 package com.smeup.rpgparser.lexing
 
 import com.smeup.rpgparser.RpgLexer.*
-import com.smeup.rpgparser.assertCanBeLexed
+import com.smeup.rpgparser.assertCodeCanBeLexed
+import com.smeup.rpgparser.assertExampleCanBeLexed
 import com.smeup.rpgparser.assertToken
+import kotlin.test.assertEquals
 import org.junit.Test as test
 
 class RpgTokensListTest {
 
     @test fun lexJD_001() {
-        val tokens = assertCanBeLexed("JD_001")
+        val tokens = assertExampleCanBeLexed("JD_001")
         assertToken(DIRECTIVE, "H/", tokens[0])
         assertToken(DIR_COPY, "COPY", tokens[1])
         assertToken(DIR_OtherText, "QILEGEN", tokens[2])
@@ -18,7 +20,7 @@ class RpgTokensListTest {
     }
 
     @test fun lexJD_001_justdirectives() {
-        val tokens = assertCanBeLexed("JD_001_justdirectives")
+        val tokens = assertExampleCanBeLexed("JD_001_justdirectives")
         assertToken(DIRECTIVE, "H/", tokens[0])
         assertToken(DIR_COPY, "COPY", tokens[1])
         assertToken(DIR_OtherText, "QILEGEN", tokens[2])
@@ -38,7 +40,7 @@ class RpgTokensListTest {
     }
 
     @test fun lexJD_001_onedatadecl_simple() {
-        val tokens = assertCanBeLexed("JD_001_onedatadecl_simple")
+        val tokens = assertExampleCanBeLexed("JD_001_onedatadecl_simple")
         assertToken(DIRECTIVE, "H/", tokens[0])
         assertToken(DIR_COPY, "COPY", tokens[1])
         assertToken(DIR_OtherText, "QILEGEN", tokens[2])
@@ -68,8 +70,26 @@ class RpgTokensListTest {
     }
 
     @test fun lexHELLO() {
-        val tokens = assertCanBeLexed("HELLO")
+        val tokens = assertExampleCanBeLexed("HELLO")
         assertToken(LastRecordIndicator, "LR", tokens[48])
         assertToken(EOF, "<EOF>", tokens.last())
+    }
+
+    @test fun lexMute12_01_qualifiedAccess() {
+        val tokens = assertExampleCanBeLexed("data/ds/MUTE12_01")
+        val tokensAtLine102 = tokens.filter { it.line == 102 }
+        assertEquals(12, tokensAtLine102.size)
+        assertToken(OP_EVAL, "EVAL", tokensAtLine102[5])
+        assertToken(ID, "DS1", tokensAtLine102[6])
+        assertToken(FREE_DOT, ".", tokensAtLine102[7])
+        assertToken(ID, "AR2", tokensAtLine102[8])
+    }
+
+    @test fun lexQualifiedDsAccess() {
+        val tokens = assertCodeCanBeLexed("     C                   EVAL      DS1.AR2=*ON")
+        assertEquals(12, tokens.size)
+        assertToken(ID, "DS1", tokens[6])
+        assertToken(FREE_DOT, ".", tokens[7])
+        assertToken(ID, "AR2", tokens[8])
     }
 }

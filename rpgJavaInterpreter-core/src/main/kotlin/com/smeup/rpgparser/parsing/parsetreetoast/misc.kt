@@ -5,9 +5,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.mapping.toPosition
-import com.strumenta.kolasu.model.Node
-import com.strumenta.kolasu.model.Position
-import com.strumenta.kolasu.model.ReferenceByName
+import com.strumenta.kolasu.model.*
 import java.lang.IllegalStateException
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
@@ -365,7 +363,19 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
                 index = this.index.toAst(conf),
                 position = toPosition(conf.considerPosition))
         is SubstTargetContext -> this.bif_subst().toAst(conf)
+        is QualifiedTargetContext -> QualifiedAccessExpr(
+                DataRefExpr(ReferenceByName(this.container.text), this.container!!.toPosition(conf.considerPosition)),
+                this.field.text,
+                toPosition(conf.considerPosition))
         else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)}")
+    }
+}
+
+fun Token.toPosition(considerPosition: Boolean): Position? {
+    return if (considerPosition) {
+        Position(this.startPoint, this.endPoint)
+    } else {
+        null
     }
 }
 

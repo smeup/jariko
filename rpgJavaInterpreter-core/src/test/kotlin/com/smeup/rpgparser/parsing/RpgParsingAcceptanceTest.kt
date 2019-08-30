@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.AcceptanceTest
-import com.smeup.rpgparser.assertCanBeLexed
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.utils.processFilesInDirectory
 import org.junit.Test
@@ -17,7 +16,7 @@ class RpgParsingAcceptanceTest {
         var failures = 0
         processFilesInDirectory(File("src/test/resources/data"), 13) { rpgFile ->
             try {
-                val tokens = assertCanBeParsed(rpgFile)
+                val parseTree = assertCanBeParsed(rpgFile)
             } catch (e : AssertionError) {
                 System.err.println("Failed to parse ${rpgFile.absolutePath}: ${e.message}")
                 failures++

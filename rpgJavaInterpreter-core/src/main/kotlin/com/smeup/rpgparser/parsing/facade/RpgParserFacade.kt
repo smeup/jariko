@@ -11,6 +11,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Point
+import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.endPoint
 import com.strumenta.kolasu.model.startPoint
 import com.strumenta.kolasu.validation.Error
@@ -22,6 +23,7 @@ import java.util.*
 import kotlin.collections.HashMap
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ErrorNode
+import org.antlr.v4.runtime.tree.TerminalNode
 import org.apache.commons.io.input.BOMInputStream
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
@@ -151,12 +153,12 @@ class RpgParserFacade {
             errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition))
         }
 
-        root.processDescendants({
+        root.processDescendantsAndErrors({
             if (it.exception != null) {
                 errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition))
-            } else if (it is ErrorNode) {
-                errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
             }
+        }, {
+            errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
         })
     }
 
@@ -255,8 +257,8 @@ class RpgParserFacade {
         val root = parser.statement()
         verifyParseTree(parser, errors, root)
         val result = ParsingResult(errors, root)
-        var mutes: MutesMap?
-        if (muteSupport) {
+        val mutes: MutesMap?
+        if (muteSupport && result.correct) {
             inputStream.reset()
             mutes = findMutes(inputStream, errors)
             result.root!!.toAst().apply {
@@ -267,11 +269,36 @@ class RpgParserFacade {
     }
 }
 
+private fun TerminalNode.toPosition(considerPosition: Boolean = true): Position? {
+    return if (considerPosition) {
+        Position(this.symbol.startPoint, this.symbol.endPoint)
+    } else {
+        null
+    }
+}
+
 fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit, includingMe: Boolean = true) {
     if (includingMe) {
         operation(this)
     }
     if (this.children != null) {
         this.children.filterIsInstance(ParserRuleContext::class.java).forEach { it.processDescendants(operation) }
+    }
+}
+
+fun ParserRuleContext.processDescendantsAndErrors(
+        operationOnParserRuleContext: (ParserRuleContext) -> Unit,
+        operationOnError: (ErrorNode) -> Unit,
+        includingMe: Boolean = true) {
+    if (includingMe) {
+        operationOnParserRuleContext(this)
+    }
+    if (this.children != null) {
+        this.children.filterIsInstance(ParserRuleContext::class.java).forEach {
+            it.processDescendantsAndErrors(operationOnParserRuleContext, operationOnError, includingMe=true)
+        }
+        this.children.filterIsInstance(ErrorNode::class.java).forEach {
+            operationOnError(it)
+        }
     }
 }

@@ -124,4 +124,17 @@ class ExpressionsTest {
         assertEquals(expression("x = y / 2"), expression("x=y/2"))
         assertEquals(expression("x = y ** 2"), expression("x=y**2"))
     }
+
+//    @test fun parseQualifiedDsAccess() {
+//        assertExpressionCanBeParsed("DS1.AR2")
+//    }
+//
+//    @test fun parseAssignmentWithOnIndicator() {
+//        assertExpressionCanBeParsed("AR2=*ON")
+//    }
+//
+//    @test fun parseQualifiedDsAccessAsAssignmentTarget() {
+//        assertExpressionCanBeParsed("DS1.AR2=*ON")
+//    }
+
 }

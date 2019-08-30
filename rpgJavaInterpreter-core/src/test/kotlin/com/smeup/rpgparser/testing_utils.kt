@@ -69,8 +69,12 @@ fun inputStreamForCode(code: String): InputStream {
     return code.byteInputStream(StandardCharsets.UTF_8)
 }
 
-fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): List<Token> {
+fun assertExampleCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): List<Token> {
     return assertCanBeLexed(inputStreamFor(exampleName), onlyVisibleTokens)
+}
+
+fun assertCodeCanBeLexed(code: String, onlyVisibleTokens: Boolean = true): List<Token> {
+    return assertCanBeLexed(inputStreamForCode(code), onlyVisibleTokens)
 }
 
 fun assertCanBeLexed(file: File, onlyVisibleTokens: Boolean = true): List<Token> {
@@ -140,8 +144,9 @@ fun expressionAst(code: String): Expression {
     return assertExpressionCanBeParsed(code).toAst(ToAstConfiguration(considerPosition = false))
 }
 
-fun assertStatementCanBeParsed(code: String): StatementContext {
-    val result = RpgParserFacade().parseStatement(inputStreamForCode(code))
+fun assertStatementCanBeParsed(code: String, addPrefix:Boolean = false): StatementContext {
+    val codeToUse = if (addPrefix) "     C                   $code" else code
+    val result = RpgParserFacade().parseStatement(inputStreamForCode(codeToUse))
     if (!result.correct) {
         val lexingResult = RpgParserFacade().lex(inputStreamForCode(code))
         if (lexingResult.correct) {
