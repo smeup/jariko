@@ -88,13 +88,21 @@ fun assertCanBeLexed(inputStream: InputStream, onlyVisibleTokens: Boolean = true
     }
 }
 
-fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RContext {
+fun assertCanBeParsed(inputStream: InputStream, withMuteSupport: Boolean = false): RContext {
     val result = RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
-            .parse(inputStreamFor(exampleName))
+            .parse(inputStream)
     assertTrue(result.correct,
             message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
     return result.root!!.rContext
+}
+
+fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RContext {
+    return assertCanBeParsed(inputStreamFor(exampleName), withMuteSupport)
+}
+
+fun assertCanBeParsed(file: File, withMuteSupport: Boolean = false): RContext {
+    return assertCanBeParsed(FileInputStream(file), withMuteSupport)
 }
 
 fun assertASTCanBeProduced(
