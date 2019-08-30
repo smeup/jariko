@@ -548,8 +548,7 @@ class InterpreterTest {
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
     }
 
-    // TODO Changes in grammar needed
-    @Test @Ignore
+    @Test
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }
