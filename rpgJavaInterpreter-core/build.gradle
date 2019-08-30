@@ -44,6 +44,11 @@ dependencies {
   compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version".toString()
   compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version".toString()
   compile "com.github.ftomassetti:kolasu:4249345373"
+
+  compile "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
+  compile "org.apache.logging.log4j:log4j-api:2.12.1"
+  compile "org.apache.logging.log4j:log4j-core:2.12.1"
+    
   testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version".toString()
   testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
   testCompile 'junit:junit:4.12'
