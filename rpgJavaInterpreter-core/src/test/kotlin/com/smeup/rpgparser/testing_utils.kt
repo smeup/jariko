@@ -24,6 +24,8 @@ import kotlin.test.fail
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
+import java.io.File
+import java.io.FileInputStream
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
@@ -68,7 +70,15 @@ fun inputStreamForCode(code: String): InputStream {
 }
 
 fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): List<Token> {
-    val result = RpgParserFacade().lex(inputStreamFor(exampleName))
+    return assertCanBeLexed(inputStreamFor(exampleName), onlyVisibleTokens)
+}
+
+fun assertCanBeLexed(file: File, onlyVisibleTokens: Boolean = true): List<Token> {
+    return assertCanBeLexed(FileInputStream(file), onlyVisibleTokens)
+}
+
+fun assertCanBeLexed(inputStream: InputStream, onlyVisibleTokens: Boolean = true): List<Token> {
+    val result = RpgParserFacade().lex(inputStream)
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return if (onlyVisibleTokens) {
