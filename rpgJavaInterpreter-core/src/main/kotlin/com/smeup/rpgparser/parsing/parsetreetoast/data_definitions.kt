@@ -48,21 +48,27 @@ private fun inferDsSizeFromFieldLines(fieldLines: List<RpgParser.Parm_fixedConte
 
 fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
     var toPosition = ""
-    if (this.nameIsInFirstLine) {
-        toPosition = this.TO_POSITION().text
+    toPosition = if (this.nameIsInFirstLine) {
+        this.TO_POSITION().text
     } else {
         val header = this.parm_fixed().first()
-        toPosition = header.TO_POSITION().text
+        header.TO_POSITION().text
     }
-    if (toPosition.isBlank()) {
+    return if (toPosition.isBlank()) {
         // The element size has to be calculated, as it is not explicitly specified
         val fieldLines = this.fieldLines()
 
         //return fieldTypes.map { it.type. }
-        return inferDsSizeFromFieldLines(fieldLines)
+        inferDsSizeFromFieldLines(fieldLines)
     } else {
-        return toPosition.trim().toInt()
+        toPosition.trim().toInt()
     }
+}
+
+internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
+    return FileDefinition(
+            this.FS_RecordName().text.trim(),
+            position = this.toPosition(true))
 }
 
 internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
@@ -171,8 +177,12 @@ fun RpgParser.Dcl_dsContext.fieldLines() : List<RpgParser.Parm_fixedContext> {
 }
 
 fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = ToAstConfiguration()): Type {
-    val header = this.parm_fixed().first()
-    val dim: Expression? = header.keyword().asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
+    val keywords = if (this.parm_fixed().isEmpty()) {
+        this.keyword()
+    } else {
+        this.parm_fixed().first().keyword()
+    }
+    val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val others = this.fieldLines()
     val fieldTypes : List<FieldType> = others.map { it.toFieldType() }
@@ -191,7 +201,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     } else {
         null
     }
-    require(this.parm_fixed().isNotEmpty())
+
     val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
     val type: Type = this.type(size)
     val nElements = if (type is ArrayType) {
@@ -199,6 +209,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     } else {
         null
     }
+
     return DataDefinition(
             this.name,
             type,

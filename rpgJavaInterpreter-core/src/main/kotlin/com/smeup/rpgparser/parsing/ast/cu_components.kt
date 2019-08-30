@@ -1,8 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.interpreter.AbstractDataDefinition
-import com.smeup.rpgparser.interpreter.DataDefinition
-import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.*
 import java.util.*
 
@@ -11,12 +9,15 @@ import java.util.*
 // to its main components
 
 data class CompilationUnit(
+    val fileDefinitions: List<FileDefinition>,
     val dataDefinitions: List<DataDefinition>,
     val main: MainBody,
     val subroutines: List<Subroutine>,
     val compileTimeArrays: List<CompileTimeArray>,
     override val position: Position?
 ) : Node(position) {
+
+    var databaseInterface: DatabaseInterface = DummyDatabaseInterface
 
     val entryPlist: PlistStmt?
         get() = main.stmts.plist()
@@ -28,15 +29,40 @@ data class CompilationUnit(
         inStatementsDataDefinitions.addAll(dataDefinitions)
     }
 
+    private var _allDataDefinitions = mutableListOf<AbstractDataDefinition>()
+
     @Derived
     val allDataDefinitions: List<AbstractDataDefinition>
         get() {
-            val res = LinkedList<AbstractDataDefinition>()
-            res.addAll(dataDefinitions)
-            dataDefinitions.forEach { it.fields.let { res.addAll(it) } }
-            res.addAll(inStatementsDataDefinitions)
-            return res
+            if (_allDataDefinitions.isEmpty()) {
+                _allDataDefinitions.addAll(dataDefinitions)
+                dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
+                _allDataDefinitions.addAll(inStatementsDataDefinitions)
+                fileDefinitions.forEach {
+                    val metadata = databaseInterface.metadataOf(it.name)
+                    if (metadata != null) {
+                        it.formatName = metadata.formatName
+                        _allDataDefinitions.addAll(metadata.fields)
+                    }
+                }
+                checkDuplicatedDataDefinition(_allDataDefinitions)
+            }
+            return _allDataDefinitions
         }
+
+    private fun checkDuplicatedDataDefinition(dataDefinitions: List<AbstractDataDefinition>) {
+        val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
+        dataDefinitions.forEach {
+            val dataDefinition = dataDefinitionMap[it.name]
+            if (dataDefinition == null) {
+                dataDefinitionMap[it.name] = it
+            } else {
+                require(dataDefinition.type == it.type) {
+                    "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
+                }
+            }
+        }
+    }
 
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
@@ -47,9 +73,12 @@ data class CompilationUnit(
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
 
     fun compileTimeArray(name: String): CompileTimeArray {
-        // TODO: add support for named compile time array
-        return compileTimeArrays[0]
+        return compileTimeArrays.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: compileTimeArrays[0]
     }
+
+    fun hasFileDefinition(name: String) = fileDefinitions.any { it.name.equals(name, ignoreCase = true) }
+
+    fun getFileDefinition(name: String) = fileDefinitions.first { it.name.equals(name, ignoreCase = true) }
 }
 
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)

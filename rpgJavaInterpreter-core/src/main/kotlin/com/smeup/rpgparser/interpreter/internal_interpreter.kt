@@ -40,6 +40,24 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
+data class FileInformation(var found: Boolean)
+
+class FileInformationMap {
+    private val byFileName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
+    private val byFormatName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
+
+    fun add(fileDefinition: FileDefinition) {
+        val fileInformation = FileInformation(false)
+        byFileName[fileDefinition.name] = fileInformation
+        val formatName = fileDefinition.formatName
+        if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
+            byFormatName[formatName] = fileInformation
+        }
+    }
+
+    operator fun get(nameOrFormat: String): FileInformation? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+}
+
 class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
@@ -50,6 +68,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
      */
     var cycleLimit: Int? = null
     var logHandlers: List<InterpreterLogHandler> = emptyList()
+
+    var lastFound = false
+    private val fileInfos = FileInformationMap()
 
     private fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
@@ -64,7 +85,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
-            "$data cannot be assigned the value $value"
+            "Line ${data.position.line()}: $data cannot be assigned the value $value"
         }
 
         log(AssignmentLogEntry(data, value))
@@ -78,6 +99,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
+        // TODO verify if these values should be reinitialised or not
+        compilationUnit.fileDefinitions.forEach {
+            fileInfos.add(it)
+        }
+
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
@@ -135,6 +161,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     private fun executeWithMute(statement: Statement) {
+        log(LineLogEntry(statement))
         execute(statement)
         executeMutes(statement.muteAnnotations)
     }
@@ -349,6 +376,43 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 is LeaveStmt -> throw LeaveException()
                 is IterStmt -> throw IterException()
+                is CheckStmt -> {
+                    var baseString = interpret(statement.baseString).asString().value.removeNullChars()
+                    if (statement.baseString is DataRefExpr) {
+                        baseString = baseString.padEnd(statement.baseString.size().toInt())
+                    }
+                    val charSet = interpret(statement.comparatorString).asString().value
+                    val wrongIndex = statement.wrongCharPosition
+                    lastFound = false
+                    if (wrongIndex != null) {
+                        assign(wrongIndex, IntValue.ZERO)
+                    }
+                    baseString.substring(statement.start - 1).forEachIndexed {
+                        i, c -> if (!charSet.contains(c)) {
+                            if (wrongIndex != null) {
+                                assign(wrongIndex, IntValue((i + statement.start).toLong()))
+                            }
+                            lastFound = true
+                            return
+                        }
+                    }
+                }
+                is ChainStmt -> {
+                    // -- TODO handle record formats
+                    require(fileInfos[statement.name] != null) {
+                        "Line: ${statement.position.line()} - File definition ${statement.name} not found"
+                    }
+
+                    // --
+                    val record = systemInterface.db.chain(statement.name, eval(statement.searchArg))
+                    if (record != null) {
+                        lastFound = true
+                        record.forEach { assign(it.first, it.second) }
+                    } else {
+                        lastFound = false
+                    }
+                    fileInfos[statement.name]!!.found = lastFound
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e: InterruptForDebuggingPurposes) {
@@ -440,7 +504,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private fun render(value: Value): String {
         return when (value) {
             is StringValue -> value.valueWithoutPadding
-            is BooleanValue -> value.value.toString()
+            is BooleanValue -> value.asString().value // TODO check if it's the best solution
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
             is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
@@ -480,6 +544,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 arrayValue.setElement(index, evaluatedValue)
                 return evaluatedValue
             }
+            is SubstExpr -> {
+                val oldValue = eval(target.string).asString().value
+                val length = if (target.length != null) eval(target.length).asInt().value.toInt() else null
+                val start = eval(target.start).asInt().value.toInt() - 1
+
+                val newValue = if (length == null) {
+                    StringValue(oldValue.replaceRange(start, oldValue.length, value.asString().value))
+                } else {
+                    val paddedValue = value.asString().value.padEnd(length)
+                    StringValue(oldValue.replaceRange(start, start + length, paddedValue))
+                }
+
+                return assign(target.string as AssignableExpression, newValue)
+            }
             else -> TODO(target.toString())
         }
     }
@@ -505,6 +583,81 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return assign(target, newValue)
             }
             else -> TODO()
+        }
+    }
+
+    // TODO put it outside InternalInterpreter
+    fun coerce(value: Value, type: Type): Value {
+        // TODO to be completed
+        return when (value) {
+            is BlanksValue -> {
+                when (type) {
+                    is StringType -> {
+                        blankValue(type.length.toInt())
+                    }
+                    is ArrayType -> {
+                        createArrayValue(type.element, type.nElements) {
+                            blankValue(type.element)
+                        }
+                    }
+                    is NumberType -> {
+                        if (type.integer) {
+                            IntValue.ZERO
+                        } else {
+                            DecimalValue.ZERO
+                        }
+                    }
+                    else -> TODO("Converting BlanksValue to $type")
+                }
+            }
+            is StringValue -> {
+                when (type) {
+                    is StringType -> {
+                        var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
+                        if (value.value.length > type.length) {
+                            s = s.substring(0, type.length.toInt())
+                        }
+                        return StringValue(s)
+                    }
+                    is ArrayType -> {
+                        createArrayValue(type.element, type.nElements) {
+                            // TODO
+                            blankValue(type.element)
+                        }
+                    }
+                    // TODO
+                    is NumberType -> {
+                        if (type.integer) {
+                            IntValue(value.value.asLong())
+                        } else {
+                            TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
+                        }
+                    }
+                    is BooleanType -> {
+                        if ("1" == value.value.trim()) {
+                            BooleanValue.TRUE
+                        } else {
+                            BooleanValue.FALSE
+                        }
+                    }
+                    is DataStructureType -> {
+                        TODO("Converting String to $type")
+                    }
+                    else -> TODO("Converting String to $type")
+                }
+            }
+            is ArrayValue -> {
+                when (type) {
+                    is StringType -> {
+                        return value.asString()
+                    }
+                    is ArrayType -> {
+                        return value
+                    }
+                    else -> TODO("Converting ArrayValue to $type")
+                }
+            }
+            else -> value
         }
     }
 
@@ -738,6 +891,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is TrimExpr -> {
                 return StringValue(eval(expression.value).asString().value.removeNullChars().trim())
             }
+            is FoundExpr -> {
+                if (expression.name == null) {
+                    return BooleanValue(lastFound)
+                }
+                TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
+            }
             else -> TODO(expression.toString())
         }
     }
@@ -799,23 +958,17 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
     fun fQ(): String = signumChar() + f4()
 
+    fun toBlnk(c: Char) = if (c == '0') ' ' else c
+
     fun fY(): String {
-        val s = if (this.value.isZero()) {
-            "0/00/00"
+        var stringN = this.value.abs().unscaledValue().toString().trim()
+        return if (stringN.length <= 6) {
+            stringN = stringN.padStart(6, '0')
+            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size.toInt() + 2)
         } else {
-            val symbols = object : DecimalFormatSymbols() {
-                override fun getGroupingSeparator(): Char {
-                    return '/'
-                }
-            }
-            val format = if (type.size.toInt() == 8) {
-                "##,####" // TODO this doesn't work
-            } else {
-                "##,##,##"
-            }
-            DecimalFormat(format, symbols).format(this.value.abs().unscaledValue())
+            stringN = stringN.padStart(8, '0')
+            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size.toInt() + 2)
         }
-        return s.padStart(type.size.toInt())
     }
 
     fun fZ(): String {

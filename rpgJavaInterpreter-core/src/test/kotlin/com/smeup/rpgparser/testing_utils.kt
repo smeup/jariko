@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -28,6 +29,29 @@ import org.apache.commons.io.input.BOMInputStream
 class Dummy
 
 interface PerformanceTest
+
+fun parseFragmentToCompilationUnit(
+    code: String,
+    toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
+): CompilationUnit {
+    val completeCode = """
+|     H/COPY QILEGEN,£INIZH
+|      *---------------------------------------------------------------
+|     I/COPY QILEGEN,£TABB£1DS
+|     I/COPY QILEGEN,£PDS
+|     $code
+        """.trimMargin("|")
+    val rContext = assertCodeCanBeParsed(completeCode)
+    return rContext.toAst(toAstConfiguration)
+}
+
+fun parseFragmentToCompilationUnit(
+    codeLines: List<String>,
+    toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
+): CompilationUnit {
+    val codeLinesAsSingleString = codeLines.joinToString("\n|     ")
+    return parseFragmentToCompilationUnit(codeLinesAsSingleString, toAstConfiguration)
+}
 
 fun assertIsIntValue(value: Value, intValue: Long) {
     assertTrue(value is IntValue, "IntValue expected but found instead $value")
@@ -59,7 +83,7 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RC
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStreamFor(exampleName))
     assertTrue(result.correct,
-            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+            message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
     return result.root!!.rContext
 }
 
@@ -129,6 +153,12 @@ fun CompilationUnit.assertDataDefinitionIsPresent(
     return dataDefinition
 }
 
+fun CompilationUnit.assertFileDefinitionIsPresent(name: String): FileDefinition {
+    assertTrue(this.hasFileDefinition(name), message = "File definition $name not found in Compilation Unit")
+    val fileDefinition = this.getFileDefinition(name)
+    return fileDefinition
+}
+
 fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token, trimmed: Boolean = true) {
     assertEquals(expectedTokenType, token.type)
     if (trimmed) {
@@ -146,12 +176,21 @@ open class CollectorSystemInterface : SystemInterface {
     val displayed = LinkedList<String>()
     val programs = HashMap<String, Program>()
     val functions = HashMap<String, Function>()
+    var printOutput = false
+    private var databaseInterface: DatabaseInterface = DummyDatabaseInterface
+        set(value) {
+            field = value
+        }
+
+    override val db: DatabaseInterface
+        get() = databaseInterface
 
     override fun findProgram(name: String) = programs[name]
     override fun findFunction(globalSymbolTable: SymbolTable, name: String) = functions[name]
 
     override fun display(value: String) {
         displayed.add(value)
+        if (printOutput) println(value)
     }
 }
 

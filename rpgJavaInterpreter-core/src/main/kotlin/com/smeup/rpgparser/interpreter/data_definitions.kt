@@ -45,6 +45,10 @@ open class AbstractDataDefinition(
     }
 }
 
+data class FileDefinition(override val name: String, override val position: Position? = null) : Node(position), Named {
+    var formatName: String? = null
+}
+
 data class DataDefinition(
     override val name: String,
     override val type: Type,

@@ -35,7 +35,7 @@ abstract class Statement(
         }
 
         muteToProcess.forEach { (line, mute) ->
-            this.muteAnnotations.add(mute!!.toAst(
+            this.muteAnnotations.add(mute.toAst(
                     position = pos(line, this.position!!.start.column, line, this.position!!.end.column))
             )
             mutesAttached.add(MuteAnnotationResolved(line, this.position!!.start.line))
@@ -58,7 +58,7 @@ data class SelectStmt(
 
         cases.forEach {
             muteAttached.addAll(
-                    acceptBody(it.body, mutes, it.position!!.start.line, it.position!!.end.line)
+                    acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
             )
         }
 
@@ -99,6 +99,23 @@ data class MoveStmt(
 ) :
     Statement(position)
 
+// TODO add other parameters
+data class ChainStmt(
+    val searchArg: Expression, // Factor1
+    val name: String, // Factor 2
+    override val position: Position? = null
+) :
+    Statement(position)
+
+data class CheckStmt(
+    val comparatorString: Expression, // Factor1
+    val baseString: Expression,
+    val start: Int = 1,
+    val wrongCharPosition: AssignableExpression?,
+    override val position: Position? = null
+) :
+        Statement(position)
+
 data class CallStmt(
     val expression: Expression,
     val params: List<PlistParam>,
@@ -126,20 +143,20 @@ data class IfStmt(
 
         // Process the body statements
         muteAttached.addAll(
-                acceptBody(body, mutes, this.position!!.start.line, this.position!!.end.line)
+                acceptBody(body, mutes, this.position!!.start.line, this.position.end.line)
         )
 
         // Process the ELSE IF
         elseIfClauses.forEach {
             muteAttached.addAll(
-                    acceptBody(it.body, mutes, it.position!!.start.line, it.position!!.end.line)
+                    acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
             )
         }
 
         // Process the ELSE
         if (elseClause != null) {
             muteAttached.addAll(
-                    acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position!!.end.line)
+                    acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position.end.line)
             )
         }
 

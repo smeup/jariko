@@ -13,7 +13,7 @@ r: (dcl_pr
   	| statement
   	| procedure
 )*
-endSource*
+endSourceBlock?
 ;
 statement:
 	dspec 
@@ -36,9 +36,11 @@ statement:
 	| free
 ;
 
+endSourceBlock: (endSource)+;
 endSource: endSourceHead endSourceLine*;
-endSourceHead: END_SOURCE ;
-endSourceLine: EOS_Text (EOL|EOF);
+endSourceHead: END_SOURCE  ;
+endSourceLine: endSourceLineText EOL?;
+endSourceLineText: EOS_Text;
 
 star_comments: COMMENT_SPEC_FIXED comments?;//comments COMMENTS_EOL;
 free_comments: COMMENTS comments COMMENTS_EOL;
@@ -2616,4 +2618,6 @@ SPLAT_ALL
 
 target:
       name=ID #simpleTarget
-    | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget ;
+    | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
+    | bif_subst #substTarget
+    ;

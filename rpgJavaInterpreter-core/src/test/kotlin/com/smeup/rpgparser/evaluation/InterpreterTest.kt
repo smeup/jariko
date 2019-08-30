@@ -282,8 +282,7 @@ class InterpreterTest {
         assertEquals(outputOf("POWER"), listOf("i is now 8"))
     }
 
-    // TODO understand why this test does not pass
-    @Test @Ignore
+    @Test
     fun executeMultiplicationAndDivisionWithoutSpaces() {
         assertEquals(listOf("x is now 6", "y is now 2", "z is now 0"), outputOf("CALC"))
     }
@@ -339,8 +338,7 @@ class InterpreterTest {
             outputOf("BIFEDITC_J"))
     }
 
-    // TODO understand why this test cannot be activated
-    @Test @Ignore
+    @Test
     fun executeBIFEDITC_Y() {
         assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
                             "x  12/34/56   0/00/00X",
@@ -446,8 +444,7 @@ class InterpreterTest {
             actual = outputOf("ARRAY04").map(String::trim))
     }
 
-    // TODO Changes in grammar needed
-    @Test @Ignore
+    @Test
     fun executeARRAY05NAM_namedCompileTimeArrays() {
         assertEquals(expected =
             ("100\n" +
@@ -479,12 +476,39 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCHECK() {
+        assertEquals(listOf("Wrong char at 6", "Wrong char at 7", "No wrong chars 0"), outputOf("CHECK"))
+    }
+
+    @Test
     fun executeLOGICAL_conditions() {
         assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
     }
 
-    // TODO understand why this test does not pass
+    // TODO implement comparison between types: see InternalInterpreter::areEquals
     @Test @Ignore
+    fun executeBOOLSTRING_conversion() {
+        assertEquals(listOf("B<>1", "B=0", "0"), outputOf("BOOLSTRING"))
+    }
+
+    // TODO implement DataStructureType coercion
+    @Test @Ignore
+    fun executeDSNUMERIC() {
+        assertEquals(listOf("Result is: 3"), outputOf("DSNUMERIC"))
+    }
+
+    // TODO implement DataStructureType coercion
+    @Test @Ignore
+    fun executeDSCHARS() {
+        assertEquals(listOf("Result is: X 1Y 2"), outputOf("DSCHARS"))
+    }
+
+    @Test
+    fun executeFRSTCHRCOM_CommentInFirstChars() {
+        assertEquals(listOf("Hello!"), outputOf("FRSTCHRCOM"))
+    }
+
+    @Test
     fun executeZADDERR() {
         // TODO better error assertion
         assertFailsWith(Throwable::class) {
@@ -493,8 +517,23 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeZADDNOERR() {
+        assertEquals(listOf("88"), outputOf("ZADDNOERR"))
+    }
+
+    @Test
+    fun executeZADD_DefiningData() {
+        assertEquals(listOf("88"), outputOf("ZADD2"))
+    }
+
+    @Test
     fun executeSUBSTTEST() {
         assertEquals(listOf("x)yy"), outputOf("SUBSTTEST"))
+    }
+
+    @Test
+    fun executeASSIGNSUBS() {
+        assertEquals(listOf("-xyz--", "-xyz", "-xyz -"), outputOf("ASSIGNSUBS"), message = "We can't handle %SUBST(X)=Y")
     }
 
     // TODO understand why this test does not pass
