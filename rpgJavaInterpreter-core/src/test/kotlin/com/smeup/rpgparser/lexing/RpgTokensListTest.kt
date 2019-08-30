@@ -92,4 +92,14 @@ class RpgTokensListTest {
         assertToken(FREE_DOT, ".", tokens[7])
         assertToken(ID, "AR2", tokens[8])
     }
+
+    @test fun lexMute12_06_indicatorAssignment() {
+        val tokens = assertExampleCanBeLexed("data/primitives/MUTE12_06")
+        val tokensAtLine = tokens.filter { it.line == 21 }
+        assertEquals(10, tokensAtLine.size)
+        assertToken(OP_EVAL, "EVAL", tokensAtLine[5])
+        assertToken(SPLAT_INDICATOR, "*IN35", tokensAtLine[6])
+        assertToken(EQUAL, "=", tokensAtLine[7])
+        assertToken(SPLAT_ON, "*ON", tokensAtLine[8])
+    }
 }

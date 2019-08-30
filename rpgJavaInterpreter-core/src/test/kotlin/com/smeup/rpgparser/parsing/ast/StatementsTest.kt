@@ -189,4 +189,9 @@ class StatementsTest {
     @test fun parseEvalWithQualifiedDsAccess() {
         assertStatementCanBeParsed("EVAL      DS1.AR2=*ON", addPrefix = true)
     }
+
+    @test fun parseEvalWithIndicatorTarget() {
+        assertStatementCanBeParsed("EVAL      *IN35=*ON", addPrefix = true)
+    }
+
 }

@@ -4,4 +4,8 @@ import com.strumenta.kolasu.model.Position
 
 // *00..*99
 data class PredefinedIndicatorExpr(val index: Int, override val position: Position? = null) :
-    Expression(position)
+    AssignableExpression(position) {
+    override fun size(): Long {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}

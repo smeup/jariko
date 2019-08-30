@@ -2619,6 +2619,7 @@ SPLAT_ALL
 
 target:
       name=ID #simpleTarget
+    | indic=SPLAT_INDICATOR #indicatorTarget
     | container=ID FREE_DOT field=ID #qualifiedTarget
     | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
     | bif_subst #substTarget
