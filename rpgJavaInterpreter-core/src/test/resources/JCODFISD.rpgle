@@ -84,7 +84,7 @@
      C   58              MOVE      '1'           FISICA
      C   58              EXSR      FIDE
      C  N58              EXSR      ALTI
-     C                   GOTO      FINE
+     C                   RETURN
       * Label di fine con errore di sintassi.
      C     FINESN        TAG
      C                   MOVE      '1'           SINTAX
@@ -92,8 +92,6 @@
      C     FINECD        TAG
      C                   MOVE      '1'           CHKDIG
      C                   MOVE      *ZERO         OMONIM
-      * Label di fine felice.
-     C     FINE          TAG
      C                   RETURN
       *+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
      C     FIDE          BEGSR
