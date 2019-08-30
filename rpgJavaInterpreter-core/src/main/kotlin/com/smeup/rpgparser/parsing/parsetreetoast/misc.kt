@@ -371,7 +371,10 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
                 this.indic.text.indicatorIndex()!!,
                 toPosition(conf.considerPosition)
         )
-        else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)}")
+        is GlobalIndicatorTargetContext -> PredefinedGlobalIndicatorExpr(
+                toPosition(conf.considerPosition)
+        )
+        else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
     }
 }
 

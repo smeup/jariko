@@ -194,4 +194,8 @@ class StatementsTest {
         assertStatementCanBeParsed("EVAL      *IN35=*ON", addPrefix = true)
     }
 
+    @test fun parseEvalWithGlobalIndicatorTarget() {
+        assertStatementCanBeParsed("EVAL      *IN=*ON", addPrefix = true)
+    }
+
 }
