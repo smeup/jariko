@@ -2,11 +2,14 @@ package com.smeup.rpgparser.rgpinterop
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
+import com.smeup.rpgparser.logging.Logger
+import com.smeup.rpgparser.logging.PerformanceLogHandler
+import com.smeup.rpgparser.logging.StatementLogHandler
+import com.smeup.rpgparser.logging.configureLog
 import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
-import kotlin.math.log
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
@@ -14,6 +17,7 @@ import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
+import kotlin.system.measureTimeMillis
 
 annotation class Param(val name: String)
 
@@ -39,16 +43,16 @@ abstract class RpgFacade<P> (
     private val logHandlers = mutableListOf<InterpreterLogHandler>()
     fun addLogHandler(handler: InterpreterLogHandler) = logHandlers.add(handler)
     fun removeLogHandler(handler: InterpreterLogHandler) = logHandlers.remove(handler)
-
-    var traceMode: Boolean
-        get() = logHandlers.any { it is SimpleLogHandler }
-        set(simpleLogHandler) {
-            if (simpleLogHandler) {
-                logHandlers.add(SimpleLogHandler)
-            } else {
-                logHandlers.remove(SimpleLogHandler)
-            }
-        }
+//
+//    var traceMode: Boolean
+//        get() = logHandlers.any { it is SimpleLogHandler }
+//        set(simpleLogHandler) {
+//            if (simpleLogHandler) {
+//                logHandlers.add(SimpleLogHandler)
+//            } else {
+//                logHandlers.remove(SimpleLogHandler)
+//            }
+//        }
 
     protected val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
     private val programName by lazy { programNameSource.nameFor(this) }
@@ -56,8 +60,22 @@ abstract class RpgFacade<P> (
 
     fun singleCall(params: P): P? {
         val initialValues = toInitialValues(params)
+
+        // TODO the runner should process a command line switch to set the log configuration file
+        var messages = Logger.configure("/home/madytyoo/Downloads/smeup-rpg-log/logging.config")
+        messages.forEach {
+            println(it)
+        }
+
+        // TODO not sure it is in the right place
+        logHandlers.addAll(configureLog("/home/madytyoo/Downloads/smeup-rpg-log/logging.config"))
+
+
         logHandlers.log(StartProgramLog(programName, initialValues))
-        programInterpreter.execute(rpgProgram, initialValues)
+        val elapsed = measureTimeMillis {
+            programInterpreter.execute(rpgProgram, initialValues)
+        }
+        logHandlers.log(EndProgramLog(programName,elapsed))
         return toResults(params, initialValues)
     }
 
