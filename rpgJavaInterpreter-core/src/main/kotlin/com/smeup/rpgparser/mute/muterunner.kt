@@ -46,7 +46,8 @@ fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResul
 
         try {
             interpreter.execute(cu, mapOf())
-            interpreter.executedAnnotation.forEach { (line, annotation) ->
+            val sorted = interpreter.executedAnnotation.toSortedMap()
+            sorted.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
 
                     println("Mute annotation at line $line ${annotation.expression.render()} failed")
