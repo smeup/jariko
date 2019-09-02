@@ -17,7 +17,7 @@ data class CompilationUnit(
     override val position: Position?
 ) : Node(position) {
 
-    var databaseInterface: DatabaseInterface = DummyDatabaseInterface
+    var databaseInterface: DBInterface = DummyDBInterface
 
     val entryPlist: PlistStmt?
         get() = main.stmts.plist()

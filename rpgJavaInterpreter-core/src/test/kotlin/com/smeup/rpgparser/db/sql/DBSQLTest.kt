@@ -1,13 +1,13 @@
 package com.smeup.rpgparser.db.sql
 
-import com.smeup.rpgparser.interpreter.DatabaseInterface
+import com.smeup.rpgparser.interpreter.DBInterface
 import org.junit.Test
 
-class DbSqlTest {
+class DBSQLTest {
 
     @Test
     fun dbSqlSmokeTest() {
-        val db: DatabaseInterface = DatabaseSQLInterface(testConnection())
+        val db: DBInterface = DBSQLInterface(testConnection())
     }
 
     private fun testConnection() = DBConfiguration("jdbc:h2:mem:regular", "org.h2.Driver")
