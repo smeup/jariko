@@ -1,5 +1,10 @@
 package com.smeup.rpgparser.execution
 
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rgpinterop.*
@@ -59,8 +64,23 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
-fun executePgmWithStringArgs(args: Array<String>) {
-    getProgram(args[0]).singleCall(args.asList().subList(1, args.size))
+fun executePgmWithStringArgs(programName: String, programArgs: List<String>, logConfigurationFile: File?) {
+    val commandLineProgram = getProgram(programName)
+    if (logConfigurationFile != null) {
+        commandLineProgram.useLogConfigurationFile(logConfigurationFile)
+    }
+    commandLineProgram.singleCall(programArgs)
+}
+
+class RunnerCLI : CliktCommand() {
+    val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
+    val programName by argument("program name")
+    val programArgs by argument().multiple(required = false)
+
+    override fun run() {
+        executePgmWithStringArgs(programName, programArgs, logConfigurationFile)
+    }
+
 }
 
 // TODO describe what this program does
@@ -68,6 +88,7 @@ fun main(args: Array<String>) {
     if (args.isEmpty()) {
         SimpleShell().repl(::executePgmWithStringArgs)
     } else {
-        executePgmWithStringArgs(args)
+        RunnerCLI().main(args)
+
     }
 }

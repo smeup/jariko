@@ -57,7 +57,7 @@ abstract class RpgFacade<P> (
     private val programName by lazy { programNameSource.nameFor(this) }
     protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
 
-    fun useLogConfigurationFile(logConfigurationFile: File){
+    fun useLogConfigurationFile(logConfigurationFile: File) {
         logHandlers = configureLog(logConfigurationFile).toMutableList()
     }
 

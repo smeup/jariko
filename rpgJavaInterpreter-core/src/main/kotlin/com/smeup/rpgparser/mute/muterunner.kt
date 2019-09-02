@@ -148,7 +148,7 @@ val FAILURE_EXIT_CODE = 1
 class MuteRunnerCLI : CliktCommand() {
     val verbosity by option().switch("--verbose" to true, "-v" to true, "--silent" to false, "-s" to false).default(false)
     val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
-    val pathsToProcessArgs by argument(name = "Paths to process").file(exists = true, folderOkay = true, fileOkay = true).multiple(required = true)
+    val pathsToProcessArgs by argument(name = "Paths to process").file(exists = true, folderOkay = true, fileOkay = true).multiple(required = false)
 
     override fun run() {
         MuteRunner.verbose = verbosity
