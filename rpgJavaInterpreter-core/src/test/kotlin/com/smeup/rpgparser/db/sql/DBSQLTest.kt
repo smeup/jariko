@@ -1,9 +1,6 @@
 package com.smeup.rpgparser.db.sql
 
-import com.smeup.rpgparser.interpreter.AbstractDataDefinition
-import com.smeup.rpgparser.interpreter.DBInterface
-import com.smeup.rpgparser.interpreter.FileMetadata
-import com.smeup.rpgparser.interpreter.StringType
+import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
 
 class DBSQLTest {
@@ -17,7 +14,7 @@ class DBSQLTest {
     fun dbMetaDataTest() {
         val fileMetadata = FileMetadata("TSTTAB",
                 "TSTTAB",
-                listOf(AbstractDataDefinition("TSTFIELD", StringType(5))))
+                listOf("TSTFIELD" withType StringType(5)))
         val db = connectionForTest(listOf(fileMetadata))
     }
 
