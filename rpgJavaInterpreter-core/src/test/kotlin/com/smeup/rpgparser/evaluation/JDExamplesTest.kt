@@ -11,6 +11,8 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 import org.junit.Ignore
 import org.junit.Test
+import com.smeup.rpgparser.utils.StringOutputStream
+import java.io.PrintStream
 
 class JDExamplesTest {
     @Test
@@ -189,7 +191,7 @@ class JDExamplesTest {
         val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(10)),
-                ProgramParam("name", StringType(10)),
+                ProgramParam("currentProgramName", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
@@ -222,7 +224,7 @@ class JDExamplesTest {
         val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(100)),
-                ProgramParam("name", StringType(10)),
+                ProgramParam("currentProgramName", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
@@ -260,7 +262,7 @@ class JDExamplesTest {
         assertEquals(
                 mapOf(
                         "foldern" to StringValue.padded("my/path/to/folder", 1000),
-                        "name" to StringValue.blank(10),
+                        "currentProgramName" to StringValue.blank(10),
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])
@@ -274,7 +276,7 @@ class JDExamplesTest {
         val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(100)),
-                ProgramParam("name", StringType(10)),
+                ProgramParam("currentProgramName", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
@@ -315,13 +317,13 @@ class JDExamplesTest {
         assertEquals(
                 mapOf(
                         "foldern" to StringValue.padded("my/path/to/folder", 1000),
-                        "name" to StringValue.blank(10),
+                        "currentProgramName" to StringValue.blank(10),
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])
         assertEquals(1, callsToNfyeve.size)
         val v = callsToNfyeve[0]["var"] as ArrayValue
-        assertEquals(StringValue("Object name".padEnd(50) +
+        assertEquals(StringValue("Object currentProgramName".padEnd(50) +
                 "myFile.png".padEnd(1000)),
                 v.getElement(1))
         assertEquals(StringValue("Object type".padEnd(50) +
@@ -538,21 +540,24 @@ class JDExamplesTest {
     // TODO understand why this test does not pass
     @Test @Ignore
     fun executeJD_003_full() {
+        val callsToRcvsck = LinkedList<Map<String, Value>>()
         val callsToNfyeve = LinkedList<Map<String, Value>>()
         val targa = "AB123XX"
         val returnStatus = "U\$IN35"
         val parms = mapOf(
-                "U\$FUNZ" to StringValue("INZ"),
-                "U\$METO" to StringValue(""),
-                "U\$SVARSK" to StringValue(""),
+                "U\$FUNZ" to StringValue("INZ".padEnd(10)),
+                "U\$METO" to StringValue("".padEnd(10)),
+                "U\$SVARSK" to StringValue("SOCKET".padEnd(50) + "127.0.0.1"),
                 returnStatus to StringValue(" ")
         )
         val si = CollectorSystemInterface()
+        si.printOutput = true
         si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
                 ProgramParam("addr", StringType(10)),
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+                callsToRcvsck.add(params)
                 val result = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Auto Targa=\"${targa}\" />"
                 return listOf(StringValue(""), StringValue(result), IntValue(result.length.toLong()))
             }
@@ -566,7 +571,10 @@ class JDExamplesTest {
                 throw InterruptForDebuggingPurposes()
             }
         }
-        execute("JD_003_full", parms, si)
+        val outputLog = StringOutputStream()
+        execute("JD_003_full", parms, si, listOf(LinesLogHandler(PrintStream(outputLog))))
+        assertTrue(outputLog.written, message = "No statement executed!")
+        assertEquals(1, callsToRcvsck.size)
         assertEquals(1, callsToNfyeve.size)
         assertTrue((callsToNfyeve[0]["var"] as ConcreteArrayValue).getElement(1).asString().value.contains(targa))
         assertEquals(" ", parms[returnStatus]!!.value)

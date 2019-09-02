@@ -10,8 +10,12 @@ import kotlin.reflect.full.isSubclassOf
 
 open class JavaSystemInterface(
     private val outputStream: PrintStream,
-    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?
+    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
+    private val databaseInterface: DBInterface = DummyDBInterface
 ) : SystemInterface {
+
+    override val db: DBInterface
+        get() = databaseInterface
 
     // For calls from Java programs
     constructor (os: PrintStream) : this(os, RpgSystem::getProgram)

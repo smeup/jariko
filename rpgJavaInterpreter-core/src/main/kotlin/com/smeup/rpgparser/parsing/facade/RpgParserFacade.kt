@@ -5,6 +5,7 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.interpreter.line
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -29,6 +30,12 @@ typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
 data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
     val correct: Boolean
         get() = errors.isEmpty()
+}
+
+fun List<Error>.firstLine(): String {
+    return this.firstOrNull {
+        it.position != null
+    }?.position.line() ?: "unknown"
 }
 
 data class ParseTrees(
@@ -228,7 +235,7 @@ class RpgParserFacade {
         require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
         return result.root!!.rContext.toAst().apply {
             if (muteSupport) {
-                this.injectMuteAnnotation(result.root!!.muteContexts!!)
+                this.injectMuteAnnotation(result.root.muteContexts!!)
             }
         }
     }
@@ -248,7 +255,7 @@ class RpgParserFacade {
         val root = parser.statement()
         verifyParseTree(parser, errors, root)
         val result = ParsingResult(errors, root)
-        var mutes: MutesMap? = null
+        var mutes: MutesMap?
         if (muteSupport) {
             inputStream.reset()
             mutes = findMutes(inputStream, errors)

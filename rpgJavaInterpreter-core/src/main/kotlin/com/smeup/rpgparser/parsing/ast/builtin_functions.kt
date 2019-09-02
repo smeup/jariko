@@ -64,10 +64,13 @@ data class SubstExpr(
     val length: Expression? = null,
     override val position: Position? = null
 ) :
-    Expression(position) {
-    override fun render(): String  {
-        val len = if(length!=null) ": ${length!!.render()}" else ""
+        AssignableExpression(position) {
+    override fun render(): String {
+        val len = if (length != null) ": ${length!!.render()}" else ""
         return "%SUBST(${this.string.render()} : ${start.render()} ${len})"
+    }
+    override fun size(): Long {
+        TODO("size")
     }
 }
 
@@ -100,6 +103,13 @@ data class EditcExpr(
     override val position: Position? = null
 ) :
     Expression(position)
+
+// %FOUND
+data class FoundExpr(
+    var name: String? = null,
+    override val position: Position? = null
+) :
+        Expression(position)
 
 // %CHAR
 data class CharExpr(var value: Expression, override val position: Position? = null) :

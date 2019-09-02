@@ -8,8 +8,18 @@ import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 
 fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
-    val header = this.parm_fixed().first()
-    return header.TO_POSITION().text.asInt()
+    return if (this.parm_fixed().isEmpty()) {
+        this.TO_POSITION().text.asInt()
+    } else {
+        val header = this.parm_fixed().first()
+        header.TO_POSITION().text.asInt()
+    }
+}
+
+internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
+    return FileDefinition(
+            this.FS_RecordName().text.trim(),
+            position = this.toPosition(true))
 }
 
 internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
@@ -114,8 +124,12 @@ val RpgParser.Dcl_dsContext.hasHeader: Boolean
     }
 
 fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = ToAstConfiguration()): Type {
-    val header = this.parm_fixed().first()
-    val dim: Expression? = header.keyword().asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
+    val keywords = if (this.parm_fixed().isEmpty()) {
+        this.keyword()
+    } else {
+        this.parm_fixed().first().keyword()
+    }
+    val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val others = this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
     val elementSize = this.elementSizeOf()
@@ -133,7 +147,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     } else {
         null
     }
-    require(this.parm_fixed().isNotEmpty())
+
     val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
     val type: Type = this.type(size)
     val nElements = if (type is ArrayType) {
@@ -141,6 +155,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     } else {
         null
     }
+
     return DataDefinition(
             this.name,
             type,

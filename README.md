@@ -40,7 +40,7 @@ Then import in IDEA using these options:
 ## RPG Unit tests: the MUTE mechanism
 
 We support special annotations to be used to write unit tests in RPG.
-For details see mute.md.
+For details see [this document](mute.md).
 
 ## Running tests
 

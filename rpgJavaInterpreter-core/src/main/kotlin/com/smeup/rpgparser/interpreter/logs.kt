@@ -1,6 +1,10 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.ast.CallStmt
+import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.parsing.ast.Subroutine
 import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
 import java.util.*
@@ -33,7 +37,13 @@ abstract class LogEntry(open val programName: String) {
 
 }
 
-class CallExecutionLogEntry(programName: String,val callStmt: CallStmt) : LogEntry(programName) {
+data class LineLogEntry(override val programName: String, val stmt: Statement) : LogEntry(programName) {
+    override fun toString(): String {
+        return "Line ${stmt.position.line()}"
+    }
+}
+
+data class CallExecutionLogEntry(override val programName: String, val callStmt: CallStmt) : LogEntry(programName) {
     override fun toString(): String {
         return "calling $callStmt"
     }
@@ -384,7 +394,16 @@ interface InterpreterLogHandler {
     fun handle(logEntry: LogEntry)
 }
 
+
 // TODO remove used in Test only
+class LinesLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
+    override fun handle(logEntry: LogEntry) {
+        if (logEntry is LineLogEntry) {
+            printStream.println("[LOG] $logEntry")
+        }
+    }
+}
+
 class AssignmentsLogHandler(private val printStream: PrintStream = System.out) : InterpreterLogHandler {
     override fun handle(logEntry: LogEntry) {
         if (logEntry is AssignmentLogEntry) {

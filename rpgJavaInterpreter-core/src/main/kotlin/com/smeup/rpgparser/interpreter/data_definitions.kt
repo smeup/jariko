@@ -45,6 +45,10 @@ open class AbstractDataDefinition(
     }
 }
 
+data class FileDefinition(override val name: String, override val position: Position? = null) : Node(position), Named {
+    var formatName: String? = null
+}
+
 data class DataDefinition(
     override val name: String,
     override val type: Type,
@@ -95,7 +99,7 @@ data class FieldDefinition(
 
 // Positions 64 through 68 specify the length of the result field. This entry is optional, but can be used to define a
 // numeric or character field not defined elsewhere in the program. These definitions of the field entries are allowed
-// if the result field contains a field name. Other data types must be defined on the definition specification or on the
+// if the result field contains a field currentProgramName. Other data types must be defined on the definition specification or on the
 // calculation specification using the *LIKE DEFINE operation.
 
 class InStatementDataDefinition(

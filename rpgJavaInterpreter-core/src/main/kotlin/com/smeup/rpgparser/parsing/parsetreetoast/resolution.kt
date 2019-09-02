@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
+import com.smeup.rpgparser.interpreter.DBInterface
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichExceptionWith
 import com.strumenta.kolasu.model.*
@@ -20,10 +22,12 @@ private fun CompilationUnit.allStatements(): List<Statement> {
     return result
 }
 
-fun CompilationUnit.resolve() {
+fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
     this.assignParents()
 
     this.findInStatementDataDefinitions()
+
+    this.databaseInterface = databaseInterface
 
     this.specificProcess(DataRefExpr::class.java) { dre ->
         if (!dre.variable.resolved) {

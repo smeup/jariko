@@ -142,7 +142,7 @@ fun CompilationUnit.injectMuteAnnotation(mutes: MutesImmutableMap): List<MuteAnn
     this.subroutines.forEach {
         resolved.addAll(injectMuteAnnotationToStatements(it.stmts,
                 it.position!!.start.line,
-                it.position!!.end.line,
+                it.position.end.line,
                 mutes))
     }
 
