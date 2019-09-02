@@ -6,7 +6,7 @@ import java.io.PrintStream
 import java.util.*
 import com.strumenta.kolasu.model.Node
 
-abstract class LogEntry(val programName: String) {
+abstract class LogEntry(open val programName: String) {
 
     fun renderHeader(channel: String, filename: String, line: String, sep: String) : String {
         return "${sep}$filename${sep}${line}${sep}$channel${sep}"
