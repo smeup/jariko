@@ -3,8 +3,6 @@ package com.smeup.rpgparser.rgpinterop
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
 import com.smeup.rpgparser.logging.Logger
-import com.smeup.rpgparser.logging.PerformanceLogHandler
-import com.smeup.rpgparser.logging.StatementLogHandler
 import com.smeup.rpgparser.logging.configureLog
 import java.lang.RuntimeException
 import java.util.*
@@ -70,12 +68,11 @@ abstract class RpgFacade<P> (
         // TODO not sure it is in the right place
         logHandlers.addAll(configureLog("/home/madytyoo/Downloads/smeup-rpg-log/logging.config"))
 
-
         logHandlers.log(StartProgramLog(programName, initialValues))
         val elapsed = measureTimeMillis {
             programInterpreter.execute(rpgProgram, initialValues)
         }
-        logHandlers.log(EndProgramLog(programName,elapsed))
+        logHandlers.log(EndProgramLog(programName, elapsed))
         return toResults(params, initialValues)
     }
 

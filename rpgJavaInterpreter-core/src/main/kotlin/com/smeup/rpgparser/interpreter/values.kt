@@ -20,7 +20,6 @@ abstract class Value {
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
-
 }
 
 data class StringValue(var value: String) : Value() {
@@ -158,11 +157,10 @@ data class IntValue(val value: Long) : Value() {
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
     // TODO Verify conversion
-    override fun asInt(): IntValue  {
+    override fun asInt(): IntValue {
 
-        return  IntValue(value.longValueExact())
+        return IntValue(value.longValueExact())
     }
-
 
     override fun asDecimal(): DecimalValue = this
 

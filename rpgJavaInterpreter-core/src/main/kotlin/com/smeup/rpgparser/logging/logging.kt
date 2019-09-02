@@ -11,7 +11,6 @@ import org.apache.logging.log4j.kotlin.Logging
 import java.io.FileInputStream
 import java.util.*
 
-
 const val DATA_LOGGER: String = "data"
 const val LOOP_LOGGER: String = "loop"
 const val STATEMENT_LOGGER: String = "statement"
@@ -33,7 +32,6 @@ abstract class LogHandler(val level: String, val sep: String) {
     }
 }
 
-
 class ExpressionLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(EXPRESSION_LOGGER)
 
@@ -43,14 +41,13 @@ class ExpressionLogHandler(level: String, sep: String) : LogHandler(level, sep),
     }
     override fun handle(logEntry: LogEntry) {
         if (logger.isInfoEnabled) {
-            when(logEntry) {
+            when (logEntry) {
                 is ExpressionEvaluationLogEntry -> {
                     // Avoid expression
-                    if(logEntry.expression.parent !is LogicalAndExpr && logEntry.expression.parent !is LogicalOrExpr ) {
+                    if (logEntry.expression.parent !is LogicalAndExpr && logEntry.expression.parent !is LogicalOrExpr) {
                         logger.info(render(logEntry))
                     }
                 }
-
             }
         }
     }
@@ -79,8 +76,6 @@ class PerformanceLogHandler(level: String, sep: String) : LogHandler(level, sep)
     }
 }
 
-
-
 class StatementLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(STATEMENT_LOGGER)
     var inLoop: Int = 0
@@ -96,7 +91,6 @@ class StatementLogHandler(level: String, sep: String) : LogHandler(level, sep), 
     }
 
     override fun handle(logEntry: LogEntry) {
-
 
         if (logger.isInfoEnabled) {
             when (logEntry) {
@@ -144,13 +138,9 @@ class StatementLogHandler(level: String, sep: String) : LogHandler(level, sep), 
                     logger.info(render(logEntry))
                     this.inLoop--
                 }
-
-
             }
-
         }
     }
-
 }
 
 class DataLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
@@ -169,7 +159,6 @@ class DataLogHandler(level: String, sep: String) : LogHandler(level, sep), Inter
         }
     }
 }
-
 
 class LoopLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(LOOP_LOGGER)
@@ -196,7 +185,6 @@ class LoopLogHandler(level: String, sep: String) : LogHandler(level, sep), Inter
 class ResolutionLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(RESOLUTUION_LOGGER)
     override fun handle(logEntry: LogEntry) {
-
     }
 }
 
@@ -215,7 +203,6 @@ fun configureLog(configFilePath: String): List<InterpreterLogHandler> {
         val properties = Properties()
         val inputStream = FileInputStream(configFilePath)
         properties.load(inputStream)
-
 
         val dataSeparator = properties.getProperty("logger.data.separator")
         // TODO error
@@ -253,10 +240,8 @@ fun configureLog(configFilePath: String): List<InterpreterLogHandler> {
                     configureLogChannel(ctx, it, properties)
                     handlers.add(ResolutionLogHandler(logLevel, dataSeparator))
                 }
-
             }
         }
-
     } catch (e: Exception) {
         println("Configuration WARNING: ${e.message!!}")
     }
@@ -274,7 +259,6 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
 
         cfg.level = Level.getLevel(level.toUpperCase())
 
-
         if (output == "console") {
 
 //
@@ -283,7 +267,6 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
 //            builder.setStatusLevel(Level.getLevel(level.toUpperCase()))
 //            builder.setConfigurationName(channel)
 //
-
         }
 
         if (output == "file") {
@@ -316,7 +299,7 @@ class Logger {
                 // Detects the log file(s) path
                 var logFilesPath = properties.getProperty("logger.file.path")
                 if (logFilesPath != null) {
-                    messages.add("Configuration: log files path set to: ${logFilesPath}")
+                    messages.add("Configuration: log files path set to: $logFilesPath")
                 } else {
                     logFilesPath = ""
                     messages.add("Configuration WARNING: logger.file.path not set, log files path set to: .")
@@ -330,8 +313,6 @@ class Logger {
                 messages.addAll(configureLevel(ctx, "statement", properties, logFilesPath))
                 messages.addAll(configureLevel(ctx, "performance", properties, logFilesPath))
                 messages.addAll(configureLevel(ctx, "resolution", properties, logFilesPath))
-
-
             } catch (e: Exception) {
                 messages.add("Configuration WARNING: ${e.message!!}")
             }
@@ -340,7 +321,6 @@ class Logger {
 
         private fun configureLevel(ctx: LoggerContext, channel: String, properties: Properties, path: String): List<String> {
             val messages: MutableList<String> = mutableListOf()
-
 
             val rootCfg = ctx.configuration.getLoggerConfig("")
             val cfg = ctx.configuration.getLoggerConfig(channel)
@@ -357,9 +337,8 @@ class Logger {
 
                     cfg.addAppender(file, Level.getLevel(level.toUpperCase()), null)
                 }
-
             } else {
-                messages.add("Configuration WARNING: channel '${channel}' configuration not found")
+                messages.add("Configuration WARNING: channel '$channel' configuration not found")
             }
             ctx.updateLoggers()
             return messages
@@ -381,7 +360,7 @@ class Logger {
             val extension = fullName.substringAfterLast(".")
             val fullname = "$fileName.$extension"
 
-            expressionLogger.info("${fullname} ${left.position!!.start.line} EXPR ${left.render()} ${operator} ${right.render()} -> ${result.asBoolean().value}")
+            expressionLogger.info("$fullname ${left.position!!.start.line} EXPR ${left.render()} $operator ${right.render()} -> ${result.asBoolean().value}")
         }
 
         fun statementDump(name: String, statement: Node, duration: Long = -1, result: Value? = null) {
@@ -419,7 +398,6 @@ class Logger {
                     }
                 }
             }
-
         }
 
         fun assignDump(name: String, variable: AbstractDataDefinition, value: Value) {
@@ -428,9 +406,6 @@ class Logger {
             if (dataLogger.isInfoEnabled) {
                 dataLogger.info("$fileName    DATA ${variable.name} = ${value.render()}")
             }
-
         }
-
     }
 }
-
