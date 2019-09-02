@@ -36,7 +36,7 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         this.NOT() != null -> NotExpr(this.expression(0).toAst(conf), toPosition(conf.considerPosition))
         this.PLUS() != null -> PlusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.MINUS() != null -> MinusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.MULT() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+        this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here

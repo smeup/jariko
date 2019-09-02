@@ -13,7 +13,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: 
             firstCall = true
             val ii = InternalInterpreter(systemInterface)
             ii.interpretationContext = object : InterpretationContext {
-                override val name: String
+                override val currentProgramName: String
                     get() = rpgProgram.name
                 override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
                     dataWrapUpPolicy[rpgProgram] = dataWrapUpChoice

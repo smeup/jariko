@@ -139,9 +139,9 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     AssignableExpression(position) {
 
     init {
-        require(variable.name.isNotBlank()) { "The variable name should not blank" }
+        require(variable.name.isNotBlank()) { "The variable currentProgramName should not blank" }
         require(variable.name.trim() == variable.name) {
-            "The variable name should not starts or ends with whitespace"
+            "The variable currentProgramName should not starts or ends with whitespace"
         }
     }
 
@@ -154,7 +154,7 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) :
     AssignableExpression(position) {
-    override fun render(): String  {
+    override fun render(): String {
         return "${this.array.render()}(${index.render()}))"
     }
     override fun size(): Long {

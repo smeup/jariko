@@ -4,68 +4,60 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test
 
 class DataDefinitionTest {
 
-    fun processDataDefinition(
-        code: String,
-        toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
-    ): CompilationUnit {
-        val completeCode = """
-|     H/COPY QILEGEN,£INIZH
-|      *---------------------------------------------------------------
-|     I/COPY QILEGEN,£TABB£1DS
-|     I/COPY QILEGEN,£PDS
-|     $code
-        """.trimMargin("|")
-        val rContext = assertCodeCanBeParsed(completeCode)
-        return rContext.toAst(toAstConfiguration)
-    }
-
     @test fun singleDataParsing() {
-        val cu = processDataDefinition("D U\$FUNZ          S             10")
+        val cu = parseFragmentToCompilationUnit("D U\$FUNZ          S             10")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", StringType(10))
     }
 
     @test fun booleanDataParsing() {
-        val cu = processDataDefinition("D OK              S              1N")
+        val cu = parseFragmentToCompilationUnit("D OK              S              1N")
         cu.assertDataDefinitionIsPresent("OK", BooleanType)
     }
 
     @test fun caseInsensitiveBooleanDataParsing() {
-        val cu = processDataDefinition("D OK              S              1n")
+        val cu = parseFragmentToCompilationUnit("D OK              S              1n")
         cu.assertDataDefinitionIsPresent("OK", BooleanType)
     }
 
     @test fun singleDataParsingOther() {
-        val cu = processDataDefinition("D U\$FUNZ          S             99")
+        val cu = parseFragmentToCompilationUnit("D U\$FUNZ          S             99")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", StringType(99))
     }
 
     @test fun singleDataParsingWithDecimals() {
-        val cu = processDataDefinition("D \$X              S              3  2")
+        val cu = parseFragmentToCompilationUnit("D \$X              S              3  2")
         cu.assertDataDefinitionIsPresent("\$X", NumberType(1, 2))
     }
 
     @test fun timestampDataParsing() {
-        val cu = processDataDefinition("Dstart            S               z")
+        val cu = parseFragmentToCompilationUnit("Dstart            S               z")
         cu.assertDataDefinitionIsPresent("start", TimeStampType)
     }
 
     @test fun arrayParsing() {
-        val cu = processDataDefinition("D U\$FUNZ          S             10    DIM(200)")
+        val cu = parseFragmentToCompilationUnit("D U\$FUNZ          S             10    DIM(200)")
         cu.assertDataDefinitionIsPresent("U\$FUNZ", ArrayType(StringType(10), 200))
     }
 
+    @test fun singleDSParsing() {
+        val cu = parseFragmentToCompilationUnit("D £G49SI          DS          1024")
+        val dataDefinition = cu.getDataDefinition("£G49SI")
+        assert(dataDefinition.type is DataStructureType)
+        assertEquals(1024, dataDefinition.type.size)
+    }
+
     @test fun structParsing() {
-        val cu = processDataDefinition("D                 DS\n" +
-                "     D \$\$SVAR                      1050    DIM(200)\n" +
-                "     D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name\n" +
-                "     D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value")
+        val cu = parseFragmentToCompilationUnit(listOf(
+                "D                 DS",
+                "D \$\$SVAR                      1050    DIM(200)",
+                "D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name",
+                "D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value"))
         cu.assertDataDefinitionIsPresent("\$\$SVAR", ArrayType(DataStructureType(
                 listOf(
                         FieldType("\$\$SVARCD", StringType(50)),
@@ -78,7 +70,7 @@ class DataDefinitionTest {
     }
 
     @test fun likeAndDimClauseParsing() {
-        val cu = processDataDefinition(
+        val cu = parseFragmentToCompilationUnit(
                 "D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))",
                 toAstConfiguration = ToAstConfiguration(considerPosition = false,
                         compileTimeInterpreter = InjectableCompileTimeInterpreter().apply {
@@ -113,7 +105,7 @@ class DataDefinitionTest {
     }
 
     @test fun dsNotArrayWithOffsets() {
-        val cu = processDataDefinition("D DSDX3           DS            50       \n" +
+        val cu = parseFragmentToCompilationUnit("D DSDX3           DS            50       \n" +
                 "     D  \$TIPO                  1      2       \n" +
                 "     D  \$OBBL                  3      3       \n" +
                 "     D  \$INDI                  4      5       \n" +

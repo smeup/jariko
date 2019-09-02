@@ -28,6 +28,13 @@ fun List<Node>.position(): Position? {
 }
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+    val fileDefinitions = this.statement()
+            .mapNotNull {
+                when {
+                    it.fspec_fixed() != null -> it.fspec_fixed().toAst(conf)
+                    else -> null
+                }
+            }
     val dataDefinitions = this.statement()
             .mapNotNull {
                 when {
@@ -44,8 +51,9 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         }
     }
     val subroutines = this.subroutine().map { it.toAst(conf) }
-    val compileTimeArrays = this.endSource().map { it.toAst(conf) }
+    val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     return CompilationUnit(
+            fileDefinitions,
             dataDefinitions,
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines,
@@ -54,8 +62,9 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
-    return CompileTimeArray(this.endSourceHead().text, // TODO: change grammar to get **CNAME name
-            this.endSourceLine().map { it.text },
+    fun cName(s: String) = s.substringAfter("CTDATA ").replace("\\s".toRegex(), "")
+    return CompileTimeArray(cName(this.endSourceHead().text), // TODO: change grammar to get **CTDATA currentProgramName
+            this.endSourceLine().map { it.endSourceLineText().text },
             toPosition(conf.considerPosition))
 }
 
@@ -131,6 +140,8 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csTIME() != null -> this.csTIME().toAst(conf)
         this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
         this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
+        this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
+        this.csCHECK() != null -> this.csCHECK().toAst(conf)
 //        this.csCOMP() != null -> this.csCOMP().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
@@ -191,7 +202,7 @@ internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return DisplayStmt(left, right, toPosition(conf.considerPosition))
 }
 
-internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataRefExpr {
     // TODO this should have been parsed differently because here we have to figure out
     // what kind of expression is this
     return DataRefExpr(ReferenceByName(this.text), toPosition(conf.considerPosition))
@@ -294,6 +305,35 @@ internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, position)
 }
 
+internal fun CsCHAINContext.toAst(conf: ToAstConfiguration): Statement {
+    // TODO check composite keys
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHAIN operation requires factor 1: $this.text")
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("CHAIN operation requires factor 2: $this.text")
+    return ChainStmt(
+            factor1,
+            factor2,
+            toPosition(conf.considerPosition))
+}
+
+internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: $this.text")
+    val baseStringTokens = this.cspec_fixed_standard_parts().factor2.text.split(":")
+    val startPosition =
+        when (baseStringTokens.size) {
+            !in 1..2 -> throw UnsupportedOperationException("Wrong base string expression for CHECK at line ${position?.line()}: ${this.cspec_fixed_standard_parts().factor2.text}")
+            2 -> baseStringTokens[1].toInt()
+            else -> 1
+        }
+    val reference = baseStringTokens[0]
+    return CheckStmt(
+            factor1,
+            DataRefExpr(ReferenceByName(reference), position),
+            startPosition,
+            this.cspec_fixed_standard_parts()?.result?.toAst(conf),
+            position)
+}
+
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: $this.text")
     val name = this.cspec_fixed_standard_parts().result.text
@@ -324,7 +364,8 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         is IndexedTargetContext -> ArrayAccessExpr(array = this.base.toAst(conf),
                 index = this.index.toAst(conf),
                 position = toPosition(conf.considerPosition))
-        else -> TODO()
+        is SubstTargetContext -> this.bif_subst().toAst(conf)
+        else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)}")
     }
 }
 

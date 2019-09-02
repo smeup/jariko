@@ -14,7 +14,7 @@ class RpgParserParseTreeShapeTest {
 
     @test fun parseJD_001_justdirectives() {
         val root = assertCanBeParsed("JD_001_justdirectives")
-        assertEquals(3, root.children.size)
+        assertTrue(root.children.size >= 3)
 
         assertTrue(root.children[0] is StatementContext)
         val stmt0 = root.children[0] as StatementContext

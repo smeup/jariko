@@ -4,20 +4,19 @@ import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
+import com.smeup.rpgparser.interpreter.line
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.strumenta.kolasu.validation.Error
 import java.io.File
-import java.lang.Exception
-import java.lang.NullPointerException
-import java.lang.UnsupportedOperationException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.stream.Collectors
 
-data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int, val exceptions: LinkedList<Throwable>)
+data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int, val exceptions: LinkedList<Throwable>, val syntaxErrors: List<Error>)
 
 fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResult {
     var failed = 0
@@ -60,24 +59,32 @@ fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResul
                 }
                 executed++
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             exceptions.add(e)
         }
     } else {
         result.errors.forEach {
-            System.err.println(it)
+            println("Line: ${it.position.line()} - $it")
         }
     }
 
-    println("Total annotation: ${resolved.size}, executed: $executed, failed: $failed")
+    println("$filename - Total annotation: ${resolved.size}, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${result.errors.size}")
+    exceptions.forEach {
+        println(it)
+    }
     println()
-    return ExecutionResult(resolved.size, executed, failed, exceptions)
+    return ExecutionResult(resolved.size, executed, failed, exceptions, result.errors)
 }
 
 data class MuteRunnerStatus(var files: Int = 0, var resolved: Int = 0, var executed: Int = 0, var failed: Int = 0) {
-    var exceptions = LinkedList<Throwable>()
+    val exceptions = LinkedList<Throwable>()
+    val syntaxErrors = LinkedList<Error>()
+
+    val errors: Int
+        get() = exceptions.size + syntaxErrors.size
+
     val successful: Boolean
-        get() = failed == 0 && exceptions.isEmpty()
+        get() = failed == 0 && exceptions.isEmpty() && syntaxErrors.isEmpty()
 }
 
 object MuteRunner {
@@ -100,16 +107,8 @@ object MuteRunner {
                 status.failed += result.failed
                 status.files++
                 status.exceptions.addAll(result.exceptions)
-            } catch (e: NotImplementedError) {
-                status.exceptions.add(e)
-                System.err.println(e)
-            } catch (e: NullPointerException) {
-                status.exceptions.add(e)
-                System.err.println(e)
-            } catch (e: UnsupportedOperationException) {
-                status.exceptions.add(e)
-                System.err.println(e)
-            } catch (e: IllegalArgumentException) {
+                status.syntaxErrors.addAll(result.syntaxErrors)
+            } catch (e: Throwable) {
                 status.exceptions.add(e)
                 System.err.println(e)
             }
@@ -162,7 +161,7 @@ fun main(args: Array<String>) {
         System.exit(FAILURE_EXIT_CODE)
     }
     MuteRunner.processPaths(pathsToProcess)
-    println("Total files: ${MuteRunner.status.files}, resolved: ${MuteRunner.status.resolved}, executed: ${MuteRunner.status.executed}, failed:${MuteRunner.status.failed}")
+    println("Total files: ${MuteRunner.status.files}, resolved: ${MuteRunner.status.resolved}, executed: ${MuteRunner.status.executed}, failed: ${MuteRunner.status.failed}, errors: ${MuteRunner.status.errors};")
     if (MuteRunner.successful) {
         println()
         println("SUCCESS")

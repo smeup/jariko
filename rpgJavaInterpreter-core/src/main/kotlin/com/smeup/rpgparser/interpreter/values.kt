@@ -20,15 +20,13 @@ abstract class Value {
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
-
 }
 
 data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
-            is DataStructureType -> expectedType.fields.all { it.type is StringType } &&
-                    expectedType.elementSize == value.length
+            is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
             else -> false
         }
     }
@@ -159,11 +157,10 @@ data class IntValue(val value: Long) : Value() {
 }
 data class DecimalValue(val value: BigDecimal) : Value() {
     // TODO Verify conversion
-    override fun asInt(): IntValue  {
+    override fun asInt(): IntValue {
 
-        return  IntValue(value.longValueExact())
+        return IntValue(value.longValueExact())
     }
-
 
     override fun asDecimal(): DecimalValue = this
 
@@ -182,6 +179,8 @@ data class BooleanValue(val value: Boolean) : Value() {
     }
 
     override fun asBoolean() = this
+
+    override fun asString() = StringValue(if (value) "1" else "0")
 
     companion object {
         val FALSE = BooleanValue(false)
