@@ -36,7 +36,7 @@ class InterpreterSmokeTest {
         val mockDBInterface: DBInterface = object : DBInterface {
             val hostField = DataDefinition("HOSTNME1", StringType(255))
 
-            override fun metadataOf(name: String): FileMetadata? = FileMetadata("qhosts", listOf(hostField))
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
 
             override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? {
                 return if (name.equals("qhosts", ignoreCase = true)) {
@@ -58,7 +58,7 @@ class InterpreterSmokeTest {
         val mockDBInterface: DBInterface = object : DBInterface {
             val hostField = DataDefinition("DESTST", StringType(40))
 
-            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, listOf(hostField))
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
 
             override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? {
                 return null
