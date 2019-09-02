@@ -64,7 +64,7 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
-fun executePgmWithStringArgs(programName: String, programArgs: List<String>, logConfigurationFile: File?) {
+fun executePgmWithStringArgs(programName: String, programArgs: List<String>, logConfigurationFile: File? = null) {
     val commandLineProgram = getProgram(programName)
     if (logConfigurationFile != null) {
         commandLineProgram.useLogConfigurationFile(logConfigurationFile)
@@ -86,7 +86,9 @@ class RunnerCLI : CliktCommand() {
 // TODO describe what this program does
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
-        SimpleShell().repl(::executePgmWithStringArgs)
+        SimpleShell().repl { programName, programArgs ->
+            executePgmWithStringArgs(programName, programArgs)
+        }
     } else {
         RunnerCLI().main(args)
 

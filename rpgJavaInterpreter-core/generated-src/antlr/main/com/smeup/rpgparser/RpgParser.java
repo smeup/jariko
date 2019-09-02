@@ -447,7 +447,7 @@ public class RpgParser extends Parser {
 			"exec_sql", "baseExpression", "indicator", "assignmentExpression", "assignOperatorExpression", 
 			"evalExpression", "simpleExpression", "unaryExpression", "expression", 
 			"indicator_expr", "function", "comparisonOperator", "assignmentOperator", 
-			"assignmentOperatorIncludingEqual", "programArgs", "literal", "identifier",
+			"assignmentOperatorIncludingEqual", "args", "literal", "identifier", 
 			"all", "functionName", "multipart_identifier", "indexed_identifier", 
 			"opCode", "number", "free_identifier", "continuedIdentifier", "idOrKeyword", 
 			"argument", "symbolicConstants", "target"
