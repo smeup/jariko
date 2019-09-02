@@ -1,5 +1,12 @@
 package com.smeup.rpgparser.mute
 
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.switch
+import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.DummySystemInterface
@@ -18,7 +25,8 @@ import java.util.stream.Collectors
 
 data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int, val exceptions: LinkedList<Throwable>, val syntaxErrors: List<Error>)
 
-fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResult {
+fun executeWithMutes(filename: String, verbose: Boolean = false,
+                     logConfigurationFile: File?): ExecutionResult {
     var failed = 0
     var executed = 0
     var resolved: List<MuteAnnotationResolved> = listOf()
@@ -42,6 +50,9 @@ fun executeWithMutes(filename: String, verbose: Boolean = false): ExecutionResul
         println()
         cu.resolve()
         val interpreter = InternalInterpreter(DummySystemInterface)
+        if (logConfigurationFile != null) {
+            interpreter.useLogConfigurationFile(logConfigurationFile)
+        }
 
         try {
             interpreter.execute(cu, mapOf())
@@ -92,6 +103,7 @@ object MuteRunner {
         get() = status.successful
     var verbose: Boolean = true
     var status = MuteRunnerStatus()
+    var logConfigurationFile: File? = null
 
     private fun processPath(path: Path) {
         val filename = path.toString()
@@ -101,7 +113,7 @@ object MuteRunner {
                 println(filename)
             }
             try {
-                val result = executeWithMutes(filename, verbose)
+                val result = executeWithMutes(filename, verbose, logConfigurationFile = logConfigurationFile)
                 status.resolved += result.resolved
                 status.executed += result.executed
                 status.failed += result.failed
@@ -128,48 +140,60 @@ object MuteRunner {
             }
         }
     }
+
 }
 
 val FAILURE_EXIT_CODE = 1
 
+class MuteRunnerCLI : CliktCommand() {
+    val verbosity by option().switch("--verbose" to true, "-v" to true, "--silent" to false, "-s" to false).default(false)
+    val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
+    val pathsToProcessArgs by argument(name = "Paths to process").file(exists = true, folderOkay = true, fileOkay = true).multiple(required = true)
+
+    override fun run() {
+        MuteRunner.verbose = verbosity
+        MuteRunner.logConfigurationFile = logConfigurationFile
+
+        println("MUTE Runner")
+        if (MuteRunner.verbose) {
+            println("log configuration file: ${logConfigurationFile?.canonicalFile?.absolutePath ?: "<unspecified>"}")
+        }
+        val pathsToProcess = mutableListOf<Path>()
+        pathsToProcess.addAll(pathsToProcessArgs.map { it.toPath() })
+        if (pathsToProcess.isEmpty()) {
+            pathsToProcess.add(Paths.get("."))
+        }
+        if (MuteRunner.verbose) {
+            println("(running in verbose mode)")
+            println("paths to process: $pathsToProcess")
+        }
+        val invalidPaths = pathsToProcess.filter { !it.toFile().exists() }
+        if (invalidPaths.isNotEmpty()) {
+            System.err.println("Unexisting paths found:")
+            invalidPaths.forEach { System.err.println(it) }
+            System.exit(FAILURE_EXIT_CODE)
+        }
+
+        MuteRunner.processPaths(pathsToProcess)
+        println("Total files: ${MuteRunner.status.files}, resolved: ${MuteRunner.status.resolved}, executed: ${MuteRunner.status.executed}, failed: ${MuteRunner.status.failed}, errors: ${MuteRunner.status.errors};")
+        if (MuteRunner.successful) {
+            println()
+            println("SUCCESS")
+        } else {
+            println()
+            println("FAILURE")
+        }
+        if (!MuteRunner.successful) {
+            System.exit(FAILURE_EXIT_CODE)
+        }
+    }
+}
+
 /**
- * This program accepts the flags -verbose (default) and -silent.
+ * This program accepts the flags --verbose (default) and --silent.
  * All the other arguments are treated as paths to examine. If no paths are specified
  * the current directory is used.
  */
 fun main(args: Array<String>) {
-    println("MUTE Runner")
-    val pathsToProcess = mutableListOf<Path>()
-    args.forEach {
-        when (it) {
-            "-verbose" -> MuteRunner.verbose = true
-            "-silent" -> MuteRunner.verbose = false
-            else -> pathsToProcess.add(Paths.get(it))
-        }
-    }
-    if (pathsToProcess.isEmpty()) {
-        pathsToProcess.add(Paths.get("."))
-    }
-    if (MuteRunner.verbose) {
-        println("(running in verbose mode)")
-        println("paths to process: $pathsToProcess")
-    }
-    val invalidPaths = pathsToProcess.filter { !it.toFile().exists() }
-    if (invalidPaths.isNotEmpty()) {
-        System.err.println("Unexisting paths found:")
-        invalidPaths.forEach { System.err.println(it) }
-        System.exit(FAILURE_EXIT_CODE)
-    }
-    MuteRunner.processPaths(pathsToProcess)
-    println("Total files: ${MuteRunner.status.files}, resolved: ${MuteRunner.status.resolved}, executed: ${MuteRunner.status.executed}, failed: ${MuteRunner.status.failed}, errors: ${MuteRunner.status.errors};")
-    if (MuteRunner.successful) {
-        println()
-        println("SUCCESS")
-    } else {
-        println()
-        println("FAILURE")
-    }
-    if (!MuteRunner.successful) {
-        System.exit(FAILURE_EXIT_CODE)
-    }
+    MuteRunnerCLI().main(args)
 }
