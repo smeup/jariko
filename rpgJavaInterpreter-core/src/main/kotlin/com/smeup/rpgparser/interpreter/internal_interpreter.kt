@@ -11,6 +11,7 @@ import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
+import java.io.File
 import java.lang.System.currentTimeMillis
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
@@ -59,6 +60,7 @@ class FileInformationMap {
     operator fun get(nameOrFormat: String): FileInformation? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
+// TODO set default configuration file
 class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
@@ -99,6 +101,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         // TODO CodeReview should we remove this comment?
     }
 
+    fun useLogConfigurationFile(logConfigurationFile: File){
+        logHandlers = configureLog(logConfigurationFile)
+    }
+
     private fun initialize(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
@@ -111,7 +117,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
         // Assigning initial values received from outside and consider INZ clauses
         // TODO not sure it is the right place
-        logHandlers = configureLog("/home/madytyoo/Downloads/smeup-rpg-log/logging.config")
+        //logHandlers = configureLog("/home/madytyoo/Downloads/smeup-rpg-log/logging.config")
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
                 set(it, coerce(when {

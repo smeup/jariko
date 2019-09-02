@@ -4,6 +4,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
 import com.smeup.rpgparser.logging.Logger
 import com.smeup.rpgparser.logging.configureLog
+import java.io.File
 import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap
@@ -38,7 +39,7 @@ abstract class RpgFacade<P> (
     val systemInterface: SystemInterface
 ) {
 
-    private val logHandlers = mutableListOf<InterpreterLogHandler>()
+    private var logHandlers = mutableListOf<InterpreterLogHandler>()
     fun addLogHandler(handler: InterpreterLogHandler) = logHandlers.add(handler)
     fun removeLogHandler(handler: InterpreterLogHandler) = logHandlers.remove(handler)
 //
@@ -56,6 +57,10 @@ abstract class RpgFacade<P> (
     private val programName by lazy { programNameSource.nameFor(this) }
     protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
 
+    fun useLogConfigurationFile(logConfigurationFile: File) {
+        logHandlers = configureLog(logConfigurationFile).toMutableList()
+    }
+
     fun singleCall(params: P): P? {
         val initialValues = toInitialValues(params)
 
@@ -64,9 +69,6 @@ abstract class RpgFacade<P> (
         messages.forEach {
             println(it)
         }
-
-        // TODO not sure it is in the right place
-        logHandlers.addAll(configureLog("/home/madytyoo/Downloads/smeup-rpg-log/logging.config"))
 
         logHandlers.log(StartProgramLog(programName, initialValues))
         val elapsed = measureTimeMillis {

@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.Appender
 import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.kotlin.Logging
+import java.io.File
 import java.io.FileInputStream
 import java.util.*
 
@@ -193,7 +194,7 @@ class ResolutionLogHandler(level: String, sep: String) : LogHandler(level, sep),
  * list of log handlers
  */
 
-fun configureLog(configFilePath: String): List<InterpreterLogHandler> {
+fun configureLog(configFile: File): List<InterpreterLogHandler> {
     val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFOMANCE_LOGGER, RESOLUTUION_LOGGER)
     val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
     val ctx = LogManager.getContext(false) as LoggerContext
@@ -201,7 +202,7 @@ fun configureLog(configFilePath: String): List<InterpreterLogHandler> {
     try {
         // Load the logging config file
         val properties = Properties()
-        val inputStream = FileInputStream(configFilePath)
+        val inputStream = FileInputStream(configFile)
         properties.load(inputStream)
 
         val dataSeparator = properties.getProperty("logger.data.separator")
