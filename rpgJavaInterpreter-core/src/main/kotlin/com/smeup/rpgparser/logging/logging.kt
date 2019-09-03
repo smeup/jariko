@@ -32,18 +32,21 @@ abstract class LogHandler(val level: String, val sep: String) {
     }
 }
 
+fun loadLogConfiguration(configFile: File) : LoggingConfiguration {
+    // Load the logging config file
+    val properties = Properties()
+    val inputStream = FileInputStream(configFile)
+    properties.load(inputStream)
+    return properties
+}
+
 /**
  * Read the configuration file, configure the logger and return a
  * list of log handlers
  */
 
 fun configureLog(configFile: File): List<InterpreterLogHandler> {
-    // Load the logging config file
-    val properties = Properties()
-    val inputStream = FileInputStream(configFile)
-    properties.load(inputStream)
-
-    return configureLog(properties)
+    return configureLog(loadLogConfiguration(configFile))
 }
 
 fun defaultLoggingConfiguration(): LoggingConfiguration {

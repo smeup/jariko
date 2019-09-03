@@ -7,6 +7,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.logging.defaultLoggingConfiguration
+import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.rgpinterop.*
 import java.io.File
 import org.apache.commons.io.input.BOMInputStream
@@ -64,11 +66,11 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
-fun executePgmWithStringArgs(programName: String, programArgs: List<String>, logConfigurationFile: File? = null) {
-    val commandLineProgram = getProgram(programName)
-    if (logConfigurationFile != null) {
-        commandLineProgram.useLogConfigurationFile(logConfigurationFile)
-    }
+fun executePgmWithStringArgs(programName: String, programArgs: List<String>,
+                             logConfigurationFile: File? = null) {
+    val systemInterface = JavaSystemInterface()
+    systemInterface.loggingConfiguration = logConfigurationFile?.let { loadLogConfiguration(logConfigurationFile) } ?: defaultLoggingConfiguration()
+    val commandLineProgram = getProgram(programName, systemInterface)
     commandLineProgram.singleCall(programArgs)
 }
 

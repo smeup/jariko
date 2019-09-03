@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.logging
 
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.LoggingConfiguration
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.model.Node
@@ -9,6 +10,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.Appender
 import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.kotlin.Logging
+import java.io.File
 import java.io.FileInputStream
 import java.util.*
 
@@ -17,20 +19,15 @@ class Logger {
     companion object : Logging {
 
         /**
-         * Read the configuration file, configure the logger and return a
+         * Read the configuration, configure the logger and return a
          * list of messages/errors
          */
-        fun configure(configFilePath: String): List<String> {
+        fun configure(config: LoggingConfiguration): List<String> {
             val messages: MutableList<String> = mutableListOf()
 
             try {
-                // Load the logging config file
-                val properties = Properties()
-                val inputStream = FileInputStream(configFilePath)
-                properties.load(inputStream)
-
                 // Detects the log file(s) path
-                var logFilesPath = properties.getProperty("logger.file.path")
+                var logFilesPath = config.getProperty("logger.file.path")
                 if (logFilesPath != null) {
                     messages.add("Configuration: log files path set to: $logFilesPath")
                 } else {
@@ -40,16 +37,29 @@ class Logger {
 
                 // Logger configuration
                 val ctx = LogManager.getContext(false) as LoggerContext
-                messages.addAll(configureLevel(ctx, "data", properties, logFilesPath))
-                messages.addAll(configureLevel(ctx, "loop", properties, logFilesPath))
-                messages.addAll(configureLevel(ctx, "expression", properties, logFilesPath))
-                messages.addAll(configureLevel(ctx, "statement", properties, logFilesPath))
-                messages.addAll(configureLevel(ctx, "performance", properties, logFilesPath))
-                messages.addAll(configureLevel(ctx, "resolution", properties, logFilesPath))
+                messages.addAll(configureLevel(ctx, "data", config, logFilesPath))
+                messages.addAll(configureLevel(ctx, "loop", config, logFilesPath))
+                messages.addAll(configureLevel(ctx, "expression", config, logFilesPath))
+                messages.addAll(configureLevel(ctx, "statement", config, logFilesPath))
+                messages.addAll(configureLevel(ctx, "performance", config, logFilesPath))
+                messages.addAll(configureLevel(ctx, "resolution", config, logFilesPath))
             } catch (e: Exception) {
                 messages.add("Configuration WARNING: ${e.message!!}")
             }
             return messages
+        }
+
+        /**
+         * Read the configuration file, configure the logger and return a
+         * list of messages/errors
+         */
+        fun configure(configFile: File): List<String> {
+            // Load the logging config file
+            val properties = Properties()
+            val inputStream = FileInputStream(configFile)
+            properties.load(inputStream)
+
+            return configure(properties)
         }
 
         private fun configureLevel(ctx: LoggerContext, channel: String, properties: Properties, path: String): List<String> {

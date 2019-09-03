@@ -4,6 +4,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
 import com.smeup.rpgparser.logging.Logger
 import com.smeup.rpgparser.logging.configureLog
+import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import java.io.File
 import java.lang.RuntimeException
 import java.util.*
@@ -42,33 +43,15 @@ abstract class RpgFacade<P> (
     private var logHandlers = mutableListOf<InterpreterLogHandler>()
     fun addLogHandler(handler: InterpreterLogHandler) = logHandlers.add(handler)
     fun removeLogHandler(handler: InterpreterLogHandler) = logHandlers.remove(handler)
-//
-//    var traceMode: Boolean
-//        get() = logHandlers.any { it is SimpleLogHandler }
-//        set(simpleLogHandler) {
-//            if (simpleLogHandler) {
-//                logHandlers.add(SimpleLogHandler)
-//            } else {
-//                logHandlers.remove(SimpleLogHandler)
-//            }
-//        }
 
-    protected val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
+    private val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
     private val programName by lazy { programNameSource.nameFor(this) }
     protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
 
-    fun useLogConfigurationFile(logConfigurationFile: File) {
-        logHandlers = configureLog(logConfigurationFile).toMutableList()
-    }
-
     fun singleCall(params: P): P? {
-        val initialValues = toInitialValues(params)
+        logHandlers = configureLog(systemInterface.loggingConfiguration() ?: defaultLoggingConfiguration()).toMutableList()
 
-        // TODO the runner should process a command line switch to set the log configuration file
-        var messages = Logger.configure("/home/madytyoo/Downloads/smeup-rpg-log/logging.config")
-        messages.forEach {
-            println(it)
-        }
+        val initialValues = toInitialValues(params)
 
         logHandlers.log(StartProgramLog(programName, initialValues))
         val elapsed = measureTimeMillis {
