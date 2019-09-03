@@ -39,6 +39,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
         val interpreter = InternalInterpreter(systemInterface)
+
         for (pv in params) {
             val expectedType = params().find { it.name == pv.key }!!.type
             val coercedValue = interpreter.coerce(pv.value, expectedType)

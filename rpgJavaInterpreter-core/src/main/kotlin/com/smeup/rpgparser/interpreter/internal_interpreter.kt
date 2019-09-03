@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.logging.configureLog
+import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.ast.Comparison.EQ
@@ -66,6 +67,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val predefinedIndicators = HashMap<Int, Value>()
     val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
     var interpretationContext: InterpretationContext = DummyInterpretationContext
+
+    init {
+        this.useLogConfiguration(systemInterface.loggingConfiguration())
+    }
     /**
      * This is useful for debugging, so we can avoid infinite loops
      */
@@ -99,10 +104,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         globalSymbolTable[data] = coerce(value, data.type)
         // TODO add here the annotation evaluation ??
         // TODO CodeReview should we remove this comment?
-    }
-
-    fun useLogConfigurationFile(logConfigurationFile: File) {
-        logHandlers = configureLog(logConfigurationFile)
     }
 
     private fun initialize(
@@ -981,6 +982,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return blankValue(dataDefinition.type)
+    }
+
+    private fun useLogConfigurationFile(logConfigurationFile: File) {
+        logHandlers = configureLog(logConfigurationFile)
+    }
+
+    private fun useLogConfiguration(loggingConfiguration: LoggingConfiguration?) {
+        logHandlers = configureLog(loggingConfiguration ?: defaultLoggingConfiguration())
     }
 }
 

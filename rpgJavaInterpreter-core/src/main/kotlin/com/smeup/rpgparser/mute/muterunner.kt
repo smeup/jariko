@@ -11,6 +11,7 @@ import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
+import com.smeup.rpgparser.interpreter.SimpleSystemInterface
 import com.smeup.rpgparser.interpreter.line
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -52,10 +53,7 @@ fun executeWithMutes(
         }
         println()
         cu.resolve()
-        val interpreter = InternalInterpreter(DummySystemInterface)
-        if (logConfigurationFile != null) {
-            interpreter.useLogConfigurationFile(logConfigurationFile)
-        }
+        val interpreter = InternalInterpreter(SimpleSystemInterface().useConfigurationFile(logConfigurationFile))
 
         try {
             interpreter.execute(cu, mapOf())

@@ -195,50 +195,65 @@ class ResolutionLogHandler(level: String, sep: String) : LogHandler(level, sep),
  */
 
 fun configureLog(configFile: File): List<InterpreterLogHandler> {
+    // Load the logging config file
+    val properties = Properties()
+    val inputStream = FileInputStream(configFile)
+    properties.load(inputStream)
+
+    return configureLog(properties)
+}
+
+fun defaultLoggingConfiguration() : LoggingConfiguration {
+    val props = Properties()
+    return props
+}
+
+/**
+ * Read the configuration file, configure the logger and return a
+ * list of log handlers
+ */
+
+fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
     val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFOMANCE_LOGGER, RESOLUTUION_LOGGER)
     val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
     val ctx = LogManager.getContext(false) as LoggerContext
 
     try {
-        // Load the logging config file
-        val properties = Properties()
-        val inputStream = FileInputStream(configFile)
-        properties.load(inputStream)
 
-        val dataSeparator = properties.getProperty("logger.data.separator")
+        val dataSeparator = config.getProperty("logger.data.separator")
         // TODO error
 
         names.forEach {
-            val logLevel = properties.getProperty("$it.level")
+            val logLevel = config.getProperty("$it.level")
             if (logLevel != "off") {
 
                 if (it == DATA_LOGGER) {
-                    configureLogChannel(ctx, it, properties)
+                    configureLogChannel(ctx, it, config)
                     handlers.add(DataLogHandler(logLevel, dataSeparator))
                 }
 
                 if (it == LOOP_LOGGER) {
-                    configureLogChannel(ctx, it, properties)
+                    configureLogChannel(ctx, it, config)
                     handlers.add(LoopLogHandler(logLevel, dataSeparator))
                 }
 
                 if (it == EXPRESSION_LOGGER) {
-                    configureLogChannel(ctx, it, properties)
+                    configureLogChannel(ctx, it, config)
                     handlers.add(ExpressionLogHandler(logLevel, dataSeparator))
                 }
 
                 if (it == STATEMENT_LOGGER) {
-                    configureLogChannel(ctx, it, properties)
+                    configureLogChannel(ctx, it, config)
                     handlers.add(StatementLogHandler(logLevel, dataSeparator))
                 }
 
                 if (it == PERFOMANCE_LOGGER) {
-                    configureLogChannel(ctx, it, properties)
+                    configureLogChannel(ctx, it, config)
                     handlers.add(PerformanceLogHandler(logLevel, dataSeparator))
                 }
 
                 if (it == RESOLUTUION_LOGGER) {
-                    configureLogChannel(ctx, it, properties)
+                    configureLogChannel(ctx, it, config)
                     handlers.add(ResolutionLogHandler(logLevel, dataSeparator))
                 }
             }
