@@ -403,7 +403,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
                     // --
                     val record = systemInterface.db.chain(statement.name, eval(statement.searchArg))
-                    if (record != null) {
+                    if (!record.isEmpty()) {
                         lastFound = true
                         record.forEach { assign(it.first.toDataDefinition(), it.second) }
                     } else {

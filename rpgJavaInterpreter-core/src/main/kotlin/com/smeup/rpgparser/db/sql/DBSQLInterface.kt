@@ -52,9 +52,24 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
             return@use null
         }
 
-    override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>>? {
-        TODO("not implemented")
+    override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>> {
+        TODO("CHAIN")
+//        val sql = "SELECT * FROM $name where ${primaryKey(name)} = ?"
+//        connection.prepareStatement(sql).use {
+//            it.setObject(1, key.toDBValue())
+//            return toValues(it.executeQuery())
+//        }
     }
+
+//    private fun primaryKeys(name: String): List<String> {
+//
+//    }
+//
+//    private fun toValues(rs: ResultSet): Collection<Pair<DBField, Value>> {
+//        val result = mutableListOf<Pair<DBField, Value>>()
+//
+//        return result
+//    }
 
     fun create(tables: List<FileMetadata>) {
         val sqlStatements = tables.flatMap { it.toSQL() }
