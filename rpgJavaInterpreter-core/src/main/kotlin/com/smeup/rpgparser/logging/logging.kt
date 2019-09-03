@@ -32,7 +32,7 @@ abstract class LogHandler(val level: LogLevel, val sep: String) {
     }
 }
 
-fun loadLogConfiguration(configFile: File) : LoggingConfiguration {
+fun loadLogConfiguration(configFile: File): LoggingConfiguration {
     // Load the logging config file
     val properties = Properties()
     val inputStream = FileInputStream(configFile)
@@ -58,7 +58,7 @@ enum class LogLevel {
     OFF,
     ALL;
     companion object {
-        fun find(name: String) : LogLevel? {
+        fun find(name: String): LogLevel? {
             return values().find { it.name.toLowerCase() == name.toLowerCase() }
         }
     }
@@ -82,7 +82,7 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
             val logLevelStr = config.getProperty("$it.level") ?: LogLevel.OFF.name
             val logLevel = LogLevel.find(logLevelStr) ?: {
                 System.err.println("Unknown log level: $logLevelStr, for channel $it")
-               LogLevel.OFF
+                LogLevel.OFF
             }()
             if (logLevel != LogLevel.OFF) {
                 when (it) {

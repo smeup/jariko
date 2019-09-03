@@ -2,10 +2,6 @@ package com.smeup.rpgparser.rgpinterop
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
-import com.smeup.rpgparser.logging.Logger
-import com.smeup.rpgparser.logging.configureLog
-import com.smeup.rpgparser.logging.defaultLoggingConfiguration
-import java.io.File
 import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap

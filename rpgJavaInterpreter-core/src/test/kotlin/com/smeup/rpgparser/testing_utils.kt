@@ -24,7 +24,6 @@ import kotlin.test.fail
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
-import kotlin.math.log
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy

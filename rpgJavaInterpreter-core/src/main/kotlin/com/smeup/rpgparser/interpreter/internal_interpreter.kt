@@ -1,7 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.logging.configureLog
-import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.ast.Comparison.EQ
@@ -12,7 +10,6 @@ import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
-import java.io.File
 import java.lang.System.currentTimeMillis
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
@@ -985,7 +982,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         if (forceElement) TODO()
         return blankValue(dataDefinition.type)
     }
-
 }
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {

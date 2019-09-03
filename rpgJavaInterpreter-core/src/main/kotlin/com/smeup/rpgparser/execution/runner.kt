@@ -67,8 +67,11 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
-fun executePgmWithStringArgs(programName: String, programArgs: List<String>,
-                             logConfigurationFile: File? = null) {
+fun executePgmWithStringArgs(
+    programName: String,
+    programArgs: List<String>,
+    logConfigurationFile: File? = null
+) {
     val systemInterface = JavaSystemInterface()
     systemInterface.loggingConfiguration = logConfigurationFile?.let { loadLogConfiguration(logConfigurationFile) } ?: defaultLoggingConfiguration()
     val commandLineProgram = getProgram(programName, systemInterface)
