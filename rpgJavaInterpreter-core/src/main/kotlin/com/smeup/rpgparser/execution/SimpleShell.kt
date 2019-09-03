@@ -2,9 +2,10 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.utils.measureAndCatch
 import java.io.*
+import kotlin.system.exitProcess
 
 // TODO describe what this program does
-class SimpleShell {
+object SimpleShell {
 
     private val exitCommands = hashSetOf("exit", "quit", "signoff", "off")
 
@@ -18,10 +19,10 @@ class SimpleShell {
             run {
                 if (exitCommands.contains(commandLine.toLowerCase())) {
                     println("Goodbye")
-                    System.exit(0)
+                    exitProcess(0)
                 }
                 val args = commandLine.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                if (!args.isEmpty()) {
+                if (args.isNotEmpty()) {
                     val timeElapsed = measureAndCatch {
                         r(args[0], args.toList().subList(1, args.size))
                     }

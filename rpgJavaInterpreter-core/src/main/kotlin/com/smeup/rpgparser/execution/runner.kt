@@ -72,7 +72,7 @@ fun executePgmWithStringArgs(programName: String, programArgs: List<String>, log
     commandLineProgram.singleCall(programArgs)
 }
 
-class RunnerCLI : CliktCommand() {
+object RunnerCLI : CliktCommand() {
     val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
     val programName by argument("program name")
     val programArgs by argument().multiple(required = false)
@@ -82,15 +82,19 @@ class RunnerCLI : CliktCommand() {
     }
 }
 
+fun startShell() {
+    SimpleShell.repl { programName, programArgs ->
+        executePgmWithStringArgs(programName, programArgs)
+    }
+}
+
 /**
  * This program can be used to either launch an RPG program or the shell.
  */
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
-        SimpleShell().repl { programName, programArgs ->
-            executePgmWithStringArgs(programName, programArgs)
-        }
+        startShell()
     } else {
-        RunnerCLI().main(args)
+        RunnerCLI.main(args)
     }
 }
