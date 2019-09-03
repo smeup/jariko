@@ -13,7 +13,7 @@ interface SystemInterface {
     fun display(value: String)
     fun findProgram(name: String): Program?
     fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
-    fun loggingConfiguration() : LoggingConfiguration?
+    fun loggingConfiguration(): LoggingConfiguration?
     val db: DBInterface
 }
 

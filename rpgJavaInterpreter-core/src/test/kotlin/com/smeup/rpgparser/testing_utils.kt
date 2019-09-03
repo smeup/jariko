@@ -172,7 +172,7 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
-open class CollectorSystemInterface(var loggingConfiguration : LoggingConfiguration? = null) : SystemInterface {
+open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
     override fun loggingConfiguration(): LoggingConfiguration? {
         return this.loggingConfiguration
     }

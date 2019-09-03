@@ -95,7 +95,7 @@ class RunnerCliTest {
             override fun findRpgProgram(nameOrSource: String): RpgProgram? {
                 return RpgProgram(CompilationUnit.empty())
             }
-        } )
+        })
 
         every { startShell() } answers { shellStarted++ }
         every { RunnerCLI.run() } answers {
@@ -130,7 +130,7 @@ class RunnerCliTest {
             override fun findRpgProgram(nameOrSource: String): RpgProgram? {
                 return RpgProgram(CompilationUnit.empty())
             }
-        } )
+        })
 
         every { startShell() } answers { shellStarted++ }
         every { RunnerCLI.run() } answers {
