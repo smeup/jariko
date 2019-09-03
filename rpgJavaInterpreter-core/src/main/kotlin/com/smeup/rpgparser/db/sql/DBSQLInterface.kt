@@ -19,8 +19,11 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
     }
 
     fun create(tables: List<FileMetadata>) {
-        tables.forEach {
-            connection.createStatement().execute(it.toSQL())
+        val sqlStatements = tables.flatMap { it.toSQL() }
+        val statement = connection.createStatement()
+        statement.use {
+            sqlStatements.forEach { statement.addBatch(it) }
+            statement.executeBatch()
         }
     }
 }

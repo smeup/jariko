@@ -2,15 +2,15 @@ package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.*
 
-fun FileMetadata.toSQL(): String {
-    return "CREATE TABLE ${this.tableName} (${this.fields.toSQL()})"
-}
+fun FileMetadata.toSQL(): List<String> =
+    listOf(
+        "CREATE TABLE ${this.tableName} (${this.fields.toSQL()})",
+        "COMMENT ON TABLE ${this.tableName} IS '${this.formatName}'")
 
-private fun Collection<AbstractDataDefinition>.toSQL(): String {
-    return joinToString {
+private fun Collection<AbstractDataDefinition>.toSQL(): String =
+    joinToString {
         "${it.name} ${it.sqlType()}"
     }
-}
 
 private fun AbstractDataDefinition.sqlType(): String =
     when (this.type) {
