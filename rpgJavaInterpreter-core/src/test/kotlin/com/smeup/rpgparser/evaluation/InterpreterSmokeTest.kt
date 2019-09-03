@@ -34,11 +34,11 @@ class InterpreterSmokeTest {
         val cu = assertASTCanBeProduced("CHAINHOSTS")
 
         val mockDBInterface: DBInterface = object : DBInterface {
-            val hostField = DataDefinition("HOSTNME1", StringType(255))
+            val hostField = DBField("HOSTNME1", StringType(255))
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
 
-            override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? {
+            override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>>? {
                 return if (name.equals("qhosts", ignoreCase = true)) {
                     listOf(hostField to StringValue("loopback"))
                 } else {
@@ -56,11 +56,11 @@ class InterpreterSmokeTest {
         val cu = assertASTCanBeProduced("CHAIN2FILE")
 
         val mockDBInterface: DBInterface = object : DBInterface {
-            val hostField = DataDefinition("DESTST", StringType(40))
+            val hostField = DBField("DESTST", StringType(40))
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
 
-            override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? {
+            override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>>? {
                 return null
             }
         }

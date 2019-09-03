@@ -24,8 +24,8 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         return FileMetadata(name, formatName, fields(name))
     }
 
-    private fun fields(name: String): Collection<AbstractDataDefinition> {
-        val result = mutableListOf<AbstractDataDefinition>()
+    private fun fields(name: String): Collection<DBField> {
+        val result = mutableListOf<DBField>()
         connection.metaData.getColumns(null, null, name, null).use {
             while (it.next()) {
                 result.add(it.getString("COLUMN_NAME") withType typeFor(it))
@@ -37,7 +37,10 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
     private fun typeFor(rs: ResultSet): Type =
         when (val sqlType = rs.getString("TYPE_NAME")) {
             "CHARACTER" -> StringType(rs.getLong("COLUMN_SIZE"))
-            "DECIMAL" -> NumberType(rs.getInt("COLUMN_SIZE"), rs.getInt("DECIMAL_DIGITS"))
+            "DECIMAL" -> {
+                val decimalDigits = rs.getInt("DECIMAL_DIGITS")
+                NumberType(rs.getInt("COLUMN_SIZE") - decimalDigits, decimalDigits)
+            }
             else -> TODO("Conversion from SQL Type not yet implemented: $sqlType")
         }
 
@@ -49,7 +52,7 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
                 return@use null
             }
 
-    override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? {
+    override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>>? {
         TODO("not implemented")
     }
 

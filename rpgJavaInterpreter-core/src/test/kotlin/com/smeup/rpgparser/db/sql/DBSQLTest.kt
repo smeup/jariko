@@ -26,7 +26,7 @@ class DBSQLTest {
         assertEquals(tableName, metadata.tableName)
         assertEquals(formatName, metadata.formatName)
         assertEquals(fields.size, metadata.fields.size)
-//        assertEquals(fields, metadata.fields)
+        assertEquals(fields, metadata.fields)
     }
 
     private fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface {

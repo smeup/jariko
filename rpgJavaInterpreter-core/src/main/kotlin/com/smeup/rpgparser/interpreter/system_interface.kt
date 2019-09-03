@@ -13,14 +13,18 @@ interface SystemInterface {
 
 interface DBInterface {
     fun metadataOf(name: String): FileMetadata?
-    fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>?
+    fun chain(name: String, key: Value): Collection<Pair<DBField, Value>>?
 }
 
-data class FileMetadata(val tableName: String, val formatName: String, val fields: Collection<AbstractDataDefinition>)
+data class DBField(val name: String, val type: Type) {
+    fun toDataDefinition() = AbstractDataDefinition(name, type)
+}
+
+data class FileMetadata(val tableName: String, val formatName: String, val fields: Collection<DBField>)
 
 object DummyDBInterface : DBInterface {
     override fun metadataOf(name: String): FileMetadata? = null
-    override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? = null
+    override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>>? = null
 }
 
 object DummySystemInterface : SystemInterface {

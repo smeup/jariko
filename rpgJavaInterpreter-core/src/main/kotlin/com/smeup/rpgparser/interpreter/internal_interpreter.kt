@@ -405,7 +405,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val record = systemInterface.db.chain(statement.name, eval(statement.searchArg))
                     if (record != null) {
                         lastFound = true
-                        record.forEach { assign(it.first, it.second) }
+                        record.forEach { assign(it.first.toDataDefinition(), it.second) }
                     } else {
                         lastFound = false
                     }
