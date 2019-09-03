@@ -64,6 +64,10 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
             statement.executeBatch()
         }
     }
+
+    fun insert(tableName: String, values: List<Pair<String, Value>>) {
+        TODO()
+    }
 }
 
 data class DBConfiguration(var url: String, val user: String = "", val password: String = "")
