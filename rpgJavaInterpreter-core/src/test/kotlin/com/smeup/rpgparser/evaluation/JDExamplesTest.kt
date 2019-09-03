@@ -323,7 +323,7 @@ class JDExamplesTest {
                 ), callsToListFld[0])
         assertEquals(1, callsToNfyeve.size)
         val v = callsToNfyeve[0]["var"] as ArrayValue
-        assertEquals(StringValue("Object currentProgramName".padEnd(50) +
+        assertEquals(StringValue("Object name".padEnd(50) +
                 "myFile.png".padEnd(1000)),
                 v.getElement(1))
         assertEquals(StringValue("Object type".padEnd(50) +
