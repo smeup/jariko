@@ -68,14 +68,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
     var interpretationContext: InterpretationContext = DummyInterpretationContext
 
-    init {
-        this.useLogConfiguration(systemInterface.loggingConfiguration())
-    }
     /**
      * This is useful for debugging, so we can avoid infinite loops
      */
     var cycleLimit: Int? = null
-    var logHandlers: List<InterpreterLogHandler> = emptyList()
+    private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     var lastFound = false
     private val fileInfos = FileInformationMap()
@@ -153,11 +150,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         initialize(compilationUnit, initialValues)
     }
 
+    private fun configureLogHandlers() {
+        logHandlers = systemInterface.getAllLogHandlers()
+    }
+
     fun execute(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
+        configureLogHandlers()
         initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
         compilationUnit.main.stmts.forEach {
             executeWithMute(it)
@@ -984,13 +986,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return blankValue(dataDefinition.type)
     }
 
-    private fun useLogConfigurationFile(logConfigurationFile: File) {
-        logHandlers = configureLog(logConfigurationFile)
-    }
-
-    private fun useLogConfiguration(loggingConfiguration: LoggingConfiguration?) {
-        logHandlers = configureLog(loggingConfiguration ?: defaultLoggingConfiguration())
-    }
 }
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {

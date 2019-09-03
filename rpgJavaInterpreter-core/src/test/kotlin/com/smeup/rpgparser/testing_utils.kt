@@ -24,6 +24,7 @@ import kotlin.test.fail
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
+import kotlin.math.log
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
@@ -173,6 +174,8 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
 open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+    override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
+
     override fun loggingConfiguration(): LoggingConfiguration? {
         return this.loggingConfiguration
     }
@@ -204,8 +207,9 @@ fun execute(
     systemInterface: SystemInterface? = null,
     logHandlers: List<InterpreterLogHandler> = emptyList()
 ): InternalInterpreter {
-    val interpreter = InternalInterpreter(systemInterface ?: DummySystemInterface)
-    interpreter.logHandlers = logHandlers
+    val si = systemInterface ?: DummySystemInterface
+    si.addExtraLogHandlers(logHandlers)
+    val interpreter = InternalInterpreter(si)
     try {
         interpreter.execute(cu, initialValues)
     } catch (e: InterruptForDebuggingPurposes) {
@@ -232,7 +236,8 @@ private const val TRACE = false
 fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE)): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true)
     cu.resolve()
-    return execute(cu, initialValues, si, logHandlers)
+    si.addExtraLogHandlers(logHandlers)
+    return execute(cu, initialValues, si)
 }
 
 fun rpgProgram(name: String): RpgProgram {

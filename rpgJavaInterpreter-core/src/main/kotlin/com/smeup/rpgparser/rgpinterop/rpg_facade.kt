@@ -41,15 +41,17 @@ abstract class RpgFacade<P> (
 ) {
 
     private var logHandlers = mutableListOf<InterpreterLogHandler>()
-    fun addLogHandler(handler: InterpreterLogHandler) = logHandlers.add(handler)
-    fun removeLogHandler(handler: InterpreterLogHandler) = logHandlers.remove(handler)
 
-    private val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
+    private val programInterpreter = ProgramInterpreter(systemInterface.addExtraLogHandlers(logHandlers))
     private val programName by lazy { programNameSource.nameFor(this) }
     protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
 
+    private fun configureLogHandlers() {
+        logHandlers = systemInterface.getAllLogHandlers()
+    }
+
     fun singleCall(params: P): P? {
-        logHandlers = configureLog(systemInterface.loggingConfiguration() ?: defaultLoggingConfiguration()).toMutableList()
+        configureLogHandlers()
 
         val initialValues = toInitialValues(params)
 

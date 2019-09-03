@@ -14,6 +14,9 @@ open class JavaSystemInterface(
     private val databaseInterface: DBInterface = DummyDBInterface,
     var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
+
+    override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
+
     override fun loggingConfiguration(): LoggingConfiguration? {
         return this.loggingConfiguration
     }

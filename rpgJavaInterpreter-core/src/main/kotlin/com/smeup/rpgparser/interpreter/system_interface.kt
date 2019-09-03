@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.logging.configureLog
+import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import java.io.File
 import java.util.*
 
@@ -14,7 +16,15 @@ interface SystemInterface {
     fun findProgram(name: String): Program?
     fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
     fun loggingConfiguration(): LoggingConfiguration?
+    fun addExtraLogHandlers(logHandlers: List<InterpreterLogHandler>): SystemInterface {
+        extraLogHandlers.addAll(logHandlers)
+        return this
+    }
+
+    val extraLogHandlers: MutableList<InterpreterLogHandler>
     val db: DBInterface
+
+    fun getAllLogHandlers() = (configureLog(this.loggingConfiguration() ?: defaultLoggingConfiguration()) + this.extraLogHandlers).toMutableList()
 }
 
 interface DBInterface {
@@ -30,6 +40,8 @@ object DummyDBInterface : DBInterface {
 }
 
 object DummySystemInterface : SystemInterface {
+    override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
+
     override fun loggingConfiguration(): LoggingConfiguration? = null
 
     override val db: DBInterface
@@ -49,6 +61,8 @@ object DummySystemInterface : SystemInterface {
 }
 
 class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+    override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
+
     override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
 
     override val db: DBInterface

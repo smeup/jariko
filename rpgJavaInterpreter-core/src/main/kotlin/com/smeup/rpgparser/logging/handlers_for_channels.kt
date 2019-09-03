@@ -5,7 +5,7 @@ import com.smeup.rpgparser.parsing.ast.LogicalAndExpr
 import com.smeup.rpgparser.parsing.ast.LogicalOrExpr
 import org.apache.logging.log4j.LogManager
 
-class ExpressionLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(EXPRESSION_LOGGER)
 
     override fun render(logEntry: LogEntry): String {
@@ -26,7 +26,7 @@ class ExpressionLogHandler(level: String, sep: String) : LogHandler(level, sep),
     }
 }
 
-class PerformanceLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     private val logger = LogManager.getLogger(PERFOMANCE_LOGGER)
 
     override fun render(logEntry: LogEntry): String {
@@ -49,7 +49,7 @@ class PerformanceLogHandler(level: String, sep: String) : LogHandler(level, sep)
     }
 }
 
-class StatementLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(STATEMENT_LOGGER)
     var inLoop: Int = 0
 
@@ -116,7 +116,7 @@ class StatementLogHandler(level: String, sep: String) : LogHandler(level, sep), 
     }
 }
 
-class DataLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class DataLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(DATA_LOGGER)
 
     override fun render(logEntry: LogEntry): String {
@@ -133,7 +133,7 @@ class DataLogHandler(level: String, sep: String) : LogHandler(level, sep), Inter
     }
 }
 
-class LoopLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(LOOP_LOGGER)
 
     override fun render(logEntry: LogEntry): String {
@@ -155,7 +155,7 @@ class LoopLogHandler(level: String, sep: String) : LogHandler(level, sep), Inter
     }
 }
 
-class ResolutionLogHandler(level: String, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(RESOLUTUION_LOGGER)
     override fun handle(logEntry: LogEntry) {
     }

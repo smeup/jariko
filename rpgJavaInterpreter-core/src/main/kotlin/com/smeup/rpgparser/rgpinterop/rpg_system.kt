@@ -20,6 +20,11 @@ class SourceProgramFinder : RpgProgramFinder {
 }
 
 class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
+
+    init {
+        directory?.let { require(it.exists()) { "The specified directory should exist: ${directory.path} -> ${directory.absolutePath}" } }
+    }
+
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         val file = File(prefix() + nameAndSuffix(nameOrSource))
         return if (file.exists()) {
