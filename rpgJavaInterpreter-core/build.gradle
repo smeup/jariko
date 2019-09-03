@@ -49,7 +49,7 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
     testCompile 'junit:junit:4.12'
     compile 'commons-io:commons-io:2.6'
-    testCompile 'com.h2database:h2:1.4.199'
+    testCompile 'org.hsqldb:hsqldb:2.5.0'
     compile 'org.jetbrains.exposed:exposed:0.17.1'
     compile 'com.github.ajalt:clikt:2.1.0'
 }

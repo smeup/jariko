@@ -16,7 +16,7 @@ interface DBInterface {
     fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>?
 }
 
-data class FileMetadata(val formatName: String, val fields: Collection<AbstractDataDefinition>)
+data class FileMetadata(val tableName: String, val formatName: String, val fields: Collection<AbstractDataDefinition>)
 
 object DummyDBInterface : DBInterface {
     override fun metadataOf(name: String): FileMetadata? = null
