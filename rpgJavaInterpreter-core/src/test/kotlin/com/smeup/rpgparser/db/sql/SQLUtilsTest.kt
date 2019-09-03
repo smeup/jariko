@@ -13,7 +13,7 @@ class SQLUtilsTest {
                 "TSTFLDNBR" withType NumberType(5, 2)))
 
         assertEquals(
-            listOf("CREATE TABLE TSTTAB (TSTFLDCHR CHAR (5), TSTFLDNBR DECIMAL (7, 2))",
+            listOf("CREATE TABLE TSTTAB (TSTFLDCHR CHAR (5) NOT NULL, TSTFLDNBR DECIMAL (7, 2) NOT NULL)",
                     "COMMENT ON TABLE TSTTAB IS 'TSTRECF'"),
             fileMetadata.toSQL())
     }

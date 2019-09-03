@@ -14,8 +14,8 @@ private fun Collection<AbstractDataDefinition>.toSQL(): String =
 
 private fun AbstractDataDefinition.sqlType(): String =
     when (this.type) {
-        is StringType -> "CHAR (${this.type.size})"
-        is NumberType -> "DECIMAL (${this.type.size}, ${(this.type as NumberType).decimalDigits})"
+        is StringType -> "CHAR (${this.type.size}) NOT NULL"
+        is NumberType -> "DECIMAL (${this.type.size}, ${(this.type as NumberType).decimalDigits}) NOT NULL"
         else -> TODO("Conversion to SQL Type not yet implemented: ${this.type}")
     }
 
