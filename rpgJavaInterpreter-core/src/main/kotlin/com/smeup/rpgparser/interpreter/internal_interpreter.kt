@@ -101,7 +101,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         // TODO CodeReview should we remove this comment?
     }
 
-    fun useLogConfigurationFile(logConfigurationFile: File){
+    fun useLogConfigurationFile(logConfigurationFile: File) {
         logHandlers = configureLog(logConfigurationFile)
     }
 
@@ -117,7 +117,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
         // Assigning initial values received from outside and consider INZ clauses
         // TODO not sure it is the right place
-        //logHandlers = configureLog("/home/madytyoo/Downloads/smeup-rpg-log/logging.config")
+        // logHandlers = configureLog("/home/madytyoo/Downloads/smeup-rpg-log/logging.config")
         if (reinitialization) {
             compilationUnit.dataDefinitions.forEach {
                 set(it, coerce(when {

@@ -80,10 +80,11 @@ class RunnerCLI : CliktCommand() {
     override fun run() {
         executePgmWithStringArgs(programName, programArgs, logConfigurationFile)
     }
-
 }
 
-// TODO describe what this program does
+/**
+ * This program can be used to either launch an RPG program or the shell.
+ */
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
         SimpleShell().repl { programName, programArgs ->
@@ -91,6 +92,5 @@ fun main(args: Array<String>) {
         }
     } else {
         RunnerCLI().main(args)
-
     }
 }

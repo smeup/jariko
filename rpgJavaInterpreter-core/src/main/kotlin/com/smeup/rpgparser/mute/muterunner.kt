@@ -25,8 +25,11 @@ import java.util.stream.Collectors
 
 data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int, val exceptions: LinkedList<Throwable>, val syntaxErrors: List<Error>)
 
-fun executeWithMutes(filename: String, verbose: Boolean = false,
-                     logConfigurationFile: File?): ExecutionResult {
+fun executeWithMutes(
+    filename: String,
+    verbose: Boolean = false,
+    logConfigurationFile: File?
+): ExecutionResult {
     var failed = 0
     var executed = 0
     var resolved: List<MuteAnnotationResolved> = listOf()
@@ -140,7 +143,6 @@ object MuteRunner {
             }
         }
     }
-
 }
 
 val FAILURE_EXIT_CODE = 1
