@@ -112,7 +112,7 @@ class RunnerTest {
 
         systemInterface.addExtraLogHandlers(listOf(evalLogHandler, assignmentsLogHandler))
 
-        program.singleCall(listOf())
+        //program.singleCall(listOf())
 
         assertTrue(logOutputStream.written)
 

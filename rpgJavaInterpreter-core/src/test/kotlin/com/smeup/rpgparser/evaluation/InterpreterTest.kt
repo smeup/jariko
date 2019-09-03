@@ -113,7 +113,7 @@ class InterpreterTest {
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
         execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
-        assertEquals(logHandler.getExecutedSubroutines().size, 0)
+        assertEquals(0, logHandler.getExecutedSubroutines().size)
     }
 
     @Test
