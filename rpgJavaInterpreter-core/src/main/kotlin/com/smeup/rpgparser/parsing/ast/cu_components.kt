@@ -46,7 +46,7 @@ data class CompilationUnit(
                     val metadata = databaseInterface.metadataOf(it.name)
                     if (metadata != null) {
                         it.formatName = metadata.formatName
-                        _allDataDefinitions.addAll(metadata.fields)
+                        _allDataDefinitions.addAll(metadata.fields.map(DBField::toDataDefinition))
                     }
                 }
                 checkDuplicatedDataDefinition(_allDataDefinitions)
