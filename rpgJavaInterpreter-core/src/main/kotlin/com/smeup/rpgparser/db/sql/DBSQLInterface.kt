@@ -45,12 +45,12 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         }
 
     private fun formatName(name: String): String? =
-            connection.metaData.getTables(null, null, name, null).use {
-                if (it.next()) {
-                    return@use it.getString("REMARKS").ifBlank { name }
-                }
-                return@use null
+        connection.metaData.getTables(null, null, name, null).use {
+            if (it.next()) {
+                return@use it.getString("REMARKS").ifBlank { name }
             }
+            return@use null
+        }
 
     override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>>? {
         TODO("not implemented")
@@ -65,8 +65,12 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         }
     }
 
-    fun insert(tableName: String, values: List<Pair<String, Value>>) {
-        TODO()
+    fun insertRow(tableName: String, values: List<Pair<String, Value>>) {
+        val sql = tableName.insertSQL(values)
+        connection.prepareStatement(sql).use {
+            it.bind(values.map { it.second })
+            it.execute()
+        }
     }
 }
 
