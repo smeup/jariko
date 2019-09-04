@@ -2,6 +2,7 @@ package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.*
 import java.lang.StringBuilder
+import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
@@ -28,3 +29,31 @@ fun PreparedStatement.bind(values: List<Value>) {
         i, value -> this.setObject(i + 1, value.toDBValue())
     }
 }
+
+fun Connection.recordFormatName(tableName: String): String? =
+    this.metaData.getTables(null, null, tableName, null).use {
+        if (it.next()) {
+            return@use it.getString("REMARKS").ifBlank { tableName }
+        }
+        return@use null
+    }
+
+fun Connection.fields(name: String): Collection<DBField> {
+    val result = mutableListOf<DBField>()
+    this.metaData.getColumns(null, null, name, null).use {
+        while (it.next()) {
+            result.add(it.getString("COLUMN_NAME") withType typeFor(it))
+        }
+    }
+    return result
+}
+
+private fun typeFor(rs: ResultSet): Type =
+    when (val sqlType = rs.getString("TYPE_NAME")) {
+        "CHARACTER" -> StringType(rs.getLong("COLUMN_SIZE"))
+        "DECIMAL" -> {
+            val decimalDigits = rs.getInt("DECIMAL_DIGITS")
+            NumberType(rs.getInt("COLUMN_SIZE") - decimalDigits, decimalDigits)
+        }
+        else -> TODO("Conversion from SQL Type not yet implemented: $sqlType")
+    }

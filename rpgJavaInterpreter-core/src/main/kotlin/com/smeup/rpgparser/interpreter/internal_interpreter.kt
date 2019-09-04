@@ -38,14 +38,14 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
-data class FileInformation(var found: Boolean)
+data class FileInformation(val fileName: String, var found: Boolean)
 
 class FileInformationMap {
     private val byFileName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
     private val byFormatName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
 
     fun add(fileDefinition: FileDefinition) {
-        val fileInformation = FileInformation(false)
+        val fileInformation = FileInformation(fileDefinition.name, false)
         byFileName[fileDefinition.name] = fileInformation
         val formatName = fileDefinition.formatName
         if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
@@ -396,20 +396,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is ChainStmt -> {
-                    // -- TODO handle record formats
-                    require(fileInfos[statement.name] != null) {
+                    val fileInfo = fileInfos[statement.name]
+                    require(fileInfo != null) {
                         "Line: ${statement.position.line()} - File definition ${statement.name} not found"
                     }
-
-                    // --
-                    val record = systemInterface.db.chain(statement.name, eval(statement.searchArg))
+                    val record = systemInterface.db.chain(fileInfo.fileName, eval(statement.searchArg))
                     if (!record.isEmpty()) {
                         lastFound = true
                         record.forEach { assign(it.first.toDataDefinition(), it.second) }
                     } else {
                         lastFound = false
                     }
-                    fileInfos[statement.name]!!.found = lastFound
+                    fileInfo.found = lastFound
                 }
                 else -> TODO(statement.toString())
             }

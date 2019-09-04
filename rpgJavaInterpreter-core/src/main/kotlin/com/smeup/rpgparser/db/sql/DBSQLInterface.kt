@@ -3,7 +3,6 @@ package com.smeup.rpgparser.db.sql
 import com.smeup.rpgparser.interpreter.*
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.ResultSet
 
 class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface {
 
@@ -20,37 +19,9 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
     }
 
     override fun metadataOf(name: String): FileMetadata? {
-        val formatName = formatName(name) ?: return null
-        return FileMetadata(name, formatName, fields(name))
+        val formatName = connection.recordFormatName(name) ?: return null
+        return FileMetadata(name, formatName, connection.fields(name))
     }
-
-    private fun fields(name: String): Collection<DBField> {
-        val result = mutableListOf<DBField>()
-        connection.metaData.getColumns(null, null, name, null).use {
-            while (it.next()) {
-                result.add(it.getString("COLUMN_NAME") withType typeFor(it))
-            }
-        }
-        return result
-    }
-
-    private fun typeFor(rs: ResultSet): Type =
-        when (val sqlType = rs.getString("TYPE_NAME")) {
-            "CHARACTER" -> StringType(rs.getLong("COLUMN_SIZE"))
-            "DECIMAL" -> {
-                val decimalDigits = rs.getInt("DECIMAL_DIGITS")
-                NumberType(rs.getInt("COLUMN_SIZE") - decimalDigits, decimalDigits)
-            }
-            else -> TODO("Conversion from SQL Type not yet implemented: $sqlType")
-        }
-
-    private fun formatName(name: String): String? =
-        connection.metaData.getTables(null, null, name, null).use {
-            if (it.next()) {
-                return@use it.getString("REMARKS").ifBlank { name }
-            }
-            return@use null
-        }
 
     override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>> {
         TODO("CHAIN")
@@ -59,8 +30,8 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
 //            it.setObject(1, key.toDBValue())
 //            return toValues(it.executeQuery())
 //        }
-    }
-
+//    }
+//
 //    private fun primaryKeys(name: String): List<String> {
 //
 //    }
@@ -69,7 +40,7 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
 //        val result = mutableListOf<Pair<DBField, Value>>()
 //
 //        return result
-//    }
+    }
 
     fun create(tables: List<FileMetadata>) {
         val sqlStatements = tables.flatMap { it.toSQL() }
