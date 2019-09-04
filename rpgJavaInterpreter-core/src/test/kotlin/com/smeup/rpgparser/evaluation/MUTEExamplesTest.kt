@@ -25,10 +25,8 @@ class MUTEExamplesTest {
         assertEquals(listOf("001.1_d01.1_A01.1_c01.1_B01.1_b01.1_C01.1_901.1_101."), outputOf("MUTE10_04_A"))
     }
 
-    // TODO understand why this test does not pass
-    @Test @Ignore
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE11_02() {
-        // TODO
-        assertEquals(listOf("TODO"), outputOf("MUTE11_02"))
+        assertEquals(emptyList(), outputOf("MUTE11_02"))
     }
 }
