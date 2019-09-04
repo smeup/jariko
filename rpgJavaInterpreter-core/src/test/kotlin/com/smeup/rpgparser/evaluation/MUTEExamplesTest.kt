@@ -1,10 +1,8 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
-import com.smeup.rpgparser.interpreter.*
 import java.util.*
 import kotlin.test.assertEquals
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
 
