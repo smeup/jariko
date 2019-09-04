@@ -169,6 +169,7 @@ fun createConsoleAppender(config: Configuration, properties: Properties) : Appen
     val builder = ConsoleAppender::class.java.getMethod("newBuilder").invoke(null) as ConsoleAppender.Builder<*>
         val appender = builder.apply {
         setName("console")
+        setLayout(layout)
         setTarget(ConsoleAppender.Target.SYSTEM_OUT)
     }.build()
 
