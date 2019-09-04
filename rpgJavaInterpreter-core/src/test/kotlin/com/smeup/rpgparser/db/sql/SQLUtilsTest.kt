@@ -17,4 +17,20 @@ class SQLUtilsTest {
                     "COMMENT ON TABLE TSTTAB IS 'TSTRECF'"),
             fileMetadata.toSQL())
     }
+
+    @Test
+    fun sqlForInsertTest() {
+        val values = listOf(
+            "TSTFLDCHR" to StringValue("ABC"),
+            "TSTFLDNBR" to IntValue(5))
+        assertEquals("INSERT INTO TSTTAB (TSTFLDCHR, TSTFLDNBR) VALUES(?, ?)", "TSTTAB".insertSQL(values))
+    }
+
+    @Test
+    fun sqlForWhereTest() {
+        val values = listOf(
+                "TSTFLDCHR" to StringValue("ABC"),
+                "TSTFLDNBR" to IntValue(5))
+        assertEquals(" WHERE TSTFLDCHR = ? AND TSTFLDNBR = ?", values.whereSQL())
+    }
 }

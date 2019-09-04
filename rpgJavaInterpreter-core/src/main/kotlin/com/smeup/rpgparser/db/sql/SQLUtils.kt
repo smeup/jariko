@@ -20,3 +20,12 @@ private fun DBField.sqlType(): String =
     }
 
 infix fun String.withType(type: Type): DBField = DBField(this, type)
+
+fun String.insertSQL(values: List<Pair<String, Value>>): String {
+    val names = values.joinToString { it.first }
+    val questionMarks = values.joinToString { "?" }
+    return "INSERT INTO $this ($names) VALUES($questionMarks)"
+}
+
+fun List<Pair<String, Value>>.whereSQL(): String =
+    " WHERE " + this.joinToString(" AND ") { "${it.first} = ?" }

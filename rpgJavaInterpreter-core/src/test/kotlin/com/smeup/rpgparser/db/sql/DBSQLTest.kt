@@ -44,7 +44,7 @@ class DBSQLTest {
             listOf(
                 "TSTFLDCHR" to StringValue("XXX"),
                 "TSTFLDNBR" to IntValue(123))
-        db.insert(tableName, values)
+        db.insertRow(tableName, values)
         assertNull(db.chain("TSTFLDCHR", StringValue("ABC")))
         assertNotNull(db.chain("TSTFLDCHR", StringValue("XXX")))
     }
