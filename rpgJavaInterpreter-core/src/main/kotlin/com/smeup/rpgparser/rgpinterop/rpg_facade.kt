@@ -51,11 +51,11 @@ abstract class RpgFacade<P> (
 
         val initialValues = toInitialValues(params)
 
-        logHandlers.log(StartProgramLog(programName, initialValues))
+        logHandlers.log(ProgramExecutionLogStart(programName, initialValues))
         val elapsed = measureTimeMillis {
             programInterpreter.execute(rpgProgram, initialValues)
         }
-        logHandlers.log(EndProgramLog(programName, elapsed))
+        logHandlers.log(ProgramExecutionLogEnd(programName, elapsed))
         return toResults(params, initialValues)
     }
 

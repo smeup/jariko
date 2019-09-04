@@ -305,13 +305,19 @@ class AssignmentOfElementLogEntry(programName: String, val array: Expression, va
     }
 }
 
-class StartProgramLog(programName: String, val initialValues: Map<String, Value>) : LogEntry(programName) {
+class ProgramExecutionLogStart(programName: String, val initialValues: Map<String, Value>) : LogEntry(programName) {
     override fun toString(): String {
         return "calling $programName with initial values $initialValues"
     }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "PROGRAM START${sep}${filename}"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
 }
 
-class EndProgramLog(programName: String, val elapsed: Long = -1) : LogEntry(programName) {
+class ProgramExecutionLogEnd(programName: String, val elapsed: Long = -1) : LogEntry(programName) {
     override fun toString(): String {
         return "ending $programName"
     }
@@ -320,6 +326,13 @@ class EndProgramLog(programName: String, val elapsed: Long = -1) : LogEntry(prog
 
         return renderHeader(channel, filename, "", sep) + data
     }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "PROGRAM END${sep}${filename}"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
 }
 
 class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val result: Value) : LogEntry(programName) {
