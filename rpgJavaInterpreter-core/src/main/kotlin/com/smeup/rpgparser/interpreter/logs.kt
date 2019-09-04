@@ -316,7 +316,7 @@ class EndProgramLog(programName: String, val elapsed: Long = -1) : LogEntry(prog
         return "ending $programName"
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "END$filename${sep}${elapsed}${sep}ms"
+        val data = "END $filename${sep}${elapsed}${sep}ms"
 
         return renderHeader(channel, filename, "", sep) + data
     }
