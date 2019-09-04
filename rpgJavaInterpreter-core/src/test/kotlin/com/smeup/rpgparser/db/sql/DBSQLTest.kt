@@ -2,10 +2,7 @@ package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
-import kotlin.test.Ignore
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
 
 class DBSQLTest {
 
@@ -45,8 +42,8 @@ class DBSQLTest {
                 "TSTFLDCHR" to StringValue("XXX"),
                 "TSTFLDNBR" to IntValue(123))
         db.insertRow(tableName, values)
-        assertNull(db.chain(tableName, StringValue("ABC")))
-        assertNotNull(db.chain(tableName, StringValue("XXX")))
+        assertTrue(db.chain(tableName, StringValue("ABC")).isEmpty())
+        assertTrue(db.chain(tableName, StringValue("XXX")).isNotEmpty())
     }
 
     private fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface {

@@ -50,7 +50,7 @@ fun Connection.fields(name: String): Collection<DBField> {
 
 fun Connection.primaryKeys(tableName: String): List<String> {
     val result = mutableListOf<String>()
-    this.metaData.getPrimaryKeys(null, null, "survey").use {
+    this.metaData.getPrimaryKeys(null, null, tableName).use {
         while (it.next()) {
             result.add(it.getString("COLUMN_NAME"))
         }

@@ -29,4 +29,4 @@ fun String.insertSQL(values: List<Pair<String, Value>>): String {
 }
 
 fun List<String>.whereSQL(): String =
-    " WHERE " + this.joinToString(" AND ") { "$it = ?" }
+    "WHERE " + this.joinToString(" AND ") { "$it = ?" }

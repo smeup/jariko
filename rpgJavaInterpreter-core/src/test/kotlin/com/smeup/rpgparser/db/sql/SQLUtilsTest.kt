@@ -42,6 +42,6 @@ class SQLUtilsTest {
     @Test
     fun sqlForWhereTest() {
         val values = listOf("TSTFLDCHR", "TSTFLDNBR")
-        assertEquals(" WHERE TSTFLDCHR = ? AND TSTFLDNBR = ?", values.whereSQL())
+        assertEquals("WHERE TSTFLDCHR = ? AND TSTFLDNBR = ?", values.whereSQL())
     }
 }

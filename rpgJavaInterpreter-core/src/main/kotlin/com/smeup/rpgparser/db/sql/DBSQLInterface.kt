@@ -8,7 +8,7 @@ import java.sql.ResultSet
 class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface {
 
     private val connection: Connection by lazy {
-        DriverManager.getConnection(dbConfiguration.url, dbConfiguration.user, dbConfiguration.password)
+        dbConfiguration.getConnection()
     }
 
     fun setSQLLog(on: Boolean) {
@@ -55,4 +55,6 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
     }
 }
 
-data class DBConfiguration(var url: String, val user: String = "", val password: String = "")
+data class DBConfiguration(var url: String, val user: String = "", val password: String = "") {
+    fun getConnection(): Connection = DriverManager.getConnection(url, user, password)
+}
