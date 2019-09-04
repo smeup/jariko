@@ -48,6 +48,16 @@ fun Connection.fields(name: String): Collection<DBField> {
     return result
 }
 
+fun Connection.primaryKeys(tableName: String): List<String> {
+    val result = mutableListOf<String>()
+    this.metaData.getPrimaryKeys(null, null, "survey").use {
+        while (it.next()) {
+            result.add(it.getString("COLUMN_NAME"))
+        }
+    }
+    return result
+}
+
 private fun typeFor(rs: ResultSet): Type =
     when (val sqlType = rs.getString("TYPE_NAME")) {
         "CHARACTER" -> StringType(rs.getLong("COLUMN_SIZE"))

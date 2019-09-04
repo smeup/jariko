@@ -36,8 +36,8 @@ class DBSQLTest {
         val tableName = "TSTTAB"
         val formatName = "TSTRECF"
         val fields = listOf(
-            "TSTFLDCHR" withType StringType(5),
-            "TSTFLDNBR" withType NumberType(5, 2))
+                "TSTFLDCHR" primaryKeyWithType StringType(5),
+                "TSTFLDNBR" withType NumberType(5, 2))
         val fileMetadata = FileMetadata(tableName, formatName, fields)
         val db = connectionForTest(listOf(fileMetadata))
         val values: List<Pair<String, Value>> =
@@ -45,8 +45,8 @@ class DBSQLTest {
                 "TSTFLDCHR" to StringValue("XXX"),
                 "TSTFLDNBR" to IntValue(123))
         db.insertRow(tableName, values)
-        assertNull(db.chain("TSTFLDCHR", StringValue("ABC")))
-        assertNotNull(db.chain("TSTFLDCHR", StringValue("XXX")))
+        assertNull(db.chain(tableName, StringValue("ABC")))
+        assertNotNull(db.chain(tableName, StringValue("XXX")))
     }
 
     private fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface {

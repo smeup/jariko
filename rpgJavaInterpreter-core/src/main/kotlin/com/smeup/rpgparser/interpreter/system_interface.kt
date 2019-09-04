@@ -16,7 +16,7 @@ interface DBInterface {
     fun chain(name: String, key: Value): Collection<Pair<DBField, Value>>
 }
 
-data class DBField(val name: String, val type: Type) {
+data class DBField(val name: String, val type: Type, val primaryKey: Boolean = false) {
     fun toDataDefinition() = AbstractDataDefinition(name, type)
 }
 

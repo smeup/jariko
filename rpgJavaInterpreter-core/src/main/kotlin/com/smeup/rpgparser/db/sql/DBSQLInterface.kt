@@ -3,6 +3,7 @@ package com.smeup.rpgparser.db.sql
 import com.smeup.rpgparser.interpreter.*
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.ResultSet
 
 class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface {
 
@@ -24,22 +25,16 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
     }
 
     override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>> {
-        TODO("CHAIN")
-//        val sql = "SELECT * FROM $name where ${primaryKey(name)} = ?"
-//        connection.prepareStatement(sql).use {
-//            it.setObject(1, key.toDBValue())
-//            return toValues(it.executeQuery())
-//        }
-//    }
-//
-//    private fun primaryKeys(name: String): List<String> {
-//
-//    }
-//
-//    private fun toValues(rs: ResultSet): Collection<Pair<DBField, Value>> {
-//        val result = mutableListOf<Pair<DBField, Value>>()
-//
-//        return result
+        val sql = "SELECT * FROM $name ${connection.primaryKeys(name).whereSQL()}"
+        connection.prepareStatement(sql).use {
+            it.setObject(1, key.toDBValue())
+            return toValues(it.executeQuery())
+        }
+    }
+
+    private fun toValues(executeQuery: ResultSet?): Collection<Pair<DBField, Value>> {
+        val result = mutableListOf<Pair<DBField, Value>>()
+        return result
     }
 
     fun create(tables: List<FileMetadata>) {
