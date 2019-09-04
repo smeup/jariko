@@ -65,4 +65,50 @@ class RunnerTest {
         assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t80\tPERF\tSUBROUTINE END\tPRINT") })
         assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t\tPERF\tENDTEST_06.rpgle") })
     }
+
+    @Test
+    fun executeExampleWithCall() {
+        mockkStatic(LogManager::class)
+
+        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
+
+        val slot = slot<String>()
+
+        val dataLogger = mockk<L4JLogger>()
+        val perfLogger = mockk<L4JLogger>()
+        val loopLogger = mockk<L4JLogger>()
+        val stmtLogger = mockk<L4JLogger>()
+        val exprLogger = mockk<L4JLogger>()
+
+        val dataLogs = mutableListOf<String>()
+        val perfLogs = mutableListOf<String>()
+        val loopLogs = mutableListOf<String>()
+        val stmtLogs = mutableListOf<String>()
+        val exprLogs = mutableListOf<String>()
+
+        every { LogManager.getLogger(DATA_LOGGER) } answers { dataLogger }
+        every { dataLogger.isInfoEnabled } answers { true }
+        every { dataLogger.info(capture(slot)) } answers { dataLogs.add(slot.captured) }
+
+        every { LogManager.getLogger(PERFOMANCE_LOGGER) } answers { perfLogger }
+        every { perfLogger.isInfoEnabled } answers { true }
+        every { perfLogger.info(capture(slot)) } answers { perfLogs.add(slot.captured) }
+
+        every { LogManager.getLogger(LOOP_LOGGER) } answers { loopLogger }
+        every { loopLogger.isInfoEnabled } answers { true }
+        every { loopLogger.info(capture(slot)) } answers { loopLogs.add(slot.captured) }
+
+        every { LogManager.getLogger(STATEMENT_LOGGER) } answers { stmtLogger }
+        every { stmtLogger.isInfoEnabled } answers { true }
+        every { stmtLogger.info(capture(slot)) } answers { stmtLogs.add(slot.captured) }
+
+        every { LogManager.getLogger(EXPRESSION_LOGGER) } answers { exprLogger }
+        every { exprLogger.isInfoEnabled } answers { true }
+        every { exprLogger.info(capture(slot)) } answers { exprLogs.add(slot.captured) }
+
+        runnerMain(arrayOf("--log-configuration", "../logging.config", "CALCFIBCA5.rpgle", "AA", "'ABCD'", "1**"))
+
+        assertNotNull(dataLogs.find { it.contains("CALCFIBCA5.rpgle\t\tDATA\tppdat = N/D\t10") })
+        assertNotNull(dataLogs.find { it.contains("CALCFIB.CALCFIB\t\tDATA\tppdat = N/D\t10") })
+    }
 }
