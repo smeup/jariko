@@ -43,7 +43,8 @@ class DBSQLTest {
                 "TSTFLDNBR" to IntValue(123))
         db.insertRow(tableName, values)
         assertTrue(db.chain(tableName, StringValue("ABC")).isEmpty())
-        assertTrue(db.chain(tableName, StringValue("XXX")).isNotEmpty())
+        val chainedRecord = db.chain(tableName, StringValue("XXX"))
+        assertTrue(chainedRecord.isNotEmpty())
     }
 
     private fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface {

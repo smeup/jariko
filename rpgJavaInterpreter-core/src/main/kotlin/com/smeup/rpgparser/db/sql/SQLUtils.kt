@@ -12,13 +12,6 @@ private fun Collection<DBField>.toSQL(): String {
     return joinToString { "${it.name} ${it.sqlType()}" } + (if (primaryKeys.isEmpty()) "" else ", PRIMARY KEY($primaryKeys)")
 }
 
-private fun DBField.sqlType(): String =
-    when (this.type) {
-        is StringType -> "CHAR (${this.type.size}) NOT NULL"
-        is NumberType -> "DECIMAL (${this.type.size}, ${this.type.decimalDigits}) NOT NULL"
-        else -> TODO("Conversion to SQL Type not yet implemented: ${this.type}")
-    }
-
 infix fun String.withType(type: Type): DBField = DBField(this, type)
 infix fun String.primaryKeyWithType(type: Type): DBField = DBField(this, type, true)
 
