@@ -31,7 +31,7 @@ fun Connection.recordFormatName(tableName: String): String? =
         return@use null
     }
 
-fun Connection.fields(name: String): Collection<DBField> {
+fun Connection.fields(name: String): List<DBField> {
     val result = mutableListOf<DBField>()
     this.metaData.getColumns(null, null, name, null).use {
         while (it.next()) {

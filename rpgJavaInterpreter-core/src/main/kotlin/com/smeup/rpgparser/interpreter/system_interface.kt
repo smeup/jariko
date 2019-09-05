@@ -20,7 +20,7 @@ data class DBField(val name: String, val type: Type, val primaryKey: Boolean = f
     fun toDataDefinition() = AbstractDataDefinition(name, type)
 }
 
-data class FileMetadata(val tableName: String, val formatName: String, val fields: Collection<DBField>)
+data class FileMetadata(val tableName: String, val formatName: String, val fields: List<DBField>)
 
 object DummyDBInterface : DBInterface {
     override fun metadataOf(name: String): FileMetadata? = null
