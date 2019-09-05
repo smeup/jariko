@@ -18,11 +18,6 @@ import org.apache.logging.log4j.core.config.LoggerConfig
 import org.apache.logging.log4j.core.config.AppenderRef
 
 
-
-
-
-
-
 const val DATA_LOGGER: String = "data"
 const val LOOP_LOGGER: String = "loop"
 const val STATEMENT_LOGGER: String = "statement"

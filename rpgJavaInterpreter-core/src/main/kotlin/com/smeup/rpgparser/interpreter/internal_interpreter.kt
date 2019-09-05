@@ -246,8 +246,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is PlistStmt -> {
-                    // Access symbol table
-                    log(ParamListStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, globalSymbolTable))
+                    statement.params.forEach {
+                        var value: Value? = null
+                        if (globalSymbolTable.contains(it.param.name)) {
+                            value = globalSymbolTable[it.param.name]
+                            log(ParamListStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, it.param.name, value))
+                        }
+                    }
+
                     null
                 } /* Nothing to do here */
                 is ClearStmt -> {

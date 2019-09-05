@@ -58,21 +58,11 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
         return logEntry.renderStatement("STMT", fileName, this.sep)
     }
 
-    fun renderParamList(logEntry: LogEntry): List<String> {
-        val fileName = extractFilename(logEntry.programName)
-        return logEntry.renderParamList("STMT", fileName, this.sep)
-    }
-
     override fun handle(logEntry: LogEntry) {
 
         if (logger.isInfoEnabled) {
             when (logEntry) {
-                is ParamListStatemenExecutionLog -> {
-                    val params = renderParamList(logEntry)
-                    params.forEach {
-                        logger.info(it)
-                    }
-                }
+                is ParamListStatemenExecutionLog -> logger.info(render(logEntry))
                 is SelectCaseExecutionLogEntry -> logger.info(render(logEntry))
                 is SelectOtherExecutionLogEntry -> logger.info(render(logEntry))
                 is SubroutineExecutionLogStart -> logger.info(render(logEntry))

@@ -15,9 +15,7 @@ abstract class LogEntry(open val programName: String) {
     fun renderHeader(channel: String, filename: String, line: String, sep: String): String {
         return "${sep}$filename${sep}${line}${sep}$channel$sep"
     }
-    open fun renderParamList(channel: String, filename: String, sep: String): List<String> {
-        return emptyList<String>()
-    }
+
     open fun renderStatement(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
@@ -352,22 +350,16 @@ class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val
     }
 }
 
-class ParamListStatemenExecutionLog(programName: String, val statement: PlistStmt, val globalSymbolTable: SymbolTable) : LogEntry(programName) {
+class ParamListStatemenExecutionLog(programName: String,val statement: PlistStmt, val name: String,val value: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "PLIST"
     }
 
-    override fun renderParamList(channel: String, filename: String, sep: String): List<String> {
-        val params: MutableList<String> = mutableListOf()
-        statement.params.forEach {
-            var value: Value? = null
-            if (globalSymbolTable.contains(it.param.name)) {
-                value = globalSymbolTable[it.param.name]
-            }
-            val data = "PARAM${sep}${it.param.name}${sep}${value!!.render()}"
-            params.add(renderHeader(channel, filename, it.startLine(), sep) + data)
-        }
-        return params
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+
+        val data = "PARAM${sep}${name}${sep}${value!!.render()}"
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+
     }
 }
 
