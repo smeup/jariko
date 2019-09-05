@@ -13,7 +13,7 @@ interface SystemInterface {
 
 interface DBInterface {
     fun metadataOf(name: String): FileMetadata?
-    fun chain(name: String, key: Value): List<Pair<DBField, Value>>
+    fun chain(name: String, key: Value): List<Pair<String, Value>>
 }
 
 data class DBField(val name: String, val type: Type, val primaryKey: Boolean = false) {
@@ -24,7 +24,7 @@ data class FileMetadata(val tableName: String, val formatName: String, val field
 
 object DummyDBInterface : DBInterface {
     override fun metadataOf(name: String): FileMetadata? = null
-    override fun chain(name: String, key: Value): List<Pair<DBField, Value>> = emptyList()
+    override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
 }
 
 object DummySystemInterface : SystemInterface {

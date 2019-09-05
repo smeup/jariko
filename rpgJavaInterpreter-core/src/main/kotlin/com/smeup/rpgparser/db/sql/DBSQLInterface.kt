@@ -24,7 +24,7 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         return FileMetadata(name, formatName, connection.fields(name))
     }
 
-    override fun chain(name: String, key: Value): List<Pair<DBField, Value>> {
+    override fun chain(name: String, key: Value): List<Pair<String, Value>> {
         val sql = "SELECT * FROM $name ${connection.primaryKeys(name).whereSQL()}"
         connection.prepareStatement(sql).use {
             it.setObject(1, key.toDBValue())
@@ -32,18 +32,18 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         }
     }
 
-    private fun toValues(rs: ResultSet): List<Pair<DBField, Value>> {
-        val result = mutableListOf<Pair<DBField, Value>>()
+    private fun toValues(rs: ResultSet): List<Pair<String, Value>> {
+        val result = mutableListOf<Pair<String, Value>>()
         rs.use {
             if (it.next()) {
                 val metadata = it.metaData
                 for (i in 1..metadata.columnCount) {
-                    val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
-                    val dbField = DBField(metadata.getColumnName(i), type)
+//                    val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
+//                    val dbField = DBField(metadata.getColumnName(i), type)
                     // TODO Do value conversion here --
                     val value = StringValue(it.getObject(i).toString())
                     // --
-                    result.add(Pair(dbField, value))
+                    result.add(Pair(metadata.getColumnName(i), value))
                 }
             }
         }

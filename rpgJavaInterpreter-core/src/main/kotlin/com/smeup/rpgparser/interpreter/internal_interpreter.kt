@@ -403,7 +403,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val record = systemInterface.db.chain(fileInfo.fileName, eval(statement.searchArg))
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(it.first.toDataDefinition(), it.second) }
+                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
                     } else {
                         lastFound = false
                     }
