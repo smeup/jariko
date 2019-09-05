@@ -155,6 +155,12 @@ class DoStatemenExecutionLogStart(programName: String, val statement: DoStmt) : 
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
+
+    override fun renderLoop(channel: String, filename: String, sep: String): String {
+        val data = "DO LOOP START${sep}${statement.startLimit.render()} ${statement.endLimit.render()} "
+
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
 }
 class DoStatemenExecutionLogEnd(programName: String, val statement: DoStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
     override fun toString(): String {
