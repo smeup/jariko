@@ -38,11 +38,8 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
             if (it.next()) {
                 val metadata = it.metaData
                 for (i in 1..metadata.columnCount) {
-//                    val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
-//                    val dbField = DBField(metadata.getColumnName(i), type)
-                    // TODO Do value conversion here --
-                    val value = StringValue(it.getObject(i).toString())
-                    // --
+                    val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
+                    val value = type.toValue(it, i)
                     result.add(Pair(metadata.getColumnName(i), value))
                 }
             }

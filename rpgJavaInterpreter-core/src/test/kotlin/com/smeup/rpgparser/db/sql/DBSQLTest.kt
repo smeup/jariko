@@ -2,6 +2,7 @@ package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
+import java.math.BigDecimal
 import kotlin.test.*
 
 class DBSQLTest {
@@ -13,7 +14,7 @@ class DBSQLTest {
 
     @Test
     fun dbMetaDataTest() {
-        val tableName = "TSTTAB"
+        val tableName = "TSTTAB01"
         val formatName = "TSTRECF"
         val fields = listOf(
             "TSTFLDCHR" withType StringType(5),
@@ -28,29 +29,30 @@ class DBSQLTest {
         assertEquals(fields, metadata.fields)
     }
 
-    @Test @Ignore
+    @Test
     fun dbChainTest() {
-        val tableName = "TSTTAB"
+        val tableName = "TSTTAB02"
         val formatName = "TSTRECF"
         val fields = listOf(
                 "TSTFLDCHR" primaryKeyWithType StringType(3),
                 "TSTFLDNBR" withType NumberType(5, 2))
+        val bigDecimalValue = BigDecimal("123.45").setScale(2)
         val fileMetadata = FileMetadata(tableName, formatName, fields)
         val db = connectionForTest(listOf(fileMetadata))
         val values: List<Pair<String, Value>> =
             listOf(
                 "TSTFLDCHR" to StringValue("XXX"),
-                "TSTFLDNBR" to IntValue(123))
+                "TSTFLDNBR" to DecimalValue(bigDecimalValue))
         db.insertRow(tableName, values)
         assertTrue(db.chain(tableName, StringValue("ABC")).isEmpty())
         val chainedRecord = db.chain(tableName, StringValue("XXX"))
         assertEquals(2, chainedRecord.size)
         assertEquals(StringValue("XXX"), chainedRecord[0].second)
-        assertEquals(IntValue(123), chainedRecord[1].second)
+        assertEquals(DecimalValue(bigDecimalValue), chainedRecord[1].second)
     }
 
     private fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface {
-        val db = DBSQLInterface(DBConfiguration("jdbc:hsqldb:mem:testmemdb", "SA"))
+        val db = DBSQLInterface(randomHsqlMemDB())
         db.setSQLLog(true)
         db.create(tables)
         return db

@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.*
+import java.sql.ResultSet
 
 fun DBField.sqlType(): String =
     when (this.type) {
@@ -20,5 +21,13 @@ fun Value.toDBValue() =
     when (this) {
         is StringValue -> this.valueWithoutPadding
         is IntValue -> this.value
+        is DecimalValue -> this.value
         else -> TODO("Conversion to DB Obejct not yet implemented: $this")
+    }
+
+fun Type.toValue(rs: ResultSet, fieldIndex: Int): Value =
+    when (this) {
+        is StringType -> StringValue(rs.getString(fieldIndex))
+        is NumberType -> DecimalValue(rs.getBigDecimal(fieldIndex))
+        else -> TODO("Conversion to Value not yet implemented: $this")
     }
