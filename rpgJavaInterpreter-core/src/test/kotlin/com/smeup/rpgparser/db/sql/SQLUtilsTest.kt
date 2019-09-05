@@ -13,7 +13,7 @@ class SQLUtilsTest {
                 "TSTFLDNBR" primaryKeyWithType NumberType(5, 2),
                 "TSTFLDNB2" withType NumberType(2, 0)))
         assertEquals(
-                listOf("CREATE TABLE TSTTAB (TSTFLDCHR CHAR (5) NOT NULL, TSTFLDNBR DECIMAL (7, 2) NOT NULL, TSTFLDNB2 DECIMAL (2, 0) NOT NULL, PRIMARY KEY(TSTFLDCHR, TSTFLDNBR))",
+                listOf("CREATE TABLE TSTTAB (TSTFLDCHR CHAR(5) DEFAULT '' NOT NULL, TSTFLDNBR DECIMAL(7, 2) DEFAULT 0 NOT NULL, TSTFLDNB2 DECIMAL(2, 0) DEFAULT 0 NOT NULL, PRIMARY KEY(TSTFLDCHR, TSTFLDNBR))",
                         "COMMENT ON TABLE TSTTAB IS 'TSTRECF'"),
                 fileMetadata.toSQL())
     }
@@ -26,7 +26,7 @@ class SQLUtilsTest {
                         "TSTFLDNBR" withType NumberType(5, 2),
                         "TSTFLDNB2" withType NumberType(2, 0)))
         assertEquals(
-                listOf("CREATE TABLE TSTTAB (TSTFLDCHR CHAR (5) NOT NULL, TSTFLDNBR DECIMAL (7, 2) NOT NULL, TSTFLDNB2 DECIMAL (2, 0) NOT NULL)",
+                listOf("CREATE TABLE TSTTAB (TSTFLDCHR CHAR(5) DEFAULT '' NOT NULL, TSTFLDNBR DECIMAL(7, 2) DEFAULT 0 NOT NULL, TSTFLDNB2 DECIMAL(2, 0) DEFAULT 0 NOT NULL)",
                         "COMMENT ON TABLE TSTTAB IS 'TSTRECF'"),
                 fileMetadata.toSQL())
     }

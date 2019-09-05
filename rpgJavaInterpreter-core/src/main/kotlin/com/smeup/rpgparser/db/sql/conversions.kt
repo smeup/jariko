@@ -5,15 +5,15 @@ import java.sql.ResultSet
 
 fun DBField.sqlType(): String =
     when (this.type) {
-        is StringType -> "CHAR (${this.type.size}) NOT NULL"
-        is NumberType -> "DECIMAL (${this.type.size}, ${this.type.decimalDigits}) NOT NULL"
+        is StringType -> "CHAR(${this.type.size}) DEFAULT '' NOT NULL"
+        is NumberType -> "DECIMAL(${this.type.size}, ${this.type.decimalDigits}) DEFAULT 0 NOT NULL"
         else -> TODO("Conversion to SQL Type not yet implemented: ${this.type}")
     }
 
 fun typeFor(sqlType: String, columnSize: Int, decimalDigits: Int): Type =
     when (sqlType) {
         "CHARACTER" -> StringType(columnSize.toLong())
-        "DECIMAL" -> NumberType(columnSize - decimalDigits, decimalDigits)
+        "DECIMAL", "INTEGER" -> NumberType(columnSize - decimalDigits, decimalDigits)
         else -> TODO("Conversion from SQL Type not yet implemented: $sqlType")
     }
 

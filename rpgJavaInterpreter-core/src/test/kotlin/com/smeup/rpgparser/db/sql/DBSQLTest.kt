@@ -50,11 +50,4 @@ class DBSQLTest {
         assertEquals(StringValue("XXX"), chainedRecord[0].second)
         assertEquals(DecimalValue(bigDecimalValue), chainedRecord[1].second)
     }
-
-    private fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface {
-        val db = DBSQLInterface(randomHsqlMemDB())
-        db.setSQLLog(true)
-        db.create(tables)
-        return db
-    }
 }

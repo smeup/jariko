@@ -49,11 +49,7 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
 
     fun create(tables: List<FileMetadata>) {
         val sqlStatements = tables.flatMap { it.toSQL() }
-        val statement = connection.createStatement()
-        statement.use {
-            sqlStatements.forEach { statement.addBatch(it) }
-            statement.executeBatch()
-        }
+        execute(sqlStatements)
     }
 
     fun insertRow(tableName: String, values: List<Pair<String, Value>>) {
@@ -61,6 +57,14 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         connection.prepareStatement(sql).use {
             it.bind(values.map { it.second })
             it.execute()
+        }
+    }
+
+    fun execute(sqlStatements: List<String>) {
+        val statement = connection.createStatement()
+        statement.use {
+            sqlStatements.forEach { statement.addBatch(it) }
+            statement.executeBatch()
         }
     }
 }
