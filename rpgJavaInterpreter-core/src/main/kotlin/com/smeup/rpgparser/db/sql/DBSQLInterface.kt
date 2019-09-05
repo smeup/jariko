@@ -24,7 +24,7 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         return FileMetadata(name, formatName, connection.fields(name))
     }
 
-    override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>> {
+    override fun chain(name: String, key: Value): List<Pair<DBField, Value>> {
         val sql = "SELECT * FROM $name ${connection.primaryKeys(name).whereSQL()}"
         connection.prepareStatement(sql).use {
             it.setObject(1, key.toDBValue())
@@ -32,7 +32,7 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         }
     }
 
-    private fun toValues(rs: ResultSet): Collection<Pair<DBField, Value>> {
+    private fun toValues(rs: ResultSet): List<Pair<DBField, Value>> {
         val result = mutableListOf<Pair<DBField, Value>>()
         rs.use {
             if (it.next()) {

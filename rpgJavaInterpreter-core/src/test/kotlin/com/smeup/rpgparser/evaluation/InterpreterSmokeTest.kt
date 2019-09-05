@@ -38,7 +38,7 @@ class InterpreterSmokeTest {
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
 
-            override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>> =
+            override fun chain(name: String, key: Value): List<Pair<DBField, Value>> =
                 if (name.equals("qhosts", ignoreCase = true)) {
                     listOf(hostField to StringValue("loopback"))
                 } else {
@@ -59,7 +59,7 @@ class InterpreterSmokeTest {
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
 
-            override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>> = emptyList()
+            override fun chain(name: String, key: Value): List<Pair<DBField, Value>> = emptyList()
         }
 
         cu.resolve(mockDBInterface)

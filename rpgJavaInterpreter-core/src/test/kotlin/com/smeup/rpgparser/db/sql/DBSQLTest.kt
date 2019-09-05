@@ -33,7 +33,7 @@ class DBSQLTest {
         val tableName = "TSTTAB"
         val formatName = "TSTRECF"
         val fields = listOf(
-                "TSTFLDCHR" primaryKeyWithType StringType(5),
+                "TSTFLDCHR" primaryKeyWithType StringType(3),
                 "TSTFLDNBR" withType NumberType(5, 2))
         val fileMetadata = FileMetadata(tableName, formatName, fields)
         val db = connectionForTest(listOf(fileMetadata))
@@ -44,7 +44,9 @@ class DBSQLTest {
         db.insertRow(tableName, values)
         assertTrue(db.chain(tableName, StringValue("ABC")).isEmpty())
         val chainedRecord = db.chain(tableName, StringValue("XXX"))
-        assertTrue(chainedRecord.isNotEmpty())
+        assertEquals(2, chainedRecord.size)
+        assertEquals(StringValue("XXX"), chainedRecord[0].second)
+        assertEquals(IntValue(123), chainedRecord[1].second)
     }
 
     private fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface {
