@@ -17,7 +17,7 @@ interface DBInterface {
 }
 
 data class DBField(val name: String, val type: Type, val primaryKey: Boolean = false) {
-    fun toDataDefinition() = AbstractDataDefinition(name, type)
+    fun toDataDefinition() = DataDefinition(name, type)
 }
 
 data class FileMetadata(val tableName: String, val formatName: String, val fields: List<DBField>)

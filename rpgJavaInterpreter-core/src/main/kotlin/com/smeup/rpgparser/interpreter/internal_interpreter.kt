@@ -104,14 +104,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
-            compilationUnit.dataDefinitions.forEach {
-                set(it, coerce(when {
-                    it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
-                    it.initializationValue != null -> interpret(it.initializationValue)
-                    it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
-                    else -> blankValue(it)
-                }, it.type))
-                executeMutes(it.muteAnnotations)
+            compilationUnit.allDataDefinitions.forEach {
+                if (it is DataDefinition) {
+                    set(it, coerce(when {
+                        it.name in initialValues -> initialValues[it.name]
+                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        it.initializationValue != null -> interpret(it.initializationValue)
+                        it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
+                        else -> blankValue(it)
+                    }, it.type))
+                    executeMutes(it.muteAnnotations)
+                }
             }
         } else {
             initialValues.forEach { iv ->
@@ -499,7 +502,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun render(value: Value): String {
         return when (value) {
-            is StringValue -> value.valueWithoutPadding
+            is StringValue -> value.valueWithoutPadding.trimEnd()
             is BooleanValue -> value.asString().value // TODO check if it's the best solution
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
