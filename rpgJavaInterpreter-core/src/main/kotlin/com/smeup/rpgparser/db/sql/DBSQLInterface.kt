@@ -3,11 +3,12 @@ package com.smeup.rpgparser.db.sql
 import com.smeup.rpgparser.interpreter.*
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.ResultSet
 
 class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface {
 
     private val connection: Connection by lazy {
-        DriverManager.getConnection(dbConfiguration.url, dbConfiguration.user, dbConfiguration.password)
+        dbConfiguration.getConnection()
     }
 
     fun setSQLLog(on: Boolean) {
@@ -23,32 +24,32 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         return FileMetadata(name, formatName, connection.fields(name))
     }
 
-    override fun chain(name: String, key: Value): Collection<Pair<DBField, Value>> {
-        TODO("CHAIN")
-//        val sql = "SELECT * FROM $name where ${primaryKey(name)} = ?"
-//        connection.prepareStatement(sql).use {
-//            it.setObject(1, key.toDBValue())
-//            return toValues(it.executeQuery())
-//        }
-//    }
-//
-//    private fun primaryKeys(name: String): List<String> {
-//
-//    }
-//
-//    private fun toValues(rs: ResultSet): Collection<Pair<DBField, Value>> {
-//        val result = mutableListOf<Pair<DBField, Value>>()
-//
-//        return result
+    override fun chain(name: String, key: Value): List<Pair<String, Value>> {
+        val sql = "SELECT * FROM $name ${connection.primaryKeys(name).whereSQL()}"
+        connection.prepareStatement(sql).use {
+            it.setObject(1, key.toDBValue())
+            return toValues(it.executeQuery())
+        }
+    }
+
+    private fun toValues(rs: ResultSet): List<Pair<String, Value>> {
+        val result = mutableListOf<Pair<String, Value>>()
+        rs.use {
+            if (it.next()) {
+                val metadata = it.metaData
+                for (i in 1..metadata.columnCount) {
+                    val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
+                    val value = type.toValue(it, i)
+                    result.add(Pair(metadata.getColumnName(i), value))
+                }
+            }
+        }
+        return result
     }
 
     fun create(tables: List<FileMetadata>) {
         val sqlStatements = tables.flatMap { it.toSQL() }
-        val statement = connection.createStatement()
-        statement.use {
-            sqlStatements.forEach { statement.addBatch(it) }
-            statement.executeBatch()
-        }
+        execute(sqlStatements)
     }
 
     fun insertRow(tableName: String, values: List<Pair<String, Value>>) {
@@ -58,6 +59,16 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
             it.execute()
         }
     }
+
+    fun execute(sqlStatements: List<String>) {
+        val statement = connection.createStatement()
+        statement.use {
+            sqlStatements.forEach { statement.addBatch(it) }
+            statement.executeBatch()
+        }
+    }
 }
 
-data class DBConfiguration(var url: String, val user: String = "", val password: String = "")
+data class DBConfiguration(var url: String, val user: String = "", val password: String = "") {
+    fun getConnection(): Connection = DriverManager.getConnection(url, user, password)
+}
