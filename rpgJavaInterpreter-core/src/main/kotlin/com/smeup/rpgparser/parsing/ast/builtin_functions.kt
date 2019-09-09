@@ -85,7 +85,14 @@ data class FoundExpr(
     var name: String? = null,
     override val position: Position? = null
 ) :
-        Expression(position)
+    Expression(position)
+
+// %ABS
+data class AbsExpr(
+    var value: Expression,
+    override val position: Position? = null
+) :
+    Expression(position)
 
 // %CHAR
 data class CharExpr(var value: Expression, override val position: Position? = null) :

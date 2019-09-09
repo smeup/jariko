@@ -536,6 +536,12 @@ class InterpreterTest {
         assertEquals(listOf("-xyz--", "-xyz", "-xyz -"), outputOf("ASSIGNSUBS"), message = "We can't handle %SUBST(X)=Y")
     }
 
+    // TODO We can't handle -1.23 expression at the moment
+    @Test @Ignore
+    fun executeABSTEST() {
+        assertEquals(listOf("X is 1.23"), outputOf("ABSTEST"), message = "We can't handle %ABS(X)")
+    }
+
     // TODO understand why this test does not pass
     @Test @Ignore
     fun executeJCODFISD() {

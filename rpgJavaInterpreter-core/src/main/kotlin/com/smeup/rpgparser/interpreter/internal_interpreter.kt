@@ -894,6 +894,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
             }
+            is AbsExpr -> {
+                val value = interpret(expression.value)
+                return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
+            }
             else -> TODO(expression.toString())
         }
     }
