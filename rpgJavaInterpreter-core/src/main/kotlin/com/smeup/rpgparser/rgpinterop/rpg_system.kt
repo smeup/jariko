@@ -17,6 +17,10 @@ class SourceProgramFinder : RpgProgramFinder {
         }
         return null
     }
+
+    override fun toString(): String {
+        return "source:"
+    }
 }
 
 class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
@@ -51,16 +55,14 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 }
 
 object RpgSystem {
-    val programFinders : List<RpgProgramFinder>
-        get() = _programFinders
-    private val _programFinders = LinkedList<RpgProgramFinder>()
+    internal val programFinders = LinkedList<RpgProgramFinder>()
 
     fun addProgramFinder(programFinder: RpgProgramFinder) {
-        _programFinders.add(programFinder)
+        programFinders.add(programFinder)
     }
 
     fun getProgram(programName: String): RpgProgram {
-        _programFinders.forEach {
+        programFinders.forEach {
             val program = it.findRpgProgram(programName)
             if (program != null) {
                 return program

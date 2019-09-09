@@ -67,7 +67,9 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
                 is SelectOtherExecutionLogEntry -> logger.info(render(logEntry))
                 is SubroutineExecutionLogStart -> logger.info(render(logEntry))
                 is SubroutineExecutionLogEnd -> logger.info(render(logEntry))
-                is ProgramExecutionLogStart -> logger.info(render(logEntry))
+                is ProgramExecutionLogStart -> {
+                    logger.info(render(logEntry))
+                }
                 is ProgramExecutionLogEnd -> logger.info(render(logEntry))
                 is IfExecutionLogEntry -> logger.info(render(logEntry))
                 is ElseIfExecutionLogEntry -> logger.info(render(logEntry))

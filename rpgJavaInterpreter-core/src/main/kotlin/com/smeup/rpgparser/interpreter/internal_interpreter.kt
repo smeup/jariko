@@ -312,50 +312,43 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 is CallStmt -> {
                     log(CallExecutionLogEntry(this.interpretationContext.currentProgramName, statement))
                     val programToCall = eval(statement.expression).asString().value
-                    val program: Program
-                    val params: LinkedHashMap<String, Value>
-                    try {
-                        program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
+                    val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
 
-                        params = statement.params.mapIndexed { index, it ->
-                            if (it.dataDefinition != null) {
-                                if (it.dataDefinition.initializationValue != null) {
-                                    if (!exists(it.param.name)) {
-                                        assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
-                                    } else {
-                                        assign(dataDefinitionByName(it.param.name)!!, eval(it.dataDefinition.initializationValue))
-                                    }
+                    val params = statement.params.mapIndexed { index, it ->
+                        if (it.dataDefinition != null) {
+                            if (it.dataDefinition.initializationValue != null) {
+                                if (!exists(it.param.name)) {
+                                    assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
                                 } else {
-                                    if (!exists(it.param.name)) {
-                                        assign(it.dataDefinition, eval(BlanksRefExpr()))
-                                    }
+                                    assign(dataDefinitionByName(it.param.name)!!, eval(it.dataDefinition.initializationValue))
+                                }
+                            } else {
+                                if (!exists(it.param.name)) {
+                                    assign(it.dataDefinition, eval(BlanksRefExpr()))
                                 }
                             }
-                            program.params()[index].name to get(it.param.name)
-                        }.toMap(LinkedHashMap())
-
-                        val startTime = currentTimeMillis()
-                        val paramValuesAtTheEnd =
-                            try {
-
-                                program.execute(systemInterface, params).apply {
-                                    // TODO i don't know
-                                    log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
-                                }
-                            } catch (e: Exception) { // TODO Catch a more specific exception?
-                                log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
-                                if (statement.errorIndicator == null) {
-                                    throw e
-                                }
-                                predefinedIndicators[statement.errorIndicator] = BooleanValue.TRUE
-                                null
-                            }
-                        paramValuesAtTheEnd?.forEachIndexed { index, value ->
-                            assign(statement.params[index].param.referred!!, value)
                         }
-                    } catch (e: Exception) {
+                        program.params()[index].name to get(it.param.name)
+                    }.toMap(LinkedHashMap())
 
-                        throw RuntimeException("Program $programToCall cannot be found")
+                    val startTime = currentTimeMillis()
+                    val paramValuesAtTheEnd =
+                        try {
+
+                            program.execute(systemInterface, params).apply {
+                                // TODO i don't know
+                                log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
+                            }
+                        } catch (e: Exception) { // TODO Catch a more specific exception?
+                            log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
+                            if (statement.errorIndicator == null) {
+                                throw e
+                            }
+                            predefinedIndicators[statement.errorIndicator] = BooleanValue.TRUE
+                            null
+                        }
+                    paramValuesAtTheEnd?.forEachIndexed { index, value ->
+                        assign(statement.params[index].param.referred!!, value)
                     }
 
 
