@@ -109,6 +109,6 @@ class RunnerTest {
         runnerMain(arrayOf("--log-configuration", "../logging.config", "CALCFIBCA5.rpgle", "AA", "'ABCD'", "1**"))
 
         assertNotNull(dataLogs.find { it.contains("CALCFIBCA5.rpgle\t\tDATA\tppdat = N/D\t10") })
-        assertNotNull(dataLogs.find { it.contains("CALCFIB.CALCFIB\t\tDATA\tppdat = N/D\t10") })
+        assertNotNull(dataLogs.find { it.contains("CALCFIB.CALCFIB\t\tDATA\tppdat = N/D\t10") }, message = "It did not find the expected line. Data logs where: $dataLogs")
     }
 }
