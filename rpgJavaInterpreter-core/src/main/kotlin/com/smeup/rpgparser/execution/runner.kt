@@ -70,7 +70,7 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
     //RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/rpg")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
 
-    RpgSystem.getProgramFinders().forEach {
+    RpgSystem.programFinders.forEach {
         systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
     }
     return CommandLineProgram(nameOrSource, systemInterface)

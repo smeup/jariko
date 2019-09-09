@@ -51,14 +51,16 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 }
 
 object RpgSystem {
-    private val programFinders = LinkedList<RpgProgramFinder>()
+    val programFinders : List<RpgProgramFinder>
+        get() = _programFinders
+    private val _programFinders = LinkedList<RpgProgramFinder>()
 
     fun addProgramFinder(programFinder: RpgProgramFinder) {
-        programFinders.add(programFinder)
+        _programFinders.add(programFinder)
     }
 
     fun getProgram(programName: String): RpgProgram {
-        programFinders.forEach {
+        _programFinders.forEach {
             val program = it.findRpgProgram(programName)
             if (program != null) {
                 return program

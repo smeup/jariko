@@ -521,4 +521,9 @@ class RpgLexerSmokeTest {
     fun lexTIMESTDIFF() {
         assertCanBeLexed("TIMESTDIFF")
     }
+
+    @Test
+    fun lexABSTEST() {
+        assertCanBeLexed("ABSTEST")
+    }
 }
