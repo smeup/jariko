@@ -58,8 +58,6 @@ data class CallExecutionLogEntry(override val programName: String, val callStmt:
 
         return renderHeader(channel, filename, callStmt.startLine(), sep) + data
     }
-
-
 }
 
 class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: Long, val exception: Exception? = null) : LogEntry(programName) {
@@ -80,19 +78,17 @@ class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: 
 
         return renderHeader(channel, filename, callStmt.endLine(), sep) + data
     }
-
-
 }
 
-data class FindProgramLogEntry(override val programName : String) : LogEntry(programName) {
+data class FindProgramLogEntry(override val programName: String) : LogEntry(programName) {
     override fun renderResolution(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, "" , sep)
+        return renderHeader(channel, filename, "", sep)
     }
 }
 
-data class RpgProgramFinderLogEntry(override val programName : String) : LogEntry(programName) {
+data class RpgProgramFinderLogEntry(override val programName: String) : LogEntry(programName) {
     override fun renderResolution(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, "", "" , sep) + programName
+        return renderHeader(channel, "", "", sep) + programName
     }
 }
 
@@ -344,11 +340,10 @@ class ProgramExecutionLogStart(programName: String, val initialValues: Map<Strin
         return "calling $programName with initial values $initialValues"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PROGRAM START${sep}${filename}"
+        val data = "PROGRAM START${sep}$filename"
 
         return renderHeader(channel, filename, "", sep) + data
     }
-
 }
 
 class ProgramExecutionLogEnd(programName: String, val elapsed: Long = -1) : LogEntry(programName) {
@@ -362,11 +357,10 @@ class ProgramExecutionLogEnd(programName: String, val elapsed: Long = -1) : LogE
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PROGRAM END${sep}${filename}"
+        val data = "PROGRAM END${sep}$filename"
 
         return renderHeader(channel, filename, "", sep) + data
     }
-
 }
 
 class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val result: Value) : LogEntry(programName) {
@@ -380,7 +374,7 @@ class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val
     }
 }
 
-class ParamListStatemenExecutionLog(programName: String,val statement: PlistStmt, val name: String,val value: Value) : LogEntry(programName) {
+class ParamListStatemenExecutionLog(programName: String, val statement: PlistStmt, val name: String, val value: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "PLIST"
     }
@@ -389,7 +383,6 @@ class ParamListStatemenExecutionLog(programName: String,val statement: PlistStmt
 
         val data = "PARAM${sep}${name}${sep}${value!!.render()}"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
-
     }
 }
 

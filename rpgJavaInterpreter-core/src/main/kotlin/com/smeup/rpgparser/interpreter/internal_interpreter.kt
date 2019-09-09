@@ -350,8 +350,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     paramValuesAtTheEnd?.forEachIndexed { index, value ->
                         assign(statement.params[index].param.referred!!, value)
                     }
-
-
                 }
                 is ForStmt -> {
                     var loopCounter: Long = 0

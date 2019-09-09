@@ -17,7 +17,6 @@ import org.apache.logging.log4j.core.appender.FileAppender
 import org.apache.logging.log4j.core.config.LoggerConfig
 import org.apache.logging.log4j.core.config.AppenderRef
 
-
 const val DATA_LOGGER: String = "data"
 const val LOOP_LOGGER: String = "loop"
 const val STATEMENT_LOGGER: String = "statement"
@@ -85,7 +84,6 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
     val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
     val ctx = LogManager.getContext(false) as LoggerContext
 
-
     try {
 
         val dataSeparator = config.getProperty("logger.data.separator")
@@ -136,21 +134,21 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
 /**
  * Create a File Appender programmatically
  */
-fun createFileAppender(name: String, config: Configuration, properties: Properties)  : Appender?  {
+fun createFileAppender(name: String, config: Configuration, properties: Properties): Appender? {
 
     /* already created ?*/
-    if(config.appenders[name] != null) {
-        return  config.appenders[name]
+    if (config.appenders[name] != null) {
+        return config.appenders[name]
     }
     val pattern = if (properties.getProperty("logger.date.pattern") != null) properties.getProperty("logger.date.pattern") else "HH:mm:ss.SSS"
     val layout = PatternLayout.newBuilder()
             .withConfiguration(config)
-            .withPattern("%d{${pattern}} %msg%n")
+            .withPattern("%d{$pattern} %msg%n")
             .build()
 
     var filepath = if (properties.getProperty("logger.file.path") != null) properties.getProperty("logger.file.path") else "."
 
-    if(!File(filepath).exists()) {
+    if (!File(filepath).exists()) {
         System.err.println("logger.file.path : $filepath, does not exists using default path .")
         filepath = "."
     }
@@ -159,7 +157,7 @@ fun createFileAppender(name: String, config: Configuration, properties: Properti
     val builder = FileAppender::class.java.getMethod("newBuilder").invoke(null) as FileAppender.Builder<*>
     val appender = builder.apply {
             setName(name)
-            withFileName("${filepath}/${filename}")
+            withFileName("$filepath/$filename")
             setLayout(layout)
             setConfiguration(config)
     }.build()
@@ -173,16 +171,16 @@ fun createFileAppender(name: String, config: Configuration, properties: Properti
  * Create a console appender programmatically
  */
 
-fun createConsoleAppender(name : String,config: Configuration, properties: Properties) : Appender? {
+fun createConsoleAppender(name: String, config: Configuration, properties: Properties): Appender? {
     /* already created ?*/
-    if(config.appenders[name] != null) {
-        return  config.appenders[name]
+    if (config.appenders[name] != null) {
+        return config.appenders[name]
     }
     val pattern = if (properties.getProperty("logger.date.pattern") != null) properties.getProperty("logger.date.pattern") else "HH:mm:ss.SSS"
 
     val layout = PatternLayout.newBuilder()
             .withConfiguration(config)
-            .withPattern("%d{${pattern}} %msg%n")
+            .withPattern("%d{$pattern} %msg%n")
             .build()
 
     val builder = ConsoleAppender::class.java.getMethod("newBuilder").invoke(null) as ConsoleAppender.Builder<*>
@@ -198,33 +196,32 @@ fun createConsoleAppender(name : String,config: Configuration, properties: Prope
     return appender
 }
 
-
 fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Properties) {
     val level = properties.getProperty("$channel.level")
     val output = properties.getProperty("$channel.output")
 
     if (output == "console") {
         // Creates and add the logger
-        val console = createConsoleAppender("console",ctx.configuration,properties);
+        val console = createConsoleAppender("console", ctx.configuration, properties)
         val ref = AppenderRef.createAppenderRef("console", null, null)
         val refs = arrayOf(ref)
 
         val loggerConfig = LoggerConfig
                 .createLogger(false, Level.getLevel(level.toUpperCase()), channel, "true", refs, null, ctx.configuration, null)
 
-        loggerConfig.addAppender(console, null, null);
+        loggerConfig.addAppender(console, null, null)
         ctx.configuration.addLogger(channel, loggerConfig)
     }
     if (output == "file") {
         // Creates and add the logger
-        val file = createFileAppender("file",ctx.configuration,properties);
+        val file = createFileAppender("file", ctx.configuration, properties)
         val ref = AppenderRef.createAppenderRef("file", null, null)
         val refs = arrayOf(ref)
 
         val loggerConfig = LoggerConfig
                 .createLogger(false, Level.getLevel(level.toUpperCase()), channel, "true", refs, null, ctx.configuration, null)
 
-        loggerConfig.addAppender(file, null, null);
+        loggerConfig.addAppender(file, null, null)
         ctx.configuration.addLogger(channel, loggerConfig)
     }
     ctx.updateLoggers()

@@ -164,9 +164,7 @@ class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
                 is CallExecutionLogEntry -> logger.info(render(logEntry))
                 is FindProgramLogEntry -> logger.info(render(logEntry))
                 is RpgProgramFinderLogEntry -> logger.info(render(logEntry))
-
             }
         }
-
     }
 }
