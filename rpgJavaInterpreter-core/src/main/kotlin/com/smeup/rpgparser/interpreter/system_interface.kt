@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
+import com.smeup.rpgparser.logging.loadLogConfiguration
 import java.io.File
 import java.util.*
 
@@ -84,11 +85,12 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
         // doing nothing
     }
 
-    fun useConfigurationFile(logConfigurationFile: File?): SystemInterface {
-        if (logConfigurationFile == null) {
-            TODO("Load default")
+    fun useConfigurationFile(configurationFile: File?): SystemInterface {
+        if (configurationFile == null) {
+            this.loggingConfiguration = defaultLoggingConfiguration()
         } else {
-            TODO("load property file")
+            this.loggingConfiguration = loadLogConfiguration(configurationFile)
         }
+        return this
     }
 }
