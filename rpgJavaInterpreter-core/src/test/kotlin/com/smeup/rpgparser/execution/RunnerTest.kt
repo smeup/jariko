@@ -63,7 +63,7 @@ class RunnerTest {
         assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t44\tPERF\tENDFOR J") })
         assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t61\tPERF\tENDFOR I") })
         assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t80\tPERF\tSUBROUTINE END\tPRINT") })
-        assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t\tPERF\tENDTEST_06.rpgle") })
+        assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t\tPERF\tEND TEST_06.rpgle") })
     }
 
     @Test
