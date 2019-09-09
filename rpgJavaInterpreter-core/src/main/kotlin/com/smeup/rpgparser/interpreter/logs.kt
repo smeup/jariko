@@ -32,6 +32,9 @@ abstract class LogEntry(open val programName: String) {
     open fun renderExpression(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
+    open fun renderResolution(channel: String, filename: String, sep: String): String {
+        return "$channel NOT IMPLEMENTED"
+    }
 }
 
 data class LineLogEntry(override val programName: String, val stmt: Statement) : LogEntry(programName) {
@@ -49,6 +52,14 @@ data class CallExecutionLogEntry(override val programName: String, val callStmt:
 
         return renderHeader(channel, filename, callStmt.startLine(), sep) + data
     }
+
+    override fun renderResolution(channel: String, filename: String, sep: String): String {
+        val data = "CALL ${sep}${callStmt!!.expression.render()}"
+
+        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
+    }
+
+
 }
 
 class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: Long, val exception: Exception? = null) : LogEntry(programName) {
@@ -69,6 +80,20 @@ class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: 
 
         return renderHeader(channel, filename, callStmt.endLine(), sep) + data
     }
+
+
+}
+
+data class FindProgramLogEntry(override val programName : String) : LogEntry(programName) {
+    override fun renderResolution(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, "" , sep)
+    }
+}
+
+data class RpgProgramFinderLogEntry(override val programName : String) : LogEntry(programName) {
+    override fun renderResolution(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, "", "" , sep) + programName
+    }
 }
 
 class SubroutineExecutionLogStart(programName: String, val subroutine: Subroutine) : LogEntry(programName) {
@@ -76,8 +101,13 @@ class SubroutineExecutionLogStart(programName: String, val subroutine: Subroutin
         return "executing ${subroutine.name}"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE START${sep}${subroutine!!.name}"
+        val data = "SUBROUTINE ${sep}${subroutine!!.name}"
 
+        return renderHeader(channel, filename, subroutine.startLine(), sep) + data
+    }
+
+    override fun renderResolution(channel: String, filename: String, sep: String): String {
+        val data = "SUBROUTINE START${sep}${subroutine!!.name}"
         return renderHeader(channel, filename, subroutine.startLine(), sep) + data
     }
 }

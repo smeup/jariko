@@ -75,7 +75,12 @@ enum class LogLevel {
  * Read the configuration file, configure the logger and return a
  * list of log handlers
  */
+fun configureLog1(config: LoggingConfiguration): List<InterpreterLogHandler> {
+
+    return emptyList()
+}
 fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
+
     val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFOMANCE_LOGGER, RESOLUTUION_LOGGER)
     val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
     val ctx = LogManager.getContext(false) as LoggerContext

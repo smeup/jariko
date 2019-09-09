@@ -52,6 +52,10 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
             null
         }
     }
+
+    override fun toString(): String {
+        return "resource: $path"
+    }
 }
 
 @JvmOverloads
@@ -59,11 +63,16 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
     // TODO move this to some configuration file
     RpgSystem.addProgramFinder(SourceProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder())
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/rpg")))
+
+    //RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
+    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
+    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/")))
+    //RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/rpg")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+
+    RpgSystem.getProgramFinders().forEach {
+        systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
+    }
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 

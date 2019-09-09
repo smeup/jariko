@@ -149,6 +149,22 @@ class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
 
 class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
     val logger = LogManager.getLogger(RESOLUTUION_LOGGER)
+
+    override fun render(logEntry: LogEntry): String {
+        val fileName = extractFilename(logEntry.programName)
+        return logEntry.renderResolution("RESL", fileName, this.sep)
+    }
+
     override fun handle(logEntry: LogEntry) {
+        if (logger.isInfoEnabled) {
+            when (logEntry) {
+                is SubroutineExecutionLogStart -> logger.info(render(logEntry))
+                is CallExecutionLogEntry -> logger.info(render(logEntry))
+                is FindProgramLogEntry -> logger.info(render(logEntry))
+                is RpgProgramFinderLogEntry -> logger.info(render(logEntry))
+
+            }
+        }
+
     }
 }
