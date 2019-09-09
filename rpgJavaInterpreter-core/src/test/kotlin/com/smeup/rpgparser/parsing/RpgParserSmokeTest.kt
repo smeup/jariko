@@ -159,4 +159,9 @@ class RpgParserSmokeTest {
     fun executeASSIGNSUBS() {
         assertCanBeParsed("ASSIGNSUBS")
     }
+
+    @Test
+    fun executeABSTEST() {
+        assertCanBeParsed("ABSTEST")
+    }
 }
