@@ -46,7 +46,7 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
         return if (resourceStream != null) {
-            RpgProgram.fromInputStream(BOMInputStream(resourceStream))
+            RpgProgram.fromInputStream(BOMInputStream(resourceStream), nameOrSource)
         } else {
             println("Resource $path not found")
             null
