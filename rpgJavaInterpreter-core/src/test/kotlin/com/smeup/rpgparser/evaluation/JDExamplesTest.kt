@@ -128,7 +128,7 @@ class JDExamplesTest {
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { blankString(1050) },
                 "U\$IN35" to StringValue("X")),
                 logHandlers = listOf(logHandler))
-        assertEquals(6, logHandler.getEvaluatedExpressionsConcise().size)
+        assertEquals(1, logHandler.getEvaluatedExpressionsConcise().size)
         assertEquals(listOf("IMP0", "FINZ", "FIN0"), logHandler.getExecutedSubroutineNames())
         // Initialized inside IMP0
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["\$\$SVAR"])
