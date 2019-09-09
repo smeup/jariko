@@ -51,13 +51,13 @@ configurations.all() {
 generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ['-package', 'com.smeup.rpgparser']
-    outputDirectory = file("generated-src/antlr/main/com/smeup/rpgparser".toString())
+    outputDirectory = file("generated-src/java/main/com/smeup/rpgparser".toString())
 }
 compileKotlin.dependsOn generateGrammarSource
 compileJava.dependsOn generateGrammarSource
 sourceSets {
     generated {
-        java.srcDir file("generated-src/antlr/main/")
+        java.srcDir file("generated-src/java/main/")
     }
 }
 compileJava.source sourceSets.generated.java, sourceSets.main.java
@@ -65,12 +65,6 @@ compileKotlin.source sourceSets.generated.java, sourceSets.main.java, sourceSets
 
 clean{
     delete file("generated-src")
-}
-
-idea {
-    module {
-        sourceDirs += file("generated-src/antlr/main")
-    }
 }
 
 test {
