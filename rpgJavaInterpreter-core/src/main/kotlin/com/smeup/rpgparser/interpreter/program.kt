@@ -13,7 +13,7 @@ interface Program {
     fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value>
 }
 
-class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Program {
+class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
     override fun params(): List<ProgramParam> {
         val plistParams = cu.entryPlist
         // TODO derive proper type from the data specification
@@ -29,7 +29,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED>") : Prog
     }
 
     companion object {
-        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED>"): RpgProgram {
+        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED INPUT STREAM>"): RpgProgram {
             val cu = RpgParserFacade().parseAndProduceAst(inputStream)
             return RpgProgram(cu, name)
         }

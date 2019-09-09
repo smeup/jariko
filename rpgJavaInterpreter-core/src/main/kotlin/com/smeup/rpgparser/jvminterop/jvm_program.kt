@@ -11,7 +11,7 @@ import kotlin.reflect.full.functions
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Size(val size: Int)
 
-abstract class JvmProgramRaw(val name: String = "<UNNAMED>", val params: List<ProgramParam>) :
+abstract class JvmProgramRaw(val name: String = "<UNNAMED JVM PROGRAM>", val params: List<ProgramParam>) :
     Program {
     override fun params() = params
 }
