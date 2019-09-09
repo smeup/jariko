@@ -183,7 +183,7 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     val programs = HashMap<String, Program>()
     val functions = HashMap<String, Function>()
     var printOutput = false
-    private var databaseInterface: DBInterface = DummyDBInterface
+    var databaseInterface: DBInterface = DummyDBInterface
         set(value) {
             field = value
         }
