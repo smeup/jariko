@@ -26,6 +26,9 @@ plugins {
 apply plugin: 'antlr'
 
 def antlrVersion = ext.antlr_version
+def generatedRoot = "generated-src"
+def generatedMain = generatedRoot + "/antlr/main"
+def generatedMainFile = file(generatedMain)
 
 dependencies {
   antlr "org.antlr:antlr4:$antlr_version"
@@ -51,20 +54,15 @@ configurations.all() {
 generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ['-package', 'com.smeup.rpgparser']
-    outputDirectory = file("generated-src/java/main/com/smeup/rpgparser".toString())
+    outputDirectory = file(generatedMain + "/com/smeup/rpgparser")
 }
 compileKotlin.dependsOn generateGrammarSource
 compileJava.dependsOn generateGrammarSource
-sourceSets {
-    generated {
-        java.srcDir file("generated-src/java/main/")
-    }
-}
-compileJava.source sourceSets.generated.java, sourceSets.main.java
-compileKotlin.source sourceSets.generated.java, sourceSets.main.java, sourceSets.main.kotlin
+compileJava.source generatedMainFile, sourceSets.main.java
+compileKotlin.source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
 
-clean{
-    delete file("generated-src")
+clean {
+    delete file(generatedRoot)
 }
 
 test {
