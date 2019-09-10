@@ -138,9 +138,3 @@ task runMutesTests(type: JavaExec) {
 }
 
 check.dependsOn runMutesTests
-
-idea {
-    module {
-        sourceDirs += generatedMainFile
-    }
-}
