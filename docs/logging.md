@@ -169,7 +169,7 @@ actually executed.
 ## Performace Channel PERF
 The performance channel measures the execution time of loops, programs and
 subroutines. 
-This kind of records are generated at the end of the execution, measuring the
+The log records are generated at the end of statements block, measuring the
 time in milliseconds.
 
 ```
@@ -177,4 +177,17 @@ time in milliseconds.
 15:09:46.910 TEST_06.rpgle 80 PERF SUBROUTINE END PRINT           9 ms
 15:09:46.910 TEST_06.rpgle    PERF END TEST_06.rpgle            160 ms
 +-----------+-------------+--+---+---------- loop -----------+- result -+
+```
+
+
+## Resolution Channel RESL
+The resolution channel provides information about the action taken in order
+to resolve a program. When the interpreter starts, the RESL channel logs the list
+of strategies used to locate a RPG/Java program.
+
+```
+15:09:46.910                  RESL resource: /
+15:09:46.910                  RESL directory: .
+15:09:46.960 TEST_06.rpgle 80 RESL CALL "CALCFIB"
++-----------+-------------+--+---+---------- resolution -----------+
 ```
