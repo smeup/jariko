@@ -65,6 +65,12 @@ clean {
     delete file(generatedRoot)
 }
 
+idea {
+    module {
+        sourceDirs += generatedMainFile
+    }
+}
+
 test {
     testLogging {
         events "passed", "skipped", "failed"
