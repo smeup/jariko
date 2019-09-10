@@ -10,3 +10,4 @@ bin/
 .settings/
 .idea/
 **/.DS_Store
+rpgJavaInterpreter-core/generated-src/
