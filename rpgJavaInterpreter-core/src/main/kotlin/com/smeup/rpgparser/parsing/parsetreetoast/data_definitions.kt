@@ -17,9 +17,16 @@ fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
 }
 
 internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
-    return FileDefinition(
+    val fileDefinition = FileDefinition(
             this.FS_RecordName().text.trim(),
             position = this.toPosition(true))
+    val rename = this.fs_keyword().mapNotNull { it.keyword_rename() }
+    if (rename.isNotEmpty()) {
+        // TODO Should we evaluate rename[0].int_format ???
+        val internalRecordFormatName = rename[0].int_format.text
+        fileDefinition.formatName = internalRecordFormatName
+    }
+    return fileDefinition
 }
 
 internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {

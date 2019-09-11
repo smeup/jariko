@@ -41,7 +41,7 @@ data class CompilationUnit(
                 fileDefinitions.forEach {
                     val metadata = databaseInterface.metadataOf(it.name)
                     if (metadata != null) {
-                        it.formatName = metadata.formatName
+                        if (it.formatName == null) it.formatName = metadata.formatName
                         _allDataDefinitions.addAll(metadata.fields.map(DBField::toDataDefinition))
                     }
                 }
