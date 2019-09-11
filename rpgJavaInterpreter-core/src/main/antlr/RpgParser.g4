@@ -2370,6 +2370,7 @@ unaryExpression:
 
 expression: EndOfSourceMode
 	NOT expression
+	| number
 	| OPEN_PAREN expression CLOSE_PAREN
     | <assoc=right> expression EXP expression
     | expression (MULT | MULT_NOSPACE) expression
@@ -2384,8 +2385,7 @@ expression: EndOfSourceMode
 	| indicator
 	| function
 	| identifier
-	| number 
-	| literal  
+	| literal
 	| bif
 	;
 indicator_expr: expression;
