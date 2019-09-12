@@ -142,7 +142,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
         this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
         this.csCHECK() != null -> this.csCHECK().toAst(conf)
-//        this.csCOMP() != null -> this.csCOMP().toAst(conf)
+        this.csKLIST() != null -> this.csKLIST().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -182,10 +182,12 @@ private fun computeNewPosition(position: Position?, text: String) =
 
 fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardContext).parent as Cspec_fixedContext).factor()
 
-// internal fun CsCOMPContext.toAst(conf : ToAstConfiguration = ToAstConfiguration()): CompStmt {
-//
-// }
-//
+internal fun CsKLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): KListStmt {
+    val position = toPosition(conf.considerPosition)
+    val factor1 = this.factor1Context()?.content?.text ?: throw UnsupportedOperationException("Line ${position?.line()}: KLIST operation requires factor 1: $this.text")
+    val fields = this.csKFLD().map { it.cspec_fixed_standard_parts().result.text }
+    return KListStmt(factor1, fields, position)
+}
 
 internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
     val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {

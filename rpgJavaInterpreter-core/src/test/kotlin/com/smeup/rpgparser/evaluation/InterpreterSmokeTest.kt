@@ -74,7 +74,7 @@ class InterpreterSmokeTest {
 
         val mockDBInterface: DBInterface = object : DBInterface {
             val f1 = DBField("KY1TST", StringType(5))
-            val f2 = DBField("KY1TST", NumberType(2, 0))
+            val f2 = DBField("KY2TST", NumberType(2, 0))
             val f3 = DBField("DESTST", StringType(40))
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))

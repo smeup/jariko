@@ -219,6 +219,14 @@ data class TimeStmt(
 
 data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position)
 
+data class KListStmt private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position) {
+    companion object {
+        operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
+            return KListStmt(name.toUpperCase(), fields, position)
+        }
+    }
+}
+
 data class DoStmt(
     val endLimit: Expression,
     val index: AssignableExpression?,
