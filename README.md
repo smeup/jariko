@@ -12,11 +12,14 @@ This project contains an interpreter for RPG, which runs on the JVM. The interpr
 
 All information for developers is contained in the [Development guide](docs/development.md).
 
+## Logging
+
+The project supports configurable logging, described in a [separate document](docs/logging.md).
+
 ## RPG Unit tests: the MUTE mechanism
 
 We support special annotations to be used to write unit tests in RPG.
 For details see [this document](docs/mute.md).
-
 
 ## How the repository is organized
 
