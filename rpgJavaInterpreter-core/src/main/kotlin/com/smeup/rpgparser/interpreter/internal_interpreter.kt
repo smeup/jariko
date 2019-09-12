@@ -95,8 +95,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
         log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
         globalSymbolTable[data] = coerce(value, data.type)
-        // TODO add here the annotation evaluation ??
-        // TODO CodeReview should we remove this comment?
     }
 
     private fun initialize(
@@ -110,8 +108,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
 
         // Assigning initial values received from outside and consider INZ clauses
-        // TODO not sure it is the right place
-        // logHandlers = configureLog("/home/madytyoo/Downloads/smeup-rpg-log/logging.config")
         if (reinitialization) {
             compilationUnit.allDataDefinitions.forEach {
                 if (it is DataDefinition) {
@@ -176,7 +172,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     private fun executeWithMute(statement: Statement) {
-        // TODO Line LineLogEntry is necessary?
         log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
         execute(statement)
         executeMutes(statement.muteAnnotations)
@@ -335,7 +330,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         try {
 
                             program.execute(systemInterface, params).apply {
-                                // TODO i don't know
                                 log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             }
                         } catch (e: Exception) { // TODO Catch a more specific exception?
@@ -359,7 +353,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     try {
                         log(ForStatementExecutionLogStart(this.interpretationContext.currentProgramName, statement))
                             while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
-                                // TODO addede by maurizio
                                 try {
                                     execute(statement.body)
                                 } catch (e: IterException) {
@@ -587,7 +580,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is BooleanValue -> value.asString().value // TODO check if it's the best solution
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
-            else -> TODO("Unable to renderStatement value $value (${value.javaClass.canonicalName})")
+            else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
     }
 
