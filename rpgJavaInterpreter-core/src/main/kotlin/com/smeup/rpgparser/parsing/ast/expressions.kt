@@ -139,7 +139,7 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     AssignableExpression(position) {
 
     init {
-        require(variable.name.isNotBlank()) { "The variable currentProgramName should not blank" }
+        require(variable.name.isNotBlank()) { "The variable name should not blank" }
         require(variable.name.trim() == variable.name) {
             "The variable currentProgramName should not starts or ends with whitespace"
         }
