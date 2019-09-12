@@ -59,14 +59,14 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
 }
 
 @JvmOverloads
-fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSystemInterface()): CommandLineProgram {
-    // TODO move this to some configuration file
+fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSystemInterface(),
+               programFinders : List<RpgProgramFinder> = listOf(
+                       SourceProgramFinder(),
+                       DirRpgProgramFinder(),
+                       ResourceProgramFinder("/")
+               )): CommandLineProgram {
     RpgSystem.addProgramFinder(SourceProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder())
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/rpg")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
 
     RpgSystem.programFinders.forEach {
@@ -88,6 +88,7 @@ fun executePgmWithStringArgs(
 
 object RunnerCLI : CliktCommand() {
     val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
+    val programsSearchDirs by option("-psd").multiple()
     val programName by argument("program name")
     val programArgs by argument().multiple(required = false)
 
@@ -101,6 +102,13 @@ fun startShell() {
         executePgmWithStringArgs(programName, programArgs)
     }
 }
+
+// TODO:
+// Support a configuration file to read the list of
+//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
+//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
+//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/")))
+//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/rpg")))
 
 /**
  * This program can be used to either launch an RPG program or the shell.

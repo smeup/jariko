@@ -5,6 +5,7 @@ import java.io.*
 import kotlin.system.exitProcess
 
 // TODO describe what this program does
+// TODO support option to add element to rpg program finders
 object SimpleShell {
 
     private val exitCommands = hashSetOf("exit", "quit", "signoff", "off")
