@@ -191,7 +191,7 @@ class JDExamplesTest {
         val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(10)),
-                ProgramParam("currentProgramName", StringType(10)),
+                ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
