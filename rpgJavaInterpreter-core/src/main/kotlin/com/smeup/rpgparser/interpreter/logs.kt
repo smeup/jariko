@@ -446,7 +446,7 @@ class EvalLogHandler(private val printStream: PrintStream = System.out) : Interp
         }
     }
 }
-// TODO remove ??
+
 object SimpleLogHandler : InterpreterLogHandler {
     override fun handle(logEntry: LogEntry) {
         println("[LOG] $logEntry")
