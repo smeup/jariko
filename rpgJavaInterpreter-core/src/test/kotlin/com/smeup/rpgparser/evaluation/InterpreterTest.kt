@@ -536,8 +536,7 @@ class InterpreterTest {
         assertEquals(listOf("-xyz--", "-xyz", "-xyz -"), outputOf("ASSIGNSUBS"), message = "We can't handle %SUBST(X)=Y")
     }
 
-    // TODO We can't handle -1.23 expression at the moment
-    @Test @Ignore
+    @Test
     fun executeABSTEST() {
         assertEquals(listOf("X is 1.23"), outputOf("ABSTEST"), message = "We can't handle %ABS(X)")
     }

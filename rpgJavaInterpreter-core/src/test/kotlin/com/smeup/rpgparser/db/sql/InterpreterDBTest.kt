@@ -1,11 +1,7 @@
 package com.smeup.rpgparser.db.sql
 
-import com.smeup.rpgparser.CollectorSystemInterface
-import com.smeup.rpgparser.assertASTCanBeProduced
-import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import org.junit.Test
+import org.junit.*
 import kotlin.test.assertEquals
 
 class InterpreterDBTest {
@@ -30,19 +26,33 @@ class InterpreterDBTest {
                     mapOf("ipToFind" to StringValue("1.2.3.4"))))
     }
 
-    private fun outputOfDBPgm(programName: String, initialSQL: List<String>, initialValues: Map<String, StringValue> = mapOf()): List<String> {
-        val cu = assertASTCanBeProduced(programName)
-        val dbInterface = connectionForTest()
-        dbInterface.execute(initialSQL)
-        cu.resolve(dbInterface)
-        val si = CollectorSystemInterface()
-        si.databaseInterface = dbInterface
-        val interpreter = execute(cu, initialValues, si)
-        return si.displayed
+    @Test @Ignore
+    fun executeCHAIN2FILE() {
+        assertEquals(
+                listOf("Not found in First", "2nd: SomeDescription"),
+                outputOfDBPgm(
+                        "CHAIN2FILE",
+                        listOf(sqlCreateTestTable("FIRST"), recordFormatTestTable("FIRST"),
+                                sqlCreateTestTable("SECOND"), recordFormatTestTable("SECOND"), insertTestRecords("SECOND")),
+                        mapOf("toFind" to StringValue("ABCDE"))))
     }
 
-    private fun sqlCreateQATOCHOSTS() =
+    private fun sqlCreateTestTable(name: String) =
         """
+        CREATE TABLE $name (
+           KEYTST CHAR(5) DEFAULT '' NOT NULL,
+           DESTST CHAR(40) DEFAULT '' NOT NULL,      
+           NBRTST DECIMAL(2, 0) DEFAULT 0 NOT NULL,   
+           PRIMARY KEY(KEYTST) )
+        """.trimIndent()
+
+    private fun recordFormatTestTable(tableName: String) = "COMMENT ON TABLE $tableName IS 'TSTREC'"
+
+    private fun insertTestRecords(tableName: String) =
+        "INSERT INTO $tableName (KEYTST, DESTST) VALUES('ABCDE', 'SomeDescription'), ('XYZ', 'OtherDescription')"
+
+    private fun sqlCreateQATOCHOSTS() =
+            """
         CREATE TABLE QATOCHOST (
             INTERNET CHAR(15) DEFAULT '' NOT NULL,
             HOSTNME1 CHAR(255) DEFAULT '' NOT NULL,
