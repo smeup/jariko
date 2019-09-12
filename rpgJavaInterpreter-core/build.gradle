@@ -33,9 +33,9 @@ def generatedMainFile = file(generatedMain)
 dependencies {
     antlr "org.antlr:antlr4:$antlr_version"
     compile "org.antlr:antlr4-runtime:$antlr_version"
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version".toString()
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version".toString()
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version".toString()
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "com.github.ftomassetti:kolasu:4249345373"
 
     compile "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
@@ -43,11 +43,10 @@ dependencies {
     compile "org.apache.logging.log4j:log4j-core:2.12.1"
 
     compile 'commons-io:commons-io:2.6'
-    compile 'org.jetbrains.exposed:exposed:0.17.1'
     compile 'com.github.ajalt:clikt:2.1.0'
 
-    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version".toString()
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testCompile 'junit:junit:4.12'
     testCompile 'org.hsqldb:hsqldb:2.5.0'
     testCompile 'io.mockk:mockk:1.9'
@@ -75,6 +74,17 @@ clean {
 idea {
     module {
         sourceDirs += generatedMainFile
+    }
+}
+
+//Always reruns all non-performance tests displaying just failing items
+task testFailing(type: Test) {
+    outputs.upToDateWhen {false}
+    testLogging {
+        events "failed"
+    }
+    useJUnit {
+        excludeCategories 'com.smeup.rpgparser.PerformanceTest'
     }
 }
 
