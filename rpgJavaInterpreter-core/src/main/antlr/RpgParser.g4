@@ -2402,7 +2402,7 @@ indicator_expr_simple: (NOT? expression (compare_expr expression)?) ;
 compare_expr:(EQUAL | FREE_COMPARE);
 //and_or: {$getText =="OR"}? free_identifier ; //TODO
 expression: identifier | number | literal | function;
-function: functionName args;
+function: functionName programArgs;
 //---------------*/
 args: OPEN_PAREN (expression (COLON expression)*)? CLOSE_PAREN;
 literal: (StringLiteralStart|HexLiteralStart|DateLiteralStart|TimeLiteralStart|TimeStampLiteralStart|UCS2LiteralStart|GraphicLiteralStart) 

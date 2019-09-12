@@ -17,6 +17,10 @@ data class CompilationUnit(
     override val position: Position?
 ) : Node(position) {
 
+    companion object {
+        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(), null)
+    }
+
     var databaseInterface: DBInterface = DummyDBInterface
 
     val entryPlist: PlistStmt?

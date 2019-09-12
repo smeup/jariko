@@ -1,7 +1,15 @@
 package com.smeup.rpgparser.execution
 
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.split
+import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.logging.defaultLoggingConfiguration
+import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.rgpinterop.*
 import java.io.File
 import org.apache.commons.io.input.BOMInputStream
@@ -39,35 +47,77 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
         return if (resourceStream != null) {
-            RpgProgram.fromInputStream(BOMInputStream(resourceStream))
+            RpgProgram.fromInputStream(BOMInputStream(resourceStream), nameOrSource)
         } else {
             println("Resource $path not found")
             null
         }
     }
+
+    override fun toString(): String {
+        return "resource: $path"
+    }
 }
 
+fun defaultProgramFinders() = listOf(
+        SourceProgramFinder(),
+        DirRpgProgramFinder(),
+        ResourceProgramFinder("/")
+)
+
 @JvmOverloads
-fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSystemInterface()): CommandLineProgram {
+fun getProgram(
+    nameOrSource: String,
+    systemInterface: SystemInterface = JavaSystemInterface(),
+    programFinders: List<RpgProgramFinder> = defaultProgramFinders()
+): CommandLineProgram {
     RpgSystem.addProgramFinder(SourceProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder())
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/")))
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/rpg")))
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+
+    RpgSystem.programFinders.forEach {
+        systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
+    }
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
-fun executePgmWithStringArgs(args: Array<String>) {
-    getProgram(args[0]).singleCall(args.asList().subList(1, args.size))
+fun executePgmWithStringArgs(
+    programName: String,
+    programArgs: List<String>,
+    logConfigurationFile: File? = null,
+    programFinders: List<RpgProgramFinder> = defaultProgramFinders()
+) {
+    val systemInterface = JavaSystemInterface()
+    systemInterface.loggingConfiguration = logConfigurationFile?.let { loadLogConfiguration(logConfigurationFile) } ?: defaultLoggingConfiguration()
+    val commandLineProgram = getProgram(programName, systemInterface, programFinders)
+    commandLineProgram.singleCall(programArgs)
 }
 
-// TODO describe what this program does
+object RunnerCLI : CliktCommand() {
+    val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
+    val programsSearchDirs by option("-psd").split(",")
+    val programName by argument("program name")
+    val programArgs by argument().multiple(required = false)
+
+    override fun run() {
+        val allProgramFinders = defaultProgramFinders() + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
+        executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders)
+    }
+}
+
+fun startShell() {
+    SimpleShell.repl { programName, programArgs ->
+        executePgmWithStringArgs(programName, programArgs)
+    }
+}
+
+/**
+ * This program can be used to either launch an RPG program or the shell.
+ */
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
-        SimpleShell().repl(::executePgmWithStringArgs)
+        startShell()
     } else {
-        executePgmWithStringArgs(args)
+        RunnerCLI.main(args)
     }
 }

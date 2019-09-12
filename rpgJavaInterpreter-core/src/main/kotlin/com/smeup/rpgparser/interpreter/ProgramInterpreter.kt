@@ -2,7 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 
-class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: List<InterpreterLogHandler> = emptyList()) {
+class ProgramInterpreter(val systemInterface: SystemInterface) {
 
     private val dataWrapUpPolicy = HashMap<RpgProgram, DataWrapUpChoice>()
     private val interpreters = HashMap<RpgProgram, InternalInterpreter>()
@@ -13,7 +13,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: 
             firstCall = true
             val ii = InternalInterpreter(systemInterface)
             ii.interpretationContext = object : InterpretationContext {
-                override val name: String
+                override val currentProgramName: String
                     get() = rpgProgram.name
                 override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
                     dataWrapUpPolicy[rpgProgram] = dataWrapUpChoice
@@ -28,7 +28,6 @@ class ProgramInterpreter(val systemInterface: SystemInterface, val logHandlers: 
             }
             ii
         }
-        interpreter.logHandlers = logHandlers
         interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall ||
             interpreter.interpretationContext.shouldReinitialize())
         initialValues.keys.forEach { initialValues[it] = interpreter[it] }

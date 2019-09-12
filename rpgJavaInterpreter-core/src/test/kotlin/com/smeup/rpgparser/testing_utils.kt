@@ -172,7 +172,13 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
-open class CollectorSystemInterface : SystemInterface {
+open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+    override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
+
+    override fun loggingConfiguration(): LoggingConfiguration? {
+        return this.loggingConfiguration
+    }
+
     val displayed = LinkedList<String>()
     val programs = HashMap<String, Program>()
     val functions = HashMap<String, Function>()
@@ -200,8 +206,9 @@ fun execute(
     systemInterface: SystemInterface? = null,
     logHandlers: List<InterpreterLogHandler> = emptyList()
 ): InternalInterpreter {
-    val interpreter = InternalInterpreter(systemInterface ?: DummySystemInterface)
-    interpreter.logHandlers = logHandlers
+    val si = systemInterface ?: DummySystemInterface
+    si.addExtraLogHandlers(logHandlers)
+    val interpreter = InternalInterpreter(si)
     try {
         interpreter.execute(cu, initialValues)
     } catch (e: InterruptForDebuggingPurposes) {
@@ -228,7 +235,8 @@ private const val TRACE = false
 fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE)): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true)
     cu.resolve()
-    return execute(cu, initialValues, si, logHandlers)
+    si.addExtraLogHandlers(logHandlers)
+    return execute(cu, initialValues, si)
 }
 
 fun rpgProgram(name: String): RpgProgram {

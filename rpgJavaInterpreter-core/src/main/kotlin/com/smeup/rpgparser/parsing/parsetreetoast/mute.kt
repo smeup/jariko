@@ -12,7 +12,7 @@ import com.strumenta.kolasu.validation.Error
 import java.util.*
 import org.apache.commons.io.input.BOMInputStream
 
-data class MuteAnnotationExecutionLogEntry(val annotation: MuteAnnotation, var result: Value) : LogEntry() {
+data class MuteAnnotationExecutionLogEntry(override val programName: String, val annotation: MuteAnnotation, var result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return when (annotation) {
             is MuteComparisonAnnotation -> "executing MuteComparisonAnnotation: ${annotation.position} $result ${annotation.val1} ${annotation.comparison} ${annotation.val2} "

@@ -6,7 +6,6 @@ import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
-import kotlin.math.log
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
@@ -14,6 +13,7 @@ import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
+import kotlin.system.measureTimeMillis
 
 annotation class Param(val name: String)
 
@@ -36,28 +36,26 @@ abstract class RpgFacade<P> (
     val systemInterface: SystemInterface
 ) {
 
-    private val logHandlers = mutableListOf<InterpreterLogHandler>()
-    fun addLogHandler(handler: InterpreterLogHandler) = logHandlers.add(handler)
-    fun removeLogHandler(handler: InterpreterLogHandler) = logHandlers.remove(handler)
+    private var logHandlers = mutableListOf<InterpreterLogHandler>()
 
-    var traceMode: Boolean
-        get() = logHandlers.any { it is SimpleLogHandler }
-        set(simpleLogHandler) {
-            if (simpleLogHandler) {
-                logHandlers.add(SimpleLogHandler)
-            } else {
-                logHandlers.remove(SimpleLogHandler)
-            }
-        }
-
-    protected val programInterpreter = ProgramInterpreter(systemInterface, logHandlers)
+    private val programInterpreter = ProgramInterpreter(systemInterface.addExtraLogHandlers(logHandlers))
     private val programName by lazy { programNameSource.nameFor(this) }
     protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
 
+    private fun configureLogHandlers() {
+        logHandlers = systemInterface.getAllLogHandlers()
+    }
+
     fun singleCall(params: P): P? {
+        configureLogHandlers()
+
         val initialValues = toInitialValues(params)
-        logHandlers.log(StartProgramLog(programName, initialValues))
-        programInterpreter.execute(rpgProgram, initialValues)
+
+        logHandlers.log(ProgramExecutionLogStart(programName, initialValues))
+        val elapsed = measureTimeMillis {
+            programInterpreter.execute(rpgProgram, initialValues)
+        }
+        logHandlers.log(ProgramExecutionLogEnd(programName, elapsed))
         return toResults(params, initialValues)
     }
 
