@@ -66,8 +66,11 @@ fun defaultProgramFinders() = listOf(
 )
 
 @JvmOverloads
-fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSystemInterface(),
-               programFinders : List<RpgProgramFinder> = defaultProgramFinders()): CommandLineProgram {
+fun getProgram(
+    nameOrSource: String,
+    systemInterface: SystemInterface = JavaSystemInterface(),
+    programFinders: List<RpgProgramFinder> = defaultProgramFinders()
+): CommandLineProgram {
     RpgSystem.addProgramFinder(SourceProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder())
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
@@ -82,7 +85,7 @@ fun executePgmWithStringArgs(
     programName: String,
     programArgs: List<String>,
     logConfigurationFile: File? = null,
-    programFinders : List<RpgProgramFinder> = defaultProgramFinders()
+    programFinders: List<RpgProgramFinder> = defaultProgramFinders()
 ) {
     val systemInterface = JavaSystemInterface()
     systemInterface.loggingConfiguration = logConfigurationFile?.let { loadLogConfiguration(logConfigurationFile) } ?: defaultLoggingConfiguration()
@@ -98,7 +101,7 @@ object RunnerCLI : CliktCommand() {
 
     override fun run() {
         val allProgramFinders = defaultProgramFinders() + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
-        executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders )
+        executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders)
     }
 }
 
