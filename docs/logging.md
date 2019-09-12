@@ -1,21 +1,21 @@
 # Logging
 
 The interpreter provides a logging facility to trace the RPG program execution.
-To enable the log functionality it is required to specify the configuration file using the **-lc** or  **--log-configuration** on the runner command line, the muterunner command line or any other tool.
+To enable the log functionality it is required to specify the configuration file using the **-lc** or  **--log-configuration** on the runner command line, the muterunner command line or for any other tool.
 
-In order to monitor the interpreter behaviour at the runtime the logging is subdivided in channels each one designed to capture a specific aspect of the interpreter. 
+The logging permits to monitor the interpreter behaviour at the runtime. The logging messages are is subdivided in channels, each one designed to capture a specific aspect of the interpreter. 
 
-The output consists of a set of data record, with a fixed header segment with common data and a variable data segment specific for each channel. 
+The output consists of a set of data records, with a fixed header segment with common data and a variable data segment specific for each channel. 
 
-The values of the record are separated by a character specified in the configuration  file.
+The values of the record are separated by a character specified in the configuration  file. This permits to easily process the resulting logs as CSV files or using comman line tools such as cut.
 
 The available channels are:
 
 * **Data:** monitors the accesses to the variables.
 * **Expression:** traces the expressions encountered during the program execution.
 * **Statement:**  provides information about the statements executed.
-* **Loop:** captures the loop execution including the number of iterations
-* **Performance:** measures the execution time
+* **Loop:** captures the loop execution including the number of iterations.
+* **Performance:** measures the execution time.
 * **Resolution:** provides information about the process to identify the routines or programs to invoke. 
 
 ## Configuration File
@@ -86,7 +86,7 @@ variable data segment which depends on the channel.
 The header contains the following data:
 
 * **TIMESTAMP** timestamp of the record
-* **FILENAME** name of the source file
+* **FILENAME** name of the source file, if available
 * **LINE** the line of code, if available
 * **CHANNEL** a mnemonic name of the channel 
 
