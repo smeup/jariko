@@ -108,13 +108,6 @@ fun startShell() {
     }
 }
 
-// TODO:
-// Support a configuration file to read the list of
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpgJavaInterpreter-core/src/test/resources")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/")))
-//    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("/rpg")))
-
 /**
  * This program can be used to either launch an RPG program or the shell.
  */
