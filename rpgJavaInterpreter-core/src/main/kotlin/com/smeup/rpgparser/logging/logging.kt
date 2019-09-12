@@ -16,6 +16,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout
 import org.apache.logging.log4j.core.appender.FileAppender
 import org.apache.logging.log4j.core.config.LoggerConfig
 import org.apache.logging.log4j.core.config.AppenderRef
+import java.lang.RuntimeException
 
 const val DATA_LOGGER: String = "data"
 const val LOOP_LOGGER: String = "loop"
@@ -70,14 +71,6 @@ enum class LogLevel {
     }
 }
 
-/**
- * Read the configuration file, configure the logger and return a
- * list of log handlers
- */
-fun configureLog1(config: LoggingConfiguration): List<InterpreterLogHandler> {
-
-    return emptyList()
-}
 fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
 
     val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFOMANCE_LOGGER, RESOLUTUION_LOGGER)
@@ -200,29 +193,32 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
     val level = properties.getProperty("$channel.level")
     val output = properties.getProperty("$channel.output")
 
-    if (output == "console") {
-        // Creates and add the logger
-        val console = createConsoleAppender("console", ctx.configuration, properties)
-        val ref = AppenderRef.createAppenderRef("console", null, null)
-        val refs = arrayOf(ref)
+    when (output) {
+        "console" -> {
+            // Creates and add the logger
+            val console = createConsoleAppender("console", ctx.configuration, properties)
+            val ref = AppenderRef.createAppenderRef("console", null, null)
+            val refs = arrayOf(ref)
 
-        val loggerConfig = LoggerConfig
-                .createLogger(false, Level.getLevel(level.toUpperCase()), channel, "true", refs, null, ctx.configuration, null)
+            val loggerConfig = LoggerConfig
+                    .createLogger(false, Level.getLevel(level.toUpperCase()), channel, "true", refs, null, ctx.configuration, null)
 
-        loggerConfig.addAppender(console, null, null)
-        ctx.configuration.addLogger(channel, loggerConfig)
-    }
-    if (output == "file") {
-        // Creates and add the logger
-        val file = createFileAppender("file", ctx.configuration, properties)
-        val ref = AppenderRef.createAppenderRef("file", null, null)
-        val refs = arrayOf(ref)
+            loggerConfig.addAppender(console, null, null)
+            ctx.configuration.addLogger(channel, loggerConfig)
+        }
+        "file" -> {
+            // Creates and add the logger
+            val file = createFileAppender("file", ctx.configuration, properties)
+            val ref = AppenderRef.createAppenderRef("file", null, null)
+            val refs = arrayOf(ref)
 
-        val loggerConfig = LoggerConfig
-                .createLogger(false, Level.getLevel(level.toUpperCase()), channel, "true", refs, null, ctx.configuration, null)
+            val loggerConfig = LoggerConfig
+                    .createLogger(false, Level.getLevel(level.toUpperCase()), channel, "true", refs, null, ctx.configuration, null)
 
-        loggerConfig.addAppender(file, null, null)
-        ctx.configuration.addLogger(channel, loggerConfig)
+            loggerConfig.addAppender(file, null, null)
+            ctx.configuration.addLogger(channel, loggerConfig)
+        }
+        else -> throw RuntimeException("Unknown log output value: $output")
     }
     ctx.updateLoggers()
 }
