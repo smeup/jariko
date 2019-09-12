@@ -224,7 +224,7 @@ class JDExamplesTest {
         val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(100)),
-                ProgramParam("currentProgramName", StringType(10)),
+                ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
@@ -262,7 +262,7 @@ class JDExamplesTest {
         assertEquals(
                 mapOf(
                         "foldern" to StringValue.padded("my/path/to/folder", 1000),
-                        "currentProgramName" to StringValue.blank(10),
+                        "name" to StringValue.blank(10),
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])
@@ -276,7 +276,7 @@ class JDExamplesTest {
         val callsToNfyeve = LinkedList<Map<String, Value>>()
         si.programs["LISTEN_FLD"] = object : JvmProgramRaw("LISTEN_FLD", listOf(
                 ProgramParam("foldern", StringType(100)),
-                ProgramParam("currentProgramName", StringType(10)),
+                ProgramParam("name", StringType(10)),
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
@@ -317,7 +317,7 @@ class JDExamplesTest {
         assertEquals(
                 mapOf(
                         "foldern" to StringValue.padded("my/path/to/folder", 1000),
-                        "currentProgramName" to StringValue.blank(10),
+                        "name" to StringValue.blank(10),
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])
