@@ -45,8 +45,17 @@ open class AbstractDataDefinition(
     }
 }
 
-data class FileDefinition(override val name: String, override val position: Position? = null) : Node(position), Named {
+data class FileDefinition private constructor(override val name: String, override val position: Position?) : Node(position), Named {
+    companion object {
+        operator fun invoke(name: String, position: Position? = null): FileDefinition {
+            return FileDefinition(name.toUpperCase(), position)
+        }
+    }
+
     var formatName: String? = null
+        set(value) {
+            field = value?.toUpperCase()
+        }
 }
 
 data class DataDefinition(

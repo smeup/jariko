@@ -26,7 +26,7 @@ class InterpreterDBTest {
                     mapOf("ipToFind" to StringValue("1.2.3.4"))))
     }
 
-    @Test @Ignore
+    @Test
     fun executeCHAIN2FILE() {
         assertEquals(
                 listOf("Not found in First", "2nd: SomeDescription"),
