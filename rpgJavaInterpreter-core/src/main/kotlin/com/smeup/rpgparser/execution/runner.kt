@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -58,13 +59,15 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     }
 }
 
+fun defaultProgramFinders() = listOf(
+        SourceProgramFinder(),
+        DirRpgProgramFinder(),
+        ResourceProgramFinder("/")
+)
+
 @JvmOverloads
 fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSystemInterface(),
-               programFinders : List<RpgProgramFinder> = listOf(
-                       SourceProgramFinder(),
-                       DirRpgProgramFinder(),
-                       ResourceProgramFinder("/")
-               )): CommandLineProgram {
+               programFinders : List<RpgProgramFinder> = defaultProgramFinders()): CommandLineProgram {
     RpgSystem.addProgramFinder(SourceProgramFinder())
     RpgSystem.addProgramFinder(DirRpgProgramFinder())
     RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
@@ -78,22 +81,24 @@ fun getProgram(nameOrSource: String, systemInterface: SystemInterface = JavaSyst
 fun executePgmWithStringArgs(
     programName: String,
     programArgs: List<String>,
-    logConfigurationFile: File? = null
+    logConfigurationFile: File? = null,
+    programFinders : List<RpgProgramFinder> = defaultProgramFinders()
 ) {
     val systemInterface = JavaSystemInterface()
     systemInterface.loggingConfiguration = logConfigurationFile?.let { loadLogConfiguration(logConfigurationFile) } ?: defaultLoggingConfiguration()
-    val commandLineProgram = getProgram(programName, systemInterface)
+    val commandLineProgram = getProgram(programName, systemInterface, programFinders)
     commandLineProgram.singleCall(programArgs)
 }
 
 object RunnerCLI : CliktCommand() {
     val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
-    val programsSearchDirs by option("-psd").multiple()
+    val programsSearchDirs by option("-psd").split(",")
     val programName by argument("program name")
     val programArgs by argument().multiple(required = false)
 
     override fun run() {
-        executePgmWithStringArgs(programName, programArgs, logConfigurationFile)
+        val allProgramFinders = defaultProgramFinders() + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
+        executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders )
     }
 }
 
