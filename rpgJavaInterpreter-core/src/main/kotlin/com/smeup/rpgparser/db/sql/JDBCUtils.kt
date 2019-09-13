@@ -26,9 +26,12 @@ fun PreparedStatement.bind(values: List<Value>) {
 fun Connection.recordFormatName(tableName: String): String? =
     this.metaData.getTables(null, null, tableName, null).use {
         if (it.next()) {
-            return@use it.getString("REMARKS").ifBlank { tableName }
+            val remarks = it.getString("REMARKS")
+            if (!remarks.isNullOrBlank()) {
+                return@use remarks
+            }
         }
-        return@use null
+        return@use tableName
     }
 
 fun Connection.fields(name: String): List<DBField> {
