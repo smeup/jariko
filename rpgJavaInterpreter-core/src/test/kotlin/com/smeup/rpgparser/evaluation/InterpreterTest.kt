@@ -113,7 +113,7 @@ class InterpreterTest {
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
         execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
-        assertEquals(logHandler.getExecutedSubroutines().size, 0)
+        assertEquals(1, logHandler.getExecutedSubroutines().size)
     }
 
     @Test
@@ -536,6 +536,11 @@ class InterpreterTest {
         assertEquals(listOf("-xyz--", "-xyz", "-xyz -"), outputOf("ASSIGNSUBS"), message = "We can't handle %SUBST(X)=Y")
     }
 
+    @Test
+    fun executeABSTEST() {
+        assertEquals(listOf("X is 1.23"), outputOf("ABSTEST"), message = "We can't handle %ABS(X)")
+    }
+
     // TODO understand why this test does not pass
     @Test @Ignore
     fun executeJCODFISD() {
@@ -548,8 +553,7 @@ class InterpreterTest {
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
     }
 
-    // TODO Changes in grammar needed
-    @Test @Ignore
+    @Test
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }

@@ -11,10 +11,17 @@ import kotlin.reflect.full.isSubclassOf
 open class JavaSystemInterface(
     private val outputStream: PrintStream,
     private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
-    private val databaseInterface: DatabaseInterface = DummyDatabaseInterface
+    private val databaseInterface: DBInterface = DummyDBInterface,
+    var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 
-    override val db: DatabaseInterface
+    override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
+
+    override fun loggingConfiguration(): LoggingConfiguration? {
+        return this.loggingConfiguration
+    }
+
+    override val db: DBInterface
         get() = databaseInterface
 
     // For calls from Java programs

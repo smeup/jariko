@@ -12,7 +12,7 @@ class GateControllerTest {
 
     @Test
     fun runExample1() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
+        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("../examples/rpg")))
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("rpg")))
         val javaSystemInterface = JavaSystemInterface()
         javaSystemInterface.addJavaInteropPackage("com.github.rpgjavainterpreter.gatecontroller")

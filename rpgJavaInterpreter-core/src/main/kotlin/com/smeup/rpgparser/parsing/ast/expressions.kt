@@ -171,7 +171,9 @@ data class QualifiedAccessExpr(val container: DataRefExpr, val fieldName: String
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) :
     AssignableExpression(position) {
-
+    override fun render(): String {
+        return "${this.array.render()}(${index.render()}))"
+    }
     override fun size(): Long {
         TODO("size")
     }

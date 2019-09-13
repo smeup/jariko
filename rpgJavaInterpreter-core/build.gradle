@@ -1,3 +1,6 @@
+//-----------------
+//interpreter-core build script
+//-----------------
 buildscript {
     ext.kotlin_version = '1.3.41'
     ext.antlr_version = '4.7.2'
@@ -20,34 +23,34 @@ plugins {
     id "org.jlleitschuh.gradle.ktlint" version "8.2.0"
 }
 
-apply plugin: 'kotlin'
-apply plugin: 'java'
 apply plugin: 'antlr'
-apply plugin: 'idea'
-apply plugin: 'jacoco'
 
 def antlrVersion = ext.antlr_version
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
-}
-
+def generatedRoot = "generated-src"
+def generatedMain = generatedRoot + "/antlr/main"
+def generatedMainFile = file(generatedMain)
 
 dependencies {
-  antlr "org.antlr:antlr4:$antlr_version"
-  compile "org.antlr:antlr4-runtime:$antlr_version"
-  antlr "org.antlr:antlr4:$antlrVersion"
-  compile "org.antlr:antlr4-runtime:$antlrVersion"
-  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version".toString()
-  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version".toString()
-  compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version".toString()
-  compile "com.github.ftomassetti:kolasu:4249345373"
-  testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version".toString()
-  testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
-  testCompile 'junit:junit:4.12'
-  compile 'commons-io:commons-io:2.6'
+    antlr "org.antlr:antlr4:$antlr_version"
+    compile "org.antlr:antlr4-runtime:$antlr_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version".toString()
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version".toString()
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version".toString()
+    compile "com.github.ftomassetti:kolasu:4249345373"
+
+    compile "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
+    compile "org.apache.logging.log4j:log4j-api:2.12.1"
+    compile "org.apache.logging.log4j:log4j-core:2.12.1"
+
+    compile 'commons-io:commons-io:2.6'
+    compile 'org.jetbrains.exposed:exposed:0.17.1'
+    compile 'com.github.ajalt:clikt:2.1.0'
+
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version".toString()
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.hsqldb:hsqldb:2.5.0'
+    testCompile 'io.mockk:mockk:1.9'
 }
 
 configurations.all() {
@@ -58,25 +61,20 @@ configurations.all() {
 generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ['-package', 'com.smeup.rpgparser']
-    outputDirectory = file("generated-src/antlr/main/com/smeup/rpgparser".toString())
+    outputDirectory = file(generatedMain + "/com/smeup/rpgparser")
 }
 compileKotlin.dependsOn generateGrammarSource
 compileJava.dependsOn generateGrammarSource
-sourceSets {
-    generated {
-        java.srcDir file("generated-src/antlr/main/")
-    }
-}
-compileJava.source sourceSets.generated.java, sourceSets.main.java
-compileKotlin.source sourceSets.generated.java, sourceSets.main.java, sourceSets.main.kotlin
+compileJava.source generatedMainFile, sourceSets.main.java
+compileKotlin.source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
 
-clean{
-    delete file("generated-src")
+clean {
+    delete file(generatedRoot)
 }
 
 idea {
     module {
-        sourceDirs += file("generated-src/antlr/main")
+        sourceDirs += generatedMainFile
     }
 }
 
@@ -129,8 +127,8 @@ check.dependsOn jacocoTestReport
 
 //gradlew runExample -Pargs="CALCFIB,9"
 task runExample (type: JavaExec) {
-    if(project.hasProperty('args')){
-        args(project.getProperties().get("args").split(','))
+    if(project.hasProperty('programArgs')){
+        args(project.getProperties().get("programArgs").split(','))
     }
     main="com.smeup.rpgparser.execution.RunnerKt"
     classpath = sourceSets.test.runtimeClasspath
@@ -149,7 +147,7 @@ task fatJar(type: Jar) {
 task runMutesTests(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.smeup.rpgparser.mute.MuterunnerKt'
-    args '../mutes_for_ci'
+    args '../mutes_for_ci', "-v", "-lc", "../mutes_for_ci/mute_logging.config"
 }
 
 check.dependsOn runMutesTests

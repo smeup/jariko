@@ -2363,7 +2363,6 @@ simpleExpression:
 	| number 
 	| literal
 	| OPEN_PAREN expression CLOSE_PAREN
-	| simpleExpression FREE_DOT identifier // qualified access
 	; 
 	
 unaryExpression:
@@ -2371,6 +2370,7 @@ unaryExpression:
 
 expression: EndOfSourceMode
 	NOT expression
+	| number
 	| OPEN_PAREN expression CLOSE_PAREN
     | <assoc=right> expression EXP expression
     | expression (MULT | MULT_NOSPACE) expression
@@ -2385,8 +2385,7 @@ expression: EndOfSourceMode
 	| indicator
 	| function
 	| identifier
-	| number 
-	| literal  
+	| literal
 	| bif
 	;
 indicator_expr: expression;
@@ -2403,7 +2402,7 @@ indicator_expr_simple: (NOT? expression (compare_expr expression)?) ;
 compare_expr:(EQUAL | FREE_COMPARE);
 //and_or: {$getText =="OR"}? free_identifier ; //TODO
 expression: identifier | number | literal | function;
-function: functionName args;
+function: functionName programArgs;
 //---------------*/
 args: OPEN_PAREN (expression (COLON expression)*)? CLOSE_PAREN;
 literal: (StringLiteralStart|HexLiteralStart|DateLiteralStart|TimeLiteralStart|TimeStampLiteralStart|UCS2LiteralStart|GraphicLiteralStart) 
@@ -2618,10 +2617,7 @@ SPLAT_ALL
    ;
 
 target:
-      name=ID #simpleTarget
-    | indic=SPLAT_INDICATOR #indicatorTarget
-    | indic=SPLAT_IN #globalIndicatorTarget
-    | container=ID FREE_DOT field=ID #qualifiedTarget
+      name=idOrKeyword #simpleTarget
     | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
     | bif_subst #substTarget
     ;

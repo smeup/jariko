@@ -1,3 +1,6 @@
+//-----------------
+//Examples build script
+//-----------------
 buildscript {
     ext.kotlin_version = '1.3.41'
 
@@ -13,18 +16,6 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
-}
-
-apply plugin: 'kotlin'
-apply plugin: 'java'
-apply plugin: 'antlr'
-apply plugin: 'idea'
-apply plugin: 'jacoco'
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
 }
 
 dependencies {

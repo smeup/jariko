@@ -13,13 +13,22 @@ interface RpgProgramFinder {
 class SourceProgramFinder : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
-            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)))
+            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), nameOrSource)
         }
         return null
+    }
+
+    override fun toString(): String {
+        return "source:"
     }
 }
 
 class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
+
+    init {
+        directory?.let { require(it.exists()) { "The specified directory should exist: ${directory.path} -> ${directory.absolutePath}" } }
+    }
+
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         val file = File(prefix() + nameAndSuffix(nameOrSource))
         return if (file.exists()) {
@@ -46,7 +55,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 }
 
 object RpgSystem {
-    private val programFinders = LinkedList<RpgProgramFinder>()
+    internal val programFinders = LinkedList<RpgProgramFinder>()
 
     fun addProgramFinder(programFinder: RpgProgramFinder) {
         programFinders.add(programFinder)

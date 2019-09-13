@@ -33,18 +33,17 @@ class InterpreterSmokeTest {
     fun executeCHAINHOSTS() {
         val cu = assertASTCanBeProduced("CHAINHOSTS")
 
-        val mockDBInterface: DatabaseInterface = object : DatabaseInterface {
-            val hostField = DataDefinition("HOSTNME1", StringType(255))
+        val mockDBInterface: DBInterface = object : DBInterface {
+            val hostField = DBField("HOSTNME1", StringType(255))
 
-            override fun metadataOf(name: String): FileMetadata? = FileMetadata("qhosts", listOf(hostField))
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
 
-            override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? {
-                return if (name.equals("qhosts", ignoreCase = true)) {
-                    listOf(hostField to StringValue("loopback"))
+            override fun chain(name: String, key: Value): List<Pair<String, Value>> =
+                if (name.equals("qhosts", ignoreCase = true)) {
+                    listOf(hostField.name to StringValue("loopback"))
                 } else {
-                    null
+                    emptyList()
                 }
-            }
         }
 
         cu.resolve(mockDBInterface)
@@ -55,14 +54,12 @@ class InterpreterSmokeTest {
     fun executeCHAIN2FILE() {
         val cu = assertASTCanBeProduced("CHAIN2FILE")
 
-        val mockDBInterface: DatabaseInterface = object : DatabaseInterface {
-            val hostField = DataDefinition("DESTST", StringType(40))
+        val mockDBInterface: DBInterface = object : DBInterface {
+            val hostField = DBField("DESTST", StringType(40))
 
-            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, listOf(hostField))
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
 
-            override fun chain(name: String, key: Value): Collection<Pair<AbstractDataDefinition, Value>>? {
-                return null
-            }
+            override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
         }
 
         cu.resolve(mockDBInterface)

@@ -19,6 +19,7 @@ abstract class Value {
     open fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
+    open fun render(): String = "Nope"
 }
 
 data class StringValue(var value: String) : Value() {
@@ -90,6 +91,10 @@ data class StringValue(var value: String) : Value() {
     fun isBlank(): Boolean {
         return this.valueWithoutPadding.isBlank()
     }
+
+    override fun render(): String {
+        return valueWithoutPadding.toString()
+    }
 }
 
 fun String.removeNullChars(): String {
@@ -145,11 +150,18 @@ data class IntValue(val value: Long) : Value() {
     companion object {
         val ZERO = IntValue(0)
     }
+
+    override fun render(): String {
+        return value.toString()
+    }
 }
 
 data class DecimalValue(val value: BigDecimal) : Value() {
     // TODO Verify conversion
-    override fun asInt(): IntValue = IntValue(value.longValueExact())
+    override fun asInt(): IntValue {
+
+        return IntValue(value.longValueExact())
+    }
 
     override fun asDecimal(): DecimalValue = this
 
@@ -175,6 +187,9 @@ data class BooleanValue(val value: Boolean) : Value() {
     companion object {
         val FALSE = BooleanValue(false)
         val TRUE = BooleanValue(true)
+    }
+    override fun render(): String {
+        return value.toString()
     }
 }
 
@@ -226,7 +241,9 @@ abstract class ArrayValue : Value() {
         }
         return false
     }
-
+    override fun render(): String {
+        return "Array(${elements().size})"
+    }
     override fun asArray() = this
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {

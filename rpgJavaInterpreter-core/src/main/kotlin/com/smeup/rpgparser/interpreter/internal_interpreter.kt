@@ -10,6 +10,7 @@ import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
+import java.lang.System.currentTimeMillis
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.text.DecimalFormat
@@ -19,18 +20,19 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
+import kotlin.system.measureTimeMillis
 
 class LeaveException : Exception()
 class IterException : Exception()
 
 interface InterpretationContext {
-    val name: String
+    val currentProgramName: String
     fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
     fun shouldReinitialize(): Boolean
 }
 
 object DummyInterpretationContext : InterpretationContext {
-    override val name: String
+    override val currentProgramName: String
         get() = "<UNSPECIFIED>"
 
     override fun shouldReinitialize() = false
@@ -40,14 +42,14 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
-data class FileInformation(var found: Boolean)
+data class FileInformation(val fileName: String, var found: Boolean)
 
 class FileInformationMap {
     private val byFileName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
     private val byFormatName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
 
     fun add(fileDefinition: FileDefinition) {
-        val fileInformation = FileInformation(false)
+        val fileInformation = FileInformation(fileDefinition.name, false)
         byFileName[fileDefinition.name] = fileInformation
         val formatName = fileDefinition.formatName
         if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
@@ -63,11 +65,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val predefinedIndicators = HashMap<Int, Value>()
     val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
     var interpretationContext: InterpretationContext = DummyInterpretationContext
+
     /**
      * This is useful for debugging, so we can avoid infinite loops
      */
     var cycleLimit: Int? = null
-    var logHandlers: List<InterpreterLogHandler> = emptyList()
+    private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     var lastFound = false
     private val fileInfos = FileInformationMap()
@@ -88,10 +91,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             "Line ${data.position.line()}: $data cannot be assigned the value $value"
         }
 
-        log(AssignmentLogEntry(data, value))
+        var previous: Value? = null
+        if (globalSymbolTable.contains(data.name)) {
+            previous = globalSymbolTable[data.name]
+        }
+        log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
         globalSymbolTable[data] = coerce(value, data.type)
-        // TODO add here the annotation evaluation ??
-        // TODO CodeReview should we remove this comment?
     }
 
     private fun initialize(
@@ -106,14 +111,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
-            compilationUnit.dataDefinitions.forEach {
-                set(it, coerce(when {
-                    it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
-                    it.initializationValue != null -> interpret(it.initializationValue)
-                    it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
-                    else -> blankValue(it)
-                }, it.type))
-                executeMutes(it.muteAnnotations)
+            compilationUnit.allDataDefinitions.forEach {
+                if (it is DataDefinition) {
+                    set(it, coerce(when {
+                        it.name in initialValues -> initialValues[it.name]
+                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        it.initializationValue != null -> interpret(it.initializationValue)
+                        it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
+                        else -> blankValue(it)
+                    }, it.type))
+                    executeMutes(it.muteAnnotations)
+                }
             }
         } else {
             initialValues.forEach { iv ->
@@ -139,11 +147,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         initialize(compilationUnit, initialValues)
     }
 
+    private fun configureLogHandlers() {
+        logHandlers = systemInterface.getAllLogHandlers()
+    }
+
     fun execute(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
+        configureLogHandlers()
         initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
         compilationUnit.main.stmts.forEach {
             executeWithMute(it)
@@ -161,7 +174,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     private fun executeWithMute(statement: Statement) {
-        log(LineLogEntry(statement))
+        log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
         execute(statement)
         executeMutes(statement.muteAnnotations)
     }
@@ -182,7 +195,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val value2 = interpretConcrete(it.val2)
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
                     val value = interpretConcrete(exp)
-                    log(MuteAnnotationExecutionLogEntry(it, value))
+                    log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
                     executedAnnotation[it.position!!.start.line] = MuteAnnotationExecuted(exp, it.val1, it.val2, value, value1, value2)
                 }
                 is MuteTypeAnnotation -> {
@@ -197,21 +210,33 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         try {
             when (statement) {
                 is ExecuteSubroutine -> {
-                    log(SubroutineExecutionLogEntry(statement.subroutine.referred!!))
-                    execute(statement.subroutine.referred!!.stmts)
+                    log(SubroutineExecutionLogStart(this.interpretationContext.currentProgramName, statement.subroutine.referred!!))
+
+                    val elapsed = measureTimeMillis {
+                        execute(statement.subroutine.referred!!.stmts)
+                    }
+                    log(SubroutineExecutionLogEnd(this.interpretationContext.currentProgramName, statement.subroutine.referred!!, elapsed))
                 }
                 is EvalStmt -> {
-                    assign(statement.target, statement.expression, statement.operator)
+                    val result = assign(statement.target, statement.expression, statement.operator)
+                    log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
                 }
-                is MoveStmt -> move(statement.target, statement.expression)
+                is MoveStmt -> {
+                    val value = move(statement.target, statement.expression)
+                    log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
+                }
                 is SelectStmt -> {
                     for (case in statement.cases) {
-                        if (interpret(case.condition).asBoolean().value) {
+                        val result = interpret(case.condition)
+
+                        log(SelectCaseExecutionLogEntry(this.interpretationContext.currentProgramName, case, result))
+                        if (result.asBoolean().value) {
                             execute(case.body)
                             return
                         }
                     }
                     if (statement.other != null) {
+                        log(SelectOtherExecutionLogEntry(this.interpretationContext.currentProgramName, statement.other!!))
                         execute(statement.other!!.body)
                     }
                 }
@@ -220,11 +245,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         interpretationContext.setDataWrapUpPolicy(it)
                     }
                 }
-                is PlistStmt -> null /* Nothing to do here */
+                is PlistStmt -> {
+                    statement.params.forEach {
+                        var value: Value? = null
+                        if (globalSymbolTable.contains(it.param.name)) {
+                            value = globalSymbolTable[it.param.name]
+                            log(ParamListStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, it.param.name, value))
+                        }
+                    }
+
+                    null
+                } /* Nothing to do here */
                 is ClearStmt -> {
                     return when (statement.value) {
                         is DataRefExpr -> {
-                            assign(statement.value, BlanksRefExpr())
+                            val value = assign(statement.value, BlanksRefExpr())
+                            log(ClearStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                             Unit
                         }
                         else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
@@ -250,24 +286,27 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     systemInterface.display(render(values))
                 }
                 is IfStmt -> {
-                    val condition = eval(statement.condition).asBoolean().value
-                    if (condition) {
+                    val condition = eval(statement.condition)
+                    log(IfExecutionLogEntry(this.interpretationContext.currentProgramName, statement, condition))
+                    if (condition.asBoolean().value) {
                         execute(statement.body)
                     } else {
                         for (elseIfClause in statement.elseIfClauses) {
-                            val c = eval(elseIfClause.condition).asBoolean().value
-                            if (c) {
+                            val c = eval(elseIfClause.condition)
+                            log(ElseIfExecutionLogEntry(this.interpretationContext.currentProgramName, elseIfClause, c))
+                            if (c.asBoolean().value) {
                                 execute(elseIfClause.body)
                                 return
                             }
                         }
                         if (statement.elseClause != null) {
+                            log(ElseExecutionLogEntry(this.interpretationContext.currentProgramName, statement.elseClause, condition))
                             execute(statement.elseClause.body)
                         }
                     }
                 }
                 is CallStmt -> {
-                    log(CallExecutionLogEntry(statement))
+                    log(CallExecutionLogEntry(this.interpretationContext.currentProgramName, statement))
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall) ?: throw RuntimeException("Program $programToCall cannot be found")
 
@@ -288,13 +327,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         program.params()[index].name to get(it.param.name)
                     }.toMap(LinkedHashMap())
 
+                    val startTime = currentTimeMillis()
                     val paramValuesAtTheEnd =
                         try {
+
                             program.execute(systemInterface, params).apply {
-                                log(CallEndLogEntry(statement))
+                                log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             }
                         } catch (e: Exception) { // TODO Catch a more specific exception?
-                            log(CallEndLogEntry(statement))
+                            log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             if (statement.errorIndicator == null) {
                                 throw e
                             }
@@ -306,20 +347,38 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is ForStmt -> {
+                    var loopCounter: Long = 0
+                    var startTime = currentTimeMillis()
+
                     eval(statement.init)
+
                     try {
-                        while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
-                            execute(statement.body)
-                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
-                        }
+                        log(ForStatementExecutionLogStart(this.interpretationContext.currentProgramName, statement))
+                            while (enterCondition(this[statement.iterDataDefinition()], eval(statement.endValue), statement.downward)) {
+                                try {
+                                    execute(statement.body)
+                                } catch (e: IterException) {
+                                    // nothing to do here
+                                }
+
+                                increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
+                                loopCounter++
+                            }
+                        val elapsed = currentTimeMillis() - startTime
+                        log(ForStatementExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                     } catch (e: LeaveException) {
                         // leaving
+                        val elapsed = currentTimeMillis() - startTime
+                        log(ForStatementExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                     }
                 }
                 is DoStmt -> {
+                    var loopCounter: Long = 0
+                    var startTime = currentTimeMillis()
                     if (statement.index == null) {
                         var myIterValue = eval(statement.startLimit).asInt()
                         try {
+                            log(DoStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement))
                             while ((cycleLimit == null || (cycleLimit as Int) >= myIterValue.value) &&
                                     isEqualOrSmaller(myIterValue, eval(statement.endLimit))) {
                                 try {
@@ -327,10 +386,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                                 } catch (e: IterException) {
                                     // nothing to do here
                                 }
+                                loopCounter++
                                 myIterValue = myIterValue.increment()
                             }
+                            val elapsed = currentTimeMillis() - startTime
+                            log(DoStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                         } catch (e: LeaveException) {
                             // nothing to do here
+                            val elapsed = currentTimeMillis() - startTime
+                            log(DoStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                         }
                     } else {
                         assign(statement.index, statement.startLimit)
@@ -350,12 +414,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is DowStmt -> {
+                    var loopCounter: Long = 0
+                    var startTime = currentTimeMillis()
                     try {
+                        log(DowStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement))
                         while (eval(statement.endExpression).asBoolean().value) {
                             execute(statement.body)
+                            loopCounter++
                         }
+                        val elapsed = currentTimeMillis() - startTime
+                        log(DowStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                     } catch (e: LeaveException) {
-                        // nothing to do here
+                        val elapsed = currentTimeMillis() - startTime
+                        log(DowStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                     }
                 }
                 is SubDurStmt -> {
@@ -374,8 +445,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         else -> throw UnsupportedOperationException("Data reference required: " + statement)
                     }
                 }
-                is LeaveStmt -> throw LeaveException()
-                is IterStmt -> throw IterException()
+                is LeaveStmt -> {
+                    log(LeaveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement))
+                    throw LeaveException()
+                }
+                is IterStmt -> {
+                    log(IterStatemenExecutionLog(this.interpretationContext.currentProgramName, statement))
+                    throw IterException()
+                }
                 is CheckStmt -> {
                     var baseString = interpret(statement.baseString).asString().value.removeNullChars()
                     if (statement.baseString is DataRefExpr) {
@@ -398,20 +475,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is ChainStmt -> {
-                    // -- TODO handle record formats
-                    require(fileInfos[statement.name] != null) {
+                    val fileInfo = fileInfos[statement.name]
+                    require(fileInfo != null) {
                         "Line: ${statement.position.line()} - File definition ${statement.name} not found"
                     }
-
-                    // --
-                    val record = systemInterface.db.chain(statement.name, eval(statement.searchArg))
-                    if (record != null) {
+                    val record = systemInterface.db.chain(fileInfo.fileName, eval(statement.searchArg))
+                    if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(it.first, it.second) }
+                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
                     } else {
                         lastFound = false
                     }
-                    fileInfos[statement.name]!!.found = lastFound
+                    fileInfo.found = lastFound
                 }
                 else -> TODO(statement.toString())
             }
@@ -503,7 +578,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun render(value: Value): String {
         return when (value) {
-            is StringValue -> value.valueWithoutPadding
+            is StringValue -> value.valueWithoutPadding.trimEnd()
             is BooleanValue -> value.asString().value // TODO check if it's the best solution
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
@@ -525,6 +600,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
+
         return coercedValue
     }
 
@@ -540,7 +616,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val elementType = (target.array.type() as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
-                log(AssignmentOfElementLogEntry(target.array, index, evaluatedValue))
+                log(AssignmentOfElementLogEntry(this.interpretationContext.currentProgramName, target.array, index, evaluatedValue))
                 arrayValue.setElement(index, evaluatedValue)
                 return evaluatedValue
             }
@@ -663,7 +739,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
-        log(ExpressionEvaluationLogEntry(expression, value))
+        if (expression !is StringLiteral && expression !is IntLiteral &&
+                expression !is DataRefExpr && expression !is BlanksRefExpr)
+            log(ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value))
         return value
     }
 
@@ -680,7 +758,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
             }
             is DataRefExpr -> get(expression.variable.referred
-                    ?: throw IllegalStateException("[${interpretationContext.name}] Unsolved reference ${expression.variable.name} at ${expression.position}"))
+                    ?: throw IllegalStateException("[${interpretationContext.currentProgramName}] Unsolved reference ${expression.variable.name} at ${expression.position}"))
             is EqualityExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
@@ -877,6 +955,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
                 // TODO check type
+
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
             }
             is ExpExpr -> {
@@ -896,6 +975,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     return BooleanValue(lastFound)
                 }
                 TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
+            }
+            is AbsExpr -> {
+                val value = interpret(expression.value)
+                return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
             }
             else -> TODO(expression.toString())
         }
