@@ -565,4 +565,34 @@ class InterpreterTest {
             execute("ERROR01", emptyMap())
         }
     }
+
+    @Test
+    fun executeCHAIN2KEYS() {
+        val keysForTest = listOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("2"))
+        val someDescription = StringValue("Goofy")
+
+        val cu = assertASTCanBeProduced("CHAIN2KEYS")
+
+        val mockDBInterface: DBInterface = object : DBInterface {
+            val f1 = DBField("KY1TST", StringType(5))
+            val f2 = DBField("KY2TST", NumberType(2, 0))
+
+            val f3 = DBField("DESTST", StringType(40))
+
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
+
+            override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
+            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+                return listOf("DESTST" to someDescription)
+            }
+        }
+
+        cu.resolve(mockDBInterface)
+
+        val si = CollectorSystemInterface()
+        si.databaseInterface = mockDBInterface
+
+        val interpreter = execute(cu, keysForTest.toMap(), si)
+        assertEquals(listOf("Found: ${someDescription.value}"), si.displayed)
+    }
 }

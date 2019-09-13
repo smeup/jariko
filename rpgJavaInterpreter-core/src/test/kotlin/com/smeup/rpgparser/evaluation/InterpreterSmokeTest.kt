@@ -3,7 +3,6 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import org.junit.Ignore
 import org.junit.Test
 import java.lang.RuntimeException
 
@@ -74,25 +73,5 @@ class InterpreterSmokeTest {
 
         cu.resolve(mockDBInterface)
         execute(cu, mapOf())
-    }
-
-    @Test @Ignore
-    fun executeCHAIN2KEYS() {
-        val cu = assertASTCanBeProduced("CHAIN2KEYS")
-
-        val mockDBInterface: DBInterface = object : DBInterface {
-            val f1 = DBField("KY1TST", StringType(5))
-            val f2 = DBField("KY2TST", NumberType(2, 0))
-            val f3 = DBField("DESTST", StringType(40))
-
-            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
-
-            override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
-
-            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> = emptyList()
-        }
-
-        cu.resolve(mockDBInterface)
-        execute(cu, mapOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("2")))
     }
 }
