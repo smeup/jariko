@@ -22,11 +22,17 @@ sealed class Type {
         return size
     }
 
-    fun canBeAssigned(value: Value): Boolean {
+    open fun canBeAssigned(value: Value): Boolean {
         return value.assignableTo(this)
     }
 
     abstract val size: Long
+}
+object KListType : Type() {
+    override val size: Long
+        get() = 0
+
+    override fun canBeAssigned(value: Value): Boolean = false
 }
 data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
 

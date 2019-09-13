@@ -185,7 +185,9 @@ fun ParserRuleContext.factor1Context() = ((this.parent as Cspec_fixed_standardCo
 internal fun CsKLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): KListStmt {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.text ?: throw UnsupportedOperationException("Line ${position?.line()}: KLIST operation requires factor 1: $this.text")
-    val fields = this.csKFLD().map { it.cspec_fixed_standard_parts().result.text }
+    val fields = this.csKFLD().map {
+        it.cspec_fixed_standard_parts().result.text
+    }
     return KListStmt(factor1, fields, position)
 }
 

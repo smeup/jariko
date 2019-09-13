@@ -32,6 +32,10 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         }
     }
 
+    override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+        TODO("Many keys chain not implemented")
+    }
+
     private fun toValues(rs: ResultSet): List<Pair<String, Value>> {
         val result = mutableListOf<Pair<String, Value>>()
         rs.use {

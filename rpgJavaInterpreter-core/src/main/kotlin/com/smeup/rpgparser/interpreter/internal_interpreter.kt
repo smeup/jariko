@@ -11,11 +11,11 @@ import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
 import java.lang.System.currentTimeMillis
-import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
+import kotlin.UnsupportedOperationException
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
@@ -63,6 +63,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val predefinedIndicators = HashMap<Int, Value>()
     val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
     var interpretationContext: InterpretationContext = DummyInterpretationContext
+    val klists = HashMap<String, List<String>>()
 
     /**
      * This is useful for debugging, so we can avoid infinite loops
@@ -245,15 +246,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 is PlistStmt -> {
                     statement.params.forEach {
-                        var value: Value? = null
                         if (globalSymbolTable.contains(it.param.name)) {
-                            value = globalSymbolTable[it.param.name]
+                            val value = globalSymbolTable[it.param.name]
                             log(ParamListStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, it.param.name, value))
                         }
                     }
-
-                    null
                 } /* Nothing to do here */
+                is KListStmt -> {
+                    // TODO Add logging as for PlistStmt
+                    klists[statement.name] = statement.fields
+                }
                 is ClearStmt -> {
                     return when (statement.value) {
                         is DataRefExpr -> {
@@ -268,10 +270,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     assign(statement.target, eval(statement.expression))
                 }
                 is TimeStmt -> {
-                    return when (statement.value) {
+                    when (statement.value) {
                         is DataRefExpr -> {
                             assign(statement.value, TimeStampValue(Date()))
-                            Unit
                         }
                         else -> throw UnsupportedOperationException("I do not know how to set TIME to ${statement.value}")
                     }
@@ -477,7 +478,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     require(fileInfo != null) {
                         "Line: ${statement.position.line()} - File definition ${statement.name} not found"
                     }
-                    val record = systemInterface.db.chain(fileInfo.fileName, eval(statement.searchArg))
+                    val record = if (statement.searchArg.type() is KListType) {
+                        val kListName = statement.searchArg.render().toUpperCase()
+                        val parms = klists[kListName]
+                        require(parms != null) {
+                            "Line: ${statement.position.line()} - KList not found: $kListName"
+                        }
+                        val searchValues = parms.map { it to get(it) }
+                        systemInterface.db.chain(fileInfo.fileName, searchValues)
+                    } else {
+                        systemInterface.db.chain(fileInfo.fileName, eval(statement.searchArg))
+                    }
                     if (!record.isEmpty()) {
                         lastFound = true
                         record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
@@ -1093,5 +1104,6 @@ fun blankValue(type: Type): Value {
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
+        is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
     }
 }

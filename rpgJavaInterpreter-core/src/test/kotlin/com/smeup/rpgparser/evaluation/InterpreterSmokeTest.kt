@@ -5,6 +5,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
+import java.lang.RuntimeException
 
 class InterpreterSmokeTest {
 
@@ -35,6 +36,10 @@ class InterpreterSmokeTest {
         val cu = assertASTCanBeProduced("CHAINHOSTS")
 
         val mockDBInterface: DBInterface = object : DBInterface {
+            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+                throw RuntimeException("Should not get here")
+            }
+
             val hostField = DBField("HOSTNME1", StringType(255))
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
@@ -61,13 +66,16 @@ class InterpreterSmokeTest {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
 
             override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
+
+            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+                throw RuntimeException("Should not get here")
+            }
         }
 
         cu.resolve(mockDBInterface)
         execute(cu, mapOf())
     }
 
-    // TODO Implement KLIST
     @Test @Ignore
     fun executeCHAIN2KEYS() {
         val cu = assertASTCanBeProduced("CHAIN2KEYS")
@@ -79,15 +87,9 @@ class InterpreterSmokeTest {
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
 
-            override fun chain(name: String, key: Value): List<Pair<String, Value>> =
-                    emptyList()
-            // TODO Implement KLIST
-            // ...
-//                    if (name.equals("MyFile2", ignoreCase = true)) {
-//                        listOf(hostField.name to StringValue("loopback"))
-//                    } else {
-//                        emptyList()
-//                    }
+            override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
+
+            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> = emptyList()
         }
 
         cu.resolve(mockDBInterface)
