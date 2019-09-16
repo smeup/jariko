@@ -2,6 +2,7 @@ package com.smeup.rpgparser.jvminterop
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import java.io.PrintStream
 import java.util.*
@@ -9,12 +10,13 @@ import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
 open class JavaSystemInterface(
-    private val outputStream: PrintStream,
-    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
-    private val databaseInterface: DBInterface = DummyDBInterface,
-    var loggingConfiguration: LoggingConfiguration? = null
+        private val outputStream: PrintStream,
+        private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
+        private val databaseInterface: DBInterface = DummyDBInterface,
+        var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 
+    override var executedAnnotation: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -81,4 +83,14 @@ open class JavaSystemInterface(
     override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
         TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
+
+    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+        executedAnnotation[line] = annotation
+    }
+
+    override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return executedAnnotation
+    }
+
+
 }

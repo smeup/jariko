@@ -367,13 +367,13 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
                 DataRefExpr(ReferenceByName(this.container.text), this.container!!.toPosition(conf.considerPosition)),
                 this.field.text,
                 toPosition(conf.considerPosition))
-        is IndicatorTargetContext -> PredefinedIndicatorExpr(
-                this.indic.text.indicatorIndex()!!,
-                toPosition(conf.considerPosition)
-        )
-        is GlobalIndicatorTargetContext -> PredefinedGlobalIndicatorExpr(
-                toPosition(conf.considerPosition)
-        )
+//        is IndicatorTargetContext -> PredefinedIndicatorExpr(
+//                this.indic.text.indicatorIndex()!!,
+//                toPosition(conf.considerPosition)
+//        )
+//        is GlobalIndicatorTargetContext -> PredefinedGlobalIndicatorExpr(
+//                toPosition(conf.considerPosition)
+//        )
         else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
     }
 }

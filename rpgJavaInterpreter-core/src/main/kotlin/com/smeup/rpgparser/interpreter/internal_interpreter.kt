@@ -63,7 +63,7 @@ class FileInformationMap {
 class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
-    val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
+
     var interpretationContext: InterpretationContext = DummyInterpretationContext
 
     /**
@@ -196,7 +196,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
                     val value = interpretConcrete(exp)
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
-                    executedAnnotation[it.position!!.start.line] = MuteAnnotationExecuted(exp, it.val1, it.val2, value, value1, value2)
+                    systemInterface.addExecutedAnnotation(it.position!!.start.line,MuteAnnotationExecuted(exp, it.val1, it.val2, value, value1, value2))
                 }
                 is MuteTypeAnnotation -> {
                     // Skip

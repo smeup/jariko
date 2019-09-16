@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -196,6 +197,7 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
 open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+    override var executedAnnotation: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -220,6 +222,14 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     override fun display(value: String) {
         displayed.add(value)
         if (printOutput) println(value)
+    }
+
+    override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return this.executedAnnotation
+    }
+
+    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+        executedAnnotation[line] = annotation
     }
 }
 

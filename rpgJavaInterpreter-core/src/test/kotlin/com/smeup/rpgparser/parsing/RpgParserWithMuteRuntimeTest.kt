@@ -53,45 +53,45 @@ public class RpgParserWithMuteRuntimeTest {
         cu.resolve()
         val interpreter = execute(cu, mapOf())
 
-        assertEquals(interpreter.executedAnnotation.size, 8)
+        assertEquals(interpreter.systemInterface.getExceutedAnnotation().size, 8)
 
         // VAL1(FIELD1) VAL2('AAAA') COMP(EQ)
-        var annotation = interpreter.executedAnnotation[3]
+        var annotation = interpreter.systemInterface.getExceutedAnnotation()[3]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         // VAL1(NBR) VAL2(11) COMP(LT)
-        annotation = interpreter.executedAnnotation[7]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[7]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         // VAL1(FIELD1) VAL2('A ' + ' B') COMP(NE)
-        annotation = interpreter.executedAnnotation[14]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[14]
         assertTrue(actual = annotation != null)
         assertFalse(annotation.result.asBoolean().value)
 
         // VAL1(B) VAL2(1) COMP(GE)
-        annotation = interpreter.executedAnnotation[16]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[16]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         // VAL1(B) VAL2(1) COMP(LE)
-        annotation = interpreter.executedAnnotation[17]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[17]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         // VAL1(B) VAL2(1) COMP(GT)
-        annotation = interpreter.executedAnnotation[19]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[19]
         assertTrue(actual = annotation != null)
         assertFalse(annotation.result.asBoolean().value)
 
         // VAL1(B) VAL2(1) COMP(LT)
-        annotation = interpreter.executedAnnotation[20]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[20]
         assertTrue(actual = annotation != null)
         assertFalse(annotation.result.asBoolean().value)
 
         // VAL1(COUNT) VAL2(4) COMP(LE)
-        annotation = interpreter.executedAnnotation[28]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[28]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
     }
@@ -102,31 +102,31 @@ public class RpgParserWithMuteRuntimeTest {
         cu.resolve()
         val interpreter = execute(cu, mapOf())
 
-        assertEquals(interpreter.executedAnnotation.size, 5)
+        assertEquals(interpreter.systemInterface.getExceutedAnnotation().size, 5)
 
         // VAL1(VAR1) VAL2(%TRIM(' AAAA ')) COMP(EQ)
-        var annotation = interpreter.executedAnnotation[3]
+        var annotation = interpreter.systemInterface.getExceutedAnnotation()[3]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         //  VAL1(VALUE1) VAL2('AAA:') COMP(EQ)
-        annotation = interpreter.executedAnnotation[10]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[10]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         //  VAL1(VALUE1) VAL2('  AAA:') COMP(EQ)
-        annotation = interpreter.executedAnnotation[12]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[12]
         assertTrue(actual = annotation != null)
         // this one fail, as expected
         assertFalse(annotation.result.asBoolean().value)
 
         //  VAL1(%TRIMR(VAR1) +':') VAL2('  AAA:') COMP(EQ)
-        annotation = interpreter.executedAnnotation[14]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[14]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         //  VAL1(VALUE1) VAL2('AAA                         :') COMP(NE)
-        annotation = interpreter.executedAnnotation[15]
+        annotation = interpreter.systemInterface.getExceutedAnnotation()[15]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
     }
@@ -137,10 +137,10 @@ public class RpgParserWithMuteRuntimeTest {
         cu.resolve()
         val interpreter = execute(cu, mapOf())
 
-        assertEquals(interpreter.executedAnnotation.size, 1)
+        assertEquals(interpreter.systemInterface.getExceutedAnnotation().size, 1)
 
         // VAL1(AR(1)) VAL2(4) COMP(NE)
-        val annotation = interpreter.executedAnnotation[2]
+        val annotation = interpreter.systemInterface.getExceutedAnnotation()[2]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
     }
