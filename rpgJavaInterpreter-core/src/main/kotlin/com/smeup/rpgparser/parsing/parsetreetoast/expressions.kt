@@ -4,6 +4,11 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.ReferenceByName
+import java.math.BigDecimal
+import java.text.NumberFormat
+import java.util.Locale
+
+
 
 internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
@@ -54,8 +59,20 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
     val position = this.toPosition(conf.considerPosition)
     require(this.NumberPart().isEmpty(), { "Number not empty $position" })
     val text = (this.MINUS()?.text ?: "") + this.NUMBER().text
+
+    // TODO Maurizio
+    // Requirement:
+    // Quando si assegna direttamente un valore ad un campo numerico,
+    // si può utilizzare indifferentemente come separatore decimale il punto o la virgola
     return if (text.contains('.')) {
-        RealLiteral(text.toBigDecimal(), position)
+        val nf = NumberFormat.getNumberInstance(Locale.US)
+        val bd = BigDecimal(nf.parse(text).toString())
+        RealLiteral(bd,position)
+        //RealLiteral(text.toBigDecimal(), position)
+    } else if(text.contains(',')){
+        val nf = NumberFormat.getNumberInstance(Locale.ITALIAN)
+        val bd = BigDecimal(nf.parse(text).toString())
+        RealLiteral(bd,position)
     } else {
         IntLiteral(text.toLong(), position)
     }
