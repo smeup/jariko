@@ -26,8 +26,7 @@ plugins {
 apply plugin: 'antlr'
 
 def antlrVersion = ext.antlr_version
-def generatedRoot = "generated-src"
-def generatedMain = generatedRoot + "/antlr/main"
+def generatedMain = "generated-src/antlr/main"
 def generatedMainFile = file(generatedMain)
 
 dependencies {
@@ -68,12 +67,16 @@ compileJava.source generatedMainFile, sourceSets.main.java
 compileKotlin.source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
 
 clean {
-    delete file(generatedRoot)
+    delete file(generatedMain)
+    mkdir generatedMain
 }
 
 idea {
     module {
+        println 'Adding ' + generatedMainFile + ' to source dirs'
+        mkdir generatedMain
         sourceDirs += generatedMainFile
+        println sourceDirs
     }
 }
 
