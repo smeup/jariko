@@ -93,7 +93,7 @@ task testFailing(type: Test) {
 
 test {
     testLogging {
-        events "passed", "skipped", "failed"
+        events "failed"
     }
     useJUnit {
         excludeCategories 'com.smeup.rpgparser.PerformanceTest'
@@ -136,8 +136,6 @@ jacocoTestReport {
     }
 }
 
-check.dependsOn jacocoTestReport
-
 //gradlew runExample -Pargs="CALCFIB,9"
 task runExample (type: JavaExec) {
     if(project.hasProperty('programArgs')){
@@ -164,3 +162,4 @@ task runMutesTests(type: JavaExec) {
 }
 
 check.dependsOn runMutesTests
+check.dependsOn jacocoTestReport
