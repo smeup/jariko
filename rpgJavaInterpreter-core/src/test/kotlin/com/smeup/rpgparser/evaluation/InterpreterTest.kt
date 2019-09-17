@@ -560,10 +560,8 @@ class InterpreterTest {
 
     @Test @Ignore
     fun executeDOU() {
-        assertEquals(listOf("1", "2", "3"),
-                     outputOf("DOU", mapOf("inN" to StringValue("3"))))
+        assertEquals(listOf("1", "2", "3"), outputOf("DOU", mapOf("inN" to StringValue("3"))))
     }
-
 
     @Test
     fun executeProgramWithRuntimeError() {
