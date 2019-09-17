@@ -16,7 +16,6 @@ import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
@@ -63,6 +62,8 @@ class FileInformationMap {
 class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
+    // TODO default value DECEDIT can be changed
+    var decedit : String  = "."
 
     var interpretationContext: InterpretationContext = DummyInterpretationContext
 
@@ -196,7 +197,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
                     val value = interpretConcrete(exp)
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
-                    systemInterface.addExecutedAnnotation(it.position!!.start.line,MuteAnnotationExecuted(exp, it.val1, it.val2, value, value1, value2))
+                    systemInterface.addExecutedAnnotation(
+                            it.position!!.start.line,
+                            MuteAnnotationExecuted(this.interpretationContext.currentProgramName,
+                                    exp, it.val1,
+                                    it.val2,
+                                    value,
+                                    value1,
+                                    value2))
                 }
                 is MuteTypeAnnotation -> {
                     // Skip
@@ -943,7 +951,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val n = eval(expression.value)
                 val format = eval(expression.format)
                 if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
-                return n.asDecimal().formatAs(format.value, expression.value.type())
+                return n.asDecimal().formatAs(format.value, expression.value.type(),this.decedit)
             }
             is DiffExpr -> {
                 // TODO expression.durationCode
@@ -955,6 +963,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
                 // TODO check type
+                if(v1 is DecimalValue && v2 is DecimalValue) {
+                    // TODO maurizio need to know the target size
+                    val res = v1.value.toDouble()/v2.value.toDouble()
+                    return DecimalValue( BigDecimal(res))
+                }
+
 
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
             }
@@ -997,8 +1011,8 @@ private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
-private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
-    fun signumChar() = (if (this.value < BigDecimal.ZERO) "-" else " ")
+private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): StringValue {
+    fun signumChar(empty: Boolean) = (if (this.value < BigDecimal.ZERO) "-" else if(empty) "" else " ")
 
     fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
     fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
@@ -1009,41 +1023,87 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
     fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
 
-    fun f1(): String {
+    fun f1(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
-        val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
-        return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
+
+        when(decedit) {
+            "," -> {
+                val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
+            }
+            else -> {
+                val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+                return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
+            }
+        }
+
+
     }
 
-    fun f2(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + nrOfPunctuationsIn(type as NumberType)) else f1()
+    fun f2(decedit: String): String = if (this.value.isZero()) "".padStart(type.size.toInt() + nrOfPunctuationsIn(type as NumberType)) else f1(decedit)
 
-    fun f3(): String {
+    fun f3(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
-        val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
-        return s.padStart(type.size.toInt() + points(type))
+        when (decedit) {
+            "," -> {
+                val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                return s.padStart(type.size.toInt() + points(type))
+            }
+            else -> {
+                val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+                return s.padStart(type.size.toInt() + points(type))
+
+            }
+        }
     }
 
-    fun f4(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + points(type as NumberType)) else f3()
+    fun f4(decedit: String): String = if (this.value.isZero()) "".padStart(type.size.toInt() + points(type as NumberType)) else f3(decedit)
 
-    fun fJ(): String = f1() + signumChar()
+    fun fA(decedit: String): String   {
+        if( this.value.compareTo( BigDecimal.ZERO ) < 0 ) {
+            return f1(decedit) + "CR"
+        } else {
+            return f1(decedit)
+        }
+    }
 
-    fun fK(): String = f2() + signumChar()
+    fun fB(decedit: String): String = fA(decedit)
 
-    fun fL(): String = f3() + signumChar()
+    fun fC(decedit: String): String   {
+        if( this.value.compareTo( BigDecimal.ZERO ) < 0 ) {
+            return f3(decedit) + "CR"
+        } else {
+            return f3(decedit)
+        }
+    }
 
-    fun fM(): String = f4() + signumChar()
+    fun fD(decedit: String): String   {
+        if( this.value.compareTo( BigDecimal.ZERO ) < 0 ) {
+            return f3(decedit) + "CR"
+        } else {
+            return f3(decedit)
+        }
+    }
 
-    fun fN(): String = signumChar() + f1()
+    fun fJ(decedit: String): String = f1(decedit) + signumChar(true)
 
-    fun fO(): String = signumChar() + f2()
+    fun fK(decedit: String): String = f2(decedit) + signumChar(true)
 
-    fun fP(): String = signumChar() + f3()
+    fun fL(decedit: String): String = f3(decedit) + signumChar(true)
 
-    fun fQ(): String = signumChar() + f4()
+    fun fM(decedit: String): String = f4(decedit) + signumChar(true)
+
+    fun fN(decedit: String): String = signumChar(false) + f1(decedit)
+
+    fun fO(decedit: String): String = signumChar(false) + f2(decedit)
+
+    fun fP(decedit: String): String = signumChar(false) + f3(decedit)
+
+    fun fQ(decedit: String): String = signumChar(false) + f4(decedit)
 
     fun toBlnk(c: Char) = if (c == '0') ' ' else c
 
-    fun fY(): String {
+    fun fY(decedit: String): String {
         var stringN = this.value.abs().unscaledValue().toString().trim()
         return if (stringN.length <= 6) {
             stringN = stringN.padStart(6, '0')
@@ -1054,30 +1114,47 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
         }
     }
 
-    fun fZ(): String {
-        val s = if (this.value.isZero()) {
+
+    fun fX(decedit: String): String {
+        var s =  if (this.value.isZero()) {
             ""
         } else {
-            this.value.abs().unscaledValue().toString()
+            f1(decedit).replace(".", "").replace(",", "").trim()
+        }
+        return s.padStart(type.size.toInt(),'0')
+    }
+
+
+    fun fZ(decedit: String): String {
+        var s =  if (this.value.isZero()) {
+            ""
+        } else {
+            f1(decedit).replace(".", "").replace(",", "").trim()
         }
         return s.padStart(type.size.toInt())
+
     }
 
     return when (format) {
-        "1" -> StringValue(f1())
-        "2" -> StringValue(f2())
-        "3" -> StringValue(f3())
-        "4" -> StringValue(f4())
-        "J" -> StringValue(fJ())
-        "K" -> StringValue(fK())
-        "L" -> StringValue(fL())
-        "M" -> StringValue(fM())
-        "N" -> StringValue(fN())
-        "O" -> StringValue(fO())
-        "P" -> StringValue(fP())
-        "Q" -> StringValue(fQ())
-        "Y" -> StringValue(fY())
-        "Z" -> StringValue(fZ())
+        "1" -> StringValue(f1(decedit))
+        "2" -> StringValue(f2(decedit))
+        "3" -> StringValue(f3(decedit))
+        "4" -> StringValue(f4(decedit))
+        "A" -> StringValue(fA(decedit))
+        "B" -> StringValue(fB(decedit))
+        "C" -> StringValue(fC(decedit))
+        "D" -> StringValue(fD(decedit))
+        "X" -> StringValue(fX(decedit))
+        "J" -> StringValue(fJ(decedit))
+        "K" -> StringValue(fK(decedit))
+        "L" -> StringValue(fL(decedit))
+        "M" -> StringValue(fM(decedit))
+        "N" -> StringValue(fN(decedit))
+        "O" -> StringValue(fO(decedit))
+        "P" -> StringValue(fP(decedit))
+        "Q" -> StringValue(fQ(decedit))
+        "Y" -> StringValue(fY(decedit))
+        "Z" -> StringValue(fZ(decedit))
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
 }
