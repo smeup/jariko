@@ -559,6 +559,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeECHO() {
+        assertEquals(listOf("Hello"), outputOf("ECHO", mapOf("inTxt" to StringValue("Hello"))))
+    }
+
+    @Test @Ignore
     fun executeDOU() {
         assertEquals(listOf("1", "2", "3"), outputOf("DOU", mapOf("inN" to StringValue("3"))))
     }
