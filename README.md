@@ -6,7 +6,7 @@
 [![codebeat badge](https://codebeat.co/badges/92633ae2-5640-47b3-a0e7-b324f68288ac)](https://codebeat.co/projects/github-com-smeup-smeup-rpg-master)
 [![](https://jitpack.io/v/smeup/smeup-rpg.svg)](https://jitpack.io/#smeup/smeup-rpg)
 
-This project contains an interpreter for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). This interpreter runs on the JVM. The interpreter is written in Kotlin.
+This project contains an interpreter for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). This interpreter runs on the JVM since it's written in Kotlin.
 
 ## Development
 
