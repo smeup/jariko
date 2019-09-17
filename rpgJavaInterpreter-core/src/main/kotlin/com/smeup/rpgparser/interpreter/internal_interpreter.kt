@@ -63,7 +63,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val predefinedIndicators = HashMap<Int, Value>()
     val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
     var interpretationContext: InterpretationContext = DummyInterpretationContext
-    val klists = HashMap<String, List<String>>()
+    private val klists = HashMap<String, List<String>>()
 
     /**
      * This is useful for debugging, so we can avoid infinite loops

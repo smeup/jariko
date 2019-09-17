@@ -42,6 +42,12 @@ internal fun RpgParser.BlockContext.toAst(conf: ToAstConfiguration = ToAstConfig
                     position = toPosition(conf.considerPosition))
         }
         this.forstatement() != null -> this.forstatement().toAst(conf)
+        this.begindou() != null -> {
+            val endExpression = this.begindou().csDOU().fixedexpression.expression().toAst(conf)
+            DouStmt(endExpression,
+                    this.statement().map { it.toAst(conf) },
+                    position = toPosition(conf.considerPosition))
+        }
         else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }
 }

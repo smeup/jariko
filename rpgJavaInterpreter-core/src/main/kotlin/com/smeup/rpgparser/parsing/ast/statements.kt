@@ -248,6 +248,12 @@ data class DowStmt(
     override val position: Position? = null
 ) : Statement(position)
 
+data class DouStmt(
+    val endExpression: Expression,
+    val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position)
+
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 
 data class IterStmt(override val position: Position? = null) : Statement(position)
