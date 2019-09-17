@@ -17,7 +17,7 @@ import org.junit.Test
 import kotlin.test.assertTrue
 
 
-public class RpgParserOverlayTest09 {
+public class RpgDeceditTest09 {
 
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
@@ -49,24 +49,17 @@ public class RpgParserOverlayTest09 {
         return ast
     }
 
-    @Test
-    fun parseMUTE09_02_syntax() {
-        val result = assertCanBeParsed("overlay/MUTE09_02", withMuteSupport = true)
-    }
 
     @Test
-    fun parseMUTE09_02_ast() {
-        val cu = assertASTCanBeProduced("overlay/MUTE09_02", considerPosition = true, withMuteSupport = true)
-    }
-
-    @Test
-    fun parseMUTE09_02_runtime() {
-        val cu = assertASTCanBeProduced("overlay/MUTE09_02", considerPosition = true, withMuteSupport = true)
+    fun parseMUTE09_02_default() {
+        val cu = assertASTCanBeProduced("overlay/MUTE09_02_DEFAULT", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
         var failed : Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
+
+
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
@@ -74,12 +67,37 @@ public class RpgParserOverlayTest09 {
                 assertTrue(annotation.result.asBoolean().value)
 
             } catch (e:AssertionError) {
-                println("$line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
         if(failed > 0) {
-            throw AssertionError("$failed failed annotation(s)")
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
+    }
+    @Test
+    fun parseMUTE09_02_comma() {
+        val cu = assertASTCanBeProduced("overlay/MUTE09_02_COMMA", considerPosition = true, withMuteSupport = true)
+        cu.resolve()
+
+        var failed : Int = 0
+
+        val interpreter = InternalInterpreter(JavaSystemInterface())
+
+        interpreter.decedit = ","
+        interpreter.execute(cu, mapOf())
+        val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
+        annotations.forEach { (line, annotation) ->
+            try {
+                assertTrue(annotation.result.asBoolean().value)
+
+            } catch (e:AssertionError) {
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                failed++
+            }
+        }
+        if(failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
 
