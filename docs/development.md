@@ -108,3 +108,8 @@ If you omit the program name, you will be able to call programs in a [simple she
 ## Autoformatting
 
 It can be performed using the task `ktlintFormat`.
+
+You can check formatting rules using:
+``` 
+gradlew ktlintCheck
+``` 

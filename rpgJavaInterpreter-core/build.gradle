@@ -19,10 +19,6 @@ buildscript {
     }
 }
 
-plugins {
-    id "org.jlleitschuh.gradle.ktlint" version "8.2.0"
-}
-
 apply plugin: 'antlr'
 
 def antlrVersion = ext.antlr_version
