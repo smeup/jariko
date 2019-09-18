@@ -2,6 +2,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
@@ -67,9 +68,8 @@ class InterpreterSmokeTest {
 
             override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
 
-            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> =
                 throw RuntimeException("Should not get here")
-            }
         }
 
         cu.resolve(mockDBInterface)
@@ -86,14 +86,17 @@ class InterpreterSmokeTest {
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
 
-            override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
+            override fun chain(name: String, key: Value): List<Pair<String, Value>> =
+                listOf("FIRSTNME" to StringValue("Giovanni"), "LASTNAME" to StringValue("Boccaccio"))
 
-            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> =
                 throw RuntimeException("Should not get here")
-            }
         }
 
         cu.resolve(mockDBInterface)
-        execute(cu, mapOf())
+        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
+        si.databaseInterface = mockDBInterface
+
+        execute(cu, mapOf(), si)
     }
 }
