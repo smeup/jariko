@@ -436,6 +436,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         log(DowStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                     }
                 }
+                is DouStmt -> {
+                    var loopCounter: Long = 0
+                    var startTime = currentTimeMillis()
+                    try {
+                        log(DouStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement))
+                        do {
+                            execute(statement.body)
+                            loopCounter++
+                        } while (!eval(statement.endExpression).asBoolean().value)
+                        val elapsed = currentTimeMillis() - startTime
+                        log(DouStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
+                    } catch (e: LeaveException) {
+                        val elapsed = currentTimeMillis() - startTime
+                        log(DouStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
+                    }
+                }
                 is SubDurStmt -> {
                     when (statement.target) {
                         is DataRefExpr -> {

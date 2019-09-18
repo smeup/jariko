@@ -204,6 +204,41 @@ class DoStatemenExecutionLogEnd(programName: String, val statement: DoStmt, val 
     }
 }
 
+class DouStatemenExecutionLogStart(programName: String, val statement: DouStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing DOU LOOP"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "DOU LOOP START${sep}${statement.endExpression.render()} ${statement.endExpression.render()} "
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+
+    override fun renderLoop(channel: String, filename: String, sep: String): String {
+        val data = "DOU LOOP START${sep}${statement.endExpression.render()} ${statement.endExpression.render()} "
+
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+class DouStatemenExecutionLogEnd(programName: String, val statement: DouStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ending DOU LOOP"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.endLine(), sep) + "DO LOOP END"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "DO LOOP END${sep}${elapsed}${sep}ms"
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+    override fun renderLoop(channel: String, filename: String, sep: String): String {
+        val data = "DO LOOP END${sep}$loopCounter "
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+
 class DowStatemenExecutionLogStart(programName: String, val statement: DowStmt) : LogEntry(programName) {
     override fun toString(): String {
         return "executing DOW LOOP"
