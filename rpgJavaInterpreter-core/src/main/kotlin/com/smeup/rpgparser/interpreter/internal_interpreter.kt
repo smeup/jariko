@@ -746,12 +746,45 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is DecimalValue -> {
                 when(type) {
                     is NumberType -> {
+                        // TODO verifiy the Rounding mode
                         if(type.decimalDigits < value.value.scale()) {
                             return DecimalValue(value.value.setScale(type.decimalDigits,RoundingMode.HALF_EVEN))
                         }
                         return value
                     }
                     else -> TODO("Converting DecimalValue to $type")
+                }
+            }
+            is HiValValue -> {
+                when(type) {
+                    is NumberType -> {
+                        if (type.decimalDigits == 0) {
+                            val ed = "9".repeat(type.entireDigits)
+                            return  IntValue("$ed".toLong())
+                        } else {
+                            val ed = "9".repeat(type.entireDigits)
+                            val dd = "9".repeat(type.decimalDigits)
+                            return  DecimalValue("$ed.$dd".toBigDecimal())
+                        }
+
+                    }
+                    else -> TODO("Converting HiValValue to $type")
+                }
+            }
+            is LowValValue -> {
+                when (type) {
+                    is NumberType -> {
+                        if (type.decimalDigits == 0) {
+                            val ed = "9".repeat(type.entireDigits)
+                            return  IntValue("-$ed".toLong())
+                        } else {
+                            val ed = "9".repeat(type.entireDigits)
+                            val dd = "9".repeat(type.decimalDigits)
+                            return  DecimalValue(("-$ed.$dd".toBigDecimal()))
+                        }
+
+                    }
+                    else -> TODO("Converting LowValValue to $type")
                 }
             }
             else -> value
@@ -868,6 +901,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return arrayValue.getElement(indexValue.asInt().value.toInt())
             }
             is HiValExpr -> return HiValValue
+            is LowValExpr -> return LowValValue
             is TranslateExpr -> {
                 val originalChars = eval(expression.from).asString().valueWithoutPadding
                 val newChars = eval(expression.to).asString().valueWithoutPadding
@@ -1007,6 +1041,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val value = interpret(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
             }
+
             else -> TODO(expression.toString())
         }
     }
@@ -1186,6 +1221,7 @@ fun blankValue(type: Type): Value {
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
         is CharacterType -> CharacterValue(Array(type.nChars.toInt()) { ' ' })
+        is PackedType -> IntValue(0)
     }
 }
 
