@@ -108,6 +108,13 @@ data class ChainStmt(
 ) :
     Statement(position)
 
+data class ReadEqualStmt(
+    val searchArg: Expression?, // Factor1
+    val name: String, // Factor 2
+    override val position: Position? = null
+) :
+    Statement(position)
+
 data class CheckStmt(
     val comparatorString: Expression, // Factor1
     val baseString: Expression,
