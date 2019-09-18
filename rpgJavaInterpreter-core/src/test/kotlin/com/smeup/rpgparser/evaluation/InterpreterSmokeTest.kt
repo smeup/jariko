@@ -3,6 +3,7 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import org.junit.Ignore
 import org.junit.Test
 import java.lang.RuntimeException
 
@@ -63,6 +64,27 @@ class InterpreterSmokeTest {
             val hostField = DBField("DESTST", StringType(40))
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
+
+            override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
+
+            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+                throw RuntimeException("Should not get here")
+            }
+        }
+
+        cu.resolve(mockDBInterface)
+        execute(cu, mapOf())
+    }
+
+    @Test @Ignore
+    fun executeCHAINREADE() {
+        val cu = assertASTCanBeProduced("CHAINREADE")
+
+        val mockDBInterface: DBInterface = object : DBInterface {
+            val first = DBField("FIRSTNME", StringType(40))
+            val last = DBField("LASTNAME", StringType(40))
+
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
 
             override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
 
