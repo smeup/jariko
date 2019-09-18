@@ -20,7 +20,7 @@ import java.io.File
 import kotlin.test.assertTrue
 
 
-public class RpgParserOverlayTest11 {
+class RpgParserOverlayTest11 {
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
         val result = RpgParserFacade()
@@ -90,16 +90,6 @@ public class RpgParserOverlayTest11 {
 
 
     @Test
-    fun parseMUTE11_16_syntax() {
-        val result = assertCanBeParsed("overlay/MUTE11_16", withMuteSupport = true)
-    }
-
-    @Test
-    fun parseMUTE11_16_ast() {
-        val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
-    }
-
-    @Test
     fun parseMUTE11_16_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
@@ -120,7 +110,7 @@ public class RpgParserOverlayTest11 {
             }
         }
         if(failed > 0) {
-            throw AssertionError("$failed failed annotation(s)")
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
 
