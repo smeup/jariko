@@ -542,5 +542,5 @@ fun List<InterpreterLogHandler>.log(logEntry: LogEntry) {
 }
 
 fun Position?.line() = this?.start?.line?.toString() ?: ""
-fun Node?.startLine() = this?.position?.start?.line.toString() ?: ""
-fun Node?.endLine() = this?.position?.end?.line.toString() ?: ""
+fun Node?.startLine() = this?.position?.start?.line?.toString() ?: ""
+fun Node?.endLine() = this?.position?.end?.line?.toString() ?: ""
