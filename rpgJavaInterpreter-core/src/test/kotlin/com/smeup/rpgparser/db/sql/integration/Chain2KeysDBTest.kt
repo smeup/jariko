@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 
 class Chain2KeysDBTest {
 
-    @Test @Ignore
+    @Test
     fun findsExistingRecord() {
         assertEquals(
                 listOf("Found: ABC12"),
