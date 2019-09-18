@@ -144,7 +144,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     .map {
                         coerce(StringValue(it), arrayType.element)
                     }
-                    .resizeTo(arrayType.nElements, blankValue(arrayType.element))
+                    .resizeTo(arrayType.nElements, arrayType.element.blank())
                     .toMutableList()
 
         return ConcreteArrayValue(l, arrayType.element)
@@ -688,7 +688,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     is ArrayType -> {
                         createArrayValue(type.element, type.nElements) {
-                            blankValue(type.element)
+                            type.element.blank()
                         }
                     }
                     is NumberType -> {
@@ -713,7 +713,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     is ArrayType -> {
                         createArrayValue(type.element, type.nElements) {
                             // TODO
-                            blankValue(type.element)
+                            type.element.blank()
                         }
                     }
                     // TODO
@@ -1003,7 +1003,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
-        return blankValue(dataDefinition.type)
+        return dataDefinition.type.blank()
     }
 }
 
@@ -1101,17 +1101,3 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
-
-fun blankValue(type: Type): Value {
-    return when (type) {
-        is ArrayType -> createArrayValue(type.element, type.nElements) {
-            blankValue(type.element)
-        }
-        is DataStructureType -> StringValue.blank(type.size.toInt())
-        is StringType -> StringValue.blank(type.size.toInt())
-        is NumberType -> IntValue(0)
-        is BooleanType -> BooleanValue(false)
-        is TimeStampType -> TimeStampValue.LOVAL
-        is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
-    }
-}
