@@ -14,7 +14,7 @@
       * DECEDIT(*JOBRUN) indica che il separatore dei decimali e delle migliaia vengono determinati
       *              a runtime in base ad una variabile di ambiente del job.
       * Se non indicato nulla assume DECEDIT('.').
-     H DECEDIT('.')
+     H DECEDIT(',')
      V*=====================================================================
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
