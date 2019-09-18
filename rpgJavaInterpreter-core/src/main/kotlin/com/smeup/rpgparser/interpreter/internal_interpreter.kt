@@ -13,6 +13,7 @@ import com.smeup.rpgparser.utils.*
 import java.lang.System.currentTimeMillis
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
@@ -739,6 +740,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         return value
                     }
                     else -> TODO("Converting ArrayValue to $type")
+                }
+            }
+
+            is DecimalValue -> {
+                when(type) {
+                    is NumberType -> {
+                        if(type.decimalDigits < value.value.scale()) {
+                            return DecimalValue(value.value.setScale(type.decimalDigits,RoundingMode.HALF_EVEN))
+                        }
+                        return value
+                    }
+                    else -> TODO("Converting DecimalValue to $type")
                 }
             }
             else -> value
