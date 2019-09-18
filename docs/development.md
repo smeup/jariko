@@ -33,7 +33,7 @@ Then run the tests:
 ```
 ./gradlew test
 ```
-You are now ready to import the gradle project into IDEA. We suggest to flag the "Automatically import this project on changes in build script files" option in gradle settings.
+You are now ready to import the gradle project into IDEA. We suggest to flag the *"Automatically import this project on changes in build script files"* option in gradle settings.
 
 [Here is a short video on how to setup a Linux workstation to develop this project with IDEA 2019](https://youtu.be/eByxIBsLMp4)
 
@@ -101,7 +101,7 @@ java -jar rpgJavaInterpreter-core-all.jar path/to/my/RPGLE [parameters]
 
 See also this animation:
 
-![Alt text](docs/images/Command_line_interpreter.gif?raw=true "Running interpreter from the command line")
+![Running interpreter from the command line](images/Command_line_interpreter.gif?raw=true "Running interpreter from the command line")
 
 If you omit the program name, you will be able to call programs in a [simple shell](https://youtu.be/uNd6h5H2wTM).
 
@@ -113,3 +113,5 @@ You can check formatting rules using:
 ``` 
 gradlew ktlintCheck
 ``` 
+We suggest to set the *"Kotlin style guide"* as the code style for this project: 
+![Code style settings](images/code_style.png)
