@@ -569,6 +569,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCOLDFILEFN() {
+        assertEquals(listOf("0", "0"), outputOf("COLDFILEFN"))
+    }
+
+    @Test
     fun executeDOU() {
         assertEquals(listOf("1", "2", "3"), outputOf("DOU", mapOf("inN" to StringValue("3"))))
         assertEquals(listOf("1"), outputOf("DOU", mapOf("inN" to StringValue("0"))))
