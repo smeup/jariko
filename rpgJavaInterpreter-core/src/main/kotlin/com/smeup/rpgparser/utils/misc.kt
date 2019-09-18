@@ -58,3 +58,5 @@ fun String.asInt(): Int = this.trim().toInt()
 
 fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
 fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this) == 0
+
+fun Any?.asNonNullString(): String = this?.toString() ?: ""
