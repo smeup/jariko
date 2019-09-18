@@ -558,9 +558,14 @@ class InterpreterTest {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeECHO() {
         assertEquals(listOf("Hello"), outputOf("ECHO", mapOf("inTxt" to StringValue("Hello"))))
+    }
+
+    @Test
+    fun executeECHO2() {
+        assertEquals(listOf("Hello"), outputOf("ECHO2", mapOf("inTxt" to StringValue("Hello"))))
     }
 
     @Test @Ignore

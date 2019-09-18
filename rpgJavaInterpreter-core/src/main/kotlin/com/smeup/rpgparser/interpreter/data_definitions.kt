@@ -116,5 +116,4 @@ class InStatementDataDefinition(
     override val type: Type,
     override val position: Position? = null,
     val initializationValue: Expression? = null
-) :
-            AbstractDataDefinition(name, type, position)
+) : AbstractDataDefinition(name, type, position)

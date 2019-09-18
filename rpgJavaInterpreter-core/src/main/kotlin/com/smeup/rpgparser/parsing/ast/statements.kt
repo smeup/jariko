@@ -185,7 +185,9 @@ data class PlistStmt(
     val params: List<PlistParam>,
     val isEntry: Boolean,
     override val position: Position? = null
-) : Statement(position)
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> = params.mapNotNull { it.dataDefinition }
+}
 
 data class PlistParam(
     val param: ReferenceByName<AbstractDataDefinition>,

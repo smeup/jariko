@@ -111,14 +111,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.allDataDefinitions.forEach {
+                var value: Value? = null
                 if (it is DataDefinition) {
-                    set(it, coerce(when {
-                        it.name in initialValues -> initialValues[it.name]
-                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                    value = when {
+                        it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
                         it.initializationValue != null -> interpret(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
                         else -> blankValue(it)
-                    }, it.type))
+                    }
+                } else if (it is InStatementDataDefinition && it.parent is PlistParam) {
+                    value = when {
+                        it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        else -> null
+                    }
+                }
+                if (value != null) {
+                    set(it, coerce(value, it.type))
                     executeMutes(it.muteAnnotations)
                 }
             }
