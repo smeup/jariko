@@ -76,6 +76,22 @@ idea {
     }
 }
 
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+        showCauses true
+        showExceptions true
+        showStackTraces true
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                println "------------------------------------------------------------------------------------"
+                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                println "------------------------------------------------------------------------------------"
+            }
+        }
+    }
+}
+
 //Always reruns all non-performance tests displaying just failing items
 task testFailing(type: Test) {
     outputs.upToDateWhen {false}
@@ -109,6 +125,7 @@ task testPerformance(type: Test) {
 task testAll(type: Test) {
     testLogging {
         events "passed", "skipped", "failed"
+        showStandardStreams true
     }
 }
 
