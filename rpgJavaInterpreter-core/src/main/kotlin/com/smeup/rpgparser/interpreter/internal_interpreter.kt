@@ -1221,7 +1221,6 @@ fun blankValue(type: Type): Value {
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
         is CharacterType -> CharacterValue(Array(type.nChars.toInt()) { ' ' })
-        is PackedType -> IntValue(0)
     }
 }
 
