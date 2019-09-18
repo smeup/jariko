@@ -32,6 +32,16 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
         }
     }
 
+    override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+        val keyNames = keys.map { it.first }
+        val sql = "SELECT * FROM $name ${keyNames.whereSQL()}"
+        val values = keys.map { it.second }
+        connection.prepareStatement(sql).use {
+            it.bind(values)
+            return toValues(it.executeQuery())
+        }
+    }
+
     private fun toValues(rs: ResultSet): List<Pair<String, Value>> {
         val result = mutableListOf<Pair<String, Value>>()
         rs.use {

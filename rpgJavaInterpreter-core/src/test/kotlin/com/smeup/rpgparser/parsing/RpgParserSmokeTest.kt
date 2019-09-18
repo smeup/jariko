@@ -164,4 +164,14 @@ class RpgParserSmokeTest {
     fun executeABSTEST() {
         assertCanBeParsed("ABSTEST")
     }
+
+    @Test
+    fun executeCHAIN2KEYS() {
+        assertCanBeParsed("CHAIN2KEYS")
+    }
+
+    @Test
+    fun executeCHAINREADE() {
+        assertCanBeParsed("CHAINREADE")
+    }
 }

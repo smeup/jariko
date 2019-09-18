@@ -10,13 +10,14 @@ import io.mockk.slot
 import org.apache.logging.log4j.LogManager
 import org.junit.Test
 import java.io.File
+import kotlin.test.Ignore
 import kotlin.test.assertNotNull
 import com.smeup.rpgparser.execution.main as runnerMain
 import org.apache.logging.log4j.Logger as L4JLogger
 
 class RunnerTest {
 
-    @Test
+    @Test @Ignore
     fun executeExample() {
         mockkStatic(LogManager::class)
 
@@ -66,7 +67,7 @@ class RunnerTest {
         assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t\tPERF\tEND TEST_06.rpgle") })
     }
 
-    @Test
+    @Test @Ignore
     fun executeExampleWithCall() {
         mockkStatic(LogManager::class)
 
