@@ -17,7 +17,7 @@ import org.junit.Test
 import kotlin.test.assertTrue
 
 
-public class RpgDeceditTest09 {
+class RpgDeceditTest09 {
 
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
@@ -83,8 +83,35 @@ public class RpgDeceditTest09 {
         var failed : Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
-
+        // Changes the default decedit
         interpreter.decedit = ","
+        interpreter.execute(cu, mapOf())
+        val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
+        annotations.forEach { (line, annotation) ->
+            try {
+                assertTrue(annotation.result.asBoolean().value)
+
+            } catch (e:AssertionError) {
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                failed++
+            }
+        }
+        if(failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
+    }
+
+
+    @Test
+    fun parseMUTE09_02A() {
+        val cu = assertASTCanBeProduced("overlay/MUTE09_02A", considerPosition = true, withMuteSupport = true)
+        cu.resolve()
+
+        var failed : Int = 0
+
+        val interpreter = InternalInterpreter(JavaSystemInterface())
+        interpreter.decedit = "0,"
+        // Changes the default decedit
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
