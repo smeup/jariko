@@ -10,6 +10,7 @@ import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
+import java.lang.Math.pow
 import java.lang.System.currentTimeMillis
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
@@ -726,7 +727,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         }
                     }
                     is DataStructureType -> {
-                        TODO("Converting String to $type")
+                        //TODO("Converting String to $type")
+                        return value
                     }
                     else -> TODO("Converting String to $type")
                 }
@@ -755,18 +757,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     else -> TODO("Converting DecimalValue to $type")
                 }
             }
+
+            // TODO support for integer
             is HiValValue -> {
                 when(type) {
                     is NumberType -> {
-                        if (type.decimalDigits == 0) {
-                            val ed = "9".repeat(type.entireDigits)
-                            return  IntValue("$ed".toLong())
-                        } else {
-                            val ed = "9".repeat(type.entireDigits)
-                            val dd = "9".repeat(type.decimalDigits)
-                            return  DecimalValue("$ed.$dd".toBigDecimal())
-                        }
-
+                        return computeHiValue(type)
                     }
                     else -> TODO("Converting HiValValue to $type")
                 }
@@ -774,15 +770,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is LowValValue -> {
                 when (type) {
                     is NumberType -> {
-                        if (type.decimalDigits == 0) {
-                            val ed = "9".repeat(type.entireDigits)
-                            return  IntValue("-$ed".toLong())
-                        } else {
-                            val ed = "9".repeat(type.entireDigits)
-                            val dd = "9".repeat(type.decimalDigits)
-                            return  DecimalValue(("-$ed.$dd".toBigDecimal()))
-                        }
-
+                        return computeLowValue(type)
                     }
                     else -> TODO("Converting LowValValue to $type")
                 }
@@ -1052,6 +1040,91 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 }
 
+private fun computeHiValue(type : NumberType) : Value {
+    // Packed and Zone
+    if( type.rpgType == "P" || type.rpgType == "S" || type.rpgType == "") {
+        if (type.decimalDigits == 0) {
+            val ed = "9".repeat(type.entireDigits)
+            return  IntValue("$ed".toLong())
+        } else {
+            val ed = "9".repeat(type.entireDigits)
+            val dd = "9".repeat(type.decimalDigits)
+            return  DecimalValue(("$ed.$dd".toBigDecimal()))
+        }
+    }
+    // Integer
+    if(  type.rpgType == "I" ) {
+        when(type.entireDigits) {
+            3  -> return IntValue(Byte.MAX_VALUE.toLong())
+            5  -> return IntValue(Short.MAX_VALUE.toLong())
+            10 -> return IntValue(Int.MAX_VALUE.toLong())
+        }
+    }
+    // Unsigned
+    if( type.rpgType == "U") {
+        when(type.entireDigits) {
+            3  -> return IntValue(UByte.MAX_VALUE.toLong())
+            5  -> return IntValue(UShort.MAX_VALUE.toLong())
+            10 -> return IntValue(UInt.MAX_VALUE.toLong())
+        }
+    }
+    // Binary
+    if( type.rpgType == "B") {
+        when(type.entireDigits) {
+            2  -> {
+                val ed = "9".repeat(4)
+                return  IntValue("$ed".toLong())
+            }
+            4  -> {
+                val ed = "9".repeat(9)
+                return  IntValue("$ed".toLong())
+            }
+
+        }
+    }
+    TODO("")
+}
+
+private fun computeLowValue(type : NumberType) : Value {
+    // Packed and Zone
+    if( type.rpgType == "P" || type.rpgType == "S") {
+        if (type.decimalDigits == 0) {
+            val ed = "9".repeat(type.entireDigits)
+            return  IntValue("-$ed".toLong())
+        } else {
+            val ed = "9".repeat(type.entireDigits)
+            val dd = "9".repeat(type.decimalDigits)
+            return  DecimalValue(("-$ed.$dd".toBigDecimal()))
+        }
+    }
+    // Integer
+    if(  type.rpgType == "I" ) {
+        when (type.entireDigits) {
+            3 -> return IntValue(Byte.MIN_VALUE.toLong())
+            5 -> return IntValue(Short.MIN_VALUE.toLong())
+            10 -> return IntValue(Int.MIN_VALUE.toLong())
+        }
+    }
+    // Unsigned
+    if( type.rpgType == "U") {
+        return  IntValue(0)
+    }
+    // Binary
+    if( type.rpgType == "B") {
+        when(type.entireDigits) {
+            2  -> {
+                val ed = "9".repeat(4)
+                return  IntValue("-$ed".toLong())
+            }
+            4  -> {
+                val ed = "9".repeat(9)
+                return  IntValue("-$ed".toLong())
+            }
+
+        }
+    }
+    TODO("")
+}
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
     return type.canBeAssigned(value)
 }
@@ -1079,6 +1152,10 @@ private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): 
                 val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
                 return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
             }
+            "0," -> {
+                val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
+            }
             else -> {
                 val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
                 return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
@@ -1094,6 +1171,10 @@ private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): 
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         when (decedit) {
             "," -> {
+                val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                return s.padStart(type.size.toInt() + points(type))
+            }
+            "0," -> {
                 val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
                 return s.padStart(type.size.toInt() + points(type))
             }
