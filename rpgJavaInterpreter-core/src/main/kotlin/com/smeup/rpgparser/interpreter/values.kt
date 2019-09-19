@@ -109,7 +109,7 @@ fun String.removeNullChars(): String {
 data class IntValue(val value: Long) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
-        return expectedType is NumberType || expectedType is PackedType
+        return expectedType is NumberType
     }
 
     override fun asInt() = this
