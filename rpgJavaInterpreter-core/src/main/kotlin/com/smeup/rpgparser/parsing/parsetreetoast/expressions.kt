@@ -83,7 +83,7 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> TODO()
         "*HIVAL" -> HiValExpr(toPosition(conf.considerPosition))
-        "*LOWVAL" -> LowValExpr(toPosition(conf.considerPosition))
+        "*LOVAL" -> LowValExpr(toPosition(conf.considerPosition))
         "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
         "*OFF" -> OffRefExpr(toPosition(conf.considerPosition))
         else -> when {
