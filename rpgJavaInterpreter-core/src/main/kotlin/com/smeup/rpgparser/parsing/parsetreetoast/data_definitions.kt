@@ -134,7 +134,22 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
         "A" -> StringType(elementSize!!.toLong())
         "N" -> BooleanType
         "Z" -> TimeStampType
+        /* TODO should be zoned? */
         "S" -> StringType(elementSize!!.toLong())
+        "P" -> {
+            /* Packed Type */
+            val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
+            NumberType(elementSize!! - decimalPositions, decimalPositions,"P")
+        }
+        "B" -> {
+            NumberType(elementSize!! , 0,"B")
+        }
+        "I" -> {
+            NumberType(elementSize!! , 0, "I")
+        }
+        "U" -> {
+            NumberType(elementSize!!, 0, "U")
+        }
         else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
     }
     val type = if (dim != null) {
