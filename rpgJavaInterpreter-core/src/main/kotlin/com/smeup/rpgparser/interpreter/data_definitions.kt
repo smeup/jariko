@@ -52,7 +52,7 @@ data class FileDefinition private constructor(override val name: String, overrid
         }
     }
 
-    var formatName: String? = null
+    var internalFormatName: String? = null
         set(value) {
             field = value?.toUpperCase()
         }

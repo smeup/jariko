@@ -40,22 +40,23 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
-data class FileInformation(val fileName: String, var found: Boolean = false, var eof: Boolean = false)
-
-class FileInformationMap {
-    private val byFileName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
-    private val byFormatName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
+class DBFileMap(private val dbInterface: DBInterface) {
+    private val byFileName = TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
+    private val byFormatName = TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
 
     fun add(fileDefinition: FileDefinition) {
-        val fileInformation = FileInformation(fileDefinition.name)
-        byFileName[fileDefinition.name] = fileInformation
-        val formatName = fileDefinition.formatName
+        val dbFile = dbInterface.open(fileDefinition.name)
+        require(dbFile != null) {
+            "Cannot open ${fileDefinition.name}"
+        }
+        byFileName[fileDefinition.name] = dbFile
+        val formatName = fileDefinition.internalFormatName
         if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
-            byFormatName[formatName] = fileInformation
+            byFormatName[formatName] = dbFile
         }
     }
 
-    operator fun get(nameOrFormat: String): FileInformation? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+    operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
 class InternalInterpreter(val systemInterface: SystemInterface) {
@@ -71,10 +72,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     var cycleLimit: Int? = null
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    var lastFileInformation = FileInformation("")
     var lastFound = false
+    var lastDBFile: DBFile? = null
 
-    private val fileInfos = FileInformationMap()
+    private val dbFileMap = DBFileMap(systemInterface.db)
 
     private fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
@@ -107,7 +108,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     ) {
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.forEach {
-            fileInfos.add(it)
+            dbFileMap.add(it)
         }
 
         // Assigning initial values received from outside and consider INZ clauses
@@ -500,11 +501,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is ChainStmt -> {
-                    val fileInfo = fileInfos[statement.name]
-                    require(fileInfo != null) {
+                    val dbFile = dbFileMap[statement.name]
+                    require(dbFile != null) {
                         "Line: ${statement.position.line()} - File definition ${statement.name} not found"
                     }
-                    lastFileInformation = fileInfo
+                    lastDBFile = dbFile
                     val record = if (statement.searchArg.type() is KListType) {
                         val kListName = statement.searchArg.render().toUpperCase()
                         val parms = klists[kListName]
@@ -512,17 +513,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             "Line: ${statement.position.line()} - KList not found: $kListName"
                         }
                         val searchValues = parms.map { it to get(it) }
-                        systemInterface.db.chain(fileInfo.fileName, searchValues)
+                        dbFile.chain(searchValues)
                     } else {
-                        systemInterface.db.chain(fileInfo.fileName, eval(statement.searchArg))
+                        dbFile.chain(eval(statement.searchArg))
                     }
                     if (!record.isEmpty()) {
-                        lastFileInformation.found = true
+                        lastFound = true
                         record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
                     } else {
-                        lastFileInformation.found = false
+                        lastFound = false
                     }
-                    lastFound = lastFileInformation.found
                 }
                 else -> TODO(statement.toString())
             }
@@ -1005,14 +1005,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return StringValue(eval(expression.value).asString().value.removeNullChars().trim())
             }
             is FoundExpr -> {
+                // TODO fix this bad implementation
                 if (expression.name == null) {
                     return BooleanValue(lastFound)
                 }
                 TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
             }
             is EofExpr -> {
+                // TODO fix this bad implementation
                 if (expression.name == null) {
-                    return BooleanValue(lastFileInformation.eof)
+                    return BooleanValue(lastDBFile?.eof() ?: false)
                 }
                 TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
             }

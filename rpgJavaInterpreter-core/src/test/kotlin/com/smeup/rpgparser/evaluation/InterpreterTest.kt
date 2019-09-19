@@ -594,18 +594,20 @@ class InterpreterTest {
 
         val cu = assertASTCanBeProduced("CHAIN2KEYS")
 
-        val mockDBInterface: DBInterface = object : DBInterface {
-            val f1 = DBField("KY1TST", StringType(5))
-            val f2 = DBField("KY2TST", NumberType(2, 0))
+        val f1 = DBField("KY1TST", StringType(5))
+        val f2 = DBField("KY2TST", NumberType(2, 0))
+        val f3 = DBField("DESTST", StringType(40))
 
-            val f3 = DBField("DESTST", StringType(40))
+        val mockDBInterface: DBInterface = object : DBInterface {
+            override fun open(name: String): DBFile? = object : DBFile {
+                override fun eof(): Boolean = TODO("not implemented")
+                override fun chain(key: Value): List<Pair<String, Value>> = emptyList()
+                override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+                    return listOf("DESTST" to someDescription)
+                }
+            }
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
-
-            override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
-            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
-                return listOf("DESTST" to someDescription)
-            }
         }
 
         cu.resolve(mockDBInterface)
