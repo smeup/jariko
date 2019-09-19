@@ -54,14 +54,17 @@ data class CharacterType(val nChars: Int) : Type() {
         get() = nChars.toLong()
 }
 
-data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
+data class NumberType(val entireDigits: Int, val decimalDigits: Int,val rpgType : String = "") : Type() {
     override val size: Long
         get() = (entireDigits + decimalDigits).toLong()
     val integer: Boolean
         get() = decimalDigits == 0
     val decimal: Boolean
         get() = !integer
+
 }
+
+
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
     override val size: Long
         get() = element.size * nElements
@@ -76,6 +79,7 @@ data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecor
 
     fun compileTimeArray(): Boolean = compileTimeRecordsPerLine != null
 }
+
 
 data class FieldType(val name: String, val type: Type)
 
