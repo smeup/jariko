@@ -599,12 +599,10 @@ class InterpreterTest {
         val f3 = DBField("DESTST", StringType(40))
 
         val mockDBInterface: DBInterface = object : DBInterface {
-            override fun open(name: String): DBFile? = object : DBFile {
-                override fun eof(): Boolean = TODO("not implemented")
+            override fun open(name: String): DBFile? = object : MockDBFile() {
                 override fun chain(key: Value): List<Pair<String, Value>> = emptyList()
-                override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
-                    return listOf("DESTST" to someDescription)
-                }
+                override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> =
+                    listOf("DESTST" to someDescription)
             }
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))

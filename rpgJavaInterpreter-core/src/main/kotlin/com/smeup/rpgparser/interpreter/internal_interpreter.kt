@@ -524,6 +524,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         lastFound = false
                     }
                 }
+                is ReadEqualStmt -> {
+                    val dbFile = dbFileMap[statement.name]
+                    require(dbFile != null) {
+                        "Line: ${statement.position.line()} - File definition ${statement.name} not found"
+                    }
+                    lastDBFile = dbFile
+                    val record = dbFile.readEqual()
+                    if (!record.isEmpty()) {
+                        lastFound = true
+                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
+                    } else {
+                        lastFound = false
+                    }
+                    TODO(statement.toString())
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e: InterruptForDebuggingPurposes) {

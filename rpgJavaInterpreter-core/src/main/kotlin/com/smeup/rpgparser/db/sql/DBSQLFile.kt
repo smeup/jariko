@@ -6,6 +6,18 @@ import java.sql.Connection
 import java.sql.ResultSet
 
 class DBSQLFile(private val name: String, private val connection: Connection) : DBFile {
+    override fun readEqual(): List<Pair<String, Value>> {
+        TODO("not implemented")
+    }
+
+    override fun readEqual(key: Value): List<Pair<String, Value>> {
+        TODO("not implemented")
+    }
+
+    override fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+        TODO("not implemented")
+    }
+
     override fun eof(): Boolean = TODO("not implemented")
 
     override fun chain(key: Value): List<Pair<String, Value>> {

@@ -6,7 +6,6 @@ import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
-import java.lang.RuntimeException
 
 class InterpreterSmokeTest {
 
@@ -39,8 +38,7 @@ class InterpreterSmokeTest {
         val hostField = DBField("HOSTNME1", StringType(255))
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
-            override fun open(name: String): DBFile? = object : DBFile {
-                override fun eof(): Boolean = TODO("not implemented")
+            override fun open(name: String): DBFile? = object : MockDBFile() {
                 override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> = TODO()
                 override fun chain(key: Value): List<Pair<String, Value>> =
                     if (name.equals("qhosts", ignoreCase = true)) {
@@ -64,11 +62,8 @@ class InterpreterSmokeTest {
         val hostField = DBField("DESTST", StringType(40))
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
-            override fun open(name: String): DBFile? = object : DBFile {
-                override fun eof(): Boolean = TODO("not implemented")
+            override fun open(name: String): DBFile? = object : MockDBFile() {
                 override fun chain(key: Value): List<Pair<String, Value>> = emptyList()
-                override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> =
-                    throw RuntimeException("Should not get here")
             }
         }
 
@@ -86,13 +81,9 @@ class InterpreterSmokeTest {
         val last = DBField("LASTNAME", StringType(40))
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
-            override fun open(name: String): DBFile? = object : DBFile {
-                override fun eof(): Boolean = TODO("not implemented")
+            override fun open(name: String): DBFile? = object : MockDBFile() {
                 override fun chain(key: Value): List<Pair<String, Value>> =
                     listOf("FIRSTNME" to StringValue("Giovanni"), "LASTNAME" to StringValue("Boccaccio"))
-
-                override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> =
-                    throw RuntimeException("Should not get here")
             }
         }
 

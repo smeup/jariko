@@ -36,6 +36,9 @@ interface DBInterface {
 interface DBFile {
     fun chain(key: Value): List<Pair<String, Value>>
     fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>>
+    fun readEqual(): List<Pair<String, Value>>
+    fun readEqual(key: Value): List<Pair<String, Value>>
+    fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>>
     fun eof(): Boolean
 }
 
