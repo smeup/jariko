@@ -71,27 +71,4 @@ class InterpreterSmokeTest {
         si.databaseInterface = mockDBInterface
         execute(cu, mapOf(), si)
     }
-
-    @Test
-    fun executeCHAINREADE() {
-        val cu = assertASTCanBeProduced("CHAINREADE")
-
-        val first = DBField("FIRSTNME", StringType(40))
-        val last = DBField("LASTNAME", StringType(40))
-        val mockDBInterface: DBInterface = object : DBInterface {
-            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
-            override fun open(name: String): DBFile? = object : MockDBFile() {
-                override fun chain(key: Value): List<Pair<String, Value>> =
-                    listOf("FIRSTNME" to StringValue("Giovanni"), "LASTNAME" to StringValue("Boccaccio"))
-                override fun readEqual(): List<Pair<String, Value>> = emptyList()
-                override fun eof(): Boolean = true
-            }
-        }
-
-        cu.resolve(mockDBInterface)
-        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
-        si.databaseInterface = mockDBInterface
-
-        execute(cu, mapOf(), si)
-    }
 }
