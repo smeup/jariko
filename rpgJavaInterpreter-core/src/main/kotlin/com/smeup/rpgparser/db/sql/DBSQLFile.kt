@@ -6,8 +6,21 @@ import java.sql.Connection
 import java.sql.ResultSet
 
 class DBSQLFile(private val name: String, private val connection: Connection) : DBFile {
+    private var resultSet: ResultSet? = null
+    private val keys: List<String> by lazy {
+        connection.primaryKeys(name)
+    }
+
     override fun readEqual(): List<Pair<String, Value>> {
-        TODO("not implemented")
+        if (resultSet == null) {
+            // TODO read file from first record in key order
+            TODO("ReadEqual with no previous search")
+        }
+        return if (!eof()) {
+            resultSet.toValues()
+        } else {
+            resultSet.currentRecordToValues()
+        }
     }
 
     override fun readEqual(key: Value): List<Pair<String, Value>> {
@@ -18,38 +31,22 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         TODO("not implemented")
     }
 
-    override fun eof(): Boolean = TODO("not implemented")
+    override fun eof(): Boolean = resultSet?.isLast ?: false
 
     override fun chain(key: Value): List<Pair<String, Value>> {
-        val sql = "SELECT * FROM $name ${connection.primaryKeys(name).whereSQL()}"
-        connection.prepareStatement(sql).use {
-            it.setObject(1, key.toDBValue())
-            return toValues(it.executeQuery())
-        }
+        val keyName = keys.first()
+        return chain(listOf(keyName to key))
     }
 
     override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
         val keyNames = keys.map { it.first }
-        val sql = "SELECT * FROM $name ${keyNames.whereSQL()}"
+        val sql = "SELECT * FROM $name ${keyNames.whereSQL()} ${keyNames.orderBySQL()}"
         val values = keys.map { it.second }
+        resultSet.closeIfOpen()
         connection.prepareStatement(sql).use {
             it.bind(values)
-            return toValues(it.executeQuery())
+            resultSet = it.executeQuery()
         }
-    }
-
-    private fun toValues(rs: ResultSet): List<Pair<String, Value>> {
-        val result = mutableListOf<Pair<String, Value>>()
-        rs.use {
-            if (it.next()) {
-                val metadata = it.metaData
-                for (i in 1..metadata.columnCount) {
-                    val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
-                    val value = type.toValue(it, i)
-                    result.add(Pair(metadata.getColumnName(i), value))
-                }
-            }
-        }
-        return result
+        return resultSet.toValues()
     }
 }
