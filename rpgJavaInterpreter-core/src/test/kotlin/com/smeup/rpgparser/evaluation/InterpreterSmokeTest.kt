@@ -4,7 +4,6 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import org.junit.Ignore
 import org.junit.Test
 
 class InterpreterSmokeTest {
@@ -73,7 +72,7 @@ class InterpreterSmokeTest {
         execute(cu, mapOf(), si)
     }
 
-    @Test @Ignore
+    @Test
     fun executeCHAINREADE() {
         val cu = assertASTCanBeProduced("CHAINREADE")
 
@@ -84,6 +83,8 @@ class InterpreterSmokeTest {
             override fun open(name: String): DBFile? = object : MockDBFile() {
                 override fun chain(key: Value): List<Pair<String, Value>> =
                     listOf("FIRSTNME" to StringValue("Giovanni"), "LASTNAME" to StringValue("Boccaccio"))
+                override fun readEqual(): List<Pair<String, Value>> = emptyList()
+                override fun eof(): Boolean = true
             }
         }
 

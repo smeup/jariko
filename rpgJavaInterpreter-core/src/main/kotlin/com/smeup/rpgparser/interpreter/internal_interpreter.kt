@@ -537,7 +537,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     } else {
                         lastFound = false
                     }
-                    TODO(statement.toString())
                 }
                 else -> TODO(statement.toString())
             }
