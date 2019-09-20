@@ -627,12 +627,17 @@ class InterpreterTest {
         val first = DBField("FIRSTNME", StringType(40))
         val last = DBField("LASTNAME", StringType(40))
         val mockDBInterface: DBInterface = object : DBInterface {
+            var nrOfCallToEoF = 0
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
             override fun open(name: String): DBFile? = object : MockDBFile() {
                 override fun chain(key: Value): List<Pair<String, Value>> =
                     listOf("FIRSTNME" to StringValue("Giovanni"), "LASTNAME" to StringValue("Boccaccio"))
-                override fun readEqual(): List<Pair<String, Value>> = emptyList()
-                override fun eof(): Boolean = true
+                override fun readEqual(): List<Pair<String, Value>> =
+                    listOf("FIRSTNME" to StringValue("Cecco"), "LASTNAME" to StringValue("Angiolieri"))
+                override fun eof(): Boolean {
+                    nrOfCallToEoF++
+                    return nrOfCallToEoF > 1
+                }
             }
         }
 
@@ -641,6 +646,6 @@ class InterpreterTest {
         si.databaseInterface = mockDBInterface
 
         execute(cu, mapOf(), si)
-        assertEquals(listOf("Giovanni Boccaccio"), si.displayed)
+        assertEquals(listOf("Giovanni Boccaccio", "Cecco Angiolieri"), si.displayed)
     }
 }
