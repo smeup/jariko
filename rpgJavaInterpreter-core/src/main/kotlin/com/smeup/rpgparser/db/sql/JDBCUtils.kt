@@ -6,6 +6,8 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
+const val CONVENTIONAL_INDEX_SUFFIX = "_INDEX"
+
 fun ResultSet.joinToString(separator: String = " - "): String {
     val sb = StringBuilder()
     if (this.next()) {
@@ -54,6 +56,16 @@ private fun typeFor(metadataReultSet: ResultSet): Type {
 fun Connection.primaryKeys(tableName: String): List<String> {
     val result = mutableListOf<String>()
     this.metaData.getPrimaryKeys(null, null, tableName).use {
+        while (it.next()) {
+            result.add(it.getString("COLUMN_NAME"))
+        }
+    }
+    return result
+}
+
+fun Connection.indexes(tableName: String): List<String> {
+    val result = mutableListOf<String>()
+    this.metaData.getIndexInfo(null, null, tableName + CONVENTIONAL_INDEX_SUFFIX, false, false).use {
         while (it.next()) {
             result.add(it.getString("COLUMN_NAME"))
         }

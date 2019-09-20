@@ -8,7 +8,8 @@ import java.sql.ResultSet
 class DBSQLFile(private val name: String, private val connection: Connection) : DBFile {
     private var resultSet: ResultSet? = null
     private val keys: List<String> by lazy {
-        connection.primaryKeys(name)
+        val indexes = connection.indexes(name)
+        if (indexes.isEmpty()) connection.primaryKeys(name) else indexes
     }
 
     override fun readEqual(): List<Pair<String, Value>> {

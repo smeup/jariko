@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.db.sql.integration
 
+import com.smeup.rpgparser.db.sql.CONVENTIONAL_INDEX_SUFFIX
 import com.smeup.rpgparser.db.sql.outputOfDBPgm
 import com.smeup.rpgparser.interpreter.*
 import org.junit.*
@@ -30,7 +31,7 @@ CREATE TABLE EMPLOYEE (
 
     private fun createXEMP2() = "CREATE VIEW XEMP2 AS SELECT * FROM EMPLOYEE ORDER BY WORKDEPT"
 
-    private fun createXEMP2Index() = "CREATE INDEX XEMP2_INDEX ON EMPLOYEE (WORKDEPT ASC)   "
+    private fun createXEMP2Index() = "CREATE INDEX XEMP2$CONVENTIONAL_INDEX_SUFFIX ON EMPLOYEE (WORKDEPT ASC)   "
 
     private fun insertRecords() =
         """
