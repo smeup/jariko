@@ -10,11 +10,12 @@ const val CONVENTIONAL_INDEX_SUFFIX = "_INDEX"
 
 fun ResultSet.joinToString(separator: String = " - "): String {
     val sb = StringBuilder()
-    if (this.next()) {
+    while (this.next()) {
         for (i in 1..this.metaData.columnCount) {
             sb.append("${this.metaData.getColumnName(i)}: ${this.getObject(i)}")
             if (i != this.metaData.columnCount) sb.append(separator)
         }
+        sb.appendln()
     }
     return sb.toString()
 }
@@ -65,7 +66,7 @@ fun Connection.primaryKeys(tableName: String): List<String> {
 
 fun Connection.indexes(tableName: String): List<String> {
     val result = mutableListOf<String>()
-    this.metaData.getIndexInfo(null, null, tableName + CONVENTIONAL_INDEX_SUFFIX, false, false).use {
+    this.metaData.getIndexInfo(null, null, tableName, false, false).use {
         while (it.next()) {
             result.add(it.getString("COLUMN_NAME"))
         }
