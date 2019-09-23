@@ -9,6 +9,14 @@ import com.strumenta.kolasu.mapping.toPosition
 import java.lang.RuntimeException
 import kotlin.math.max
 
+
+enum class RpgType(val rpgType: String) {
+    PACKED("P"),
+    ZONED("S"),
+    INTEGER("I"),
+    UNSIGNED("U"),
+    BINARY("B")
+}
 private fun RpgParser.Parm_fixedContext.startOffset() : Int {
     val explicitStartOffset = this.explicitStartOffset()
     if (explicitStartOffset != null) {
@@ -126,6 +134,7 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
     val baseType = when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
         null -> TODO()
         "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
+            /* TODO should be packed? */
             val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
@@ -135,20 +144,28 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
         "N" -> BooleanType
         "Z" -> TimeStampType
         /* TODO should be zoned? */
-        "S" -> StringType(elementSize!!.toLong())
-        "P" -> {
+        RpgType.ZONED.rpgType -> {
+            //StringType(elementSize!!.toLong())
+            /* Zoned Type */
+            val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
+            NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType )
+        }
+        RpgType.PACKED.rpgType -> {
             /* Packed Type */
             val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
-            NumberType(elementSize!! - decimalPositions, decimalPositions,"P")
+            NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType )
         }
-        "B" -> {
-            NumberType(elementSize!! , 0,"B")
+        RpgType.BINARY.rpgType -> {
+            /* Binary */
+            NumberType(elementSize!! , 0, RpgType.BINARY.rpgType )
         }
-        "I" -> {
-            NumberType(elementSize!! , 0, "I")
+        RpgType.INTEGER.rpgType  -> {
+            /* Integer Type */
+            NumberType(elementSize!! , 0,  RpgType.INTEGER.rpgType )
         }
-        "U" -> {
-            NumberType(elementSize!!, 0, "U")
+        RpgType.UNSIGNED.rpgType -> {
+            /* Unsigned Type */
+            NumberType(elementSize!!, 0,  RpgType.UNSIGNED.rpgType )
         }
         else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
     }
@@ -283,9 +300,10 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
 
     return when (DATA_TYPE()?.text?.trim()) {
         null -> TODO()
-        "", "S" -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+        "", RpgType.PACKED.rpgType,RpgType.INTEGER.rpgType,RpgType.UNSIGNED.rpgType,RpgType.BINARY.rpgType -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+            val rpgType = DATA_TYPE()?.text?.trim()
             val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
-            NumberType(elementSize!! - decimalPositions, decimalPositions)
+            NumberType(elementSize!! - decimalPositions, decimalPositions,rpgType)
         } else {
             StringType(elementSize?.toLong()
                     ?: throw RuntimeException("The string has no specified length"))

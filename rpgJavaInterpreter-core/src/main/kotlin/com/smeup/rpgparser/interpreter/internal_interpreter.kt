@@ -9,6 +9,7 @@ import com.smeup.rpgparser.parsing.ast.Comparison.LE
 import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.utils.*
 import java.lang.Math.pow
 import java.lang.System.currentTimeMillis
@@ -1042,7 +1043,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
 private fun computeHiValue(type : NumberType) : Value {
     // Packed and Zone
-    if( type.rpgType == "P" || type.rpgType == "S" || type.rpgType == "") {
+    if( type.rpgType ==  RpgType.PACKED.rpgType  || type.rpgType ==  RpgType.ZONED.rpgType || type.rpgType == "") {
         if (type.decimalDigits == 0) {
             val ed = "9".repeat(type.entireDigits)
             return  IntValue("$ed".toLong())
@@ -1053,7 +1054,7 @@ private fun computeHiValue(type : NumberType) : Value {
         }
     }
     // Integer
-    if(  type.rpgType == "I" ) {
+    if(  type.rpgType ==  RpgType.INTEGER.rpgType  ) {
         when(type.entireDigits) {
             3  -> return IntValue(Byte.MAX_VALUE.toLong())
             5  -> return IntValue(Short.MAX_VALUE.toLong())
@@ -1061,7 +1062,7 @@ private fun computeHiValue(type : NumberType) : Value {
         }
     }
     // Unsigned
-    if( type.rpgType == "U") {
+    if( type.rpgType ==  RpgType.UNSIGNED.rpgType ) {
         when(type.entireDigits) {
             3  -> return IntValue(UByte.MAX_VALUE.toLong())
             5  -> return IntValue(UShort.MAX_VALUE.toLong())
@@ -1069,7 +1070,7 @@ private fun computeHiValue(type : NumberType) : Value {
         }
     }
     // Binary
-    if( type.rpgType == "B") {
+    if( type.rpgType ==  RpgType.BINARY.rpgType ) {
         when(type.entireDigits) {
             2  -> {
                 val ed = "9".repeat(4)
@@ -1087,7 +1088,7 @@ private fun computeHiValue(type : NumberType) : Value {
 
 private fun computeLowValue(type : NumberType) : Value {
     // Packed and Zone
-    if( type.rpgType == "P" || type.rpgType == "S") {
+    if( type.rpgType ==  RpgType.PACKED.rpgType  || type.rpgType ==  RpgType.ZONED.rpgType ) {
         if (type.decimalDigits == 0) {
             val ed = "9".repeat(type.entireDigits)
             return  IntValue("-$ed".toLong())
@@ -1098,7 +1099,7 @@ private fun computeLowValue(type : NumberType) : Value {
         }
     }
     // Integer
-    if(  type.rpgType == "I" ) {
+    if(  type.rpgType ==  RpgType.INTEGER.rpgType  ) {
         when (type.entireDigits) {
             3 -> return IntValue(Byte.MIN_VALUE.toLong())
             5 -> return IntValue(Short.MIN_VALUE.toLong())
@@ -1106,11 +1107,11 @@ private fun computeLowValue(type : NumberType) : Value {
         }
     }
     // Unsigned
-    if( type.rpgType == "U") {
+    if( type.rpgType ==  RpgType.UNSIGNED.rpgType ) {
         return  IntValue(0)
     }
     // Binary
-    if( type.rpgType == "B") {
+    if( type.rpgType ==  RpgType.BINARY.rpgType ) {
         when(type.entireDigits) {
             2  -> {
                 val ed = "9".repeat(4)
