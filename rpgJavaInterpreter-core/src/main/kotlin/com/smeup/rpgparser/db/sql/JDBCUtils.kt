@@ -64,11 +64,16 @@ fun Connection.primaryKeys(tableName: String): List<String> {
     return result
 }
 
-fun Connection.indexes(tableName: String): List<String> {
+fun Connection.orderingFields(tableName: String): List<String> {
     val result = mutableListOf<String>()
-    this.metaData.getIndexInfo(null, null, tableName, false, false).use {
-        while (it.next()) {
-            result.add(it.getString("COLUMN_NAME"))
+    this.prepareStatement("SELECT VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = ?").use {
+        it.setString(1, tableName)
+        it.executeQuery().use {
+            if (it.next()) {
+                // TODO handle DESC and ASC keywords
+                val fields = it.getString("VIEW_DEFINITION").substringAfter("ORDER BY").split(",")
+                result.addAll(fields.map ( String::trim ))
+            }
         }
     }
     return result

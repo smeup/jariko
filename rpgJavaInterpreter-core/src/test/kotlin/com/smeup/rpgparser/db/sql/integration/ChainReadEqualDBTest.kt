@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class ChainReadEqualDBTest {
 
-    @Test @Ignore
+    @Test
     fun doesNotFindNonExistingRecord() {
         assertEquals(
             listOf("Not found"),
@@ -17,6 +17,17 @@ class ChainReadEqualDBTest {
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
                 mapOf("toFind" to StringValue("XXX"))))
     }
+
+    @Test
+    fun findsExistingRecords() {
+        assertEquals(
+            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS"),
+            outputOfDBPgm(
+                "CHAINREADE",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("C01"))))
+    }
+
 
     private fun createEMPLOYEE() =
             """
