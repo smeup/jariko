@@ -54,7 +54,7 @@ data class CharacterType(val nChars: Int) : Type() {
         get() = nChars.toLong()
 }
 
-data class NumberType(val entireDigits: Int, val decimalDigits: Int,val rpgType : String = "") : Type() {
+data class NumberType(val entireDigits: Int, val decimalDigits: Int,val rpgType : String? = "") : Type() {
     override val size: Long
         get() = (entireDigits + decimalDigits).toLong()
     val integer: Boolean
