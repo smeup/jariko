@@ -5,6 +5,7 @@ import com.smeup.rpgparser.db.sql.outputOfDBPgm
 import com.smeup.rpgparser.interpreter.*
 import org.junit.*
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class ChainReadEqualDBTest {
 
@@ -21,11 +22,24 @@ class ChainReadEqualDBTest {
     @Test
     fun findsExistingRecords() {
         assertEquals(
+            // TODO is the order of results mandatory?
             listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS"),
             outputOfDBPgm(
                 "CHAINREADE",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
                 mapOf("toFind" to StringValue("C01"))))
+    }
+
+    @Test @Ignore
+    fun throwsExceptionIfNoSearchedBefore() {
+        // TODO better error assertion
+        assertFailsWith(RuntimeException::class) {
+            outputOfDBPgm(
+                "CHAINREDE0",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("C01"))
+            )
+        }
     }
 
     private fun createEMPLOYEE() =

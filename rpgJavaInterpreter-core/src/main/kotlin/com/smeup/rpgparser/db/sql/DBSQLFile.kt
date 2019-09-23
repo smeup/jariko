@@ -2,6 +2,7 @@ package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.DBFile
 import com.smeup.rpgparser.interpreter.Value
+import java.lang.RuntimeException
 import java.sql.Connection
 import java.sql.ResultSet
 
@@ -14,8 +15,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
 
     override fun readEqual(): List<Pair<String, Value>> {
         if (resultSet == null) {
-            // TODO read file from first record in key order
-            TODO("ReadEqual with no previous search")
+            throw RuntimeException("ReadEqual with no previous search")
         }
         return if (!eof()) {
             resultSet.toValues()
