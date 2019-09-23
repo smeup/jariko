@@ -28,10 +28,9 @@ class ChainReadEqualDBTest {
                 mapOf("toFind" to StringValue("C01"))))
     }
 
-
     private fun createEMPLOYEE() =
             """
-CREATE TABLE EMPLOYEE ( 
+    CREATE TABLE EMPLOYEE ( 
 	EMPNO CHAR(6) DEFAULT '' NOT NULL , 
 	FIRSTNME CHAR(12) DEFAULT '' NOT NULL , 
 	MIDINIT CHAR(1) DEFAULT '' NOT NULL , 

@@ -72,7 +72,7 @@ fun Connection.orderingFields(tableName: String): List<String> {
             if (it.next()) {
                 // TODO handle DESC and ASC keywords
                 val fields = it.getString("VIEW_DEFINITION").substringAfter("ORDER BY").split(",")
-                result.addAll(fields.map ( String::trim ))
+                result.addAll(fields.map(String::trim))
             }
         }
     }
