@@ -19,6 +19,6 @@ class FileDefinitionTest {
         cu.assertFileDefinitionIsPresent("First")
         cu.assertFileDefinitionIsPresent("Second")
         val secondFileDefinition = cu.getFileDefinition("Second")
-        assertEquals("TSTREC2", secondFileDefinition.formatName)
+        assertEquals("TSTREC2", secondFileDefinition.internalFormatName)
     }
 }

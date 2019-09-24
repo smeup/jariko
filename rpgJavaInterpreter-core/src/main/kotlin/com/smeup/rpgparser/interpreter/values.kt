@@ -355,3 +355,18 @@ private const val FORMAT_DATE_ISO = "yyyy-MM-dd-HH.mm.ss.SSS"
 fun String.asIsoDate(): Date {
     return SimpleDateFormat(FORMAT_DATE_ISO).parse(this.take(FORMAT_DATE_ISO.length))
 }
+
+fun Type.blank(): Value {
+    return when (this) {
+        is ArrayType -> createArrayValue(this.element, this.nElements) {
+            this.element.blank()
+        }
+        is DataStructureType -> StringValue.blank(this.size.toInt())
+        is StringType -> StringValue.blank(this.size.toInt())
+        is NumberType -> IntValue(0)
+        is BooleanType -> BooleanValue(false)
+        is TimeStampType -> TimeStampValue.LOVAL
+        is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
+        else -> TODO()
+    }
+}

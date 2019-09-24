@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.assertCanBeParsed
+import org.junit.Ignore
 import org.junit.Test
 
 class RpgParserSmokeTest {
@@ -163,5 +164,20 @@ class RpgParserSmokeTest {
     @Test
     fun executeABSTEST() {
         assertCanBeParsed("ABSTEST")
+    }
+
+    @Test
+    fun executeCHAIN2KEYS() {
+        assertCanBeParsed("CHAIN2KEYS")
+    }
+
+    @Test
+    fun executeCHAINREADE() {
+        assertCanBeParsed("CHAINREADE")
+    }
+
+    @Test @Ignore
+    fun executeCHAINREDE0() {
+        assertCanBeParsed("CHAINREDE0")
     }
 }

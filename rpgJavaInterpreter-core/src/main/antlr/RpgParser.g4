@@ -2608,7 +2608,7 @@ SPLAT_ALL
    | SPLAT_MONTHS
    | SPLAT_MN
    | SPLAT_MS
-   | SPLAT_MSECONDS
+   | SPLAT_MSECONDSet
    | SPLAT_S
    | SPLAT_SECONDS
    | SPLAT_Y
@@ -2620,4 +2620,5 @@ target:
       name=idOrKeyword #simpleTarget
     | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
     | bif_subst #substTarget
+    | container=idOrKeyword DOT fieldName=idOrKeyword #qualifiedTarget
     ;

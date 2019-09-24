@@ -289,3 +289,12 @@ class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
         }
     }
 }
+
+open class MockDBFile : DBFile {
+    override fun chain(key: Value): List<Pair<String, Value>> = TODO("chain")
+    override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> = TODO("chain")
+    override fun readEqual(): List<Pair<String, Value>> = TODO("readEqual")
+    override fun readEqual(key: Value): List<Pair<String, Value>> = TODO("readEqal")
+    override fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>> = TODO("readEqual")
+    override fun eof(): Boolean = TODO("eof")
+}

@@ -22,4 +22,15 @@ fun String.insertSQL(values: List<Pair<String, Value>>): String {
 }
 
 fun List<String>.whereSQL(): String =
-    "WHERE " + this.joinToString(" AND ") { "$it = ?" }
+    if (this.isEmpty()) {
+        ""
+    } else {
+        "WHERE " + this.joinToString(" AND ") { "$it = ?" }
+    }
+
+fun List<String>.orderBySQL(): String =
+    if (this.isEmpty()) {
+        ""
+    } else {
+        "ORDER BY " + this.joinToString()
+    }

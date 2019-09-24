@@ -10,13 +10,14 @@ import io.mockk.slot
 import org.apache.logging.log4j.LogManager
 import org.junit.Test
 import java.io.File
+import kotlin.test.Ignore
 import kotlin.test.assertNotNull
 import com.smeup.rpgparser.execution.main as runnerMain
 import org.apache.logging.log4j.Logger as L4JLogger
 
 class RunnerTest {
 
-    @Test
+    @Test @Ignore
     fun executeExample() {
         mockkStatic(LogManager::class)
 
@@ -40,7 +41,7 @@ class RunnerTest {
         every { dataLogger.isInfoEnabled } answers { true }
         every { dataLogger.info(capture(slot)) } answers { dataLogs.add(slot.captured) }
 
-        every { LogManager.getLogger(PERFOMANCE_LOGGER) } answers { perfLogger }
+        every { LogManager.getLogger(PERFORMANCE_LOGGER) } answers { perfLogger }
         every { perfLogger.isInfoEnabled } answers { true }
         every { perfLogger.info(capture(slot)) } answers { perfLogs.add(slot.captured) }
 
@@ -66,7 +67,7 @@ class RunnerTest {
         assertNotNull(perfLogs.find { it.contains("TEST_06.rpgle\t\tPERF\tEND TEST_06.rpgle") })
     }
 
-    @Test
+    @Test @Ignore
     fun executeExampleWithCall() {
         mockkStatic(LogManager::class)
 
@@ -90,7 +91,7 @@ class RunnerTest {
         every { dataLogger.isInfoEnabled } answers { true }
         every { dataLogger.info(capture(slot)) } answers { dataLogs.add(slot.captured) }
 
-        every { LogManager.getLogger(PERFOMANCE_LOGGER) } answers { perfLogger }
+        every { LogManager.getLogger(PERFORMANCE_LOGGER) } answers { perfLogger }
         every { perfLogger.isInfoEnabled } answers { true }
         every { perfLogger.info(capture(slot)) } answers { perfLogs.add(slot.captured) }
 

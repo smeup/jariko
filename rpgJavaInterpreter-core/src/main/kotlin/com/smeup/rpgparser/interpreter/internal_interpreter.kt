@@ -13,13 +13,13 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.utils.*
 import java.lang.Math.pow
 import java.lang.System.currentTimeMillis
-import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.UnsupportedOperationException
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
@@ -44,22 +44,23 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
-data class FileInformation(val fileName: String, var found: Boolean)
-
-class FileInformationMap {
-    private val byFileName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
-    private val byFormatName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
+class DBFileMap(private val dbInterface: DBInterface) {
+    private val byFileName = TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
+    private val byFormatName = TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
 
     fun add(fileDefinition: FileDefinition) {
-        val fileInformation = FileInformation(fileDefinition.name, false)
-        byFileName[fileDefinition.name] = fileInformation
-        val formatName = fileDefinition.formatName
+        val dbFile = dbInterface.open(fileDefinition.name)
+        require(dbFile != null) {
+            "Cannot open ${fileDefinition.name}"
+        }
+        byFileName[fileDefinition.name] = dbFile
+        val formatName = fileDefinition.internalFormatName
         if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
-            byFormatName[formatName] = fileInformation
+            byFormatName[formatName] = dbFile
         }
     }
 
-    operator fun get(nameOrFormat: String): FileInformation? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+    operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
 class InternalInterpreter(val systemInterface: SystemInterface) {
@@ -69,6 +70,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     var decedit : String  = "."
 
     var interpretationContext: InterpretationContext = DummyInterpretationContext
+    private val klists = HashMap<String, List<String>>()
 
     /**
      * This is useful for debugging, so we can avoid infinite loops
@@ -77,7 +79,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     var lastFound = false
-    private val fileInfos = FileInformationMap()
+    var lastDBFile: DBFile? = null
+
+    private val dbFileMap = DBFileMap(systemInterface.db)
 
     private fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
@@ -110,20 +114,28 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     ) {
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.forEach {
-            fileInfos.add(it)
+            dbFileMap.add(it)
         }
 
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.allDataDefinitions.forEach {
+                var value: Value? = null
                 if (it is DataDefinition) {
-                    set(it, coerce(when {
-                        it.name in initialValues -> initialValues[it.name]
-                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                    value = when {
+                        it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
                         it.initializationValue != null -> interpret(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
                         else -> blankValue(it)
-                    }, it.type))
+                    }
+                } else if (it is InStatementDataDefinition && it.parent is PlistParam) {
+                    value = when {
+                        it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        else -> null
+                    }
+                }
+                if (value != null) {
+                    set(it, coerce(value, it.type))
                     executeMutes(it.muteAnnotations)
                 }
             }
@@ -141,7 +153,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     .map {
                         coerce(StringValue(it), arrayType.element)
                     }
-                    .resizeTo(arrayType.nElements, blankValue(arrayType.element))
+                    .resizeTo(arrayType.nElements, arrayType.element.blank())
                     .toMutableList()
 
         return ConcreteArrayValue(l, arrayType.element)
@@ -258,15 +270,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 is PlistStmt -> {
                     statement.params.forEach {
-                        var value: Value? = null
                         if (globalSymbolTable.contains(it.param.name)) {
-                            value = globalSymbolTable[it.param.name]
+                            val value = globalSymbolTable[it.param.name]
                             log(ParamListStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, it.param.name, value))
                         }
                     }
-
-                    null
                 } /* Nothing to do here */
+                is KListStmt -> {
+                    // TODO Add logging as for PlistStmt
+                    klists[statement.name] = statement.fields
+                }
                 is ClearStmt -> {
                     return when (statement.value) {
                         is DataRefExpr -> {
@@ -281,10 +294,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     assign(statement.target, eval(statement.expression))
                 }
                 is TimeStmt -> {
-                    return when (statement.value) {
+                    when (statement.value) {
                         is DataRefExpr -> {
                             assign(statement.value, TimeStampValue(Date()))
-                            Unit
                         }
                         else -> throw UnsupportedOperationException("I do not know how to set TIME to ${statement.value}")
                     }
@@ -440,6 +452,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         log(DowStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                     }
                 }
+                is DouStmt -> {
+                    var loopCounter: Long = 0
+                    var startTime = currentTimeMillis()
+                    try {
+                        log(DouStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement))
+                        do {
+                            execute(statement.body)
+                            loopCounter++
+                        } while (!eval(statement.endExpression).asBoolean().value)
+                        val elapsed = currentTimeMillis() - startTime
+                        log(DouStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
+                    } catch (e: LeaveException) {
+                        val elapsed = currentTimeMillis() - startTime
+                        log(DouStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
+                    }
+                }
                 is SubDurStmt -> {
                     when (statement.target) {
                         is DataRefExpr -> {
@@ -486,18 +514,42 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is ChainStmt -> {
-                    val fileInfo = fileInfos[statement.name]
-                    require(fileInfo != null) {
+                    val dbFile = dbFileMap[statement.name]
+                    require(dbFile != null) {
                         "Line: ${statement.position.line()} - File definition ${statement.name} not found"
                     }
-                    val record = systemInterface.db.chain(fileInfo.fileName, eval(statement.searchArg))
+                    lastDBFile = dbFile
+                    val record = if (statement.searchArg.type() is KListType) {
+                        val kListName = statement.searchArg.render().toUpperCase()
+                        val parms = klists[kListName]
+                        require(parms != null) {
+                            "Line: ${statement.position.line()} - KList not found: $kListName"
+                        }
+                        val searchValues = parms.map { it to get(it) }
+                        dbFile.chain(searchValues)
+                    } else {
+                        dbFile.chain(eval(statement.searchArg))
+                    }
                     if (!record.isEmpty()) {
                         lastFound = true
                         record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
                     } else {
                         lastFound = false
                     }
-                    fileInfo.found = lastFound
+                }
+                is ReadEqualStmt -> {
+                    val dbFile = dbFileMap[statement.name]
+                    require(dbFile != null) {
+                        "Line: ${statement.position.line()} - File definition ${statement.name} not found"
+                    }
+                    lastDBFile = dbFile
+                    val record = dbFile.readEqual()
+                    if (!record.isEmpty()) {
+                        lastFound = true
+                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
+                    } else {
+                        lastFound = false
+                    }
                 }
                 else -> TODO(statement.toString())
             }
@@ -670,113 +722,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return assign(target, newValue)
             }
             else -> TODO()
-        }
-    }
-
-    // TODO put it outside InternalInterpreter
-    fun coerce(value: Value, type: Type): Value {
-        // TODO to be completed
-        return when (value) {
-            is BlanksValue -> {
-                when (type) {
-                    is StringType -> {
-                        blankValue(type.length.toInt())
-                    }
-                    is ArrayType -> {
-                        createArrayValue(type.element, type.nElements) {
-                            blankValue(type.element)
-                        }
-                    }
-                    is NumberType -> {
-                        if (type.integer) {
-                            IntValue.ZERO
-                        } else {
-                            DecimalValue.ZERO
-                        }
-                    }
-                    else -> TODO("Converting BlanksValue to $type")
-                }
-            }
-            is StringValue -> {
-                when (type) {
-                    is StringType -> {
-                        var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
-                        if (value.value.length > type.length) {
-                            s = s.substring(0, type.length.toInt())
-                        }
-                        return StringValue(s)
-                    }
-                    is ArrayType -> {
-                        createArrayValue(type.element, type.nElements) {
-                            // TODO
-                            blankValue(type.element)
-                        }
-                    }
-                    // TODO
-                    is NumberType -> {
-                        if (type.integer) {
-                            IntValue(value.value.asLong())
-                        } else {
-                            TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
-                        }
-                    }
-                    is BooleanType -> {
-                        if ("1" == value.value.trim()) {
-                            BooleanValue.TRUE
-                        } else {
-                            BooleanValue.FALSE
-                        }
-                    }
-                    is DataStructureType -> {
-                        //TODO("Converting String to $type")
-                        return value
-                    }
-                    else -> TODO("Converting String to $type")
-                }
-            }
-            is ArrayValue -> {
-                when (type) {
-                    is StringType -> {
-                        return value.asString()
-                    }
-                    is ArrayType -> {
-                        return value
-                    }
-                    else -> TODO("Converting ArrayValue to $type")
-                }
-            }
-
-            is DecimalValue -> {
-                when(type) {
-                    is NumberType -> {
-                        // TODO verifiy the Rounding mode
-                        if(type.decimalDigits < value.value.scale()) {
-                            return DecimalValue(value.value.setScale(type.decimalDigits,RoundingMode.HALF_EVEN))
-                        }
-                        return value
-                    }
-                    else -> TODO("Converting DecimalValue to $type")
-                }
-            }
-
-            // TODO support for integer
-            is HiValValue -> {
-                when(type) {
-                    is NumberType -> {
-                        return computeHiValue(type)
-                    }
-                    else -> TODO("Converting HiValValue to $type")
-                }
-            }
-            is LowValValue -> {
-                when (type) {
-                    is NumberType -> {
-                        return computeLowValue(type)
-                    }
-                    else -> TODO("Converting LowValValue to $type")
-                }
-            }
-            else -> value
         }
     }
 
@@ -1021,10 +966,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return StringValue(eval(expression.value).asString().value.removeNullChars().trim())
             }
             is FoundExpr -> {
+                // TODO fix this bad implementation
                 if (expression.name == null) {
                     return BooleanValue(lastFound)
                 }
                 TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
+            }
+            is EofExpr -> {
+                // TODO fix this bad implementation
+                if (expression.name == null) {
+                    return BooleanValue(lastDBFile?.eof() ?: false)
+                }
+                TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
             }
             is AbsExpr -> {
                 val value = interpret(expression.value)
@@ -1037,7 +990,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
-        return blankValue(dataDefinition.type)
+        return dataDefinition.type.blank()
     }
 }
 
@@ -1292,20 +1245,6 @@ private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
 
-fun blankValue(type: Type): Value {
-    return when (type) {
-        is ArrayType -> createArrayValue(type.element, type.nElements) {
-            blankValue(type.element)
-        }
-        is DataStructureType -> StringValue.blank(type.size.toInt())
-        is StringType -> StringValue.blank(type.size.toInt())
-        is NumberType -> IntValue(0)
-        is BooleanType -> BooleanValue(false)
-        is TimeStampType -> TimeStampValue.LOVAL
-        is CharacterType -> CharacterValue(Array(type.nChars.toInt()) { ' ' })
-    }
-}
-
 // TODO put it outside InternalInterpreter
 fun coerce(value: Value, type: Type): Value {
     // TODO to be completed
@@ -1317,7 +1256,7 @@ fun coerce(value: Value, type: Type): Value {
                 }
                 is ArrayType -> {
                     createArrayValue(type.element, type.nElements) {
-                        blankValue(type.element)
+                        type.element.blank()
                     }
                 }
                 is NumberType -> {
@@ -1328,9 +1267,9 @@ fun coerce(value: Value, type: Type): Value {
                     }
                 }
                 is DataStructureType -> {
-                    blankValue(type)
+                    type.blank()
                 }
-                else -> TODO(type.toString())
+                else -> TODO("Converting BlanksValue to $type")
             }
         }
         is StringValue -> {
@@ -1345,7 +1284,7 @@ fun coerce(value: Value, type: Type): Value {
                 is ArrayType -> {
                     createArrayValue(type.element, type.nElements) {
                         // TODO
-                        blankValue(type.element)
+                        type.element.blank()
                     }
                 }
                 // TODO
@@ -1360,10 +1299,17 @@ fun coerce(value: Value, type: Type): Value {
                         TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
                     }
                 }
-                is DataStructureType -> {
-                    blankValue(type)
+                is BooleanType -> {
+                    if ("1" == value.value.trim()) {
+                        BooleanValue.TRUE
+                    } else {
+                        BooleanValue.FALSE
+                    }
                 }
-                else -> TODO(type.toString())
+                is DataStructureType -> {
+                    type.blank()
+                }
+                else -> TODO("Converting String to $type")
             }
         }
         is ArrayValue -> {
@@ -1374,7 +1320,38 @@ fun coerce(value: Value, type: Type): Value {
                 is ArrayType -> {
                     return value
                 }
-                else -> TODO(type.toString())
+                else -> TODO("Converting ArrayValue to $type")
+            }
+        }
+
+        is DecimalValue -> {
+            when(type) {
+                is NumberType -> {
+                    // TODO verifiy the Rounding mode
+                    if(type.decimalDigits < value.value.scale()) {
+                        return DecimalValue(value.value.setScale(type.decimalDigits,RoundingMode.HALF_EVEN))
+                    }
+                    return value
+                }
+                else -> TODO("Converting DecimalValue to $type")
+            }
+        }
+
+        // TODO support for integer
+        is HiValValue -> {
+            when(type) {
+                is NumberType -> {
+                    return computeHiValue(type)
+                }
+                else -> TODO("Converting HiValValue to $type")
+            }
+        }
+        is LowValValue -> {
+            when (type) {
+                is NumberType -> {
+                    return computeLowValue(type)
+                }
+                else -> TODO("Converting LowValValue to $type")
             }
         }
         else -> value

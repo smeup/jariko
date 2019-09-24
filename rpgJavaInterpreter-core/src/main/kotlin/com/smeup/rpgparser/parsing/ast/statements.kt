@@ -3,6 +3,7 @@ package com.smeup.rpgparser.parsing.ast
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.interpreter.KListType
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
@@ -107,14 +108,20 @@ data class ChainStmt(
 ) :
     Statement(position)
 
+data class ReadEqualStmt(
+    val searchArg: Expression?, // Factor1
+    val name: String, // Factor 2
+    override val position: Position? = null
+) :
+    Statement(position)
+
 data class CheckStmt(
     val comparatorString: Expression, // Factor1
     val baseString: Expression,
     val start: Int = 1,
     val wrongCharPosition: AssignableExpression?,
     override val position: Position? = null
-) :
-        Statement(position)
+) : Statement(position)
 
 data class CallStmt(
     val expression: Expression,
@@ -127,6 +134,16 @@ data class CallStmt(
             it.dataDefinition
         }
     }
+}
+
+data class KListStmt
+    private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
+    companion object {
+        operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
+            return KListStmt(name.toUpperCase(), fields, position)
+        }
+    }
+    override fun dataDefinition(): List<InStatementDataDefinition> = listOf(InStatementDataDefinition(name, KListType))
 }
 
 data class IfStmt(
@@ -175,7 +192,9 @@ data class PlistStmt(
     val params: List<PlistParam>,
     val isEntry: Boolean,
     override val position: Position? = null
-) : Statement(position)
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> = params.mapNotNull { it.dataDefinition }
+}
 
 data class PlistParam(
     val param: ReferenceByName<AbstractDataDefinition>,
@@ -233,6 +252,12 @@ data class DoStmt(
 }
 
 data class DowStmt(
+    val endExpression: Expression,
+    val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position)
+
+data class DouStmt(
     val endExpression: Expression,
     val body: List<Statement>,
     override val position: Position? = null

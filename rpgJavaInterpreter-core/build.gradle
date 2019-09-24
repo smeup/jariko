@@ -19,23 +19,18 @@ buildscript {
     }
 }
 
-plugins {
-    id "org.jlleitschuh.gradle.ktlint" version "8.2.0"
-}
-
 apply plugin: 'antlr'
 
 def antlrVersion = ext.antlr_version
-def generatedRoot = "generated-src"
-def generatedMain = generatedRoot + "/antlr/main"
+def generatedMain = "generated-src/antlr/main"
 def generatedMainFile = file(generatedMain)
 
 dependencies {
     antlr "org.antlr:antlr4:$antlr_version"
     compile "org.antlr:antlr4-runtime:$antlr_version"
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version".toString()
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version".toString()
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version".toString()
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "com.github.ftomassetti:kolasu:4249345373"
 
     compile "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
@@ -43,11 +38,10 @@ dependencies {
     compile "org.apache.logging.log4j:log4j-core:2.12.1"
 
     compile 'commons-io:commons-io:2.6'
-    compile 'org.jetbrains.exposed:exposed:0.17.1'
     compile 'com.github.ajalt:clikt:2.1.0'
 
-    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version".toString()
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version".toString()
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testCompile 'junit:junit:4.12'
     testCompile 'org.hsqldb:hsqldb:2.5.0'
     testCompile 'io.mockk:mockk:1.9'
@@ -69,18 +63,49 @@ compileJava.source generatedMainFile, sourceSets.main.java
 compileKotlin.source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
 
 clean {
-    delete file(generatedRoot)
+    delete file(generatedMain)
+    mkdir generatedMain
 }
 
 idea {
     module {
+        println 'Adding ' + generatedMainFile + ' to source dirs'
+        mkdir generatedMain
         sourceDirs += generatedMainFile
+        println sourceDirs
+    }
+}
+
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+        showCauses true
+        showExceptions true
+        showStackTraces true
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                println "------------------------------------------------------------------------------------"
+                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                println "------------------------------------------------------------------------------------"
+            }
+        }
+    }
+}
+
+//Always reruns all non-performance tests displaying just failing items
+task testFailing(type: Test) {
+    outputs.upToDateWhen {false}
+    testLogging {
+        events "failed"
+    }
+    useJUnit {
+        excludeCategories 'com.smeup.rpgparser.PerformanceTest'
     }
 }
 
 test {
     testLogging {
-        events "passed", "skipped", "failed"
+        events "failed"
     }
     useJUnit {
         excludeCategories 'com.smeup.rpgparser.PerformanceTest'
@@ -100,6 +125,7 @@ task testPerformance(type: Test) {
 task testAll(type: Test) {
     testLogging {
         events "passed", "skipped", "failed"
+        showStandardStreams true
     }
 }
 
@@ -122,8 +148,6 @@ jacocoTestReport {
         })
     }
 }
-
-check.dependsOn jacocoTestReport
 
 //gradlew runExample -Pargs="CALCFIB,9"
 task runExample (type: JavaExec) {
@@ -151,3 +175,4 @@ task runMutesTests(type: JavaExec) {
 }
 
 check.dependsOn runMutesTests
+check.dependsOn jacocoTestReport

@@ -56,7 +56,7 @@ fun executeWithMutes(
 
         try {
             interpreter.execute(cu, mapOf())
-            val sorted = interpreter.executedAnnotation.toSortedMap()
+            val sorted = interpreter.systemInterface.executedAnnotation.toSortedMap()
             sorted.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
 

@@ -16,6 +16,20 @@ class StatementsTest {
         return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
     }
 
+    private fun multiLineStatement(code: String): Statement {
+        val stmtContext = assertStatementCanBeParsed(code)
+        return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
+    }
+
+    @test fun kListParsing() {
+        assertEquals(KListStmt("KEY", listOf("KY1TST", "KY2TST")),
+                    multiLineStatement("""
+     C     Key           KLIST
+     C                   KFLD                    KY1TST
+     C                   KFLD                    KY2TST                        
+                    """))
+    }
+
     @test fun executeSubroutineParsing() {
         assertEquals(ExecuteSubroutine(ReferenceByName("IMP0")), statement("EXSR      IMP0"))
     }

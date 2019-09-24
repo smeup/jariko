@@ -6,13 +6,16 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
+const val CONVENTIONAL_INDEX_SUFFIX = "_INDEX"
+
 fun ResultSet.joinToString(separator: String = " - "): String {
     val sb = StringBuilder()
-    if (this.next()) {
+    while (this.next()) {
         for (i in 1..this.metaData.columnCount) {
             sb.append("${this.metaData.getColumnName(i)}: ${this.getObject(i)}")
             if (i != this.metaData.columnCount) sb.append(separator)
         }
+        sb.appendln()
     }
     return sb.toString()
 }
@@ -26,9 +29,12 @@ fun PreparedStatement.bind(values: List<Value>) {
 fun Connection.recordFormatName(tableName: String): String? =
     this.metaData.getTables(null, null, tableName, null).use {
         if (it.next()) {
-            return@use it.getString("REMARKS").ifBlank { tableName }
+            val remarks = it.getString("REMARKS")
+            if (!remarks.isNullOrBlank()) {
+                return@use remarks
+            }
         }
-        return@use null
+        return@use tableName
     }
 
 fun Connection.fields(name: String): List<DBField> {
@@ -54,6 +60,51 @@ fun Connection.primaryKeys(tableName: String): List<String> {
         while (it.next()) {
             result.add(it.getString("COLUMN_NAME"))
         }
+    }
+    return result
+}
+
+fun Connection.orderingFields(tableName: String): List<String> {
+    val result = mutableListOf<String>()
+    this.prepareStatement("SELECT VIEW_DEFINITION FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = ?").use {
+        it.setString(1, tableName)
+        it.executeQuery().use {
+            if (it.next()) {
+                // TODO handle DESC and ASC keywords
+                val fields = it.getString("VIEW_DEFINITION").substringAfter("ORDER BY").split(",")
+                result.addAll(fields.map(String::trim))
+            }
+        }
+    }
+    return result
+}
+
+fun ResultSet?.closeIfOpen() {
+    if (this != null) {
+        try {
+            this.close()
+        } catch (t: Throwable) {}
+    }
+}
+
+fun ResultSet?.toValues(): List<Pair<String, Value>> {
+    if (this != null && this.next()) {
+        return this.currentRecordToValues()
+    }
+    return emptyList()
+}
+
+fun ResultSet?.currentRecordToValues(): List<Pair<String, Value>> {
+    // TODO create a unit test for the isAfterLast condition
+    if (this == null || this.isAfterLast) {
+        return emptyList()
+    }
+    val result = mutableListOf<Pair<String, Value>>()
+    val metadata = this.metaData
+    for (i in 1..metadata.columnCount) {
+        val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
+        val value = type.toValue(this, i)
+        result.add(Pair(metadata.getColumnName(i), value))
     }
     return result
 }

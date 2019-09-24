@@ -81,7 +81,7 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     if (rename.isNotEmpty()) {
         // TODO Should we evaluate rename[0].int_format ???
         val internalRecordFormatName = rename[0].int_format.text
-        fileDefinition.formatName = internalRecordFormatName
+        fileDefinition.internalFormatName = internalRecordFormatName
     }
     return fileDefinition
 }
