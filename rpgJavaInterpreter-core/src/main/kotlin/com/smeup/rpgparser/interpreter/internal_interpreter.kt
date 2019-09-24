@@ -674,7 +674,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
-                // require(arrayValue.assignableTo(target.array.type()))
+                require(arrayValue.assignableTo(target.array.type()))
                 val indexValue = interpret(target.index)
                 val elementType = (target.array.type() as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)

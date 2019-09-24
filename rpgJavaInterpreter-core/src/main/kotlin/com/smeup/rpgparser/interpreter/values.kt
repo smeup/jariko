@@ -230,7 +230,7 @@ abstract class ArrayValue : Value() {
 
     override fun assignableTo(expectedType: Type): Boolean {
         if (expectedType is DataStructureType) {
-        // TODO really?
+            // FIXME
             return true
         }
         if (expectedType is ArrayType) {
@@ -254,7 +254,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
-        // require(value.assignableTo(elementType))
+        require(value.assignableTo(elementType))
         elements[index - 1] = value
     }
 
