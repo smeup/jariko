@@ -78,10 +78,13 @@ fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): Li
     }
 }
 
-fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RContext {
+fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RContext {
     val result = RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStreamFor(exampleName))
+
+    if (printTree) println(result.toTreeString())
+
     assertTrue(result.correct,
             message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
     return result.root!!.rContext

@@ -22,12 +22,14 @@ import java.util.*
 import kotlin.collections.HashMap
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ErrorNode
+import org.antlr.v4.runtime.tree.ParseTree
+import org.antlr.v4.runtime.tree.Trees.getNodeText
 import org.apache.commons.io.input.BOMInputStream
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
 
-data class ParsingResult<C>(val errors: List<Error>, val root: C?) {
+open class ParsingResult<C>(val errors: List<Error>, val root: C?) {
     val correct: Boolean
         get() = errors.isEmpty()
 }
@@ -43,7 +45,21 @@ data class ParseTrees(
     val muteContexts: MutesImmutableMap? = null
 )
 
-typealias RpgParserResult = ParsingResult<ParseTrees>
+class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser) : ParsingResult<ParseTrees>(errors, root) {
+    fun toTreeString(): String = toStringTree((root as ParseTrees).rContext, parser, 0)
+
+    private fun toStringTree(t: ParseTree, parser: Parser, level: Int): String {
+        val s = StringBuilder()
+        s.appendln(before(level) + "--" + getNodeText(t, parser))
+        for (i in 0 until t.childCount) {
+            s.append(toStringTree(t.getChild(i), parser, level + 1))
+        }
+        return s.toString()
+    }
+
+    private fun before(level: Int) = "  |".repeat(level)
+}
+
 typealias RpgLexerResult = ParsingResult<List<Token>>
 
 class RpgParserFacade {
@@ -227,7 +243,7 @@ class RpgParserFacade {
             mutes = findMutes(code, errors)
         }
         verifyParseTree(parser, errors, root)
-        return RpgParserResult(errors, ParseTrees(root, mutes))
+        return RpgParserResult(errors, ParseTrees(root, mutes), parser)
     }
 
     fun parseAndProduceAst(inputStream: InputStream): CompilationUnit {
