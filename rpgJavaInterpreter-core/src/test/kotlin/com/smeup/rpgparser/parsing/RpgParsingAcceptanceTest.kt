@@ -17,7 +17,7 @@ class RpgParsingAcceptanceTest {
         processFilesInDirectory(File("src/test/resources/data"), 13) { rpgFile ->
             try {
                 val parseTree = assertCanBeParsed(rpgFile)
-            } catch (e : AssertionError) {
+            } catch (e: AssertionError) {
                 System.err.println("Failed to parse ${rpgFile.absolutePath}: ${e.message}")
                 failures++
             }

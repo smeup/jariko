@@ -67,7 +67,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
     // TODO default value DECEDIT can be changed
-    var decedit : String  = "."
+    var decedit: String = "."
 
     var interpretationContext: InterpretationContext = DummyInterpretationContext
     private val klists = HashMap<String, List<String>>()
@@ -674,7 +674,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
-                //require(arrayValue.assignableTo(target.array.type()))
+                // require(arrayValue.assignableTo(target.array.type()))
                 val indexValue = interpret(target.index)
                 val elementType = (target.array.type() as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)
@@ -932,7 +932,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val n = eval(expression.value)
                 val format = eval(expression.format)
                 if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
-                return n.asDecimal().formatAs(format.value, expression.value.type(),this.decedit)
+                return n.asDecimal().formatAs(format.value, expression.value.type(), this.decedit)
             }
             is DiffExpr -> {
                 // TODO expression.durationCode
@@ -944,12 +944,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
                 // TODO check type
-                if(v1 is DecimalValue && v2 is DecimalValue) {
+                if (v1 is DecimalValue && v2 is DecimalValue) {
                     // TODO maurizio need to know the target size
-                    val res = v1.value.toDouble()/v2.value.toDouble()
-                    return DecimalValue( BigDecimal(res))
+                    val res = v1.value.toDouble() / v2.value.toDouble()
+                    return DecimalValue(BigDecimal(res))
                 }
-
 
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
             }
@@ -994,65 +993,64 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 }
 
-private fun computeHiValue(type : NumberType) : Value {
+private fun computeHiValue(type: NumberType): Value {
     // Packed and Zone
-    if( type.rpgType ==  RpgType.PACKED.rpgType  || type.rpgType ==  RpgType.ZONED.rpgType || type.rpgType == "") {
+    if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
         if (type.decimalDigits == 0) {
             val ed = "9".repeat(type.entireDigits)
-            return  IntValue("$ed".toLong())
+            return IntValue("$ed".toLong())
         } else {
             val ed = "9".repeat(type.entireDigits)
             val dd = "9".repeat(type.decimalDigits)
-            return  DecimalValue(("$ed.$dd".toBigDecimal()))
+            return DecimalValue(("$ed.$dd".toBigDecimal()))
         }
     }
     // Integer
-    if(  type.rpgType ==  RpgType.INTEGER.rpgType  ) {
-        when(type.entireDigits) {
-            3  -> return IntValue(Byte.MAX_VALUE.toLong())
-            5  -> return IntValue(Short.MAX_VALUE.toLong())
+    if (type.rpgType == RpgType.INTEGER.rpgType) {
+        when (type.entireDigits) {
+            3 -> return IntValue(Byte.MAX_VALUE.toLong())
+            5 -> return IntValue(Short.MAX_VALUE.toLong())
             10 -> return IntValue(Int.MAX_VALUE.toLong())
         }
     }
     // Unsigned
-    if( type.rpgType ==  RpgType.UNSIGNED.rpgType ) {
-        when(type.entireDigits) {
-            3  -> return IntValue(UByte.MAX_VALUE.toLong())
-            5  -> return IntValue(UShort.MAX_VALUE.toLong())
+    if (type.rpgType == RpgType.UNSIGNED.rpgType) {
+        when (type.entireDigits) {
+            3 -> return IntValue(UByte.MAX_VALUE.toLong())
+            5 -> return IntValue(UShort.MAX_VALUE.toLong())
             10 -> return IntValue(UInt.MAX_VALUE.toLong())
         }
     }
     // Binary
-    if( type.rpgType ==  RpgType.BINARY.rpgType ) {
-        when(type.entireDigits) {
-            2  -> {
+    if (type.rpgType == RpgType.BINARY.rpgType) {
+        when (type.entireDigits) {
+            2 -> {
                 val ed = "9".repeat(4)
-                return  IntValue("$ed".toLong())
+                return IntValue("$ed".toLong())
             }
-            4  -> {
+            4 -> {
                 val ed = "9".repeat(9)
-                return  IntValue("$ed".toLong())
+                return IntValue("$ed".toLong())
             }
-
         }
     }
     TODO("")
 }
 
-private fun computeLowValue(type : NumberType) : Value {
+private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone
-    if( type.rpgType ==  RpgType.PACKED.rpgType  || type.rpgType ==  RpgType.ZONED.rpgType ) {
+    if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType) {
         if (type.decimalDigits == 0) {
             val ed = "9".repeat(type.entireDigits)
-            return  IntValue("-$ed".toLong())
+            return IntValue("-$ed".toLong())
         } else {
             val ed = "9".repeat(type.entireDigits)
             val dd = "9".repeat(type.decimalDigits)
-            return  DecimalValue(("-$ed.$dd".toBigDecimal()))
+            return DecimalValue(("-$ed.$dd".toBigDecimal()))
         }
     }
     // Integer
-    if(  type.rpgType ==  RpgType.INTEGER.rpgType  ) {
+    if (type.rpgType == RpgType.INTEGER.rpgType) {
         when (type.entireDigits) {
             3 -> return IntValue(Byte.MIN_VALUE.toLong())
             5 -> return IntValue(Short.MIN_VALUE.toLong())
@@ -1060,21 +1058,20 @@ private fun computeLowValue(type : NumberType) : Value {
         }
     }
     // Unsigned
-    if( type.rpgType ==  RpgType.UNSIGNED.rpgType ) {
-        return  IntValue(0)
+    if (type.rpgType == RpgType.UNSIGNED.rpgType) {
+        return IntValue(0)
     }
     // Binary
-    if( type.rpgType ==  RpgType.BINARY.rpgType ) {
-        when(type.entireDigits) {
-            2  -> {
+    if (type.rpgType == RpgType.BINARY.rpgType) {
+        when (type.entireDigits) {
+            2 -> {
                 val ed = "9".repeat(4)
-                return  IntValue("-$ed".toLong())
+                return IntValue("-$ed".toLong())
             }
-            4  -> {
+            4 -> {
                 val ed = "9".repeat(9)
-                return  IntValue("-$ed".toLong())
+                return IntValue("-$ed".toLong())
             }
-
         }
     }
     TODO("")
@@ -1087,7 +1084,7 @@ private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
 private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): StringValue {
-    fun signumChar(empty: Boolean) = (if (this.value < BigDecimal.ZERO) "-" else if(empty) "" else " ")
+    fun signumChar(empty: Boolean) = (if (this.value < BigDecimal.ZERO) "-" else if (empty) "" else " ")
 
     fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
     fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
@@ -1101,7 +1098,7 @@ private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): 
     fun f1(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
 
-        when(decedit) {
+        when (decedit) {
             "," -> {
                 val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
                 return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
@@ -1115,8 +1112,6 @@ private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): 
                 return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
             }
         }
-
-
     }
 
     fun f2(decedit: String): String = if (this.value.isZero()) "".padStart(type.size.toInt() + nrOfPunctuationsIn(type as NumberType)) else f1(decedit)
@@ -1135,15 +1130,14 @@ private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): 
             else -> {
                 val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
                 return s.padStart(type.size.toInt() + points(type))
-
             }
         }
     }
 
     fun f4(decedit: String): String = if (this.value.isZero()) "".padStart(type.size.toInt() + points(type as NumberType)) else f3(decedit)
 
-    fun fA(decedit: String): String   {
-        if( this.value.compareTo( BigDecimal.ZERO ) < 0 ) {
+    fun fA(decedit: String): String {
+        if (this.value.compareTo(BigDecimal.ZERO) < 0) {
             return f1(decedit) + "CR"
         } else {
             return f1(decedit)
@@ -1152,16 +1146,16 @@ private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): 
 
     fun fB(decedit: String): String = fA(decedit)
 
-    fun fC(decedit: String): String   {
-        if( this.value.compareTo( BigDecimal.ZERO ) < 0 ) {
+    fun fC(decedit: String): String {
+        if (this.value.compareTo(BigDecimal.ZERO) < 0) {
             return f3(decedit) + "CR"
         } else {
             return f3(decedit)
         }
     }
 
-    fun fD(decedit: String): String   {
-        if( this.value.compareTo( BigDecimal.ZERO ) < 0 ) {
+    fun fD(decedit: String): String {
+        if (this.value.compareTo(BigDecimal.ZERO) < 0) {
             return f3(decedit) + "CR"
         } else {
             return f3(decedit)
@@ -1197,25 +1191,22 @@ private fun DecimalValue.formatAs(format: String, type: Type, decedit: String): 
         }
     }
 
-
     fun fX(decedit: String): String {
-        var s =  if (this.value.isZero()) {
+        var s = if (this.value.isZero()) {
             ""
         } else {
             f1(decedit).replace(".", "").replace(",", "").trim()
         }
-        return s.padStart(type.size.toInt(),'0')
+        return s.padStart(type.size.toInt(), '0')
     }
 
-
     fun fZ(decedit: String): String {
-        var s =  if (this.value.isZero()) {
+        var s = if (this.value.isZero()) {
             ""
         } else {
             f1(decedit).replace(".", "").replace(",", "").trim()
         }
         return s.padStart(type.size.toInt())
-
     }
 
     return when (format) {
@@ -1325,11 +1316,11 @@ fun coerce(value: Value, type: Type): Value {
         }
 
         is DecimalValue -> {
-            when(type) {
+            when (type) {
                 is NumberType -> {
                     // TODO verifiy the Rounding mode
-                    if(type.decimalDigits < value.value.scale()) {
-                        return DecimalValue(value.value.setScale(type.decimalDigits,RoundingMode.HALF_EVEN))
+                    if (type.decimalDigits < value.value.scale()) {
+                        return DecimalValue(value.value.setScale(type.decimalDigits, RoundingMode.HALF_EVEN))
                     }
                     return value
                 }
@@ -1339,7 +1330,7 @@ fun coerce(value: Value, type: Type): Value {
 
         // TODO support for integer
         is HiValValue -> {
-            when(type) {
+            when (type) {
                 is NumberType -> {
                     return computeHiValue(type)
                 }

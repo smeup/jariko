@@ -6,7 +6,6 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Test
 
-
 class RpgParserDataOverlay {
 
     /**
@@ -59,5 +58,4 @@ class RpgParserDataOverlay {
         cu.resolve()
         execute(cu, mapOf())
     }
-
 }

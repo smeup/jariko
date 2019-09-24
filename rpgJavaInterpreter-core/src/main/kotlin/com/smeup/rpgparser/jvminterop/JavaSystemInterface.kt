@@ -10,10 +10,10 @@ import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
 open class JavaSystemInterface(
-        private val outputStream: PrintStream,
-        private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
-        private val databaseInterface: DBInterface = DummyDBInterface,
-        var loggingConfiguration: LoggingConfiguration? = null
+    private val outputStream: PrintStream,
+    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
+    private val databaseInterface: DBInterface = DummyDBInterface,
+    var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 
     override var executedAnnotation: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
@@ -91,6 +91,4 @@ open class JavaSystemInterface(
     override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
         return executedAnnotation
     }
-
-
 }

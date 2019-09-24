@@ -8,8 +8,6 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.Locale
 
-
-
 internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
         this.number() != null -> this.number()!!.toAst(conf)
@@ -67,12 +65,12 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
     return if (text.contains('.')) {
         val nf = NumberFormat.getNumberInstance(Locale.US)
         val bd = BigDecimal(nf.parse(text).toString())
-        RealLiteral(bd,position)
-        //RealLiteral(text.toBigDecimal(), position)
-    } else if(text.contains(',')){
+        RealLiteral(bd, position)
+        // RealLiteral(text.toBigDecimal(), position)
+    } else if (text.contains(',')) {
         val nf = NumberFormat.getNumberInstance(Locale.ITALIAN)
         val bd = BigDecimal(nf.parse(text).toString())
-        RealLiteral(bd,position)
+        RealLiteral(bd, position)
     } else {
         IntLiteral(text.toLong(), position)
     }

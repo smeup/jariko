@@ -29,7 +29,7 @@ interface SystemInterface {
 
     fun getAllLogHandlers() = (configureLog(this.loggingConfiguration() ?: defaultLoggingConfiguration()) + this.extraLogHandlers).toMutableList()
     fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted>
-    fun addExecutedAnnotation(line : Int, annotation: MuteAnnotationExecuted)
+    fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted)
 }
 
 interface DBInterface {
@@ -117,10 +117,10 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
     }
 
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
     override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 }

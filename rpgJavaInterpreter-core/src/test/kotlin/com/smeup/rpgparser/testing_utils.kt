@@ -145,7 +145,7 @@ fun expressionAst(code: String): Expression {
     return assertExpressionCanBeParsed(code).toAst(ToAstConfiguration(considerPosition = false))
 }
 
-fun assertStatementCanBeParsed(code: String, addPrefix:Boolean = false): StatementContext {
+fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): StatementContext {
     val codeToUse = if (addPrefix) "     C                   $code" else code
     val result = RpgParserFacade().parseStatement(inputStreamForCode(codeToUse))
     if (!result.correct) {

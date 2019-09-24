@@ -287,15 +287,16 @@ fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit,
 }
 
 fun ParserRuleContext.processDescendantsAndErrors(
-        operationOnParserRuleContext: (ParserRuleContext) -> Unit,
-        operationOnError: (ErrorNode) -> Unit,
-        includingMe: Boolean = true) {
+    operationOnParserRuleContext: (ParserRuleContext) -> Unit,
+    operationOnError: (ErrorNode) -> Unit,
+    includingMe: Boolean = true
+) {
     if (includingMe) {
         operationOnParserRuleContext(this)
     }
     if (this.children != null) {
         this.children.filterIsInstance(ParserRuleContext::class.java).forEach {
-            it.processDescendantsAndErrors(operationOnParserRuleContext, operationOnError, includingMe=true)
+            it.processDescendantsAndErrors(operationOnParserRuleContext, operationOnError, includingMe = true)
         }
         this.children.filterIsInstance(ErrorNode::class.java).forEach {
             operationOnError(it)

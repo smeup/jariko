@@ -6,7 +6,7 @@ import com.strumenta.kolasu.model.Position
 data class PredefinedIndicatorExpr(val index: Int, override val position: Position? = null) :
     AssignableExpression(position) {
     override fun size(): Long {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 }
 
@@ -14,6 +14,6 @@ data class PredefinedIndicatorExpr(val index: Int, override val position: Positi
 data class PredefinedGlobalIndicatorExpr(override val position: Position? = null) :
         AssignableExpression(position) {
     override fun size(): Long {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 }

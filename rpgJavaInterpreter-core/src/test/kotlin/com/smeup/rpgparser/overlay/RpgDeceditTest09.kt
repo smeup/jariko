@@ -16,7 +16,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import org.junit.Test
 import kotlin.test.assertTrue
 
-
 class RpgDeceditTest09 {
 
     // Temporary replacement to return RpgParserResult
@@ -31,9 +30,9 @@ class RpgDeceditTest09 {
     }
     // Temporary replacement
     private fun assertASTCanBeProduced(
-            exampleName: String,
-            considerPosition: Boolean = false,
-            withMuteSupport: Boolean = true
+        exampleName: String,
+        considerPosition: Boolean = false,
+        withMuteSupport: Boolean = true
     ): CompilationUnit {
         val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
         val ast = parseTreeRoot.root!!.rContext.toAst(ToAstConfiguration(
@@ -49,29 +48,26 @@ class RpgDeceditTest09 {
         return ast
     }
 
-
     @Test
     fun parseMUTE09_02_default() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02_DEFAULT", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
-        var failed : Int = 0
+        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
-
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
@@ -80,7 +76,7 @@ class RpgDeceditTest09 {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02_COMMA", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
-        var failed : Int = 0
+        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         // Changes the default decedit
@@ -90,24 +86,22 @@ class RpgDeceditTest09 {
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
-
 
     @Test
     fun parseMUTE09_02A() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02A", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
-        var failed : Int = 0
+        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.decedit = "0,"
@@ -117,16 +111,13 @@ class RpgDeceditTest09 {
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
-
-
 }
