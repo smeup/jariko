@@ -22,8 +22,8 @@ const val DATA_LOGGER: String = "data"
 const val LOOP_LOGGER: String = "loop"
 const val STATEMENT_LOGGER: String = "statement"
 const val EXPRESSION_LOGGER: String = "expression"
-const val PERFOMANCE_LOGGER: String = "performance"
-const val RESOLUTUION_LOGGER: String = "resolution"
+const val PERFORMANCE_LOGGER: String = "performance"
+const val RESOLUTION_LOGGER: String = "resolution"
 
 abstract class LogHandler(val level: LogLevel, val sep: String) {
     fun extractFilename(name: String): String {
@@ -73,7 +73,7 @@ enum class LogLevel {
 
 fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
 
-    val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFOMANCE_LOGGER, RESOLUTUION_LOGGER)
+    val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFORMANCE_LOGGER, RESOLUTION_LOGGER)
     val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
     val ctx = LogManager.getContext(false) as LoggerContext
 
@@ -106,11 +106,11 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
                         configureLogChannel(ctx, it, config)
                         handlers.add(StatementLogHandler(logLevel, dataSeparator))
                     }
-                    PERFOMANCE_LOGGER -> {
+                    PERFORMANCE_LOGGER -> {
                         configureLogChannel(ctx, it, config)
                         handlers.add(PerformanceLogHandler(logLevel, dataSeparator))
                     }
-                    RESOLUTUION_LOGGER -> {
+                    RESOLUTION_LOGGER -> {
                         configureLogChannel(ctx, it, config)
                         handlers.add(ResolutionLogHandler(logLevel, dataSeparator))
                     }
@@ -221,4 +221,14 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
         else -> throw RuntimeException("Unknown log output value: $output")
     }
     ctx.updateLoggers()
+}
+
+fun consoleLoggingConfiguration(vararg types: String): LoggingConfiguration {
+    val configuration = LoggingConfiguration()
+    configuration.setProperty("logger.data.separator", "\t")
+    for (t in types) {
+        configuration.setProperty("$t.level", "all")
+        configuration.setProperty("$t.output", "console")
+    }
+    return configuration
 }

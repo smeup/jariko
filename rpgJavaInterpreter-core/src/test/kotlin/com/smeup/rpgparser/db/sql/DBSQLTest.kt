@@ -44,8 +44,9 @@ class DBSQLTest {
                 "TSTFLDCHR" to StringValue("XXX"),
                 "TSTFLDNBR" to DecimalValue(bigDecimalValue))
         db.insertRow(tableName, values)
-        assertTrue(db.chain(tableName, StringValue("ABC")).isEmpty())
-        val chainedRecord = db.chain(tableName, StringValue("XXX"))
+        val dbFile = db.open(tableName)
+        assertTrue(dbFile!!.chain(StringValue("ABC")).isEmpty())
+        val chainedRecord = dbFile.chain(StringValue("XXX"))
         assertEquals(2, chainedRecord.size)
         assertEquals(StringValue("XXX"), chainedRecord[0].second)
         assertEquals(DecimalValue(bigDecimalValue), chainedRecord[1].second)

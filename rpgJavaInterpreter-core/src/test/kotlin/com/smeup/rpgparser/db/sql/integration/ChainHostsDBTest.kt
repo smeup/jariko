@@ -18,7 +18,7 @@ class ChainHostsDBTest {
     }
 
     @Test
-    fun doesntFindNonExistingRecord() {
+    fun doesNotFindNonExistingRecord() {
         assertEquals(
             listOf("Not found"),
                 outputOfDBPgm(

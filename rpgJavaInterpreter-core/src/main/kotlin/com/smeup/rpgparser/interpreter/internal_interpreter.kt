@@ -40,22 +40,23 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
-data class FileInformation(val fileName: String, var found: Boolean)
-
-class FileInformationMap {
-    private val byFileName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
-    private val byFormatName = TreeMap<String, FileInformation>(String.CASE_INSENSITIVE_ORDER)
+class DBFileMap(private val dbInterface: DBInterface) {
+    private val byFileName = TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
+    private val byFormatName = TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
 
     fun add(fileDefinition: FileDefinition) {
-        val fileInformation = FileInformation(fileDefinition.name, false)
-        byFileName[fileDefinition.name] = fileInformation
-        val formatName = fileDefinition.formatName
+        val dbFile = dbInterface.open(fileDefinition.name)
+        require(dbFile != null) {
+            "Cannot open ${fileDefinition.name}"
+        }
+        byFileName[fileDefinition.name] = dbFile
+        val formatName = fileDefinition.internalFormatName
         if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
-            byFormatName[formatName] = fileInformation
+            byFormatName[formatName] = dbFile
         }
     }
 
-    operator fun get(nameOrFormat: String): FileInformation? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+    operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
 class InternalInterpreter(val systemInterface: SystemInterface) {
@@ -72,7 +73,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     var lastFound = false
-    private val fileInfos = FileInformationMap()
+    var lastDBFile: DBFile? = null
+
+    private val dbFileMap = DBFileMap(systemInterface.db)
 
     private fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
@@ -105,20 +108,28 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     ) {
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.forEach {
-            fileInfos.add(it)
+            dbFileMap.add(it)
         }
 
         // Assigning initial values received from outside and consider INZ clauses
         if (reinitialization) {
             compilationUnit.allDataDefinitions.forEach {
+                var value: Value? = null
                 if (it is DataDefinition) {
-                    set(it, coerce(when {
-                        it.name in initialValues -> initialValues[it.name]
-                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                    value = when {
+                        it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
                         it.initializationValue != null -> interpret(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(compilationUnit.compileTimeArray(it.name), (it.type as ArrayType))
                         else -> blankValue(it)
-                    }, it.type))
+                    }
+                } else if (it is InStatementDataDefinition && it.parent is PlistParam) {
+                    value = when {
+                        it.name in initialValues -> initialValues[it.name] ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        else -> null
+                    }
+                }
+                if (value != null) {
+                    set(it, coerce(value, it.type))
                     executeMutes(it.muteAnnotations)
                 }
             }
@@ -136,7 +147,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     .map {
                         coerce(StringValue(it), arrayType.element)
                     }
-                    .resizeTo(arrayType.nElements, blankValue(arrayType.element))
+                    .resizeTo(arrayType.nElements, arrayType.element.blank())
                     .toMutableList()
 
         return ConcreteArrayValue(l, arrayType.element)
@@ -428,6 +439,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         log(DowStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
                     }
                 }
+                is DouStmt -> {
+                    var loopCounter: Long = 0
+                    var startTime = currentTimeMillis()
+                    try {
+                        log(DouStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement))
+                        do {
+                            execute(statement.body)
+                            loopCounter++
+                        } while (!eval(statement.endExpression).asBoolean().value)
+                        val elapsed = currentTimeMillis() - startTime
+                        log(DouStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
+                    } catch (e: LeaveException) {
+                        val elapsed = currentTimeMillis() - startTime
+                        log(DouStatemenExecutionLogEnd(this.interpretationContext.currentProgramName, statement, elapsed, loopCounter))
+                    }
+                }
                 is SubDurStmt -> {
                     when (statement.target) {
                         is DataRefExpr -> {
@@ -474,10 +501,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                 }
                 is ChainStmt -> {
-                    val fileInfo = fileInfos[statement.name]
-                    require(fileInfo != null) {
+                    val dbFile = dbFileMap[statement.name]
+                    require(dbFile != null) {
                         "Line: ${statement.position.line()} - File definition ${statement.name} not found"
                     }
+                    lastDBFile = dbFile
                     val record = if (statement.searchArg.type() is KListType) {
                         val kListName = statement.searchArg.render().toUpperCase()
                         val parms = klists[kListName]
@@ -485,9 +513,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             "Line: ${statement.position.line()} - KList not found: $kListName"
                         }
                         val searchValues = parms.map { it to get(it) }
-                        systemInterface.db.chain(fileInfo.fileName, searchValues)
+                        dbFile.chain(searchValues)
                     } else {
-                        systemInterface.db.chain(fileInfo.fileName, eval(statement.searchArg))
+                        dbFile.chain(eval(statement.searchArg))
                     }
                     if (!record.isEmpty()) {
                         lastFound = true
@@ -495,7 +523,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     } else {
                         lastFound = false
                     }
-                    fileInfo.found = lastFound
+                }
+                is ReadEqualStmt -> {
+                    val dbFile = dbFileMap[statement.name]
+                    require(dbFile != null) {
+                        "Line: ${statement.position.line()} - File definition ${statement.name} not found"
+                    }
+                    lastDBFile = dbFile
+                    val record = dbFile.readEqual()
+                    if (!record.isEmpty()) {
+                        lastFound = true
+                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
+                    } else {
+                        lastFound = false
+                    }
                 }
                 else -> TODO(statement.toString())
             }
@@ -680,7 +721,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     is ArrayType -> {
                         createArrayValue(type.element, type.nElements) {
-                            blankValue(type.element)
+                            type.element.blank()
                         }
                     }
                     is NumberType -> {
@@ -705,7 +746,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     is ArrayType -> {
                         createArrayValue(type.element, type.nElements) {
                             // TODO
-                            blankValue(type.element)
+                            type.element.blank()
                         }
                     }
                     // TODO
@@ -978,10 +1019,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return StringValue(eval(expression.value).asString().value.removeNullChars().trim())
             }
             is FoundExpr -> {
+                // TODO fix this bad implementation
                 if (expression.name == null) {
                     return BooleanValue(lastFound)
                 }
                 TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
+            }
+            is EofExpr -> {
+                // TODO fix this bad implementation
+                if (expression.name == null) {
+                    return BooleanValue(lastDBFile?.eof() ?: false)
+                }
+                TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
             }
             is AbsExpr -> {
                 val value = interpret(expression.value)
@@ -995,7 +1044,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
-        return blankValue(dataDefinition.type)
+        return dataDefinition.type.blank()
     }
 }
 
@@ -1093,17 +1142,3 @@ private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
-
-fun blankValue(type: Type): Value {
-    return when (type) {
-        is ArrayType -> createArrayValue(type.element, type.nElements) {
-            blankValue(type.element)
-        }
-        is DataStructureType -> StringValue.blank(type.size.toInt())
-        is StringType -> StringValue.blank(type.size.toInt())
-        is NumberType -> IntValue(0)
-        is BooleanType -> BooleanValue(false)
-        is TimeStampType -> TimeStampValue.LOVAL
-        is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
-    }
-}

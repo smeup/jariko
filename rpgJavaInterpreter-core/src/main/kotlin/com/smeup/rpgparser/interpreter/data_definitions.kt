@@ -52,7 +52,7 @@ data class FileDefinition private constructor(override val name: String, overrid
         }
     }
 
-    var formatName: String? = null
+    var internalFormatName: String? = null
         set(value) {
             field = value?.toUpperCase()
         }
@@ -116,5 +116,4 @@ class InStatementDataDefinition(
     override val type: Type,
     override val position: Position? = null,
     val initializationValue: Expression? = null
-) :
-            AbstractDataDefinition(name, type, position)
+) : AbstractDataDefinition(name, type, position)

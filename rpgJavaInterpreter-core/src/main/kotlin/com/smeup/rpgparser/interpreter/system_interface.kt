@@ -30,8 +30,16 @@ interface SystemInterface {
 
 interface DBInterface {
     fun metadataOf(name: String): FileMetadata?
-    fun chain(name: String, key: Value): List<Pair<String, Value>>
-    fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>>
+    fun open(name: String): DBFile?
+}
+
+interface DBFile {
+    fun chain(key: Value): List<Pair<String, Value>>
+    fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>>
+    fun readEqual(): List<Pair<String, Value>>
+    fun readEqual(key: Value): List<Pair<String, Value>>
+    fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>>
+    fun eof(): Boolean
 }
 
 data class DBField(val name: String, val type: Type, val primaryKey: Boolean = false) {
@@ -42,8 +50,7 @@ data class FileMetadata(val tableName: String, val formatName: String, val field
 
 object DummyDBInterface : DBInterface {
     override fun metadataOf(name: String): FileMetadata? = null
-    override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
-    override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> = emptyList()
+    override fun open(name: String): DBFile? = null
 }
 
 object DummySystemInterface : SystemInterface {

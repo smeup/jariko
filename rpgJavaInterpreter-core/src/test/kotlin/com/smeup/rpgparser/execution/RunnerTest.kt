@@ -41,7 +41,7 @@ class RunnerTest {
         every { dataLogger.isInfoEnabled } answers { true }
         every { dataLogger.info(capture(slot)) } answers { dataLogs.add(slot.captured) }
 
-        every { LogManager.getLogger(PERFOMANCE_LOGGER) } answers { perfLogger }
+        every { LogManager.getLogger(PERFORMANCE_LOGGER) } answers { perfLogger }
         every { perfLogger.isInfoEnabled } answers { true }
         every { perfLogger.info(capture(slot)) } answers { perfLogs.add(slot.captured) }
 
@@ -91,7 +91,7 @@ class RunnerTest {
         every { dataLogger.isInfoEnabled } answers { true }
         every { dataLogger.info(capture(slot)) } answers { dataLogs.add(slot.captured) }
 
-        every { LogManager.getLogger(PERFOMANCE_LOGGER) } answers { perfLogger }
+        every { LogManager.getLogger(PERFORMANCE_LOGGER) } answers { perfLogger }
         every { perfLogger.isInfoEnabled } answers { true }
         every { perfLogger.info(capture(slot)) } answers { perfLogs.add(slot.captured) }
 

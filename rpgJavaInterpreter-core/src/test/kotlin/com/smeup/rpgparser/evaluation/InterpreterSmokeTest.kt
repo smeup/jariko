@@ -2,9 +2,9 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Test
-import java.lang.RuntimeException
 
 class InterpreterSmokeTest {
 
@@ -34,44 +34,41 @@ class InterpreterSmokeTest {
     fun executeCHAINHOSTS() {
         val cu = assertASTCanBeProduced("CHAINHOSTS")
 
+        val hostField = DBField("HOSTNME1", StringType(255))
         val mockDBInterface: DBInterface = object : DBInterface {
-            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
-                throw RuntimeException("Should not get here")
-            }
-
-            val hostField = DBField("HOSTNME1", StringType(255))
-
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
-
-            override fun chain(name: String, key: Value): List<Pair<String, Value>> =
-                if (name.equals("qhosts", ignoreCase = true)) {
-                    listOf(hostField.name to StringValue("loopback"))
-                } else {
-                    emptyList()
-                }
+            override fun open(name: String): DBFile? = object : MockDBFile() {
+                override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> = TODO()
+                override fun chain(key: Value): List<Pair<String, Value>> =
+                    if (name.equals("qhosts", ignoreCase = true)) {
+                        listOf(hostField.name to StringValue("loopback"))
+                    } else {
+                        emptyList()
+                    }
+            }
         }
 
         cu.resolve(mockDBInterface)
-        execute(cu, mapOf("ipToFind" to StringValue("127.0.0.1")))
+        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
+        si.databaseInterface = mockDBInterface
+        execute(cu, mapOf("ipToFind" to StringValue("127.0.0.1")), si)
     }
 
     @Test
     fun executeCHAIN2FILE() {
         val cu = assertASTCanBeProduced("CHAIN2FILE")
 
+        val hostField = DBField("DESTST", StringType(40))
         val mockDBInterface: DBInterface = object : DBInterface {
-            val hostField = DBField("DESTST", StringType(40))
-
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
-
-            override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
-
-            override fun chain(name: String, keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
-                throw RuntimeException("Should not get here")
+            override fun open(name: String): DBFile? = object : MockDBFile() {
+                override fun chain(key: Value): List<Pair<String, Value>> = emptyList()
             }
         }
 
         cu.resolve(mockDBInterface)
-        execute(cu, mapOf())
+        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
+        si.databaseInterface = mockDBInterface
+        execute(cu, mapOf(), si)
     }
 }
