@@ -46,18 +46,22 @@ data class ParseTrees(
 )
 
 class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser) : ParsingResult<ParseTrees>(errors, root) {
-    fun toTreeString(): String = toStringTree((root as ParseTrees).rContext, parser, 0)
+    fun toTreeString(): String = toStringTree((root as ParseTrees).rContext, parser, emptyList(), false)
 
-    private fun toStringTree(t: ParseTree, parser: Parser, level: Int): String {
+    private fun toStringTree(t: ParseTree, parser: Parser, before: List<String>, isLast: Boolean): String {
         val s = StringBuilder()
-        s.appendln(before(level) + "--" + getNodeText(t, parser))
+        val prefix = if (isLast) "`-" else "--"
+        s.appendln(before.joinToString("") + prefix + getNodeText(t, parser))
         for (i in 0 until t.childCount) {
-            s.append(toStringTree(t.getChild(i), parser, level + 1))
+            val (newBefore, newLast) = if (i != t.childCount - 1) {
+                before + "  |" to false
+            } else {
+                before + "   " to true
+            }
+            s.append(toStringTree(t.getChild(i), parser, newBefore, newLast))
         }
         return s.toString()
     }
-
-    private fun before(level: Int) = "  |".repeat(level)
 }
 
 typealias RpgLexerResult = ParsingResult<List<Token>>

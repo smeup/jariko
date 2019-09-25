@@ -103,7 +103,7 @@ class RpgParserSmokeTest {
 
     @Test
     fun parseHELLO() {
-        assertCanBeParsed("HELLO")
+        assertCanBeParsed("HELLO", printTree = true)
     }
 
     @Test
