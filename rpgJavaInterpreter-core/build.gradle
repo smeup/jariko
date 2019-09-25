@@ -53,6 +53,7 @@ configurations.all() {
 }
 
 generateGrammarSource {
+    inputs.files fileTree('src/main/antlr').include('**/*.g4')
     maxHeapSize = "64m"
     arguments += ['-package', 'com.smeup.rpgparser']
     outputDirectory = file(generatedMain + "/com/smeup/rpgparser")
