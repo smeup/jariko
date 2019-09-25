@@ -51,7 +51,7 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
     private fun toStringTree(t: ParseTree, parser: Parser, before: List<String>, isLast: Boolean): String {
         val s = StringBuilder()
         val prefix = if (isLast) "`-" else "--"
-        s.appendln(before.joinToString("") + prefix + getNodeText(t, parser))
+        s.append(before.joinToString("")).append(prefix).appendln(getNodeText(t, parser))
         for (i in 0 until t.childCount) {
             val (newBefore, newLast) = if (i != t.childCount - 1) {
                 before + "  |" to false
