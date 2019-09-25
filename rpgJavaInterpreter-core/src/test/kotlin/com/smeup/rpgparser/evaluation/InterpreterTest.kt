@@ -583,6 +583,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeNOTisCaseInsensitive() {
+        assertEquals(listOf("NotCondition"), outputOf("NOTCASEINS", printTree = false))
+    }
+
+    @Test
     fun executeProgramWithRuntimeError() {
         // TODO better error assertion
         assertFailsWith(Throwable::class) {

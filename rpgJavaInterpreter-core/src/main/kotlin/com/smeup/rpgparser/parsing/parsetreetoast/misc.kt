@@ -75,7 +75,7 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    return when (this.functionName().text) {
+    return when (this.functionName().text.toUpperCase()) {
         "NOT" -> {
             if (this.args().expression().size != 1) {
                 throw IllegalStateException("Not should have just one parameter")

@@ -228,16 +228,16 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): List<String> {
-    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE))
+fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false): List<String> {
+    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree)
     val si = interpreter.systemInterface as CollectorSystemInterface
     return si.displayed.map(String::trimEnd)
 }
 
 private const val TRACE = false
 
-fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE)): InternalInterpreter {
-    val cu = assertASTCanBeProduced(programName, true)
+fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE), printTree: Boolean = false): InternalInterpreter {
+    val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
     cu.resolve()
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
