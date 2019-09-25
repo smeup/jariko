@@ -93,9 +93,10 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, pri
 fun assertASTCanBeProduced(
     exampleName: String,
     considerPosition: Boolean = false,
-    withMuteSupport: Boolean = false
+    withMuteSupport: Boolean = false,
+    printTree: Boolean = false
 ): CompilationUnit {
-    val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
+    val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport, printTree)
     val ast = parseTreeRoot.toAst(ToAstConfiguration(
             considerPosition = considerPosition))
     if (withMuteSupport) {

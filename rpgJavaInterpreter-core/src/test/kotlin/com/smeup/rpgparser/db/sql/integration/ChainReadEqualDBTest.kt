@@ -37,7 +37,8 @@ class ChainReadEqualDBTest {
             outputOfDBPgm(
                 "CHAINREDE0",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
-                mapOf("toFind" to StringValue("C01"))
+                mapOf("toFind" to StringValue("C01")),
+                printTree = true
             )
         }
     }

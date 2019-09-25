@@ -20,8 +20,8 @@ fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface 
     return db
 }
 
-fun outputOfDBPgm(programName: String, initialSQL: List<String>, inputParms: Map<String, StringValue> = mapOf()): List<String> {
-    val cu = assertASTCanBeProduced(programName)
+fun outputOfDBPgm(programName: String, initialSQL: List<String>, inputParms: Map<String, StringValue> = mapOf(), printTree: Boolean = false): List<String> {
+    val cu = assertASTCanBeProduced(programName, printTree = printTree)
     val dbInterface = connectionForTest()
     dbInterface.execute(initialSQL)
     cu.resolve(dbInterface)
