@@ -15,10 +15,12 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgSystem
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertTrue
 
+@Ignore
 class RpgParserOverlayTest11 {
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
