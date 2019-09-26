@@ -11,7 +11,6 @@ import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.utils.*
-import java.lang.Math.pow
 import java.lang.System.currentTimeMillis
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
@@ -87,20 +86,40 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
-    operator fun get(dataName: String) = globalSymbolTable[dataName]
+    operator fun get(data: AbstractDataDefinition) : Value  {
+        return globalSymbolTable[data]
+    }
+    operator fun get(dataName: String) : Value {
+        return globalSymbolTable[dataName]
+    }
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
             "Line ${data.position.line()}: $data cannot be assigned the value $value"
         }
 
-        var previous: Value? = null
-        if (globalSymbolTable.contains(data.name)) {
-            previous = globalSymbolTable[data.name]
+        when (data) {
+            // Field are stored within the Data Structure definition
+            is FieldDefinition -> {
+                val ds = data.parent as DataDefinition
+                val dd = get(ds.name) as StringValue
+                val v = data.toDataStructureValue(value);
+                dd.setSubstring(data.startOffset,data.endOffset,v)
+
+
+            }
+            else -> {
+                var previous: Value? = null
+                if (globalSymbolTable.contains(data.name)) {
+                    previous = globalSymbolTable[data.name]
+                }
+                log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
+                globalSymbolTable[data] = coerce(value, data.type)
+
+            }
         }
-        log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
-        globalSymbolTable[data] = coerce(value, data.type)
+
+
     }
 
     private fun initialize(
@@ -1353,11 +1372,16 @@ fun coerce(value: Value, type: Type): Value {
                     if (type.integer) {
                         if (value.isBlank()) {
                             IntValue(0)
+                        } else if (type.rpgType == "B" ) {
+                            val intValue = decodeBinary(value.value.trim(),type.entireDigits)
+                            IntValue(intValue.longValueExact())
                         } else {
-                            IntValue(value.value.asLong())
+                            val intValue  = decodeFromDS(value.value.trim(),type.entireDigits,type.decimalDigits)
+                            IntValue(intValue.longValueExact())
                         }
                     } else {
-                        TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
+                        val decimalValue = decodeFromDS(value.value.trim(),type.entireDigits,type.decimalDigits)
+                        DecimalValue(decimalValue )
                     }
                 }
                 is DataStructureType -> {
