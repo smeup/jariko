@@ -556,7 +556,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         } catch (e: InterruptForDebuggingPurposes) {
             throw e
         } catch (e: RuntimeException) {
-            throw RuntimeException("Issue executing statement $statement", e)
+            throw RuntimeException("Issue executing statement $statement -> $e", e)
         }
     }
 

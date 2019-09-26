@@ -223,12 +223,23 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
     ctx.updateLoggers()
 }
 
-fun consoleLoggingConfiguration(vararg types: String): LoggingConfiguration {
+private fun loggingConfiguration(output: String, vararg types: String): LoggingConfiguration {
     val configuration = LoggingConfiguration()
     configuration.setProperty("logger.data.separator", "\t")
     for (t in types) {
         configuration.setProperty("$t.level", "all")
-        configuration.setProperty("$t.output", "console")
+        configuration.setProperty("$t.output", "$output")
     }
+    return configuration
+}
+
+fun consoleLoggingConfiguration(vararg types: String): LoggingConfiguration {
+    return loggingConfiguration("console", *types)
+}
+
+fun fileLoggingConfiguration(file: File, vararg types: String): LoggingConfiguration {
+    val configuration = loggingConfiguration("file", *types)
+    configuration.setProperty("logger.file.path", file.parent)
+    configuration.setProperty("logger.file.name", file.name)
     return configuration
 }

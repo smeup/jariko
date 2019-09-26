@@ -30,14 +30,15 @@ class ChainReadEqualDBTest {
                 mapOf("toFind" to StringValue("C01"))))
     }
 
-    @Test @Ignore
+    @Test
     fun throwsExceptionIfNoSearchedBefore() {
         // TODO better error assertion
         assertFailsWith(RuntimeException::class) {
             outputOfDBPgm(
                 "CHAINREDE0",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
-                mapOf("toFind" to StringValue("C01"))
+                mapOf("toFind" to StringValue("C01")),
+                printTree = false
             )
         }
     }

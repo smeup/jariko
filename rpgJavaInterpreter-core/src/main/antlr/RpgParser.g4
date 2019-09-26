@@ -2368,7 +2368,7 @@ simpleExpression:
 unaryExpression:
 	sign expression;
 
-expression: EndOfSourceMode
+expression:
 	NOT expression
 	| number
 	| OPEN_PAREN expression CLOSE_PAREN
