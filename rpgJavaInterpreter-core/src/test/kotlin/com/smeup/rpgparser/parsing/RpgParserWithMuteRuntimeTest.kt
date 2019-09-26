@@ -5,6 +5,7 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.inputStreamFor
+import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -51,6 +52,7 @@ public class RpgParserWithMuteRuntimeTest {
     fun parseMUTE01_runtime() {
         val cu = assertASTCanBeProduced("mute/MUTE01_RUNTIME", true)
         cu.resolve()
+        DummySystemInterface.executedAnnotationInternal.clear()
         val interpreter = execute(cu, mapOf())
 
         assertEquals(interpreter.systemInterface.getExecutedAnnotation().size, 8)
@@ -98,6 +100,7 @@ public class RpgParserWithMuteRuntimeTest {
 
     @Test
     fun parseMUTE02_runtime() {
+        DummySystemInterface.executedAnnotationInternal.clear()
         val cu = assertASTCanBeProduced("mute/MUTE02_RUNTIME", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf())
@@ -133,6 +136,7 @@ public class RpgParserWithMuteRuntimeTest {
 
     @Test
     fun parseMUTE02_runtimeWithArray() {
+        DummySystemInterface.executedAnnotationInternal.clear()
         val cu = assertASTCanBeProduced("mute/MUTE02_RUNTIME_array", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf())
