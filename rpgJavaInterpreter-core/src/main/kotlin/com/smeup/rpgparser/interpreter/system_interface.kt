@@ -117,10 +117,10 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
     }
 
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+        executedAnnotationInternal[line] = annotation
     }
 
     override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+        return executedAnnotationInternal
     }
 }
