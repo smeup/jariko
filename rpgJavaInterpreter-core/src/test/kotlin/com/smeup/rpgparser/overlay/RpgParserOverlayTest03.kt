@@ -2,7 +2,6 @@ package com.smeup.rpgparser.overlay
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
-import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -35,7 +34,7 @@ public class RpgParserOverlayTest03 {
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExceutedAnnotation()
+        val annotations = interpreter.systemInterface.executedAnnotationInternal()
         annotations.forEach { (line, annotation) ->
             try {
                     assertTrue(annotation.result.asBoolean().value)

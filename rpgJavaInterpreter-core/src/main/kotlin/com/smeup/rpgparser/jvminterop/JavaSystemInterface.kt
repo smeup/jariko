@@ -16,7 +16,7 @@ open class JavaSystemInterface(
     var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 
-    override var executedAnnotation: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -85,10 +85,10 @@ open class JavaSystemInterface(
     }
 
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
-        executedAnnotation[line] = annotation
+        executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
-        return executedAnnotation
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return executedAnnotationInternal
     }
 }

@@ -1,8 +1,5 @@
 package com.smeup.rpgparser.overlay
 
-import com.smeup.rpgparser.assertASTCanBeProduced
-import com.smeup.rpgparser.assertCanBeParsed
-import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -60,7 +57,7 @@ class RpgDeceditTest09 {
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
+        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
@@ -84,7 +81,7 @@ class RpgDeceditTest09 {
         // Changes the default decedit
         interpreter.decedit = ","
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
+        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
@@ -109,7 +106,7 @@ class RpgDeceditTest09 {
         interpreter.decedit = "0,"
         // Changes the default decedit
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
+        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)

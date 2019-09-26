@@ -1,8 +1,5 @@
 package com.smeup.rpgparser.overlay
 
-import com.smeup.rpgparser.assertASTCanBeProduced
-import com.smeup.rpgparser.assertCanBeParsed
-import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -69,7 +66,7 @@ public class RpgParserOverlayTest12 {
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
+        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
@@ -157,7 +154,7 @@ public class RpgParserOverlayTest12 {
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExceutedAnnotation().toSortedMap()
+        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
