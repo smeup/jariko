@@ -66,7 +66,7 @@ public class RpgParserOverlayTest12 {
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
@@ -154,7 +154,7 @@ public class RpgParserOverlayTest12 {
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)

@@ -34,7 +34,7 @@ public class RpgParserOverlayTest03 {
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.executedAnnotationInternal()
+        val annotations = interpreter.systemInterface.getExecutedAnnotation()
         annotations.forEach { (line, annotation) ->
             try {
                     assertTrue(annotation.result.asBoolean().value)

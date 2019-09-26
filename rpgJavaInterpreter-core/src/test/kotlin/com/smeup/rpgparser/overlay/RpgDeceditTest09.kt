@@ -57,7 +57,7 @@ class RpgDeceditTest09 {
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
@@ -81,7 +81,7 @@ class RpgDeceditTest09 {
         // Changes the default decedit
         interpreter.decedit = ","
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
@@ -106,7 +106,7 @@ class RpgDeceditTest09 {
         interpreter.decedit = "0,"
         // Changes the default decedit
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.executedAnnotationInternal().toSortedMap()
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
