@@ -9,8 +9,10 @@ import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
@@ -103,6 +105,10 @@ fun assertCanBeParsed(inputStream: InputStream, withMuteSupport: Boolean = false
 }
 
 fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RContext {
+    return assertCanBeParsedResult(exampleName, withMuteSupport, printTree).root!!.rContext
+}
+
+fun assertCanBeParsedResult(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RpgParserResult {
     val result = RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStreamFor(exampleName))
@@ -111,7 +117,7 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, pri
 
     assertTrue(result.correct,
             message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
-    return result.root!!.rContext
+    return result
 }
 
 fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RContext {
@@ -128,14 +134,15 @@ fun assertASTCanBeProduced(
     withMuteSupport: Boolean = false,
     printTree: Boolean = false
 ): CompilationUnit {
-    val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport, printTree)
+    val result = assertCanBeParsedResult(exampleName, withMuteSupport, printTree)
+    val parseTreeRoot = result.root!!.rContext
     val ast = parseTreeRoot.toAst(ToAstConfiguration(
             considerPosition = considerPosition))
     if (withMuteSupport) {
         if (!considerPosition) {
             throw IllegalStateException("Mute annotations can be injected only when retaining the position")
         }
-        // ast.injectMuteAnnotation(parseTreeRoot, )
+        ast.injectMuteAnnotation(result.root!!.muteContexts!!)
     }
     return ast
 }
