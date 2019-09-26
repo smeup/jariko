@@ -78,10 +78,13 @@ fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): Li
     }
 }
 
-fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RContext {
+fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RContext {
     val result = RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStreamFor(exampleName))
+
+    if (printTree) println(result.toTreeString())
+
     assertTrue(result.correct,
             message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
     return result.root!!.rContext
@@ -90,9 +93,10 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RC
 fun assertASTCanBeProduced(
     exampleName: String,
     considerPosition: Boolean = false,
-    withMuteSupport: Boolean = false
+    withMuteSupport: Boolean = false,
+    printTree: Boolean = false
 ): CompilationUnit {
-    val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
+    val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport, printTree)
     val ast = parseTreeRoot.toAst(ToAstConfiguration(
             considerPosition = considerPosition))
     if (withMuteSupport) {
@@ -224,16 +228,16 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): List<String> {
-    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE))
+fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false): List<String> {
+    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree)
     val si = interpreter.systemInterface as CollectorSystemInterface
     return si.displayed.map(String::trimEnd)
 }
 
 private const val TRACE = false
 
-fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE)): InternalInterpreter {
-    val cu = assertASTCanBeProduced(programName, true)
+fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE), printTree: Boolean = false): InternalInterpreter {
+    val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
     cu.resolve()
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
@@ -255,4 +259,13 @@ class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
             rpgProgram(name)
         }
     }
+}
+
+open class MockDBFile : DBFile {
+    override fun chain(key: Value): List<Pair<String, Value>> = TODO("chain")
+    override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> = TODO("chain")
+    override fun readEqual(): List<Pair<String, Value>> = TODO("readEqual")
+    override fun readEqual(key: Value): List<Pair<String, Value>> = TODO("readEqal")
+    override fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>> = TODO("readEqual")
+    override fun eof(): Boolean = TODO("eof")
 }

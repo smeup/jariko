@@ -4,6 +4,9 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
+import com.smeup.rpgparser.logging.EXPRESSION_LOGGER
+import com.smeup.rpgparser.logging.STATEMENT_LOGGER
+import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
 import kotlin.test.assertEquals
@@ -559,10 +562,100 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeECHO() {
+        assertEquals(listOf("Hello"), outputOf("ECHO", mapOf("inTxt" to StringValue("Hello"))))
+    }
+
+    @Test
+    fun executeECHO2() {
+        assertEquals(listOf("Hello"), outputOf("ECHO2", mapOf("inTxt" to StringValue("Hello"))))
+    }
+
+    @Test
+    fun executeCOLDFILEFN() {
+        assertEquals(listOf("0", "0"), outputOf("COLDFILEFN"))
+    }
+
+    @Test
+    fun executeDOU() {
+        assertEquals(listOf("1", "2", "3"), outputOf("DOU", mapOf("inN" to StringValue("3"))))
+        assertEquals(listOf("1"), outputOf("DOU", mapOf("inN" to StringValue("0"))))
+    }
+
+    @Test
+    fun executeNOTisCaseInsensitive() {
+        assertEquals(listOf("NotCondition"), outputOf("NOTCASEINS"))
+    }
+
+    @Test
+    fun executeNOTDoesntNeedBrackets() {
+        assertEquals(listOf("NotCondition"), outputOf("NOTBRACKET", printTree = true))
+    }
+
+    @Test
     fun executeProgramWithRuntimeError() {
         // TODO better error assertion
         assertFailsWith(Throwable::class) {
             execute("ERROR01", emptyMap())
         }
+    }
+
+    @Test
+    fun executeCHAIN2KEYS() {
+        val keysForTest = listOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("2"))
+        val someDescription = StringValue("Goofy")
+
+        val cu = assertASTCanBeProduced("CHAIN2KEYS")
+
+        val f1 = DBField("KY1TST", StringType(5))
+        val f2 = DBField("KY2TST", NumberType(2, 0))
+        val f3 = DBField("DESTST", StringType(40))
+
+        val mockDBInterface: DBInterface = object : DBInterface {
+            override fun open(name: String): DBFile? = object : MockDBFile() {
+                override fun chain(key: Value): List<Pair<String, Value>> = emptyList()
+                override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> =
+                    listOf("DESTST" to someDescription)
+            }
+
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
+        }
+
+        cu.resolve(mockDBInterface)
+
+        val si = CollectorSystemInterface()
+        si.databaseInterface = mockDBInterface
+
+        execute(cu, keysForTest.toMap(), si)
+        assertEquals(listOf("Found: ${someDescription.value}"), si.displayed)
+    }
+
+    @Test
+    fun executeCHAINREADE() {
+        val cu = assertASTCanBeProduced("CHAINREADE")
+
+        val first = DBField("FIRSTNME", StringType(40))
+        val last = DBField("LASTNAME", StringType(40))
+        val mockDBInterface: DBInterface = object : DBInterface {
+            var nrOfCallToEoF = 0
+            override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
+            override fun open(name: String): DBFile? = object : MockDBFile() {
+                override fun chain(key: Value): List<Pair<String, Value>> =
+                    listOf("FIRSTNME" to StringValue("Giovanni"), "LASTNAME" to StringValue("Boccaccio"))
+                override fun readEqual(): List<Pair<String, Value>> =
+                    listOf("FIRSTNME" to StringValue("Cecco"), "LASTNAME" to StringValue("Angiolieri"))
+                override fun eof(): Boolean {
+                    nrOfCallToEoF++
+                    return nrOfCallToEoF > 1
+                }
+            }
+        }
+
+        cu.resolve(mockDBInterface)
+        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
+        si.databaseInterface = mockDBInterface
+
+        execute(cu, mapOf(), si)
+        assertEquals(listOf("Giovanni Boccaccio", "Cecco Angiolieri"), si.displayed)
     }
 }

@@ -102,7 +102,7 @@ class RpgParserSmokeTest {
 
     @Test
     fun parseHELLO() {
-        assertCanBeParsed("HELLO")
+        assertCanBeParsed("HELLO", printTree = true)
     }
 
     @Test
@@ -163,5 +163,20 @@ class RpgParserSmokeTest {
     @Test
     fun executeABSTEST() {
         assertCanBeParsed("ABSTEST")
+    }
+
+    @Test
+    fun executeCHAIN2KEYS() {
+        assertCanBeParsed("CHAIN2KEYS")
+    }
+
+    @Test
+    fun executeCHAINREADE() {
+        assertCanBeParsed("CHAINREADE")
+    }
+
+    @Test
+    fun executeCHAINREDE0() {
+        assertCanBeParsed("CHAINREDE0")
     }
 }

@@ -111,6 +111,13 @@ data class FoundExpr(
 ) :
     Expression(position)
 
+// %EOF
+data class EofExpr(
+    var name: String? = null,
+    override val position: Position? = null
+) :
+        Expression(position)
+
 // %ABS
 data class AbsExpr(
     var value: Expression,

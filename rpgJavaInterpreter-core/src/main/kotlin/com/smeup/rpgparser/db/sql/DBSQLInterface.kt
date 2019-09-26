@@ -3,9 +3,9 @@ package com.smeup.rpgparser.db.sql
 import com.smeup.rpgparser.interpreter.*
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.ResultSet
 
 class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface {
+    override fun open(name: String): DBFile? = DBSQLFile(name, connection)
 
     private val connection: Connection by lazy {
         dbConfiguration.getConnection()
@@ -22,29 +22,6 @@ class DBSQLInterface(private val dbConfiguration: DBConfiguration) : DBInterface
     override fun metadataOf(name: String): FileMetadata? {
         val formatName = connection.recordFormatName(name) ?: return null
         return FileMetadata(name, formatName, connection.fields(name))
-    }
-
-    override fun chain(name: String, key: Value): List<Pair<String, Value>> {
-        val sql = "SELECT * FROM $name ${connection.primaryKeys(name).whereSQL()}"
-        connection.prepareStatement(sql).use {
-            it.setObject(1, key.toDBValue())
-            return toValues(it.executeQuery())
-        }
-    }
-
-    private fun toValues(rs: ResultSet): List<Pair<String, Value>> {
-        val result = mutableListOf<Pair<String, Value>>()
-        rs.use {
-            if (it.next()) {
-                val metadata = it.metaData
-                for (i in 1..metadata.columnCount) {
-                    val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
-                    val value = type.toValue(it, i)
-                    result.add(Pair(metadata.getColumnName(i), value))
-                }
-            }
-        }
-        return result
     }
 
     fun create(tables: List<FileMetadata>) {

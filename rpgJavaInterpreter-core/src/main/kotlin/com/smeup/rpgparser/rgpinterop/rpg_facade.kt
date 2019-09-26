@@ -121,7 +121,7 @@ abstract class RpgFacade<P> (
                     if (it < jvmArray.size) {
                         toRpgValue(elementType, jvmArray[it])
                     } else {
-                        blankValue(elementType.toRpgType())
+                        elementType.toRpgType().blank()
                     }
                 }
                 return rpgArray
