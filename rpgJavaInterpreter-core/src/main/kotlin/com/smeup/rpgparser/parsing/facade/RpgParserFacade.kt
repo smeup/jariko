@@ -37,7 +37,7 @@ open class ParsingResult<C>(val errors: List<Error>, val root: C?) {
 fun List<Error>.firstLine(): String {
     return this.firstOrNull {
         it.position != null
-    }?.position.line() ?: "unknown"
+    }?.position.line()
 }
 
 data class ParseTrees(

@@ -107,7 +107,7 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
 }
 
 internal fun RpgParser.OtherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
-    TODO()
+    TODO("OtherContext.toAst with $conf")
 }
 
 internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IfStmt {

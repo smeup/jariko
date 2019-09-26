@@ -27,6 +27,6 @@ fun outputOfDBPgm(programName: String, initialSQL: List<String>, inputParms: Map
     cu.resolve(dbInterface)
     val si = CollectorSystemInterface()
     si.databaseInterface = dbInterface
-    val interpreter = execute(cu, inputParms, si)
+    execute(cu, inputParms, si)
     return si.displayed
 }
