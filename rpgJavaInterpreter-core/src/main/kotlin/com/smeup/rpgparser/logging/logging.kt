@@ -16,7 +16,9 @@ import org.apache.logging.log4j.core.layout.PatternLayout
 import org.apache.logging.log4j.core.appender.FileAppender
 import org.apache.logging.log4j.core.config.LoggerConfig
 import org.apache.logging.log4j.core.config.AppenderRef
+import java.io.InputStreamReader
 import java.lang.RuntimeException
+import java.nio.charset.Charset
 
 const val DATA_LOGGER: String = "data"
 const val LOOP_LOGGER: String = "loop"
@@ -43,7 +45,7 @@ fun loadLogConfiguration(configFile: File): LoggingConfiguration {
     // Load the logging config file
     val properties = Properties()
     val inputStream = FileInputStream(configFile)
-    properties.load(inputStream)
+    properties.load(InputStreamReader(inputStream, Charset.defaultCharset()))
     return properties
 }
 
