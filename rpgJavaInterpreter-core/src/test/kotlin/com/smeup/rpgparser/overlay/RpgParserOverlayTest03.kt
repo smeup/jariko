@@ -2,18 +2,17 @@ package com.smeup.rpgparser.overlay
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
-import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgSystem
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-
+@Ignore
 public class RpgParserOverlayTest03 {
 
     @Test
@@ -31,31 +30,21 @@ public class RpgParserOverlayTest03 {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
         cu.resolve()
-        var failed : Int = 0
+        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExceutedAnnotation()
+        val annotations = interpreter.systemInterface.getExecutedAnnotation()
         annotations.forEach { (line, annotation) ->
             try {
                     assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("$line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed failed annotation(s)")
         }
-
     }
-
-
-
-
-
-
-
-
 }

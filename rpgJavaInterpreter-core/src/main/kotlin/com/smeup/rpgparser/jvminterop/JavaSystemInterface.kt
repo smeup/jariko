@@ -10,13 +10,13 @@ import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
 open class JavaSystemInterface(
-        private val outputStream: PrintStream,
-        private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
-        private val databaseInterface: DBInterface = DummyDBInterface,
-        var loggingConfiguration: LoggingConfiguration? = null
+    private val outputStream: PrintStream,
+    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
+    private val databaseInterface: DBInterface = DummyDBInterface,
+    var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 
-    override var executedAnnotation: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -85,12 +85,10 @@ open class JavaSystemInterface(
     }
 
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
-        executedAnnotation[line] = annotation
+        executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
-        return executedAnnotation
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return executedAnnotationInternal
     }
-
-
 }

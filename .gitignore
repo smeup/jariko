@@ -11,3 +11,4 @@ bin/
 .idea/
 **/.DS_Store
 rpgJavaInterpreter-core/generated-src/
+lib

@@ -17,7 +17,7 @@ class RpgLexingAcceptanceTest {
         processFilesInDirectory(File("src/test/resources/data"), 13) { rpgFile ->
             try {
                 val tokens = assertCanBeLexed(rpgFile)
-            } catch (e : AssertionError) {
+            } catch (e: AssertionError) {
                 System.err.println("Failed to lex ${rpgFile.absolutePath}: ${e.message}")
                 failures++
             }

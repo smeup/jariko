@@ -24,17 +24,26 @@ interface SystemInterface {
     }
 
     val extraLogHandlers: MutableList<InterpreterLogHandler>
-    val executedAnnotation: HashMap<Int, MuteAnnotationExecuted>
+    val executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted>
     val db: DBInterface
 
     fun getAllLogHandlers() = (configureLog(this.loggingConfiguration() ?: defaultLoggingConfiguration()) + this.extraLogHandlers).toMutableList()
-    fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted>
-    fun addExecutedAnnotation(line : Int, annotation: MuteAnnotationExecuted)
+    fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted>
+    fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted)
 }
 
 interface DBInterface {
     fun metadataOf(name: String): FileMetadata?
-    fun chain(name: String, key: Value): List<Pair<String, Value>>
+    fun open(name: String): DBFile?
+}
+
+interface DBFile {
+    fun chain(key: Value): List<Pair<String, Value>>
+    fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>>
+    fun readEqual(): List<Pair<String, Value>>
+    fun readEqual(key: Value): List<Pair<String, Value>>
+    fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>>
+    fun eof(): Boolean
 }
 
 data class DBField(val name: String, val type: Type, val primaryKey: Boolean = false) {
@@ -45,11 +54,11 @@ data class FileMetadata(val tableName: String, val formatName: String, val field
 
 object DummyDBInterface : DBInterface {
     override fun metadataOf(name: String): FileMetadata? = null
-    override fun chain(name: String, key: Value): List<Pair<String, Value>> = emptyList()
+    override fun open(name: String): DBFile? = null
 }
 
 object DummySystemInterface : SystemInterface {
-    override var executedAnnotation: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = null
@@ -69,16 +78,16 @@ object DummySystemInterface : SystemInterface {
         // doing nothing
     }
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
-        executedAnnotation[line] = annotation
+        executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
-        return executedAnnotation
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return executedAnnotationInternal
     }
 }
 
 class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
-    override var executedAnnotation: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
@@ -108,10 +117,10 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
     }
 
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return executedAnnotationInternal
     }
 }

@@ -21,7 +21,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
-import kotlin.streams.toList
 
 data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int, val exceptions: LinkedList<Throwable>, val syntaxErrors: List<Error>)
 
@@ -56,7 +55,7 @@ fun executeWithMutes(
 
         try {
             interpreter.execute(cu, mapOf())
-            val sorted = interpreter.executedAnnotation.toSortedMap()
+            val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
             sorted.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
 
@@ -82,6 +81,7 @@ fun executeWithMutes(
     println("$filename - Total annotation: ${resolved.size}, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${result.errors.size}")
     exceptions.forEach {
         println(it)
+        it.printStackTrace()
     }
     println()
     return ExecutionResult(resolved.size, executed, failed, exceptions, result.errors)

@@ -6,6 +6,7 @@ import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.RT
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
+import org.junit.Ignore
 import kotlin.test.assertEquals
 import org.junit.Test as test
 
@@ -14,6 +15,20 @@ class StatementsTest {
     private fun statement(code: String): Statement {
         val stmtContext = assertStatementCanBeParsed("     C                   $code                                                          ")
         return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
+    }
+
+    private fun multiLineStatement(code: String): Statement {
+        val stmtContext = assertStatementCanBeParsed(code)
+        return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
+    }
+
+    @test fun kListParsing() {
+        assertEquals(KListStmt("KEY", listOf("KY1TST", "KY2TST")),
+                    multiLineStatement("""
+     C     Key           KLIST
+     C                   KFLD                    KY1TST
+     C                   KFLD                    KY2TST                        
+                    """))
     }
 
     @test fun executeSubroutineParsing() {
@@ -186,16 +201,18 @@ class StatementsTest {
         val parseTree = assertStatementCanBeParsed("EVAL      DS1=*ON", addPrefix = true)
     }
 
+    @Ignore // working on qualified access
     @test fun parseEvalWithQualifiedDsAccess() {
         assertStatementCanBeParsed("EVAL      DS1.AR2=*ON", addPrefix = true)
     }
 
+    @Ignore // working on grammar
     @test fun parseEvalWithIndicatorTarget() {
         assertStatementCanBeParsed("EVAL      *IN35=*ON", addPrefix = true)
     }
 
+    @Ignore // working on grammar
     @test fun parseEvalWithGlobalIndicatorTarget() {
         assertStatementCanBeParsed("EVAL      *IN=*ON", addPrefix = true)
     }
-
 }

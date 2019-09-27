@@ -524,6 +524,6 @@ class RpgLexerSmokeTest {
 
     @Test
     fun lexABSTEST() {
-        assertCanBeLexed("ABSTEST")
+        assertExampleCanBeLexed("ABSTEST")
     }
 }

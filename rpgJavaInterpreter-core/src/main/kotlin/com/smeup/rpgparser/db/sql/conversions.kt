@@ -17,7 +17,7 @@ fun typeFor(sqlType: String, columnSize: Int, decimalDigits: Int): Type =
         else -> TODO("Conversion from SQL Type not yet implemented: $sqlType")
     }
 
-fun Value.toDBValue() =
+fun Value.toDBValue(): Any =
     when (this) {
         is StringValue -> this.valueWithoutPadding
         is IntValue -> this.value
