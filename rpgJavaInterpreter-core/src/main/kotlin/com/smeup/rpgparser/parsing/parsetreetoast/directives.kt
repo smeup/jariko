@@ -9,11 +9,8 @@ import com.smeup.rpgparser.parsing.ast.StringLiteral
 import com.strumenta.kolasu.mapping.toPosition
 
 fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive {
-    if (this.hs_expression().isNotEmpty()) {
-        TODO()
-    }
-    if (this.hs_decedit_set() != null) {
-        return this.hs_decedit_set().toAst(conf)
+    if (this.content is RpgParser.SetDeceditContext) {
+        return (this.content as RpgParser.SetDeceditContext).hs_decedit_set().toAst(conf)
     } else {
         TODO()
     }

@@ -52,7 +52,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     }
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
-    val directives = emptyList<Directive>()//this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+    val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
     return CompilationUnit(
             fileDefinitions,
             dataDefinitions,

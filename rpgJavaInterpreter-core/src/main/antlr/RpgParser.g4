@@ -1821,8 +1821,12 @@ MatchingRecordIndicator
 | BlankIndicator;
 
 hspec_fixed: HS_FIXED 
-	hs_decedit_set|(hs_expression*)
+	content=hspec_content
 	(EOL|EOF);
+hspec_content:
+    hs_decedit_set   #setDecedit
+    | hs_expression* #hspecExpressions
+    ;
 hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_parm CLOSE_PAREN)?);
 hs_expression: (ID (OPEN_PAREN (hs_parm (COLON hs_parm)*)? CLOSE_PAREN)?);
 hs_parm: ID | hs_string | symbolicConstants;
