@@ -299,10 +299,10 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
 
     return when (DATA_TYPE()?.text?.trim()) {
         null -> TODO()
-        "", RpgType.PACKED.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+        "", RpgType.PACKED.rpgType,RpgType.ZONED.rpgType,RpgType.INTEGER.rpgType,RpgType.UNSIGNED.rpgType,RpgType.BINARY.rpgType -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
             val rpgType = DATA_TYPE()?.text?.trim()
             val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
-            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+            NumberType(elementSize!! - decimalPositions, decimalPositions,rpgType)
         } else {
             StringType(elementSize?.toLong()
                     ?: throw RuntimeException("The string has no specified length"))

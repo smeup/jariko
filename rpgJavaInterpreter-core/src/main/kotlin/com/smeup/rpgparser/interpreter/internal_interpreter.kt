@@ -95,12 +95,26 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             "Line ${data.position.line()}: $data cannot be assigned the value $value"
         }
 
-        var previous: Value? = null
-        if (globalSymbolTable.contains(data.name)) {
-            previous = globalSymbolTable[data.name]
+        when (data) {
+            // Field are stored within the Data Structure definition
+            is FieldDefinition -> {
+                val ds = data.parent as DataDefinition
+                val dd = get(ds.name) as StringValue
+                val v = data.toDataStructureValue(value);
+                dd.setSubstring(data.startOffset,data.endOffset,v)
+
+
+            }
+            else -> {
+                var previous: Value? = null
+                if (globalSymbolTable.contains(data.name)) {
+                    previous = globalSymbolTable[data.name]
+                }
+                log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
+                globalSymbolTable[data] = coerce(value, data.type)
+
+            }
         }
-        log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
-        globalSymbolTable[data] = coerce(value, data.type)
     }
 
     private fun initialize(

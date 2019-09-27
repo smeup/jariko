@@ -47,13 +47,20 @@ private fun coerceString(value: StringValue, type: Type): Value {
         // TODO
         is NumberType -> {
             if (type.integer) {
-                if (value.isBlank()) {
-                    IntValue(0)
-                } else {
-                    IntValue(value.value.asLong())
+                when {
+                    value.isBlank() -> IntValue(0)
+                    type.rpgType == "B" -> {
+                        val intValue = decodeBinary(value.value.trim(),type.entireDigits)
+                        IntValue(intValue.longValueExact())
+                    }
+                    else -> {
+                        val intValue  = decodeFromDS(value.value.trim(),type.entireDigits,type.decimalDigits)
+                        IntValue(intValue.longValueExact())
+                    }
                 }
             } else {
-                TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
+                val decimalValue = decodeFromDS(value.value.trim(),type.entireDigits,type.decimalDigits)
+                DecimalValue(decimalValue )
             }
         }
         is BooleanType -> {
