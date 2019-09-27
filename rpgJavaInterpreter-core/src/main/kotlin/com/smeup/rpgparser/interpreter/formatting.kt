@@ -114,7 +114,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String):
         }
     }
 
-    fun handleInitialZero(decedit: String) : String {
+    fun handleInitialZero(decedit: String): String {
         return if (this.value.isZero()) {
             ""
         } else {
@@ -122,7 +122,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String):
         }
     }
 
-    fun fX(decedit: String) =handleInitialZero(decedit).padStart(type.size.toInt(), '0')
+    fun fX(decedit: String) = handleInitialZero(decedit).padStart(type.size.toInt(), '0')
 
     fun fZ(decedit: String) = handleInitialZero(decedit).padStart(type.size.toInt())
 
