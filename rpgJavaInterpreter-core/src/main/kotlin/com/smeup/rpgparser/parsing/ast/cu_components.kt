@@ -14,11 +14,14 @@ data class CompilationUnit(
     val main: MainBody,
     val subroutines: List<Subroutine>,
     val compileTimeArrays: List<CompileTimeArray>,
+    val directives: List<Directive>,
     override val position: Position?
 ) : Node(position) {
 
     companion object {
-        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(), null)
+        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
+                emptyList(),
+                null)
     }
 
     var databaseInterface: DBInterface = DummyDBInterface

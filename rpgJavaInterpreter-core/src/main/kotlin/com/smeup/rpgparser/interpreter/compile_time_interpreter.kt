@@ -1,10 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.RpgParser
-import com.smeup.rpgparser.parsing.ast.DataRefExpr
-import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.parsing.ast.IntLiteral
-import com.smeup.rpgparser.parsing.ast.NumberOfElementsExpr
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
 
@@ -42,6 +39,7 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
         return when (expression) {
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
             is IntLiteral -> IntValue(expression.value)
+            is StringLiteral -> StringValue(expression.value)
             else -> TODO(expression.toString())
         }
     }
