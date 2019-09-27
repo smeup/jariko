@@ -74,14 +74,8 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
 }
 
 private fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
-    // either dots or commas can be used
-    val withDots = this.replace(',', '.')
-    val count = this.count { it == '.' }
-    if (count > 1) {
-        throw RuntimeException("At most one comma or dot can be used")
-    }
-    val nf = NumberFormat.getNumberInstance(Locale.US)
-    val bd = BigDecimal(nf.parse(withDots).toString())
+    val nf = NumberFormat.getNumberInstance(locale)
+    val bd = BigDecimal(nf.parse(this).toString())
     return RealLiteral(bd, position)
 }
 
