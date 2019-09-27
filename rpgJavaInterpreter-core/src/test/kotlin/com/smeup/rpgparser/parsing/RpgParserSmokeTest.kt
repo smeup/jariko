@@ -6,6 +6,11 @@ import org.junit.Test
 class RpgParserSmokeTest {
 
     @Test
+    fun parseINTTEST() {
+        assertCanBeParsed("INTTEST")
+    }
+
+    @Test
     fun parseJD_001() {
         assertCanBeParsed("JD_001")
     }

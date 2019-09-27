@@ -785,6 +785,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     DecimalValue(BigDecimal(valueAsString))
                 }
             }
+            is IntExpr -> {
+                val valueAsString = interpret(expression.value).asString().value
+                return IntValue(valueAsString.removeNullChars().asLong())
+            }
             is PlusExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)

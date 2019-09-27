@@ -95,6 +95,17 @@ data class DecExpr(
     }
 }
 
+// %INT
+data class IntExpr(
+    var value: Expression,
+    override val position: Position? = null
+) :
+    Expression(position) {
+    override fun render(): String {
+        return "${this.value.render()}"
+    }
+}
+
 // %EDITC
 // TODO add other parameters
 data class EditcExpr(

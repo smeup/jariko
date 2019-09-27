@@ -595,6 +595,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeINTEST() {
+        assertEquals(listOf("910"), outputOf("INTTEST"))
+    }
+
+    @Test
     fun executeProgramWithRuntimeError() {
         // TODO better error assertion
         assertFailsWith(Throwable::class) {
