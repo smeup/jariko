@@ -40,15 +40,16 @@ data class CompilationUnit(
         get() {
             if (_allDataDefinitions.isEmpty()) {
                 _allDataDefinitions.addAll(dataDefinitions)
+                // Adds DS sub-fields
                 dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
-                _allDataDefinitions.addAll(inStatementsDataDefinitions)
                 fileDefinitions.forEach {
                     val metadata = databaseInterface.metadataOf(it.name)
                     if (metadata != null) {
-                        if (it.formatName == null) it.formatName = metadata.formatName
+                        if (it.internalFormatName == null) it.internalFormatName = metadata.formatName
                         _allDataDefinitions.addAll(metadata.fields.map(DBField::toDataDefinition))
                     }
                 }
+                _allDataDefinitions.addAll(inStatementsDataDefinitions)
                 checkDuplicatedDataDefinition(_allDataDefinitions)
             }
             return _allDataDefinitions

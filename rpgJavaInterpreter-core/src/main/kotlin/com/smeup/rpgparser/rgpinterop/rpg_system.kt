@@ -53,7 +53,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         return "$name.rpgle"
     }
     override fun toString(): String {
-        val path = if(directory == null) "" else directory.absolutePath.toString()
+        val path = if (directory == null) "" else directory.absolutePath.toString()
         return "directory: $path "
     }
 }

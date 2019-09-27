@@ -229,8 +229,8 @@ abstract class ArrayValue : Value() {
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
-        if(expectedType is DataStructureType) {
-        // TODO really?
+        if (expectedType is DataStructureType) {
+            // FIXME
             return true
         }
         if (expectedType is ArrayType) {
@@ -254,7 +254,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
-        //require(value.assignableTo(elementType))
+        require(value.assignableTo(elementType))
         elements[index - 1] = value
     }
 
@@ -319,13 +319,12 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         if (containerElement is StringValue) {
             if (value is StringValue) {
                 containerElement.setSubstring(field.startOffset, field.endOffset, value)
-            } else if (value is IntValue){
-                var s = value.value.toString();
-                val pad =  s.padStart( field.endOffset - field.startOffset )
-                containerElement.setSubstring(field.startOffset, field.endOffset,StringValue(pad))
+            } else if (value is IntValue) {
+                var s = value.value.toString()
+                val pad = s.padStart(field.endOffset - field.startOffset)
+                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
             } else {
                 TODO()
-
             }
         } else {
             TODO()
@@ -354,4 +353,19 @@ private const val FORMAT_DATE_ISO = "yyyy-MM-dd-HH.mm.ss.SSS"
 
 fun String.asIsoDate(): Date {
     return SimpleDateFormat(FORMAT_DATE_ISO).parse(this.take(FORMAT_DATE_ISO.length))
+}
+
+fun Type.blank(): Value {
+    return when (this) {
+        is ArrayType -> createArrayValue(this.element, this.nElements) {
+            this.element.blank()
+        }
+        is DataStructureType -> StringValue.blank(this.size.toInt())
+        is StringType -> StringValue.blank(this.size.toInt())
+        is NumberType -> IntValue(0)
+        is BooleanType -> BooleanValue(false)
+        is TimeStampType -> TimeStampValue.LOVAL
+        is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
+        else -> TODO()
+    }
 }

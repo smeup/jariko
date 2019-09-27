@@ -5,6 +5,7 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.inputStreamFor
+import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -51,96 +52,99 @@ public class RpgParserWithMuteRuntimeTest {
     fun parseMUTE01_runtime() {
         val cu = assertASTCanBeProduced("mute/MUTE01_RUNTIME", true)
         cu.resolve()
+        DummySystemInterface.executedAnnotationInternal.clear()
         val interpreter = execute(cu, mapOf())
 
-        assertEquals(interpreter.systemInterface.getExceutedAnnotation().size, 8)
+        assertEquals(interpreter.systemInterface.getExecutedAnnotation().size, 8)
 
         // VAL1(FIELD1) VAL2('AAAA') COMP(EQ)
-        var annotation = interpreter.systemInterface.getExceutedAnnotation()[3]
+        var annotation = interpreter.systemInterface.getExecutedAnnotation()[3]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         // VAL1(NBR) VAL2(11) COMP(LT)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[7]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[7]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         // VAL1(FIELD1) VAL2('A ' + ' B') COMP(NE)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[14]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[14]
         assertTrue(actual = annotation != null)
         assertFalse(annotation.result.asBoolean().value)
 
         // VAL1(B) VAL2(1) COMP(GE)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[16]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[16]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         // VAL1(B) VAL2(1) COMP(LE)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[17]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[17]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         // VAL1(B) VAL2(1) COMP(GT)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[19]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[19]
         assertTrue(actual = annotation != null)
         assertFalse(annotation.result.asBoolean().value)
 
         // VAL1(B) VAL2(1) COMP(LT)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[20]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[20]
         assertTrue(actual = annotation != null)
         assertFalse(annotation.result.asBoolean().value)
 
         // VAL1(COUNT) VAL2(4) COMP(LE)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[28]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[28]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
     }
 
     @Test
     fun parseMUTE02_runtime() {
+        DummySystemInterface.executedAnnotationInternal.clear()
         val cu = assertASTCanBeProduced("mute/MUTE02_RUNTIME", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf())
 
-        assertEquals(interpreter.systemInterface.getExceutedAnnotation().size, 5)
+        assertEquals(interpreter.systemInterface.getExecutedAnnotation().size, 5)
 
         // VAL1(VAR1) VAL2(%TRIM(' AAAA ')) COMP(EQ)
-        var annotation = interpreter.systemInterface.getExceutedAnnotation()[3]
+        var annotation = interpreter.systemInterface.getExecutedAnnotation()[3]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         //  VAL1(VALUE1) VAL2('AAA:') COMP(EQ)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[10]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[10]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         //  VAL1(VALUE1) VAL2('  AAA:') COMP(EQ)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[12]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[12]
         assertTrue(actual = annotation != null)
         // this one fail, as expected
         assertFalse(annotation.result.asBoolean().value)
 
         //  VAL1(%TRIMR(VAR1) +':') VAL2('  AAA:') COMP(EQ)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[14]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[14]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
 
         //  VAL1(VALUE1) VAL2('AAA                         :') COMP(NE)
-        annotation = interpreter.systemInterface.getExceutedAnnotation()[15]
+        annotation = interpreter.systemInterface.getExecutedAnnotation()[15]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
     }
 
     @Test
     fun parseMUTE02_runtimeWithArray() {
+        DummySystemInterface.executedAnnotationInternal.clear()
         val cu = assertASTCanBeProduced("mute/MUTE02_RUNTIME_array", true)
         cu.resolve()
         val interpreter = execute(cu, mapOf())
 
-        assertEquals(interpreter.systemInterface.getExceutedAnnotation().size, 1)
+        assertEquals(interpreter.systemInterface.getExecutedAnnotation().size, 1)
 
         // VAL1(AR(1)) VAL2(4) COMP(NE)
-        val annotation = interpreter.systemInterface.getExceutedAnnotation()[2]
+        val annotation = interpreter.systemInterface.getExecutedAnnotation()[2]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.result.asBoolean().value)
     }

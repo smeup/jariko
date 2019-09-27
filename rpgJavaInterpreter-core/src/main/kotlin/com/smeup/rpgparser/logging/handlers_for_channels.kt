@@ -27,7 +27,7 @@ class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
 }
 
 class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    private val logger = LogManager.getLogger(PERFOMANCE_LOGGER)
+    private val logger = LogManager.getLogger(PERFORMANCE_LOGGER)
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)
@@ -150,7 +150,7 @@ class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
 }
 
 class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
-    val logger = LogManager.getLogger(RESOLUTUION_LOGGER)
+    val logger = LogManager.getLogger(RESOLUTION_LOGGER)
 
     override fun render(logEntry: LogEntry): String {
         val fileName = extractFilename(logEntry.programName)

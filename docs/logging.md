@@ -72,6 +72,18 @@ to **console**, the logging information are written on the screen otherwise if
 set ot **file** the data will be appended to the file specified by **logger.file.path** 
 and **logger.file.name**. 
 
+## Passing the configuration without a file
+
+If you don't want to pass the configuration to the logging system using a file, you could use the ```consoleLoggingConfiguration``` or the ```fileLoggingConfiguration``` fun.
+For example:
+```
+val si = JavaSystemInterface(consoleLoggingConfiguration(EXPRESSION_LOGGER, PERFORMANCE_LOGGER))
+```   
+or
+```
+val si = JavaSystemInterface(fileLoggingConfiguration(File("/home/pippo", "example.log"), EXPRESSION_LOGGER, PERFORMANCE_LOGGER))
+```   
+
 ## Log file format
 
 Each log record consists of a fixed header containing the common data and a 

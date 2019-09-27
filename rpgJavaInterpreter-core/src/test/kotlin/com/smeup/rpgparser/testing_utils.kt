@@ -9,8 +9,10 @@ import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
@@ -102,6 +104,22 @@ fun assertCanBeParsed(inputStream: InputStream, withMuteSupport: Boolean = false
     return result.root!!.rContext
 }
 
+fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RContext {
+    return assertCanBeParsedResult(exampleName, withMuteSupport, printTree).root!!.rContext
+}
+
+fun assertCanBeParsedResult(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RpgParserResult {
+    val result = RpgParserFacade()
+            .apply { this.muteSupport = withMuteSupport }
+            .parse(inputStreamFor(exampleName))
+
+    if (printTree) println(result.toTreeString())
+
+    assertTrue(result.correct,
+            message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
+    return result
+}
+
 fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RContext {
     return assertCanBeParsed(inputStreamFor(exampleName), withMuteSupport)
 }
@@ -113,16 +131,18 @@ fun assertCanBeParsed(file: File, withMuteSupport: Boolean = false): RContext {
 fun assertASTCanBeProduced(
     exampleName: String,
     considerPosition: Boolean = false,
-    withMuteSupport: Boolean = false
+    withMuteSupport: Boolean = false,
+    printTree: Boolean = false
 ): CompilationUnit {
-    val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
+    val result = assertCanBeParsedResult(exampleName, withMuteSupport, printTree)
+    val parseTreeRoot = result.root!!.rContext
     val ast = parseTreeRoot.toAst(ToAstConfiguration(
             considerPosition = considerPosition))
     if (withMuteSupport) {
         if (!considerPosition) {
             throw IllegalStateException("Mute annotations can be injected only when retaining the position")
         }
-        // ast.injectMuteAnnotation(parseTreeRoot, )
+        ast.injectMuteAnnotation(result.root!!.muteContexts!!)
     }
     return ast
 }
@@ -145,7 +165,7 @@ fun expressionAst(code: String): Expression {
     return assertExpressionCanBeParsed(code).toAst(ToAstConfiguration(considerPosition = false))
 }
 
-fun assertStatementCanBeParsed(code: String, addPrefix:Boolean = false): StatementContext {
+fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): StatementContext {
     val codeToUse = if (addPrefix) "     C                   $code" else code
     val result = RpgParserFacade().parseStatement(inputStreamForCode(codeToUse))
     if (!result.correct) {
@@ -197,7 +217,7 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
 open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
-    override var executedAnnotation: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -224,12 +244,12 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
         if (printOutput) println(value)
     }
 
-    override fun getExceutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
-        return this.executedAnnotation
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return this.executedAnnotationInternal
     }
 
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
-        executedAnnotation[line] = annotation
+        executedAnnotationInternal[line] = annotation
     }
 }
 
@@ -240,6 +260,9 @@ fun execute(
     logHandlers: List<InterpreterLogHandler> = emptyList()
 ): InternalInterpreter {
     val si = systemInterface ?: DummySystemInterface
+    if (si == DummySystemInterface) {
+        si.executedAnnotationInternal.clear()
+    }
     si.addExtraLogHandlers(logHandlers)
     val interpreter = InternalInterpreter(si)
     try {
@@ -257,16 +280,16 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf()): List<String> {
-    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE))
+fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false): List<String> {
+    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree)
     val si = interpreter.systemInterface as CollectorSystemInterface
     return si.displayed.map(String::trimEnd)
 }
 
 private const val TRACE = false
 
-fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE)): InternalInterpreter {
-    val cu = assertASTCanBeProduced(programName, true)
+fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE), printTree: Boolean = false): InternalInterpreter {
+    val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
     cu.resolve()
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
@@ -288,4 +311,13 @@ class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
             rpgProgram(name)
         }
     }
+}
+
+open class MockDBFile : DBFile {
+    override fun chain(key: Value): List<Pair<String, Value>> = TODO("chain")
+    override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> = TODO("chain")
+    override fun readEqual(): List<Pair<String, Value>> = TODO("readEqual")
+    override fun readEqual(key: Value): List<Pair<String, Value>> = TODO("readEqal")
+    override fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>> = TODO("readEqual")
+    override fun eof(): Boolean = TODO("eof")
 }

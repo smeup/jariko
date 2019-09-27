@@ -4,9 +4,10 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import org.junit.Ignore
 import org.junit.Test
 
-
+@Ignore
 class RpgParserDataOverlay {
 
     /**
@@ -59,5 +60,4 @@ class RpgParserDataOverlay {
         cu.resolve()
         execute(cu, mapOf())
     }
-
 }
