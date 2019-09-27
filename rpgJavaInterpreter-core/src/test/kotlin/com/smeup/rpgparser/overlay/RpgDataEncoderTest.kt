@@ -1,14 +1,14 @@
 package com.smeup.rpgparser.overlay
 
+import org.junit.Test
+
+import java.math.MathContext
+import kotlin.test.assertTrue
+
 import com.smeup.rpgparser.interpreter.decodeBinary
 import com.smeup.rpgparser.interpreter.decodeFromDS
 import com.smeup.rpgparser.interpreter.encodeBinary
 import com.smeup.rpgparser.interpreter.encodeToDS
-import org.junit.Test
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.MathContext
-import kotlin.test.assertTrue
 
 
 class RpgDataEncoderTest {
@@ -20,23 +20,19 @@ class RpgDataEncoderTest {
 
         for (i in -9999..9999) {
             val binary2 = i.toBigDecimal()
-            val encoded2 = encodeBinary(binary2, 2, 0)
+            val encoded2 = encodeBinary(binary2, 2)
             assertTrue(encoded2.length == 2)
-            val decoded2 = decodeBinary(encoded2,2,0)
+            val decoded2 = decodeBinary(encoded2,2)
             assertTrue(binary2.compareTo(decoded2) == 0)
         }
 
         for (i in -999999999..999999999) {
             val binary4 = i.toBigDecimal()
-            val encoded4 = encodeBinary(binary4, 4, 0)
+            val encoded4 = encodeBinary(binary4, 4)
             assertTrue(encoded4.length == 4)
-            val decoded4 = decodeBinary(encoded4,4,0)
+            val decoded4 = decodeBinary(encoded4,4)
             assertTrue(binary4.compareTo(decoded4) == 0)
         }
-
-        //val decoded52 = decodeFromDS(encoded52,5,2)
-
-        //assertTrue(packed52.compareTo(decoded52) == 0)
 
 
         for (i in -9999999..9999999) {
