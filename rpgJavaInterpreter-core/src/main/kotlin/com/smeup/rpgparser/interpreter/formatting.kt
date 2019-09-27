@@ -1,13 +1,13 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.utils.isZero
-import java.math.BigDecimal
+import java.math.BigDecimal.ZERO
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 
 internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String): StringValue {
-    fun signumChar(empty: Boolean) = (if (this.value < BigDecimal.ZERO) "-" else if (empty) "" else " ")
+    fun signumChar(empty: Boolean) = (if (this.value < ZERO) "-" else if (empty) "" else " ")
 
     fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
     fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
@@ -60,28 +60,28 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String):
     fun f4(decedit: String): String = if (this.value.isZero()) "".padStart(type.size.toInt() + points(type as NumberType)) else f3(decedit)
 
     fun fA(decedit: String): String {
-        if (this.value.compareTo(BigDecimal.ZERO) < 0) {
-            return f1(decedit) + "CR"
+        return if (this.value < ZERO) {
+            f1(decedit) + "CR"
         } else {
-            return f1(decedit)
+            f1(decedit)
         }
     }
 
     fun fB(decedit: String): String = fA(decedit)
 
     fun fC(decedit: String): String {
-        if (this.value.compareTo(BigDecimal.ZERO) < 0) {
-            return f3(decedit) + "CR"
+        return if (this.value < ZERO) {
+            f3(decedit) + "CR"
         } else {
-            return f3(decedit)
+            f3(decedit)
         }
     }
 
     fun fD(decedit: String): String {
-        if (this.value.compareTo(BigDecimal.ZERO) < 0) {
-            return f3(decedit) + "CR"
+        return if (this.value < ZERO) {
+            f3(decedit) + "CR"
         } else {
-            return f3(decedit)
+            f3(decedit)
         }
     }
 
@@ -114,22 +114,20 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String):
         }
     }
 
-    fun fX(decedit: String): String {
-        var s = if (this.value.isZero()) {
+    fun handleInitialZero(decedit: String) : String {
+        return if (this.value.isZero()) {
             ""
         } else {
             f1(decedit).replace(".", "").replace(",", "").trim()
         }
-        return s.padStart(type.size.toInt(), '0')
+    }
+
+    fun fX(decedit: String): String {
+        return handleInitialZero(decedit).padStart(type.size.toInt(), '0')
     }
 
     fun fZ(decedit: String): String {
-        var s = if (this.value.isZero()) {
-            ""
-        } else {
-            f1(decedit).replace(".", "").replace(",", "").trim()
-        }
-        return s.padStart(type.size.toInt())
+        return handleInitialZero(decedit).padStart(type.size.toInt())
     }
 
     return when (format) {
