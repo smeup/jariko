@@ -780,14 +780,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val decDigits = interpret(expression.decDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
-                    IntValue(valueAsString.removeNullChars().asLong())
+                    IntValue(cleanNumericStringFromSeparators(valueAsString).asLong())
                 } else {
                     DecimalValue(BigDecimal(valueAsString))
                 }
             }
             is IntExpr -> {
                 val valueAsString = interpret(expression.value).asString().value
-                return IntValue(valueAsString.removeNullChars().asLong())
+                return IntValue(cleanNumericStringFromSeparators(valueAsString).asLong())
             }
             is PlusExpr -> {
                 val left = interpret(expression.left)
@@ -986,6 +986,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             else -> TODO(expression.toString())
         }
     }
+
+    private fun cleanNumericStringFromSeparators(valueAsString: String) =
+        if (valueAsString.contains(".")) {
+            valueAsString.removeNullChars().substringBefore(".")
+        } else if (valueAsString.contains(",")) {
+            valueAsString.removeNullChars().substringBefore(",")
+        } else {
+            valueAsString.removeNullChars()
+        }
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
