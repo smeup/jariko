@@ -4,6 +4,7 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 import org.junit.Test as test
 
@@ -125,15 +126,18 @@ class ExpressionsTest {
         assertEquals(expression("x = y ** 2"), expression("x=y**2"))
     }
 
-//    @test fun parseQualifiedDsAccess() {
-//        assertExpressionCanBeParsed("DS1.AR2")
-//    }
-//
-//    @test fun parseAssignmentWithOnIndicator() {
-//        assertExpressionCanBeParsed("AR2=*ON")
-//    }
-//
-//    @test fun parseQualifiedDsAccessAsAssignmentTarget() {
-//        assertExpressionCanBeParsed("DS1.AR2=*ON")
-//    }
+    @Ignore // working on the grammar
+    @test fun parseQualifiedDsAccess() {
+        assertExpressionCanBeParsed("DS1.AR2")
+    }
+
+    @Ignore // working on the grammar
+    @test fun parseAssignmentWithOnIndicator() {
+        assertExpressionCanBeParsed("AR2=*ON")
+    }
+
+    @Ignore // working on the grammar
+    @test fun parseQualifiedDsAccessAsAssignmentTarget() {
+        assertExpressionCanBeParsed("DS1.AR2=*ON")
+    }
 }
