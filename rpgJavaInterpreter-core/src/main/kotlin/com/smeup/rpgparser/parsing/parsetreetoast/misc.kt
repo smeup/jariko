@@ -4,6 +4,8 @@ import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.facade.findAllDescendants
+import com.smeup.rpgparser.parsing.facade.processDescendants
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import java.lang.IllegalStateException
@@ -50,12 +52,14 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     }
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
+    val directives = emptyList<Directive>()//this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
     return CompilationUnit(
             fileDefinitions,
             dataDefinitions,
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines,
             compileTimeArrays,
+            directives,
             position = this.toPosition(conf.considerPosition))
 }
 

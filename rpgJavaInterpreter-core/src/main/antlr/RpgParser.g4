@@ -1821,11 +1821,12 @@ MatchingRecordIndicator
 | BlankIndicator;
 
 hspec_fixed: HS_FIXED 
-	hs_expression*
+	hs_decedit_set|(hs_expression*)
 	(EOL|EOF);
+hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_parm CLOSE_PAREN)?);
 hs_expression: (ID (OPEN_PAREN (hs_parm (COLON hs_parm)*)? CLOSE_PAREN)?);
 hs_parm: ID | hs_string | symbolicConstants;
-hs_string: StringLiteralStart (StringContent | StringEscapedQuote )* StringLiteralEnd;
+hs_string: StringLiteralStart (content+=(StringContent | StringEscapedQuote))* StringLiteralEnd;
 blank_line: BLANK_LINE;
 directive: DIRECTIVE 
 		( beginfree_directive

@@ -28,6 +28,8 @@ import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.Trees.getNodeText
 
 import org.apache.commons.io.input.BOMInputStream
+import kotlin.reflect.KClass
+import kotlin.reflect.full.cast
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
@@ -305,6 +307,16 @@ fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit,
     if (this.children != null) {
         this.children.filterIsInstance(ParserRuleContext::class.java).forEach { it.processDescendants(operation) }
     }
+}
+
+fun <T: ParserRuleContext> ParserRuleContext.findAllDescendants(type: KClass<T>, includingMe: Boolean = true) : List<T> {
+    val list = LinkedList<T>()
+    this.processDescendants({
+        if (type.isInstance(it)) {
+            list.add(type.cast(it))
+        }
+    }, includingMe)
+    return list
 }
 
 fun ParserRuleContext.processDescendantsAndErrors(
