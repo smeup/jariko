@@ -596,7 +596,7 @@ class InterpreterTest {
 
     @Test
     fun executeINTEST() {
-        assertEquals(listOf("910", "5602", "1234"), outputOf("INTTEST"))
+        assertEquals(listOf("910", "5602", "1234", "-910", "-5602", "-910"), outputOf("INTTEST"))
     }
 
     @Test

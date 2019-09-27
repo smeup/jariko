@@ -10,7 +10,6 @@ import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
-import java.lang.Math.pow
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
@@ -780,14 +779,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val decDigits = interpret(expression.decDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
-                    IntValue(cleanNumericStringFromSeparators(valueAsString).asLong())
+                    IntValue(cleanNumericString(valueAsString).asLong())
                 } else {
                     DecimalValue(BigDecimal(valueAsString))
                 }
             }
             is IntExpr -> {
                 val valueAsString = interpret(expression.value).asString().value
-                return IntValue(cleanNumericStringFromSeparators(valueAsString).asLong())
+                return IntValue(cleanNumericString(valueAsString).asLong())
             }
             is PlusExpr -> {
                 val left = interpret(expression.left)
@@ -987,13 +986,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun cleanNumericStringFromSeparators(valueAsString: String) =
+    private fun cleanNumericString(valueAsString: String) =
         if (valueAsString.contains(".")) {
             valueAsString.removeNullChars().substringBefore(".")
         } else if (valueAsString.contains(",")) {
             valueAsString.removeNullChars().substringBefore(",")
         } else {
             valueAsString.removeNullChars()
+        }.moveEndingMinus()
+
+    private fun String.moveEndingMinus(): String =
+        if (this.endsWith("-")) {
+            "-" + this.substringBefore("-")
+        } else {
+            this
         }
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
