@@ -152,6 +152,23 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     override fun render() = variable.name
 }
 
+data class QualifiedAccessExpr(val container: DataRefExpr, val fieldName: String, override val position: Position? = null) :
+        AssignableExpression(position) {
+
+    init {
+        require(fieldName.isNotBlank()) { "The field name should not blank" }
+        require(fieldName.trim() == fieldName) {
+            "The field name should not starts or ends with whitespace"
+        }
+    }
+
+    override fun size(): Long {
+        TODO()
+    }
+
+    override fun render() = TODO()
+}
+
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) :
     AssignableExpression(position) {
     override fun render(): String {

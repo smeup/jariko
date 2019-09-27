@@ -155,6 +155,7 @@ data class IntValue(val value: Long) : Value() {
         return value.toString()
     }
 }
+
 data class DecimalValue(val value: BigDecimal) : Value() {
     // TODO Verify conversion
     override fun asInt(): IntValue {
@@ -173,6 +174,7 @@ data class DecimalValue(val value: BigDecimal) : Value() {
         val ZERO = DecimalValue(BigDecimal.ZERO)
     }
 }
+
 data class BooleanValue(val value: Boolean) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is BooleanType
@@ -190,6 +192,13 @@ data class BooleanValue(val value: Boolean) : Value() {
         return value.toString()
     }
 }
+
+data class CharacterValue(val value: Array<Char>) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is CharacterType
+    }
+}
+
 data class TimeStampValue(val value: Date) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is TimeStampType
@@ -201,6 +210,7 @@ data class TimeStampValue(val value: Date) : Value() {
         val LOVAL = TimeStampValue(GregorianCalendar(0, Calendar.JANUARY, 0).time)
     }
 }
+
 abstract class ArrayValue : Value() {
     abstract fun arrayLength(): Int
     abstract fun elementSize(): Int
@@ -219,6 +229,10 @@ abstract class ArrayValue : Value() {
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
+        if (expectedType is DataStructureType) {
+            // FIXME
+            return true
+        }
         if (expectedType is ArrayType) {
             return elements().all { it.assignableTo(expectedType.element) }
         }
@@ -272,6 +286,16 @@ object HiValValue : Value() {
         return true
     }
 }
+object LowValValue : Value() {
+    override fun toString(): String {
+        return "LowValValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
 
 class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
@@ -295,6 +319,10 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         if (containerElement is StringValue) {
             if (value is StringValue) {
                 containerElement.setSubstring(field.startOffset, field.endOffset, value)
+            } else if (value is IntValue) {
+                var s = value.value.toString()
+                val pad = s.padStart(field.endOffset - field.startOffset)
+                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
             } else {
                 TODO()
             }
@@ -338,5 +366,6 @@ fun Type.blank(): Value {
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
+        else -> TODO()
     }
 }

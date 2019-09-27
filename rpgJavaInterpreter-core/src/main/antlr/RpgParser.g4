@@ -2620,4 +2620,7 @@ target:
       name=idOrKeyword #simpleTarget
     | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
     | bif_subst #substTarget
+    | container=idOrKeyword DOT fieldName=idOrKeyword #qualifiedTarget
+    | indic=SPLAT_INDICATOR #indicatorTarget
+    | SPLAT_IN #globalIndicatorTarget
     ;

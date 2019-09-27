@@ -3,6 +3,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import java.io.File
 import java.util.*
 
@@ -23,9 +24,12 @@ interface SystemInterface {
     }
 
     val extraLogHandlers: MutableList<InterpreterLogHandler>
+    val executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted>
     val db: DBInterface
 
     fun getAllLogHandlers() = (configureLog(this.loggingConfiguration() ?: defaultLoggingConfiguration()) + this.extraLogHandlers).toMutableList()
+    fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted>
+    fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted)
 }
 
 interface DBInterface {
@@ -54,6 +58,7 @@ object DummyDBInterface : DBInterface {
 }
 
 object DummySystemInterface : SystemInterface {
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = null
@@ -72,9 +77,17 @@ object DummySystemInterface : SystemInterface {
     override fun display(value: String) {
         // doing nothing
     }
+    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+        executedAnnotationInternal[line] = annotation
+    }
+
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return executedAnnotationInternal
+    }
 }
 
 class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
@@ -101,5 +114,13 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
             this.loggingConfiguration = loadLogConfiguration(configurationFile)
         }
         return this
+    }
+
+    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+        executedAnnotationInternal[line] = annotation
+    }
+
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return executedAnnotationInternal
     }
 }

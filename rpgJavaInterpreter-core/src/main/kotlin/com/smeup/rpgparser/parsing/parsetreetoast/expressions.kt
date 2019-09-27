@@ -3,7 +3,11 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
+import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import java.math.BigDecimal
+import java.text.NumberFormat
+import java.util.Locale
 
 internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
@@ -54,11 +58,24 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
     val position = this.toPosition(conf.considerPosition)
     require(this.NumberPart().isEmpty(), { "Number not empty $position" })
     val text = (this.MINUS()?.text ?: "") + this.NUMBER().text
-    return if (text.contains('.')) {
-        RealLiteral(text.toBigDecimal(), position)
-    } else {
-        IntLiteral(text.toLong(), position)
+
+    // When assigning a value to a numeric field we could either use
+    // a comma or a dot as decimal separators
+    return when {
+        text.contains('.') -> {
+            text.toRealLiteral(position, Locale.US)
+        }
+        text.contains(',') -> {
+            text.toRealLiteral(position, Locale.ITALIAN)
+        }
+        else -> IntLiteral(text.toLong(), position)
     }
+}
+
+private fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
+    val nf = NumberFormat.getNumberInstance(Locale.US)
+    val bd = BigDecimal(nf.parse(this).toString())
+    return RealLiteral(bd, position)
 }
 
 internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -66,7 +83,7 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> TODO()
         "*HIVAL" -> HiValExpr(toPosition(conf.considerPosition))
-        "*LOWVAL" -> LowValExpr(toPosition(conf.considerPosition))
+        "*LOVAL" -> LowValExpr(toPosition(conf.considerPosition))
         "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
         "*OFF" -> OffRefExpr(toPosition(conf.considerPosition))
         else -> when {

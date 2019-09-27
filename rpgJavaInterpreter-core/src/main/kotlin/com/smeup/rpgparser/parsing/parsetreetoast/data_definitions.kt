@@ -1,18 +1,74 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.AssignableExpression
 import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
+import java.lang.RuntimeException
+import kotlin.math.max
+
+enum class RpgType(val rpgType: String) {
+    PACKED("P"),
+    ZONED("S"),
+    INTEGER("I"),
+    UNSIGNED("U"),
+    BINARY("B")
+}
+private fun RpgParser.Parm_fixedContext.startOffset(): Int {
+    val explicitStartOffset = this.explicitStartOffset()
+    if (explicitStartOffset != null) {
+        return explicitStartOffset
+    }
+    // TODO consider overlay
+    // If it is the first field than it should start at position 0
+    return this.prevField()?.endOffset() ?: 0
+}
+
+private fun RpgParser.Parm_fixedContext.prevField(): RpgParser.Parm_fixedContext? {
+    val fields = (this.parent as RpgParser.Dcl_dsContext).fieldLines()
+    val index = fields.indexOf(this)
+    if (index == 0) {
+        return null
+    }
+    return fields[index - 1]
+}
+
+private fun RpgParser.Parm_fixedContext.endOffset(): Int {
+    val explicitEndOffset = if (this.explicitStartOffset() != null) this.explicitEndOffset() else null
+    if (explicitEndOffset != null) {
+        return explicitEndOffset
+    }
+    return startOffset() + this.toType().size.toInt()
+}
+
+private fun inferDsSizeFromFieldLines(fieldLines: List<RpgParser.Parm_fixedContext>): Int {
+    require(fieldLines.isNotEmpty())
+    var maxEnd = 0
+    fieldLines.forEach {
+        val end = it.endOffset()
+        maxEnd = max(maxEnd, end)
+    }
+    return maxEnd
+}
 
 fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
-    return if (this.parm_fixed().isEmpty()) {
-        this.TO_POSITION().text.asInt()
+    var toPosition = ""
+    toPosition = if (this.nameIsInFirstLine) {
+        this.TO_POSITION().text
     } else {
         val header = this.parm_fixed().first()
-        header.TO_POSITION().text.asInt()
+        header.TO_POSITION().text
+    }
+    return if (toPosition.isBlank()) {
+        // The element size has to be calculated, as it is not explicitly specified
+        val fieldLines = this.fieldLines()
+
+        // return fieldTypes.map { it.type. }
+        inferDsSizeFromFieldLines(fieldLines)
+    } else {
+        toPosition.trim().toInt()
     }
 }
 
@@ -77,7 +133,7 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
     val baseType = when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
         null -> TODO()
         "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
-            val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
+            /* TODO should be packed? */
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
             StringType(elementSize!!.toLong())
@@ -85,7 +141,28 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
         "A" -> StringType(elementSize!!.toLong())
         "N" -> BooleanType
         "Z" -> TimeStampType
-        "S" -> StringType(elementSize!!.toLong())
+        /* TODO should be zoned? */
+        RpgType.ZONED.rpgType -> {
+            // StringType(elementSize!!.toLong())
+            /* Zoned Type */
+            NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
+        }
+        RpgType.PACKED.rpgType -> {
+            /* Packed Type */
+            NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
+        }
+        RpgType.BINARY.rpgType -> {
+            /* Binary */
+            NumberType(elementSize!!, 0, RpgType.BINARY.rpgType)
+        }
+        RpgType.INTEGER.rpgType -> {
+            /* Integer Type */
+            NumberType(elementSize!!, 0, RpgType.INTEGER.rpgType)
+        }
+        RpgType.UNSIGNED.rpgType -> {
+            /* Unsigned Type */
+            NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
+        }
         else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
     }
     val type = if (dim != null) {
@@ -109,6 +186,9 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
             position = this.toPosition(true))
 }
 
+private val RpgParser.DspecContext.decimalPositions
+    get() = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
+
 val RpgParser.Dcl_dsContext.nameIsInFirstLine: Boolean
     get() {
         return this.ds_name().text.trim().isNotEmpty()
@@ -130,6 +210,10 @@ val RpgParser.Dcl_dsContext.hasHeader: Boolean
         return this.ds_name().text.trim().isEmpty()
     }
 
+fun RpgParser.Dcl_dsContext.fieldLines(): List<RpgParser.Parm_fixedContext> {
+    return this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
+}
+
 fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = ToAstConfiguration()): Type {
     val keywords = if (this.parm_fixed().isEmpty()) {
         this.keyword()
@@ -138,9 +222,10 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = T
     }
     val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
-    val others = this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
+    val others = this.fieldLines()
+    val fieldTypes: List<FieldType> = others.map { it.toFieldType() }
     val elementSize = this.elementSizeOf()
-    val baseType = DataStructureType(others.map { it.toFieldType() }, size ?: elementSize)
+    val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
         baseType
     } else {
@@ -214,13 +299,16 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
 
     return when (DATA_TYPE()?.text?.trim()) {
         null -> TODO()
-        "" -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+        "", RpgType.PACKED.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+            val rpgType = DATA_TYPE()?.text?.trim()
             val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
-            NumberType(elementSize!! - decimalPositions, decimalPositions)
+            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
         } else {
-            StringType(elementSize!!.toLong())
+            StringType(elementSize?.toLong()
+                    ?: throw RuntimeException("The string has no specified length"))
         }
         "N" -> BooleanType
+        "A" -> CharacterType(elementSize!!)
         else -> throw UnsupportedOperationException("<${DATA_TYPE().text}>")
     }
 }

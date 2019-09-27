@@ -2,6 +2,7 @@ package com.smeup.rpgparser.jvminterop
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import java.io.PrintStream
 import java.util.*
@@ -15,6 +16,7 @@ open class JavaSystemInterface(
     var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -80,5 +82,13 @@ open class JavaSystemInterface(
 
     override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
         TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+        executedAnnotationInternal[line] = annotation
+    }
+
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return executedAnnotationInternal
     }
 }

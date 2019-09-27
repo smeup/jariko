@@ -21,7 +21,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
-import java.util.stream.Collectors
 
 data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int, val exceptions: LinkedList<Throwable>, val syntaxErrors: List<Error>)
 
@@ -56,7 +55,7 @@ fun executeWithMutes(
 
         try {
             interpreter.execute(cu, mapOf())
-            val sorted = interpreter.executedAnnotation.toSortedMap()
+            val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
             sorted.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
 
@@ -82,6 +81,7 @@ fun executeWithMutes(
     println("$filename - Total annotation: ${resolved.size}, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${result.errors.size}")
     exceptions.forEach {
         println(it)
+        it.printStackTrace()
     }
     println()
     return ExecutionResult(resolved.size, executed, failed, exceptions, result.errors)
@@ -105,7 +105,7 @@ object MuteRunner {
     var status = MuteRunnerStatus()
     var logConfigurationFile: File? = null
 
-    private fun processPath(path: Path) {
+    private fun processPathForFile(path: Path) {
         val filename = path.toString()
 
         if (filename.endsWith(".rpgle")) {
@@ -131,12 +131,11 @@ object MuteRunner {
         pathsToProcess.forEach { path ->
             // Check if the Path is a directory
             if (Files.isDirectory(path)) {
-                val fileDirMap = Files.list(path).collect(Collectors.partitioningBy { Files.isDirectory(it) })
-                fileDirMap[false]?.forEach {
-                    processPath(it)
+                Files.list(path).forEach {
+                    processPaths(listOf(it))
                 }
             } else {
-                processPath(path)
+                processPathForFile(path)
             }
         }
     }
