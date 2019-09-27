@@ -260,6 +260,9 @@ fun execute(
     logHandlers: List<InterpreterLogHandler> = emptyList()
 ): InternalInterpreter {
     val si = systemInterface ?: DummySystemInterface
+    if (si == DummySystemInterface) {
+        si.executedAnnotationInternal.clear()
+    }
     si.addExtraLogHandlers(logHandlers)
     val interpreter = InternalInterpreter(si)
     try {
