@@ -9,14 +9,10 @@ import com.smeup.rpgparser.parsing.ast.Comparison.LE
 import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
-import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.utils.*
 import java.lang.Math.pow
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
-import java.math.RoundingMode
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.UnsupportedOperationException
@@ -992,7 +988,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return dataDefinition.type.blank()
     }
 }
-
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
     return type.canBeAssigned(value)
