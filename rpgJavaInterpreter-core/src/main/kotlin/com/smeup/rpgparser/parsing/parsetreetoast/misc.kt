@@ -292,10 +292,17 @@ internal fun CsEXSRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalStmt {
+    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    val flags = EvalFlags(
+            halfAdjust = 'H' in extenders,
+            maximumNumberOfDigitsRule = 'M' in extenders,
+            resultDecimalPositionRule = 'R' in extenders
+    )
     return EvalStmt(
             this.target().toAst(conf),
             this.fixedexpression.expression().toAst(conf),
             operator = this.operator.toAssignmentOperator(),
+            flags = flags,
             position = toPosition(conf.considerPosition))
 }
 
