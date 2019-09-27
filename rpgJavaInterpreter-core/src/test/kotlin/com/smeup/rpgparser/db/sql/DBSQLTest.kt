@@ -9,7 +9,7 @@ class DBSQLTest {
 
     @Test
     fun dbSQLSmokeTest() {
-        val db: DBInterface = connectionForTest()
+        connectionForTest()
     }
 
     @Test

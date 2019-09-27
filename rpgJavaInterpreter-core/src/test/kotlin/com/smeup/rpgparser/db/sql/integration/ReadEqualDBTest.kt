@@ -7,7 +7,7 @@ import org.junit.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class ChainReadEqualDBTest {
+class ReadEqualDBTest {
 
     @Test
     fun doesNotFindNonExistingRecord() {
@@ -41,6 +41,16 @@ class ChainReadEqualDBTest {
                 printTree = false
             )
         }
+    }
+
+    @Test @Ignore
+    fun findsExistingRecordsIfReadWithKeyAndStartFromFirstKey() {
+        assertEquals(
+            listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"),
+                outputOfDBPgm(
+                "READENOCHN",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("A00"))))
     }
 
     private fun createEMPLOYEE() =
