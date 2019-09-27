@@ -3,6 +3,7 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
+import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import java.math.BigDecimal
 import java.text.NumberFormat
@@ -60,17 +61,21 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
 
     // When assigning a value to a numeric field we could either use
     // a comma or a dot as decimal separators
-    return if (text.contains('.')) {
-        val nf = NumberFormat.getNumberInstance(Locale.US)
-        val bd = BigDecimal(nf.parse(text).toString())
-        RealLiteral(bd, position)
-    } else if (text.contains(',')) {
-        val nf = NumberFormat.getNumberInstance(Locale.ITALIAN)
-        val bd = BigDecimal(nf.parse(text).toString())
-        RealLiteral(bd, position)
-    } else {
-        IntLiteral(text.toLong(), position)
+    return when {
+        text.contains('.') -> {
+            text.toRealLiteral(position, Locale.US)
+        }
+        text.contains(',') -> {
+            text.toRealLiteral(position, Locale.ITALIAN)
+        }
+        else -> IntLiteral(text.toLong(), position)
     }
+}
+
+private fun String.toRealLiteral(position: Position?, locale: Locale) : RealLiteral {
+    val nf = NumberFormat.getNumberInstance(Locale.US)
+    val bd = BigDecimal(nf.parse(this).toString())
+    return RealLiteral(bd, position)
 }
 
 internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {

@@ -134,7 +134,6 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
         null -> TODO()
         "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
             /* TODO should be packed? */
-            val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
             StringType(elementSize!!.toLong())
@@ -146,12 +145,10 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
         RpgType.ZONED.rpgType -> {
             // StringType(elementSize!!.toLong())
             /* Zoned Type */
-            val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
         }
         RpgType.PACKED.rpgType -> {
             /* Packed Type */
-            val decimalPositions = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
         }
         RpgType.BINARY.rpgType -> {
@@ -188,6 +185,9 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
             initializationValue = initializationValue,
             position = this.toPosition(true))
 }
+
+private val RpgParser.DspecContext.decimalPositions
+    get() = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
 
 val RpgParser.Dcl_dsContext.nameIsInFirstLine: Boolean
     get() {
