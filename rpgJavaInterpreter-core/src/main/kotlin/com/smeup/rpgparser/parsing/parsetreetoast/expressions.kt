@@ -5,6 +5,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
+import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.Locale
@@ -73,8 +74,14 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
 }
 
 private fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
+    // either dots or commas can be used
+    val withDots = this.replace(',', '.')
+    val count = this.count { it == '.' }
+    if (count > 1) {
+        throw RuntimeException("At most one comma or dot can be used")
+    }
     val nf = NumberFormat.getNumberInstance(Locale.US)
-    val bd = BigDecimal(nf.parse(this).toString())
+    val bd = BigDecimal(nf.parse(withDots).toString())
     return RealLiteral(bd, position)
 }
 

@@ -14,7 +14,6 @@ import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertTrue
 
-@Ignore
 class RpgDeceditTest09 {
 
     // Temporary replacement to return RpgParserResult
@@ -70,6 +69,7 @@ class RpgDeceditTest09 {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
+
     @Test
     fun parseMUTE09_02_comma() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02_COMMA", considerPosition = true, withMuteSupport = true)
