@@ -58,15 +58,12 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
     require(this.NumberPart().isEmpty(), { "Number not empty $position" })
     val text = (this.MINUS()?.text ?: "") + this.NUMBER().text
 
-    // TODO Maurizio
-    // Requirement:
-    // Quando si assegna direttamente un valore ad un campo numerico,
-    // si può utilizzare indifferentemente come separatore decimale il punto o la virgola
+    // When assigning a value to a numeric field we could either use
+    // a comma or a dot as decimal separators
     return if (text.contains('.')) {
         val nf = NumberFormat.getNumberInstance(Locale.US)
         val bd = BigDecimal(nf.parse(text).toString())
         RealLiteral(bd, position)
-        // RealLiteral(text.toBigDecimal(), position)
     } else if (text.contains(',')) {
         val nf = NumberFormat.getNumberInstance(Locale.ITALIAN)
         val bd = BigDecimal(nf.parse(text).toString())
