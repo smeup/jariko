@@ -151,7 +151,7 @@ jacocoTestReport {
 
 // -Pargs="CALCFIB,9"
 task runExample (type: JavaExec) {
-    if(project.hasProperty('programArgs')){
+    if (project.hasProperty('programArgs')){
         args(project.getProperties().get("programArgs").split(','))
     }
     main="com.smeup.rpgparser.execution.RunnerKt"
@@ -169,11 +169,16 @@ task fatJar(type: Jar) {
     with jar
 }
 
-task runMutesTests(type: JavaExec) {
+
+task runMutes(type: JavaExec) {
+    def muteDir = '../mutes_for_ci'
+    if (project.hasProperty("muteDir")){
+        muteDir = project.getProperties().get("muteDir")
+    }
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.smeup.rpgparser.mute.MuterunnerKt'
-    args '../mutes_for_ci', "-v", "-lc", "../mutes_for_ci/mute_logging.config"
+    args muteDir, "-v", "-lc", "$muteDir/mute_logging.config"
 }
 
-check.dependsOn runMutesTests
+check.dependsOn runMutes
 check.dependsOn jacocoTestReport

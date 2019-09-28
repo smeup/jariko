@@ -141,7 +141,7 @@ object MuteRunner {
     }
 }
 
-val FAILURE_EXIT_CODE = 1
+const val FAILURE_EXIT_CODE = 1
 
 class MuteRunnerCLI : CliktCommand() {
     val verbosity by option().switch("--verbose" to true, "-v" to true, "--silent" to false, "-s" to false).default(false)
