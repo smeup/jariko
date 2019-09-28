@@ -44,7 +44,6 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testCompile 'junit:junit:4.12'
     testCompile 'org.hsqldb:hsqldb:2.5.0'
-    testCompile 'io.mockk:mockk:1.9'
 }
 
 configurations.all() {
@@ -150,7 +149,7 @@ jacocoTestReport {
     }
 }
 
-//gradlew runExample -Pargs="CALCFIB,9"
+// -Pargs="CALCFIB,9"
 task runExample (type: JavaExec) {
     if(project.hasProperty('programArgs')){
         args(project.getProperties().get("programArgs").split(','))
@@ -159,6 +158,7 @@ task runExample (type: JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
 }
 
+//Creates smeup-rpg/rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-all.jar
 task fatJar(type: Jar) {
     manifest {
         attributes 'Main-Class': 'com.smeup.rpgparser.execution.RunnerKt'
