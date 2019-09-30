@@ -171,6 +171,8 @@ task fatJar(type: Jar) {
 
 
 task runMutes(type: JavaExec) {
+    dependsOn compileKotlin
+
     def muteDir = '../mutes_for_ci'
     if (project.hasProperty("muteDir")){
         muteDir = project.getProperties().get("muteDir")
