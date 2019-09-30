@@ -177,7 +177,7 @@ task runMutes(type: JavaExec) {
     }
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.smeup.rpgparser.mute.MuterunnerKt'
-    args muteDir, "-v", "-lc", "$muteDir/mute_logging.config"
+    args muteDir, "-s", "-lc", "$muteDir/mute_logging.config"
 }
 
 check.dependsOn runMutes
