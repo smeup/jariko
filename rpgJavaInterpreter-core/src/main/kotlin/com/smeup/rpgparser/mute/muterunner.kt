@@ -48,7 +48,6 @@ data class ExecutionResult(
         syntaxErrors.forEach {
             sb.appendln(it)
         }
-        sb.append("------------")
         return sb.toString()
     }
 }
