@@ -8,13 +8,13 @@ So, you have just met our project, and you want to explore it using an unit test
 - Your brand new test could be something like this:
 ```
 @Test
-    fun executeMYRPG() {
-        val parms = mapOf(
-            "MYPAR1" to StringValue("FOO"),
-            "MYPAR2" to BooleanValue(false)
-            )
-        assertEquals(listOf("First output line", "Second output line"), outputOf("MYRPG", parms))
-    }
+fun executeMYRPG() {
+    val parms = mapOf(
+        "MYPAR1" to StringValue("FOO"),
+        "MYPAR2" to BooleanValue(false)
+        )
+    assertEquals(listOf("First output line", "Second output line"), outputOf("MYRPG", parms))
+}
 ```
 - Now, after defining a breakpoint in your code, you're ready to debug your first test (see image below)
 
