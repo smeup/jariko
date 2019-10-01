@@ -85,3 +85,14 @@ If you want to run tests in a different directory, use the ```muteDir``` propert
 ```
 ./gradlew runMutes -PmuteDir="../mute_tests"
 ```
+
+To be more specific, you can follow these steps to run your own MUTE tests:
+
+- Create a new folder to contain your Mutes: ```/my/dir/my_mutes```
+- Copy in this folder the a config fil like ```mute_tests/mute_logging.config``` or  ```mutes_for_ci/mute_logging.config```
+- Customize this file with your logging preferences
+- Create your MUTE file in this folder.
+- From the root directory of the smeup-rpg project, run ```./gradlew runMutes -PmuteDir="/my/dir/my_mutes"```
+
+With these technique, you can have a (sort of) debug view of the execution of your program.
+
