@@ -94,5 +94,5 @@ To be more specific, you can follow these steps to run your own MUTE tests:
 - Create your MUTE file in this folder.
 - From the root directory of the smeup-rpg project, run ```./gradlew runMutes -PmuteDir="/my/dir/my_mutes"```
 
-With these technique, you can have a (sort of) debug view of the execution of your program.
+With this technique, you can have a (sort of) debug view of the execution of your program.
 
