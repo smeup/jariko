@@ -21,5 +21,5 @@ So, you have just met our project, and you want to explore it using an unit test
 ![Example of a simple test](images/testExample.png)
 
 - If you feed the parser with a .rpgle file it can understand, a sensible point to put a breakpoint could be the method 
- _private fun execute(statement: Statement)_ of the [InternalInterpreter](https://github.com/smeup/smeup-rpg/blob/master/rpgJavaInterpreter-core/src/main/kotlin/com/smeup/rpgparser/interpreter/internal_interpreter.kt) class.
+```private fun execute(statement: Statement)``` of the [InternalInterpreter](https://github.com/smeup/smeup-rpg/blob/master/rpgJavaInterpreter-core/src/main/kotlin/com/smeup/rpgparser/interpreter/internal_interpreter.kt) class.
 - Enjoy! :smiley:
