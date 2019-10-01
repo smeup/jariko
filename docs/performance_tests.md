@@ -27,7 +27,7 @@ You can run all tests at the same time this way:
 ./gradlew testAll
 ```
 
-The configuration of these tasks is defined in [buld.gradle](https://github.com/smeup/smeup-rpg/blob/master/rpgJavaInterpreter-core/build.gradle)
+The configuration of these tasks is defined in [build.gradle](https://github.com/smeup/smeup-rpg/blob/master/rpgJavaInterpreter-core/build.gradle)
 ```
 test {
 ...
