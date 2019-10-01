@@ -781,7 +781,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return if (decDigits == 0L) {
                     IntValue(cleanNumericString(valueAsString).asLong())
                 } else {
-                    DecimalValue(BigDecimal(valueAsString))
+                    DecimalValue(BigDecimal(valueAsString.moveEndingString("-")))
                 }
             }
             is IntExpr -> {
@@ -991,23 +991,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun cleanNumericString(valueAsString: String) =
-        if (valueAsString.contains(".")) {
-            valueAsString.removeNullChars().substringBefore(".")
-        } else if (valueAsString.contains(",")) {
-            valueAsString.removeNullChars().substringBefore(",")
-        } else {
-            valueAsString.removeNullChars()
-        }.moveEndingMinus()
-
-    private fun String.moveEndingMinus(): String =
-        if (this.endsWith("-")) {
-            "-" + this.substringBefore("-")
-        } else {
-            this
+    private fun cleanNumericString(s: String): String {
+        val result = s.removeNullChars().moveEndingString("-")
+        return when {
+            result.contains(".") -> result.substringBefore(".")
+            result.contains(",") -> result.substringBefore(",")
+            else -> result
         }
+    }
 
-    fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
+    private fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return dataDefinition.type.blank()
     }
