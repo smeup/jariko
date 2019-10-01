@@ -54,15 +54,7 @@ All tests (except for performance tests) can be executed by running:
 ./gradlew check
 ```
 
-To run performance tests (i.e. tests tagged with the annotation `@Category(PerformanceTest::class)`) run:
-```
-./gradlew testPerformance
-```
-
-To run all tests:
-```
-./gradlew testAll
-```
+Information about [performance test are explained here.](performance_tests.md)
 
 
 If you want to force the execution of all checks:
