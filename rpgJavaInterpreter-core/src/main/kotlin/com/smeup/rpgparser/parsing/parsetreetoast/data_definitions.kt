@@ -4,6 +4,7 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.AssignableExpression
 import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.IntLiteral
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import java.lang.RuntimeException
@@ -248,11 +249,40 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
         null
     }
 
-    return DataDefinition(
+    val dataDefinition = DataDefinition(
             this.name,
             type,
             fields = others.map { it.toAst(nElements, conf) },
             position = this.toPosition(true))
+    considerOverlays(dataDefinition, others)
+    return dataDefinition
+}
+
+// This should hopefully works because overlays should refer only to previous fields
+private fun considerOverlays(dataDefinition: DataDefinition, fieldsParseTrees: List<RpgParser.Parm_fixedContext>) {
+    dataDefinition.fields.forEach { it.parent = dataDefinition }
+    fieldsParseTrees.forEach {
+        val overlay = it.keyword().find { it.keyword_overlay() != null }
+        if (overlay != null) {
+            val fieldName = it.ds_name().text
+                val nameExpr = overlay.keyword_overlay().name
+                // TODO: consider *NEXT
+                val pos = overlay.keyword_overlay().pos
+                val targetFieldName = nameExpr.identifier().text
+
+                val extraOffset = if (pos == null) {
+                    0
+                } else {
+                    val posValue = (pos.number().toAst() as IntLiteral).value
+                    posValue - 1
+                }
+                val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
+                        ?: throw RuntimeException("User of overlay not found: $fieldName")
+                val targetFieldDefinition = dataDefinition.fields.find { it.name == targetFieldName }
+                        ?: throw RuntimeException("Target of overlay not found: $targetFieldName")
+                thisFieldDefinition.explicitStartOffset = targetFieldDefinition.startOffset + extraOffset.toInt()
+        }
+    }
 }
 
 fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
