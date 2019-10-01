@@ -114,7 +114,8 @@ You can check formatting rules using:
 gradlew ktlintCheck
 ``` 
 We suggest to set the *"Kotlin style guide"* as the code style for this project: 
+
 ![Code style settings](images/code_style.png)
 
 ## Getting started
-If don't know how to get started, try reading this document on [how to write your first test](docs/first_test.md)
+If don't know how to get started, try reading this document on [how to write your first test](first_test.md)
