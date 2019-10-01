@@ -12,8 +12,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntr
 import com.smeup.rpgparser.utils.*
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.UnsupportedOperationException
 import kotlin.collections.HashMap
@@ -62,7 +61,9 @@ class DBFileMap(private val dbInterface: DBInterface) {
 class InternalInterpreter(val systemInterface: SystemInterface) {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
-    val executedAnnotation = HashMap<Int, MuteAnnotationExecuted>()
+    // TODO default value DECEDIT can be changed
+    var decedit: String = "."
+
     var interpretationContext: InterpretationContext = DummyInterpretationContext
     private val klists = HashMap<String, List<String>>()
 
@@ -206,7 +207,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
                     val value = interpretConcrete(exp)
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
-                    executedAnnotation[it.position!!.start.line] = MuteAnnotationExecuted(exp, it.val1, it.val2, value, value1, value2)
+                    systemInterface.addExecutedAnnotation(
+                            it.position!!.start.line,
+                            MuteAnnotationExecuted(this.interpretationContext.currentProgramName,
+                                    exp, it.val1,
+                                    it.val2,
+                                    value,
+                                    value1,
+                                    value2))
                 }
                 is MuteTypeAnnotation -> {
                     // Skip
@@ -632,6 +640,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is BooleanValue -> value.asString().value // TODO check if it's the best solution
             is IntValue -> value.value.toString()
             is DecimalValue -> value.value.toString() // TODO: formatting rules
+            is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
+            is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
     }
@@ -710,81 +720,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    // TODO put it outside InternalInterpreter
-    fun coerce(value: Value, type: Type): Value {
-        // TODO to be completed
-        return when (value) {
-            is BlanksValue -> {
-                when (type) {
-                    is StringType -> {
-                        blankValue(type.length.toInt())
-                    }
-                    is ArrayType -> {
-                        createArrayValue(type.element, type.nElements) {
-                            type.element.blank()
-                        }
-                    }
-                    is NumberType -> {
-                        if (type.integer) {
-                            IntValue.ZERO
-                        } else {
-                            DecimalValue.ZERO
-                        }
-                    }
-                    else -> TODO("Converting BlanksValue to $type")
-                }
-            }
-            is StringValue -> {
-                when (type) {
-                    is StringType -> {
-                        var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
-                        if (value.value.length > type.length) {
-                            s = s.substring(0, type.length.toInt())
-                        }
-                        return StringValue(s)
-                    }
-                    is ArrayType -> {
-                        createArrayValue(type.element, type.nElements) {
-                            // TODO
-                            type.element.blank()
-                        }
-                    }
-                    // TODO
-                    is NumberType -> {
-                        if (type.integer) {
-                            IntValue(value.value.asLong())
-                        } else {
-                            TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
-                        }
-                    }
-                    is BooleanType -> {
-                        if ("1" == value.value.trim()) {
-                            BooleanValue.TRUE
-                        } else {
-                            BooleanValue.FALSE
-                        }
-                    }
-                    is DataStructureType -> {
-                        TODO("Converting String to $type")
-                    }
-                    else -> TODO("Converting String to $type")
-                }
-            }
-            is ArrayValue -> {
-                when (type) {
-                    is StringType -> {
-                        return value.asString()
-                    }
-                    is ArrayType -> {
-                        return value
-                    }
-                    else -> TODO("Converting ArrayValue to $type")
-                }
-            }
-            else -> value
-        }
-    }
-
     fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
         if (expression !is StringLiteral && expression !is IntLiteral &&
@@ -844,10 +779,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val decDigits = interpret(expression.decDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
-                    IntValue(valueAsString.removeNullChars().asLong())
+                    IntValue(cleanNumericString(valueAsString).asLong())
                 } else {
                     DecimalValue(BigDecimal(valueAsString))
                 }
+            }
+            is IntExpr -> {
+                val valueAsString = interpret(expression.value).asString().value
+                return IntValue(cleanNumericString(valueAsString).asLong())
             }
             is PlusExpr -> {
                 val left = interpret(expression.left)
@@ -895,6 +834,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return arrayValue.getElement(indexValue.asInt().value.toInt())
             }
             is HiValExpr -> return HiValValue
+            is LowValExpr -> return LowValValue
             is TranslateExpr -> {
                 val originalChars = eval(expression.from).asString().valueWithoutPadding
                 val newChars = eval(expression.to).asString().valueWithoutPadding
@@ -991,7 +931,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val n = eval(expression.value)
                 val format = eval(expression.format)
                 if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
-                return n.asDecimal().formatAs(format.value, expression.value.type())
+                return n.asDecimal().formatAs(format.value, expression.value.type(), this.decedit)
             }
             is DiffExpr -> {
                 // TODO expression.durationCode
@@ -1003,6 +943,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
                 // TODO check type
+                if (v1 is DecimalValue && v2 is DecimalValue) {
+                    // TODO maurizio need to know the target size
+                    val res = v1.value.toDouble() / v2.value.toDouble()
+                    return DecimalValue(BigDecimal(res))
+                }
 
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
             }
@@ -1036,11 +981,26 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val value = interpret(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
             }
+
             else -> TODO(expression.toString())
         }
     }
 
-    fun blankValue(size: Int) = StringValue(" ".repeat(size))
+    private fun cleanNumericString(valueAsString: String) =
+        if (valueAsString.contains(".")) {
+            valueAsString.removeNullChars().substringBefore(".")
+        } else if (valueAsString.contains(",")) {
+            valueAsString.removeNullChars().substringBefore(",")
+        } else {
+            valueAsString.removeNullChars()
+        }.moveEndingMinus()
+
+    private fun String.moveEndingMinus(): String =
+        if (this.endsWith("-")) {
+            "-" + this.substringBefore("-")
+        } else {
+            this
+        }
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
@@ -1055,90 +1015,7 @@ private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
 private fun Int.asValue() = IntValue(this.toLong())
 private fun Boolean.asValue() = BooleanValue(this)
 
-private fun DecimalValue.formatAs(format: String, type: Type): StringValue {
-    fun signumChar() = (if (this.value < BigDecimal.ZERO) "-" else " ")
-
-    fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
-    fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
-
-    fun nrOfPunctuationsIn(t: NumberType): Int {
-        return commas(t) + points(t)
-    }
-
-    fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
-
-    fun f1(): String {
-        if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
-        val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
-        return s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
-    }
-
-    fun f2(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + nrOfPunctuationsIn(type as NumberType)) else f1()
-
-    fun f3(): String {
-        if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
-        val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
-        return s.padStart(type.size.toInt() + points(type))
-    }
-
-    fun f4(): String = if (this.value.isZero()) "".padStart(type.size.toInt() + points(type as NumberType)) else f3()
-
-    fun fJ(): String = f1() + signumChar()
-
-    fun fK(): String = f2() + signumChar()
-
-    fun fL(): String = f3() + signumChar()
-
-    fun fM(): String = f4() + signumChar()
-
-    fun fN(): String = signumChar() + f1()
-
-    fun fO(): String = signumChar() + f2()
-
-    fun fP(): String = signumChar() + f3()
-
-    fun fQ(): String = signumChar() + f4()
-
-    fun toBlnk(c: Char) = if (c == '0') ' ' else c
-
-    fun fY(): String {
-        var stringN = this.value.abs().unscaledValue().toString().trim()
-        return if (stringN.length <= 6) {
-            stringN = stringN.padStart(6, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size.toInt() + 2)
-        } else {
-            stringN = stringN.padStart(8, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size.toInt() + 2)
-        }
-    }
-
-    fun fZ(): String {
-        val s = if (this.value.isZero()) {
-            ""
-        } else {
-            this.value.abs().unscaledValue().toString()
-        }
-        return s.padStart(type.size.toInt())
-    }
-
-    return when (format) {
-        "1" -> StringValue(f1())
-        "2" -> StringValue(f2())
-        "3" -> StringValue(f3())
-        "4" -> StringValue(f4())
-        "J" -> StringValue(fJ())
-        "K" -> StringValue(fK())
-        "L" -> StringValue(fL())
-        "M" -> StringValue(fM())
-        "N" -> StringValue(fN())
-        "O" -> StringValue(fO())
-        "P" -> StringValue(fP())
-        "Q" -> StringValue(fQ())
-        "Y" -> StringValue(fY())
-        "Z" -> StringValue(fZ())
-        else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
-    }
-}
-
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
+
+fun blankValue(size: Int) = StringValue(" ".repeat(size))

@@ -44,15 +44,23 @@ data class StringType(val length: Long) : Type() {
     override val size: Long
         get() = length
 }
+
 object BooleanType : Type() {
     override val size: Long
         get() = 1
 }
+
 object TimeStampType : Type() {
     override val size: Long
         get() = 26
 }
-data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
+
+data class CharacterType(val nChars: Int) : Type() {
+    override val size: Long
+        get() = nChars.toLong()
+}
+
+data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType: String? = "") : Type() {
     override val size: Long
         get() = (entireDigits + decimalDigits).toLong()
     val integer: Boolean
@@ -60,6 +68,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int) : Type() {
     val decimal: Boolean
         get() = !integer
 }
+
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
     override val size: Long
         get() = element.size * nElements

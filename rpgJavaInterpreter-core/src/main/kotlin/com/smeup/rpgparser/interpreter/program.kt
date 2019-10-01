@@ -52,7 +52,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
 
         for (pv in params) {
             val expectedType = params().find { it.name == pv.key }!!.type
-            val coercedValue = interpreter.coerce(pv.value, expectedType)
+            val coercedValue = coerce(pv.value, expectedType)
             require(coercedValue.assignableTo(expectedType)) {
                 "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
             }

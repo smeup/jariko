@@ -8,8 +8,11 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
@@ -24,6 +27,8 @@ import kotlin.test.fail
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
+import java.io.File
+import java.io.FileInputStream
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy
@@ -67,8 +72,20 @@ fun inputStreamForCode(code: String): InputStream {
     return code.byteInputStream(StandardCharsets.UTF_8)
 }
 
-fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): List<Token> {
-    val result = RpgParserFacade().lex(inputStreamFor(exampleName))
+fun assertExampleCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): List<Token> {
+    return assertCanBeLexed(inputStreamFor(exampleName), onlyVisibleTokens)
+}
+
+fun assertCodeCanBeLexed(code: String, onlyVisibleTokens: Boolean = true): List<Token> {
+    return assertCanBeLexed(inputStreamForCode(code), onlyVisibleTokens)
+}
+
+fun assertCanBeLexed(file: File, onlyVisibleTokens: Boolean = true): List<Token> {
+    return assertCanBeLexed(FileInputStream(file), onlyVisibleTokens)
+}
+
+fun assertCanBeLexed(inputStream: InputStream, onlyVisibleTokens: Boolean = true): List<Token> {
+    val result = RpgParserFacade().lex(inputStream)
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return if (onlyVisibleTokens) {
@@ -78,7 +95,20 @@ fun assertCanBeLexed(exampleName: String, onlyVisibleTokens: Boolean = true): Li
     }
 }
 
+fun assertCanBeParsed(inputStream: InputStream, withMuteSupport: Boolean = false): RContext {
+    val result = RpgParserFacade()
+            .apply { this.muteSupport = withMuteSupport }
+            .parse(inputStream)
+    assertTrue(result.correct,
+            message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
+    return result.root!!.rContext
+}
+
 fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RContext {
+    return assertCanBeParsedResult(exampleName, withMuteSupport, printTree).root!!.rContext
+}
+
+fun assertCanBeParsedResult(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RpgParserResult {
     val result = RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStreamFor(exampleName))
@@ -87,7 +117,15 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, pri
 
     assertTrue(result.correct,
             message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
-    return result.root!!.rContext
+    return result
+}
+
+fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RContext {
+    return assertCanBeParsed(inputStreamFor(exampleName), withMuteSupport)
+}
+
+fun assertCanBeParsed(file: File, withMuteSupport: Boolean = false): RContext {
+    return assertCanBeParsed(FileInputStream(file), withMuteSupport)
 }
 
 fun assertASTCanBeProduced(
@@ -96,14 +134,15 @@ fun assertASTCanBeProduced(
     withMuteSupport: Boolean = false,
     printTree: Boolean = false
 ): CompilationUnit {
-    val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport, printTree)
+    val result = assertCanBeParsedResult(exampleName, withMuteSupport, printTree)
+    val parseTreeRoot = result.root!!.rContext
     val ast = parseTreeRoot.toAst(ToAstConfiguration(
             considerPosition = considerPosition))
     if (withMuteSupport) {
         if (!considerPosition) {
             throw IllegalStateException("Mute annotations can be injected only when retaining the position")
         }
-        // ast.injectMuteAnnotation(parseTreeRoot, )
+        ast.injectMuteAnnotation(result.root!!.muteContexts!!)
     }
     return ast
 }
@@ -126,8 +165,9 @@ fun expressionAst(code: String): Expression {
     return assertExpressionCanBeParsed(code).toAst(ToAstConfiguration(considerPosition = false))
 }
 
-fun assertStatementCanBeParsed(code: String): StatementContext {
-    val result = RpgParserFacade().parseStatement(inputStreamForCode(code))
+fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): StatementContext {
+    val codeToUse = if (addPrefix) "     C                   $code" else code
+    val result = RpgParserFacade().parseStatement(inputStreamForCode(codeToUse))
     if (!result.correct) {
         val lexingResult = RpgParserFacade().lex(inputStreamForCode(code))
         if (lexingResult.correct) {
@@ -177,6 +217,7 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
 open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -202,6 +243,14 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
         displayed.add(value)
         if (printOutput) println(value)
     }
+
+    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+        return this.executedAnnotationInternal
+    }
+
+    override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
+        executedAnnotationInternal[line] = annotation
+    }
 }
 
 fun execute(
@@ -211,6 +260,9 @@ fun execute(
     logHandlers: List<InterpreterLogHandler> = emptyList()
 ): InternalInterpreter {
     val si = systemInterface ?: DummySystemInterface
+    if (si == DummySystemInterface) {
+        si.executedAnnotationInternal.clear()
+    }
     si.addExtraLogHandlers(logHandlers)
     val interpreter = InternalInterpreter(si)
     try {

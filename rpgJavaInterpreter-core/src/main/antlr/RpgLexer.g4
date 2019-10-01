@@ -51,7 +51,8 @@ DIRECTIVE :  . {getCharPositionInLine()>=6}? [ ]*? '/' -> pushMode(DirectiveMode
 
 OPEN_PAREN : '(';
 CLOSE_PAREN : ')';
-NUMBER : ([0-9]+([.][0-9]*)?) | [.][0-9]+ ;
+fragment DECIMAL_SEPARATOR : [.,];
+NUMBER : ([0-9]+(DECIMAL_SEPARATOR[0-9]*)?) | DECIMAL_SEPARATOR[0-9]+ ;
 SEMI : ';';
 COLON : ':';
 ID : ('*' {getCharPositionInLine()>7}? '*'? [a-zA-Z])?

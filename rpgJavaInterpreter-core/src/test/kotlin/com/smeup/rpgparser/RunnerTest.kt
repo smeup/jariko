@@ -10,11 +10,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 import org.junit.Test
-import kotlin.test.Ignore
 
 class RunnerTest {
 
-    @Test @Ignore
+    @Test
     fun programsReturnValues() {
         val systemInterface = JavaSystemInterface()
         val program = getProgram("CALCFIB", systemInterface)
@@ -26,7 +25,7 @@ class RunnerTest {
         assertEquals("13", parmList[0].trim())
     }
 
-    @Test @Ignore
+    @Test
     fun commandLineProgramsRetainsStatusOnSetOnRT() {
         val systemInterface = JavaSystemInterface()
 
@@ -46,7 +45,7 @@ class RunnerTest {
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 3"))
     }
 
-    @Test @Ignore
+    @Test
     fun commandLineProgramsDoesNotRetainStatusOnSetOnLR() {
         val systemInterface = JavaSystemInterface()
         val program = getProgram("COUNTLR", systemInterface)
@@ -64,7 +63,7 @@ class RunnerTest {
         assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
     }
 
-    @Test @Ignore
+    @Test
     fun commandLineProgramsCanReadSourcesFromString() {
         val systemInterface = JavaSystemInterface()
 
@@ -79,7 +78,7 @@ class RunnerTest {
         assertEquals(systemInterface.consoleOutput, listOf("Hello World"))
     }
 
-    @Test @Ignore
+    @Test
     fun commandLineProgramsCanReadSourcesFromUTF8String() {
         val systemInterface = JavaSystemInterface()
 
@@ -96,7 +95,7 @@ class RunnerTest {
         assertEquals(systemInterface.consoleOutput, listOf("Hello World!"))
     }
 
-    @Test @Ignore
+    @Test
     fun commandLineProgramCanBeInstrumentedWithAssignmentsLogHandler() {
         val systemInterface = JavaSystemInterface()
         val source = """

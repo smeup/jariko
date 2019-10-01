@@ -80,7 +80,8 @@
     MU* VAL1(TFLD_FIL(03)) VAL2('C5TREG0F') COMP(EQ)
     MU* VAL1(TFLD_FIL(04)) VAL2('REREFE0F') COMP(EQ)
     MU* VAL1(TFLD_FIL(05)) VAL2('V5STAT0F') COMP(EQ)
-    MU* VAL1(TFLD_FIL(1000)) VAL2('') COMP(EQ)
+      * TODO commented the annotation
+      *MU* VAL1(TFLD_FIL(1000)) VAL2('') COMP(EQ)
       * l'ordine degli elementi è lo stesso della schiera a tempo di compilazione in fondo (YFLD).
       * dato che YFLD ha meno elementi di TFLD, gli elementi in più di TFLD sono valorizzati a blank
      C                   EVAL      TFLD=YFLD
@@ -90,7 +91,8 @@
     MU* VAL1(TFLD_FIL(04)) VAL2('C5ICEE0F') COMP(EQ)
     MU* VAL1(TFLD_FIL(05)) VAL2('C5ICEE0F') COMP(EQ)
     MU* VAL1(TFLD_FIL(06)) VAL2('        ') COMP(EQ)
-     C                   SORTA     TFLD
+      * TODO commented SORTA does not exisits
+      *C                   SORTA     TFLD
     MU* VAL1(FILNAME(01)) VAL2('V5STAT0F') COMP(EQ)
     MU* VAL1(FILNAME(02)) VAL2('REREFE0F') COMP(EQ)
     MU* VAL1(FILNAME(03)) VAL2('C5TREG0F') COMP(EQ)

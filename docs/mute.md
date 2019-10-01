@@ -78,5 +78,10 @@ The utility to verify Mute annotation is run as part of the CI configuration. Al
 
 You can run mute tests in the directory _mutes_for_ci_ using this gradle task:
 ```
-./gradlew runMuteTests
+./gradlew runMutes
+```
+
+If you want to run tests in a different directory, use the ```muteDir``` property. For example:
+```
+./gradlew runMutes -PmuteDir="../mute_tests"
 ```

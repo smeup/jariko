@@ -10,6 +10,11 @@
       * Questo programma serve a verificare il corretto passaggio di parametri numerici decimali
       * tra un programma chiamante e uno chiamato
       *
+     D NUM001          S             30 9
+     D NUM002          S             30 9
+     D NUM003          S             30 9
+     D DSP             S             50
+
       ****************************************************************
       *
      C     *ENTRY        PLIST

@@ -5,9 +5,7 @@ import com.smeup.rpgparser.parsing.ast.DataRefExpr
 import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.IntLiteral
 import com.smeup.rpgparser.parsing.ast.NumberOfElementsExpr
-import com.smeup.rpgparser.parsing.parsetreetoast.elementSizeOf
-import com.smeup.rpgparser.parsing.parsetreetoast.name
-import com.smeup.rpgparser.parsing.parsetreetoast.type
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
 
 /**
@@ -73,6 +71,7 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                 }
         TODO("Not found: $declName")
     }
+
     open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String): Int {
         rContext.statement()
                 .forEach {
@@ -94,6 +93,7 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                 }
         TODO("Not found: $declName")
     }
+
     override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression): Int {
         return when (expression) {
             is DataRefExpr -> evaluateElementSizeOf(rContext, expression.variable.name)

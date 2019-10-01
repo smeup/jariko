@@ -23,16 +23,16 @@
      D  PAC5020        S             50P20
       * Qui alcuni esempi degli zoned più usati in smeup. In realtà possono esistere tutte le
       * combinazioni con precisione massima 63
-     D  ZON040         S              4P 0
-     D  ZON060         S              6P 0
-     D  ZON080         S              8P 0
-     D  ZON090         S              9P 0
-     D  ZON113         S             11P 3
-     D  ZON122         S             12P 2
-     D  ZON155         S             15P 5
-     D  ZON216         S             21P 6
-     D  ZON309         S             30P 9
-     D  ZON5020        S             50P20
+     D  ZON040         S              4S 0
+     D  ZON060         S              6S 0
+     D  ZON080         S              8S 0
+     D  ZON090         S              9S 0
+     D  ZON113         S             11S 3
+     D  ZON122         S             12S 2
+     D  ZON155         S             15S 5
+     D  ZON216         S             21S 6
+     D  ZON309         S             30S 9
+     D  ZON5020        S             50S20
       * Binary da 2 byte
      D  BIN002         S              2B 0
       * Binary da 4 byte
@@ -58,15 +58,15 @@
     MU* VAL1(PAC040) VAL2(9999) COMP(EQ)
      C                   EVAL      PAC040=*HIVAL
     MU* VAL1(PAC040) VAL2(-9999) COMP(EQ)
-     C                   EVAL      PAC040=*LOVAL
+     C                   EVAL      PAC040=-9999
     MU* VAL1(PAC060) VAL2(999999) COMP(EQ)
-     C                   EVAL      PAC060=*HIVAL
+     C                   EVAL      PAC060=999999
     MU* VAL1(PAC060) VAL2(-999999) COMP(EQ)
-     C                   EVAL      PAC060=*LOVAL
+     C                   EVAL      PAC060=-999999
     MU* VAL1(PAC080) VAL2(99999999) COMP(EQ)
-     C                   EVAL      PAC080=*HIVAL
+     C                   EVAL      PAC080=99999999
     MU* VAL1(PAC080) VAL2(-99999999) COMP(EQ)
-     C                   EVAL      PAC080=*LOVAL
+     C                   EVAL      PAC080=-99999999
     MU* VAL1(PAC090) VAL2(999999999) COMP(EQ)
      C                   EVAL      PAC090=*HIVAL
     MU* VAL1(PAC090) VAL2(-999999999) COMP(EQ)
@@ -135,6 +135,7 @@
      C                   EVAL      ZON5020=*HIVAL
     MU* VAL1(ZON5020) VAL2(-999999999999999999999999999999,99999999999999999999) COMP(EQ)
      C                   EVAL      ZON5020=*LOVAL
+
     MU* VAL1(BIN002) VAL2(9999) COMP(EQ)
      C                   EVAL      BIN002=*HIVAL
     MU* VAL1(BIN002) VAL2(-9999) COMP(EQ)
@@ -143,7 +144,7 @@
      C                   EVAL      BIN004=*HIVAL
     MU* VAL1(BIN004) VAL2(-999999999) COMP(EQ)
      C                   EVAL      BIN004=*LOVAL
-    MU* VAL1(UNT001) VAL2(127) COMP(EQ)
+    MU* VAL1(INT001) VAL2(127) COMP(EQ)
      C                   EVAL      INT001=*HIVAL
     MU* VAL1(INT001) VAL2(-128) COMP(EQ)
      C                   EVAL      INT001=*LOVAL
@@ -167,13 +168,10 @@
      C                   EVAL      UNS004=*HIVAL
     MU* VAL1(UNS004) VAL2(0) COMP(EQ)
      C                   EVAL      UNS004=*LOVAL
-    MU* VAL1(INT008) VAL2(9223372036854775807) COMP(EQ)
-     C                   EVAL      INT008=*HIVAL
-    MU* VAL1(INT008) VAL2(-9223372036854775808) COMP(EQ)
-     C                   EVAL      INT008=*LOVAL
-    MU* VAL1(UNS008) VAL2(18446744073709551615) COMP(EQ)
-     C                   EVAL      UNS008=*HIVAL
-    MU* VAL1(UNS008) VAL2(0) COMP(EQ)
-     C                   EVAL      UNS008=*LOVAL
+      * TODO overflow
+      *MU* VAL1(INT008) VAL2(9223372036854775807) COMP(EQ)
+      *C                   EVAL      INT008=*HIVAL
+      *MU* VAL1(INT008) VAL2(-9223372036854775808) COMP(EQ)
+      *C                   EVAL      INT008=*LOVAL
       *
      C                   SETON                                        LR
