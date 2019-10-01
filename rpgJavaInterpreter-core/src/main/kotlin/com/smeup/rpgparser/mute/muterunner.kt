@@ -26,7 +26,7 @@ import java.nio.file.Paths
 import java.util.*
 
 data class ExecutionResult(
-    val path: Path,
+    val file: File,
     val resolved: Int,
     val executed: Int,
     val failed: Int,
@@ -38,7 +38,7 @@ data class ExecutionResult(
     override fun toString(): String {
         val sb = StringBuilder()
         sb.appendln("------------")
-        sb.appendln("$path - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}")
+        sb.appendln("$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}")
         val sw = StringWriter()
         val printWriter = PrintWriter(sw)
         exceptions.forEach {
@@ -54,17 +54,18 @@ data class ExecutionResult(
 
     private fun addFileLink(sb: StringBuilder): String {
         var result = sb.toString()
-        val lineNumber = result.substringAfter("Position(start=Line ").substringBefore(",")
-        if (lineNumber.asDouble() > 0) {
-            val file = File(path.toString())
-            result += System.lineSeparator() + "${file.name}(${file.name}:${lineNumber.toInt()})"
+        val lineNumber = result.substringAfter("Position(start=Line ").substringBefore(",").asDouble().toInt()
+        if (lineNumber > 0) {
+            result += System.lineSeparator() + "${file.linkTo(lineNumber)}"
         }
         return result
     }
 }
 
+fun File.linkTo(line: Int) = "${this.name}(${this.name}:$line)"
+
 fun executeWithMutes(
-    file: Path,
+    path: Path,
     verbose: Boolean = false,
     logConfigurationFile: File?
 ): ExecutionResult {
@@ -74,10 +75,11 @@ fun executeWithMutes(
     var exceptions = LinkedList<Throwable>()
 
     var result: RpgParserResult? = null
-
+    val file = File(path.toString())
     try {
-        result = RpgParserFacade().apply { this.muteSupport = true }
-            .parse(File(file.toString()).inputStream())
+        result =
+            RpgParserFacade().apply { this.muteSupport = true }
+            .parse(file.inputStream())
         if (result.correct) {
             val cu = result.root!!.rContext.toAst().apply {
                 resolved = this.injectMuteAnnotation(result.root?.muteContexts!!)
@@ -96,7 +98,7 @@ fun executeWithMutes(
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
             sorted.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
-                    println("Mute annotation at line $line ${annotation.expression.render()} failed")
+                    println("Mute annotation at line $line ${annotation.expression.render()} failed ${file.linkTo(line)}")
                     if (verbose) {
                         println("  Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
                         println("  Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
