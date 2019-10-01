@@ -15,6 +15,7 @@ import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.utils.asDouble
 import com.strumenta.kolasu.validation.Error
 import java.io.File
 import java.io.PrintWriter
@@ -25,7 +26,7 @@ import java.nio.file.Paths
 import java.util.*
 
 data class ExecutionResult(
-    val fileName: String,
+    val path: Path,
     val resolved: Int,
     val executed: Int,
     val failed: Int,
@@ -37,23 +38,33 @@ data class ExecutionResult(
     override fun toString(): String {
         val sb = StringBuilder()
         sb.appendln("------------")
-        sb.appendln("$fileName - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}")
+        sb.appendln("$path - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}")
         val sw = StringWriter()
+        val printWriter = PrintWriter(sw)
         exceptions.forEach {
-            it.printStackTrace(PrintWriter(sw))
-            sw.appendln()
+            it.printStackTrace(printWriter)
         }
         sw.flush()
         sb.append(sw)
         syntaxErrors.forEach {
             sb.appendln(it)
         }
-        return sb.toString()
+        return addFileLink(sb)
+    }
+
+    private fun addFileLink(sb: StringBuilder): String {
+        var result = sb.toString()
+        val lineNumber = result.substringAfter("Position(start=Line ").substringBefore(",")
+        if (lineNumber.asDouble() > 0) {
+            val file = File(path.toString())
+            result += System.lineSeparator() + "${file.name}(${file.name}:${lineNumber.toInt()})"
+        }
+        return result
     }
 }
 
 fun executeWithMutes(
-    fileName: String,
+    file: Path,
     verbose: Boolean = false,
     logConfigurationFile: File?
 ): ExecutionResult {
@@ -66,7 +77,7 @@ fun executeWithMutes(
 
     try {
         result = RpgParserFacade().apply { this.muteSupport = true }
-            .parse(File(fileName).inputStream())
+            .parse(File(file.toString()).inputStream())
         if (result.correct) {
             val cu = result.root!!.rContext.toAst().apply {
                 resolved = this.injectMuteAnnotation(result.root?.muteContexts!!)
@@ -98,7 +109,7 @@ fun executeWithMutes(
     } catch (e: Throwable) {
         exceptions.add(e)
     }
-    return ExecutionResult(fileName, resolved.size, executed, failed, exceptions, result?.errors ?: emptyList())
+    return ExecutionResult(file, resolved.size, executed, failed, exceptions, result?.errors ?: emptyList())
 }
 
 object MuteRunner {
@@ -117,7 +128,7 @@ object MuteRunner {
                 }
             } else {
                 if (isRpgle(path)) {
-                    results.add(executeWithMutes(path.toString(), verbose, logConfigurationFile = logConfigurationFile))
+                    results.add(executeWithMutes(path, verbose, logConfigurationFile = logConfigurationFile))
                 }
             }
         }
