@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.mute
 
+import com.andreapivetta.kolor.green
+import com.andreapivetta.kolor.red
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -38,7 +40,7 @@ data class ExecutionResult(
     override fun toString(): String {
         val sb = StringBuilder()
         sb.appendln("------------")
-        sb.appendln("$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}")
+        sb.appendln("$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}".color(success()))
         val sw = StringWriter()
         val printWriter = PrintWriter(sw)
         exceptions.forEach {
@@ -61,6 +63,8 @@ data class ExecutionResult(
         return result
     }
 }
+
+fun String.color(success: Boolean) = if (success) this.green() else this.red()
 
 fun File.linkTo(line: Int) = "${this.name}(${this.name}:$line)"
 
@@ -186,10 +190,10 @@ class MuteRunnerCLI : CliktCommand() {
         printBox("Total files: ${MuteRunner.results.size}, resolved: ${MuteRunner.resolved()}, executed: ${MuteRunner.executed()}, failed: ${MuteRunner.failed()}, errors: ${MuteRunner.errors()}, exceptions: ${MuteRunner.exceptions()}")
         if (MuteRunner.successful) {
             println()
-            println("SUCCESS")
+            println("SUCCESS".green())
         } else {
             println()
-            println("FAILURE")
+            println("FAILURE".red())
         }
         if (!MuteRunner.successful) {
             System.exit(FAILURE_EXIT_CODE)

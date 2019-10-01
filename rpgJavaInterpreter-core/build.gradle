@@ -40,6 +40,8 @@ dependencies {
     compile 'commons-io:commons-io:2.6'
     compile 'com.github.ajalt:clikt:2.1.0'
 
+    compile "com.andreapivetta.kolor:kolor:0.0.2"
+
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testCompile 'junit:junit:4.12'
