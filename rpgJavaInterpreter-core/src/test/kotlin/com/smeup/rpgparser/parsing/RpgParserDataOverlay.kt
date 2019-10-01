@@ -6,6 +6,7 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
+import kotlin.test.assertEquals
 
 @Ignore
 class RpgParserDataOverlay {
@@ -40,6 +41,8 @@ class RpgParserDataOverlay {
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_03", true)
         cu.resolve()
+        val fieldFamily = cu.dataDefinitions[0].fields.find { it.name == "FAMILY" }!!
+        assertEquals(0, fieldFamily.explicitStartOffset)
         execute(cu, mapOf())
     }
 
