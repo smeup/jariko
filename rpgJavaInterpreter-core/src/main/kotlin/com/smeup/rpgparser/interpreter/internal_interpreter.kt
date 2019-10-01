@@ -785,8 +785,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
             }
             is IntExpr -> {
-                val valueAsString = interpret(expression.value).asString().value
-                return IntValue(cleanNumericString(valueAsString).asLong())
+                return when (val value = interpret(expression.value)) {
+                    is StringValue ->
+                        IntValue(cleanNumericString(value.value).asLong())
+                    is DecimalValue ->
+                        value.asInt()
+                    else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
+                }
             }
             is PlusExpr -> {
                 val left = interpret(expression.left)

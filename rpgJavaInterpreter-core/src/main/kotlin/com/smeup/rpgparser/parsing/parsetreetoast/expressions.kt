@@ -73,7 +73,7 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
 }
 
 private fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
-    val nf = NumberFormat.getNumberInstance(Locale.US)
+    val nf = NumberFormat.getNumberInstance(locale)
     val bd = BigDecimal(nf.parse(this).toString())
     return RealLiteral(bd, position)
 }

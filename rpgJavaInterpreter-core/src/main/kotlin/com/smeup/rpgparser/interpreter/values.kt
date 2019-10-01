@@ -157,10 +157,8 @@ data class IntValue(val value: Long) : Value() {
 }
 
 data class DecimalValue(val value: BigDecimal) : Value() {
-    // TODO Verify conversion
     override fun asInt(): IntValue {
-
-        return IntValue(value.longValueExact())
+        return IntValue(value.toLong())
     }
 
     override fun asDecimal(): DecimalValue = this

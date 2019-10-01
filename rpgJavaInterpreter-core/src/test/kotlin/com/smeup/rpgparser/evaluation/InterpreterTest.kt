@@ -596,7 +596,12 @@ class InterpreterTest {
 
     @Test
     fun executeINTEST() {
-        assertEquals(listOf("910", "5602", "1234", "-910", "-5602", "-910"), outputOf("INTTEST"))
+        assertEquals(listOf("910", "5602", "1234", "-910", "-5602", "-910", "12326"), outputOf("INTTEST"))
+    }
+
+    @Test
+    fun executeDECTEST() {
+        assertEquals(listOf("N1=N2"), outputOf("DECTEST"))
     }
 
     @Test
