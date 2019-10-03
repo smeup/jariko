@@ -115,6 +115,15 @@ data class EditcExpr(
 ) :
     Expression(position)
 
+// %EDITW
+// TODO add other parameters
+data class EditwExpr(
+    var value: Expression,
+    val format: Expression,
+    override val position: Position? = null
+) :
+    Expression(position)
+
 // %FOUND
 data class FoundExpr(
     var name: String? = null,

@@ -938,6 +938,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
                 return n.asDecimal().formatAs(format.value, expression.value.type(), this.decedit)
             }
+            is EditwExpr -> {
+                val n = eval(expression.value)
+                val format = eval(expression.format)
+                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
+                return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
+            }
             is DiffExpr -> {
                 // TODO expression.durationCode
                 val v1 = eval(expression.value1)
