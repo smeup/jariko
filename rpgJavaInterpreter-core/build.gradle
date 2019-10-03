@@ -78,7 +78,7 @@ idea {
     }
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     testLogging {
         exceptionFormat "full"
         showCauses true
