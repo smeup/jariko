@@ -172,12 +172,49 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String):
 
 internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: String): StringValue {
     if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITW: $type")
-    val wholeNumberAsString = this.wholeNumberAsString(type)
-    var endZeroSuppressionFound = false
-    var nonZeroFound = false
-    var j = 0
-    val formattedString = mutableListOf<Char>()
-    TODO("%EDITW")
+    val wholeNumberAsString = this.wholeNumberAsStringJustDigits(type).iterator()
+    var zeroSuppressionHandling = ZeroSuppression()
+    val result = StringBuilder()
+    for (formatChar in format) {
+        if (zeroSuppressionHandling.isConst(formatChar)) {
+            result.append(formatChar)
+        } else {
+            result.append(zeroSuppressionHandling.handle(wholeNumberAsString.nextChar(), formatChar))
+        }
+    }
+    return StringValue(result.toString())
+}
+
+class ZeroSuppression {
+    private var endZeroSuppressionFound = false
+    private var nonZeroFound = false
+
+    fun isConst(formatChar: Char): Boolean =
+        when (formatChar) {
+            '0', '*' -> if (endZeroSuppressionFound) {
+                true
+            } else {
+                endZeroSuppressionFound = true
+                false
+            }
+            ' ' -> false
+            else -> true
+        }
+
+    fun handle(nextChar: Char, formatChar: Char): String {
+        when (nextChar) {
+            '0' -> {
+                if (nonZeroFound) return "0"
+                if (!endZeroSuppressionFound) return " "
+                return "0"
+            }
+            in '1'..'9' -> {
+                nonZeroFound = true
+                return nextChar.toString()
+            }
+            else -> return ""
+        }
+    }
 }
 
 private fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
@@ -185,3 +222,4 @@ private fun intPartFormatString(t: NumberType) = "".padEnd(t.entireDigits, '0')
 fun DecimalValue.intPartString(t: NumberType): String = DecimalFormat(intPartFormatString(t)).format(this.value)
 private fun fullDigitsFormatString(t: NumberType) = intPartFormatString(t) + decimalsFormatString(t)
 fun DecimalValue.wholeNumberAsString(t: NumberType): String = DecimalFormat(fullDigitsFormatString(t)).format(this.value)
+fun DecimalValue.wholeNumberAsStringJustDigits(t: NumberType): String = wholeNumberAsString(t).filter(Char::isDigit)
