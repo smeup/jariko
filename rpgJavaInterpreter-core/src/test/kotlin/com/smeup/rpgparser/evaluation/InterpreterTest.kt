@@ -604,9 +604,9 @@ class InterpreterTest {
         assertEquals(listOf("N1=N2"), outputOf("DECTEST"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeEDITWTEST() {
-        assertEquals(listOf("x 12340", "x 1/12/99"), outputOf("EDITWTEST"))
+        assertEquals(listOf("x 12340", "x 012340", "x 1/12/99"), outputOf("EDITWTEST"))
     }
 
     @Test

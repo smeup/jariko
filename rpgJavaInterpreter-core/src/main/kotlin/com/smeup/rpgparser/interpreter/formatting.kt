@@ -171,50 +171,33 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String):
 }
 
 internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: String): StringValue {
-    if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITW: $type")
-    val wholeNumberAsString = this.wholeNumberAsStringJustDigits(type).iterator()
-    var zeroSuppressionHandling = ZeroSuppression()
-    val result = StringBuilder()
-    for (formatChar in format) {
-        if (zeroSuppressionHandling.isConst(formatChar)) {
-            result.append(formatChar)
-        } else {
-            result.append(zeroSuppressionHandling.handle(wholeNumberAsString.nextChar(), formatChar))
-        }
-    }
-    return StringValue(result.toString())
-}
-
-class ZeroSuppression {
-    private var endZeroSuppressionFound = false
-    private var nonZeroFound = false
-
     fun isConst(formatChar: Char): Boolean =
         when (formatChar) {
-            '0', '*' -> if (endZeroSuppressionFound) {
-                true
-            } else {
-                endZeroSuppressionFound = true
-                false
-            }
-            ' ' -> false
+            '0', '*' -> false // TODO
+            ' ' -> false // TODO see if it's OK
             else -> true
         }
 
-    fun handle(nextChar: Char, formatChar: Char): String {
-        when (nextChar) {
-            '0' -> {
-                if (nonZeroFound) return "0"
-                if (!endZeroSuppressionFound) return " "
-                return "0"
+    if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITW: $type")
+    val firstZeroInFormat = format.indexOfFirst { it == '0' }
+    val wholeNumberAsString =
+        this.significantDigitsAsStringJustDigits(type)
+            .padStart(format.length)
+            .mapIndexed { i, c -> if ((firstZeroInFormat > -1 && i > firstZeroInFormat) && c == ' ') '0' else c }
+            .reversed()
+            .iterator()
+    val result = " ".repeat(format.length).toCharArray()
+    format.reversed().forEachIndexed {
+        i, formatChar ->
+        if (isConst(formatChar)) {
+            result[i] = formatChar
+        } else {
+            if (wholeNumberAsString.hasNext()) {
+                result[i] = wholeNumberAsString.next()
             }
-            in '1'..'9' -> {
-                nonZeroFound = true
-                return nextChar.toString()
-            }
-            else -> return ""
         }
     }
+    return StringValue(result.reversed().joinToString(separator = ""))
 }
 
 private fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
@@ -223,3 +206,5 @@ fun DecimalValue.intPartString(t: NumberType): String = DecimalFormat(intPartFor
 private fun fullDigitsFormatString(t: NumberType) = intPartFormatString(t) + decimalsFormatString(t)
 fun DecimalValue.wholeNumberAsString(t: NumberType): String = DecimalFormat(fullDigitsFormatString(t)).format(this.value)
 fun DecimalValue.wholeNumberAsStringJustDigits(t: NumberType): String = wholeNumberAsString(t).filter(Char::isDigit)
+fun DecimalValue.significantDigitsAsStringJustDigits(t: NumberType): String = significantDigitsAsString(t).filter(Char::isDigit)
+fun DecimalValue.significantDigitsAsString(t: NumberType): String = DecimalFormat(decimalsFormatString(t)).format(this.value)
