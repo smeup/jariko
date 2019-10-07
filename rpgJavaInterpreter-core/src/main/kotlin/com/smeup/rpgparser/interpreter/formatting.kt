@@ -178,6 +178,17 @@ internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: Stri
             else -> true
         }
 
+    fun CharArray.cleanZeroesUntil(lastPosition: Int): CharArray {
+        loop@ for (i in 0..lastPosition) {
+            if (this[i] == '0') {
+                this[i] = ' '
+            } else {
+                break@loop
+            }
+        }
+        return this
+    }
+
     if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITW: $type")
     val firstZeroInFormat = format.indexOfFirst { it == '0' }
     val wholeNumberAsString =
@@ -186,18 +197,19 @@ internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: Stri
             .mapIndexed { i, c -> if ((firstZeroInFormat > -1 && i > firstZeroInFormat) && c == ' ') '0' else c }
             .reversed()
             .iterator()
-    val result = " ".repeat(format.length).toCharArray()
+    val reversedResult = " ".repeat(format.length).toCharArray()
     format.reversed().forEachIndexed {
         i, formatChar ->
         if (isConst(formatChar)) {
-            result[i] = formatChar
+            reversedResult[i] = formatChar
         } else {
             if (wholeNumberAsString.hasNext()) {
-                result[i] = wholeNumberAsString.next()
+                reversedResult[i] = wholeNumberAsString.next()
             }
         }
     }
-    return StringValue(result.reversed().joinToString(separator = ""))
+    val result = reversedResult.reversedArray().cleanZeroesUntil(firstZeroInFormat)
+    return StringValue(result.joinToString(separator = ""))
 }
 
 private fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
