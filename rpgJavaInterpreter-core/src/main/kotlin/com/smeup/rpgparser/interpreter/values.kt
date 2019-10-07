@@ -168,6 +168,8 @@ data class DecimalValue(val value: BigDecimal) : Value() {
         return expectedType is NumberType
     }
 
+    fun isPositive() = value.signum() >= 0
+
     companion object {
         val ZERO = DecimalValue(BigDecimal.ZERO)
     }

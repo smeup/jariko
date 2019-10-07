@@ -189,6 +189,13 @@ internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: Stri
         return this
     }
 
+    fun String.handleSignum(decimalValue: DecimalValue): String =
+        if (!decimalValue.isPositive() || this.count { it == '-' } > 1) {
+            this
+        } else {
+            this.replaceFirst("-", " ")
+        }
+
     if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITW: $type")
     val firstZeroInFormat = format.indexOfFirst { it == '0' }
     val wholeNumberAsString =
@@ -208,8 +215,13 @@ internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: Stri
             }
         }
     }
-    val result = reversedResult.reversedArray().cleanZeroesUntil(firstZeroInFormat)
-    return StringValue(result.joinToString(separator = ""))
+    val result =
+        reversedResult
+        .reversedArray()
+        .cleanZeroesUntil(firstZeroInFormat)
+        .joinToString(separator = "")
+        .handleSignum(this)
+    return StringValue(result)
 }
 
 private fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
