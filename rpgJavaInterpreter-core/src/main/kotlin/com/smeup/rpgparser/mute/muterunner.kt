@@ -103,10 +103,8 @@ fun executeWithMutes(
             sorted.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
                     println("Mute annotation at line $line ${annotation.expression.render()} failed ${file.linkTo(line)}")
-                    if (verbose) {
-                        println("  Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
-                        println("  Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
-                    }
+                    println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
+                    println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
                     failed++
                 }
                 executed++
