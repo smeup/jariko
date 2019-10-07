@@ -606,7 +606,12 @@ class InterpreterTest {
 
     @Test
     fun executeEDITWTEST() {
-        assertEquals(listOf("x 12340", "x 012340", "x 1/12/99"), outputOf("EDITWTEST"))
+        assertEquals(listOf("x 12340", "x 012340", "x 1/12/99", "x 8:23:45"), outputOf("EDITWTEST"))
+    }
+
+    @Test @Ignore
+    fun executeEDITWTEST2() {
+        assertEquals(listOf("x 08:23:45"), outputOf("EDITWTEST2"))
     }
 
     @Test
