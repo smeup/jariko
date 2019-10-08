@@ -5,12 +5,12 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
-import com.smeup.rpgparser.parsing.facade.processDescendants
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import java.lang.IllegalStateException
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
+import java.util.*
 
 data class ToAstConfiguration(
     val considerPosition: Boolean = true,
@@ -27,6 +27,40 @@ fun List<Node>.position(): Position? {
     }
 }
 
+internal interface DataDefinitionProvider {
+    fun isReady() : Boolean
+    fun toDataDefinition() : DataDefinition
+}
+private data class DataDefinitionHolder(val dataDefinition: DataDefinition) : DataDefinitionProvider {
+    override fun isReady() = true
+    override fun toDataDefinition() = dataDefinition
+}
+private data class DataDefinitionCalculator(val calculator: () -> DataDefinition) : DataDefinitionProvider {
+    override fun isReady() = false
+    override fun toDataDefinition() = calculator()
+}
+
+
+private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
+    // We need to calculate first all the data definitions which do not contain the LIKE DS directives
+    // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
+    // after them
+    var dataDefinitionProviders : MutableList<DataDefinitionProvider> = LinkedList<DataDefinitionProvider>()
+    dataDefinitionProviders.addAll(this.statement()
+            .mapNotNull {
+                when {
+                    it.dspec() != null -> DataDefinitionHolder(it.dspec().toAst(conf))
+                    it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                    } else {
+                        DataDefinitionHolder(it.dcl_ds().toAst(conf))
+                    }
+                    else -> null
+                }
+            })
+    return dataDefinitionProviders.map { it.toDataDefinition() }
+}
+
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
     val fileDefinitions = this.statement()
             .mapNotNull {
@@ -35,14 +69,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
                     else -> null
                 }
             }
-    val dataDefinitions = this.statement()
-            .mapNotNull {
-                when {
-                    it.dspec() != null -> it.dspec().toAst(conf)
-                    it.dcl_ds() != null -> it.dcl_ds().toAst(conf)
-                    else -> null
-                }
-            }
+    val dataDefinitions = getDataDefinitions(conf)
+
     val mainStmts = this.statement().mapNotNull {
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().toAst(conf)
@@ -61,6 +89,14 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
             compileTimeArrays,
             directives,
             position = this.toPosition(conf.considerPosition))
+}
+
+private fun Dcl_dsContext.useLikeDs(): Boolean {
+    val keywordLikeDs = this.keyword_likeds()
+    if (keywordLikeDs != null) {
+        TODO()
+    }
+    return (this.keyword().any { it.keyword_likeds() != null })
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
@@ -381,6 +417,14 @@ internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
             position)
 }
 
+private fun QualifiedTargetContext.getFieldName() : String {
+    return if (this.fieldName != null) {
+        this.fieldName.text
+    } else {
+        this.field.ID().text
+    }
+}
+
 internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
     return when (this) {
         is SimpleTargetContext -> DataRefExpr(ReferenceByName(this.name.text), toPosition(conf.considerPosition))
@@ -390,7 +434,7 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         is SubstTargetContext -> this.bif_subst().toAst(conf)
         is QualifiedTargetContext -> QualifiedAccessExpr(
                 DataRefExpr(ReferenceByName(this.container.text), this.container!!.toPosition(conf.considerPosition)),
-                this.fieldName.text,
+                this.getFieldName(),
                 toPosition(conf.considerPosition))
         is IndicatorTargetContext -> PredefinedIndicatorExpr(
                 this.indic.text.indicatorIndex()!!,

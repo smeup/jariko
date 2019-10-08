@@ -12,9 +12,9 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import org.junit.Ignore
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-@Ignore
 public class RpgParserOverlayTest12 {
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
@@ -54,6 +54,11 @@ public class RpgParserOverlayTest12 {
     @Test
     fun parseMUTE12_01_ast() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
+        val f1 = cu.dataDefinitions.find { it.name == "§F1" }!!
+        val uibds = cu.dataDefinitions.find { it.name == "£UIBDS" }!!
+        assertEquals(36, f1.fields.size)
+        assertEquals(36, uibds.fields.size)
+        assertEquals(uibds.type, f1.type)
     }
 
     @Test

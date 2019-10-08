@@ -258,6 +258,32 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     return dataDefinition
 }
 
+internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(conf: ToAstConfiguration = ToAstConfiguration(),
+                                                     dataDefinitionProviders: List<DataDefinitionProvider>):
+        () -> DataDefinition {
+    return {
+        val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
+            this.TO_POSITION().text.asInt()
+        } else {
+            null
+        }
+
+        val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
+
+        val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
+
+        val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() }).first().data_structure_name.identifier().free_identifier().idOrKeyword().ID().text
+        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName } ?: throw RuntimeException("Data definition $likeDsName not found")
+
+        val dataDefinition = DataDefinition(
+                this.name,
+                referredDataDefinition.type,
+                referredDataDefinition.fields,
+                position = this.toPosition(true))
+        dataDefinition
+    }
+}
+
 // This should hopefully works because overlays should refer only to previous fields
 private fun considerOverlays(dataDefinition: DataDefinition, fieldsParseTrees: List<RpgParser.Parm_fixedContext>) {
     var nextOffset : Long = 0L
