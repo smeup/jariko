@@ -26,7 +26,7 @@ class RpgDataEncoderTest {
             assertTrue(binary2.compareTo(decoded2) == 0)
         }
 
-        for (i in -999999999..999999999) {
+        for (i in -9999999..9999999) {
             val binary4 = i.toBigDecimal()
             val encoded4 = encodeBinary(binary4, 4)
             assertTrue(encoded4.length == 4)
@@ -35,7 +35,7 @@ class RpgDataEncoderTest {
         }
 
 
-        for (i in -9999999..9999999) {
+        for (i in -999999..999999) {
 
             val packed50 = i.toBigDecimal(MathContext(0))
             val encoded50 = encodeToDS(packed50,5,0)
