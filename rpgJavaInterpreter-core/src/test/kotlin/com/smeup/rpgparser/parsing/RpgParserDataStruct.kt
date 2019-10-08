@@ -3,10 +3,16 @@ package com.smeup.rpgparser.parsing
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.interpreter.InternalInterpreter
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Ignore
 import org.junit.Test
+import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class RpgParserDataStruct {
 
@@ -77,5 +83,48 @@ class RpgParserDataStruct {
         val cu = assertASTCanBeProduced("struct/STRUCT_05", true)
         cu.resolve()
         execute(cu, mapOf())
+    }
+
+    /**
+     * Test for all data type
+     */
+    @Test
+    //@Ignore // the parser does not handle this
+    fun parseSTRUCT_06() {
+        val result = assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
+
+        val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
+        cu.resolve()
+        execute(cu, mapOf())
+    }
+
+    /**
+     * Test for all data type
+     */
+    @Test
+    //@Ignore // the parser does not handle this
+    fun parseSTRUCT_06_runtime() {
+        val result = assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
+
+        val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
+        cu.resolve()
+
+        val interpreter = InternalInterpreter(JavaSystemInterface())
+        interpreter.execute(cu, mapOf())
+
+        var failed : Int = 0
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        annotations.forEach { (line, annotation) ->
+            try {
+                assertTrue(annotation.result.asBoolean().value)
+
+            } catch (e:AssertionError) {
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                failed++
+            }
+        }
+        if(failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
     }
 }
