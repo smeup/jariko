@@ -260,28 +260,78 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
 
 // This should hopefully works because overlays should refer only to previous fields
 private fun considerOverlays(dataDefinition: DataDefinition, fieldsParseTrees: List<RpgParser.Parm_fixedContext>) {
+    var nextOffset : Long = 0L
     dataDefinition.fields.forEach { it.parent = dataDefinition }
     fieldsParseTrees.forEach {
+
+        // Size of the data struct field
+        val elementSize = it.toAst(0).type.elementSize()
+
+        // Detects if the OVERALY keyword is present
         val overlay = it.keyword().find { it.keyword_overlay() != null }
         if (overlay != null) {
             val fieldName = it.ds_name().text
-                val nameExpr = overlay.keyword_overlay().name
-                // TODO: consider *NEXT
-                val pos = overlay.keyword_overlay().pos
-                val targetFieldName = nameExpr.identifier().text
+            val pos = overlay.keyword_overlay().pos
+            val nameExpr = overlay.keyword_overlay().name
+            val targetFieldName = nameExpr.identifier().text
 
+
+            // The overlay refers to the data definition, for example:
+            //D SSFLD                        600
+            //D  APPNAME                      02    OVERLAY(SSFLD:1)
+            if( targetFieldName == dataDefinition.name) {
                 val extraOffset = if (pos == null) {
-                    0
+                    // consider *NEXT
+                    if( overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT" ) {
+                        nextOffset
+                    } else {
+                        0
+                    }
+
                 } else {
+                    // pos
                     val posValue = (pos.number().toAst() as IntLiteral).value
                     posValue - 1
                 }
                 val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
-                        ?: throw RuntimeException("User of overlay not found: $fieldName")
+                    ?: throw RuntimeException("User of overlay not found: $fieldName")
+                thisFieldDefinition.explicitStartOffset =   extraOffset.toInt()
+
+            } else {
+                // The overlay refers to the a data structure field, the offset is relative
+                //D SSFLD                        600
+                //D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
+                //D  OBJTP                        02    OVERLAY(OBJTYPE:1)
                 val targetFieldDefinition = dataDefinition.fields.find { it.name == targetFieldName }
                         ?: throw RuntimeException("Target of overlay not found: $targetFieldName")
-                thisFieldDefinition.explicitStartOffset = targetFieldDefinition.startOffset + extraOffset.toInt()
+                val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
+                        ?: throw RuntimeException("User of overlay not found: $fieldName")
+
+
+                val extraOffset: Int = if (pos == null) {
+                    if( overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT" ) {
+                        targetFieldDefinition.nextOffset
+                    } else {
+                        0
+                    }
+
+                } else {
+                    val posValue = (pos.number().toAst() as IntLiteral).value
+                    (posValue - 1).toInt()
+                }
+                    // refers to a non overlayed field
+                    if( thisFieldDefinition.explicitStartOffset == null) {
+                        thisFieldDefinition.explicitStartOffset = targetFieldDefinition.startOffset + extraOffset
+                    } else {
+                        thisFieldDefinition.explicitStartOffset = targetFieldDefinition.explicitStartOffset!! + extraOffset
+                    }
+                    targetFieldDefinition.nextOffset += elementSize.toInt()
+                }
+
         }
+        // updates the *NEXT offset
+        nextOffset += elementSize
+
     }
 }
 

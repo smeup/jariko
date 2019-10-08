@@ -2623,6 +2623,7 @@ SPLAT_ALL
 
 target:
       name=idOrKeyword #simpleTarget
+    | container=idOrKeyword FREE_DOT field=idOrKeyword #qualifiedTarget
     | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
     | bif_subst #substTarget
     | container=idOrKeyword DOT fieldName=idOrKeyword #qualifiedTarget

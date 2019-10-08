@@ -92,7 +92,8 @@ data class FieldDefinition(
         override val name: String,
         override val type: Type,
         var explicitStartOffset: Int? = null,
-        val explicitEndOffset: Int? = null,
+        var explicitEndOffset: Int? = null,
+        var nextOffset : Int = 0,
         override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {

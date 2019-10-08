@@ -13,6 +13,8 @@ import com.smeup.rpgparser.utils.*
 import java.lang.Math.pow
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.UnsupportedOperationException
@@ -101,8 +103,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val ds = data.parent as DataDefinition
                 val dd = get(ds.name) as StringValue
                 val v = data.toDataStructureValue(value);
-                dd.setSubstring(data.startOffset,data.endOffset,v)
-
+                dd.setSubstring(data.startOffset,data.startOffset+data.size.toInt(),v)
 
             }
             else -> {
@@ -955,9 +956,33 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = eval(expression.right)
                 // TODO check type
                 if (v1 is DecimalValue && v2 is DecimalValue) {
-                    // TODO maurizio need to know the target size
+
+                    // Detects what kind of eval must be evaluated
+                    if(expression.parent is EvalStmt) {
+                        val parent = expression.parent as EvalStmt
+                        // EVAL(H)
+                        if(parent.flags.halfAdjust) {
+                            val targetType = parent.target.type() as NumberType
+                            // perform the calculation, adjust the operand scale to the target
+                            val res = v1.value.setScale(targetType.decimalDigits).divide(v2.value.setScale(targetType.decimalDigits),RoundingMode.HALF_UP)
+                            return DecimalValue(res)
+                        }
+                        // Eval(M)
+                        if(parent.flags.maximumNumberOfDigitsRule) {
+                            TODO("EVAL(M) not supported yet")
+                        }
+                        // Eval(R)
+                        if(parent.flags.resultDecimalPositionRule) {
+                            TODO("EVAL(R) not supported yet")
+                        }
+
+
+
+
+                    }
                     val res = v1.value.toDouble() / v2.value.toDouble()
                     return DecimalValue(BigDecimal(res))
+
                 }
 
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))

@@ -28,7 +28,7 @@ public class RpgParserOverlayTest03 {
     @Test
     fun parseMUTE03_09_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
-        val cu = assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced("overlay/MUTE03_09_NOAR", considerPosition = true, withMuteSupport = true)
         cu.resolve()
         var failed : Int = 0
 
@@ -51,6 +51,7 @@ public class RpgParserOverlayTest03 {
     }
 
     @Test
+    @Ignore // Moved to STRUCT_06
     fun parseSTRUCT_01_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
         val cu = assertASTCanBeProduced("struct/STRUCT_01", considerPosition = true, withMuteSupport = true)

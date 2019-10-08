@@ -9,7 +9,7 @@
      C                   EVAL      A = 0
      C                   EVAL      B = 1
      C                   EVAL      RESULT = 1
-     C                   FOR       COUNT = 1 TO 100
+     C                   FOR       COUNT = 1 TO 5
      C                   EVAL      RESULT = A + B
      C                   EVAL      A = B
      C                   EVAL      B = RESULT

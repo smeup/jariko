@@ -254,7 +254,7 @@ private fun dataType(len: Long, decimals: Long?): Type =
     if (decimals == null) {
         StringType(len)
     } else {
-        NumberType(len.toInt(), decimals.toInt())
+        NumberType(len.toInt()-decimals.toInt(), decimals.toInt())
     }
 
 internal fun Token.asLong(): Long? {
