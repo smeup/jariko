@@ -31,7 +31,7 @@ class RpgParserDataStruct {
 
     @Test
     fun parseSTRUCT_01() {
-        val result = assertCanBeParsed("struct/STRUCT_01", withMuteSupport = true)
+        assertCanBeParsed("struct/STRUCT_01", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_01", true)
 
@@ -45,7 +45,7 @@ class RpgParserDataStruct {
     @Test
     @Ignore // The parser does not handle the dot notation for accessing fields
     fun parseSTRUCT_02() {
-        val result = assertCanBeParsed("struct/STRUCT_02", withMuteSupport = true)
+        assertCanBeParsed("struct/STRUCT_02", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_02", true)
         cu.resolve()
@@ -55,7 +55,7 @@ class RpgParserDataStruct {
     @Test
     @Ignore // this is probably failing because of TIMESTAMP()
     fun parseSTRUCT_03() {
-        val result = assertCanBeParsed("struct/STRUCT_03", withMuteSupport = true)
+        assertCanBeParsed("struct/STRUCT_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_03", true)
         cu.resolve()
@@ -65,7 +65,7 @@ class RpgParserDataStruct {
     @Test
     @Ignore // I am not sure we should handle the definition of two consecutive DS
     fun parseSTRUCT_04() {
-        val result = assertCanBeParsed("struct/STRUCT_04", withMuteSupport = true)
+        assertCanBeParsed("struct/STRUCT_04", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_04", true)
         cu.resolve()
@@ -78,7 +78,7 @@ class RpgParserDataStruct {
     @Test
     //@Ignore // the parser does not handle this
     fun parseSTRUCT_05() {
-        val result = assertCanBeParsed("struct/STRUCT_05", withMuteSupport = true)
+        assertCanBeParsed("struct/STRUCT_05", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_05", true)
         cu.resolve()
@@ -91,7 +91,7 @@ class RpgParserDataStruct {
     @Test
     //@Ignore // the parser does not handle this
     fun parseSTRUCT_06() {
-        val result = assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
+        assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
         cu.resolve()
@@ -104,7 +104,7 @@ class RpgParserDataStruct {
     @Test
     //@Ignore // the parser does not handle this
     fun parseSTRUCT_06_runtime() {
-        val result = assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
+        assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
         cu.resolve()

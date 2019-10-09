@@ -101,52 +101,51 @@ data class FieldDefinition(
 
     fun toDataStructureValue(value: Value): StringValue {
         when(type) {
+            // case numeric
             is  NumberType -> {
                 // Packed or Zoned
-                if(type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
-                    if(type.decimal) {
+                if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
+                    if (type.decimal) {
                         // Transform the numeric to an encoded string
-                        val encoded  = encodeToDS(value.asDecimal().value,type.entireDigits,type.decimalDigits)
+                        val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, type.decimalDigits)
                         // adjust the size to fit the target field
-                        val fitted = encoded.padEnd(type.entireDigits+type.decimalDigits)
+                        val fitted = encoded.padEnd(type.entireDigits + type.decimalDigits)
                         return StringValue(fitted)
 
                     } else {
                         // Transform the numeric to an encoded string
-                        val encoded = encodeToDS(value.asDecimal().value,type.entireDigits,0)
+                        val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
                         // adjust the size to fit the target field
-                        val fitted = encoded.padEnd(type.entireDigits,' ')
+                        val fitted = encoded.padEnd(type.entireDigits, ' ')
                         return StringValue(fitted)
                     }
                 }
-                if(type.rpgType == RpgType.INTEGER.rpgType || type.rpgType == RpgType.UNSIGNED.rpgType  ) {
+                if (type.rpgType == RpgType.INTEGER.rpgType || type.rpgType == RpgType.UNSIGNED.rpgType) {
                     // Transform the numeric to an encoded string
-                    val encoded = encodeToDS(value.asDecimal().value,type.entireDigits,0)
+                    val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
                     // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(type.entireDigits,' ')
+                    val fitted = encoded.padEnd(type.entireDigits, ' ')
                     return StringValue(fitted)
                 }
                 // To date only 2 and 4 bytes are supported
-                if(type.rpgType == RpgType.BINARY.rpgType ) {
+                if (type.rpgType == RpgType.BINARY.rpgType) {
                     // Transform the numeric to an encoded string
-                    if(type.entireDigits == 2 || type.entireDigits == 4 ) {
-                        val encoded = encodeBinary(value.asDecimal().value,type.entireDigits)
+                    if (type.entireDigits == 2 || type.entireDigits == 4) {
+                        val encoded = encodeBinary(value.asDecimal().value, type.entireDigits)
                         // adjust the size to fit the target field
                         return StringValue(encoded)
 
                     }
                 }
-
-
-                TODO("Not implmented ${type.rpgType}")
+                TODO("Not implmented ${type}")
             }
             is StringType -> {
                 return StringValue( value.asString().value )
 
             }
+            else -> TODO("Not implmented ${type}")
         }
 
-        return TODO("Not implmented ${type}")
     }
     @Derived
     val container
@@ -203,10 +202,10 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale:Int) : String {
         firstNibble = (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
 
     }
-    if (sign !== -1) {
-        buffer[offset++] = (firstNibble + 0x000F).toByte()
+    if (sign != -1) {
+        buffer[offset] = (firstNibble + 0x000F).toByte()
     } else {
-        buffer[offset++] = (firstNibble + 0x000D).toByte()
+        buffer[offset] = (firstNibble + 0x000D).toByte()
     }
 
     return Base64.getEncoder().withoutPadding().encodeToString(buffer)

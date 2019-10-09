@@ -50,7 +50,7 @@ class RpgParserWithMuteSupportTest {
         val muteParser = RpgParserFacade().createMuteParser(BOMInputStream(comparisonAnnotationPreProcessed.byteInputStream(Charsets.UTF_8)), errors,
                 longLines = true)
 
-        val root = muteParser.muteLine()
+       muteParser.muteLine()
 
         assertEquals(0, errors.size)
     }

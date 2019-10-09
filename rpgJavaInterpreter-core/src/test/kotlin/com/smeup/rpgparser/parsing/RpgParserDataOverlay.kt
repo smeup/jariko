@@ -16,7 +16,7 @@ class RpgParserDataOverlay {
      */
     @Test
     fun parseOVERLAY_01() {
-        val result = assertCanBeParsed("struct/OVERLAY_01", withMuteSupport = true)
+        assertCanBeParsed("struct/OVERLAY_01", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_01", true)
         cu.resolve()
@@ -37,7 +37,7 @@ class RpgParserDataOverlay {
 
     @Test
     fun parseOVERLAY_03() {
-        val result = assertCanBeParsed("struct/OVERLAY_03", withMuteSupport = true)
+        assertCanBeParsed("struct/OVERLAY_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_03", true)
         cu.resolve()
@@ -61,7 +61,7 @@ class RpgParserDataOverlay {
 
     @Test
     fun parseOVERLAY_04() {
-        val result = assertCanBeParsed("struct/OVERLAY_04", withMuteSupport = true)
+        assertCanBeParsed("struct/OVERLAY_04", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_04", true)
         cu.resolve()
@@ -70,7 +70,7 @@ class RpgParserDataOverlay {
 
     @Test
     fun parseOVERLAY_05() {
-        val result = assertCanBeParsed("struct/OVERLAY_05", withMuteSupport = true)
+        assertCanBeParsed("struct/OVERLAY_05", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_05", true)
         cu.resolve()
