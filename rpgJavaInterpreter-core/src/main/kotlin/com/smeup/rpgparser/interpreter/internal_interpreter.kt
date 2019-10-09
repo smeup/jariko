@@ -957,9 +957,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 // TODO check type
                 if (v1 is DecimalValue && v2 is DecimalValue) {
 
+                    val parent = expression.parent as EvalStmt
+                    val targetType = parent.target.type() as NumberType
                     // Detects what kind of eval must be evaluated
                     if(expression.parent is EvalStmt) {
-                        val parent = expression.parent as EvalStmt
                         // EVAL(H)
                         if(parent.flags.halfAdjust) {
                             val targetType = parent.target.type() as NumberType
@@ -981,7 +982,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
                     }
                     val res = v1.value.toDouble() / v2.value.toDouble()
-                    return DecimalValue(BigDecimal(res))
+                    return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits,RoundingMode.DOWN))
 
                 }
 

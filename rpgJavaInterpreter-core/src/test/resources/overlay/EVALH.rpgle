@@ -12,8 +12,10 @@
      C                   EVAL A = 139.0
      C                   EVAL B = 7.0
      C                   EVAL RESULT = A/B
+    MU* VAL1(RESULT) VAL2(19.85) COMP(EQ)
      C                   DSPLY                   RESULT
      C                   EVAL(H)   RESULT = A/B
+    MU* VAL1(RESULT) VAL2(19.86) COMP(EQ)
      C                   DSPLY                   RESULT
       *
      C                   SETON                                        RT
