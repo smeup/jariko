@@ -614,6 +614,11 @@ class InterpreterTest {
         assertEquals(listOf("x 08:23:45", "x   2.345", "x   2.345-"), outputOf("EDITWTEST2"))
     }
 
+    @Test @Ignore
+    fun executeWHEN01() {
+        assertEquals(listOf("First", "First"), outputOf("WHEN01", printTree = true))
+    }
+
     @Test
     fun executeProgramWithRuntimeError() {
         // TODO better error assertion

@@ -4,6 +4,7 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
+import java.lang.RuntimeException
 
 fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
@@ -99,23 +100,57 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
     if (indexOfOther != -1) {
         statementsToConsider = statementsToConsider.subList(0, indexOfOther)
     }
-    return SelectCase(
-            this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
-            statementsToConsider,
-            toPosition(conf.considerPosition)
-    )
+    val position = toPosition(conf.considerPosition)
+    return try {
+        if (this.`when`() != null) {
+            SelectCase(
+                this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
+                statementsToConsider,
+                position
+            )
+        } else {
+            val (comparison, factor2) = this.csWHENxx().getCondition()
+            SelectCase(
+                WhenCondition(comparison, this.csWHENxx().factor1, factor2),
+                statementsToConsider,
+                position
+            )
+        }
+    } catch (e: Exception) {
+        throw RuntimeException("Exception at $position", e)
+    }
 }
+
+class WhenCondition(first: Comparison, factor1Context: RpgParser.FactorContext?, second: RpgParser.FactorContext?) : Expression()
+
+internal fun RpgParser.CsWHENxxContext.getCondition() =
+    when {
+        this.csWHENEQ() != null -> Comparison.EQ to this.csWHENEQ().cspec_fixed_standard_parts().factor2
+        this.csWHENNE() != null -> Comparison.NE to this.csWHENNE().cspec_fixed_standard_parts().factor2
+        this.csWHENGE() != null -> Comparison.GE to this.csWHENGE().cspec_fixed_standard_parts().factor2
+        this.csWHENLE() != null -> Comparison.LE to this.csWHENLE().cspec_fixed_standard_parts().factor2
+        this.csWHENLT() != null -> Comparison.LT to this.csWHENLT().cspec_fixed_standard_parts().factor2
+        this.csWHENGT() != null -> Comparison.GT to this.csWHENGT().cspec_fixed_standard_parts().factor2
+        else -> throw RuntimeException("No walid WhenXX condition")
+    }
 
 internal fun RpgParser.OtherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
     TODO("OtherContext.toAst with $conf")
 }
 
 internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IfStmt {
-    return IfStmt(this.beginif().fixedexpression.expression().toAst(conf),
+    val position = toPosition(conf.considerPosition)
+    return try {
+        IfStmt(
+            this.beginif().fixedexpression.expression().toAst(conf),
             this.thenBody.map { it.toAst(conf) },
             this.elseIfClause().map { it.toAst(conf) },
             this.elseClause()?.toAst(conf),
-            toPosition(conf.considerPosition))
+            position
+        )
+    } catch (e: Exception) {
+        throw RuntimeException("Error parsing IF statement at $position", e)
+    }
 }
 
 internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {
