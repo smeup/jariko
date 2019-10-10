@@ -878,7 +878,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
             }
             is LogicalCondition -> {
-                if (expression.ands.any{ !evalAsBoolean(it) }) {
+                if (expression.ands.any { !evalAsBoolean(it) }) {
                     return BooleanValue.FALSE
                 }
 
@@ -886,7 +886,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     return BooleanValue.TRUE
                 }
 
-                return BooleanValue(expression.ors.any{ evalAsBoolean(it) })
+                return BooleanValue(expression.ors.any { evalAsBoolean(it) })
             }
             is OnRefExpr -> {
                 return BooleanValue.TRUE
@@ -1024,7 +1024,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         if (forceElement) TODO()
         return dataDefinition.type.blank()
     }
-
 }
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
