@@ -171,7 +171,7 @@ internal fun RpgParser.CsORxxContext.getCondition() =
         this.csORGT() != null -> Comparison.GT to this.csORGT().cspec_fixed_standard_parts().factor2
         this.csORLE() != null -> Comparison.LE to this.csORLE().cspec_fixed_standard_parts().factor2
         this.csORLT() != null -> Comparison.LT to this.csORLT().cspec_fixed_standard_parts().factor2
-        else -> throw RuntimeException("No walid ORXX condition")
+        else -> throw RuntimeException("No valid ORXX condition")
     }
 
 internal fun RpgParser.CsANDxxContext.getCondition() =
@@ -182,7 +182,7 @@ internal fun RpgParser.CsANDxxContext.getCondition() =
         this.csANDGT() != null -> Comparison.GT to this.csANDGT().cspec_fixed_standard_parts().factor2
         this.csANDLE() != null -> Comparison.LE to this.csANDLE().cspec_fixed_standard_parts().factor2
         this.csANDLT() != null -> Comparison.LT to this.csANDLT().cspec_fixed_standard_parts().factor2
-        else -> throw RuntimeException("No walid ANDXX condition")
+        else -> throw RuntimeException("No valid ANDXX condition")
     }
 
 internal fun RpgParser.CsWHENxxContext.getCondition() =
@@ -193,7 +193,7 @@ internal fun RpgParser.CsWHENxxContext.getCondition() =
         this.csWHENGT() != null -> Comparison.GT to this.csWHENGT().cspec_fixed_standard_parts().factor2
         this.csWHENLE() != null -> Comparison.LE to this.csWHENLE().cspec_fixed_standard_parts().factor2
         this.csWHENLT() != null -> Comparison.LT to this.csWHENLT().cspec_fixed_standard_parts().factor2
-        else -> throw RuntimeException("No walid WhenXX condition")
+        else -> throw RuntimeException("No valid WhenXX condition")
     }
 
 internal fun RpgParser.OtherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
