@@ -203,13 +203,17 @@ internal fun RpgParser.OtherContext.toAst(conf: ToAstConfiguration = ToAstConfig
 internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IfStmt {
     val position = toPosition(conf.considerPosition)
     return try {
-        IfStmt(
-            this.beginif().fixedexpression.expression().toAst(conf),
-            this.thenBody.map { it.toAst(conf) },
-            this.elseIfClause().map { it.toAst(conf) },
-            this.elseClause()?.toAst(conf),
-            position
-        )
+        if (this.beginif().fixedexpression != null) {
+            IfStmt(
+                this.beginif().fixedexpression.expression().toAst(conf),
+                this.thenBody.map { it.toAst(conf) },
+                this.elseIfClause().map { it.toAst(conf) },
+                this.elseClause()?.toAst(conf),
+                position
+            )
+        } else {
+            TODO("${this.beginif().text}")
+        }
     } catch (e: Exception) {
         throw RuntimeException("Error parsing IF statement at $position", e)
     }
