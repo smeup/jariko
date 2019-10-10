@@ -625,8 +625,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
             value1 is StringValue && value2 is StringValue -> {
-                val v1 = value1.value.trimEnd().removeNullChars()
-                val v2 = value2.value.trimEnd().removeNullChars()
+                val v1 = value1.value.removeNullChars().trimEnd()
+                val v2 = value2.value.removeNullChars().trimEnd()
                 v1 == v2
             }
             else -> value1 == value2

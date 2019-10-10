@@ -50,7 +50,7 @@
   008C                   EVAL      DSP=%EDITW(O6:'  .  .  ')
      C     DSP           DSPLY     
   019C                   EVAL      NNN070=2345
-    MU* VAL1(DSP) VAL2('   2.345          ') COMP(EQ)
+    MU* VAL1(DSP) VAL2('   2.345 ') COMP(EQ)
   221C                   EVAL      DSP=%EDITW(NNN070:'    .   -')
      C     DSP           DSPLY     
   019C                   EVAL      NNN062=-23,45
@@ -70,7 +70,7 @@
   221C                   EVAL      DSP=%EDITW(NNN102:'    .   . 0 ,  -')
      C     DSP           DSPLY     
   019C                   EVAL      NNN051=-21,4
-    MU* VAL1(DSP) VAL2('  21,4-%          ') COMP(EQ)
+    MU* VAL1(DSP) VAL2('  21,4-%') COMP(EQ)
   221C                   EVAL      DSP=%EDITW(NNN051:'   0, -%')
      C     DSP           DSPLY     
   019C                   EVAL      NNN132=-1234567,89
