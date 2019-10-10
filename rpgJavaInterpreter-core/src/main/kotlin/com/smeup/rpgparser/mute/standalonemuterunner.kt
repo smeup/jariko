@@ -11,6 +11,6 @@ fun main(args: Array<String>) {
         "${muteSource.canonicalPath} does not exist"
     }
     println("Running ${muteSource.canonicalPath}")
-    val result = executeWithMutes(muteSource.toPath(), false, null)
+    val result = executeWithMutes(muteSource.toPath(), true, null)
     println(result)
 }
