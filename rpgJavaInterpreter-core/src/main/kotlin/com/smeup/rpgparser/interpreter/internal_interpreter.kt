@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsing.ast.Comparison.GT
 import com.smeup.rpgparser.parsing.ast.Comparison.LE
 import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
+import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
 import java.lang.System.currentTimeMillis
@@ -728,6 +729,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return value
     }
 
+    private fun evalAsBoolean(expression: Expression): Boolean = eval(expression).asBoolean().value
+
     private fun interpretConcrete(expression: Expression): Value {
         return when (expression) {
             is StringLiteral -> StringValue(expression.value)
@@ -874,11 +877,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     eval(expression.right)
                 }
             }
+            is LogicalCondition -> {
+                if (expression.ands.any{ !evalAsBoolean(it) }) {
+                    return BooleanValue.FALSE
+                }
+
+                if (evalAsBoolean(expression.expression)) {
+                    return BooleanValue.TRUE
+                }
+
+                return BooleanValue(expression.ors.any{ evalAsBoolean(it) })
+            }
             is OnRefExpr -> {
-                return BooleanValue(true)
+                return BooleanValue.TRUE
             }
             is NotExpr -> {
-                return BooleanValue(!eval(expression.base).asBoolean().value)
+                return BooleanValue(!evalAsBoolean(expression.base))
             }
             is ScanExpr -> {
                 var startIndex = 0
@@ -1010,6 +1024,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         if (forceElement) TODO()
         return dataDefinition.type.blank()
     }
+
 }
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {

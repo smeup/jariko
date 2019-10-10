@@ -616,7 +616,7 @@ class InterpreterTest {
 
     @Test @Ignore
     fun executeWHEN01() {
-        assertEquals(listOf("First", "First"), outputOf("WHEN01", printTree = true))
+        assertEquals(listOf("Other", "First"), outputOf("WHEN01"))
     }
 
     @Test

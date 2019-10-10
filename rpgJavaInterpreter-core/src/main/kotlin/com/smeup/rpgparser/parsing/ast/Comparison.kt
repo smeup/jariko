@@ -6,5 +6,5 @@ enum class Comparison {
     GT,
     GE,
     LT,
-    LE
+    LE;
 }

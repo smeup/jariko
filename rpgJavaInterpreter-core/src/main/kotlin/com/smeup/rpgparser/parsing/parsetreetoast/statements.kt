@@ -114,7 +114,7 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
             val ands = csANDxx.map { it.toAst(conf) }
             val csORxx = this.csWHENxx().csORxx()
             val ors = csORxx.map { it.toAst(conf) }
-            val condition = LogicalCondition(comparison, this.csWHENxx().factor1, factor2)
+            val condition = LogicalCondition(comparison.asExpression(this.csWHENxx().factor1, factor2, conf))
             condition.and(ands)
             condition.or(ors)
             SelectCase(
@@ -128,13 +128,13 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
     }
 }
 
-class LogicalCondition(first: Comparison, factor1Context: RpgParser.FactorContext?, second: RpgParser.FactorContext?) : Expression() {
-    private val ands = mutableListOf<LogicalCondition>()
+class LogicalCondition(val expression: Expression) : Expression() {
+    val ands = mutableListOf<LogicalCondition>()
     fun and(conditions: List<LogicalCondition>) {
         ands.addAll(conditions)
     }
 
-    private val ors = mutableListOf<LogicalCondition>()
+    val ors = mutableListOf<LogicalCondition>()
     fun or(conditions: List<LogicalCondition>) {
         ors.addAll(conditions)
     }
@@ -142,36 +142,46 @@ class LogicalCondition(first: Comparison, factor1Context: RpgParser.FactorContex
 
 internal fun RpgParser.CsANDxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LogicalCondition {
     val (comparison, factor2) = this.getCondition()
-    return LogicalCondition(comparison, this.factor1, factor2)
+    return LogicalCondition(comparison.asExpression(this.factor1, factor2, conf))
 }
 
 internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LogicalCondition {
     val (comparison, factor2) = this.getCondition()
     val ands = this.csANDxx().map { it.toAst(conf) }
-    val result = LogicalCondition(comparison, this.factor1, factor2)
+    val result = LogicalCondition(comparison.asExpression(this.factor1, factor2, conf))
     result.and(ands)
     return result
 }
 
+internal fun Comparison.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression =
+    when (this) {
+        Comparison.EQ -> EqualityExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
+        Comparison.NE -> DifferentThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
+        Comparison.GE -> GreaterEqualThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
+        Comparison.GT -> GreaterThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
+        Comparison.LE -> LessEqualThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
+        Comparison.LT -> LessThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
+    }
+
 internal fun RpgParser.CsORxxContext.getCondition() =
     when {
         this.csOREQ() != null -> Comparison.EQ to this.csOREQ().cspec_fixed_standard_parts().factor2
-        this.csORNE() != null -> Comparison.EQ to this.csORNE().cspec_fixed_standard_parts().factor2
-        this.csORGE() != null -> Comparison.EQ to this.csORGE().cspec_fixed_standard_parts().factor2
-        this.csORGT() != null -> Comparison.EQ to this.csORGT().cspec_fixed_standard_parts().factor2
-        this.csORLE() != null -> Comparison.EQ to this.csORLE().cspec_fixed_standard_parts().factor2
-        this.csORLT() != null -> Comparison.EQ to this.csORLT().cspec_fixed_standard_parts().factor2
+        this.csORNE() != null -> Comparison.NE to this.csORNE().cspec_fixed_standard_parts().factor2
+        this.csORGE() != null -> Comparison.GE to this.csORGE().cspec_fixed_standard_parts().factor2
+        this.csORGT() != null -> Comparison.GT to this.csORGT().cspec_fixed_standard_parts().factor2
+        this.csORLE() != null -> Comparison.LE to this.csORLE().cspec_fixed_standard_parts().factor2
+        this.csORLT() != null -> Comparison.LT to this.csORLT().cspec_fixed_standard_parts().factor2
         else -> throw RuntimeException("No walid ORXX condition")
     }
 
 internal fun RpgParser.CsANDxxContext.getCondition() =
     when {
         this.csANDEQ() != null -> Comparison.EQ to this.csANDEQ().cspec_fixed_standard_parts().factor2
-        this.csANDNE() != null -> Comparison.EQ to this.csANDNE().cspec_fixed_standard_parts().factor2
-        this.csANDGE() != null -> Comparison.EQ to this.csANDGE().cspec_fixed_standard_parts().factor2
-        this.csANDGT() != null -> Comparison.EQ to this.csANDGT().cspec_fixed_standard_parts().factor2
-        this.csANDLE() != null -> Comparison.EQ to this.csANDLE().cspec_fixed_standard_parts().factor2
-        this.csANDLT() != null -> Comparison.EQ to this.csANDLT().cspec_fixed_standard_parts().factor2
+        this.csANDNE() != null -> Comparison.NE to this.csANDNE().cspec_fixed_standard_parts().factor2
+        this.csANDGE() != null -> Comparison.GE to this.csANDGE().cspec_fixed_standard_parts().factor2
+        this.csANDGT() != null -> Comparison.GT to this.csANDGT().cspec_fixed_standard_parts().factor2
+        this.csANDLE() != null -> Comparison.LE to this.csANDLE().cspec_fixed_standard_parts().factor2
+        this.csANDLT() != null -> Comparison.LT to this.csANDLT().cspec_fixed_standard_parts().factor2
         else -> throw RuntimeException("No walid ANDXX condition")
     }
 
