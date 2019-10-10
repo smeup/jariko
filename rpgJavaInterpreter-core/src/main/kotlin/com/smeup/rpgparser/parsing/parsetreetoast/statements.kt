@@ -110,8 +110,15 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
             )
         } else {
             val (comparison, factor2) = this.csWHENxx().getCondition()
+            val csANDxx = this.csWHENxx().csANDxx()
+            val ands = csANDxx.map { it.toAst(conf) }
+            val csORxx = this.csWHENxx().csORxx()
+            val ors = csORxx.map { it.toAst(conf) }
+            val condition = LogicalCondition(comparison, this.csWHENxx().factor1, factor2)
+            condition.and(ands)
+            condition.or(ors)
             SelectCase(
-                WhenCondition(comparison, this.csWHENxx().factor1, factor2),
+                condition,
                 statementsToConsider,
                 position
             )
@@ -121,16 +128,61 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
     }
 }
 
-class WhenCondition(first: Comparison, factor1Context: RpgParser.FactorContext?, second: RpgParser.FactorContext?) : Expression()
+class LogicalCondition(first: Comparison, factor1Context: RpgParser.FactorContext?, second: RpgParser.FactorContext?) : Expression() {
+    private val ands = mutableListOf<LogicalCondition>()
+    fun and(conditions: List<LogicalCondition>) {
+        ands.addAll(conditions)
+    }
+
+    private val ors = mutableListOf<LogicalCondition>()
+    fun or(conditions: List<LogicalCondition>) {
+        ors.addAll(conditions)
+    }
+}
+
+internal fun RpgParser.CsANDxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LogicalCondition {
+    val (comparison, factor2) = this.getCondition()
+    return LogicalCondition(comparison, this.factor1, factor2)
+}
+
+internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LogicalCondition {
+    val (comparison, factor2) = this.getCondition()
+    val ands = this.csANDxx().map { it.toAst(conf) }
+    val result = LogicalCondition(comparison, this.factor1, factor2)
+    result.and(ands)
+    return result
+}
+
+internal fun RpgParser.CsORxxContext.getCondition() =
+    when {
+        this.csOREQ() != null -> Comparison.EQ to this.csOREQ().cspec_fixed_standard_parts().factor2
+        this.csORNE() != null -> Comparison.EQ to this.csORNE().cspec_fixed_standard_parts().factor2
+        this.csORGE() != null -> Comparison.EQ to this.csORGE().cspec_fixed_standard_parts().factor2
+        this.csORGT() != null -> Comparison.EQ to this.csORGT().cspec_fixed_standard_parts().factor2
+        this.csORLE() != null -> Comparison.EQ to this.csORLE().cspec_fixed_standard_parts().factor2
+        this.csORLT() != null -> Comparison.EQ to this.csORLT().cspec_fixed_standard_parts().factor2
+        else -> throw RuntimeException("No walid ORXX condition")
+    }
+
+internal fun RpgParser.CsANDxxContext.getCondition() =
+    when {
+        this.csANDEQ() != null -> Comparison.EQ to this.csANDEQ().cspec_fixed_standard_parts().factor2
+        this.csANDNE() != null -> Comparison.EQ to this.csANDNE().cspec_fixed_standard_parts().factor2
+        this.csANDGE() != null -> Comparison.EQ to this.csANDGE().cspec_fixed_standard_parts().factor2
+        this.csANDGT() != null -> Comparison.EQ to this.csANDGT().cspec_fixed_standard_parts().factor2
+        this.csANDLE() != null -> Comparison.EQ to this.csANDLE().cspec_fixed_standard_parts().factor2
+        this.csANDLT() != null -> Comparison.EQ to this.csANDLT().cspec_fixed_standard_parts().factor2
+        else -> throw RuntimeException("No walid ANDXX condition")
+    }
 
 internal fun RpgParser.CsWHENxxContext.getCondition() =
     when {
         this.csWHENEQ() != null -> Comparison.EQ to this.csWHENEQ().cspec_fixed_standard_parts().factor2
         this.csWHENNE() != null -> Comparison.NE to this.csWHENNE().cspec_fixed_standard_parts().factor2
         this.csWHENGE() != null -> Comparison.GE to this.csWHENGE().cspec_fixed_standard_parts().factor2
+        this.csWHENGT() != null -> Comparison.GT to this.csWHENGT().cspec_fixed_standard_parts().factor2
         this.csWHENLE() != null -> Comparison.LE to this.csWHENLE().cspec_fixed_standard_parts().factor2
         this.csWHENLT() != null -> Comparison.LT to this.csWHENLT().cspec_fixed_standard_parts().factor2
-        this.csWHENGT() != null -> Comparison.GT to this.csWHENGT().cspec_fixed_standard_parts().factor2
         else -> throw RuntimeException("No walid WhenXX condition")
     }
 
