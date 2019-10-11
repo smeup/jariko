@@ -4,10 +4,13 @@ options {   tokenVocab = MuteLexer; }
 
 muteLine: muteAnnotation EOF ;
 
+intNumber: NUMBER ;
+
 muteAnnotation : VAL1 val1=EXP
                  VAL2 val2=EXP
                  COMP cp=muteComparisonOperator #muteComparisonAnnotation
                | TYPE EQUAL NOXMI #muteTypeAnnotation
+               | TIMEOUT intNumber #muteTimeout
                ;
 
 muteComparisonOperator: EQ | NE | LT | LE | GT | GE ;

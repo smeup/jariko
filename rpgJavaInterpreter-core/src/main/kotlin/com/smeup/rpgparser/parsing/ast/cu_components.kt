@@ -17,6 +17,8 @@ data class CompilationUnit(
     override val position: Position?
 ) : Node(position) {
 
+    var timeouts = emptyList<MuteTimeoutAnnotation>()
+
     companion object {
         fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(), null)
     }

@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.*
 import org.apache.commons.io.input.BOMInputStream
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class RpgParserWithMuteSupportTest {
     // Please note the 8 leading spaces
@@ -40,7 +41,7 @@ class RpgParserWithMuteSupportTest {
                 tokens.add(t)
             }
         } while (t.type != Token.EOF)
-        assertEquals(11, tokens.size)
+        assertTrue(tokens.size >= 11)
     }
 
     // Test if the parser returns errors

@@ -30,6 +30,15 @@ class MuteExecutionTest {
     }
 
     @Test
+    fun executeSimpleMuteWithTimeout() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT", true, withMuteSupport = true)
+        cu.resolve()
+        assertEquals(3, cu.main.stmts[0].muteAnnotations.size)
+        assertEquals(1, cu.timeouts.size)
+        assertEquals(123, cu.timeouts[0].timeout)
+    }
+
+    @Test
     fun executeCALCFIB_initialDeclarations_inz() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
         cu.resolve()
