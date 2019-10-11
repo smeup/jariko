@@ -196,6 +196,17 @@ internal fun RpgParser.CsWHENxxContext.getCondition() =
         else -> throw RuntimeException("No valid WhenXX condition")
     }
 
+internal fun RpgParser.CsIFxxContext.getCondition() =
+    when {
+        this.csIFEQ() != null -> Comparison.EQ to this.csIFEQ().cspec_fixed_standard_parts().factor2
+        this.csIFNE() != null -> Comparison.NE to this.csIFNE().cspec_fixed_standard_parts().factor2
+        this.csIFGE() != null -> Comparison.GE to this.csIFGE().cspec_fixed_standard_parts().factor2
+        this.csIFGT() != null -> Comparison.GT to this.csIFGT().cspec_fixed_standard_parts().factor2
+        this.csIFLE() != null -> Comparison.LE to this.csIFLE().cspec_fixed_standard_parts().factor2
+        this.csIFLT() != null -> Comparison.LT to this.csIFLT().cspec_fixed_standard_parts().factor2
+        else -> throw RuntimeException("No valid WhenXX condition")
+    }
+
 internal fun RpgParser.OtherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
     TODO("OtherContext.toAst with $conf")
 }
@@ -212,7 +223,21 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
                 position
             )
         } else {
-            TODO("${this.beginif().text}")
+            val (comparison, factor2) = this.beginif().csIFxx().getCondition()
+            val csANDxx = this.beginif().csIFxx().csANDxx()
+            val ands = csANDxx.map { it.toAst(conf) }
+            val csORxx = this.beginif().csIFxx().csORxx()
+            val ors = csORxx.map { it.toAst(conf) }
+            val condition = LogicalCondition(comparison.asExpression(this.beginif().csIFxx().factor1, factor2, conf))
+            condition.and(ands)
+            condition.or(ors)
+            IfStmt(
+                condition,
+                this.thenBody.map { it.toAst(conf) },
+                this.elseIfClause().map { it.toAst(conf) },
+                this.elseClause()?.toAst(conf),
+                position
+            )
         }
     } catch (e: Exception) {
         throw RuntimeException("Error parsing IF statement at $position", e)
