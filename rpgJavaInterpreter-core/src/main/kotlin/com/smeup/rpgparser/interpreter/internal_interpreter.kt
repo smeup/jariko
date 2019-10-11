@@ -10,10 +10,8 @@ import com.smeup.rpgparser.parsing.ast.Comparison.LT
 import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
-import java.lang.Math.pow
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
-import java.math.MathContext
 import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
@@ -101,10 +99,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
-                val dd = get(ds.name) as StringValue
-                val v = data.toDataStructureValue(value);
-                dd.setSubstring(data.startOffset,data.startOffset+data.size.toInt(),v)
-
+                val dd  = get(ds.name) as DataStructValue
+                // DataStructValuw Wrapper
+                dd.set(data,value)
             }
             else -> {
                 var previous: Value? = null
@@ -658,6 +655,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is DecimalValue -> value.value.toString() // TODO: formatting rules
             is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
             is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
+            is DataStructValue -> value.valueWithoutPadding.trimEnd()
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
     }
@@ -707,6 +705,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
 
                 return assign(target.string as AssignableExpression, newValue)
+            }
+            is QualifiedAccessExpr -> {
+                val refDs = target.container.variable.referred as DataDefinition
+                val dd = get(refDs.name) as DataStructValue
+                val data = refDs.fields.find { it.name == target.fieldName }
+
+                //val v = value.toDataStructureValue(value);
+                //dd.setSubstring(data.startOffset,data.startOffset+data.size.toInt(),v)
+                if (data != null) {
+                    dd.getSubstring( data.startOffset,data.endOffset )
+                }
+
+                return assign(target.container.variable.referred!!, value)
+
+                //println("Qualified")
+
             }
             else -> TODO(target.toString())
         }
@@ -977,10 +991,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                             TODO("EVAL(R) not supported yet")
                         }
 
-
-
-
                     }
+                    // As per documentation should use RoundingMode.DOWN
                     val res = v1.value.toDouble() / v2.value.toDouble()
                     return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits,RoundingMode.DOWN))
 

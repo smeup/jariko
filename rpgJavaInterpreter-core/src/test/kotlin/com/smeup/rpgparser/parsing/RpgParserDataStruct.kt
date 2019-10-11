@@ -43,7 +43,7 @@ class RpgParserDataStruct {
      * Test for QUALIFIED support
      */
     @Test
-    @Ignore // The parser does not handle the dot notation for accessing fields
+    //@Ignore // The parser does not handle the dot notation for accessing fields
     fun parseSTRUCT_02() {
         assertCanBeParsed("struct/STRUCT_02", withMuteSupport = true)
 
