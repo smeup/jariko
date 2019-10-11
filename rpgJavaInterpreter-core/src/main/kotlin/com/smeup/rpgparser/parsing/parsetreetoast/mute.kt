@@ -7,7 +7,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.facade.MutesImmutableMap
-import com.smeup.rpgparser.utils.asInt
+import com.smeup.rpgparser.utils.asLong
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.validation.Error
 import java.util.*
@@ -42,7 +42,7 @@ fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
             MuteTypeAnnotation(position = position)
         }
         is MuteParser.MuteTimeoutContext -> {
-            MuteTimeoutAnnotation(annotation.intNumber().NUMBER().text.asInt(), position)
+            MuteTimeoutAnnotation(annotation.intNumber().NUMBER().text.asLong(), position)
         }
         else -> TODO(this.text.toString())
     }

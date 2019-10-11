@@ -21,7 +21,7 @@ data class MuteTypeAnnotation(override var position: Position? = null) : MuteAnn
 /**
  * A timeout annotation
  */
-data class MuteTimeoutAnnotation(val timeout: Int, override var position: Position? = null) : MuteAnnotation(position)
+data class MuteTimeoutAnnotation(val timeout: Long, override var position: Position? = null) : MuteAnnotation(position)
 
 /**
  * A Mute annotation associated to a statement

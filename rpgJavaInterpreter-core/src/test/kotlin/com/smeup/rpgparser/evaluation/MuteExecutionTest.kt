@@ -14,6 +14,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import org.junit.Ignore
 import org.junit.Test
+import java.util.concurrent.TimeoutException
+import kotlin.test.fail
 
 class MuteExecutionTest {
 
@@ -30,13 +32,37 @@ class MuteExecutionTest {
     }
 
     @Test
-    fun executeSimpleMuteWithTimeout() {
+    fun parsingSimpleMuteTimeout() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT", true, withMuteSupport = true)
         cu.resolve()
         assertEquals(3, cu.main.stmts[0].muteAnnotations.size)
         assertEquals(2, cu.timeouts.size)
         assertEquals(123, cu.timeouts[0].timeout)
-        assertEquals(4567, cu.timeouts[1].timeout)
+        assertEquals(456, cu.timeouts[1].timeout)
+    }
+
+    @Test
+    fun executionWithShortTimeoutFails() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT_SHORT", true, withMuteSupport = true)
+        cu.resolve()
+        assertEquals(2, cu.timeouts.size)
+        assertEquals(1, cu.timeouts[0].timeout)
+        assertEquals(234, cu.timeouts[1].timeout)
+        try {
+            execute(cu, emptyMap())
+            fail("No timeout")
+        } catch (e: TimeoutException) {
+            assertTrue(e.toString().contains(cu.timeouts[0].timeout.toString()))
+        }
+    }
+
+    @Test
+    fun executionWithLongTimeoutDoesNotFail() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT_LONG", true, withMuteSupport = true)
+        cu.resolve()
+        assertEquals(1, cu.timeouts.size)
+        assertEquals(12345, cu.timeouts[0].timeout)
+        execute(cu, emptyMap())
     }
 
     @Test

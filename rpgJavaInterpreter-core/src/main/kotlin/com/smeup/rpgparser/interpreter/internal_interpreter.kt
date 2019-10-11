@@ -15,6 +15,7 @@ import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeoutException
 import kotlin.UnsupportedOperationException
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
@@ -169,7 +170,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         reinitialization: Boolean = true
     ) {
         configureLogHandlers()
+
         initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
+
+        if (compilationUnit.minTimeOut == null) {
+            executeEachStatement(compilationUnit)
+        } else {
+            val elapsedTime = measureTimeMillis {
+                executeEachStatement(compilationUnit)
+            }
+            if (elapsedTime > compilationUnit.minTimeOut!!) throw TimeoutException("Execution took $elapsedTime millis, but there was a ${compilationUnit.minTimeOut} millis timeout")
+        }
+    }
+
+    private fun executeEachStatement(compilationUnit: CompilationUnit) {
         compilationUnit.main.stmts.forEach {
             executeWithMute(it)
         }
@@ -218,6 +232,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                                     value2))
                 }
                 is MuteTypeAnnotation -> {
+                    // Skip
+                }
+                is MuteTimeoutAnnotation -> {
                     // Skip
                 }
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")

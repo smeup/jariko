@@ -19,6 +19,10 @@ data class CompilationUnit(
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()
 
+    val minTimeOut by lazy {
+        timeouts.minBy { it -> it.timeout }?.timeout
+    }
+
     companion object {
         fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(), null)
     }
