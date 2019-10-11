@@ -7,4 +7,5 @@
     MU* VAL1(B) VAL2(8) COMP(EQ)
     MU* VAL1(RESULT) VAL2(13) COMP(EQ)
      C                   EVAL      RESULT = A + B
+    MU* TIMEOUT(4567)
      C                   SETON                                        LR

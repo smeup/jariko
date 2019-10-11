@@ -42,7 +42,7 @@ fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
             MuteTypeAnnotation(position = position)
         }
         is MuteParser.MuteTimeoutContext -> {
-            MuteTimeoutAnnotation(annotation.intNumber().text.asInt(), position)
+            MuteTimeoutAnnotation(annotation.intNumber().NUMBER().text.asInt(), position)
         }
         else -> TODO(this.text.toString())
     }

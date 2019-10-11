@@ -34,8 +34,9 @@ class MuteExecutionTest {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT", true, withMuteSupport = true)
         cu.resolve()
         assertEquals(3, cu.main.stmts[0].muteAnnotations.size)
-        assertEquals(1, cu.timeouts.size)
+        assertEquals(2, cu.timeouts.size)
         assertEquals(123, cu.timeouts[0].timeout)
+        assertEquals(4567, cu.timeouts[1].timeout)
     }
 
     @Test

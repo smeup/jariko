@@ -4,7 +4,7 @@ options {   tokenVocab = MuteLexer; }
 
 muteLine: muteAnnotation EOF ;
 
-intNumber: NUMBER ;
+intNumber: NUMBER | OPEN_PAREN NUMBER CLOSE_PAREN;
 
 muteAnnotation : VAL1 val1=EXP
                  VAL2 val2=EXP
