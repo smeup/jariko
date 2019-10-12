@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.utils.enrichExceptionWith
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import java.lang.RuntimeException
@@ -101,7 +102,7 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
         statementsToConsider = statementsToConsider.subList(0, indexOfOther)
     }
     val position = toPosition(conf.considerPosition)
-    return try {
+    return enrichExceptionWith(position) {
         if (this.`when`() != null) {
             SelectCase(
                 this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
@@ -123,8 +124,6 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
                 position
             )
         }
-    } catch (e: Exception) {
-        throw RuntimeException("Exception at $position", e)
     }
 }
 
