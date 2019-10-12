@@ -614,7 +614,7 @@ class InterpreterTest {
         assertEquals(listOf("x 08:23:45", "x   2.345", "x   2.345-", "x  21,4-%"), outputOf("EDITWTEST2"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeWHEN01() {
         assertEquals(listOf("Other", "First"), outputOf("WHEN01"))
     }
