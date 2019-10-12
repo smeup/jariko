@@ -3,18 +3,19 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.logging.EXPRESSION_LOGGER
 import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.TimeoutException
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class MuteExecutionTest {
@@ -48,8 +49,17 @@ class MuteExecutionTest {
         assertEquals(2, cu.timeouts.size)
         assertEquals(1, cu.timeouts[0].timeout)
         assertEquals(234, cu.timeouts[1].timeout)
+        val si = ExtendedCollectorSystemInterface()
+        si.programs["Sleep"] =
+            object : JvmProgramRaw("Sleep", NumberType(9,0) parm "millis") {
+                override fun execute(si: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+                    val millis = params["millis"]!!.asDecimal().value.toLong()
+                    Thread.sleep(millis)
+                    return emptyList()
+                }
+            }
         try {
-            execute(cu, emptyMap())
+            execute(cu, emptyMap(), si)
             fail("No timeout")
         } catch (e: TimeoutException) {
             assertTrue(e.toString().contains(cu.timeouts[0].timeout.toString()))
