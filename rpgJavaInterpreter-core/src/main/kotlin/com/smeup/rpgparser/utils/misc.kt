@@ -3,7 +3,7 @@ package com.smeup.rpgparser.utils
 import java.math.BigDecimal
 import kotlin.system.measureTimeMillis
 
-fun <T> enrichExceptionWith(v: Any?, block: () -> T): T {
+fun <T> enrichPossibleExceptionWith(v: Any?, block: () -> T): T {
     try {
         return block()
     } catch (t: Throwable) {

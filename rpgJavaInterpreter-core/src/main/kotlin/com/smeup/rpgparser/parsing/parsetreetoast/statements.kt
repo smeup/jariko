@@ -2,7 +2,7 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
-import com.smeup.rpgparser.utils.enrichExceptionWith
+import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import java.lang.RuntimeException
@@ -102,7 +102,7 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
         statementsToConsider = statementsToConsider.subList(0, indexOfOther)
     }
     val position = toPosition(conf.considerPosition)
-    return enrichExceptionWith(position) {
+    return enrichPossibleExceptionWith("Error parsing SELECT statement at $position") {
         if (this.`when`() != null) {
             SelectCase(
                 this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
@@ -212,7 +212,7 @@ internal fun RpgParser.OtherContext.toAst(conf: ToAstConfiguration = ToAstConfig
 
 internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IfStmt {
     val position = toPosition(conf.considerPosition)
-    return try {
+    return enrichPossibleExceptionWith("Error parsing IF statement at $position") {
         if (this.beginif().fixedexpression != null) {
             IfStmt(
                 this.beginif().fixedexpression.expression().toAst(conf),
@@ -238,8 +238,6 @@ internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAst
                 position
             )
         }
-    } catch (e: Exception) {
-        throw RuntimeException("Error parsing IF statement at $position", e)
     }
 }
 
