@@ -3,7 +3,6 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.logging.EXPRESSION_LOGGER
 import com.smeup.rpgparser.logging.STATEMENT_LOGGER
@@ -51,7 +50,7 @@ class MuteExecutionTest {
         assertEquals(234, cu.timeouts[1].timeout)
         val si = ExtendedCollectorSystemInterface()
         si.programs["Sleep"] =
-            object : JvmProgramRaw("Sleep", NumberType(9,0) parm "millis") {
+            object : JvmProgramRaw("Sleep", NumberType(9, 0) parm "millis") {
                 override fun execute(si: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                     val millis = params["millis"]!!.asDecimal().value.toLong()
                     Thread.sleep(millis)
