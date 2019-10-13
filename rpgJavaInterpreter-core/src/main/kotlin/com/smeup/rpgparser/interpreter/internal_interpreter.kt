@@ -947,7 +947,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is FunctionCall -> {
                 val functionToCall = expression.function.name
                 val function = systemInterface.findFunction(globalSymbolTable, functionToCall)
-                        ?: throw RuntimeException("Function $functionToCall cannot be found")
+                        ?: throw RuntimeException("Function $functionToCall cannot be found (${interpretationContext.currentProgramName}:${expression.position.line()})")
                 // TODO check number and types of params
                 val paramsValues = expression.args.map { eval(it) }
                 return function.execute(systemInterface, paramsValues, globalSymbolTable)

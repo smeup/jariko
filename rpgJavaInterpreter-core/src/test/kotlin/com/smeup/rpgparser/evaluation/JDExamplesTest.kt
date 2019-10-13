@@ -3,6 +3,7 @@ package com.smeup.rpgparser.evaluation
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
+import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import java.util.*
 import kotlin.test.assertEquals
@@ -550,7 +551,7 @@ class JDExamplesTest {
                 "U\$SVARSK" to StringValue("SOCKET".padEnd(50) + "127.0.0.1"),
                 returnStatus to StringValue(" ")
         )
-        val si = CollectorSystemInterface()
+        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER, DATA_LOGGER))
         si.printOutput = true
         si.programs["JD_RCVSCK"] = object : JvmProgramRaw("JD_RCVSCK", listOf(
                 ProgramParam("addr", StringType(10)),

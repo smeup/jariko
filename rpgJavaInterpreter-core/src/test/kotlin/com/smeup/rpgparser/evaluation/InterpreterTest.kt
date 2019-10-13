@@ -619,6 +619,19 @@ class InterpreterTest {
         assertEquals(listOf("Other", "First"), outputOf("WHEN01"))
     }
 
+    @Test @Ignore
+    fun executeARRAY_PARMS() {
+        val parms = mapOf(
+            "Arr" to StringValue("ABC".padEnd(40))
+        )
+        assertEquals(listOf("ABC"), outputOf("ARRAY_PARMS", parms))
+    }
+
+    @Test
+    fun executeARRAY06() {
+        assertEquals(listOf("A-A-A"), outputOf("ARRAY06"))
+    }
+
     @Test
     fun executeProgramWithRuntimeError() {
         // TODO better error assertion

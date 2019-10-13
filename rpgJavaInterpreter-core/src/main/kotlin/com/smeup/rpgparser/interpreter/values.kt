@@ -22,6 +22,7 @@ abstract class Value {
     open fun render(): String = "Nope"
 }
 
+// TODO Should we change value to a val in order tho share instances?
 data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
