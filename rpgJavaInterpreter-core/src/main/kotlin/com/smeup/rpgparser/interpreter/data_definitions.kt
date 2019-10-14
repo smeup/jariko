@@ -62,11 +62,11 @@ data class FileDefinition private constructor(override val name: String, overrid
 }
 
 data class DataDefinition(
-    override val name: String,
-    override val type: Type,
-    val fields: List<FieldDefinition> = emptyList(),
-    val initializationValue: Expression? = null,
-    override val position: Position? = null
+        override val name: String,
+        override val type: Type,
+        var fields: List<FieldDefinition> = emptyList(),
+        val initializationValue: Expression? = null,
+        override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {
 
@@ -94,6 +94,9 @@ data class FieldDefinition(
         var explicitStartOffset: Int? = null,
         var explicitEndOffset: Int? = null,
         var nextOffset : Int = 0,
+        // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
+        // container. We basically duplicate it
+        var overriddenContainer: DataDefinition? = null,
         override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {
@@ -105,19 +108,19 @@ data class FieldDefinition(
             is  NumberType -> {
                 // Packed or Zoned
                 if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
-                    if (type.decimal) {
+                    return if (type.decimal) {
                         // Transform the numeric to an encoded string
                         val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, type.decimalDigits)
                         // adjust the size to fit the target field
                         val fitted = encoded.padEnd(type.entireDigits + type.decimalDigits)
-                        return StringValue(fitted)
+                        StringValue(fitted)
 
                     } else {
                         // Transform the numeric to an encoded string
                         val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
                         // adjust the size to fit the target field
                         val fitted = encoded.padEnd(type.entireDigits, ' ')
-                        return StringValue(fitted)
+                        StringValue(fitted)
                     }
                 }
                 if (type.rpgType == RpgType.INTEGER.rpgType || type.rpgType == RpgType.UNSIGNED.rpgType) {
@@ -141,15 +144,20 @@ data class FieldDefinition(
             }
             is StringType -> {
                 return StringValue( value.asString().value )
-
             }
             else -> TODO("Not implmented ${type}")
         }
 
     }
+
+    /**
+     * The fields used through LIKEDS cannot be used unqualified
+     */
+    fun canBeUsedUnqualified() = this.overriddenContainer == null
+
     @Derived
     val container
-        get() = this.parent as DataDefinition
+        get() = overriddenContainer ?: this.parent as DataDefinition
     // TODO consider overlay directive
     val startOffset: Int
         get() = explicitStartOffset ?: container.startOffset(this)

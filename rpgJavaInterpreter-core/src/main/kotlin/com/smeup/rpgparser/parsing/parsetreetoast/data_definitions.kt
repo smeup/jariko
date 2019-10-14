@@ -280,6 +280,7 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(conf: ToAstConfiguration = 
                 referredDataDefinition.type,
                 referredDataDefinition.fields,
                 position = this.toPosition(true))
+        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
         dataDefinition
     }
 }

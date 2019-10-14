@@ -33,7 +33,9 @@ class SymbolTable {
         }
         for (e in values) {
             if (e.key is DataDefinition) {
-                val field = (e.key as DataDefinition).fields.firstOrNull { it.name.equals(dataName, ignoreCase = true) }
+                val field = (e.key as DataDefinition).fields.firstOrNull {
+                    it.name.equals(dataName, ignoreCase = true) && it.canBeUsedUnqualified()
+                }
                 if (field != null) {
                     return ProjectedArrayValue(e.value as ArrayValue, field)
                 }
