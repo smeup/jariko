@@ -9,25 +9,22 @@ import com.smeup.rpgparser.interpreter.line
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.strumenta.kolasu.mapping.toPosition
+import com.smeup.rpgparser.utils.parseTreeToXml
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.endPoint
 import com.strumenta.kolasu.model.startPoint
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
+import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.tree.ErrorNode
+import org.antlr.v4.runtime.tree.TerminalNode
+import org.apache.commons.io.input.BOMInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.HashMap
-import org.antlr.v4.runtime.*
-import org.antlr.v4.runtime.tree.ErrorNode
-import org.antlr.v4.runtime.tree.TerminalNode
-import org.antlr.v4.runtime.tree.ParseTree
-import org.antlr.v4.runtime.tree.Trees.getNodeText
-
-import org.apache.commons.io.input.BOMInputStream
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
@@ -49,22 +46,22 @@ data class ParseTrees(
 )
 
 class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser) : ParsingResult<ParseTrees>(errors, root) {
-    fun toTreeString(): String = toStringTree((root as ParseTrees).rContext, parser, emptyList(), false)
+    fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
 
-    private fun toStringTree(t: ParseTree, parser: Parser, before: List<String>, isLast: Boolean): String {
-        val s = StringBuilder()
-        val prefix = if (isLast) "`-" else "--"
-        s.append(before.joinToString("")).append(prefix).appendln(getNodeText(t, parser))
-        for (i in 0 until t.childCount) {
-            val (newBefore, newLast) = if (i == t.childCount - 1) {
-                Pair(before + "   ", true)
-            } else {
-                Pair(before + "  |", false)
-            }
-            s.append(toStringTree(t.getChild(i), parser, newBefore, newLast))
-        }
-        return s.toString()
-    }
+//    private fun toStringTree(t: ParseTree, parser: Parser, before: List<String>, isLast: Boolean): String {
+//        val s = StringBuilder()
+//        val prefix = if (isLast) "`-" else "--"
+//        s.append(before.joinToString("")).append(prefix).appendln(getNodeText(t, parser))
+//        for (i in 0 until t.childCount) {
+//            val (newBefore, newLast) = if (i == t.childCount - 1) {
+//                Pair(before + "   ", true)
+//            } else {
+//                Pair(before + "  |", false)
+//            }
+//            s.append(toStringTree(t.getChild(i), parser, newBefore, newLast))
+//        }
+//        return s.toString()
+//    }
 }
 
 typealias RpgLexerResult = ParsingResult<List<Token>>
