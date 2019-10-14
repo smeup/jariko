@@ -142,6 +142,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCHECK() != null -> this.csCHECK().toAst(conf)
         this.csKLIST() != null -> this.csKLIST().toAst(conf)
         this.csREADE() != null -> this.csREADE().toAst(conf)
+        this.csCOMP() != null -> this.csCOMP().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -359,6 +360,12 @@ internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val position = toPosition(conf.considerPosition)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZAddStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
+}
+
+// TODO add real implementation
+internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
+    val position = toPosition(conf.considerPosition)
+    return CompStmt(position)
 }
 
 internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ClearStmt {

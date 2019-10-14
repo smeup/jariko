@@ -216,6 +216,9 @@ data class ClearStmt(
     }
 }
 
+// TODO add real implementation
+data class CompStmt(override val position: Position? = null) : Statement(position)
+
 data class ZAddStmt(
     val target: AssignableExpression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
