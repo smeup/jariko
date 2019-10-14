@@ -27,6 +27,8 @@ sealed class Type {
     }
 
     abstract val size: Long
+
+    fun toArray(nElements: Int) = ArrayType(this, nElements)
 }
 object KListType : Type() {
     override val size: Long
