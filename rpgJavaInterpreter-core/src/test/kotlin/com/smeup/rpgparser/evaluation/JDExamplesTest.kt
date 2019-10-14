@@ -103,12 +103,7 @@ class JDExamplesTest {
         assertEquals(StringType(10), params[1].type)
 
         assertEquals("U\$SVARSK", params[2].name)
-        assertEquals(DataStructureType(
-                listOf(
-                        FieldType("\$\$SVARCD", StringType(50)),
-                        FieldType("\$\$SVARVA", StringType(1000))),
-                1050)
-                .toArray(200), params[2].type)
+        assertEquals(StringType(1050).toArray(200), params[2].type)
 
         assertEquals("U\$IN35", params[3].name)
         assertEquals(StringType(1), params[3].type)
