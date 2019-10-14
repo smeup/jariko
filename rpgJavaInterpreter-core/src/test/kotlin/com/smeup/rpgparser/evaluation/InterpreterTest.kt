@@ -98,7 +98,7 @@ class InterpreterTest {
 
     @Test
     fun executeHELLO() {
-        val cu = assertASTCanBeProduced("HELLO", true)
+        val cu = assertASTCanBeProduced("HELLO", true, printTree = true)
         cu.resolve()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
@@ -176,7 +176,7 @@ class InterpreterTest {
 
     @Test
     fun executeHELLO1() {
-        assertEquals(listOf("Hello World"), outputOf("HELLO1"))
+        assertEquals(listOf("Hello World"), outputOf("HELLO1", printTree = true))
     }
 
     @Test
@@ -616,7 +616,7 @@ class InterpreterTest {
 
     @Test
     fun executeWHEN01() {
-        assertEquals(listOf("Other", "First"), outputOf("WHEN01"))
+        assertEquals(listOf("Other", "First"), outputOf("WHEN01", printTree = true))
     }
 
     @Test @Ignore
