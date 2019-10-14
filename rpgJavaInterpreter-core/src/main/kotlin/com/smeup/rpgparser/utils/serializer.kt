@@ -17,17 +17,13 @@ private fun String.encodeXmlChars() : String{
     return this.map { it -> if (map[it] == null) it else map[it] }.joinToString(separator = "")
 }
 
-private fun String.openTag(includeTagName: Boolean, indent:Int) =
-        " ".repeat(indent) + if (includeTagName) "<${this.encodeXmlChars()}>\n" else "${this.encodeXmlChars()}\n"
-private fun String.closeTag(includeTagName: Boolean, indent:Int) =
-        " ".repeat(indent) + if (includeTagName) "</${this.encodeXmlChars()}>\n" else "${this.encodeXmlChars()}\n"
-private fun String.emptyTag(includeTagName: Boolean, indent:Int) =
-        " ".repeat(indent) + if (includeTagName) "<${this.encodeXmlChars()}/>\n" else "${this.encodeXmlChars()}\n"
-private fun String.leaf(indent:Int) =
-        " ".repeat(indent) + "${this.encodeXmlChars()}\n"
+private fun String.openTag(indent:Int) = " ".repeat(indent) + "<${this.encodeXmlChars()}>\n"
+private fun String.closeTag(indent:Int) = " ".repeat(indent) + "</${this.encodeXmlChars()}>\n"
+private fun String.emptyTag(indent:Int) = " ".repeat(indent) + "<${this.encodeXmlChars()}/>\n"
+private fun String.leaf(indent:Int) = " ".repeat(indent) + "${this.encodeXmlChars()}\n"
 
 fun parseTreeToXml(t: ParseTree?, parser: Parser) : String{
-    fun toXmlString(t: ParseTree?, indent:Int = 0, includeTagName:Boolean = true):String{
+    fun toXmlString(t: ParseTree?, indent:Int = 0):String{
         val sb = StringBuilder()
         if (t != null){
             val nodeText = Trees.getNodeText(t, parser).trim()
@@ -35,23 +31,18 @@ fun parseTreeToXml(t: ParseTree?, parser: Parser) : String{
                 if (t is TerminalNode){
                     sb.append(nodeText.leaf(indent))
                 }
-//                else if (t.childCount == 0){
-//                    sb.append("${tagName.emptyTag(includeTagName, indent)}")
-//                }
                 else {
                     val renderedChildren = StringBuilder()
                     for (i in 0.rangeTo(t.childCount)) {
-//                        renderedChildren.append(toXmlString(t.getChild(i), indent + 2,
-//                                includeTagName && nodeText != "literal"))
-                        renderedChildren.append(toXmlString(t.getChild(i), indent + 2, includeTagName = true))
+                        renderedChildren.append(toXmlString(t.getChild(i), indent + 2))
                     }
                     if (renderedChildren.isEmpty()){
-                        sb.append(nodeText.emptyTag(includeTagName, indent))
+                        sb.append(nodeText.emptyTag(indent))
                     }
                     else {
-                        sb.append(nodeText.openTag(includeTagName, indent))
+                        sb.append(nodeText.openTag(indent))
                         sb.append(renderedChildren)
-                        sb.append(nodeText.closeTag(includeTagName, indent))
+                        sb.append(nodeText.closeTag(indent))
                     }
                 }
             }
