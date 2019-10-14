@@ -35,14 +35,13 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
             if( dre.variable.name.contains('.')) {
                 val ds = dre.variable.name.substring(0,dre.variable.name.indexOf("."))
                 val resDs = this.allDataDefinitions.find { if (it.name == null) false else it.name.equals(ds, true) }
-                dre.variable.referred = resDs
+                //dre.variable.referred = resDs
 
                 val field =  dre.variable.name.substring(dre.variable.name.indexOf(".")+1)
 
-                val resFld = this.allDataDefinitions.find { if (it.name == null) false else it.name.equals(ds, true) }
+                val resFld = this.allDataDefinitions.find { if (it.name == null) false else it.name.equals(field, true) }
                 dre.variable.referred = resFld
 
-                println()
             } else {
 
                 require(dre.variable.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
