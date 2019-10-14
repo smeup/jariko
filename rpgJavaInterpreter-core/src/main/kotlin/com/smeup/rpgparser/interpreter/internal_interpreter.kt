@@ -87,7 +87,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
+    operator fun get(data: AbstractDataDefinition) : Value {
+        return globalSymbolTable[data]
+    }
     operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -708,18 +710,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is QualifiedAccessExpr -> {
                 val refDs = target.container.variable.referred as DataDefinition
-                val dd = get(refDs.name) as DataStructValue
-                val data = refDs.fields.find { it.name == target.fieldName }
+                val field = refDs.fields.find { it.name == target.fieldName }
 
-                //val v = value.toDataStructureValue(value);
-                //dd.setSubstring(data.startOffset,data.startOffset+data.size.toInt(),v)
-                if (data != null) {
-                    dd.getSubstring( data.startOffset,data.endOffset )
+                if (field != null) {
+                    return assign(field, value)
+                } else {
+                    TODO("Field ${target.fieldName} not found")
                 }
-
-                return assign(target.container.variable.referred!!, value)
-
-                //println("Qualified")
 
             }
             else -> TODO(target.toString())
@@ -1030,7 +1027,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val value = interpret(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
             }
-
             else -> TODO(expression.toString())
         }
     }

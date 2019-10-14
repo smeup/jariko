@@ -73,6 +73,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is DataStructureType -> {
             type.blank()
         }
+
         else -> TODO("Converting String to $type")
     }
 }
