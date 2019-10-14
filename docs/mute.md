@@ -4,7 +4,8 @@ This interpreter can process annotations in RPG code to be used to define assert
 
 ## Syntax
 
-The Mute annotations looks like this:
+### Assertions that compare two values
+The Mute annotations that compare two values looks like this:
 
 ```
 MU* VAL1(B) VAL2(8) COMP(EQ)
@@ -29,7 +30,20 @@ The Mute annotations are verified _after_ executing the statement they annotate.
     MU* VAL1(RESULT) VAL2(13) COMP(EQ)
      C                   EVAL      RESULT = A + B
 ```     
+### Timeout assertions 
+For testing of performances, there are MUTE annotations that introduce a timeout in the execution:
 
+```
+    MU* TIMEOUT(123)
+```
+
+This instruction tells the MUTE running engine to fail if the current program has an execution time that exceeds 123 milliseconds.
+Note that the assertion is verified at the end of the program, so it doesn't stop long running executions, but it just signals the timeout condition at the end of the interpretation.
+
+You can add many ```TIMEOUT``` assertion in the same program, but, obviously, just the one with the shortest timeout is considered.
+
+There isn't a mandatory position to insert the ```TIMEOUT``` annotation line, that, as other ```MUTE``` annotations, are just considered as comments by the standard interpreter engine.
+ 
 ## Command line utility
 
 The Mute annotations can be verified using a utility contained in the class `com.smeup.rpgparser.mute.MuterunnerKt`.
