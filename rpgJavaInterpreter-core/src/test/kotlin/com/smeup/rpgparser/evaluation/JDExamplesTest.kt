@@ -35,7 +35,7 @@ class JDExamplesTest {
         assertTrue(svarsk is ArrayValue)
         assertEquals(200, svarsk.arrayLength())
         val svarskElement = svarsk.getElement(1)
-        assertEquals(blankString(1050), svarskElement)
+        assertEquals(DataStructValue(blankString(1050).value), svarskElement)
 
         val svarcd = interpreter["\$\$SVARCD"]
         assertTrue(svarcd is ArrayValue)

@@ -385,7 +385,7 @@ fun Type.blank(): Value {
 }
 
 // StringValue wrapper
-class DataStructValue(var value: String) : Value() {
+data class DataStructValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
