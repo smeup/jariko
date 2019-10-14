@@ -629,7 +629,7 @@ class InterpreterTest {
 
     @Test
     fun executeARRAY06() {
-        assertEquals(listOf("A-A-A"), outputOf("ARRAY06"))
+        assertEquals(listOf("A-A-A", "AB-AB-AB", "ABC -ABC -ABC -"), outputOf("ARRAY06"))
     }
 
     @Test
