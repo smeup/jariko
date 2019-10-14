@@ -361,7 +361,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val startTime = currentTimeMillis()
                     val paramValuesAtTheEnd =
                         try {
-
                             program.execute(systemInterface, params).apply {
                                 log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             }
