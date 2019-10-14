@@ -184,4 +184,9 @@ class RpgParserSmokeTest {
     fun executeCHAINREDE0() {
         assertCanBeParsed("CHAINREDE0")
     }
+
+    @Test
+    fun executeMOVELSTR() {
+        assertCanBeParsed("MOVELSTR")
+    }
 }

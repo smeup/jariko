@@ -9,11 +9,11 @@ import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
+import org.junit.Ignore
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
-import org.junit.Ignore
-import org.junit.Test
 
 class InterpreterTest {
 
@@ -630,6 +630,34 @@ class InterpreterTest {
     @Test
     fun executeARRAY06() {
         assertEquals(listOf("A-A-A", "AB-AB-AB", "ABC -ABC -ABC -"), outputOf("ARRAY06"))
+    }
+
+    @Test
+    @Ignore
+    fun executeMOVELSTR() {
+        assertEquals(
+            listOf(
+                "AAAA",
+                "AAAAAAAA",
+                "AAAAAAAAAAAA",
+                "BBBBB",
+                "BBBBBBBBBB",
+                "BBBBBBBBBBBBBBBBBBBB",
+                "CCC",
+                "CCCCCCC",
+                "CCCCCCCCCCCCCCCCC",
+                "AAAA",
+                "AAAAACCC",
+                "AAAAAAAAAAAA",
+                "AAAAA",
+                "AAAABBBBBB",
+                "AAAAAAAABBBBBBBBBBBB",
+                "AAA",
+                "AAAAAAA",
+                "AAAAACCCCCCCCCCCC"
+            ),
+            outputOf("MOVELSTR")
+        )
     }
 
     @Test
