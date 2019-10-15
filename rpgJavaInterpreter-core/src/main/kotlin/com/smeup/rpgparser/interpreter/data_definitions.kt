@@ -254,7 +254,11 @@ fun decodeFromDS(value :String, digits: Int, scale:Int) : BigDecimal {
         number = number.substring(0,len -scale) + "." + number.substring(len - scale, len);
     }
     number  = sign + number
-    return number.toBigDecimal()
+    try {
+        return value.toBigDecimal()
+    } catch (e: Exception) {
+        return number.toBigDecimal()
+    }
 
 }
 
