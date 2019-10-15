@@ -999,8 +999,28 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return DecimalValue(BigDecimal(Math.pow(v1.asInt().value.toDouble(), v2.asInt().value.toDouble())))
             }
             is TrimrExpr -> {
-                // TODO expression.charactersToTrim
-                return StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
+                if (expression.charactersToTrim == null) {
+                    return StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
+                } else {
+                    val suffix = eval(expression.charactersToTrim).asString().value
+                    var result = eval(expression.value).asString().value.removeNullChars()
+                    while (result.endsWith(suffix)) {
+                        result = result.substringBefore(suffix)
+                    }
+                    return StringValue(result)
+                }
+            }
+            is TrimlExpr -> {
+                if (expression.charactersToTrim == null) {
+                    return StringValue(eval(expression.value).asString().value.removeNullChars().trimStart())
+                } else {
+                    val prefix = eval(expression.charactersToTrim).asString().value
+                    var result = eval(expression.value).asString().value.removeNullChars()
+                    while (result.startsWith(prefix)) {
+                        result = result.substringAfter(prefix)
+                    }
+                    return StringValue(result)
+                }
             }
             is TrimExpr -> {
                 return StringValue(eval(expression.value).asString().value.removeNullChars().trim())

@@ -633,6 +633,16 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeTRIML() {
+        assertEquals(listOf("Hello world!", "llo world!", "ello world!"), outputOf("TRIML"))
+    }
+
+    @Test
+    fun executeTRIMR() {
+        assertEquals(listOf("Hello world!", "Hello worl", "Hello world"), outputOf("TRIMR"))
+    }
+
+    @Test
     @Ignore
     fun executeMOVELSTR() {
         assertEquals(
