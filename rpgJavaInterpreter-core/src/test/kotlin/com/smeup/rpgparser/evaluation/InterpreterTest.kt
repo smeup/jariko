@@ -642,6 +642,11 @@ class InterpreterTest {
         assertEquals(listOf("Hello world!", "Hello worl", "Hello world"), outputOf("TRIMR"))
     }
 
+    @Test @Ignore
+    fun executeELEM() {
+        assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
+    }
+
     @Test
     @Ignore
     fun executeMOVELSTR() {
