@@ -9,11 +9,11 @@ import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
+import org.junit.Ignore
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
-import org.junit.Ignore
-import org.junit.Test
 
 class InterpreterTest {
 
@@ -98,7 +98,7 @@ class InterpreterTest {
 
     @Test
     fun executeHELLO() {
-        val cu = assertASTCanBeProduced("HELLO", true, printTree = true)
+        val cu = assertASTCanBeProduced("HELLO", true)
         cu.resolve()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
@@ -176,7 +176,7 @@ class InterpreterTest {
 
     @Test
     fun executeHELLO1() {
-        assertEquals(listOf("Hello World"), outputOf("HELLO1", printTree = true))
+        assertEquals(listOf("Hello World"), outputOf("HELLO1"))
     }
 
     @Test
@@ -616,7 +616,7 @@ class InterpreterTest {
 
     @Test
     fun executeWHEN01() {
-        assertEquals(listOf("Other", "First"), outputOf("WHEN01", printTree = true))
+        assertEquals(listOf("Other", "First"), outputOf("WHEN01"))
     }
 
     @Test @Ignore
