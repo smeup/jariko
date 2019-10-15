@@ -96,6 +96,7 @@ data class FieldDefinition(
         var nextOffset : Int = 0,
         // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
         // container. We basically duplicate it
+        @property:Link
         var overriddenContainer: DataDefinition? = null,
         override val position: Position? = null
 ) :
@@ -164,6 +165,10 @@ data class FieldDefinition(
     // TODO consider overlay directive
     val endOffset: Int
         get() = explicitEndOffset ?: container.endOffset(this)
+
+    override fun hashCode(): Int {
+        return name.hashCode() * 31 + type.hashCode() * 7
+    }
 }
 
 // Positions 64 through 68 specify the length of the result field. This entry is optional, but can be used to define a

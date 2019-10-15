@@ -2,7 +2,7 @@
 //interpreter-core build script
 //-----------------
 buildscript {
-    ext.kotlin_version = '1.3.41'
+    ext.kotlin_version = '1.3.50'
     ext.antlr_version = '4.7.2'
 
     repositories {
@@ -31,7 +31,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "com.github.ftomassetti:kolasu:4249345373"
+    compile "com.github.ftomassetti:kolasu:a0e7970eae"
 
     compile "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
     compile "org.apache.logging.log4j:log4j-api:2.12.1"
