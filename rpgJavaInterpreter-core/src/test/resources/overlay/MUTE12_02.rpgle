@@ -313,8 +313,9 @@
      C                   EVAL      DS0019=*HIVAL
     MU* VAL1(DS0019) VAL2(-9223372036854775808) COMP(EQ)
      C                   EVAL      DS0019=*LOVAL
-    MU* VAL1(DS0020) VAL2(18446744073709551615) COMP(EQ)
-     C                   EVAL      DS0020=*HIVAL
+      * TODO This number is too big
+      * MU* VAL1(DS0020) VAL2(18446744073709551615) COMP(EQ)
+      * C                   EVAL      DS0020=*HIVAL
     MU* VAL1(DS0020) VAL2(0) COMP(EQ)
      C                   EVAL      DS0020=*LOVAL
     MU* VAL1(DS01DS) VAL2('') COMP(EQ)
