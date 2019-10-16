@@ -59,8 +59,13 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     }
                 }
             } else {
-                val decimalValue = decodeFromDS(value.value.trim(),type.entireDigits,type.decimalDigits)
-                DecimalValue(decimalValue )
+                // TODO do not decode blanks
+                if(!value.isBlank()) {
+                    val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                    DecimalValue(decimalValue)
+                } else {
+                    DecimalValue(BigDecimal.ZERO)
+                }
             }
         }
         is BooleanType -> {
