@@ -921,7 +921,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val value = eval(expression.value)
                 return when (value) {
                     is StringValue -> value.value.length.asValue()
-                    else -> TODO(value.toString())
+                    is DataStructValue -> value.value.length.asValue()
+                    else -> {
+                        TODO(value.toString())
+                    }
                 }
             }
             is OffRefExpr -> {
