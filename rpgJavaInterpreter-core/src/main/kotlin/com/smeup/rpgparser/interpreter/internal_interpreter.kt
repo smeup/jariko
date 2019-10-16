@@ -261,7 +261,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val value = move(statement.target, statement.expression)
                     log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
-                is SelectStmt -> {
+                is MoveLStmt -> {
+                    val value = move(statement.target, statement.expression)
+                    //log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
+                }                is SelectStmt -> {
                     for (case in statement.cases) {
                         val result = interpret(case.condition)
 

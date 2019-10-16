@@ -100,6 +100,13 @@ data class MoveStmt(
 ) :
     Statement(position)
 
+data class MoveLStmt(
+    val target: AssignableExpression,
+    var expression: Expression,
+    override val position: Position? = null
+) :
+    Statement(position)
+
 // TODO add other parameters
 data class ChainStmt(
     val searchArg: Expression, // Factor1
