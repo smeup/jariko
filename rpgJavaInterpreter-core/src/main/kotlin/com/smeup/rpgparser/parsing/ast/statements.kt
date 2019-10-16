@@ -241,6 +241,21 @@ data class ZAddStmt(
     }
 }
 
+data class ZSubStmt(
+    val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    var expression: Expression,
+    override val position: Position? = null
+) :
+    Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
+
 data class TimeStmt(
     val value: Expression,
     override val position: Position? = null

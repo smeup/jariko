@@ -185,4 +185,4 @@ task runMutes(type: JavaExec) {
 }
 
 check.dependsOn runMutes
-check.dependsOn jacocoTestReport
+//check.dependsOn jacocoTestReport
