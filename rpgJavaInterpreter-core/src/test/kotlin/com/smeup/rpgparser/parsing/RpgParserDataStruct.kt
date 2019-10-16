@@ -127,4 +127,33 @@ class RpgParserDataStruct {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
+    /**
+     * Test for all data type
+     */
+    @Test
+    fun parseSTRUCT_07_runtime() {
+        assertCanBeParsed("struct/STRUCT_07", withMuteSupport = true)
+
+        val cu = assertASTCanBeProduced("struct/STRUCT_07", true)
+        cu.resolve()
+
+        val interpreter = InternalInterpreter(JavaSystemInterface())
+        interpreter.execute(cu, mapOf())
+
+        var failed : Int = 0
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        annotations.forEach { (line, annotation) ->
+            try {
+                assertTrue(annotation.result.asBoolean().value)
+
+            } catch (e:AssertionError) {
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                failed++
+            }
+        }
+        if(failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
+    }
+
 }
