@@ -173,7 +173,7 @@
     MU* VAL1(£V5PTR)   VAL2('   ')                               COMP(EQ)
     MU* VAL1(£V5PTT)   VAL2('            ')                      COMP(EQ)
     MU* VAL1(£V5POG)   VAL2('               ')                   COMP(EQ)
-    MU* VAL1(£V5PDT)   VAL2('                                    COMP(EQ)
+    MU* VAL1(£V5PDT)   VAL2('               ')                   COMP(EQ)
     MU* VAL1(£V5PMG)   VAL2('   ')                               COMP(EQ)
     MU* VAL1(£V5PQM)   VAL2(0)                                   COMP(EQ)
     MU* VAL1(£V5PQT)   VAL2(00000000,000)                        COMP(EQ)
@@ -204,7 +204,7 @@
     MU* VAL1(£V5PCR)   VAL2('          ')                        COMP(EQ)
     MU* VAL1(£V5PCM)   VAL2('          ')                        COMP(EQ)
     MU* VAL1(£V5PLO)   VAL2('               ')                   COMP(EQ)
-    MU* VAL1(£V5PCO)   VAL2('                    '               COMP(EQ)
+    MU* VAL1(£V5PCO)   VAL2('                    ')              COMP(EQ)
     MU* VAL1(£V5POP)   VAL2('               ')                   COMP(EQ)
     MU* VAL1(£V5PCT)   VAL2('               ')                   COMP(EQ)
     MU* VAL1(£V5PAG)   VAL2('   ')                               COMP(EQ)
@@ -344,7 +344,7 @@
       *
     MU* VAL1(NN1)      VAL2(7095)                                COMP(EQ)
      C                   EVAL      NN1=%LEN(£40FDS)
-    MU* VAL1(NN1)      VAL2(12)
+    MU* VAL1(NN1)      VAL2(12)                               COMP(EQ)
      C                   EVAL      NN1=%LEN(£40FTO(1))
       *
      C                   SETON                                        LR
