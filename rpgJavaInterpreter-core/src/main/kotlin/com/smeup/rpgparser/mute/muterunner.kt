@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.mute
 
+import com.andreapivetta.kolor.green
+import com.andreapivetta.kolor.red
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -12,6 +14,7 @@ import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.SimpleSystemInterface
 import com.smeup.rpgparser.interpreter.line
+import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -25,7 +28,7 @@ import java.util.*
 data class ExecutionResult(val resolved: Int, val executed: Int, val failed: Int, val exceptions: LinkedList<Throwable>, val syntaxErrors: List<Error>)
 
 fun executeWithMutes(
-    filename: String,
+    path: Path,
     verbose: Boolean = false,
     logConfigurationFile: File?
 ): ExecutionResult {
@@ -34,37 +37,34 @@ fun executeWithMutes(
     var resolved: List<MuteAnnotationResolved> = listOf()
     var exceptions = LinkedList<Throwable>()
 
-    val result = RpgParserFacade()
-            .apply { this.muteSupport = true }
-            .parse(File(filename).inputStream())
+    var result: RpgParserResult? = null
+    val file = File(path.toString())
 
-    if (result.correct) {
-        val cu = result.root!!.rContext.toAst().apply {
-            resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
+    try {
+        result =
+                RpgParserFacade().apply { this.muteSupport = true }
+                        .parse(file.inputStream())
+        if (result.correct) {
+            val cu = result.root!!.rContext.toAst().apply {
+                resolved = this.injectMuteAnnotation(result.root?.muteContexts!!)
 
-            if (verbose) {
-                val sorted = resolved.sortedWith(compareBy { it.muteLine })
-                sorted.forEach {
-                    println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+                if (verbose) {
+                    val sorted = resolved.sortedWith(compareBy { it.muteLine })
+                    sorted.forEach {
+                        println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+                    }
                 }
             }
-        }
-        println()
-        cu.resolve()
-        val interpreter = InternalInterpreter(SimpleSystemInterface().useConfigurationFile(logConfigurationFile))
+            cu.resolve()
+            val interpreter = InternalInterpreter(SimpleSystemInterface().useConfigurationFile(logConfigurationFile))
 
-        try {
             interpreter.execute(cu, mapOf())
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
             sorted.forEach { (line, annotation) ->
                 if (!annotation.result.asBoolean().value) {
-
-                    println("Mute annotation at line $line ${annotation.expression.render()} failed")
-                    if (verbose) {
-                        println("  Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
-                        println("  Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
-                    }
-
+                    println("Mute annotation at line $line ${annotation.expression.render()} failed ${file.linkTo(line)}".color(false))
+                    println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
+                    println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
                     failed++
                 } else {
                     if (verbose) {
@@ -73,23 +73,28 @@ fun executeWithMutes(
                 }
                 executed++
             }
-        } catch (e: Throwable) {
-            exceptions.add(e)
+        } else {
+            result.errors.forEach {
+                println("Line: ${it.position.line()} - $it")
+            }
         }
-    } else {
-        result.errors.forEach {
-            println("Line: ${it.position.line()} - $it")
-        }
+    } catch (e: Throwable) {
+        exceptions.add(e)
     }
 
-    println("$filename - Total annotation: ${resolved.size}, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${result.errors.size}")
+
+    println("${file.path} - Total annotation: ${resolved.size}, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${result?.errors?.size?.toInt() ?: "<UNSPECIFIED>" }")
     exceptions.forEach {
         println(it)
         it.printStackTrace()
     }
     println()
-    return ExecutionResult(resolved.size, executed, failed, exceptions, result.errors)
+    return ExecutionResult(resolved.size, executed, failed, exceptions, result?.errors ?: emptyList())
 }
+
+fun String.color(success: Boolean) = if (success) this.green() else this.red()
+
+fun File.linkTo(line: Int) = "${this.name}(${this.name}:$line)"
 
 data class MuteRunnerStatus(var files: Int = 0, var resolved: Int = 0, var executed: Int = 0, var failed: Int = 0) {
     val exceptions = LinkedList<Throwable>()
@@ -117,7 +122,7 @@ object MuteRunner {
                 println(filename)
             }
             try {
-                val result = executeWithMutes(filename, verbose, logConfigurationFile = logConfigurationFile)
+                val result = executeWithMutes(path, verbose, logConfigurationFile = logConfigurationFile)
                 status.resolved += result.resolved
                 status.executed += result.executed
                 status.failed += result.failed

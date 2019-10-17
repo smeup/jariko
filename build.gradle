@@ -42,7 +42,7 @@ subprojects {
     }
 
     project.group   = "com.github.rpgjavainterpreter"
-    project.version = "0.1"
+    project.version = "0.2"
 }
 
 
