@@ -63,7 +63,6 @@ class ReadEqualDBTest {
                 mapOf("toFind" to StringValue("B01"))))
     }
 
-
     private fun createEMPLOYEE() =
             """
     CREATE TABLE EMPLOYEE ( 
