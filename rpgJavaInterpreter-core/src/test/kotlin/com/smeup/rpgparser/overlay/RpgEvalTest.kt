@@ -4,7 +4,6 @@ import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
 
-import java.math.MathContext
 import kotlin.test.assertTrue
 
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -18,7 +17,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import java.io.File
-
 
 class RpgEvalTest {
 
@@ -34,9 +32,9 @@ class RpgEvalTest {
     }
     // Temporary replacement
     private fun assertASTCanBeProduced(
-            exampleName: String,
-            considerPosition: Boolean = false,
-            withMuteSupport: Boolean = true
+        exampleName: String,
+        considerPosition: Boolean = false,
+        withMuteSupport: Boolean = true
     ): CompilationUnit {
         val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
         val ast = parseTreeRoot.root!!.rContext.toAst(ToAstConfiguration(
@@ -57,7 +55,7 @@ class RpgEvalTest {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
         val cu = com.smeup.rpgparser.assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
         cu.resolve()
-        var failed : Int = 0
+        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -65,20 +63,13 @@ class RpgEvalTest {
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
-
     }
-
-
 }
-
-

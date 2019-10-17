@@ -62,7 +62,7 @@ public class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore  // clear is not supported, yet
+    @Ignore // clear is not supported, yet
     fun parseMUTE12_01_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
         cu.resolve()
@@ -97,7 +97,7 @@ public class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore  // PACKEVEN not supported
+    @Ignore // PACKEVEN not supported
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         cu.resolve()
@@ -117,7 +117,7 @@ public class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore  // fix data structure arrays
+    @Ignore // fix data structure arrays
     fun parseMUTE12_03_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
         cu.resolve()

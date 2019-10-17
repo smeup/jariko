@@ -4,11 +4,10 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
-//@Ignore
+// @Ignore
 class RpgParserDataOverlay {
 
     /**

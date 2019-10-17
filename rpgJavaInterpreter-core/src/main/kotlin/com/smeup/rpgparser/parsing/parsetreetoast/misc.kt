@@ -28,8 +28,8 @@ fun List<Node>.position(): Position? {
 }
 
 internal interface DataDefinitionProvider {
-    fun isReady() : Boolean
-    fun toDataDefinition() : DataDefinition
+    fun isReady(): Boolean
+    fun toDataDefinition(): DataDefinition
 }
 private data class DataDefinitionHolder(val dataDefinition: DataDefinition) : DataDefinitionProvider {
     override fun isReady() = true
@@ -40,12 +40,11 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
     override fun toDataDefinition() = calculator()
 }
 
-
 private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
-    var dataDefinitionProviders : MutableList<DataDefinitionProvider> = LinkedList<DataDefinitionProvider>()
+    var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList<DataDefinitionProvider>()
     dataDefinitionProviders.addAll(this.statement()
             .mapNotNull {
                 when {
@@ -290,7 +289,7 @@ private fun dataType(len: Long, decimals: Long?): Type =
     if (decimals == null) {
         StringType(len)
     } else {
-        NumberType(len.toInt()-decimals.toInt(), decimals.toInt())
+        NumberType(len.toInt() - decimals.toInt(), decimals.toInt())
     }
 
 internal fun Token.asLong(): Long? {
@@ -417,7 +416,7 @@ internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
             position)
 }
 
-private fun QualifiedTargetContext.getFieldName() : String {
+private fun QualifiedTargetContext.getFieldName(): String {
     return if (this.fieldName != null) {
         this.fieldName.text
     } else {

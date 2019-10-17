@@ -77,9 +77,11 @@ data class SelectOtherClause(val body: List<Statement>, override val position: P
 
 data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-data class EvalFlags(val halfAdjust: Boolean = false,
-                     val maximumNumberOfDigitsRule : Boolean = false,
-                     val resultDecimalPositionRule : Boolean = false)
+data class EvalFlags(
+    val halfAdjust: Boolean = false,
+    val maximumNumberOfDigitsRule: Boolean = false,
+    val resultDecimalPositionRule: Boolean = false
+)
 
 data class EvalStmt(
     val target: AssignableExpression,

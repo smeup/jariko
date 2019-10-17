@@ -81,9 +81,6 @@ class RpgParserOverlayTest11 {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
-
-
     }
 
     @Test
@@ -93,7 +90,7 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_15_ast() {
-       assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
+        assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
     }
 
     @Test

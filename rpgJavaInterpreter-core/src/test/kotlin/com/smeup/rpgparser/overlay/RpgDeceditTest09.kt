@@ -47,7 +47,7 @@ class RpgDeceditTest09 {
     }
 
     @Test
-    @Ignore  // fix string comparison
+    @Ignore // fix string comparison
     fun parseMUTE09_02_default() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02_DEFAULT", considerPosition = true, withMuteSupport = true)
         cu.resolve()
@@ -72,7 +72,7 @@ class RpgDeceditTest09 {
     }
 
     @Test
-    @Ignore  // fix string comparison
+    @Ignore // fix string comparison
     fun parseMUTE09_02_comma() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02_COMMA", considerPosition = true, withMuteSupport = true)
         cu.resolve()
@@ -98,7 +98,7 @@ class RpgDeceditTest09 {
     }
 
     @Test
-    @Ignore  // fix string comparison
+    @Ignore // fix string comparison
     fun parseMUTE09_02A() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02A", considerPosition = true, withMuteSupport = true)
         cu.resolve()

@@ -309,7 +309,7 @@ fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit,
     }
 }
 
-fun <T: ParserRuleContext> ParserRuleContext.findAllDescendants(type: KClass<T>, includingMe: Boolean = true) : List<T> {
+fun <T : ParserRuleContext> ParserRuleContext.findAllDescendants(type: KClass<T>, includingMe: Boolean = true): List<T> {
     val list = LinkedList<T>()
     this.processDescendants({
         if (type.isInstance(it)) {

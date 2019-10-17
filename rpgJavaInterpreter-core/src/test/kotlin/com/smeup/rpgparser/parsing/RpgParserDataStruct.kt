@@ -6,11 +6,8 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Ignore
 import org.junit.Test
-import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -43,7 +40,7 @@ class RpgParserDataStruct {
      * Test for QUALIFIED support
      */
     @Test
-    //@Ignore // The parser does not handle the dot notation for accessing fields
+    // @Ignore // The parser does not handle the dot notation for accessing fields
     fun parseSTRUCT_02() {
         assertCanBeParsed("struct/STRUCT_02", withMuteSupport = true)
 
@@ -76,7 +73,7 @@ class RpgParserDataStruct {
      * Test for TEMPLATE and LIKEDS support
      */
     @Test
-    //@Ignore // the parser does not handle this
+    // @Ignore // the parser does not handle this
     fun parseSTRUCT_05() {
         assertCanBeParsed("struct/STRUCT_05", withMuteSupport = true)
 
@@ -89,7 +86,7 @@ class RpgParserDataStruct {
      * Test for all data type
      */
     @Test
-    //@Ignore // the parser does not handle this
+    // @Ignore // the parser does not handle this
     fun parseSTRUCT_06() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
@@ -102,7 +99,7 @@ class RpgParserDataStruct {
      * Test for all data type
      */
     @Test
-    //@Ignore // the parser does not handle this
+    // @Ignore // the parser does not handle this
     fun parseSTRUCT_06_runtime() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
@@ -112,18 +109,17 @@ class RpgParserDataStruct {
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
-        var failed : Int = 0
+        var failed: Int = 0
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
@@ -140,20 +136,18 @@ class RpgParserDataStruct {
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
-        var failed : Int = 0
+        var failed: Int = 0
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
-
 }

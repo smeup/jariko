@@ -297,8 +297,6 @@ object LowValValue : Value() {
     }
 }
 
-
-
 class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
@@ -339,7 +337,6 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
             } else {
                 TODO()
             }
-
         }
     }
 
@@ -395,10 +392,10 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     fun set(data: FieldDefinition, value: Value) {
-        val v = data.toDataStructureValue(value);
-        this.setSubstring(data.startOffset,data.startOffset+data.size.toInt(),v)
+        val v = data.toDataStructureValue(value)
+        this.setSubstring(data.startOffset, data.startOffset + data.size.toInt(), v)
     }
-    fun get(data: FieldDefinition) : StringValue {
+    fun get(data: FieldDefinition): StringValue {
         return this.getSubstring(data.startOffset, data.endOffset)
     }
 
@@ -435,5 +432,4 @@ data class DataStructValue(var value: String) : Value() {
     fun isBlank(): Boolean {
         return this.valueWithoutPadding.isBlank()
     }
-
 }

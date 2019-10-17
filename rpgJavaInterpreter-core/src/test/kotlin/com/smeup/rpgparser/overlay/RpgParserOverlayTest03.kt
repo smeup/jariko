@@ -30,7 +30,7 @@ public class RpgParserOverlayTest03 {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE03_09_NOAR", considerPosition = true, withMuteSupport = true)
         cu.resolve()
-        var failed : Int = 0
+        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -38,16 +38,14 @@ public class RpgParserOverlayTest03 {
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
     }
 
     @Test
@@ -56,7 +54,7 @@ public class RpgParserOverlayTest03 {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
         val cu = assertASTCanBeProduced("struct/STRUCT_01", considerPosition = true, withMuteSupport = true)
         cu.resolve()
-        var failed : Int = 0
+        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -64,15 +62,13 @@ public class RpgParserOverlayTest03 {
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.result.asBoolean().value)
-
-            } catch (e:AssertionError) {
+            } catch (e: AssertionError) {
                 println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
-        if(failed > 0) {
+        if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
     }
 }

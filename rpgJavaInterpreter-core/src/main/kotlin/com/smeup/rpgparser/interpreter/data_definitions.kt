@@ -62,11 +62,11 @@ data class FileDefinition private constructor(override val name: String, overrid
 }
 
 data class DataDefinition(
-        override val name: String,
-        override val type: Type,
-        var fields: List<FieldDefinition> = emptyList(),
-        val initializationValue: Expression? = null,
-        override val position: Position? = null
+    override val name: String,
+    override val type: Type,
+    var fields: List<FieldDefinition> = emptyList(),
+    val initializationValue: Expression? = null,
+    override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {
 
@@ -89,24 +89,24 @@ data class DataDefinition(
 }
 
 data class FieldDefinition(
-        override val name: String,
-        override val type: Type,
-        var explicitStartOffset: Int? = null,
-        var explicitEndOffset: Int? = null,
-        var nextOffset : Int = 0,
+    override val name: String,
+    override val type: Type,
+    var explicitStartOffset: Int? = null,
+    var explicitEndOffset: Int? = null,
+    var nextOffset: Int = 0,
         // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
         // container. We basically duplicate it
-        @property:Link
-        var overriddenContainer: DataDefinition? = null,
-        override val position: Position? = null
+    @property:Link
+    var overriddenContainer: DataDefinition? = null,
+    override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {
     val size: Long = type.size
 
     fun toDataStructureValue(value: Value): StringValue {
-        when(type) {
+        when (type) {
             // case numeric
-            is  NumberType -> {
+            is NumberType -> {
                 // Packed or Zoned
                 if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
                     return if (type.decimal) {
@@ -115,7 +115,6 @@ data class FieldDefinition(
                         // adjust the size to fit the target field
                         val fitted = encoded.padEnd(type.entireDigits + type.decimalDigits)
                         StringValue(fitted)
-
                     } else {
                         // Transform the numeric to an encoded string
                         val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
@@ -138,17 +137,15 @@ data class FieldDefinition(
                         val encoded = encodeBinary(value.asDecimal().value, type.entireDigits)
                         // adjust the size to fit the target field
                         return StringValue(encoded)
-
                     }
                 }
-                TODO("Not implmented ${type}")
+                TODO("Not implmented $type")
             }
             is StringType -> {
-                return StringValue( value.asString().value )
+                return StringValue(value.asString().value)
             }
-            else -> TODO("Not implmented ${type}")
+            else -> TODO("Not implmented $type")
         }
-
     }
 
     /**
@@ -188,7 +185,7 @@ class InStatementDataDefinition(
 // In oroder to fit
 // Returns a String with a len < of the number of digits declared
 //
-fun encodeToDS(inValue: BigDecimal, digits: Int, scale:Int) : String {
+fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
     var buffer = ByteArray(inChars.size / 2 + 1)
@@ -213,7 +210,6 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale:Int) : String {
         firstNibble = 0x00F0
     } else {
         firstNibble = (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
-
     }
     if (sign != -1) {
         buffer[offset] = (firstNibble + 0x000F).toByte()
@@ -224,68 +220,66 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale:Int) : String {
     return Base64.getEncoder().withoutPadding().encodeToString(buffer)
 }
 
-fun decodeFromDS(value :String, digits: Int, scale:Int) : BigDecimal {
+fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     val buffer = Base64.getDecoder().decode(value)
-    var sign : String = ""
-    var number : String = ""
-    var nibble = ((buffer[buffer.size-1]).toInt() and 0x0F)
-    if(nibble == 0x0B || nibble == 0x0D) {
+    var sign: String = ""
+    var number: String = ""
+    var nibble = ((buffer[buffer.size - 1]).toInt() and 0x0F)
+    if (nibble == 0x0B || nibble == 0x0D) {
         sign = "-"
     }
 
     var offset = 0
-    while (offset < (buffer.size-1)) {
+    while (offset < (buffer.size - 1)) {
         nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
         number += Character.toString((nibble or 0x30).toChar())
         nibble = buffer[offset].toInt() and 0x0F or 0x30
-        number+= Character.toString((nibble or 0x30).toChar())
+        number += Character.toString((nibble or 0x30).toChar())
 
         offset++
     }
 
     // read last digit
     nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
-    if(nibble <= 9) {
-        number+= Character.toString((nibble or 0x30).toChar())
+    if (nibble <= 9) {
+        number += Character.toString((nibble or 0x30).toChar())
     }
     // adjust the scale
-    if(scale > 0) {
+    if (scale > 0) {
         val len = number.length
-        number = number.substring(0,len -scale) + "." + number.substring(len - scale, len);
+        number = number.substring(0, len - scale) + "." + number.substring(len - scale, len)
     }
-    number  = sign + number
+    number = sign + number
     try {
         return value.toBigDecimal()
     } catch (e: Exception) {
         return number.toBigDecimal()
     }
-
 }
 
-fun encodeBinary(inValue: BigDecimal, digits: Int) : String {
+fun encodeBinary(inValue: BigDecimal, digits: Int): String {
     val buffer = ByteArray(digits)
     val lsb = inValue.toInt()
-    if( digits == 2) {
+    if (digits == 2) {
 
         buffer[0] = ((lsb shr 8) and 0x0000FFFF).toByte()
         buffer[1] = (lsb and 0x0000FFFF).toByte()
 
         return buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
-    if( digits == 4) {
+    if (digits == 4) {
 
         buffer[0] = ((lsb shr 24) and 0x0000FFFF).toByte()
         buffer[1] = ((lsb shr 16) and 0x0000FFFF).toByte()
         buffer[2] = ((lsb shr 8) and 0x0000FFFF).toByte()
         buffer[3] = (lsb and 0x0000FFFF).toByte()
 
-        return buffer[3].toChar().toString() + buffer[2].toChar().toString() +  buffer[1].toChar().toString() +  buffer[0].toChar().toString()
-
+        return buffer[3].toChar().toString() + buffer[2].toChar().toString() + buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
     TODO("encode binary for $digits not implemented")
 }
 
-fun decodeBinary(value :String, digits: Int) : BigDecimal {
+fun decodeBinary(value: String, digits: Int): BigDecimal {
     if (digits == 2) {
         var number: Long = 0x0000000
         if (value[1].toInt() and 0x1000 != 0) {
@@ -293,16 +287,14 @@ fun decodeBinary(value :String, digits: Int) : BigDecimal {
         }
         number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
         return BigDecimal(number.toInt().toString())
-
     }
     if (digits == 4) {
-        val number= (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8 ) +
-                ((value[2].toLong() and 0x00FF) shl 16 ) +
+        val number = (value[0].toLong() and 0x00FF) +
+                ((value[1].toLong() and 0x00FF) shl 8) +
+                ((value[2].toLong() and 0x00FF) shl 16) +
                 ((value[3].toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toInt().toString())
-
     }
     TODO("encode binary for $digits not implemented")
 }

@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import com.smeup.rpgparser.utils.asLong
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -32,7 +31,7 @@ private fun coerceBlanks(type: Type): Value {
 private fun coerceString(value: StringValue, type: Type): Value {
     return when (type) {
         is StringType -> {
-            var s = value.value.padEnd(type.length.toInt(),PAD_CHAR)
+            var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
             if (value.value.length > type.length) {
                 s = s.substring(0, type.length.toInt())
             }
@@ -50,17 +49,17 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 when {
                     value.isBlank() -> IntValue(0)
                     type.rpgType == "B" -> {
-                        val intValue = decodeBinary(value.value.trim(),type.entireDigits)
+                        val intValue = decodeBinary(value.value.trim(), type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
                     else -> {
-                        val intValue  = decodeFromDS(value.value.trim(),type.entireDigits,type.decimalDigits)
+                        val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
                         IntValue(intValue.longValueExact())
                     }
                 }
             } else {
                 // TODO do not decode blanks
-                if(!value.isBlank()) {
+                if (!value.isBlank()) {
                     val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
                     DecimalValue(decimalValue)
                 } else {

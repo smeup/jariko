@@ -87,7 +87,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    operator fun get(data: AbstractDataDefinition) : Value {
+    operator fun get(data: AbstractDataDefinition): Value {
         return globalSymbolTable[data]
     }
     operator fun get(dataName: String) = globalSymbolTable[dataName]
@@ -101,9 +101,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
-                val dd  = get(ds.name) as DataStructValue
+                val dd = get(ds.name) as DataStructValue
                 // DataStructValuw Wrapper
-                dd.set(data,value)
+                dd.set(data, value)
             }
             else -> {
                 var previous: Value? = null
@@ -112,7 +112,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
                 globalSymbolTable[data] = coerce(value, data.type)
-
             }
         }
     }
@@ -716,7 +715,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 } else {
                     TODO("Field ${target.fieldName} not found")
                 }
-
             }
             else -> TODO(target.toString())
         }
@@ -973,28 +971,26 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val parent = expression.parent as EvalStmt
                     val targetType = parent.target.type() as NumberType
                     // Detects what kind of eval must be evaluated
-                    if(expression.parent is EvalStmt) {
+                    if (expression.parent is EvalStmt) {
                         // EVAL(H)
-                        if(parent.flags.halfAdjust) {
+                        if (parent.flags.halfAdjust) {
                             val targetType = parent.target.type() as NumberType
                             // perform the calculation, adjust the operand scale to the target
-                            val res = v1.value.setScale(targetType.decimalDigits).divide(v2.value.setScale(targetType.decimalDigits),RoundingMode.HALF_UP)
+                            val res = v1.value.setScale(targetType.decimalDigits).divide(v2.value.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
                             return DecimalValue(res)
                         }
                         // Eval(M)
-                        if(parent.flags.maximumNumberOfDigitsRule) {
+                        if (parent.flags.maximumNumberOfDigitsRule) {
                             TODO("EVAL(M) not supported yet")
                         }
                         // Eval(R)
-                        if(parent.flags.resultDecimalPositionRule) {
+                        if (parent.flags.resultDecimalPositionRule) {
                             TODO("EVAL(R) not supported yet")
                         }
-
                     }
                     // As per documentation should use RoundingMode.DOWN
                     val res = v1.value.toDouble() / v2.value.toDouble()
-                    return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits,RoundingMode.DOWN))
-
+                    return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits, RoundingMode.DOWN))
                 }
 
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))

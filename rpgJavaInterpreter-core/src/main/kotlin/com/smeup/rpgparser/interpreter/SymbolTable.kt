@@ -14,8 +14,8 @@ class SymbolTable {
                 ProjectedArrayValue(containerValue as ArrayValue, data)
             } else {
                 if (containerValue is DataStructValue) {
-                    return coerce(containerValue.get( data ),data.type)
-                    //return coerce(containerValue.getSubstring(data.startOffset, data.endOffset), data.type)
+                    return coerce(containerValue.get(data), data.type)
+                    // return coerce(containerValue.getSubstring(data.startOffset, data.endOffset), data.type)
                 } else {
                     val structValue = (containerValue as? StructValue)
                             ?: throw IllegalStateException("Container expected to be a struct value: $containerValue")

@@ -5,7 +5,6 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
-import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.Locale
