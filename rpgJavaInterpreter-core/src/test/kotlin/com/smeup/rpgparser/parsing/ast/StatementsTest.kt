@@ -175,7 +175,7 @@ class StatementsTest {
     }
 
     @test fun parseEvalWithUnqualifiedDsAccess() {
-        val parseTree = assertStatementCanBeParsed("EVAL      DS1=*ON", addPrefix = true)
+        assertStatementCanBeParsed("EVAL      DS1=*ON", addPrefix = true)
     }
 
     @test fun parseEvalWithoutFlags() {
@@ -233,12 +233,10 @@ class StatementsTest {
         assertStatementCanBeParsed("EVAL      DS1.AR2=*ON", addPrefix = true)
     }
 
-    @Ignore // working on grammar
     @test fun parseEvalWithIndicatorTarget() {
         assertStatementCanBeParsed("EVAL      *IN35=*ON", addPrefix = true)
     }
 
-    @Ignore // working on grammar
     @test fun parseEvalWithGlobalIndicatorTarget() {
         assertStatementCanBeParsed("EVAL      *IN=*ON", addPrefix = true)
     }

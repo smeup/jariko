@@ -61,6 +61,8 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
 
     // When assigning a value to a numeric field we could either use
     // a comma or a dot as decimal separators
+
+    // TODO Rifattorizzare con literalToNumber(text, position)
     return when {
         text.contains('.') -> {
             text.toRealLiteral(position, Locale.US)
@@ -72,7 +74,7 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
     }
 }
 
-private fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
+fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
     val nf = NumberFormat.getNumberInstance(locale)
     val bd = BigDecimal(nf.parse(this).toString())
     return RealLiteral(bd, position)

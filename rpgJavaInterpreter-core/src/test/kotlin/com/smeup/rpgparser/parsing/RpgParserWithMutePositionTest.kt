@@ -128,7 +128,7 @@ public class RpgParserWithMutePositionTest {
     fun parseMUTE02_position_do() {
         val resolved: List<MuteAnnotationResolved>
         val result = assertCanBeParsed("mute/MUTE04_POSITION", withMuteSupport = true)
-        val cu = result.root!!.rContext.toAst().apply {
+        result.root!!.rContext.toAst().apply {
             resolved = this.injectMuteAnnotation(result.root!!.muteContexts!!)
         }
 

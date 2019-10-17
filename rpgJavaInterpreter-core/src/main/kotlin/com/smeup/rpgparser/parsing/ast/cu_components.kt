@@ -3,11 +3,9 @@ package com.smeup.rpgparser.parsing.ast
 import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.*
 import java.util.*
-
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
 // to its main components
-
 data class CompilationUnit(
     val fileDefinitions: List<FileDefinition>,
     val dataDefinitions: List<DataDefinition>,
@@ -17,6 +15,12 @@ data class CompilationUnit(
     val directives: List<Directive>,
     override val position: Position?
 ) : Node(position) {
+
+    var timeouts = emptyList<MuteTimeoutAnnotation>()
+
+    val minTimeOut by lazy {
+        timeouts.minBy { it -> it.timeout }?.timeout
+    }
 
     companion object {
         fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
@@ -82,7 +86,12 @@ data class CompilationUnit(
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
 
     fun compileTimeArray(name: String): CompileTimeArray {
-        return compileTimeArrays.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: compileTimeArrays[0]
+        fun firstCompileTimeArray() = if (compileTimeArrays.isNotEmpty()) {
+            compileTimeArrays[0]
+        } else {
+            CompileTimeArray("", emptyList())
+        }
+        return compileTimeArrays.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: firstCompileTimeArray()
     }
 
     fun hasFileDefinition(name: String) = fileDefinitions.any { it.name.equals(name, ignoreCase = true) }
@@ -95,7 +104,6 @@ data class MainBody(val stmts: List<Statement>, override val position: Position?
 class Subroutine(override val name: String, val stmts: List<Statement>, override val position: Position? = null) : Named, Node(position)
 class Function(override val name: String, override val position: Position? = null) : Named, Node(position)
 
-// TODO describe what a compile time array is
 class CompileTimeArray(override val name: String, val lines: List<String>, override val position: Position? = null) : Named, Node(position)
 
 enum class DataWrapUpChoice {

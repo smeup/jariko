@@ -19,6 +19,10 @@ LE : '(LE)' ;
 COMP : 'COMP' ;
 TYPE : 'Type' ;
 
+TIMEOUT : [Tt][Ii][Mm][Ee][Oo][Uu][Tt] ;
+
+NUMBER : [0-9]+;
+
 WS : [ \r\t\n]+ -> skip ;
 EXP: '['.*?']';
 

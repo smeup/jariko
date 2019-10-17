@@ -66,6 +66,10 @@ fun executeWithMutes(
                     }
 
                     failed++
+                } else {
+                    if (verbose) {
+                        println("Mute annotation at line $line ${annotation.expression.render()} succeed ${file.linkTo(line)}".color(true))
+                    }
                 }
                 executed++
             }

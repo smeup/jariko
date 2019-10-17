@@ -170,3 +170,68 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
 }
+
+internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: String): StringValue {
+    fun isConst(formatChar: Char): Boolean =
+        when (formatChar) {
+            '0', '*' -> false // TODO
+            ' ' -> false // TODO see if it's OK
+            else -> true
+        }
+
+    fun CharArray.cleanZeroesUntil(lastPosition: Int): CharArray {
+        loop@ for (i in 0..lastPosition) {
+            if (this[i] == '0') {
+                this[i] = ' '
+            } else if (this[i] in '1'..'9') {
+                break@loop
+            }
+        }
+        return this
+    }
+
+    fun String.handleSignum(decimalValue: DecimalValue): String =
+        if (!decimalValue.isPositive() || this.count { it == '-' } > 1) {
+            this
+        } else {
+            this.replaceFirst("-", " ")
+        }
+
+    if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITW: $type")
+    val firstZeroInFormat = format.indexOfFirst { it == '0' }
+    val wholeNumberAsString =
+        this.significantDigitsAsStringJustDigits(type)
+            .padStart(format.length)
+            .mapIndexed { i, c -> if ((firstZeroInFormat > -1 && i > firstZeroInFormat) && c == ' ') '0' else c }
+            .reversed()
+            .iterator()
+    val reversedResult = " ".repeat(format.length).toCharArray()
+    format.reversed().forEachIndexed {
+        i, formatChar ->
+        if (isConst(formatChar)) {
+            reversedResult[i] = formatChar
+        } else {
+            if (wholeNumberAsString.hasNext()) {
+                reversedResult[i] = wholeNumberAsString.next()
+            }
+        }
+    }
+    val result =
+        reversedResult
+        .reversedArray()
+        .cleanZeroesUntil(firstZeroInFormat)
+        .joinToString(separator = "")
+        .handleSignum(this)
+
+    return StringValue(result)
+}
+
+private fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
+private fun intPartFormatString(t: NumberType) = "".padEnd(t.entireDigits, '0')
+fun DecimalValue.intPartString(t: NumberType): String = DecimalFormat(intPartFormatString(t)).format(this.value)
+private fun fullDigitsFormatString(t: NumberType) = intPartFormatString(t) + decimalsFormatString(t)
+fun DecimalValue.wholeNumberAsString(t: NumberType): String = DecimalFormat(fullDigitsFormatString(t)).format(this.value)
+fun DecimalValue.wholeNumberAsStringJustDigits(t: NumberType): String = wholeNumberAsString(t).filter(Char::isDigit)
+fun DecimalValue.significantDigitsAsStringJustDigits(t: NumberType): String = significantDigitsAsString(t).filter(Char::isDigit)
+fun DecimalValue.significantDigitsAsString(t: NumberType): String = DecimalFormat(decimalsFormatString(t)).format(this.value)
+

@@ -38,9 +38,18 @@ private fun coerceString(value: StringValue, type: Type): Value {
             return StringValue(s)
         }
         is ArrayType -> {
-            createArrayValue(type.element, type.nElements) {
-                // TODO
-                type.element.blank()
+            if (type.element is StringType) {
+                val elementSize = type.element.size.toInt()
+                val valueForArray = value.value.padEnd(elementSize).take(elementSize)
+                createArrayValue(type.element, type.nElements) {
+                    // TODO Since value property of StringValue is a var, we cannot share instances of StringValue
+                    StringValue(valueForArray)
+                }
+            } else {
+                createArrayValue(type.element, type.nElements) {
+                    // TODO
+                    type.element.blank()
+                }
             }
         }
         // TODO

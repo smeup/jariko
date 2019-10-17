@@ -12,6 +12,7 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
         this.bif_scan() != null -> this.bif_scan().toAst(conf)
         this.bif_trim() != null -> this.bif_trim().toAst(conf)
         this.bif_trimr() != null -> this.bif_trimr().toAst(conf)
+        this.bif_triml() != null -> this.bif_triml().toAst(conf)
         this.bif_subst() != null -> this.bif_subst().toAst(conf)
         this.bif_len() != null -> this.bif_len().toAst(conf)
         this.bif_dec() != null -> this.bif_dec().toAst(conf)
@@ -126,6 +127,13 @@ internal fun RpgParser.Bif_trimrContext.toAst(conf: ToAstConfiguration = ToAstCo
             this.string.toAst(conf),
             this.trimcharacters?.toAst(conf),
             toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_trimlContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TrimlExpr {
+    return TrimlExpr(
+        this.string.toAst(conf),
+        this.trimcharacters?.toAst(conf),
+        toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.Bif_scanContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ScanExpr {

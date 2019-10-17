@@ -3,9 +3,9 @@ package com.smeup.rpgparser.utils
 import java.math.BigDecimal
 import kotlin.system.measureTimeMillis
 
-fun enrichExceptionWith(v: Any?, block: () -> Unit) {
+fun <T> enrichPossibleExceptionWith(v: Any?, block: () -> T): T {
     try {
-        block()
+        return block()
     } catch (t: Throwable) {
         throw RuntimeException("Error $t - $v", t)
     }

@@ -48,7 +48,7 @@ public class RpgParserOverlayTest12 {
 
     @Test
     fun parseMUTE12_01_syntax() {
-        val result = assertCanBeParsed("overlay/MUTE12_01", withMuteSupport = true)
+        assertCanBeParsed("overlay/MUTE12_01", withMuteSupport = true)
     }
 
     @Test
@@ -145,12 +145,12 @@ public class RpgParserOverlayTest12 {
 
     @Test
     fun parseMUTE12_05_syntax() {
-        val result = assertCanBeParsed("overlay/MUTE12_05", withMuteSupport = true)
+        assertCanBeParsed("overlay/MUTE12_05", withMuteSupport = true)
     }
 
     @Test
     fun parseMUTE12_05_ast() {
-        val cu = assertASTCanBeProduced("overlay/MUTE12_05", considerPosition = true, withMuteSupport = true)
+        assertASTCanBeProduced("overlay/MUTE12_05", considerPosition = true, withMuteSupport = true)
     }
 
     @Test
@@ -185,7 +185,6 @@ public class RpgParserOverlayTest12 {
     @Test
     @Ignore // Not yet implemented
     fun parseMUTE12_06_ast() {
-
         assertASTCanBeProduced("overlay/MUTE12_06", considerPosition = true, withMuteSupport = true)
     }
 

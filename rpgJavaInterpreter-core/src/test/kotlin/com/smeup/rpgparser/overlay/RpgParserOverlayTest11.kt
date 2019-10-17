@@ -51,12 +51,12 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_11C_syntax() {
-        val result = assertCanBeParsed("overlay/MUTE11_11C", withMuteSupport = true)
+        assertCanBeParsed("overlay/MUTE11_11C", withMuteSupport = true)
     }
 
     @Test
     fun parseMUTE11_11C_ast() {
-        val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
+        assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
     }
 
     @Test

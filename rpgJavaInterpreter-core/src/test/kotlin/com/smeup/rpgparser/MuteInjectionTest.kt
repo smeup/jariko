@@ -14,7 +14,7 @@ class MuteInjectionTest {
                 .apply { this.muteSupport = true }
                 .parse(inputStreamFor("mute/SIMPLE_MUTE"))
         assert(result.correct)
-        val cu = result.root!!.rContext.toAst().apply {
+        result.root!!.rContext.toAst().apply {
             var resolved = this.injectMuteAnnotation(result.root!!.muteContexts!!)
             assertEquals(3, resolved.size)
         }

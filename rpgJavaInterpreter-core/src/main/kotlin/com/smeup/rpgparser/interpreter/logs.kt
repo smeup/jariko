@@ -69,12 +69,12 @@ class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: 
         }
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CALL END${sep}${callStmt!!.expression.render()}"
+        val data = "CALL END${sep}${callStmt.expression.render()}"
 
         return renderHeader(channel, filename, callStmt.endLine(), sep) + data
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "CALL END${sep}${callStmt!!.expression.render()}${sep}$elapsed${sep}ms"
+        val data = "CALL END${sep}${callStmt.expression.render()}${sep}$elapsed${sep}ms"
 
         return renderHeader(channel, filename, callStmt.endLine(), sep) + data
     }

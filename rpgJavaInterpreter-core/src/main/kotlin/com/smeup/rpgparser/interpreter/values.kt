@@ -22,6 +22,11 @@ abstract class Value {
     open fun render(): String = "Nope"
 }
 
+interface NumberValue {
+    fun negate(): Value
+}
+
+// TODO Should we change value to a val in order tho share instances?
 data class StringValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
@@ -106,7 +111,9 @@ fun String.removeNullChars(): String {
     }
 }
 
-data class IntValue(val value: Long) : Value() {
+data class IntValue(val value: Long) : NumberValue, Value() {
+    override fun negate(): Value = IntValue(-value)
+
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         return expectedType is NumberType
@@ -156,8 +163,8 @@ data class IntValue(val value: Long) : Value() {
     }
 }
 
-data class DecimalValue(val value: BigDecimal) : Value() {
-    // TODO Verify conversion
+data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
+    override fun negate(): Value = DecimalValue(-value)
     override fun asInt(): IntValue {
 
         return IntValue(value.longValueExact())
@@ -168,6 +175,10 @@ data class DecimalValue(val value: BigDecimal) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         return expectedType is NumberType
+    }
+
+    fun isPositive(): Boolean {
+        return value >= BigDecimal.ZERO;
     }
 
     companion object {

@@ -27,7 +27,7 @@ class RpgParserDataOverlay {
      */
     @Test
     fun parseOVERLAY_02() {
-        val result = assertCanBeParsed("struct/OVERLAY_02", withMuteSupport = true)
+        assertCanBeParsed("struct/OVERLAY_02", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_02", true)
         cu.resolve()

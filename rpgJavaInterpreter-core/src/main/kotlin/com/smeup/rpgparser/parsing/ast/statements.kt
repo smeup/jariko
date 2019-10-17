@@ -107,6 +107,13 @@ data class MoveStmt(
 ) :
     Statement(position)
 
+data class MoveLStmt(
+    val target: AssignableExpression,
+    var expression: Expression,
+    override val position: Position? = null
+) :
+    Statement(position)
+
 // TODO add other parameters
 data class ChainStmt(
     val searchArg: Expression, // Factor1
@@ -223,7 +230,25 @@ data class ClearStmt(
     }
 }
 
+// TODO add real implementation
+data class CompStmt(override val position: Position? = null) : Statement(position)
+
 data class ZAddStmt(
+    val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    var expression: Expression,
+    override val position: Position? = null
+) :
+    Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
+
+data class ZSubStmt(
     val target: AssignableExpression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     var expression: Expression,
