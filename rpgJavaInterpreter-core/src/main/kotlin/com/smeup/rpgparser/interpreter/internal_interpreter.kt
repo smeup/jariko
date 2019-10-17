@@ -1212,6 +1212,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val value = interpret(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
             }
+            is EditwExpr -> {
+                val n = eval(expression.value)
+                val format = eval(expression.format)
+                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
+                return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
+            }
+            
             else -> TODO(expression.toString())
         }
     }
