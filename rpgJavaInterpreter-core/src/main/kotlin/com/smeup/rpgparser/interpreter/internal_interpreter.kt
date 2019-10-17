@@ -660,7 +660,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
+                        record.forEach { assign(dataDefinitionByName(it.name)!!, it.value) }
                     } else {
                         lastFound = false
                     }
@@ -680,7 +680,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
+                        record.forEach { assign(dataDefinitionByName(it.name)!!, it.value) }
                     } else {
                         lastFound = false
                     }
@@ -694,10 +694,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun toSearchValues(searchArgExpression: Expression): List<Pair<String, Value>> {
+    private fun toSearchValues(searchArgExpression: Expression): List<Field> {
         val kListName = searchArgExpression.render().toUpperCase()
         val parms = klists[kListName]
-        return parms!!.map { it to get(it) }
+        return parms!!.map { Field(it, get(it)) }
     }
 
     private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =

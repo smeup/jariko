@@ -664,9 +664,9 @@ class MuteExecutionTest {
 
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun open(name: String): DBFile? = object : MockDBFile() {
-                override fun chain(key: Value): List<Pair<String, Value>> = emptyList()
-                override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> =
-                    listOf("DESTST" to someDescription)
+                override fun chain(key: Value): Record = Record()
+                override fun chain(keys: List<Field>): Record =
+                    Record(Field("DESTST", someDescription))
             }
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
@@ -691,10 +691,10 @@ class MuteExecutionTest {
             var nrOfCallToEoF = 0
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
             override fun open(name: String): DBFile? = object : MockDBFile() {
-                override fun chain(key: Value): List<Pair<String, Value>> =
-                    listOf("FIRSTNME" to StringValue("Giovanni"), "LASTNAME" to StringValue("Boccaccio"))
-                override fun readEqual(): List<Pair<String, Value>> =
-                    listOf("FIRSTNME" to StringValue("Cecco"), "LASTNAME" to StringValue("Angiolieri"))
+                override fun chain(key: Value): Record =
+                    Record(Field("FIRSTNME", StringValue("Giovanni")), Field("LASTNAME", StringValue("Boccaccio")))
+                override fun readEqual(): Record =
+                    Record(Field("FIRSTNME", StringValue("Cecco")), Field("LASTNAME", StringValue("Angiolieri")))
                 override fun eof(): Boolean {
                     nrOfCallToEoF++
                     return nrOfCallToEoF > 1

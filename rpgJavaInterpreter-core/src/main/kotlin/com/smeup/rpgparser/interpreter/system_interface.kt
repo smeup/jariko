@@ -37,12 +37,16 @@ interface DBInterface {
     fun open(name: String): DBFile?
 }
 
+data class Field(val name: String, val value: Value)
+
+class Record(vararg fields: Field) : ArrayList<Field>(fields.asList())
+
 interface DBFile {
-    fun chain(key: Value): List<Pair<String, Value>>
-    fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>>
-    fun readEqual(): List<Pair<String, Value>>
-    fun readEqual(key: Value): List<Pair<String, Value>>
-    fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>>
+    fun chain(key: Value): Record
+    fun chain(keys: List<Field>): Record
+    fun readEqual(): Record
+    fun readEqual(key: Value): Record
+    fun readEqual(keys: List<Field>): Record
     fun eof(): Boolean
 }
 

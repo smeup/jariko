@@ -44,7 +44,7 @@ class ReadEqualDBTest {
     }
 
     @Test @Ignore
-    fun findsExistingRecordsIfReadWithKeyAndStartsFromFirstKey() {
+    fun findsExistingRecordsIfReadWithKeyStartingFromFirstKey() {
         assertEquals(
             listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"),
             outputOfDBPgm(
@@ -54,7 +54,7 @@ class ReadEqualDBTest {
     }
 
     @Test @Ignore
-    fun doesntFindsExistingRecordsIfReadWithKeyButStartsFromAnotherKey() {
+    fun doesntFindExistingRecordsIfReadWithKeyStartingFromAnotherKey() {
         assertEquals(
             emptyList(),
             outputOfDBPgm(
