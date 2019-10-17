@@ -1218,7 +1218,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
                 return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
             }
-            
+            is IntExpr -> {
+                return when (val value = interpret(expression.value)) {
+                    is StringValue ->
+                        IntValue(cleanNumericString(value.value).asLong())
+                    is DecimalValue ->
+                        value.asInt()
+                    else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
+                }
+            }
             else -> TODO(expression.toString())
         }
     }
@@ -1238,5 +1246,14 @@ private fun Boolean.asValue() = BooleanValue(this)
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
+
+private fun cleanNumericString(s: String): String {
+    val result = s.removeNullChars().moveEndingString("-")
+    return when {
+        result.contains(".") -> result.substringBefore(".")
+        result.contains(",") -> result.substringBefore(",")
+        else -> result
+    }
+}
 
 fun blankValue(size: Int) = StringValue(" ".repeat(size))

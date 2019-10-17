@@ -167,7 +167,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     override fun negate(): Value = DecimalValue(-value)
     override fun asInt(): IntValue {
 
-        return IntValue(value.longValueExact())
+        return IntValue(value.toLong())
     }
 
     override fun asDecimal(): DecimalValue = this

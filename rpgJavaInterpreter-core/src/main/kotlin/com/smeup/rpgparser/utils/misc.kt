@@ -60,3 +60,10 @@ fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
 fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this) == 0
 
 fun Any?.asNonNullString(): String = this?.toString() ?: ""
+
+fun String.moveEndingString(s: String): String =
+        if (this.endsWith(s)) {
+            s + this.substringBefore(s)
+        } else {
+            this
+        }
