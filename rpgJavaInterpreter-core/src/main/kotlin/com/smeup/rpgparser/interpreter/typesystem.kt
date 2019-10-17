@@ -30,6 +30,7 @@ sealed class Type {
 
     fun toArray(nElements: Int) = ArrayType(this, nElements)
 }
+
 object KListType : Type() {
     override val size: Long
         get() = 0

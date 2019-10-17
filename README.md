@@ -60,7 +60,9 @@ And this if you want to include the examples too:
         <version>-SNAPSHOT</version>
     </dependency>
 
-Side note for maven users who use mirrors: remember to change your .m2/settings.xml with settings like this:
+Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient).
+
+_Side note for maven users who use mirrors: remember to change your .m2/settings.xml with settings like this:_
 
     <mirrors>
         <mirror>
