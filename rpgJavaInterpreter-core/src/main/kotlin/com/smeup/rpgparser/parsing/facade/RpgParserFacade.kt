@@ -70,12 +70,12 @@ class RpgParserFacade {
 
     var muteSupport: Boolean = true
 
-    private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80): ANTLRInputStream {
+    private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80): CharStream {
         val code = inputStreamToString(inputStream)
         val lines = code.lines()
         val longLines = lines.map { it.padEnd(threshold) }
         val paddedCode = longLines.joinToString(System.lineSeparator())
-        return ANTLRInputStream(paddedCode.byteInputStream(StandardCharsets.UTF_8))
+        return CharStreams.fromStream(paddedCode.byteInputStream(StandardCharsets.UTF_8))
     }
 
     private fun inputStreamToString(inputStream: InputStream): String {

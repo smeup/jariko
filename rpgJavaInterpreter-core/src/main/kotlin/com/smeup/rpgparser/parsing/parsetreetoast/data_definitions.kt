@@ -54,8 +54,7 @@ private fun inferDsSizeFromFieldLines(fieldLines: List<RpgParser.Parm_fixedConte
 }
 
 fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
-    var toPosition = ""
-    toPosition = if (this.nameIsInFirstLine) {
+    var toPosition = if (this.nameIsInFirstLine) {
         this.TO_POSITION().text
     } else {
         val header = this.parm_fixed().first()

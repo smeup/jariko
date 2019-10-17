@@ -79,7 +79,7 @@ data class SubstExpr(
 ) :
         AssignableExpression(position) {
     override fun render(): String {
-        val len = if (length != null) ": ${length!!.render()}" else ""
+        val len = if (length != null) ": ${length.render()}" else ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
     }
     override fun size(): Long {

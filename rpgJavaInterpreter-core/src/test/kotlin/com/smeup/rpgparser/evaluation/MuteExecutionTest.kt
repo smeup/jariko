@@ -51,7 +51,7 @@ class MuteExecutionTest {
         val si = ExtendedCollectorSystemInterface()
         si.programs["Sleep"] =
             object : JvmProgramRaw("Sleep", NumberType(9, 0) parm "millis") {
-                override fun execute(si: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+                override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                     val millis = params["millis"]!!.asDecimal().value.toLong()
                     Thread.sleep(millis)
                     return emptyList()

@@ -48,13 +48,13 @@ data class CallExecutionLogEntry(override val programName: String, val callStmt:
         return "calling $callStmt"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CALL START${sep}${callStmt!!.expression.render()}"
+        val data = "CALL START${sep}${callStmt.expression.render()}"
 
         return renderHeader(channel, filename, callStmt.startLine(), sep) + data
     }
 
     override fun renderResolution(channel: String, filename: String, sep: String): String {
-        val data = "CALL ${sep}${callStmt!!.expression.render()}"
+        val data = "CALL ${sep}${callStmt.expression.render()}"
 
         return renderHeader(channel, filename, callStmt.startLine(), sep) + data
     }
@@ -69,12 +69,12 @@ class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: 
         }
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CALL END${sep}${callStmt!!.expression.render()}"
+        val data = "CALL END${sep}${callStmt.expression.render()}"
 
         return renderHeader(channel, filename, callStmt.endLine(), sep) + data
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "CALL END${sep}${callStmt!!.expression.render()}${sep}$elapsed${sep}ms"
+        val data = "CALL END${sep}${callStmt.expression.render()}${sep}$elapsed${sep}ms"
 
         return renderHeader(channel, filename, callStmt.endLine(), sep) + data
     }
@@ -97,13 +97,13 @@ class SubroutineExecutionLogStart(programName: String, val subroutine: Subroutin
         return "executing ${subroutine.name}"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE ${sep}${subroutine!!.name}"
+        val data = "SUBROUTINE ${sep}${subroutine.name}"
 
         return renderHeader(channel, filename, subroutine.startLine(), sep) + data
     }
 
     override fun renderResolution(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE START${sep}${subroutine!!.name}"
+        val data = "SUBROUTINE START${sep}${subroutine.name}"
         return renderHeader(channel, filename, subroutine.startLine(), sep) + data
     }
 }
@@ -114,12 +114,12 @@ class SubroutineExecutionLogEnd(programName: String, val subroutine: Subroutine,
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE END${sep}${subroutine!!.name}"
+        val data = "SUBROUTINE END${sep}${subroutine.name}"
 
         return renderHeader(channel, filename, subroutine.endLine(), sep) + data
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "SUBROUTINE END${sep}${subroutine!!.name}${sep}$elapsed${sep}ms"
+        val data = "SUBROUTINE END${sep}${subroutine.name}${sep}$elapsed${sep}ms"
 
         return renderHeader(channel, filename, subroutine.endLine(), sep) + data
     }
@@ -150,20 +150,20 @@ class ForStatementExecutionLogEnd(programName: String, val statement: ForStmt, v
         return "ending FOR LOOP"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val reference = statement.init.render()!!.substringBefore("=")
+        val reference = statement.init.render().substringBefore("=")
         val data = "ENDFOR $reference"
 
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
 
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val reference = statement.init.render()!!.substringBefore("=")
+        val reference = statement.init.render().substringBefore("=")
         val data = "ENDFOR ${reference}${sep}${elapsed}${sep}ms"
 
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
     override fun renderLoop(channel: String, filename: String, sep: String): String {
-        val reference = statement.init.render()!!.substringBefore("=")
+        val reference = statement.init.render().substringBefore("=")
         val data = "ENDFOR ${reference}${sep}${loopCounter}${sep}iterations"
 
         return renderHeader(channel, filename, statement.endLine(), sep) + data
@@ -279,7 +279,7 @@ class SelectCaseExecutionLogEntry(programName: String, val case: SelectCase, val
         return "executing SELECT CASE"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SELECT WHEN${sep}${case.condition.render()}$sep(${result!!.asBoolean().value})"
+        val data = "SELECT WHEN${sep}${case.condition.render()}$sep(${result.asBoolean().value})"
 
         return renderHeader(channel, filename, case.startLine(), sep) + data
     }
@@ -300,7 +300,7 @@ class IfExecutionLogEntry(programName: String, val statement: IfStmt, val result
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "IF ${statement.condition.render()}${sep}${result!!.asBoolean().value}"
+        val data = "IF ${statement.condition.render()}${sep}${result.asBoolean().value}"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
@@ -310,7 +310,7 @@ class ElseIfExecutionLogEntry(programName: String, val statement: ElseIfClause, 
         return "executing ELSE IF"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "ELSE IF {statement.condition.render()}$sep(${result!!.asBoolean().value})"
+        val data = "ELSE IF {statement.condition.render()}$sep(${result.asBoolean().value})"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
@@ -347,7 +347,7 @@ class ExpressionEvaluationLogEntry(programName: String, val expression: Expressi
             header = renderHeader(channel, filename, expression.parent!!.startLine(), sep)
         }
 
-        val data = "${expression.render()}${sep}${value!!.render()}"
+        val data = "${expression.render()}${sep}${value.render()}"
         return header + data
     }
 }
@@ -357,7 +357,7 @@ class AssignmentLogEntry(programName: String, val data: AbstractDataDefinition, 
         return "assigning to $data value $value"
     }
     override fun renderData(channel: String, filename: String, sep: String): String {
-        val pvalue = if (previous == null) "N/D" else "${previous!!.render()}"
+        val pvalue = if (previous == null) "N/D" else "${previous.render()}"
         val data = "${data.name} = ${pvalue}${sep}${value.render()}"
 
         return renderHeader(channel, filename, "", sep) + data
@@ -404,7 +404,7 @@ class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "MOVE${sep}${statement.expression.render()} TO ${statement.target.render()}${sep}${result!!.render()}"
+        val data = "MOVE${sep}${statement.expression.render()} TO ${statement.target.render()}${sep}${result.render()}"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
@@ -416,7 +416,7 @@ class ParamListStatemenExecutionLog(programName: String, val statement: PlistStm
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
 
-        val data = "PARAM${sep}${name}${sep}${value!!.render()}"
+        val data = "PARAM${sep}${name}${sep}${value.render()}"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
@@ -427,7 +427,7 @@ class ClearStatemenExecutionLog(programName: String, val statement: ClearStmt, v
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "CLEAR${sep}${statement.value.render()}${sep}${result!!.render()}"
+        val data = "CLEAR${sep}${statement.value.render()}${sep}${result.render()}"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
