@@ -1824,7 +1824,7 @@ hspec_fixed: HS_FIXED
 	content=hspec_content
 	(EOL|EOF);
 hspec_content:
-    hs_decedit_set   #setDecedit
+      hs_decedit_set #setDecedit
     | hs_expression* #hspecExpressions
     ;
 hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_parm CLOSE_PAREN)?);
