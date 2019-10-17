@@ -26,8 +26,6 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.HashMap
 import org.antlr.v4.runtime.*
-import org.antlr.v4.runtime.tree.ParseTree
-import org.antlr.v4.runtime.tree.Trees.getNodeText
 
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
@@ -53,7 +51,6 @@ data class ParseTrees(
 
 class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser) : ParsingResult<ParseTrees>(errors, root) {
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
-
 }
 
 typealias RpgLexerResult = ParsingResult<List<Token>>

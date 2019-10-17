@@ -82,7 +82,6 @@ fun executeWithMutes(
         exceptions.add(e)
     }
 
-
     println("${file.path} - Total annotation: ${resolved.size}, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${result?.errors?.size?.toInt() ?: "<UNSPECIFIED>" }")
     exceptions.forEach {
         println(it)

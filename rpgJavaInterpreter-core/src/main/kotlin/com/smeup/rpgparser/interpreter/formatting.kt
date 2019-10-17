@@ -234,4 +234,3 @@ fun DecimalValue.wholeNumberAsString(t: NumberType): String = DecimalFormat(full
 fun DecimalValue.wholeNumberAsStringJustDigits(t: NumberType): String = wholeNumberAsString(t).filter(Char::isDigit)
 fun DecimalValue.significantDigitsAsStringJustDigits(t: NumberType): String = significantDigitsAsString(t).filter(Char::isDigit)
 fun DecimalValue.significantDigitsAsString(t: NumberType): String = DecimalFormat(decimalsFormatString(t)).format(this.value)
-

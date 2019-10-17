@@ -178,7 +178,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     }
 
     fun isPositive(): Boolean {
-        return value >= BigDecimal.ZERO;
+        return value >= BigDecimal.ZERO
     }
 
     companion object {
