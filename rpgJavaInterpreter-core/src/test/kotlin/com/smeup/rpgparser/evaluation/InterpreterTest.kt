@@ -647,6 +647,11 @@ class InterpreterTest {
         assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
     }
 
+    @Test @Ignore
+    fun executeCLEARDS() {
+        assertEquals(listOf("0000"), outputOf("CLEARDS"))
+    }
+
     @Test
     @Ignore
     fun executeMOVELSTR() {
