@@ -656,7 +656,7 @@ class MuteExecutionTest {
         val keysForTest = listOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("2"))
         val someDescription = StringValue("Goofy")
 
-        val cu = assertASTCanBeProduced("CHAIN2KEYS")
+        val cu = assertASTCanBeProduced("db/CHAIN2KEYS")
 
         val f1 = DBField("KY1TST", StringType(5))
         val f2 = DBField("KY2TST", NumberType(2, 0))
@@ -683,7 +683,7 @@ class MuteExecutionTest {
 
     @Test
     fun executeCHAINREADE() {
-        val cu = assertASTCanBeProduced("CHAINREADE")
+        val cu = assertASTCanBeProduced("db/CHAINREADE")
 
         val first = DBField("FIRSTNME", StringType(40))
         val last = DBField("LASTNAME", StringType(40))

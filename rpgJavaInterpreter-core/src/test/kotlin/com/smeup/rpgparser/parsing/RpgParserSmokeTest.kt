@@ -127,7 +127,7 @@ class RpgParserSmokeTest {
 
     @Test
     fun parseCHAINHOSTS() {
-        assertCanBeParsed("CHAINHOSTS")
+        assertCanBeParsed("db/CHAINHOSTS")
     }
 
     @Test
@@ -172,17 +172,17 @@ class RpgParserSmokeTest {
 
     @Test
     fun executeCHAIN2KEYS() {
-        assertCanBeParsed("CHAIN2KEYS")
+        assertCanBeParsed("db/CHAIN2KEYS")
     }
 
     @Test
     fun executeCHAINREADE() {
-        assertCanBeParsed("CHAINREADE")
+        assertCanBeParsed("db/CHAINREADE")
     }
 
     @Test
     fun executeCHAINREDE0() {
-        assertCanBeParsed("CHAINREDE0")
+        assertCanBeParsed("db/CHAINREDE0")
     }
 
     @Test

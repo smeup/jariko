@@ -17,6 +17,10 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         if (resultSet == null) {
             throw RuntimeException("ReadEqual with no previous search")
         }
+        return readFromPositionedResultSet()
+    }
+
+    private fun readFromPositionedResultSet(): List<Pair<String, Value>> {
         return if (!eof()) {
             resultSet.toValues()
         } else {
@@ -25,7 +29,10 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readEqual(key: Value): List<Pair<String, Value>> {
-        TODO("not implemented")
+        if (resultSet == null) {
+            chain(emptyList())
+        }
+        return readFromPositionedResultSet()
     }
 
     override fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>> {

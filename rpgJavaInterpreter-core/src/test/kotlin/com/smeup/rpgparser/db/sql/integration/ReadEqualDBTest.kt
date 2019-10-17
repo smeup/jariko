@@ -14,7 +14,7 @@ class ReadEqualDBTest {
         assertEquals(
             listOf("Not found"),
             outputOfDBPgm(
-                "CHAINREADE",
+                "db/CHAINREADE",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
                 mapOf("toFind" to StringValue("XXX"))))
     }
@@ -25,7 +25,7 @@ class ReadEqualDBTest {
             // TODO is the order of results mandatory?
             listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS"),
             outputOfDBPgm(
-                "CHAINREADE",
+                "db/CHAINREADE",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
                 mapOf("toFind" to StringValue("C01"))))
     }
@@ -35,7 +35,7 @@ class ReadEqualDBTest {
         // TODO better error assertion
         assertFailsWith(RuntimeException::class) {
             outputOfDBPgm(
-                "CHAINREDE0",
+                "db/CHAINREDE0",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
                 mapOf("toFind" to StringValue("C01")),
                 printTree = false
@@ -44,14 +44,25 @@ class ReadEqualDBTest {
     }
 
     @Test @Ignore
-    fun findsExistingRecordsIfReadWithKeyAndStartFromFirstKey() {
+    fun findsExistingRecordsIfReadWithKeyAndStartsFromFirstKey() {
         assertEquals(
             listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"),
-                outputOfDBPgm(
-                "READENOCHN",
+            outputOfDBPgm(
+                "db/READENOCHN",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
                 mapOf("toFind" to StringValue("A00"))))
     }
+
+    @Test @Ignore
+    fun doesntFindsExistingRecordsIfReadWithKeyButStartsFromAnotherKey() {
+        assertEquals(
+            emptyList(),
+            outputOfDBPgm(
+                "db/READENOCHN",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("B01"))))
+    }
+
 
     private fun createEMPLOYEE() =
             """

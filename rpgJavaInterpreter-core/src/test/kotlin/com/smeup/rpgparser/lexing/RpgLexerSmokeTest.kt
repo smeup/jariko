@@ -516,7 +516,7 @@ class RpgLexerSmokeTest {
 
     @Test
     fun lexCHAINHOSTS() {
-        assertExampleCanBeLexed("CHAINHOSTS")
+        assertExampleCanBeLexed("db/CHAINHOSTS")
     }
 
     @Test

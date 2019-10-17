@@ -32,7 +32,7 @@ class InterpreterSmokeTest {
 
     @Test
     fun executeCHAINHOSTS() {
-        val cu = assertASTCanBeProduced("CHAINHOSTS")
+        val cu = assertASTCanBeProduced("db/CHAINHOSTS")
 
         val hostField = DBField("HOSTNME1", StringType(255))
         val mockDBInterface: DBInterface = object : DBInterface {
@@ -56,7 +56,7 @@ class InterpreterSmokeTest {
 
     @Test
     fun executeCHAIN2FILE() {
-        val cu = assertASTCanBeProduced("CHAIN2FILE")
+        val cu = assertASTCanBeProduced("db/CHAIN2FILE")
 
         val hostField = DBField("DESTST", StringType(40))
         val mockDBInterface: DBInterface = object : DBInterface {
