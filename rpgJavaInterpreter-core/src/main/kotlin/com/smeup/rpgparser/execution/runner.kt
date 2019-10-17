@@ -25,8 +25,8 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
         val result = LinkedHashMap<String, Value> ()
         val values = params.parmsList.map { parameter -> StringValue(parameter) }
         val zipped = rpgProgram.params()
-                .map { dataDefinition -> dataDefinition.name }
-                .zip(values)
+            .map { dataDefinition -> dataDefinition.name }
+            .zip(values)
         zipped.forEach {
             result[it.first] = it.second
         }

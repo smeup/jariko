@@ -182,7 +182,7 @@ internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: Stri
         loop@ for (i in 0..lastPosition) {
             if (this[i] == '0') {
                 this[i] = ' '
-            } else {
+            } else if (this[i] in '1'..'9') {
                 break@loop
             }
         }
@@ -221,6 +221,7 @@ internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: Stri
         .cleanZeroesUntil(firstZeroInFormat)
         .joinToString(separator = "")
         .handleSignum(this)
+
     return StringValue(result)
 }
 

@@ -63,6 +63,9 @@ compileKotlin.dependsOn generateGrammarSource
 compileJava.dependsOn generateGrammarSource
 compileJava.source generatedMainFile, sourceSets.main.java
 compileKotlin.source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
+compileKotlin {
+    kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+}
 
 clean {
     delete file(generatedMain)
@@ -185,4 +188,4 @@ task runMutes(type: JavaExec) {
 }
 
 check.dependsOn runMutes
-check.dependsOn jacocoTestReport
+//check.dependsOn jacocoTestReport

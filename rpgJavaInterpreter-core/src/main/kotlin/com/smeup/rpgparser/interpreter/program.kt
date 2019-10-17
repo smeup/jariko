@@ -8,6 +8,8 @@ import java.io.InputStream
 
 data class ProgramParam(val name: String, val type: Type)
 
+infix fun Type.parm(name: String): ProgramParam = ProgramParam(name, this)
+
 interface Program {
     fun params(): List<ProgramParam>
     fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value>

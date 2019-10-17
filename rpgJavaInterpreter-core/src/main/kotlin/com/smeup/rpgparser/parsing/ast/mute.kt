@@ -6,15 +6,6 @@ import com.strumenta.kolasu.model.Position
 
 abstract class MuteAnnotation(override val position: Position? = null) : Node(position)
 
-enum class Comparison {
-    EQ,
-    NE,
-    GT,
-    GE,
-    LT,
-    LE
-}
-
 data class MuteComparisonAnnotation(
     var val1: Expression,
     var val2: Expression,
@@ -26,6 +17,11 @@ data class MuteComparisonAnnotation(
  * This type is supported for retro-compatibility but it is never processed
  */
 data class MuteTypeAnnotation(override var position: Position? = null) : MuteAnnotation(position)
+
+/**
+ * A timeout annotation
+ */
+data class MuteTimeoutAnnotation(val timeout: Long, override var position: Position? = null) : MuteAnnotation(position)
 
 /**
  * A Mute annotation associated to a statement

@@ -45,11 +45,11 @@ public class RpgParserWithMuteSyntaxtTest {
 
     @Test
     fun parseMUTE01_syntax() {
-        val result = assertCanBeParsed("mute/MUTE01_SYNTAX", withMuteSupport = true)
+        assertCanBeParsed("mute/MUTE01_SYNTAX", withMuteSupport = true)
     }
 
     @Test
     fun parseMUTE01_ast() {
-        val cu = assertASTCanBeProduced("mute/MUTE01_SYNTAX", considerPosition = true, withMuteSupport = true)
+        assertASTCanBeProduced("mute/MUTE01_SYNTAX", considerPosition = true, withMuteSupport = true)
     }
 }

@@ -7,6 +7,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.facade.MutesImmutableMap
+import com.smeup.rpgparser.utils.asLong
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.validation.Error
 import java.util.*
@@ -39,6 +40,9 @@ fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
         is MuteParser.MuteTypeAnnotationContext -> {
             // Type="NOXMI" annotation are not supported
             MuteTypeAnnotation(position = position)
+        }
+        is MuteParser.MuteTimeoutContext -> {
+            MuteTimeoutAnnotation(annotation.intNumber().NUMBER().text.asLong(), position)
         }
         else -> TODO(this.text.toString())
     }
@@ -127,6 +131,7 @@ private fun expandStartLineWhenNeeded(startLine: Int, mutes: MutesImmutableMap):
 }
 
 fun CompilationUnit.injectMuteAnnotation(mutes: MutesImmutableMap): List<MuteAnnotationResolved> {
+    addTimeoutAnnotation(this, mutes)
 
     val resolved: MutableList<MuteAnnotationResolved> = mutableListOf()
     // injectMuteAnnotationHelper( this.dataDefinitions,)
@@ -147,6 +152,15 @@ fun CompilationUnit.injectMuteAnnotation(mutes: MutesImmutableMap): List<MuteAnn
     }
 
     return resolved
+}
+
+private fun addTimeoutAnnotation(compilationUnit: CompilationUnit, mutes: Map<Int, MuteParser.MuteLineContext>) {
+    compilationUnit.timeouts =
+        mutes.values.filter {
+            it.muteAnnotation() is MuteParser.MuteTimeoutContext
+        }.map {
+            it.toAst() as MuteTimeoutAnnotation
+        }
 }
 
 fun acceptBody(body: List<Statement>, mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int): MutableList<MuteAnnotationResolved> {

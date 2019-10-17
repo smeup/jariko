@@ -57,6 +57,19 @@ data class TrimrExpr(
     }
 }
 
+// %TRIML
+data class TrimlExpr(
+    var value: Expression,
+    val charactersToTrim: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+
+    override fun render(): String {
+        val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
+        return "%TRIMR(${this.value.render()} $toTrim)"
+    }
+}
+
 // %SUBST
 data class SubstExpr(
     var string: Expression,
@@ -66,7 +79,7 @@ data class SubstExpr(
 ) :
         AssignableExpression(position) {
     override fun render(): String {
-        val len = if (length != null) ": ${length!!.render()}" else ""
+        val len = if (length != null) ": ${length.render()}" else ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
     }
     override fun size(): Long {

@@ -9,11 +9,11 @@ import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
+import org.junit.Ignore
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
-import org.junit.Ignore
-import org.junit.Test
 
 class InterpreterTest {
 
@@ -611,7 +611,73 @@ class InterpreterTest {
 
     @Test
     fun executeEDITWTEST2() {
-        assertEquals(listOf("x 08:23:45", "x   2.345", "x   2.345-"), outputOf("EDITWTEST2"))
+        assertEquals(listOf("x 08:23:45", "x   2.345", "x   2.345-", "x  21,4-%"), outputOf("EDITWTEST2"))
+    }
+
+    @Test
+    fun executeWHEN01() {
+        assertEquals(listOf("Other", "First"), outputOf("WHEN01"))
+    }
+
+    @Test @Ignore
+    fun executeARRAY_PARMS() {
+        val parms = mapOf(
+            "Arr" to StringValue("ABC".padEnd(40))
+        )
+        assertEquals(listOf("ABC"), outputOf("ARRAY_PARMS", parms))
+    }
+
+    @Test
+    fun executeARRAY06() {
+        assertEquals(listOf("A-A-A", "AB-AB-AB", "ABC -ABC -ABC -"), outputOf("ARRAY06"))
+    }
+
+    @Test
+    fun executeTRIML() {
+        assertEquals(listOf("Hello world!", "llo world!", "ello world!"), outputOf("TRIML"))
+    }
+
+    @Test
+    fun executeTRIMR() {
+        assertEquals(listOf("Hello world!", "Hello worl", "Hello world"), outputOf("TRIMR"))
+    }
+
+    @Test @Ignore
+    fun executeELEM() {
+        assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
+    }
+
+    @Test @Ignore
+    fun executeCLEARDS() {
+        assertEquals(listOf("0000"), outputOf("CLEARDS"))
+    }
+
+    @Test
+    @Ignore
+    fun executeMOVELSTR() {
+        assertEquals(
+            listOf(
+                "AAAA",
+                "AAAAAAAA",
+                "AAAAAAAAAAAA",
+                "BBBBB",
+                "BBBBBBBBBB",
+                "BBBBBBBBBBBBBBBBBBBB",
+                "CCC",
+                "CCCCCCC",
+                "CCCCCCCCCCCCCCCCC",
+                "AAAA",
+                "AAAAACCC",
+                "AAAAAAAAAAAA",
+                "AAAAA",
+                "AAAABBBBBB",
+                "AAAAAAAABBBBBBBBBBBB",
+                "AAA",
+                "AAAAAAA",
+                "AAAAACCCCCCCCCCCC"
+            ),
+            outputOf("MOVELSTR")
+        )
     }
 
     @Test
