@@ -59,12 +59,12 @@ generateGrammarSource {
     arguments += ['-package', 'com.smeup.rpgparser']
     outputDirectory = file(generatedMain + "/com/smeup/rpgparser")
 }
-compileKotlin.dependsOn generateGrammarSource
 compileJava.dependsOn generateGrammarSource
 compileJava.source generatedMainFile, sourceSets.main.java
-compileKotlin.source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
 compileKotlin {
+    source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
     kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
+    dependsOn generateGrammarSource
 }
 
 clean {
