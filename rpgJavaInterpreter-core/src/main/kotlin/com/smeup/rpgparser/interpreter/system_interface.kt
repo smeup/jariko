@@ -39,7 +39,14 @@ interface DBInterface {
 
 data class Field(val name: String, val value: Value)
 
-class Record(vararg fields: Field) : ArrayList<Field>(fields.asList())
+class Record(vararg fields: Field) : ArrayList<Field>(fields.asList()) {
+    private val fieldMap by lazy {
+        fields.associate { it.name to it.value }
+    }
+    fun matches(keyFields: List<Field>): Boolean {
+        return keyFields.all { fieldMap[it.name] == it.value }
+    }
+}
 
 interface DBFile {
     fun chain(key: Value): Record

@@ -4,7 +4,6 @@ import com.smeup.rpgparser.interpreter.DBFile
 import com.smeup.rpgparser.interpreter.Field
 import com.smeup.rpgparser.interpreter.Record
 import com.smeup.rpgparser.interpreter.Value
-import java.lang.RuntimeException
 import java.sql.Connection
 import java.sql.ResultSet
 
@@ -31,10 +30,16 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readEqual(key: Value): Record {
-        if (resultSet == null) {
+        val result = if (resultSet == null) {
             chain(emptyList())
+        } else {
+            readFromPositionedResultSet()
         }
-        return readFromPositionedResultSet()
+        return if (result.matches(toFields(key))) {
+            result
+        } else {
+            Record()
+        }
     }
 
     override fun readEqual(keys: List<Field>): Record {
@@ -44,8 +49,12 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     override fun eof(): Boolean = resultSet?.isLast ?: false
 
     override fun chain(key: Value): Record {
+        return chain(toFields(key))
+    }
+
+    private fun toFields(keyValue: Value): List<Field> {
         val keyName = keys.first()
-        return chain(listOf(Field(keyName, key)))
+        return listOf(Field(keyName, keyValue))
     }
 
     override fun chain(keys: List<Field>): Record {
