@@ -32,13 +32,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readEqual(key: Value): Record {
-        val result = if (resultSet == null) {
-            chain(emptyList())
-        } else {
-            readFromPositionedResultSet()
-        }
-        lastKey = toFields(key)
-        return filterRecord(result)
+        return readEqual(toFields(key))
     }
 
     private fun filterRecord(result: Record): Record {
@@ -51,7 +45,13 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readEqual(keys: List<Field>): Record {
-        TODO("not implemented")
+        val result = if (resultSet == null) {
+            chain(emptyList())
+        } else {
+            readFromPositionedResultSet()
+        }
+        lastKey = keys
+        return filterRecord(result)
     }
 
     override fun eof(): Boolean = resultSet?.isLast ?: false
