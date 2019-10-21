@@ -17,6 +17,7 @@ enum class RpgType(val rpgType: String) {
     UNSIGNED("U"),
     BINARY("B")
 }
+
 private fun RpgParser.Parm_fixedContext.startOffset(): Int {
     val explicitStartOffset = this.explicitStartOffset()
     if (explicitStartOffset != null) {
@@ -402,6 +403,9 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
         null -> TODO()
         "", RpgType.PACKED.rpgType, RpgType.ZONED.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
             val rpgType = DATA_TYPE()?.text?.trim()
+            if (this.keyword().any { it.keyword_packeven() != null }) {
+                TODO("Packeven not managed yet")
+            }
             val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
         } else {

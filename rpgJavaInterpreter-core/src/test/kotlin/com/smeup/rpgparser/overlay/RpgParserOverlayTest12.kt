@@ -15,7 +15,8 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-public class RpgParserOverlayTest12 {
+class RpgParserOverlayTest12 {
+
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
         val result = RpgParserFacade()
@@ -62,7 +63,6 @@ public class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // clear is not supported, yet
     fun parseMUTE12_01_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
         cu.resolve()
@@ -97,7 +97,6 @@ public class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // PACKEVEN not supported
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         cu.resolve()
