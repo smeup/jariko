@@ -7,6 +7,7 @@ import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class ReadEqualDBTest {
 
@@ -50,6 +51,7 @@ class ReadEqualDBTest {
 
     @Test
     @Ignore
+    // At the moment this test fails because it find all the records with key A000, and not just the first 4
     fun findsExistingRecordsIfReadWithKeyStartingFromFirstKey() {
         assertEquals(
             listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"),
@@ -63,11 +65,13 @@ class ReadEqualDBTest {
 
     @Test
     fun findsAtLeastExistingRecordsIfReadWithKeyStartingFromFirstKey() {
-        outputOfDBPgm(
-            "db/READENOCHN",
-            listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
-            mapOf("toFind" to StringValue("A00"))
-        ).containsAll(listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"))
+        assertTrue(
+            outputOfDBPgm(
+                "db/READENOCHN",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("A00"))
+            ).containsAll(listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"))
+        )
     }
 
     @Test
