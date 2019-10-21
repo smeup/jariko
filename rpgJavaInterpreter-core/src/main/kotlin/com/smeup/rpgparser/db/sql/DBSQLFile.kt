@@ -9,6 +9,8 @@ import java.sql.ResultSet
 
 class DBSQLFile(private val name: String, private val connection: Connection) : DBFile {
     private var resultSet: ResultSet? = null
+    private var lastKey: List<Field> = emptyList()
+
     private val keys: List<String> by lazy {
         val indexes = connection.primaryKeys(name)
         if (indexes.isEmpty()) connection.orderingFields(name) else indexes
@@ -18,7 +20,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         if (resultSet == null) {
             throw RuntimeException("ReadEqual with no previous search")
         }
-        return readFromPositionedResultSet()
+        return filterRecord(readFromPositionedResultSet())
     }
 
     private fun readFromPositionedResultSet(): Record {
@@ -35,9 +37,15 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         } else {
             readFromPositionedResultSet()
         }
-        return if (result.matches(toFields(key))) {
+        lastKey = toFields(key)
+        return filterRecord(result)
+    }
+
+    private fun filterRecord(result: Record): Record {
+        return if (result.matches(lastKey)) {
             result
         } else {
+            resultSet?.last()
             Record()
         }
     }
@@ -62,7 +70,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         val sql = "SELECT * FROM $name ${keyNames.whereSQL()} ${keyNames.orderBySQL()}"
         val values = keys.map { it.value }
         resultSet.closeIfOpen()
-        connection.prepareStatement(sql).use {
+        connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
             it.bind(values)
             resultSet = it.executeQuery()
         }

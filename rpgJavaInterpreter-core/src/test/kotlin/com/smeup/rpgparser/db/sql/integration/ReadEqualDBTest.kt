@@ -2,8 +2,9 @@ package com.smeup.rpgparser.db.sql.integration
 
 import com.smeup.rpgparser.db.sql.CONVENTIONAL_INDEX_SUFFIX
 import com.smeup.rpgparser.db.sql.outputOfDBPgm
-import com.smeup.rpgparser.interpreter.*
-import org.junit.*
+import com.smeup.rpgparser.interpreter.StringValue
+import org.junit.Ignore
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -16,7 +17,9 @@ class ReadEqualDBTest {
             outputOfDBPgm(
                 "db/CHAINREADE",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
-                mapOf("toFind" to StringValue("XXX"))))
+                mapOf("toFind" to StringValue("XXX"))
+            )
+        )
     }
 
     @Test
@@ -27,7 +30,9 @@ class ReadEqualDBTest {
             outputOfDBPgm(
                 "db/CHAINREADE",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
-                mapOf("toFind" to StringValue("C01"))))
+                mapOf("toFind" to StringValue("C01"))
+            )
+        )
     }
 
     @Test
@@ -43,28 +48,42 @@ class ReadEqualDBTest {
         }
     }
 
-    @Test @Ignore
+    @Test
+    @Ignore
     fun findsExistingRecordsIfReadWithKeyStartingFromFirstKey() {
         assertEquals(
             listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"),
             outputOfDBPgm(
                 "db/READENOCHN",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
-                mapOf("toFind" to StringValue("A00"))))
+                mapOf("toFind" to StringValue("A00"))
+            )
+        )
     }
 
-    @Test @Ignore
-    fun doesntFindExistingRecordsIfReadWithKeyStartingFromAnotherKey() {
+    @Test
+    fun findsAtLeastExistingRecordsIfReadWithKeyStartingFromFirstKey() {
+        outputOfDBPgm(
+            "db/READENOCHN",
+            listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+            mapOf("toFind" to StringValue("A00"))
+        ).containsAll(listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"))
+    }
+
+    @Test
+    fun doesNotFindExistingRecordsIfReadWithKeyStartingFromAnotherKey() {
         assertEquals(
             emptyList(),
             outputOfDBPgm(
                 "db/READENOCHN",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
-                mapOf("toFind" to StringValue("B01"))))
+                mapOf("toFind" to StringValue("B01"))
+            )
+        )
     }
 
     private fun createEMPLOYEE() =
-            """
+        """
     CREATE TABLE EMPLOYEE ( 
 	EMPNO CHAR(6) DEFAULT '' NOT NULL , 
 	FIRSTNME CHAR(12) DEFAULT '' NOT NULL , 

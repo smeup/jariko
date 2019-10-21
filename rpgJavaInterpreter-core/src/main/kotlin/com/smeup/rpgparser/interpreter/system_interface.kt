@@ -6,6 +6,8 @@ import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import java.io.File
 import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 
 typealias LoggingConfiguration = Properties
 
@@ -39,12 +41,18 @@ interface DBInterface {
 
 data class Field(val name: String, val value: Value)
 
-class Record(vararg fields: Field) : ArrayList<Field>(fields.asList()) {
-    private val fieldMap by lazy {
-        fields.associate { it.name to it.value }
+class Record(vararg fields: Field) : LinkedHashMap<String, Value>() {
+    init {
+        fields.forEach {
+            add(it)
+        }
     }
     fun matches(keyFields: List<Field>): Boolean {
-        return keyFields.all { fieldMap[it.name] == it.value }
+        return keyFields.all { this[it.name] == it.value }
+    }
+
+    fun add(field: Field) {
+        put(field.name, field.value)
     }
 }
 

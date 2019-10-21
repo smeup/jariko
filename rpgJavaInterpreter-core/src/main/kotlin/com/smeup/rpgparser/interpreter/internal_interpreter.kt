@@ -660,7 +660,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.name)!!, it.value) }
+                        record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
                     } else {
                         lastFound = false
                     }
@@ -680,7 +680,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.name)!!, it.value) }
+                        record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
                     } else {
                         lastFound = false
                     }
