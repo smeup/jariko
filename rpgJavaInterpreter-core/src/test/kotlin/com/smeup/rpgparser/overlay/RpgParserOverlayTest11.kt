@@ -17,7 +17,6 @@ import org.junit.Test
 import java.io.File
 import kotlin.test.assertTrue
 
-@Ignore
 class RpgParserOverlayTest11 {
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {

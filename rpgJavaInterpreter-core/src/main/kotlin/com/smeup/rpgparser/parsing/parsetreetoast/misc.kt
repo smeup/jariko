@@ -513,8 +513,11 @@ internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Ass
 
 internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallStmt {
     require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
-    val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
-    return CallStmt(literal.toAst(conf),
+    val position = this.toPosition(true)
+    var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
+    var functionCalled : Expression?
+    functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
+    return CallStmt(functionCalled,
             this.csPARM().map { it.toAst(conf) },
             this.cspec_fixed_standard_parts().lo.asIndex(),
             toPosition(conf.considerPosition))
