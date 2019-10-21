@@ -110,7 +110,6 @@ class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // fix automatic calculation of DS size if not present
     fun parseMUTE12_03_ast() {
         assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
     }
