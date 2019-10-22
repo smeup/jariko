@@ -92,6 +92,12 @@
      D COUNT           S              9  0
      D A               S              9  0 INZ(0)
      D B               S              9  0 INZ(1)
+     D £FUNNP          S             10
+     D £FUNFU          S             10
+     D £FUNME          S             10
+     D £FUNMS          S              7
+     D £FUNFI          S             10
+     D £FUNCM          S              2
       *
      C     *ENTRY        PLIST
      C                   PARM                    £FUNNP           10

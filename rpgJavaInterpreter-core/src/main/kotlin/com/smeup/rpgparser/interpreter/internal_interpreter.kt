@@ -773,8 +773,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun areEquals(value1: Value, value2: Value): Boolean {
         return when {
+            value1 is DecimalValue && value2 is IntValue -> {
+                value1.asInt() == value2
+            }
+            value1 is IntValue && value2 is DecimalValue -> {
+                value2.asInt() == value1
+            }
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
+
             value1 is StringValue && value2 is StringValue -> {
                 val v1 = value1.value.removeNullChars().trimEnd()
                 val v2 = value2.value.removeNullChars().trimEnd()

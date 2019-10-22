@@ -30,9 +30,9 @@ class RpgParserOverlayTest11 {
     }
     // Temporary replacement
     private fun assertASTCanBeProduced(
-        exampleName: String,
-        considerPosition: Boolean = false,
-        withMuteSupport: Boolean = true
+            exampleName: String,
+            considerPosition: Boolean = false,
+            withMuteSupport: Boolean = true
     ): CompilationUnit {
         val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
         val ast = parseTreeRoot.root!!.rContext.toAst(ToAstConfiguration(
@@ -50,12 +50,12 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_11C_syntax() {
-        assertCanBeParsed("overlay/MUTE11_11C", withMuteSupport = true)
+        val result = assertCanBeParsed("overlay/MUTE11_11C", withMuteSupport = true)
     }
 
     @Test
     fun parseMUTE11_11C_ast() {
-        assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
     }
 
     @Test
@@ -80,6 +80,7 @@ class RpgParserOverlayTest11 {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
+
     }
 
     @Test
@@ -96,8 +97,24 @@ class RpgParserOverlayTest11 {
     fun parseMUTE11_15_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
         cu.resolve()
+
+        var failed: Int = 0
+
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        annotations.forEach { (line, annotation) ->
+            try {
+                assertTrue(annotation.result.asBoolean().value)
+            } catch (e: AssertionError) {
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                failed++
+            }
+        }
+        if (failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
+
     }
 
     @Test

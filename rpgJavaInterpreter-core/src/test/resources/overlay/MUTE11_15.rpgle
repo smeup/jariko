@@ -81,7 +81,7 @@
       *----------------------------------------------------------------
      D £FUND2          DS           512    INZ
       *----------------------------------------------------------------
-     D DSP             S             50
+     D DSP             S            512
       *
       * La £FUN è una delle entry standardizzate più utilizzate in SMEUP
       *
@@ -104,7 +104,7 @@
      C*-------------------------------------------------------------------
      C     £FUN02        BEGSR
      C*
-     C                   CALL      £FUNPG
+     C                   CALL      'MUTE11_11C'
      C     £FUNPG        PARM      *BLANKS       £FUNNP           10
      C                   PARM                    £FUNFU           10
      C                   PARM                    £FUNME           10
