@@ -22,47 +22,40 @@
      D  N2             S             21  6
       *
     MU* VAL1(AAA010) VAL2('       AAA') COMP(EQ)
-     C***                MOVE      'AAA'         AAA010
-     C                   EVAL      AAA003='AAA'
+     C                   MOVE      'AAA'         AAA010
      C                   MOVE      AAA005        AAA010
      C                   EVAL      DSP=AAA010
      C                   DSPLY                   DSP
-    MU* VAL1(AAA010) VAL2('AAA       ') COMP(EQ)
      C                   EVAL      AAA003='AAA'
+    MU* VAL1(AAA010) VAL2('AAA       ') COMP(EQ)
      C                   MOVEL     AAA003        AAA010
      C                   EVAL      DSP=AAA010
      C                   DSPLY                   DSP
-    MU* VAL1(AAA010) VAL2('  AAA     ') COMP(EQ)
      C                   EVAL      AAA006='  AAA'
+    MU* VAL1(AAA010) VAL2('  AAA     ') COMP(EQ)
      C                   MOVEL     AAA006        AAA010
      C                   EVAL      DSP=AAA010
      C                   DSPLY                   DSP
-    MU* VAL1(N1) VAL2(912000000) COMP(EQ)
-     C                   CLEAR                   N1
-     C                   MOVEL     912           N1
-     C                   EVAL      DSP=%CHAR(N1)
-     C                   DSPLY                   DSP
-    MU* VAL1(AAA010) VAL2('ABCDE     ') COMP(EQ)
-     C                   CLEAR                   AAA010
      C                   MOVEL     'ABCDE'       AAA005
+    MU* VAL1(AAA010) VAL2('ABCDE     ') COMP(EQ)
      C                   MOVEL     AAA005        AAA010
      C                   EVAL      DSP=AAA010
      C                   DSPLY                   DSP
-    MU* VAL1(AAA005) VAL2('RSTUV') COMP(EQ)
      C                   CLEAR                   AAA010
      C                   EVAL      AAA010='RSTUVWXYZ '
+    MU* VAL1(AAA005) VAL2('RSTUV') COMP(EQ)
      C                   MOVEL     AAA010        AAA005
      C                   EVAL      DSP=AAA005
      C                   DSPLY                   DSP
-    MU* VAL1(AAA010) VAL2('ABCDE     ') COMP(EQ)
      C                   EVAL      AAA010='RSTUVWXYZ'
      C                   EVAL      AAA005='ABCDE'
+    MU* VAL1(AAA010) VAL2('ABCDE     ') COMP(EQ)
      C                   MOVEL(P)  AAA005        AAA010
      C                   EVAL      DSP=AAA010
      C                   DSPLY                   DSP
-    MU* VAL1(AAA010) VAL2('ABCDEWXYZ ') COMP(EQ)
      C                   EVAL      AAA010='RSTUVWXYZ'
      C                   EVAL      AAA005='ABCDE'
+    MU* VAL1(AAA010) VAL2('ABCDEWXYZ ') COMP(EQ)
      C                   MOVEL     AAA005        AAA010
      C                   EVAL      DSP=AAA010
      C                   DSPLY                   DSP
