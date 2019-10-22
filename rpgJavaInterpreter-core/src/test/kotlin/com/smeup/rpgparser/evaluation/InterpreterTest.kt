@@ -229,6 +229,11 @@ class InterpreterTest {
         assertEquals(listOf("1"), outputOf("CAL01"))
     }
 
+    @Test @Ignore
+    fun executeMOVEL01() {
+        assertEquals(listOf("1111.1"), outputOf("MOVEL01"))
+    }
+
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
