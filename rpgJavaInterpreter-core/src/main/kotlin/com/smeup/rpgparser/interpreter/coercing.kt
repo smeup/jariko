@@ -164,7 +164,9 @@ private fun computeHiValue(type: NumberType): Value {
             3 -> return IntValue(Byte.MAX_VALUE.toLong())
             5 -> return IntValue(Short.MAX_VALUE.toLong())
             10 -> return IntValue(Int.MAX_VALUE.toLong())
+            else ->  return IntValue(Long.MAX_VALUE)
         }
+
     }
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
@@ -172,6 +174,7 @@ private fun computeHiValue(type: NumberType): Value {
             3 -> return IntValue(UByte.MAX_VALUE.toLong())
             5 -> return IntValue(UShort.MAX_VALUE.toLong())
             10 -> return IntValue(UInt.MAX_VALUE.toLong())
+            else ->  TODO("Number with ${type.entireDigits} digit is too big for IntValue")
         }
     }
     // Binary
@@ -187,7 +190,7 @@ private fun computeHiValue(type: NumberType): Value {
             }
         }
     }
-    TODO("")
+    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is too big")
 }
 
 private fun computeLowValue(type: NumberType): Value {
@@ -208,6 +211,7 @@ private fun computeLowValue(type: NumberType): Value {
             3 -> return IntValue(Byte.MIN_VALUE.toLong())
             5 -> return IntValue(Short.MIN_VALUE.toLong())
             10 -> return IntValue(Int.MIN_VALUE.toLong())
+            else -> return IntValue(Long.MIN_VALUE)
         }
     }
     // Unsigned

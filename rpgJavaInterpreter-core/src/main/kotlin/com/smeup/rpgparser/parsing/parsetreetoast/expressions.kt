@@ -6,6 +6,7 @@ import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import java.math.BigDecimal
+import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -76,7 +77,10 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
 
 fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
     val nf = NumberFormat.getNumberInstance(locale)
-    val bd = BigDecimal(nf.parse(this).toString())
+    val formatter = nf as DecimalFormat
+    formatter.isParseBigDecimal = true
+
+    val bd = formatter.parse(this) as BigDecimal
     return RealLiteral(bd, position)
 }
 
