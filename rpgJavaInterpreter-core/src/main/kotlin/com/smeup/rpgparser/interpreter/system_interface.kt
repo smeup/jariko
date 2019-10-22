@@ -47,9 +47,8 @@ class Record(vararg fields: Field) : LinkedHashMap<String, Value>() {
             add(it)
         }
     }
-    fun matches(keyFields: List<Field>): Boolean {
-        return keyFields.all { this[it.name] == it.value }
-    }
+
+    fun matches(keyFields: List<Field>) = keyFields.all { this[it.name] == it.value }
 
     fun add(field: Field) {
         put(field.name, field.value)

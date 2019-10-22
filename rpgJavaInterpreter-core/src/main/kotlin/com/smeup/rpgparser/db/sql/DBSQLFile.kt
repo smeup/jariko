@@ -17,8 +17,8 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readEqual(): Record {
-        if (resultSet == null) {
-            throw RuntimeException("ReadEqual with no previous search")
+        require(resultSet != null) {
+            "ReadEqual with no previous search"
         }
         return filterRecord(readFromPositionedResultSet())
     }
