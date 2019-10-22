@@ -12,7 +12,7 @@ class Chain2FilesDBTest {
         assertEquals(
                 listOf("Not found in First", "2nd: SomeDescription"),
                 outputOfDBPgm(
-                        "CHAIN2FILE",
+                        "db/CHAIN2FILE",
                         listOf(sqlCreateTestTable("FIRST"), recordFormatTestTable("FIRST"),
                                 sqlCreateTestTable("SECOND"), recordFormatTestTable("SECOND"), insertTestRecords("SECOND")),
                         mapOf("toFind" to StringValue("ABCDE"))))

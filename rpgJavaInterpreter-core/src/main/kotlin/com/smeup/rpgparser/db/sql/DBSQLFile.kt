@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.DBFile
+import com.smeup.rpgparser.interpreter.Field
+import com.smeup.rpgparser.interpreter.Record
 import com.smeup.rpgparser.interpreter.Value
 import java.lang.RuntimeException
 import java.sql.Connection
@@ -13,10 +15,14 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         if (indexes.isEmpty()) connection.orderingFields(name) else indexes
     }
 
-    override fun readEqual(): List<Pair<String, Value>> {
+    override fun readEqual(): Record {
         if (resultSet == null) {
             throw RuntimeException("ReadEqual with no previous search")
         }
+        return readFromPositionedResultSet()
+    }
+
+    private fun readFromPositionedResultSet(): Record {
         return if (!eof()) {
             resultSet.toValues()
         } else {
@@ -24,25 +30,28 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         }
     }
 
-    override fun readEqual(key: Value): List<Pair<String, Value>> {
-        TODO("not implemented")
+    override fun readEqual(key: Value): Record {
+        if (resultSet == null) {
+            chain(emptyList())
+        }
+        return readFromPositionedResultSet()
     }
 
-    override fun readEqual(keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
+    override fun readEqual(keys: List<Field>): Record {
         TODO("not implemented")
     }
 
     override fun eof(): Boolean = resultSet?.isLast ?: false
 
-    override fun chain(key: Value): List<Pair<String, Value>> {
+    override fun chain(key: Value): Record {
         val keyName = keys.first()
-        return chain(listOf(keyName to key))
+        return chain(listOf(Field(keyName, key)))
     }
 
-    override fun chain(keys: List<Pair<String, Value>>): List<Pair<String, Value>> {
-        val keyNames = keys.map { it.first }
+    override fun chain(keys: List<Field>): Record {
+        val keyNames = keys.map { it.name }
         val sql = "SELECT * FROM $name ${keyNames.whereSQL()} ${keyNames.orderBySQL()}"
-        val values = keys.map { it.second }
+        val values = keys.map { it.value }
         resultSet.closeIfOpen()
         connection.prepareStatement(sql).use {
             it.bind(values)

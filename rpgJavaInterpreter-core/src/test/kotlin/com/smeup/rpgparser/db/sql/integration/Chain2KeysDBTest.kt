@@ -12,7 +12,7 @@ class Chain2KeysDBTest {
         assertEquals(
                 listOf("Found: ABC12"),
                 outputOfDBPgm(
-                        "CHAIN2KEYS",
+                        "db/CHAIN2KEYS",
                         listOf(sqlCreateTestTable(), insertRecords()),
                         mapOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("12"))))
     }
@@ -22,7 +22,7 @@ class Chain2KeysDBTest {
         assertEquals(
             listOf("Not found"),
                 outputOfDBPgm(
-                        "CHAIN2KEYS",
+                        "db/CHAIN2KEYS",
                         listOf(sqlCreateTestTable(), insertRecords()),
                         mapOf("toFind1" to StringValue("ZZZ"), "toFind2" to StringValue("99"))))
     }

@@ -87,24 +87,24 @@ fun ResultSet?.closeIfOpen() {
     }
 }
 
-fun ResultSet?.toValues(): List<Pair<String, Value>> {
+fun ResultSet?.toValues(): Record {
     if (this != null && this.next()) {
         return this.currentRecordToValues()
     }
-    return emptyList()
+    return Record()
 }
 
-fun ResultSet?.currentRecordToValues(): List<Pair<String, Value>> {
+fun ResultSet?.currentRecordToValues(): Record {
     // TODO create a unit test for the isAfterLast condition
     if (this == null || this.isAfterLast) {
-        return emptyList()
+        return Record()
     }
-    val result = mutableListOf<Pair<String, Value>>()
+    val result = Record()
     val metadata = this.metaData
     for (i in 1..metadata.columnCount) {
         val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
         val value = type.toValue(this, i)
-        result.add(Pair(metadata.getColumnName(i), value))
+        result.add(Field(metadata.getColumnName(i), value))
     }
     return result
 }

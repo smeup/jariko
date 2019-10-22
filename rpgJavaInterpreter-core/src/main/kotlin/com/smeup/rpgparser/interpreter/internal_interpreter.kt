@@ -654,19 +654,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     lastDBFile = dbFile
                     val record = if (statement.searchArg.type() is KListType) {
-                        val kListName = statement.searchArg.render().toUpperCase()
-                        val parms = klists[kListName]
-                        require(parms != null) {
-                            "Line: ${statement.position.line()} - KList not found: $kListName"
-                        }
-                        val searchValues = parms.map { it to get(it) }
-                        dbFile.chain(searchValues)
+                        dbFile.chain(toSearchValues(statement.searchArg))
                     } else {
                         dbFile.chain(eval(statement.searchArg))
                     }
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
+                        record.forEach { assign(dataDefinitionByName(it.name)!!, it.value) }
                     } else {
                         lastFound = false
                     }
@@ -677,10 +671,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         "Line: ${statement.position.line()} - File definition ${statement.name} not found"
                     }
                     lastDBFile = dbFile
-                    val record = dbFile.readEqual()
+                    val record = if (statement.searchArg == null) {
+                        dbFile.readEqual()
+                    } else if (statement.searchArg.type() is KListType) {
+                        dbFile.readEqual(toSearchValues(statement.searchArg))
+                    } else {
+                        dbFile.readEqual(eval(statement.searchArg))
+                    }
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.first)!!, it.second) }
+                        record.forEach { assign(dataDefinitionByName(it.name)!!, it.value) }
                     } else {
                         lastFound = false
                     }
@@ -692,6 +692,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         } catch (e: RuntimeException) {
             throw RuntimeException("Issue executing statement $statement -> $e", e)
         }
+    }
+
+    private fun toSearchValues(searchArgExpression: Expression): List<Field> {
+        val kListName = searchArgExpression.render().toUpperCase()
+        val parms = klists[kListName]
+        return parms!!.map { Field(it, get(it)) }
     }
 
     private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =

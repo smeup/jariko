@@ -12,7 +12,7 @@ class ChainHostsDBTest {
         assertEquals(
                 listOf("LOOPBACK"),
                 outputOfDBPgm(
-                        "CHAINHOSTS",
+                        "db/CHAINHOSTS",
                         listOf(sqlCreateQATOCHOSTS(), recordFormatNameQATOCHOSTS(), insertRecordsQATOCHOSTS()),
                         mapOf("ipToFind" to StringValue("127.0.0.1"))))
     }
@@ -22,7 +22,7 @@ class ChainHostsDBTest {
         assertEquals(
             listOf("Not found"),
                 outputOfDBPgm(
-                        "CHAINHOSTS",
+                        "db/CHAINHOSTS",
                         listOf(sqlCreateQATOCHOSTS(), recordFormatNameQATOCHOSTS(), insertRecordsQATOCHOSTS()),
                         mapOf("ipToFind" to StringValue("1.2.3.4"))))
     }
