@@ -48,7 +48,7 @@ There isn't a mandatory position to insert the ```TIMEOUT``` annotation line, th
 Like in other frameworks for unit testing, there is an assertion that always fails: 
 
 ```
-    MU* FAIL('Somethig went wrong')
+    MU* FAIL('Something went wrong')
 ```
 
 An expression can be used for the failing message:
