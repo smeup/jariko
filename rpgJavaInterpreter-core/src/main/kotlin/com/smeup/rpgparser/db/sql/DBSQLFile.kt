@@ -39,9 +39,13 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         return if (result.matches(lastKey)) {
             result
         } else {
-            resultSet?.last()
+            signalEOF()
             Record()
         }
+    }
+
+    private fun signalEOF() {
+        resultSet?.last()
     }
 
     override fun readEqual(keys: List<Field>): Record {
