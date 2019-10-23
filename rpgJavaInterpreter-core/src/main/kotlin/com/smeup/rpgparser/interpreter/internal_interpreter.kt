@@ -787,6 +787,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
                 v1 == v2
             }
+
+            value1 is DataStructValue && value2 is StringValue -> {
+                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
+                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                v1 == v2
+            }
+            value1 is StringValue && value2 is DataStructValue -> {
+                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
+                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                v1 == v2
+            }
             else -> value1 == value2
         }
     }
