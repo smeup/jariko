@@ -59,5 +59,31 @@
      C                   MOVEL     AAA005        AAA010
      C                   EVAL      DSP=AAA010
      C                   DSPLY                   DSP
+      *    Facendo la movel in una stringa di un numero negativo l'ultima cifra diventa una lettera :
+      *    -1      J                                                                          
+      *    -2      K                                                                          
+      *    -3      L                                                                          
+      *    -4      M                                                                          
+      *    -5      N                                                                          
+      *    -6      O                                                                          
+      *    -7      P                                                                          
+      *    -8      Q                                                                          
+      *    -9      R
+    MU* VAL1(AAA006) VAL2('78425 ') COMP(EQ)                               
+     C                   MOVEL     78,425        AAA006            6       
+     C                   EVAL      DSP=AAA006                         
+     C                   DSPLY                   DSP                       
+    MU* VAL1(AAA005) VAL2('78425') COMP(EQ)                                
+     C                   MOVEL     78,425        AAA005            5       
+     C                   EVAL      DSP=AAA005                       
+     C                   DSPLY                   DSP  
+    MU* VAL1(AAA006) VAL2('78425 ') COMP(EQ)                               
+     C                   MOVEL     78425         AAA006            6       
+     C                   EVAL      DSP=AAA006                         
+     C                   DSPLY                   DSP                       
+    MU* VAL1(AAA005) VAL2('78425') COMP(EQ)                                
+     C                   MOVEL     78425         AAA005            5       
+     C                   EVAL      DSP=AAA005                       
+     C                   DSPLY                   DSP  
       *
      C                   SETON                                        LR

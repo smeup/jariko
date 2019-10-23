@@ -1,13 +1,13 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
-import java.lang.IllegalStateException
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
@@ -141,7 +141,7 @@ internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
         return l.toAst(conf)
     }
     val text = this.CS_FactorContent().text
-    val regexp = Regex("(\\+|\\-)?(\\d|,|\\.)+(\\+|\\-)?")
+    val regexp = Regex("([+\\-])?(\\d|,|\\.)+([+\\-])?")
     return if (text.matches(regexp)) {
         literalToNumber(text, position)
     } else if (text.startsWith("\'")) {
@@ -155,16 +155,25 @@ fun literalToNumber(
     text: String,
     position: Position?
 ): Expression {
+    //fix minus at right
+    val value = if (text.endsWith('-')){
+        "-" + text.replaceFirst("-", "")
+    }
+    else{
+        text
+    }
     return when {
         // When assigning a value to a numeric field we could either use
         // a comma or a dot as decimal separators
-        text.contains('.') -> {
-            text.toRealLiteral(position, Locale.US)
+        value.contains('.') -> {
+            value.toRealLiteral(position, Locale.US)
         }
-        text.contains(',') -> {
-            text.toRealLiteral(position, Locale.ITALIAN)
+        value.contains(',') -> {
+            value.toRealLiteral(position, Locale.ITALIAN)
         }
-        else -> IntLiteral(text.toLong(), position)
+        else -> {
+            IntLiteral(value.toLong(), position)
+        }
     }
 }
 
@@ -444,7 +453,7 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text}")
     val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
-    return MoveLStmt(DataRefExpr(ReferenceByName(name), position), expression, position)
+    return MoveLStmt(this.operationExtender?.text, DataRefExpr(ReferenceByName(name), position), expression, position)
 }
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {

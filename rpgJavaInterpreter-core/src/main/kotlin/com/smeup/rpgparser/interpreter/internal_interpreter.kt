@@ -2,12 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.ast.Comparison.EQ
-import com.smeup.rpgparser.parsing.ast.Comparison.GE
-import com.smeup.rpgparser.parsing.ast.Comparison.GT
-import com.smeup.rpgparser.parsing.ast.Comparison.LE
-import com.smeup.rpgparser.parsing.ast.Comparison.LT
-import com.smeup.rpgparser.parsing.ast.Comparison.NE
+import com.smeup.rpgparser.parsing.ast.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
@@ -17,7 +12,6 @@ import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeoutException
-import kotlin.UnsupportedOperationException
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
@@ -29,6 +23,17 @@ interface InterpretationContext {
     val currentProgramName: String
     fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
     fun shouldReinitialize(): Boolean
+}
+
+/**
+ * Expose interpreter core method could be useful in statements logic implementation
+ **/
+interface InterpreterCoreHelper{
+
+    fun log(logEntry: LogEntry)
+    fun assign(target: AssignableExpression, value: Value): Value
+    fun interpret(expression: Expression): Value
+    operator fun get(data: AbstractDataDefinition): Value
 }
 
 object DummyInterpretationContext : InterpretationContext {
@@ -61,7 +66,7 @@ class DBFileMap(private val dbInterface: DBInterface) {
     operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
-class InternalInterpreter(val systemInterface: SystemInterface) {
+class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper{
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
     // TODO default value DECEDIT can be changed
@@ -81,7 +86,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
-    private fun log(logEntry: LogEntry) {
+    override fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
     }
 
@@ -89,7 +94,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    operator fun get(data: AbstractDataDefinition): Value {
+    override operator fun get(data: AbstractDataDefinition): Value {
         return globalSymbolTable[data]
     }
     operator fun get(dataName: String) = globalSymbolTable[dataName]
@@ -310,7 +315,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is MoveLStmt -> {
-                    TODO("IMPLEMENT MOVEL")
+                    val value = movel(statement.operationExtender, statement.target, statement.expression, this)
+                    log(MoveLStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
+
                 }
                 is SelectStmt -> {
                     for (case in statement.cases) {
@@ -858,7 +865,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return coercedValue
     }
 
-    private fun assign(target: AssignableExpression, value: Value): Value {
+    override fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -919,8 +926,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     }
 
     private fun move(target: AssignableExpression, value: Expression): Value {
+        //Can't move number
+        when (value) {
+            is NumberLiteral -> {
+                throw RuntimeException("In MOVE, factor 2 type: ${NumberLiteral::class.qualifiedName} is not allowed")
+            }
+        }
         when (target) {
             is DataRefExpr -> {
+                require(target.type() is StringType) {"In MOVE, destination variable type ${target.type()} is not admitted"}
                 var newValue = interpret(value).takeLast(target.size().toInt())
                 if (value.type().size < target.size()) {
                     newValue = get(target.variable.referred!!).takeFirst((target.size() - value.type().size).toInt())
@@ -932,7 +946,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    fun interpret(expression: Expression): Value {
+    override fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
         if (expression !is StringLiteral && expression !is IntLiteral &&
             expression !is DataRefExpr && expression !is BlanksRefExpr
