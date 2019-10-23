@@ -694,10 +694,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    private fun toSearchValues(searchArgExpression: Expression): List<Field> {
+    private fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
         val kListName = searchArgExpression.render().toUpperCase()
         val parms = klists[kListName]
-        return parms!!.map { Field(it, get(it)) }
+        return parms!!.map { RecordField(it, get(it)) }
     }
 
     private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =

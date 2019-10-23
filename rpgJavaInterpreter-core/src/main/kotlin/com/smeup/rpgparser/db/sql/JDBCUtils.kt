@@ -104,7 +104,7 @@ fun ResultSet?.currentRecordToValues(): Record {
     for (i in 1..metadata.columnCount) {
         val type = typeFor(metadata.getColumnTypeName(i), metadata.getScale(i), metadata.getPrecision(i))
         val value = type.toValue(this, i)
-        result.add(Field(metadata.getColumnName(i), value))
+        result.add(RecordField(metadata.getColumnName(i), value))
     }
     return result
 }
