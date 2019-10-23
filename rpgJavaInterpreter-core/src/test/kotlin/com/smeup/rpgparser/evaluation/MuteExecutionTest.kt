@@ -69,7 +69,7 @@ class MuteExecutionTest {
         execute(cu, emptyMap())
     }
 
-    @Test @Ignore
+    @Test
     fun parsingSIMPLE_MUTE_FAIL_STATIC_MESSAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_STATIC_MESSAGE", true, withMuteSupport = true)
         cu.resolve()
