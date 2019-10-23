@@ -69,9 +69,9 @@ public class RpgParserOverlayTest12 {
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
-                assertTrue(annotation.result.asBoolean().value)
+                assertTrue(annotation.succeeded())
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.succeeded()}")
                 failed++
             }
         }
@@ -157,9 +157,9 @@ public class RpgParserOverlayTest12 {
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
-                assertTrue(annotation.result.asBoolean().value)
+                assertTrue(annotation.succeeded())
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.succeeded()}")
                 failed++
             }
         }

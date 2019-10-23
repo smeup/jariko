@@ -5,10 +5,10 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.TimeoutException
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -22,7 +22,7 @@ class MuteExecutionTest {
         val interpreter = execute(cu, emptyMap())
         assertEquals(3, interpreter.systemInterface.getExecutedAnnotation().size)
         interpreter.systemInterface.getExecutedAnnotation().forEach {
-            assertEquals(BooleanValue(true), it.value.result)
+            assertTrue(it.value.succeeded())
         }
     }
 
@@ -74,5 +74,22 @@ class MuteExecutionTest {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_STATIC_MESSAGE", true, withMuteSupport = true)
         cu.resolve()
         assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertFalse(muteAnnotationExecuted.succeeded())
+        assertEquals("This code should not be executed", muteAnnotationExecuted.value1Result.render())
+    }
+
+    @Test
+    fun parsingSIMPLE_MUTE_FAIL_EVALUATED_MESSAGE() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_EVALUATED_MESSAGE", true, withMuteSupport = true)
+        cu.resolve()
+        assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertFalse(muteAnnotationExecuted.succeeded())
+        assertEquals("Failure message", muteAnnotationExecuted.value1Result.render())
     }
 }

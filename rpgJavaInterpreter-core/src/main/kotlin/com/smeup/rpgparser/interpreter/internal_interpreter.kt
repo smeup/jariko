@@ -226,12 +226,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val value2 = interpretConcrete(it.val2)
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
                     val value = interpretConcrete(exp)
+                    require(value is BooleanValue) {
+                        "Expected BooleanValue, but found $value"
+                    }
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
                         MuteAnnotationExecuted(
                             this.interpretationContext.currentProgramName,
-                            exp, it.val1,
+                            exp,
+                            it.val1,
                             it.val2,
                             value,
                             value1,
@@ -244,6 +248,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 is MuteTimeoutAnnotation -> {
                     // Skip
+                }
+                is MuteFailAnnotation -> {
+                    val message = interpretConcrete(it.message)
+                    log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, message))
+                    systemInterface.addExecutedAnnotation(
+                        it.position!!.start.line,
+                        MuteAnnotationExecuted.failing(
+                            this.interpretationContext.currentProgramName,
+                            message
+                        )
+                    )
                 }
                 else -> throw UnsupportedOperationException("Unknown type of annotation: $it")
             }

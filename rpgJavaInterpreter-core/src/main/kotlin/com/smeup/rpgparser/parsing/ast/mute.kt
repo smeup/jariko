@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.rpgparser.interpreter.BooleanValue
+import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
@@ -37,4 +39,14 @@ data class MuteAnnotationResolved(val muteLine: Int, val statementLine: Int)
  * The result of executing a mute annotation. Note that currently we have only annotations with two values.
  * This could change in the future.
  */
-data class MuteAnnotationExecuted(val programName: String, val expression: Expression, val value1Expression: Expression, val value2Expression: Expression, val result: Value, val value1Result: Value, val value2Result: Value)
+data class MuteAnnotationExecuted(val programName: String, val expression: Expression, val value1Expression: Expression, val value2Expression: Expression, val result: BooleanValue, val value1Result: Value, val value2Result: Value) {
+    fun succeeded(): Boolean = result.value
+
+    companion object {
+        private val DUMMYEXPRESSION = StringLiteral("")
+        private val DUMMYVALUE = StringValue("")
+
+        fun failing(programName: String, message: Value) =
+            MuteAnnotationExecuted(programName, DUMMYEXPRESSION, DUMMYEXPRESSION, DUMMYEXPRESSION, BooleanValue.FALSE, message, DUMMYVALUE)
+    }
+}

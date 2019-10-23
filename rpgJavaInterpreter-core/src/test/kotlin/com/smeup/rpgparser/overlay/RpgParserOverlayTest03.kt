@@ -37,9 +37,9 @@ public class RpgParserOverlayTest03 {
         val annotations = interpreter.systemInterface.getExecutedAnnotation()
         annotations.forEach { (line, annotation) ->
             try {
-                    assertTrue(annotation.result.asBoolean().value)
+                assertTrue(annotation.succeeded())
             } catch (e: AssertionError) {
-                println("$line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("$line ${annotation.expression.render()} ${annotation.succeeded()}")
                 failed++
             }
         }
