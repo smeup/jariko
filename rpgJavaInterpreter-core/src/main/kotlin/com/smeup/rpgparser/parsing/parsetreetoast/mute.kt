@@ -44,6 +44,14 @@ fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
         is MuteParser.MuteTimeoutContext -> {
             MuteTimeoutAnnotation(annotation.intNumber().NUMBER().text.asLong(), position)
         }
+        is MuteParser.MuteFailAnnotationContext -> {
+            val errors = LinkedList<Error>()
+            val message = RpgParserFacade().createParser(BOMInputStream(("".padStart(8) + annotation.msgExpr().msg).byteInputStream(Charsets.UTF_8)), errors, longLines = true)
+                .expression()
+                .toAst(conf)
+
+            MuteFailAnnotation(message, position)
+        }
         else -> TODO(this.text.toString())
     }
 }

@@ -6,11 +6,14 @@ muteLine: muteAnnotation EOF ;
 
 intNumber: OPEN_PAREN NUMBER CLOSE_PAREN;
 
+msgExpr: OPEN_PAREN msg=EXP CLOSE_PAREN;
+
 muteAnnotation : VAL1 val1=EXP
                  VAL2 val2=EXP
                  COMP cp=muteComparisonOperator #muteComparisonAnnotation
                | TYPE EQUAL NOXMI #muteTypeAnnotation
                | TIMEOUT intNumber #muteTimeout
+               | FAIL msgExpr #muteFailAnnotation
                ;
 
 muteComparisonOperator: EQ | NE | LT | LE | GT | GE ;

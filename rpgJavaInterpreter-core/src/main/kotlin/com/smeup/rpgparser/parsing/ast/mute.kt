@@ -24,6 +24,11 @@ data class MuteTypeAnnotation(override var position: Position? = null) : MuteAnn
 data class MuteTimeoutAnnotation(val timeout: Long, override var position: Position? = null) : MuteAnnotation(position)
 
 /**
+ * A Fail annotation
+ */
+data class MuteFailAnnotation(val message: Expression, override val position: Position? = null) : MuteAnnotation(position)
+
+/**
  * A Mute annotation associated to a statement
  */
 data class MuteAnnotationResolved(val muteLine: Int, val statementLine: Int)
