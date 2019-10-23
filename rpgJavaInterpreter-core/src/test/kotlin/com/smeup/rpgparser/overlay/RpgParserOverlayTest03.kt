@@ -48,27 +48,5 @@ public class RpgParserOverlayTest03 {
         }
     }
 
-    @Test
-    @Ignore // Moved to STRUCT_06
-    fun parseSTRUCT_01_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
-        val cu = assertASTCanBeProduced("struct/STRUCT_01", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
-        var failed: Int = 0
 
-        val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        annotations.forEach { (line, annotation) ->
-            try {
-                assertTrue(annotation.result.asBoolean().value)
-            } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
-                failed++
-            }
-        }
-        if (failed > 0) {
-            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
-        }
-    }
 }
