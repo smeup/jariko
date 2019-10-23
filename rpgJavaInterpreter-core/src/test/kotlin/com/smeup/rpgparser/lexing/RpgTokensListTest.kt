@@ -114,7 +114,7 @@ class RpgTokensListTest {
     }
 
     @test fun deceditDirective() {
-        val tokens = assertExampleCanBeLexed("overlay/MUTE09_02_DEFAULT")
+        val tokens = assertExampleCanBeLexed("overlay/MUTE09_02")
         val tokensAtLine = tokens.filter { it.line == 17 }
         assertEquals(8, tokensAtLine.size)
         assertToken(HS_FIXED, "H", tokensAtLine[0])

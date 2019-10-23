@@ -97,7 +97,7 @@ class RpgDeceditTest09 {
     }
 
     @Test
-    @Ignore 
+    @Ignore
     fun parseMUTE09_02A() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02A", considerPosition = true, withMuteSupport = true)
         cu.resolve()
