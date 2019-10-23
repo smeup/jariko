@@ -126,7 +126,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
 
     fun fY(decedit: String): String {
         var stringN = this.value.abs().unscaledValue().toString().trim()
-        return if (stringN.length <= 6) {
+        return if (type.elementSize() <= 6) {
             stringN = stringN.padStart(6, '0')
             "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size.toInt() + 2)
         } else {
