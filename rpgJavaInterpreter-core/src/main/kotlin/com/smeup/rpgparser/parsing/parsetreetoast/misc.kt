@@ -155,11 +155,10 @@ fun literalToNumber(
     text: String,
     position: Position?
 ): Expression {
-    //fix minus at right
-    val value = if (text.endsWith('-')){
+    // fix minus at right
+    val value = if (text.endsWith('-')) {
         "-" + text.replaceFirst("-", "")
-    }
-    else{
+    } else {
         text
     }
     return when {
