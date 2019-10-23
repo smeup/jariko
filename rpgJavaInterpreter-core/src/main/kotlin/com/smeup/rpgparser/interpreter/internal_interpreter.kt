@@ -798,6 +798,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
                 v1 == v2
             }
+            value1 is DecimalValue && value2 is DecimalValue -> {
+                // ensure 0 equals 0.00000
+                value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
+            }
             else -> value1 == value2
         }
     }

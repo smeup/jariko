@@ -401,16 +401,37 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
 
     return when (DATA_TYPE()?.text?.trim()) {
         null -> TODO()
-        "", RpgType.PACKED.rpgType, RpgType.ZONED.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+        "", RpgType.PACKED.rpgType -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
             val rpgType = DATA_TYPE()?.text?.trim()
             if (this.keyword().any { it.keyword_packeven() != null }) {
-                TODO("Packeven not managed yet")
+                // The PACKEVEN keyword indicates that the packed field or array has an even number of digits.
+                // The keyword is only valid for packed program-described data-structure subfields defined using
+                // FROM/TO positions.
+
+                // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
+                val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
+                val numberOfDigits = 2*(elementSize!!-1)
+
+                NumberType(numberOfDigits, decimalPositions, rpgType)
+                //TODO("Packeven not managed yet")
             }
+            // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
             val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
-            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+            val numberOfDigits = 2*elementSize!!-1
+            NumberType( numberOfDigits, decimalPositions, rpgType)
         } else {
             StringType(elementSize?.toLong()
                     ?: throw RuntimeException("The string has no specified length"))
+        }
+        RpgType.ZONED.rpgType -> {
+            val rpgType = DATA_TYPE()?.text?.trim()
+            val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
+            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+        }
+        RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
+            val rpgType = DATA_TYPE()?.text?.trim()
+            val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
+            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
         }
         "N" -> BooleanType
         "A" -> CharacterType(elementSize!!)

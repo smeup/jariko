@@ -100,8 +100,24 @@ class RpgParserOverlayTest12 {
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         cu.resolve()
+        var failed: Int = 0
+
         val interpreter = InternalInterpreter(JavaSystemInterface())
+
         interpreter.execute(cu, mapOf())
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        annotations.forEach { (line, annotation) ->
+            try {
+                assertTrue(annotation.result.asBoolean().value)
+            } catch (e: AssertionError) {
+                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                failed++
+            }
+        }
+        if (failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
+
     }
 
     @Test
@@ -115,7 +131,6 @@ class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // fix data structure arrays
     fun parseMUTE12_03_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
         cu.resolve()

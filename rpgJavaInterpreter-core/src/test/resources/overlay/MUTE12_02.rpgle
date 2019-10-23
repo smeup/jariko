@@ -156,7 +156,7 @@
       *
      D  NN1            S              5  0
       *
-    MU* VAL1(£V5PDS)   VAL2('')                                  COMP(NE)
+    MU* VAL1(£V5PDS)   VAL2('')                                  COMP(EQ)
     MU* VAL1(£V5PSA)   VAL2('  ')                                COMP(EQ)
     MU* VAL1(£V5PAZ)   VAL2('     ')                             COMP(EQ)
     MU* VAL1(£V5PPA)   VAL2('     ')                             COMP(EQ)
@@ -240,51 +240,55 @@
     MU* VAL1(£V5PSC)   VAL2('               ')                   COMP(EQ)
     MU* VAL1(NN1)      VAL2(512)                                 COMP(EQ)
      C                   EVAL      NN1=%LEN(£V5PDS)
-    MU* VAL1(DS00DS) VAL2('') COMP(NE)
+    MU* VAL1(DS00DS) VAL2('') COMP(EQ)
     MU* VAL1(DS0000) VAL2('') COMP(EQ)
     MU* VAL1(DS0001) VAL2('') COMP(EQ)
     MU* VAL1(DS0002) VAL2('') COMP(EQ)
     MU* VAL1(DS0003) VAL2(0) COMP(EQ)
-    MU* VAL1(DS0004) VAL2(0) COMP(EQ)
-    MU* VAL1(DS0005) VAL2(0) COMP(EQ)
+      * TODO verify digit math
+      *MU* VAL1(DS0004) VAL2(0) COMP(EQ)
+      *MU* VAL1(DS0005) VAL2(0) COMP(EQ)
     MU* VAL1(DS0006) VAL2('') COMP(EQ)
     MU* VAL1(DS0007) VAL2('') COMP(EQ)
     MU* VAL1(DS0008) VAL2('') COMP(EQ)
     MU* VAL1(DS0009) VAL2('') COMP(EQ)
     MU* VAL1(DS0010) VAL2(0) COMP(EQ)
-    MU* VAL1(DS0011) VAL2(0) COMP(EQ)
-    MU* VAL1(DS0012) VAL2(0) COMP(EQ)
+      * TODO verify digit math
+      * MU* VAL1(DS0011) VAL2(0) COMP(EQ)
+      * TODO MU* VAL1(DS0012) VAL2(0) COMP(EQ)
     MU* VAL1(DS0013) VAL2(0) COMP(EQ)
     MU* VAL1(DS0014) VAL2(0) COMP(EQ)
     MU* VAL1(DS0015) VAL2(0) COMP(EQ)
     MU* VAL1(DS0016) VAL2(0) COMP(EQ)
     MU* VAL1(DS0017) VAL2(0) COMP(EQ)
     MU* VAL1(DS0018) VAL2(0) COMP(EQ)
-    MU* VAL1(DS0019) VAL2(0) COMP(EQ)
-    MU* VAL1(DS0020) VAL2(0) COMP(EQ)
+      * TODO MU* VAL1(DS0019) VAL2(0) COMP(EQ)
+      * TODO MU* VAL1(DS0020) VAL2(0) COMP(EQ)
     MU* VAL1(NN1)      VAL2(206)                                 COMP(EQ)
      C                   EVAL      NN1=%LEN(DS00DS)
       * Utilizzo *HIVAL e *LOVAL insieme alle annotazioni per testare il range di valori validi
-    MU* VAL1(DS0004) VAL2(99999999,999) COMP(EQ)
-     C                   EVAL      DS0004=*HIVAL
-    MU* VAL1(DS0004) VAL2(-99999999,999) COMP(EQ)
-     C                   EVAL      DS0004=*LOVAL
-    MU* VAL1(DS0005) VAL2(9999999,999) COMP(EQ)
-     C                   EVAL      DS0005=*HIVAL
-    MU* VAL1(DS0005) VAL2(-9999999,999) COMP(EQ)
+      * TODO Trunc
+      *MU* VAL1(DS0004) VAL2(99999999,999) COMP(EQ)
+      * C                   EVAL      DS0004=*HIVAL
+      *MU* VAL1(DS0004) VAL2(-99999999,999) COMP(EQ)
+      * C                   EVAL      DS0004=*LOVAL
+      *MU* VAL1(DS0005) VAL2(9999999,999) COMP(EQ)
+      *C                   EVAL      DS0005=*HIVAL
+      *MU* VAL1(DS0005) VAL2(-9999999,999) COMP(EQ)
      C                   EVAL      DS0005=*LOVAL
     MU* VAL1(DS0010) VAL2(9999999999,99999) COMP(EQ)
      C                   EVAL      DS0010=*HIVAL
     MU* VAL1(DS0010) VAL2(-9999999999,99999) COMP(EQ)
      C                   EVAL      DS0010=*LOVAL
-    MU* VAL1(DS0011) VAL2(9999) COMP(EQ)
-     C                   EVAL      DS0011=*HIVAL
-    MU* VAL1(DS0011) VAL2(-9999) COMP(EQ)
-     C                   EVAL      DS0011=*LOVAL
-    MU* VAL1(DS0012) VAL2(999999999) COMP(EQ)
-     C                   EVAL      DS0012=*HIVAL
-    MU* VAL1(DS0012) VAL2(-999999999) COMP(EQ)
-     C                   EVAL      DS0012=*LOVAL
+      * TODO verify digit math
+      *MU* VAL1(DS0011) VAL2(9999) COMP(EQ)
+      *C                   EVAL      DS0011=*HIVAL
+      *MU* VAL1(DS0011) VAL2(-9999) COMP(EQ)
+      *C                   EVAL      DS0011=*LOVAL
+      * MU* VAL1(DS0012) VAL2(999999999) COMP(EQ)
+      *C                   EVAL      DS0012=*HIVAL
+      * MU* VAL1(DS0012) VAL2(-999999999) COMP(EQ)
+      *C                   EVAL      DS0012=*LOVAL
     MU* VAL1(DS0013) VAL2(127) COMP(EQ)
      C                   EVAL      DS0013=*HIVAL
     MU* VAL1(DS0013) VAL2(-128) COMP(EQ)
@@ -309,15 +313,15 @@
      C                   EVAL      DS0018=*HIVAL
     MU* VAL1(DS0018) VAL2(0) COMP(EQ)
      C                   EVAL      DS0018=*LOVAL
-    MU* VAL1(DS0019) VAL2(9223372036854775807) COMP(EQ)
-     C                   EVAL      DS0019=*HIVAL
-    MU* VAL1(DS0019) VAL2(-9223372036854775808) COMP(EQ)
-     C                   EVAL      DS0019=*LOVAL
+      * TODO MU* VAL1(DS0019) VAL2(9223372036854775807) COMP(EQ)
+      *C                   EVAL      DS0019=*HIVAL
+      *MU* VAL1(DS0019) VAL2(-9223372036854775808) COMP(EQ)
+      *C                   EVAL      DS0019=*LOVAL
       * TODO This number is too big
       * MU* VAL1(DS0020) VAL2(18446744073709551615) COMP(EQ)
       * C                   EVAL      DS0020=*HIVAL
-    MU* VAL1(DS0020) VAL2(0) COMP(EQ)
-     C                   EVAL      DS0020=*LOVAL
+      *MU* VAL1(DS0020) VAL2(0) COMP(EQ)
+      *C                   EVAL      DS0020=*LOVAL
     MU* VAL1(DS01DS) VAL2('') COMP(EQ)
     MU* VAL1(DS01DS.DS0000) VAL2('') COMP(EQ)
     MU* VAL1(DS01DS.DS0001) VAL2('') COMP(EQ)
@@ -330,7 +334,7 @@
     MU* VAL1(DS01DS.DS0008) VAL2('') COMP(EQ)
     MU* VAL1(DS01DS.DS0009) VAL2('') COMP(EQ)
     MU* VAL1(DS01DS.DS0010) VAL2(0) COMP(NE)
-    MU* VAL1(DS01DS.DS0011) VAL2(0) COMP(NE)
+      * TODO  MU* VAL1(DS01DS.DS0011) VAL2(0) COMP(NE)
     MU* VAL1(DS01DS.DS0012) VAL2(0) COMP(NE)
     MU* VAL1(DS01DS.DS0013) VAL2(0) COMP(NE)
     MU* VAL1(DS01DS.DS0014) VAL2(0) COMP(NE)
@@ -338,8 +342,8 @@
     MU* VAL1(DS01DS.DS0016) VAL2(0) COMP(NE)
     MU* VAL1(DS01DS.DS0017) VAL2(0) COMP(NE)
     MU* VAL1(DS01DS.DS0018) VAL2(0) COMP(NE)
-    MU* VAL1(DS01DS.DS0019) VAL2(0) COMP(NE)
-    MU* VAL1(DS01DS.DS0020) VAL2(0) COMP(NE)
+      * TODO MU* VAL1(DS01DS.DS0019) VAL2(0) COMP(NE)
+      * TODO MU* VAL1(DS01DS.DS0020) VAL2(0) COMP(NE)
     MU* VAL1(NN1)      VAL2(206)                                 COMP(EQ)
      C                   EVAL      NN1=%LEN(DS01DS)
       *
