@@ -5,8 +5,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.streams.toList
 
-//why not space character?
-//const val PAD_CHAR = '\u0000'
 const val PAD_CHAR = '\u0020'
 const val PAD_STRING = PAD_CHAR.toString()
 

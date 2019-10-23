@@ -926,15 +926,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun move(target: AssignableExpression, value: Expression): Value {
-        //Can't move number
-        when (value) {
-            is NumberLiteral -> {
-                throw RuntimeException("In MOVE, factor 2 type: ${NumberLiteral::class.qualifiedName} is not allowed")
-            }
-        }
         when (target) {
             is DataRefExpr -> {
-                require(target.type() is StringType) {"In MOVE, destination variable type ${target.type()} is not admitted"}
                 var newValue = interpret(value).takeLast(target.size().toInt())
                 if (value.type().size < target.size()) {
                     newValue = get(target.variable.referred!!).takeFirst((target.size() - value.type().size).toInt())
