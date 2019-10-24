@@ -725,6 +725,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             throw e
         } catch (e: RuntimeException) {
             throw RuntimeException("Issue executing statement $statement -> $e", e)
+        } catch (e: NotImplementedError) {
+            throw RuntimeException("Issue executing statement $statement -> $e", e)
         }
     }
 
