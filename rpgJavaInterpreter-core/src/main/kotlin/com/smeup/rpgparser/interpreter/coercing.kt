@@ -86,6 +86,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is DataStructureType -> {
             type.blank()
         }
+        is CharacterType -> {
+            return StringValue(value.value)
+        }
 
         else -> TODO("Converting String to $type")
     }
