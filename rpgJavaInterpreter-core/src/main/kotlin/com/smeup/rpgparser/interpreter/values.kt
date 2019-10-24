@@ -382,7 +382,7 @@ fun Type.blank(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) {
             this.element.blank()
         }
-        is DataStructureType -> DataStructValue.blank(this.size.toInt())
+        is DataStructureType -> DataStructValue.blank(this.dataStructure, this.size.toInt())
         is StringType -> StringValue.blank(this.size.toInt())
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
@@ -393,7 +393,7 @@ fun Type.blank(): Value {
 }
 
 // StringValue wrapper
-data class DataStructValue(var value: String) : Value() {
+data class DataStructValue(val dataStructure: DataDefinition, var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
@@ -406,8 +406,13 @@ data class DataStructValue(var value: String) : Value() {
         val v = data.toDataStructureValue(value)
         this.setSubstring(data.startOffset, data.startOffset + data.size.toInt(), v)
     }
+
     fun get(data: FieldDefinition): StringValue {
         return this.getSubstring(data.startOffset, data.endOffset)
+    }
+
+    operator fun get(fieldName: String) : Value {
+        return this.get(this.dataStructure.getFieldByName(fieldName))
     }
 
     val valueWithoutPadding: String
@@ -433,7 +438,7 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     companion object {
-        fun blank(length: Int) = DataStructValue(PAD_STRING.repeat(length))
+        fun blank(dataStructure: DataDefinition, length: Int) = DataStructValue(dataStructure, PAD_STRING.repeat(length))
     }
     override fun toString(): String {
         return "StringValue[${value.length}]($valueWithoutPadding)"

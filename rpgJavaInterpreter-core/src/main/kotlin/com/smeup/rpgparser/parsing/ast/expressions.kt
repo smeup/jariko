@@ -143,6 +143,8 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
         require(variable.name.trim() == variable.name) {
             "The variable name should not starts or ends with whitespace"
         }
+        require(!variable.name.contains(".")) { "The variable name should not contain any dot" }
+        require(!variable.name.contains("(") && !variable.name.contains(")")) { "The variable name should not contain any parenthesis" }
     }
 
     override fun size(): Long {
@@ -152,7 +154,7 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     override fun render() = variable.name
 }
 
-data class QualifiedAccessExpr(val container: DataRefExpr, val fieldName: String, override val position: Position? = null) :
+data class QualifiedAccessExpr(val container: Expression, val fieldName: String, override val position: Position? = null) :
         AssignableExpression(position) {
 
     init {

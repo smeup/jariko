@@ -873,14 +873,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return assign(target.string as AssignableExpression, newValue)
             }
             is QualifiedAccessExpr -> {
-                val refDs = target.container.variable.referred as DataDefinition
-                val field = refDs.fields.find { it.name == target.fieldName }
-
-                if (field != null) {
-                    return assign(field, value)
-                } else {
-                    TODO("Field ${target.fieldName} not found")
-                }
+                TODO()
+//                val refDs = target.container.variable.referred as DataDefinition
+//                val field = refDs.fields.find { it.name == target.fieldName }
+//
+//                if (field != null) {
+//                    return assign(field, value)
+//                } else {
+//                    TODO("Field ${target.fieldName} not found")
+//                }
             }
             else -> TODO(target.toString())
         }
@@ -1246,6 +1247,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         value.asInt()
                     else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
                 }
+            }
+            is QualifiedAccessExpr -> {
+                val containerValue = eval(expression.container)
+                val dataStringValue = containerValue as DataStructValue
+                return dataStringValue[expression.fieldName]
             }
             else -> TODO(expression.toString())
         }

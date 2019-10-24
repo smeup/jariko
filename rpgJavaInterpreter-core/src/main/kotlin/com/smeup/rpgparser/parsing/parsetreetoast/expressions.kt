@@ -96,8 +96,52 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
             this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(
                     this.text.indicatorIndex()!!,
                     toPosition(conf.considerPosition))
+            this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
             else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
         }
+    }
+}
+
+internal fun RpgParser.Multipart_identifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), fieldName: String? = null): Expression {
+    require(this.elements.size == 2) { "More than two elements not yet supported" }
+
+    // The parse tree is not constructed well, and that force us to do... complicated things
+    // The reason is that we could have this case:
+    // A.B(1)
+    // Now, the logic thing is to have:
+    // ArrayAccessOf(
+    //    array=QualifiedAccess(
+    //        container=Ref(A)
+    //        fieldName=B)
+    //    index=1)
+    // While we have
+    // QualifiedAccess(
+    //    container=Ref(A)
+    //    fieldName=ArrayAccessOf(Ref(B), 1))
+    // Which is wrong, and bad, and unhealthy.
+    // So we deal with this here
+
+    if (fieldName == null && this.elements[1].indexed_identifier() != null) {
+        val container = this.toAst(conf, fieldName = this.elements[1].indexed_identifier().free_identifier().idOrKeyword().text)
+        val index = this.elements[1].indexed_identifier().expression().toAst(conf)
+        return ArrayAccessExpr(container, index, position = toPosition(conf.considerPosition))
+    }
+
+    require(fieldName != null || this.elements[1].free_identifier() != null)
+    return QualifiedAccessExpr(
+            container = this.elements[0].toAst(conf),
+            fieldName = fieldName ?: this.elements[1].free_identifier().text,
+            position = toPosition(conf.considerPosition)
+    )
+}
+//
+internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+    return when {
+        this.free_identifier() != null -> DataRefExpr(
+                variable = ReferenceByName(this.free_identifier().text),
+                position = toPosition(conf.considerPosition)
+        )
+        else -> TODO()
     }
 }
 
