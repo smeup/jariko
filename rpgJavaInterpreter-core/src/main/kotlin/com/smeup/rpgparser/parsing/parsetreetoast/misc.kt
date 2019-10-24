@@ -269,10 +269,26 @@ internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return DisplayStmt(left, right, toPosition(conf.considerPosition))
 }
 
-internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataRefExpr {
-    // TODO this should have been parsed differently because here we have to figure out
+internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
+    // this should have been parsed differently because here we have to figure out
     // what kind of expression is this
-    return DataRefExpr(ReferenceByName(this.text), toPosition(conf.considerPosition))
+
+    return handleParsingOfTargets(this.text, toPosition(conf.considerPosition))
+}
+
+private fun handleParsingOfTargets(code: String, position: Position?) : AssignableExpression {
+    require(!code.contains("(") && !code.contains(")"))
+    val parts = code.split(".")
+    require(parts.isNotEmpty())
+    return if (parts.size == 1) {
+        DataRefExpr(ReferenceByName(parts[0]), position)
+    } else {
+        val containerCode = parts.dropLast(1).joinToString(separator = ".")
+        QualifiedAccessExpr(
+                container = handleParsingOfTargets(containerCode, position),
+                field = ReferenceByName(parts.last()!!),
+                position = position)
+    }
 }
 
 internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): PlistStmt {
