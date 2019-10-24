@@ -1,7 +1,9 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.interpreter.DBInterface
+import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DummyDBInterface
+import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.model.*
@@ -53,6 +55,19 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
         if (!esr.subroutine.resolved) {
             require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
                 "Subroutine call not resolved: ${esr.subroutine.name}"
+            }
+        }
+    }
+    this.specificProcess(QualifiedAccessExpr::class.java) { qae ->
+        if (!qae.field.resolved) {
+            if (qae.container is DataRefExpr) {
+                val dataRef = qae.container as DataRefExpr
+                val dataDefinition = dataRef.variable.referred!! as DataDefinition
+                require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
+                    "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"
+                }
+            } else {
+                TODO()
             }
         }
     }

@@ -130,7 +130,7 @@ internal fun RpgParser.Multipart_identifierContext.toAst(conf: ToAstConfiguratio
     require(fieldName != null || this.elements[1].free_identifier() != null)
     return QualifiedAccessExpr(
             container = this.elements[0].toAst(conf),
-            fieldName = fieldName ?: this.elements[1].free_identifier().text,
+            field = ReferenceByName(fieldName ?: this.elements[1].free_identifier().text),
             position = toPosition(conf.considerPosition)
     )
 }

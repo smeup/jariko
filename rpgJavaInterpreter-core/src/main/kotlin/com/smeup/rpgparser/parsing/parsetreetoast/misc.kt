@@ -478,7 +478,7 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         is SubstTargetContext -> this.bif_subst().toAst(conf)
         is QualifiedTargetContext -> QualifiedAccessExpr(
                 DataRefExpr(ReferenceByName(this.container.text), this.container!!.toPosition(conf.considerPosition)),
-                this.getFieldName(),
+                ReferenceByName(this.getFieldName()),
                 toPosition(conf.considerPosition))
         is IndicatorTargetContext -> PredefinedIndicatorExpr(
                 this.indic.text.indicatorIndex()!!,

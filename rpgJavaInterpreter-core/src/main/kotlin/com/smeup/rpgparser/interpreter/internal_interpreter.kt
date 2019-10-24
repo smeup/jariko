@@ -1251,7 +1251,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is QualifiedAccessExpr -> {
                 val containerValue = eval(expression.container)
                 val dataStringValue = containerValue as DataStructValue
-                return dataStringValue[expression.fieldName]
+                return dataStringValue[expression.field.referred ?: throw IllegalStateException("Referenced to field not resolved: ${expression.field.name}")]
             }
             else -> TODO(expression.toString())
         }
