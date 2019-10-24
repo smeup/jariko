@@ -873,15 +873,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return assign(target.string as AssignableExpression, newValue)
             }
             is QualifiedAccessExpr -> {
-                TODO()
-//                val refDs = target.container.variable.referred as DataDefinition
-//                val field = refDs.fields.find { it.name == target.fieldName }
-//
-//                if (field != null) {
-//                    return assign(field, value)
-//                } else {
-//                    TODO("Field ${target.fieldName} not found")
-//                }
+                val container = eval(target.container) as DataStructValue
+                return container[target.field.referred!!]
             }
             else -> TODO(target.toString())
         }
@@ -1026,7 +1019,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return if (index == -1) 0.asValue() else (index + 1).asValue()
             }
             is ArrayAccessExpr -> {
-                val arrayValue = interpret(expression.array) as ArrayValue
+                val arrayValueRaw = interpret(expression.array)
+                val arrayValue = arrayValueRaw as? ArrayValue
+                        ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
                 val indexValue = interpret(expression.index)
                 return arrayValue.getElement(indexValue.asInt().value.toInt())
             }
@@ -1189,15 +1184,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return DecimalValue(BigDecimal(Math.pow(v1.asInt().value.toDouble(), v2.asInt().value.toDouble())))
             }
             is TrimrExpr -> {
-                if (expression.charactersToTrim == null) {
-                    return StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
+                return if (expression.charactersToTrim == null) {
+                    StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
                 } else {
                     val suffix = eval(expression.charactersToTrim).asString().value
                     var result = eval(expression.value).asString().value.removeNullChars()
                     while (result.endsWith(suffix)) {
                         result = result.substringBefore(suffix)
                     }
-                    return StringValue(result)
+                    StringValue(result)
                 }
             }
             is TrimlExpr -> {

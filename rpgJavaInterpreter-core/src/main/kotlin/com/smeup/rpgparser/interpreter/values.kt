@@ -388,7 +388,8 @@ fun Type.blank(): Value {
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
-        else -> TODO()
+        is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
+        else -> TODO("I do not know how to produce a blank $this")
     }
 }
 
@@ -407,8 +408,8 @@ data class DataStructValue(var value: String) : Value() {
         this.setSubstring(data.startOffset, data.startOffset + data.size.toInt(), v)
     }
 
-    operator fun get(data: FieldDefinition): StringValue {
-        return this.getSubstring(data.startOffset, data.endOffset)
+    operator fun get(data: FieldDefinition): Value {
+        return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
     }
 
     val valueWithoutPadding: String

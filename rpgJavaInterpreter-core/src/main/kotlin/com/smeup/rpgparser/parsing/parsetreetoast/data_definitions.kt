@@ -391,6 +391,17 @@ internal fun RpgParser.Parm_fixedContext.toAst(
 }
 
 internal fun RpgParser.Parm_fixedContext.toType(): Type {
+    if (this.keyword().any { it.keyword_dim() != null }) {
+        val dims = this.keyword().mapNotNull { it.keyword_dim() }
+        require(dims.size == 1)
+        val dim = dims[0]
+        val nElements = dim.numeric_constant.text.toInt()
+        return ArrayType(this.toElementType(), nElements)
+    }
+    return this.toElementType()
+}
+
+internal fun RpgParser.Parm_fixedContext.toElementType(): Type {
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
     val elementSize = when {

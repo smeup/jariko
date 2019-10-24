@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.overlay
 
 import com.smeup.rpgparser.inputStreamFor
+import com.smeup.rpgparser.interpreter.ArrayType
+import com.smeup.rpgparser.interpreter.CharacterType
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
@@ -60,6 +62,14 @@ class RpgParserOverlayTest12 {
         assertEquals(36, f1.fields.size)
         assertEquals(36, uibds.fields.size)
         assertEquals(uibds.type, f1.type)
+    }
+
+    @Test
+    fun recognizeArrayFieldInDS() {
+        val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
+        val ds1 = cu.dataDefinitions.find { it.name == "DS1" }!!
+        val AR1 = ds1.getFieldByName("AR1")
+        assertEquals(ArrayType(CharacterType(10), 10), AR1.type)
     }
 
     @Test

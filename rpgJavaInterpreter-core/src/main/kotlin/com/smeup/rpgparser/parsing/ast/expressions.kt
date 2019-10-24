@@ -169,7 +169,7 @@ data class QualifiedAccessExpr(val container: Expression, val field: ReferenceBy
         TODO()
     }
 
-    override fun render() = TODO()
+    override fun render() = "${container.render()}.${field.name}"
 }
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) :

@@ -113,8 +113,7 @@
     MU* VAL1(DS1.AR2(10)) VAL2('0') COMP(EQ)
      C                   EVAL      DS1.AR2=*OFF
       *
-      * TODO commented out while investigating if this is correct
-    M** VAL1(§F1.£UIBDS) VAL2('') COMP(EQ)
+    MU* VAL1(§F1) VAL2('') COMP(EQ)
     MU* VAL1(§F1.£UIBT1) VAL2('') COMP(EQ)
     MU* VAL1(§F1.£UIBP1) VAL2('') COMP(EQ)
     MU* VAL1(§F1.£UIBK1) VAL2('') COMP(EQ)
