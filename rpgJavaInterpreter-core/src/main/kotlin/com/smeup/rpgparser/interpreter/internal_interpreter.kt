@@ -773,12 +773,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun areEquals(value1: Value, value2: Value): Boolean {
         return when {
-            value1 is DecimalValue && value2 is IntValue -> {
-                value1.asInt() == value2
+            value1 is DecimalValue && value2 is IntValue ||
+            value1 is IntValue && value2 is DecimalValue ||
+            value1 is DecimalValue && value2 is DecimalValue -> {
+                // Convert everything to Decimal then compare
+                value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
             }
-            value1 is IntValue && value2 is DecimalValue -> {
-                value2.asInt() == value1
-            }
+
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
 
@@ -798,10 +799,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
                 v1 == v2
             }
-            value1 is DecimalValue && value2 is DecimalValue -> {
-                // ensure 0 equals 0.00000
-                value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
-            }
+
             else -> value1 == value2
         }
     }
