@@ -104,7 +104,7 @@
      C*-------------------------------------------------------------------
      C     £FUN02        BEGSR
      C*
-     C                   CALL      'MUTE11_11C'
+     C                   CALL      £FUNPG
      C     £FUNPG        PARM      *BLANKS       £FUNNP           10
      C                   PARM                    £FUNFU           10
      C                   PARM                    £FUNME           10
