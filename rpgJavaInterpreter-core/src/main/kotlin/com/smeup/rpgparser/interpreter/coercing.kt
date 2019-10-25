@@ -67,7 +67,6 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     }
                 }
             } else {
-                // TODO do not decode blanks
                 if (!value.isBlank()) {
                     val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
                     DecimalValue(decimalValue)
@@ -85,6 +84,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
         }
         is DataStructureType -> {
             type.blank()
+        }
+        is CharacterType -> {
+            return StringValue(value.value)
         }
 
         else -> TODO("Converting String to $type")
@@ -161,6 +163,7 @@ private fun computeHiValue(type: NumberType): Value {
     // Integer
     if (type.rpgType == RpgType.INTEGER.rpgType) {
         when (type.entireDigits) {
+            1 -> return IntValue(Byte.MAX_VALUE.toLong())
             3 -> return IntValue(Byte.MAX_VALUE.toLong())
             5 -> return IntValue(Short.MAX_VALUE.toLong())
             10 -> return IntValue(Int.MAX_VALUE.toLong())
@@ -171,6 +174,7 @@ private fun computeHiValue(type: NumberType): Value {
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
         when (type.entireDigits) {
+            1 -> return IntValue(UByte.MAX_VALUE.toLong())
             3 -> return IntValue(UByte.MAX_VALUE.toLong())
             5 -> return IntValue(UShort.MAX_VALUE.toLong())
             10 -> return IntValue(UInt.MAX_VALUE.toLong())
