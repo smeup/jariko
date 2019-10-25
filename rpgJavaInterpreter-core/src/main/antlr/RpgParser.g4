@@ -2416,7 +2416,13 @@ identifier: free_identifier |multipart_identifier | all;
 all: symbolicConstants literal?;
 //assignIdentifier: multipart_identifier;
 functionName: free_identifier;
-multipart_identifier: (free_identifier | indexed_identifier) (FREE_DOT (free_identifier | indexed_identifier))*;
+
+// This part should be refactored. As it is it does not handle well prorities and build a complex parse tree
+multipart_identifier: elements+=multipart_identifier_element (FREE_DOT elements+=multipart_identifier_element)*;
+multipart_identifier_element:
+      free_identifier
+    | indexed_identifier
+    ;
 indexed_identifier: free_identifier OPEN_PAREN (expression | ARRAY_REPEAT) CLOSE_PAREN;
 opCode: free_identifier;
 number: MINUS? NUMBER NumberPart* ;

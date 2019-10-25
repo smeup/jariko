@@ -86,6 +86,10 @@ data class DataDefinition(
     fun endOffset(fieldDefinition: FieldDefinition): Int {
         return (startOffset(fieldDefinition) + fieldDefinition.elementSize()).toInt()
     }
+
+    fun getFieldByName(fieldName: String): FieldDefinition {
+        return this.fields.find { it.name == fieldName } ?: throw java.lang.IllegalArgumentException("Field not found $fieldName")
+    }
 }
 
 data class FieldDefinition(

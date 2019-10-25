@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.FieldDefinition
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
@@ -143,6 +144,8 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
         require(variable.name.trim() == variable.name) {
             "The variable name should not starts or ends with whitespace"
         }
+        require(!variable.name.contains(".")) { "The variable name should not contain any dot: <${variable.name}>" }
+        require(!variable.name.contains("(") && !variable.name.contains(")")) { "The variable name should not contain any parenthesis" }
     }
 
     override fun size(): Long {
@@ -152,12 +155,12 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     override fun render() = variable.name
 }
 
-data class QualifiedAccessExpr(val container: DataRefExpr, val fieldName: String, override val position: Position? = null) :
+data class QualifiedAccessExpr(val container: Expression, val field: ReferenceByName<FieldDefinition>, override val position: Position? = null) :
         AssignableExpression(position) {
 
     init {
-        require(fieldName.isNotBlank()) { "The field name should not blank" }
-        require(fieldName.trim() == fieldName) {
+        require(field.name.isNotBlank()) { "The field name should not blank" }
+        require(field.name.trim() == field.name) {
             "The field name should not starts or ends with whitespace"
         }
     }
@@ -166,7 +169,7 @@ data class QualifiedAccessExpr(val container: DataRefExpr, val fieldName: String
         TODO()
     }
 
-    override fun render() = TODO()
+    override fun render() = "${container.render()}.${field.name}"
 }
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) :
