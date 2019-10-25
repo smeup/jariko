@@ -180,82 +180,11 @@ class InStatementDataDefinition(
     val initializationValue: Expression? = null
 ) : AbstractDataDefinition(name, type, position)
 
+
+
 //
-// Encode a numeric value for a data structure
-// In oroder to fit
-// Returns a String with a len < of the number of digits declared
+// Encode a binary value for a data structure
 //
-fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
-    // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
-    val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
-    var buffer = ByteArray(inChars.size / 2 + 1)
-
-    // read the sign
-    val sign = inValue.signum()
-
-    var offset = 0
-    var inPosition = 0
-    var firstNibble: Int
-    var secondNibble: Int
-
-    // place all the digits except last one
-    while (inPosition < inChars.size - 1) {
-        firstNibble = ((inChars[inPosition++].toInt()) and 0x000F) shl 4
-        secondNibble = (inChars[inPosition++].toInt()) and 0x000F
-        buffer[offset++] = (firstNibble + secondNibble).toByte()
-    }
-
-    // place last digit and sign nibble
-    if (inPosition == inChars.size) {
-        firstNibble = 0x00F0
-    } else {
-        firstNibble = (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
-    }
-    if (sign != -1) {
-        buffer[offset] = (firstNibble + 0x000F).toByte()
-    } else {
-        buffer[offset] = (firstNibble + 0x000D).toByte()
-    }
-
-    return Base64.getEncoder().withoutPadding().encodeToString(buffer)
-}
-
-fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
-    val buffer = Base64.getDecoder().decode(value)
-    var sign: String = ""
-    var number: String = ""
-    var nibble = ((buffer[buffer.size - 1]).toInt() and 0x0F)
-    if (nibble == 0x0B || nibble == 0x0D) {
-        sign = "-"
-    }
-
-    var offset = 0
-    while (offset < (buffer.size - 1)) {
-        nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
-        number += Character.toString((nibble or 0x30).toChar())
-        nibble = buffer[offset].toInt() and 0x0F or 0x30
-        number += Character.toString((nibble or 0x30).toChar())
-
-        offset++
-    }
-
-    // read last digit
-    nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
-    if (nibble <= 9) {
-        number += Character.toString((nibble or 0x30).toChar())
-    }
-    // adjust the scale
-    if (scale > 0) {
-        val len = number.length
-        number = number.substring(0, len - scale) + "." + number.substring(len - scale, len)
-    }
-    number = sign + number
-    try {
-        return value.toBigDecimal()
-    } catch (e: Exception) {
-        return number.toBigDecimal()
-    }
-}
 
 fun encodeBinary(inValue: BigDecimal, digits: Int): String {
     val buffer = ByteArray(digits)
@@ -297,4 +226,89 @@ fun decodeBinary(value: String, digits: Int): BigDecimal {
         return BigDecimal(number.toInt().toString())
     }
     TODO("encode binary for $digits not implemented")
+}
+
+//
+// Encode a numeric value for a data structure
+//
+fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
+    // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
+    val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
+    var buffer = IntArray(inChars.size / 2 + 1)
+
+    // read the sign
+    val sign = inValue.signum()
+
+    var offset = 0
+    var inPosition = 0
+    var firstNibble: Int
+    var secondNibble: Int
+
+    // place all the digits except last one
+    while (inPosition < inChars.size - 1) {
+        firstNibble = ((inChars[inPosition++].toInt()) and 0x000F) shl 4
+        secondNibble = (inChars[inPosition++].toInt()) and 0x000F
+        buffer[offset++] = (firstNibble + secondNibble).toInt()
+    }
+
+    // place last digit and sign nibble
+    if (inPosition == inChars.size) {
+        firstNibble = 0x00F0
+    } else {
+        firstNibble = (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
+    }
+    if (sign != -1) {
+        buffer[offset] = (firstNibble + 0x000F).toInt()
+    } else {
+        buffer[offset] = (firstNibble + 0x000D).toInt()
+    }
+
+    var s = ""
+    buffer.forEach { byte ->
+        s += byte.toChar()
+    }
+
+    return s
+}
+
+fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
+    val buffer = IntArray(value.length)
+    for(i in value.indices) {
+        buffer[i] = value[i].toInt()
+    }
+
+
+    var sign: String = ""
+    var number: String = ""
+    var nibble = ((buffer[buffer.size - 1]).toInt() and 0x0F)
+    if (nibble == 0x0B || nibble == 0x0D) {
+        sign = "-"
+    }
+
+    var offset = 0
+    while (offset < (buffer.size - 1)) {
+        nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
+        number += Character.toString((nibble or 0x30).toChar())
+        nibble = buffer[offset].toInt() and 0x0F or 0x30
+        number += Character.toString((nibble or 0x30).toChar())
+
+        offset++
+    }
+
+    // read last digit
+    nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
+    if (nibble <= 9) {
+        number += Character.toString((nibble or 0x30).toChar())
+    }
+    // adjust the scale
+    if (scale > 0) {
+        val len = number.length
+        number = number.substring(0, len - scale) + "." + number.substring(len - scale, len)
+    }
+    number = sign + number
+    try {
+        return value.toBigDecimal()
+    } catch (e: Exception) {
+        return number.toBigDecimal()
+    }
 }
