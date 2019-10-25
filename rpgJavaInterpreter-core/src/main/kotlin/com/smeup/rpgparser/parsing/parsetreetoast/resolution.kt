@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.interpreter.DBInterface
+import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
@@ -31,8 +32,21 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
 
     this.specificProcess(DataRefExpr::class.java) { dre ->
         if (!dre.variable.resolved) {
-            require(dre.variable.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
-                "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
+
+            if (dre.variable.name.contains('.')) {
+                val ds = dre.variable.name.substring(0, dre.variable.name.indexOf("."))
+                val resDs = this.allDataDefinitions.find { if (it.name == null) false else it.name.equals(ds, true) }
+                // dre.variable.referred = resDs
+
+                val field = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
+
+                val resFld = this.allDataDefinitions.find { if (it.name == null) false else it.name.equals(field, true) }
+                dre.variable.referred = resFld
+            } else {
+
+                require(dre.variable.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
+                    "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
+                }
             }
         }
     }
@@ -40,6 +54,19 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
         if (!esr.subroutine.resolved) {
             require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
                 "Subroutine call not resolved: ${esr.subroutine.name}"
+            }
+        }
+    }
+    this.specificProcess(QualifiedAccessExpr::class.java) { qae ->
+        if (!qae.field.resolved) {
+            if (qae.container is DataRefExpr) {
+                val dataRef = qae.container as DataRefExpr
+                val dataDefinition = dataRef.variable.referred!! as DataDefinition
+                require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
+                    "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"
+                }
+            } else {
+                TODO()
             }
         }
     }

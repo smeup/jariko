@@ -13,6 +13,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntr
 import com.smeup.rpgparser.utils.*
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeoutException
@@ -88,7 +89,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
+    operator fun get(data: AbstractDataDefinition): Value {
+        return globalSymbolTable[data]
+    }
     operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -96,12 +99,23 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             "Line ${data.position.line()}: $data cannot be assigned the value $value"
         }
 
-        var previous: Value? = null
-        if (globalSymbolTable.contains(data.name)) {
-            previous = globalSymbolTable[data.name]
+        when (data) {
+            // Field are stored within the Data Structure definition
+            is FieldDefinition -> {
+                val ds = data.parent as DataDefinition
+                val dd = get(ds.name) as DataStructValue
+                // DataStructValuw Wrapper
+                dd.set(data, value)
+            }
+            else -> {
+                var previous: Value? = null
+                if (globalSymbolTable.contains(data.name)) {
+                    previous = globalSymbolTable[data.name]
+                }
+                log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
+                globalSymbolTable[data] = coerce(value, data.type)
+            }
         }
-        log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
-        globalSymbolTable[data] = coerce(value, data.type)
     }
 
     private fun initialize(
@@ -423,7 +437,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     val startTime = currentTimeMillis()
                     val paramValuesAtTheEnd =
                         try {
-
                             program.execute(systemInterface, params).apply {
                                 log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             }
@@ -660,7 +673,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.name)!!, it.value) }
+                        record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
                     } else {
                         lastFound = false
                     }
@@ -680,7 +693,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     if (!record.isEmpty()) {
                         lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.name)!!, it.value) }
+                        record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
                     } else {
                         lastFound = false
                     }
@@ -766,13 +779,35 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun areEquals(value1: Value, value2: Value): Boolean {
         return when {
+            value1 is DecimalValue && value2 is IntValue ||
+            value1 is IntValue && value2 is DecimalValue -> {
+                value1.asInt() == value2.asInt()
+            }
+            value1 is DecimalValue && value2 is DecimalValue -> {
+                // Convert everything to Decimal then compare
+                value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
+            }
+
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
+
             value1 is StringValue && value2 is StringValue -> {
-                val v1 = value1.value.removeNullChars().trimEnd()
-                val v2 = value2.value.removeNullChars().trimEnd()
+                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
+                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
                 v1 == v2
             }
+
+            value1 is DataStructValue && value2 is StringValue -> {
+                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
+                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                v1 == v2
+            }
+            value1 is StringValue && value2 is DataStructValue -> {
+                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
+                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                v1 == v2
+            }
+
             else -> value1 == value2
         }
     }
@@ -787,6 +822,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is DecimalValue -> value.value.toString() // TODO: formatting rules
             is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
             is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
+            is DataStructValue -> value.valueWithoutPadding.trimEnd()
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
     }
@@ -843,6 +879,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
 
                 return assign(target.string as AssignableExpression, newValue)
+            }
+            is QualifiedAccessExpr -> {
+                val container = eval(target.container) as DataStructValue
+                return container[target.field.referred!!]
             }
             else -> TODO(target.toString())
         }
@@ -941,18 +981,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val decDigits = interpret(expression.decDigits).asInt().value
                 val valueAsString = interpret(expression.value).asString().value
                 return if (decDigits == 0L) {
-                    IntValue(cleanNumericString(valueAsString).asLong())
+                    IntValue(valueAsString.removeNullChars().asLong())
                 } else {
-                    DecimalValue(BigDecimal(valueAsString.moveEndingString("-")))
-                }
-            }
-            is IntExpr -> {
-                return when (val value = interpret(expression.value)) {
-                    is StringValue ->
-                        IntValue(cleanNumericString(value.value).asLong())
-                    is DecimalValue ->
-                        value.asInt()
-                    else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
+                    DecimalValue(BigDecimal(valueAsString))
                 }
             }
             is PlusExpr -> {
@@ -996,7 +1027,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return if (index == -1) 0.asValue() else (index + 1).asValue()
             }
             is ArrayAccessExpr -> {
-                val arrayValue = interpret(expression.array) as ArrayValue
+                val arrayValueRaw = interpret(expression.array)
+                val arrayValue = arrayValueRaw as? ArrayValue
+                        ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
                 val indexValue = interpret(expression.index)
                 return arrayValue.getElement(indexValue.asInt().value.toInt())
             }
@@ -1077,7 +1110,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val value = eval(expression.value)
                 return when (value) {
                     is StringValue -> value.value.length.asValue()
-                    else -> TODO(value.toString())
+                    is DataStructValue -> value.value.length.asValue()
+                    else -> {
+                        TODO(value.toString())
+                    }
                 }
             }
             is OffRefExpr -> {
@@ -1111,12 +1147,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
                 return n.asDecimal().formatAs(format.value, expression.value.type(), this.decedit)
             }
-            is EditwExpr -> {
-                val n = eval(expression.value)
-                val format = eval(expression.format)
-                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
-                return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
-            }
             is DiffExpr -> {
                 // TODO expression.durationCode
                 val v1 = eval(expression.value1)
@@ -1128,9 +1158,30 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = eval(expression.right)
                 // TODO check type
                 if (v1 is DecimalValue && v2 is DecimalValue) {
-                    // TODO maurizio need to know the target size
+
+                    val parent = expression.parent as EvalStmt
+                    val targetType = parent.target.type() as NumberType
+                    // Detects what kind of eval must be evaluated
+                    if (expression.parent is EvalStmt) {
+                        // EVAL(H)
+                        if (parent.flags.halfAdjust) {
+                            val targetType = parent.target.type() as NumberType
+                            // perform the calculation, adjust the operand scale to the target
+                            val res = v1.value.setScale(targetType.decimalDigits).divide(v2.value.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
+                            return DecimalValue(res)
+                        }
+                        // Eval(M)
+                        if (parent.flags.maximumNumberOfDigitsRule) {
+                            TODO("EVAL(M) not supported yet")
+                        }
+                        // Eval(R)
+                        if (parent.flags.resultDecimalPositionRule) {
+                            TODO("EVAL(R) not supported yet")
+                        }
+                    }
+                    // As per documentation should use RoundingMode.DOWN
                     val res = v1.value.toDouble() / v2.value.toDouble()
-                    return DecimalValue(BigDecimal(res))
+                    return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits, RoundingMode.DOWN))
                 }
 
                 return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
@@ -1141,15 +1192,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return DecimalValue(BigDecimal(Math.pow(v1.asInt().value.toDouble(), v2.asInt().value.toDouble())))
             }
             is TrimrExpr -> {
-                if (expression.charactersToTrim == null) {
-                    return StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
+                return if (expression.charactersToTrim == null) {
+                    StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
                 } else {
                     val suffix = eval(expression.charactersToTrim).asString().value
                     var result = eval(expression.value).asString().value.removeNullChars()
                     while (result.endsWith(suffix)) {
                         result = result.substringBefore(suffix)
                     }
-                    return StringValue(result)
+                    StringValue(result)
                 }
             }
             is TrimlExpr -> {
@@ -1185,21 +1236,31 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val value = interpret(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
             }
-
+            is EditwExpr -> {
+                val n = eval(expression.value)
+                val format = eval(expression.format)
+                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
+                return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
+            }
+            is IntExpr -> {
+                return when (val value = interpret(expression.value)) {
+                    is StringValue ->
+                        IntValue(cleanNumericString(value.value).asLong())
+                    is DecimalValue ->
+                        value.asInt()
+                    else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
+                }
+            }
+            is QualifiedAccessExpr -> {
+                val containerValue = eval(expression.container)
+                val dataStringValue = containerValue as DataStructValue
+                return dataStringValue[expression.field.referred ?: throw IllegalStateException("Referenced to field not resolved: ${expression.field.name}")]
+            }
             else -> TODO(expression.toString())
         }
     }
 
-    private fun cleanNumericString(s: String): String {
-        val result = s.removeNullChars().moveEndingString("-")
-        return when {
-            result.contains(".") -> result.substringBefore(".")
-            result.contains(",") -> result.substringBefore(",")
-            else -> result
-        }
-    }
-
-    private fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
+    fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return dataDefinition.type.blank()
     }
@@ -1214,5 +1275,14 @@ private fun Boolean.asValue() = BooleanValue(this)
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
+
+private fun cleanNumericString(s: String): String {
+    val result = s.removeNullChars().moveEndingString("-")
+    return when {
+        result.contains(".") -> result.substringBefore(".")
+        result.contains(",") -> result.substringBefore(",")
+        else -> result
+    }
+}
 
 fun blankValue(size: Int) = StringValue(" ".repeat(size))

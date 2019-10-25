@@ -1,12 +1,13 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.utils.isZero
+import java.math.BigDecimal
 import java.math.BigDecimal.ZERO
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 
-internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String): StringValue {
+internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, padChar: Char = ' '): StringValue {
     fun signumChar(empty: Boolean) = (if (this.value < ZERO) "-" else if (empty) "" else " ")
 
     fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
@@ -16,67 +17,69 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String):
         return commas(t) + points(t)
     }
 
+    fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
+
     fun f1(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
 
         return when (decedit) {
             "," -> {
-                val s =
-                    DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(
-                        this.value.abs()
-                    )
-                s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
+                val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                s.padStart(type.size.toInt() + nrOfPunctuationsIn(type), padChar)
             }
             "0," -> {
-                val s =
-                    DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(
-                        this.value.abs()
-                    )
-                s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
+                if (this.value.abs() < BigDecimal.ONE) {
+                    val s = "0" + DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                    s.padStart(type.size.toInt() + nrOfPunctuationsIn(type), padChar)
+                } else {
+                    val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                    s.padStart(type.size.toInt() + nrOfPunctuationsIn(type), padChar)
+                }
             }
             else -> {
-                val s = DecimalFormat(
-                    "#,###" + decimalsFormatString(type),
-                    DecimalFormatSymbols(Locale.US)
-                ).format(this.value.abs())
-                s.padStart(type.size.toInt() + nrOfPunctuationsIn(type))
+                val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+                s.padStart(type.size.toInt() + nrOfPunctuationsIn(type), padChar)
             }
         }
     }
 
-    fun f2(decedit: String): String =
-        if (this.value.isZero()) "".padStart(type.size.toInt() + nrOfPunctuationsIn(type as NumberType)) else f1(decedit)
+    fun f2(decedit: String): String {
+        if (this.value.isZero()) {
+            return "".padStart(type.size.toInt() + nrOfPunctuationsIn(type as NumberType))
+        } else {
+            return f1(decedit)
+        }
+    }
 
     fun f3(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
             "," -> {
-                val s = DecimalFormat(
-                    "#" + decimalsFormatString(type),
-                    DecimalFormatSymbols(Locale.ITALIAN)
-                ).format(this.value.abs())
-                s.padStart(type.size.toInt() + points(type))
+                val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                s.padStart(type.size.toInt() + points(type), padChar)
             }
             "0," -> {
-                val s = DecimalFormat(
-                    "#" + decimalsFormatString(type),
-                    DecimalFormatSymbols(Locale.ITALIAN)
-                ).format(this.value.abs())
-                s.padStart(type.size.toInt() + points(type))
+                if (this.value.abs() < BigDecimal.ONE) {
+                    val s = "0" + DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                    s.padStart(type.size.toInt() + points(type), padChar)
+                } else {
+                    val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+                    s.padStart(type.size.toInt() + points(type), padChar)
+                }
             }
             else -> {
-                val s = DecimalFormat(
-                    "#" + decimalsFormatString(type),
-                    DecimalFormatSymbols(Locale.US)
-                ).format(this.value.abs())
-                s.padStart(type.size.toInt() + points(type))
+                val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+                s.padStart(type.size.toInt() + points(type), padChar)
             }
         }
     }
 
-    fun f4(decedit: String): String =
-        if (this.value.isZero()) "".padStart(type.size.toInt() + points(type as NumberType)) else f3(decedit)
-
+    fun f4(decedit: String): String {
+        if (this.value.isZero()) {
+            return "".padStart(type.size.toInt() + points(type as NumberType))
+        } else
+            return f3(decedit)
+    }
     fun fA(decedit: String): String {
         return if (this.value < ZERO) {
             f1(decedit) + "CR"
@@ -123,14 +126,12 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String):
 
     fun fY(decedit: String): String {
         var stringN = this.value.abs().unscaledValue().toString().trim()
-        return if (stringN.length <= 6) {
+        return if (type.elementSize() <= 6) {
             stringN = stringN.padStart(6, '0')
             "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size.toInt() + 2)
         } else {
             stringN = stringN.padStart(8, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(
-                type.size.toInt() + 2
-            )
+            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size.toInt() + 2)
         }
     }
 

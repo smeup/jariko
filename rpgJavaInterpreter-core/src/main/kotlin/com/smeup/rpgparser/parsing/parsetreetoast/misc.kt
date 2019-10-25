@@ -4,6 +4,7 @@ import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import java.lang.IllegalStateException
@@ -26,6 +27,39 @@ fun List<Node>.position(): Position? {
     }
 }
 
+internal interface DataDefinitionProvider {
+    fun isReady(): Boolean
+    fun toDataDefinition(): DataDefinition
+}
+private data class DataDefinitionHolder(val dataDefinition: DataDefinition) : DataDefinitionProvider {
+    override fun isReady() = true
+    override fun toDataDefinition() = dataDefinition
+}
+private data class DataDefinitionCalculator(val calculator: () -> DataDefinition) : DataDefinitionProvider {
+    override fun isReady() = false
+    override fun toDataDefinition() = calculator()
+}
+
+private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
+    // We need to calculate first all the data definitions which do not contain the LIKE DS directives
+    // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
+    // after them
+    var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList<DataDefinitionProvider>()
+    dataDefinitionProviders.addAll(this.statement()
+            .mapNotNull {
+                when {
+                    it.dspec() != null -> DataDefinitionHolder(it.dspec().toAst(conf))
+                    it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                    } else {
+                        DataDefinitionHolder(it.dcl_ds().toAst(conf))
+                    }
+                    else -> null
+                }
+            })
+    return dataDefinitionProviders.map { it.toDataDefinition() }
+}
+
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
     val fileDefinitions = this.statement()
             .mapNotNull {
@@ -34,14 +68,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
                     else -> null
                 }
             }
-    val dataDefinitions = this.statement()
-            .mapNotNull {
-                when {
-                    it.dspec() != null -> it.dspec().toAst(conf)
-                    it.dcl_ds() != null -> it.dcl_ds().toAst(conf)
-                    else -> null
-                }
-            }
+    val dataDefinitions = getDataDefinitions(conf)
+
     val mainStmts = this.statement().mapNotNull {
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().toAst(conf)
@@ -51,13 +79,23 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     }
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
+    val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
     return CompilationUnit(
             fileDefinitions,
             dataDefinitions,
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines,
             compileTimeArrays,
+            directives,
             position = this.toPosition(conf.considerPosition))
+}
+
+private fun Dcl_dsContext.useLikeDs(): Boolean {
+    val keywordLikeDs = this.keyword_likeds()
+    if (keywordLikeDs != null) {
+        TODO()
+    }
+    return (this.keyword().any { it.keyword_likeds() != null })
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
@@ -231,10 +269,26 @@ internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return DisplayStmt(left, right, toPosition(conf.considerPosition))
 }
 
-internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataRefExpr {
-    // TODO this should have been parsed differently because here we have to figure out
+internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
+    // this should have been parsed differently because here we have to figure out
     // what kind of expression is this
-    return DataRefExpr(ReferenceByName(this.text), toPosition(conf.considerPosition))
+
+    return handleParsingOfTargets(this.text, toPosition(conf.considerPosition))
+}
+
+private fun handleParsingOfTargets(code: String, position: Position?): AssignableExpression {
+    require(!code.contains("(") && !code.contains(")"))
+    val parts = code.split(".")
+    require(parts.isNotEmpty())
+    return if (parts.size == 1) {
+        DataRefExpr(ReferenceByName(parts[0]), position)
+    } else {
+        val containerCode = parts.dropLast(1).joinToString(separator = ".")
+        QualifiedAccessExpr(
+                container = handleParsingOfTargets(containerCode, position),
+                field = ReferenceByName(parts.last()!!),
+                position = position)
+    }
 }
 
 internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): PlistStmt {
@@ -276,7 +330,7 @@ private fun dataType(len: Long, decimals: Long?): Type =
     if (decimals == null) {
         StringType(len)
     } else {
-        NumberType(len.toInt(), decimals.toInt())
+        NumberType(len.toInt() - decimals.toInt(), decimals.toInt())
     }
 
 internal fun Token.asLong(): Long? {
@@ -314,10 +368,17 @@ internal fun CsEXSRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalStmt {
+    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    val flags = EvalFlags(
+            halfAdjust = 'H' in extenders,
+            maximumNumberOfDigitsRule = 'M' in extenders,
+            resultDecimalPositionRule = 'R' in extenders
+    )
     return EvalStmt(
             this.target().toAst(conf),
             this.fixedexpression.expression().toAst(conf),
             operator = this.operator.toAssignmentOperator(),
+            flags = flags,
             position = toPosition(conf.considerPosition))
 }
 
@@ -416,6 +477,14 @@ internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
             position)
 }
 
+private fun QualifiedTargetContext.getFieldName(): String {
+    return if (this.fieldName != null) {
+        this.fieldName.text
+    } else {
+        this.field.ID().text
+    }
+}
+
 internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
     return when (this) {
         is SimpleTargetContext -> DataRefExpr(ReferenceByName(this.name.text), toPosition(conf.considerPosition))
@@ -425,7 +494,7 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         is SubstTargetContext -> this.bif_subst().toAst(conf)
         is QualifiedTargetContext -> QualifiedAccessExpr(
                 DataRefExpr(ReferenceByName(this.container.text), this.container!!.toPosition(conf.considerPosition)),
-                this.fieldName.text,
+                ReferenceByName(this.getFieldName()),
                 toPosition(conf.considerPosition))
         is IndicatorTargetContext -> PredefinedIndicatorExpr(
                 this.indic.text.indicatorIndex()!!,
@@ -460,8 +529,11 @@ internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Ass
 
 internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallStmt {
     require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
-    val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
-    return CallStmt(literal.toAst(conf),
+    val position = this.toPosition(true)
+    var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
+    var functionCalled: Expression?
+    functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
+    return CallStmt(functionCalled,
             this.csPARM().map { it.toAst(conf) },
             this.cspec_fixed_standard_parts().lo.asIndex(),
             toPosition(conf.considerPosition))

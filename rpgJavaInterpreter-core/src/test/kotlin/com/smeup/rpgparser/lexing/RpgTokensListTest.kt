@@ -112,4 +112,18 @@ class RpgTokensListTest {
         assertToken(EQUAL, "=", tokensAtLine[7])
         assertToken(SPLAT_ON, "*ON", tokensAtLine[8])
     }
+
+    @test fun deceditDirective() {
+        val tokens = assertExampleCanBeLexed("overlay/MUTE09_02")
+        val tokensAtLine = tokens.filter { it.line == 17 }
+        assertEquals(8, tokensAtLine.size)
+        assertToken(HS_FIXED, "H", tokensAtLine[0])
+        assertToken(HS_DECEDIT, "DECEDIT", tokensAtLine[1])
+        assertToken(OPEN_PAREN, "(", tokensAtLine[2])
+        assertToken(StringLiteralStart, "'", tokensAtLine[3])
+        assertToken(StringContent, ".", tokensAtLine[4])
+        assertToken(StringLiteralEnd, "'", tokensAtLine[5])
+        assertToken(CLOSE_PAREN, ")", tokensAtLine[6])
+        assertToken(EOL, "\n", tokensAtLine[7])
+    }
 }

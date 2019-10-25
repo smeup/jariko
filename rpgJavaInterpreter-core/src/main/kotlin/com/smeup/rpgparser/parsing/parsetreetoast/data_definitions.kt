@@ -4,6 +4,7 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.AssignableExpression
 import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.IntLiteral
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import java.lang.RuntimeException
@@ -16,6 +17,7 @@ enum class RpgType(val rpgType: String) {
     UNSIGNED("U"),
     BINARY("B")
 }
+
 private fun RpgParser.Parm_fixedContext.startOffset(): Int {
     val explicitStartOffset = this.explicitStartOffset()
     if (explicitStartOffset != null) {
@@ -247,11 +249,112 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
         null
     }
 
-    return DataDefinition(
+    val dataDefinition = DataDefinition(
             this.name,
             type,
             fields = others.map { it.toAst(nElements, conf) },
             position = this.toPosition(true))
+    considerOverlays(dataDefinition, others)
+    return dataDefinition
+}
+
+internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    dataDefinitionProviders: List<DataDefinitionProvider>
+):
+        () -> DataDefinition {
+    return {
+        val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
+            this.TO_POSITION().text.asInt()
+        } else {
+            null
+        }
+
+        val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
+
+        val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
+
+        val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() }).first().data_structure_name.identifier().free_identifier().idOrKeyword().ID().text
+        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName } ?: throw RuntimeException("Data definition $likeDsName not found")
+
+        val dataDefinition = DataDefinition(
+                this.name,
+                referredDataDefinition.type,
+                referredDataDefinition.fields,
+                position = this.toPosition(true))
+        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
+        dataDefinition
+    }
+}
+
+// This should hopefully works because overlays should refer only to previous fields
+private fun considerOverlays(dataDefinition: DataDefinition, fieldsParseTrees: List<RpgParser.Parm_fixedContext>) {
+    var nextOffset: Long = 0L
+    dataDefinition.fields.forEach { it.parent = dataDefinition }
+    fieldsParseTrees.forEach {
+
+        // Size of the data struct field
+        val elementSize = it.toAst(0).type.elementSize()
+
+        // Detects if the OVERALY keyword is present
+        val overlay = it.keyword().find { it.keyword_overlay() != null }
+        if (overlay != null) {
+            val fieldName = it.ds_name().text
+            val pos = overlay.keyword_overlay().pos
+            val nameExpr = overlay.keyword_overlay().name
+            val targetFieldName = nameExpr.identifier().text
+
+            // The overlay refers to the data definition, for example:
+            // D SSFLD                        600
+            // D  APPNAME                      02    OVERLAY(SSFLD:1)
+            if (targetFieldName == dataDefinition.name) {
+                val extraOffset = if (pos == null) {
+                    // consider *NEXT
+                    if (overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT") {
+                        nextOffset
+                    } else {
+                        0
+                    }
+                } else {
+                    // pos
+                    val posValue = (pos.number().toAst() as IntLiteral).value
+                    posValue - 1
+                }
+                val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
+                    ?: throw RuntimeException("User of overlay not found: $fieldName")
+                thisFieldDefinition.explicitStartOffset = extraOffset.toInt()
+            } else {
+                // The overlay refers to the a data structure field, the offset is relative
+                // D SSFLD                        600
+                // D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
+                // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
+                val targetFieldDefinition = dataDefinition.fields.find { it.name == targetFieldName }
+                        ?: throw RuntimeException("Target of overlay not found: $targetFieldName")
+                val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
+                        ?: throw RuntimeException("User of overlay not found: $fieldName")
+
+                val extraOffset: Int = if (pos == null) {
+                    if (overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT") {
+                        targetFieldDefinition.nextOffset
+                    } else {
+                        0
+                    }
+                } else {
+                    val posValue = (pos.number().toAst() as IntLiteral).value
+                    (posValue - 1).toInt()
+                }
+                    // refers to a non overlayed field
+                    if (thisFieldDefinition.explicitStartOffset == null) {
+                        thisFieldDefinition.explicitStartOffset = targetFieldDefinition.startOffset + extraOffset
+                    } else {
+                        thisFieldDefinition.explicitStartOffset = targetFieldDefinition.explicitStartOffset!! + extraOffset
+                    }
+                    targetFieldDefinition.nextOffset += elementSize.toInt()
+                }
+        }
+        // updates the *NEXT offset
+        nextOffset += elementSize
+    }
 }
 
 fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
@@ -288,6 +391,17 @@ internal fun RpgParser.Parm_fixedContext.toAst(
 }
 
 internal fun RpgParser.Parm_fixedContext.toType(): Type {
+    if (this.keyword().any { it.keyword_dim() != null }) {
+        val dims = this.keyword().mapNotNull { it.keyword_dim() }
+        require(dims.size == 1)
+        val dim = dims[0]
+        val nElements = dim.numeric_constant.text.toInt()
+        return ArrayType(this.toElementType(), nElements)
+    }
+    return this.toElementType()
+}
+
+internal fun RpgParser.Parm_fixedContext.toElementType(): Type {
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
     val elementSize = when {
@@ -298,13 +412,43 @@ internal fun RpgParser.Parm_fixedContext.toType(): Type {
 
     return when (DATA_TYPE()?.text?.trim()) {
         null -> TODO()
-        "", RpgType.PACKED.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> if (DECIMAL_POSITIONS().text.isNotBlank()) {
+        "" -> {
+            if (DECIMAL_POSITIONS().text.isNotBlank()) {
+                val rpgType = DATA_TYPE()?.text?.trim()
+                val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
+                NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+            } else {
+                StringType(elementSize?.toLong()
+                        ?: throw RuntimeException("The string has no specified length"))
+            }
+        }
+        RpgType.PACKED.rpgType -> {
+                val rpgType = DATA_TYPE()?.text?.trim()
+                if (this.keyword().any { it.keyword_packeven() != null }) {
+                    // The PACKEVEN keyword indicates that the packed field or array has an even number of digits.
+                    // The keyword is only valid for packed program-described data-structure subfields defined using
+                    // FROM/TO positions.
+
+                    // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
+                    val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
+                    val numberOfDigits = 2 * (elementSize!! - 1)
+
+                    NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
+                }
+                // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
+                val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
+                val numberOfDigits = 2 * elementSize!! - 1
+                NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
+        }
+        RpgType.ZONED.rpgType -> {
             val rpgType = DATA_TYPE()?.text?.trim()
             val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
             NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
-        } else {
-            StringType(elementSize?.toLong()
-                    ?: throw RuntimeException("The string has no specified length"))
+        }
+        RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
+            val rpgType = DATA_TYPE()?.text?.trim()
+            val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
+            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
         }
         "N" -> BooleanType
         "A" -> CharacterType(elementSize!!)

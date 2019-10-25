@@ -9,9 +9,9 @@
       *---------------------------------------------------------------
       * M A I N
       *---------------------------------------------------------------
-    MU* VAL1(FLD1) VAL2(12345) COMP(EQ)
-     C                   EVAL FLD1 = 12345
-     C                   EVAL FLD2 = 'ABC'
+      *MU* VAL1(FLD1) VAL2(21) COMP(EQ)
+     C                   EVAL FLD1 = 21
+     C                   EVAL FLD2 = 'ABCD'
      C                   DSPLY                   FLD1
      C                   DSPLY                   FLD2
       *
