@@ -94,29 +94,6 @@ class StatementsTest {
                 "     C                   ENDIF"))
     }
 
-//    @test fun ifParsingComplex() {
-//        assertEquals(ExecuteSubroutine(ReferenceByName("IMP0")), statement("IF        \$X>0\n" +
-//                "     C                   EVAL      U\$IN35='1'\n" +
-//                "5    C                   ELSE\n" +
-//                "     C                   EVAL      \$\$URL=\$\$SVARVA(\$R)\n" +
-//                "      * Replace all variables of execution in url\n" +
-//                "     C                   EXSR      REPVAR\n" +
-//                "      * Replace all variables of initialisation in url\n" +
-//                "     C                   EVAL      \$\$SVAR=U\$SVARSK_INI\n" +
-//                "     C                   EXSR      REPVAR\n" +
-//                "      * Invoke url\n" +
-//                "     C                   CLEAR                   \$\$SVAR\n" +
-//                "     C                   EVAL      \$\$SVARCD(01)='Url'                           COSTANTE\n" +
-//                "     C                   EVAL      \$\$SVARVA(01)=\$\$URL\n" +
-//                "     C                   CALL      'JD_URL'\n" +
-//                "     C                   PARM                    §§FUNZ\n" +
-//                "     C                   PARM                    §§METO\n" +
-//                "     C                   PARM                    \$\$SVAR\n" +
-//                "     C                   ENDIF"))
-//    }
-
-    // TODO if with else if
-
     @test fun selectEmptyParsing() {
         assertEquals(SelectStmt(emptyList()), statement("SELECT\n" +
                 "1e   C                   ENDSL"))
@@ -199,6 +176,56 @@ class StatementsTest {
 
     @test fun parseEvalWithUnqualifiedDsAccess() {
         assertStatementCanBeParsed("EVAL      DS1=*ON", addPrefix = true)
+    }
+
+    @test fun parseEvalWithoutFlags() {
+        val stmtCtx = assertStatementCanBeParsed("EVAL      A=1", addPrefix = true)
+        val stmt = stmtCtx.toAst()
+        assert(stmt is EvalStmt)
+        val evalStmt = stmt as EvalStmt
+        assertEquals(false, evalStmt.flags.halfAdjust)
+        assertEquals(false, evalStmt.flags.maximumNumberOfDigitsRule)
+        assertEquals(false, evalStmt.flags.resultDecimalPositionRule)
+    }
+
+    @test fun parseEvalH() {
+        val stmtCtx = assertStatementCanBeParsed("EVAL(H)   A=1", addPrefix = true)
+        val stmt = stmtCtx.toAst()
+        assert(stmt is EvalStmt)
+        val evalStmt = stmt as EvalStmt
+        assertEquals(true, evalStmt.flags.halfAdjust)
+        assertEquals(false, evalStmt.flags.maximumNumberOfDigitsRule)
+        assertEquals(false, evalStmt.flags.resultDecimalPositionRule)
+    }
+
+    @test fun parseEvalM() {
+        val stmtCtx = assertStatementCanBeParsed("EVAL(M)   A=1", addPrefix = true)
+        val stmt = stmtCtx.toAst()
+        assert(stmt is EvalStmt)
+        val evalStmt = stmt as EvalStmt
+        assertEquals(false, evalStmt.flags.halfAdjust)
+        assertEquals(true, evalStmt.flags.maximumNumberOfDigitsRule)
+        assertEquals(false, evalStmt.flags.resultDecimalPositionRule)
+    }
+
+    @test fun parseEvalR() {
+        val stmtCtx = assertStatementCanBeParsed("EVAL(R)   A=1", addPrefix = true)
+        val stmt = stmtCtx.toAst()
+        assert(stmt is EvalStmt)
+        val evalStmt = stmt as EvalStmt
+        assertEquals(false, evalStmt.flags.halfAdjust)
+        assertEquals(false, evalStmt.flags.maximumNumberOfDigitsRule)
+        assertEquals(true, evalStmt.flags.resultDecimalPositionRule)
+    }
+
+    @test fun parseEvalRH() {
+        val stmtCtx = assertStatementCanBeParsed("EVAL(RH)   A=1", addPrefix = true)
+        val stmt = stmtCtx.toAst()
+        assert(stmt is EvalStmt)
+        val evalStmt = stmt as EvalStmt
+        assertEquals(true, evalStmt.flags.halfAdjust)
+        assertEquals(false, evalStmt.flags.maximumNumberOfDigitsRule)
+        assertEquals(true, evalStmt.flags.resultDecimalPositionRule)
     }
 
     @Ignore // working on qualified access

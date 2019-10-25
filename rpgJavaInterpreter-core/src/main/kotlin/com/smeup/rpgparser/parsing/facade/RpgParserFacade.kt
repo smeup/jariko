@@ -25,6 +25,10 @@ import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.HashMap
+import org.antlr.v4.runtime.*
+
+import kotlin.reflect.KClass
+import kotlin.reflect.full.cast
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
@@ -47,21 +51,6 @@ data class ParseTrees(
 
 class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser) : ParsingResult<ParseTrees>(errors, root) {
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
-
-//    private fun toStringTree(t: ParseTree, parser: Parser, before: List<String>, isLast: Boolean): String {
-//        val s = StringBuilder()
-//        val prefix = if (isLast) "`-" else "--"
-//        s.append(before.joinToString("")).append(prefix).appendln(getNodeText(t, parser))
-//        for (i in 0 until t.childCount) {
-//            val (newBefore, newLast) = if (i == t.childCount - 1) {
-//                Pair(before + "   ", true)
-//            } else {
-//                Pair(before + "  |", false)
-//            }
-//            s.append(toStringTree(t.getChild(i), parser, newBefore, newLast))
-//        }
-//        return s.toString()
-//    }
 }
 
 typealias RpgLexerResult = ParsingResult<List<Token>>
@@ -302,6 +291,16 @@ fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit,
     if (this.children != null) {
         this.children.filterIsInstance(ParserRuleContext::class.java).forEach { it.processDescendants(operation) }
     }
+}
+
+fun <T : ParserRuleContext> ParserRuleContext.findAllDescendants(type: KClass<T>, includingMe: Boolean = true): List<T> {
+    val list = LinkedList<T>()
+    this.processDescendants({
+        if (type.isInstance(it)) {
+            list.add(type.cast(it))
+        }
+    }, includingMe)
+    return list
 }
 
 fun ParserRuleContext.processDescendantsAndErrors(

@@ -341,7 +341,7 @@
       * 'Z' : Separatore migliaia: no
       *       separatore decimale: no
       *       segno: no
-    MU* VAL1(S1) VAL2('    548970          ') COMP(EQ)
+    MU* VAL1(S1) VAL2('   0548970          ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'Z')
       **
       **   NUMERO INTERO NEGATIVO
@@ -457,7 +457,7 @@
      C                   EVAL      S1=%EDITC(V1:'4')
     MU* VAL1(S1) VAL2('    0,000000        ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'A')
-    MU* VAL1(S1) VAL2('                    ') COMP(EQ)
+    MU* VAL1(S1) VAL2('   0,000000         ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'B')
     MU* VAL1(S1) VAL2('    0,000000        ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'C')

@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import com.smeup.rpgparser.utils.asLong
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -56,13 +55,24 @@ private fun coerceString(value: StringValue, type: Type): Value {
         // TODO
         is NumberType -> {
             if (type.integer) {
-                if (value.isBlank()) {
-                    IntValue(0)
-                } else {
-                    IntValue(value.value.asLong())
+                when {
+                    value.isBlank() -> IntValue(0)
+                    type.rpgType == "B" -> {
+                        val intValue = decodeBinary(value.value.trim(), type.entireDigits)
+                        IntValue(intValue.longValueExact())
+                    }
+                    else -> {
+                        val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                        IntValue(intValue.longValueExact())
+                    }
                 }
             } else {
-                TODO(DecimalValue(BigDecimal.valueOf(value.value.asLong(), type.decimalDigits)).toString())
+                if (!value.isBlank()) {
+                    val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                    DecimalValue(decimalValue)
+                } else {
+                    DecimalValue(BigDecimal.ZERO)
+                }
             }
         }
         is BooleanType -> {
@@ -75,6 +85,10 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is DataStructureType -> {
             type.blank()
         }
+        is CharacterType -> {
+            return StringValue(value.value)
+        }
+
         else -> TODO("Converting String to $type")
     }
 }
@@ -149,17 +163,21 @@ private fun computeHiValue(type: NumberType): Value {
     // Integer
     if (type.rpgType == RpgType.INTEGER.rpgType) {
         when (type.entireDigits) {
+            1 -> return IntValue(Byte.MAX_VALUE.toLong())
             3 -> return IntValue(Byte.MAX_VALUE.toLong())
             5 -> return IntValue(Short.MAX_VALUE.toLong())
             10 -> return IntValue(Int.MAX_VALUE.toLong())
+            else -> return IntValue(Long.MAX_VALUE)
         }
     }
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
         when (type.entireDigits) {
+            1 -> return IntValue(UByte.MAX_VALUE.toLong())
             3 -> return IntValue(UByte.MAX_VALUE.toLong())
             5 -> return IntValue(UShort.MAX_VALUE.toLong())
             10 -> return IntValue(UInt.MAX_VALUE.toLong())
+            else -> TODO("Number with ${type.entireDigits} digit is too big for IntValue")
         }
     }
     // Binary
@@ -175,7 +193,7 @@ private fun computeHiValue(type: NumberType): Value {
             }
         }
     }
-    TODO("")
+    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is too big")
 }
 
 private fun computeLowValue(type: NumberType): Value {
@@ -196,6 +214,7 @@ private fun computeLowValue(type: NumberType): Value {
             3 -> return IntValue(Byte.MIN_VALUE.toLong())
             5 -> return IntValue(Short.MIN_VALUE.toLong())
             10 -> return IntValue(Int.MIN_VALUE.toLong())
+            else -> return IntValue(Long.MIN_VALUE)
         }
     }
     // Unsigned

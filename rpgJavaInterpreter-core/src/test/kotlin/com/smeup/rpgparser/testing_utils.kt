@@ -193,6 +193,10 @@ fun CompilationUnit.assertDataDefinitionIsPresent(
     assertTrue(this.hasDataDefinition(name), message = "Data definition $name not found in Compilation Unit")
     val dataDefinition = this.getDataDefinition(name)
     assertEquals(dataType, dataDefinition.type)
+    assertEquals(fields.size, dataDefinition.fields.size, "Expected ${fields.size} fields, found ${dataDefinition.fields.size}")
+    for (i in 0 until fields.size) {
+        assertEquals(fields[i], dataDefinition.fields[i], "Expected field $i was ${fields[i]}, found ${dataDefinition.fields[i]}")
+    }
     assertEquals(fields, dataDefinition.fields)
     return dataDefinition
 }

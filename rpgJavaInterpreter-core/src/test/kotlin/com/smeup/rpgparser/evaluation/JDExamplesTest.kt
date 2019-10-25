@@ -16,6 +16,7 @@ import com.smeup.rpgparser.utils.StringOutputStream
 import java.io.PrintStream
 
 class JDExamplesTest {
+
     @Test
     fun executeJD_000_datainit() {
         val cu = assertASTCanBeProduced("JD_000_datainit", true)
@@ -35,7 +36,7 @@ class JDExamplesTest {
         assertTrue(svarsk is ArrayValue)
         assertEquals(200, svarsk.arrayLength())
         val svarskElement = svarsk.getElement(1)
-        assertEquals(blankString(1050), svarskElement)
+        assertEquals(DataStructValue(blankString(1050).value), svarskElement)
 
         val svarcd = interpreter["\$\$SVARCD"]
         assertTrue(svarcd is ArrayValue)
@@ -79,9 +80,34 @@ class JDExamplesTest {
         assert(urlCalled is ArrayValue)
     }
 
+    /*
+     FIXME currently failing because paramsTypesOfJD_001 fails.
+     The param type U$SVARSK is not considering the LIKE directive
+     */
     @Test
     fun executeJD_000() {
         assertEquals(listOf("", "", "Url", "http://xxx.smaup.com"), outputOf("JD_000"))
+    }
+
+    @Test
+    fun paramsTypesOfJD_001() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+        val programJD_001 = RpgProgram(cu, "JD_001")
+        val params = programJD_001.params()
+        assertEquals(4, params.size)
+
+        assertEquals("U\$FUNZ", params[0].name)
+        assertEquals(StringType(10), params[0].type)
+
+        assertEquals("U\$METO", params[1].name)
+        assertEquals(StringType(10), params[1].type)
+
+        assertEquals("U\$SVARSK", params[2].name)
+        assertEquals(StringType(1050).toArray(200), params[2].type)
+
+        assertEquals("U\$IN35", params[3].name)
+        assertEquals(StringType(1), params[3].type)
     }
 
     @Test

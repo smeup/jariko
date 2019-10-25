@@ -1821,11 +1821,16 @@ MatchingRecordIndicator
 | BlankIndicator;
 
 hspec_fixed: HS_FIXED 
-	hs_expression*
+	content=hspec_content
 	(EOL|EOF);
+hspec_content:
+      hs_decedit_set #setDecedit
+    | hs_expression* #hspecExpressions
+    ;
+hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_parm CLOSE_PAREN)?);
 hs_expression: (ID (OPEN_PAREN (hs_parm (COLON hs_parm)*)? CLOSE_PAREN)?);
 hs_parm: ID | hs_string | symbolicConstants;
-hs_string: StringLiteralStart (StringContent | StringEscapedQuote )* StringLiteralEnd;
+hs_string: StringLiteralStart (content+=(StringContent | StringEscapedQuote))* StringLiteralEnd;
 blank_line: BLANK_LINE;
 directive: DIRECTIVE 
 		( beginfree_directive
@@ -2411,7 +2416,13 @@ identifier: free_identifier |multipart_identifier | all;
 all: symbolicConstants literal?;
 //assignIdentifier: multipart_identifier;
 functionName: free_identifier;
-multipart_identifier: (free_identifier | indexed_identifier) (FREE_DOT (free_identifier | indexed_identifier))*;
+
+// This part should be refactored. As it is it does not handle well prorities and build a complex parse tree
+multipart_identifier: elements+=multipart_identifier_element (FREE_DOT elements+=multipart_identifier_element)*;
+multipart_identifier_element:
+      free_identifier
+    | indexed_identifier
+    ;
 indexed_identifier: free_identifier OPEN_PAREN (expression | ARRAY_REPEAT) CLOSE_PAREN;
 opCode: free_identifier;
 number: MINUS? NUMBER NumberPart* ;
@@ -2618,6 +2629,7 @@ SPLAT_ALL
 
 target:
       name=idOrKeyword #simpleTarget
+    | container=idOrKeyword FREE_DOT field=idOrKeyword #qualifiedTarget
     | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
     | bif_subst #substTarget
     | container=idOrKeyword DOT fieldName=idOrKeyword #qualifiedTarget

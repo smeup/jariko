@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.*
+import java.lang.IllegalArgumentException
 import java.util.*
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
@@ -12,6 +13,7 @@ data class CompilationUnit(
     val main: MainBody,
     val subroutines: List<Subroutine>,
     val compileTimeArrays: List<CompileTimeArray>,
+    val directives: List<Directive>,
     override val position: Position?
 ) : Node(position) {
 
@@ -22,7 +24,9 @@ data class CompilationUnit(
     }
 
     companion object {
-        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(), null)
+        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
+                emptyList(),
+                null)
     }
 
     var databaseInterface: DBInterface = DummyDBInterface
@@ -66,6 +70,7 @@ data class CompilationUnit(
             if (dataDefinition == null) {
                 dataDefinitionMap[it.name] = it
             } else {
+                // throws exception in test 16A, as why has been added
                 require(dataDefinition.type == it.type) {
                     "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
                 }
@@ -75,7 +80,8 @@ data class CompilationUnit(
 
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
-    fun getDataDefinition(name: String) = dataDefinitions.first { it.name.equals(name, ignoreCase = true) }
+    fun getDataDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
+            ?: throw IllegalArgumentException("Data definition $name was not found")
 
     fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
