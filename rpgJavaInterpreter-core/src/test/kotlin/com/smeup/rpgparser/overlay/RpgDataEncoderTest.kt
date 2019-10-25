@@ -1,14 +1,13 @@
 package com.smeup.rpgparser.overlay
 
-import org.junit.Test
-
-import java.math.MathContext
-import kotlin.test.assertTrue
-
 import com.smeup.rpgparser.interpreter.decodeBinary
 import com.smeup.rpgparser.interpreter.decodeFromDS
 import com.smeup.rpgparser.interpreter.encodeBinary
 import com.smeup.rpgparser.interpreter.encodeToDS
+import org.junit.Test
+
+import java.math.MathContext
+import kotlin.test.assertTrue
 
 class RpgDataEncoderTest {
 

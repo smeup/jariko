@@ -433,13 +433,13 @@ internal fun RpgParser.Parm_fixedContext.toElementType(): Type {
                     val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
                     val numberOfDigits = 2*(elementSize!!-1)
 
-                    NumberType(numberOfDigits, decimalPositions, rpgType)
+                    NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
 
                 }
                 // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
                 val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
                 val numberOfDigits = 2*elementSize!!-1
-                NumberType( numberOfDigits, decimalPositions, rpgType)
+                NumberType( numberOfDigits - decimalPositions, decimalPositions, rpgType)
 
         }
         RpgType.ZONED.rpgType -> {
