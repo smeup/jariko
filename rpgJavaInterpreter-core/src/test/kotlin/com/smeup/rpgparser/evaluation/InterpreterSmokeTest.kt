@@ -38,10 +38,10 @@ class InterpreterSmokeTest {
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
             override fun open(name: String): DBFile? = object : MockDBFile() {
-                override fun chain(keys: List<Field>): Record = TODO()
+                override fun chain(keys: List<RecordField>): Record = TODO()
                 override fun chain(key: Value): Record =
                     if (name.equals("qhosts", ignoreCase = true)) {
-                        Record(Field(hostField.name, StringValue("loopback")))
+                        Record(RecordField(hostField.name, StringValue("loopback")))
                     } else {
                         Record()
                     }

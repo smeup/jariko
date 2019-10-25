@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.DBFile
-import com.smeup.rpgparser.interpreter.Field
+import com.smeup.rpgparser.interpreter.RecordField
 import com.smeup.rpgparser.interpreter.Record
 import com.smeup.rpgparser.interpreter.Value
 import java.sql.Connection
@@ -9,7 +9,7 @@ import java.sql.ResultSet
 
 class DBSQLFile(private val name: String, private val connection: Connection) : DBFile {
     private var resultSet: ResultSet? = null
-    private var lastKey: List<Field> = emptyList()
+    private var lastKey: List<RecordField> = emptyList()
 
     private val keys: List<String> by lazy {
         val indexes = connection.primaryKeys(name)
@@ -48,7 +48,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         resultSet?.last()
     }
 
-    override fun readEqual(keys: List<Field>): Record {
+    override fun readEqual(keys: List<RecordField>): Record {
         val result = if (resultSet == null) {
             chain(emptyList())
         } else {
@@ -64,12 +64,12 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         return chain(toFields(key))
     }
 
-    private fun toFields(keyValue: Value): List<Field> {
+    private fun toFields(keyValue: Value): List<RecordField> {
         val keyName = keys.first()
-        return listOf(Field(keyName, keyValue))
+        return listOf(RecordField(keyName, keyValue))
     }
 
-    override fun chain(keys: List<Field>): Record {
+    override fun chain(keys: List<RecordField>): Record {
         val keyNames = keys.map { it.name }
         val sql = "SELECT * FROM $name ${keyNames.whereSQL()} ${keyNames.orderBySQL()}"
         val values = keys.map { it.value }
