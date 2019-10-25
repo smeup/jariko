@@ -276,7 +276,7 @@ internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     return handleParsingOfTargets(this.text, toPosition(conf.considerPosition))
 }
 
-private fun handleParsingOfTargets(code: String, position: Position?) : AssignableExpression {
+private fun handleParsingOfTargets(code: String, position: Position?): AssignableExpression {
     require(!code.contains("(") && !code.contains(")"))
     val parts = code.split(".")
     require(parts.isNotEmpty())
@@ -531,7 +531,7 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
     val position = this.toPosition(true)
     var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
-    var functionCalled : Expression?
+    var functionCalled: Expression?
     functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
     return CallStmt(functionCalled,
             this.csPARM().map { it.toAst(conf) },

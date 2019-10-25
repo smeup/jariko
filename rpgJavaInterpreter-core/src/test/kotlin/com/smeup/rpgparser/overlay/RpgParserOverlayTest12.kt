@@ -129,7 +129,6 @@ class RpgParserOverlayTest12 {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
     }
 
     @Test

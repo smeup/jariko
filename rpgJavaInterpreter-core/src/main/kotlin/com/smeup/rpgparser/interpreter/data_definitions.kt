@@ -137,7 +137,7 @@ data class FieldDefinition(
                 // To date only 2 and 4 bytes are supported
                 if (type.rpgType == RpgType.BINARY.rpgType) {
                     // Transform the numeric to an encoded string
-                    if (type.entireDigits == 2   || type.entireDigits == 4 ) {
+                    if (type.entireDigits == 2 || type.entireDigits == 4) {
                         val encoded = encodeBinary(value.asDecimal().value, type.entireDigits)
                         // adjust the size to fit the target field
                         return StringValue(encoded)
@@ -184,8 +184,6 @@ class InStatementDataDefinition(
     val initializationValue: Expression? = null
 ) : AbstractDataDefinition(name, type, position)
 
-
-
 //
 // Encode a binary value for a data structure
 //
@@ -200,7 +198,7 @@ fun encodeBinary(inValue: BigDecimal, digits: Int): String {
 
         return buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
-    if (digits == 4 ) {
+    if (digits == 4) {
 
         buffer[0] = ((lsb shr 24) and 0x0000FFFF).toByte()
         buffer[1] = ((lsb shr 16) and 0x0000FFFF).toByte()
@@ -277,10 +275,9 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
 
 fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     val buffer = IntArray(value.length)
-    for(i in value.indices) {
+    for (i in value.indices) {
         buffer[i] = value[i].toInt()
     }
-
 
     var sign: String = ""
     var number: String = ""

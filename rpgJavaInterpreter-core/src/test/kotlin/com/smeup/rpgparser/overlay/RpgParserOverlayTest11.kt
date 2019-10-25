@@ -12,7 +12,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgSystem
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertTrue
@@ -30,9 +29,9 @@ class RpgParserOverlayTest11 {
     }
     // Temporary replacement
     private fun assertASTCanBeProduced(
-            exampleName: String,
-            considerPosition: Boolean = false,
-            withMuteSupport: Boolean = true
+        exampleName: String,
+        considerPosition: Boolean = false,
+        withMuteSupport: Boolean = true
     ): CompilationUnit {
         val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
         val ast = parseTreeRoot.root!!.rContext.toAst(ToAstConfiguration(
@@ -80,7 +79,6 @@ class RpgParserOverlayTest11 {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
     }
 
     @Test
@@ -114,7 +112,6 @@ class RpgParserOverlayTest11 {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
     }
 
     @Test

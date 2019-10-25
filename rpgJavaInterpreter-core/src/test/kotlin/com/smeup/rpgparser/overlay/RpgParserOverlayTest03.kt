@@ -47,6 +47,4 @@ public class RpgParserOverlayTest03 {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
-
-
 }

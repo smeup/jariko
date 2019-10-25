@@ -3,7 +3,6 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 import com.smeup.rpgparser.interpreter.DBInterface
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DummyDBInterface
-import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.model.*

@@ -431,16 +431,14 @@ internal fun RpgParser.Parm_fixedContext.toElementType(): Type {
 
                     // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
                     val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
-                    val numberOfDigits = 2*(elementSize!!-1)
+                    val numberOfDigits = 2 * (elementSize!! - 1)
 
                     NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
-
                 }
                 // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
                 val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
-                val numberOfDigits = 2*elementSize!!-1
-                NumberType( numberOfDigits - decimalPositions, decimalPositions, rpgType)
-
+                val numberOfDigits = 2 * elementSize!! - 1
+                NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
         }
         RpgType.ZONED.rpgType -> {
             val rpgType = DATA_TYPE()?.text?.trim()
