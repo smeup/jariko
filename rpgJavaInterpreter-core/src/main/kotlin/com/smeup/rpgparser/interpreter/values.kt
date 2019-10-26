@@ -98,7 +98,7 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun render(): String {
-        return valueWithoutPadding.toString()
+        return valueWithoutPadding
     }
 }
 

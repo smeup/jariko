@@ -17,6 +17,7 @@ data class MuteAnnotationExecutionLogEntry(override val programName: String, val
     override fun toString(): String {
         return when (annotation) {
             is MuteComparisonAnnotation -> "executing MuteComparisonAnnotation: ${annotation.position} $result ${annotation.val1} ${annotation.comparison} ${annotation.val2} "
+            is MuteFailAnnotation -> "executing MuteFail: ${annotation.position} - ${result.render()}"
             else -> this.toString()
         }
     }
