@@ -68,7 +68,7 @@ data class MuteComparisonAnnotationExecuted(
 }
 
 /**
- * The result of a failing executing a mute annotation.
+ * The result of a failing mute annotation.
  */
 data class MuteFailAnnotationExecuted(
     override val programName: String,
