@@ -49,12 +49,12 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_11C_syntax() {
-        val result = assertCanBeParsed("overlay/MUTE11_11C", withMuteSupport = true)
+        assertCanBeParsed("overlay/MUTE11_11C", withMuteSupport = true)
     }
 
     @Test
     fun parseMUTE11_11C_ast() {
-        val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
+        assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
     }
 
     @Test
@@ -72,7 +72,7 @@ class RpgParserOverlayTest11 {
             try {
                 assertTrue(annotation.result.asBoolean().value)
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
@@ -105,7 +105,7 @@ class RpgParserOverlayTest11 {
             try {
                 assertTrue(annotation.result.asBoolean().value)
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
@@ -127,9 +127,9 @@ class RpgParserOverlayTest11 {
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
-                assertTrue(annotation.result.asBoolean().value)
+                assertTrue(annotation.succeeded())
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.succeeded()}")
                 failed++
             }
         }

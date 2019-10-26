@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
+import com.smeup.rpgparser.parsing.ast.MuteComparisonAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.SimpleSystemInterface
@@ -61,16 +62,14 @@ fun executeWithMutes(
             interpreter.execute(cu, mapOf())
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
             sorted.forEach { (line, annotation) ->
-                if (!annotation.result.asBoolean().value) {
-                    println("Mute annotation at line $line ${annotation.expression.render()} failed ${file.linkTo(line)}".color(false))
-                    println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
-                    println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
-                    failed++
-                } else {
-                    if (verbose) {
-                        println("Mute annotation at line $line ${annotation.expression.render()} succeed ${file.linkTo(line)}".color(true))
+                if (verbose || !annotation.succeeded()) {
+                    println("Mute annotation at line $line ${annotation.headerDescription()} ${annotation.resultAsString()} ${file.linkTo(line)}".color(annotation.succeeded()))
+                    if (annotation is MuteComparisonAnnotationExecuted && !annotation.succeeded()) {
+                        println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
+                        println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
                     }
                 }
+                if (!annotation.succeeded()) failed++
                 executed++
             }
         } else {

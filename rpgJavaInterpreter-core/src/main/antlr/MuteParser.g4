@@ -11,6 +11,7 @@ muteAnnotation : VAL1 val1=EXP
                  COMP cp=muteComparisonOperator #muteComparisonAnnotation
                | TYPE EQUAL NOXMI #muteTypeAnnotation
                | TIMEOUT intNumber #muteTimeout
+               | FAIL msg=EXP #muteFailAnnotation
                ;
 
 muteComparisonOperator: EQ | NE | LT | LE | GT | GE ;

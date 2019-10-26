@@ -31,6 +31,7 @@ The Mute annotations are verified _after_ executing the statement they annotate.
      C                   EVAL      RESULT = A + B
 ```     
 ### Timeout assertions 
+
 For testing of performances, there are MUTE annotations that introduce a timeout in the execution:
 
 ```
@@ -43,7 +44,25 @@ Note that the assertion is verified at the end of the program, so it doesn't sto
 You can add many ```TIMEOUT``` assertion in the same program, but, obviously, just the one with the shortest timeout is considered.
 
 There isn't a mandatory position to insert the ```TIMEOUT``` annotation line, that, as other ```MUTE``` annotations, are just considered as comments by the standard interpreter engine.
- 
+
+### Failing assertions 
+
+Like in other frameworks for unit testing, there is an assertion that always fails: 
+
+```
+    MU* FAIL('Something went wrong')
+```
+
+An expression can be used for the failing message:
+
+``` 
+      D MSG             S             15    INZ('Failure message')
+     MU* FAIL(MSG)
+ ```
+
+This kind of assertion can be used everywhere in the RPG source code, and it's not tied with the instruction it annotates.
+The execution of the program contiues even after the failing of the assertion, but an error is reported at the end of the MUTE tests.
+
 ## Command line utility
 
 The Mute annotations can be verified using a utility contained in the class `com.smeup.rpgparser.mute.MuterunnerKt`.
