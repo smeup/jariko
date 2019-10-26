@@ -31,7 +31,7 @@ fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
                     1,
                     token.text.lastIndex
                 )).byteInputStream(Charsets.UTF_8)
-            ), LinkedList(), longLines = true
+            ), errors = mutableListOf(), longLines = true
         ).expression().toAst(conf)
     }
 
