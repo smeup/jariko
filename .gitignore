@@ -12,3 +12,4 @@ bin/
 **/.DS_Store
 rpgJavaInterpreter-core/generated-src/
 lib
+*.tokens
