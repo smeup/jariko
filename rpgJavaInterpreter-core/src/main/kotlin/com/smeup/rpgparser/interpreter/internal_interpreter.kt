@@ -232,7 +232,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
-                        MuteAnnotationExecuted(
+                        MuteComparisonAnnotationExecuted(
                             this.interpretationContext.currentProgramName,
                             exp,
                             it.val1,
@@ -254,7 +254,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, message))
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
-                        MuteAnnotationExecuted.failing(
+                        MuteFailAnnotationExecuted(
                             this.interpretationContext.currentProgramName,
                             message
                         )

@@ -39,7 +39,7 @@ public class RpgParserOverlayTest03 {
             try {
                 assertTrue(annotation.succeeded())
             } catch (e: AssertionError) {
-                println("$line ${annotation.expression.render()} ${annotation.succeeded()}")
+                println("$line ${annotation.headerDescription()} ${annotation.succeeded()}")
                 failed++
             }
         }

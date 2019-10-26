@@ -62,7 +62,7 @@ class RpgDeceditTest09 {
             try {
                 assertTrue(annotation.result.asBoolean().value)
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
@@ -86,7 +86,7 @@ class RpgDeceditTest09 {
             try {
                 assertTrue(annotation.result.asBoolean().value)
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
@@ -111,7 +111,7 @@ class RpgDeceditTest09 {
             try {
                 assertTrue(annotation.result.asBoolean().value)
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }

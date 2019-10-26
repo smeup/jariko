@@ -71,7 +71,7 @@ public class RpgParserOverlayTest12 {
             try {
                 assertTrue(annotation.succeeded())
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.succeeded()}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.succeeded()}")
                 failed++
             }
         }
@@ -159,7 +159,7 @@ public class RpgParserOverlayTest12 {
             try {
                 assertTrue(annotation.succeeded())
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.succeeded()}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.succeeded()}")
                 failed++
             }
         }
