@@ -142,3 +142,6 @@ To be more specific, you can follow these steps to run your own MUTE tests:
 
 With this technique, you can have a (sort of) debug view of the execution of your program.
 
+## MUTEs and Visual Studio Code
+
+You can run MUTE tests in Visual Studio Code: see the [documentation](visual_studio_code.md)
