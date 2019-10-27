@@ -102,6 +102,19 @@ Total files: 1, resolved: 3, executed: 3, failed:0
 
 SUCCESS
 ```
+There is also an utility to run just one file with the MUTE engine. To create the appropriate jar, run
+
+```
+ ./gradlew fatMuteJar
+ ```
+
+This command creates `rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar`
+
+Then run the mute test with:
+
+```
+java -jar rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar MY_TEST.rpgle
+```
 
 ## Mute as part of the CI
 
