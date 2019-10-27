@@ -10,7 +10,7 @@
 
 ```
     "code-runner.executorMap": {
-        "rpg": "cd $dir && java -jar /my/path/to/rpgJavaInterpreter-core-mute-all.jar $fileName",
+        "rpg": "cd $dir && java -DshowSourceAbsolutePath=true -jar /my/path/to/rpgJavaInterpreter-core-mute-all.jar $fileName",
     },
     "code-runner.clearPreviousOutput": true,
     "code-runner.enableAppInsights": false,
@@ -18,6 +18,8 @@
     "code-runner.showExecutionMessage": false,
     "code-runner.runInTerminal": true
 ```
+
+(Note that the -DshowSourceAbsolutePath=true option is for enable links to source file and line numbers.)
 
 5. Optionally configure some [snippets](https://code.visualstudio.com/docs/editor/userdefinedsnippets) to ease the editing of rpgle tests.
 For example:

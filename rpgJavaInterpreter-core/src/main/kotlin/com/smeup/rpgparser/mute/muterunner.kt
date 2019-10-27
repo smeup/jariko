@@ -67,7 +67,15 @@ data class ExecutionResult(
 
 fun String.color(success: Boolean) = if (success) this.green() else this.red()
 
-fun File.linkTo(line: Int) = "${this.name}(${this.name}:$line)"
+fun File.linkTo(line: Int) = if (showSourceAbsolutePath()) {
+    // For linking to source from Visual Studio Code console
+    "${this.absolutePath}:$line"
+} else {
+    // For linking to source from IDEA console
+    "${this.name}(${this.name}:$line)"
+}
+
+fun showSourceAbsolutePath(): Boolean = "true" == System.getProperty("showSourceAbsolutePath")
 
 fun executeWithMutes(
     path: Path,
