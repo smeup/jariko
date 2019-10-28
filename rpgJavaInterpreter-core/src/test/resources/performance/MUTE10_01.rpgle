@@ -4,6 +4,7 @@
      C                   EXSR      F_CALL
       *
     MU* Type="NOXMI"
+    MU* TIMEOUT(7500)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test
@@ -15,6 +16,6 @@
      C                   ENDDO
      C                   TIME                    $TIMEN
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
-    MU* VAL1($TIMMS) VAL2(4500) COMP(LT)
+    MU* VAL1($TIMMS) VAL2(7500) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
      C                   ENDSR
