@@ -383,20 +383,24 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     assign(statement.target, value.negate())
                 }
                 is SubStmt -> {
-                    val minuend = if (statement.factor1 == null) {
-                        interpret(statement.target)
+                    val minuend = if (statement.left == null) {
+                        interpret(statement.result)
                     } else {
-                        interpret(statement.factor1)
+                        interpret(statement.left)
                     }
                     require(minuend is NumberValue) {
                         "$minuend should be a number"
                     }
-                    val subtrahend = interpret(statement.factor2)
+                    val subtrahend = interpret(statement.right)
                     require(subtrahend is NumberValue) {
                         "$subtrahend should be a number"
                     }
-                    val newValue:DecimalValue = DecimalValue(minuend.asDecimal().value.subtract(subtrahend.asDecimal().value))
-                    assign(statement.target, newValue)
+                    when {
+                        minuend is IntValue && subtrahend is IntValue -> assign(statement.result, IntValue(minuend.asInt().value.minus(subtrahend.asInt().value)))
+                        minuend is IntValue && subtrahend is DecimalValue -> assign(statement.result, DecimalValue(minuend.asDecimal().value.subtract(subtrahend.value)))
+                        minuend is DecimalValue && subtrahend is IntValue -> assign(statement.result, DecimalValue(minuend.value.subtract(subtrahend.asDecimal().value)))
+                        minuend is DecimalValue && subtrahend is DecimalValue -> assign(statement.result, DecimalValue(minuend.value - subtrahend.value))
+                    }
                 }
                 is TimeStmt -> {
                     when (statement.value) {
@@ -1296,7 +1300,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return dataDefinition.type.blank()
     }
 }
-
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
     return type.canBeAssigned(value)

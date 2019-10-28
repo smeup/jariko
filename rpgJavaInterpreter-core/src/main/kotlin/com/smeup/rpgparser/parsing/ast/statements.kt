@@ -263,10 +263,10 @@ data class ZSubStmt(
     }
 }
 data class SubStmt(
-    val factor1: Expression?,
-    val target: AssignableExpression,
+    val left: Expression?,
+    val result: AssignableExpression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
-    val factor2: Expression,
+    val right: Expression,
     override val position: Position? = null
 ) :
     Statement(position), StatementThatCanDefineData {
