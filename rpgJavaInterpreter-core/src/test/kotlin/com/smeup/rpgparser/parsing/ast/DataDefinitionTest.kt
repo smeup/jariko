@@ -4,6 +4,7 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test
@@ -131,5 +132,12 @@ class DataDefinitionTest {
         assertEquals(5, dataDef.fields[2].endOffset)
         assertEquals(21, dataDef.fields[3].startOffset)
         assertEquals(30, dataDef.fields[3].endOffset)
+    }
+
+    @Test
+    fun deriveLengthOfFieldFromOverrideClause() {
+        val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
+        cu.resolve()
+        TODO("Test the length of AR01")
     }
 }

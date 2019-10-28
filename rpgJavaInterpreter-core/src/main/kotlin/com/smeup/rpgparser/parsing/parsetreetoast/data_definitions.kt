@@ -225,6 +225,7 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = T
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val others = this.fieldLines()
     val fieldTypes: List<FieldType> = others.map { it.toFieldType() }
+    processDeferredTypes(fieldTypes, others)
     val elementSize = this.elementSizeOf()
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
@@ -233,6 +234,36 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = T
         ArrayType(baseType, nElements)
     }
 }
+
+/**
+ * For some types the size depends on the elements overlaying on them, so we initially
+ * set them to having the deferred type. We when need to actually replace those deferred types with proper values.
+ */
+private fun processDeferredTypes(fieldTypes: List<FieldType>, others: List<RpgParser.Parm_fixedContext>) {
+    fieldTypes.forEachIndexed { index, fieldType ->
+        if (fieldType.type is DeferredType) {
+            TODO()
+        } else if (fieldType.type is ArrayType) {
+            if (fieldType.type.element is DeferredType) {
+                val overlayingFields =  others.filter { it.isOverlayingOn(fieldType.name) }
+                overlayingFields.map { it. }
+                TODO()
+            }
+        }
+    }
+}
+
+private val RpgParser.Parm_fixedContext.name : String
+    get() = this.ds_name().text
+
+private fun RpgParser.Parm_fixedContext.isOverlayingOn(name: String): Boolean {
+    if (this.name == name) {
+        return false
+    }
+    val keywordOverlay = this.keyword().mapNotNull { it.keyword_overlay() }.firstOrNull()
+    return keywordOverlay?.name?.text?.equals(name, ignoreCase = true) ?: false
+}
+
 
 internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
     val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
@@ -296,7 +327,7 @@ private fun considerOverlays(dataDefinition: DataDefinition, fieldsParseTrees: L
         // Size of the data struct field
         val elementSize = it.toAst(0).type.elementSize()
 
-        // Detects if the OVERALY keyword is present
+        // Detects if the OVERLAY keyword is present
         val overlay = it.keyword().find { it.keyword_overlay() != null }
         if (overlay != null) {
             val fieldName = it.ds_name().text
@@ -418,8 +449,14 @@ internal fun RpgParser.Parm_fixedContext.toElementType(): Type {
                 val decimalPositions = with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() }
                 NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
             } else {
-                StringType(elementSize?.toLong()
-                        ?: throw RuntimeException("The string has no specified length"))
+//                StringType(elementSize?.toLong()
+//                        ?: throw RuntimeException("The string has no specified length"))
+                if (elementSize == null) {
+                    DeferredType
+                } else {
+                    StringType(elementSize?.toLong()
+                            ?: throw RuntimeException("The string has no specified length"))
+                }
             }
         }
         RpgType.PACKED.rpgType -> {
