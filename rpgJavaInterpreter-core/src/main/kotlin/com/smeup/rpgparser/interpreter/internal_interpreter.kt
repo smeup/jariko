@@ -382,6 +382,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     }
                     assign(statement.target, value.negate())
                 }
+                is SubStmt -> {
+                    val minuend = if (statement.factor1 == null) {
+                        interpret(statement.target)
+                    } else {
+                        interpret(statement.factor1)
+                    }
+                    require(minuend is NumberValue) {
+                        "$minuend should be a number"
+                    }
+                    val subtrahend = interpret(statement.factor2)
+                    require(subtrahend is NumberValue) {
+                        "$subtrahend should be a number"
+                    }
+                    val newValue:DecimalValue = DecimalValue(minuend.asDecimal().value.subtract(subtrahend.asDecimal().value))
+                    assign(statement.target, newValue)
+                }
                 is TimeStmt -> {
                     when (statement.value) {
                         is DataRefExpr -> {
@@ -1280,6 +1296,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return dataDefinition.type.blank()
     }
 }
+
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
     return type.canBeAssigned(value)

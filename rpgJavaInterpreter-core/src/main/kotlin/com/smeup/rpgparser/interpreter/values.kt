@@ -24,6 +24,7 @@ abstract class Value {
 
 interface NumberValue {
     fun negate(): Value
+
 }
 
 // TODO Should we change value to a val in order tho share instances?

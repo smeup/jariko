@@ -201,6 +201,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
         this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
         this.csZ_SUB() != null -> this.csZ_SUB().toAst(conf)
+        this.csSUB() != null -> this.csSUB().toAst(conf)
         this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
         this.csCHECK() != null -> this.csCHECK().toAst(conf)
         this.csKLIST() != null -> this.csKLIST().toAst(conf)
@@ -462,6 +463,20 @@ internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZSubStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
 }
+
+internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubStmt {
+    val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
+        this.factor1Context().content.toAst(conf)
+    } else {
+        null
+    }
+    val name = this.cspec_fixed_standard_parts().result.text
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
+    val position:Position? = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
+    return SubStmt(left, DataRefExpr(ReferenceByName(name), position), dataDefinition, factor2, position)
+}
+
 // TODO add real implementation
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
     val position = toPosition(conf.considerPosition)
