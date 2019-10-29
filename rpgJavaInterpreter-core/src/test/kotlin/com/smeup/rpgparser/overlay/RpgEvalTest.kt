@@ -31,6 +31,7 @@ class RpgEvalTest {
 
         return result
     }
+    
     // Temporary replacement
     private fun assertASTCanBeProduced(
         exampleName: String,
