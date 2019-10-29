@@ -61,8 +61,6 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 object RpgSystem {
     internal val programFinders = LinkedList<RpgProgramFinder>()
 
-    fun clearFinders() = programFinders.clear()
-
     fun addProgramFinder(programFinder: RpgProgramFinder) {
         programFinders.add(programFinder)
     }

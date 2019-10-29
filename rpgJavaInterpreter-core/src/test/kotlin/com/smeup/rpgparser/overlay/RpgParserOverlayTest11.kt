@@ -93,33 +93,18 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_15_runtime() {
-        RpgSystem.addProgramFinder(DummyProgramFinder("/overlay/"))
-        val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
-
-        var failed: Int = 0
-
-        val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        annotations.forEach { (line, annotation) ->
-            try {
-                assertTrue(annotation.result.asBoolean().value)
-            } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
-                failed++
-            }
-        }
-        if (failed > 0) {
-            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
-        }
+        assertMutesInExampleSucceed("overlay/MUTE11_15")
     }
 
     @Test
     fun parseMUTE11_16_runtime() {
-        RpgSystem.clearFinders()
+        // Flaky test
+        assertMutesInExampleSucceed("overlay/MUTE11O16")
+    }
+
+    private fun assertMutesInExampleSucceed(exampleName: String) {
         RpgSystem.addProgramFinder(DummyProgramFinder("/overlay/"))
-        val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced(exampleName, considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
         var failed: Int = 0
@@ -139,7 +124,6 @@ class RpgParserOverlayTest11 {
             }
         }
         if (failed > 0) {
-            // Flaky test
             throw AssertionError("$failed/${annotations.size} failed annotation(s) $messages")
         }
     }
