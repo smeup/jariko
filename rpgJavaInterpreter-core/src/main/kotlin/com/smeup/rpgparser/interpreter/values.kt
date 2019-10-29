@@ -184,6 +184,10 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     companion object {
         val ZERO = DecimalValue(BigDecimal.ZERO)
     }
+
+    override fun render(): String {
+        return value.toString()
+    }
 }
 
 data class BooleanValue(val value: Boolean) : Value() {

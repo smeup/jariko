@@ -248,6 +248,23 @@ data class ZAddStmt(
     }
 }
 
+data class MultStmt(
+    val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val halfAdjust: Boolean = false,
+    val factor1: Expression?,
+    val factor2: Expression,
+    override val position: Position? = null
+) :
+    Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
+
 data class ZSubStmt(
     val target: AssignableExpression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,

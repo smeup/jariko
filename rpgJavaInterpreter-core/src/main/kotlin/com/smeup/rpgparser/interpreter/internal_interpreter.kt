@@ -2,12 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.ast.Comparison.EQ
-import com.smeup.rpgparser.parsing.ast.Comparison.GE
-import com.smeup.rpgparser.parsing.ast.Comparison.GT
-import com.smeup.rpgparser.parsing.ast.Comparison.LE
-import com.smeup.rpgparser.parsing.ast.Comparison.LT
-import com.smeup.rpgparser.parsing.ast.Comparison.NE
+import com.smeup.rpgparser.parsing.ast.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
@@ -17,7 +12,6 @@ import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeoutException
-import kotlin.UnsupportedOperationException
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
@@ -381,6 +375,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         "$value should be a number"
                     }
                     assign(statement.target, value.negate())
+                }
+                is MultStmt -> {
+                    assign(statement.target, mult(statement))
                 }
                 is TimeStmt -> {
                     when (statement.value) {
@@ -848,6 +845,25 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 assign(expression.target, expression.value)
             }
             else -> interpret(expression)
+        }
+    }
+
+    private fun mult(statement: MultStmt): Value {
+        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
+        require(statement.target is DataRefExpr)
+        val rightValue: BigDecimal = if (statement.factor1 != null) {
+            BigDecimal(interpret(statement.factor1).render())
+        } else {
+            BigDecimal(get(statement.target.variable.referred!!).render())
+        }
+        val leftValue = BigDecimal(interpret(statement.factor2).render())
+        val result = rightValue.multiply(leftValue)
+        val type = statement.target.variable.referred!!.type
+        require(type is NumberType)
+        return if (statement.halfAdjust) {
+            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_DOWN))
+        } else {
+            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.DOWN))
         }
     }
 
