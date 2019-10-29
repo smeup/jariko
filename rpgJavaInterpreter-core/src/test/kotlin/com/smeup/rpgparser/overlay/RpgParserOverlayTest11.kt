@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.overlay
 
+import com.smeup.rpgparser.DummyProgramFinder
 import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -10,10 +11,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Test
-import java.io.File
 import kotlin.test.assertTrue
 
 class RpgParserOverlayTest11 {
@@ -59,7 +58,7 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_11C_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
+        RpgSystem.addProgramFinder(DummyProgramFinder("/overlay/"))
         val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
@@ -93,6 +92,7 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_15_runtime() {
+        RpgSystem.addProgramFinder(DummyProgramFinder("/overlay/"))
         val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
@@ -116,7 +116,7 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_16_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
+        RpgSystem.addProgramFinder(DummyProgramFinder("/overlay/"))
         val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
@@ -134,6 +134,7 @@ class RpgParserOverlayTest11 {
             }
         }
         if (failed > 0) {
+            // Flaky test
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
