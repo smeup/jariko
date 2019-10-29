@@ -31,12 +31,10 @@ class RpgDataEncoderTest {
         }
 
         for (i in -999999..999999) {
-
             val packed50 = i.toBigDecimal(MathContext(0))
             val encoded50 = encodeToDS(packed50, 5, 0)
             assertTrue(encoded50.length <= 7)
             val decoded50 = decodeFromDS(encoded50, 5, 0)
-
             assertTrue(packed50.compareTo(decoded50) == 0)
         }
     }
