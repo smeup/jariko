@@ -6,7 +6,7 @@
 
 3. [Create an executable jar for executing MUTE tests](mute.md#command-line-utility) (`rpgJavaInterpreter-core-mute-all.jar`) and put it in a directory of your choice
 
-4. Configure the Code Runner extension to execute this utility. An example of the portion of `settings.json` for that purpose is:
+4. Configure the Code Runner extension to execute this utility. The relevant portion of `settings.json` for that purpose is:
 
 ```
     "code-runner.executorMap": {
