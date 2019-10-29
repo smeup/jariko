@@ -55,7 +55,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is NumberType -> {
             if (type.integer) {
                 when {
-                    value.isBlank() -> IntValue(0)
+                    value.isBlank() -> IntValue.ZERO
                     type.rpgType == "B" -> {
                         val intValue = decodeBinary(value.value.trim(), type.entireDigits)
                         IntValue(intValue.longValueExact())
@@ -217,7 +217,7 @@ private fun computeLowValue(type: NumberType): Value {
     }
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
-        return IntValue(0)
+        return IntValue.ZERO
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
