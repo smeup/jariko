@@ -4,7 +4,7 @@
 
 2. Install the [Code Runner extension](https://marketplace.visualstudio.com/items?itemName=formulahendry.code-runner) by [Jun Han](https://github.com/formulahendry)
 
-3. [Create an executable jar](mute.md#command-line-utility) (`rpgJavaInterpreter-core-mute-all.jar`) and put it in a directory of your choice
+3. [Create an executable jar for executing MUTE tests](mute.md#command-line-utility) (`rpgJavaInterpreter-core-mute-all.jar`) and put it in a directory of your choice
 
 4. Configure the Code Runner extension to execute this utility. An example of the portion of `settings.json` for that purpose is:
 
