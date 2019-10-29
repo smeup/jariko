@@ -393,7 +393,10 @@ fun Type.blank(): Value {
     }
 }
 
-// StringValue wrapper
+/**
+ * StringValue wrapper
+ */
+
 data class DataStructValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
@@ -437,6 +440,7 @@ data class DataStructValue(var value: String) : Value() {
     companion object {
         fun blank(length: Int) = DataStructValue(PAD_STRING.repeat(length))
     }
+
     override fun toString(): String {
         return "StringValue[${value.length}]($valueWithoutPadding)"
     }
