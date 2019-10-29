@@ -256,11 +256,7 @@ internal fun CsKLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
-    val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
-        this.factor1Context().content.toAst(conf)
-    } else {
-        null
-    }
+    val left = leftExpr(conf)
     val right = if (this.cspec_fixed_standard_parts()?.result?.text?.isNotBlank() ?: false) {
         this.cspec_fixed_standard_parts().result.toAst(conf)
     } else {
