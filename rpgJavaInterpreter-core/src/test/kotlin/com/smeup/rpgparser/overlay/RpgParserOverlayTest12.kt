@@ -168,7 +168,7 @@ class RpgParserOverlayTest12 {
         val cu = assertASTCanBeProduced("overlay/MUTE12_05", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
-       val interpreter = InternalInterpreter(JavaSystemInterface())
+        val interpreter = InternalInterpreter(JavaSystemInterface())
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()

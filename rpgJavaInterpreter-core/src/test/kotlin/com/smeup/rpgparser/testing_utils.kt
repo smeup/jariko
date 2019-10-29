@@ -303,7 +303,6 @@ fun rpgProgram(name: String): RpgProgram {
     return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
 }
 
-
 fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
     var failed: Int = 0
     annotations.forEach { (line, annotation) ->
@@ -330,7 +329,6 @@ class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
         }
     }
 }
-
 
 open class MockDBFile : DBFile {
     override fun chain(key: Value): Record = TODO()

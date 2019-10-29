@@ -6,13 +6,10 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
-import java.util.*
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class RpgParserDataStruct {
 
@@ -116,10 +113,7 @@ class RpgParserDataStruct {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
     }
-
-
     /**
      * Test for all data type
      */
