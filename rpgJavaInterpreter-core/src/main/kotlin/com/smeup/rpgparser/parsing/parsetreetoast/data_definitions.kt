@@ -325,12 +325,16 @@ internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(): Int? {
 
 data class TypeInfo(
         val stringCode: String?,
+        val integerPositions: Int?,
         val decimalPositions: Int?,
         val isPackEven: Boolean)
 
 fun RpgParser.Parm_fixedContext.toTypeInfo() : TypeInfo {
+    val fp = this.FROM_POSITION()
+    val foo = this.TO_POSITION()
     return TypeInfo(
             stringCode = DATA_TYPE()?.text?.trim(),
+            integerPositions = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null,
             decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null,
             isPackEven = keyword().any { it.keyword_packeven() != null }
     )
@@ -351,11 +355,15 @@ internal fun FieldInfo.toElementType(fieldsList: FieldsList): Type {
             if (this.typeInfo.decimalPositions != null) {
                 val rpgType = this.typeInfo.stringCode
                 val decimalPositions = this.typeInfo.decimalPositions!!
-                NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+                val es = elementSize ?: (this.typeInfo.decimalPositions + this.typeInfo.integerPositions!!)
+                NumberType(es - decimalPositions, decimalPositions, rpgType)
             } else {
 //                StringType(elementSize?.toLong()
 //                        ?: throw RuntimeException("The string has no specified length"))
                 if (elementSize == null) {
+                    if (this.typeInfo.integerPositions != null) {
+                        return StringType(this.typeInfo.integerPositions!!.toLong())
+                    }
                     val overlayingFields = fieldsList.fieldsOverlayingOn(this)
                     val lastByte = overlayingFields.map { it.explicitEndOffset!! }.max()
                     //DeferredType
@@ -440,8 +448,77 @@ class FieldsList(val fields: List<FieldInfo>) {
         return fields.filter { it.overlayInfo != null && it.overlayInfo.targetFieldName == targetField.name }
     }
 
+//    private fun calculateElementSizeWherePossible() {
+//        fields.forEach {
+//            try {
+//                it.toElementType(this).size
+//            } catch (e: Exception) {
+//                it.ty
+//            }
+//        }
+//    }
+
     // This should hopefully works because overlays should refer only to previous fields
+    private fun considerOverlaysFirstRound(dataDefinitionName: String) {
+        var nextOffset: Long = 0L
+        val sizeSoFar = HashMap<String, Int>()
+        val firstField = fields.first()
+        if (firstField.overlayInfo == null) {
+            firstField.startOffset = 0
+        }
+        fields.forEach {currFieldInfo ->
+            if (currFieldInfo.overlayInfo != null) {
+
+                // The overlay refers to the data definition, for example:
+                // D SSFLD                        600
+                // D  APPNAME                      02    OVERLAY(SSFLD:1)
+                if (currFieldInfo.overlayInfo.targetFieldName == dataDefinitionName) {
+//                    val extraOffset = if (it.overlayInfo.posValue == null) {
+//                        // consider *NEXT
+//                        if (it.overlayInfo.isNext) {
+//                            nextOffset
+//                        } else {
+//                            0
+//                        }
+//                    } else {
+//                        it.overlayInfo.posValue - 1
+//                    }
+//                    it.explicitStartOffset = extraOffset.toInt()
+                } else {
+                    // The overlay refers to the a data structure field, the offset is relative
+                    // D SSFLD                        600
+                    // D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
+                    // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
+                    val targetFieldDefinition = fields.find { it.name == currFieldInfo.overlayInfo!!.targetFieldName }
+                            ?: throw RuntimeException("Target of overlay not found: ${currFieldInfo.overlayInfo.targetFieldName}")
+
+                    val extraOffset: Int = if (currFieldInfo.overlayInfo.posValue == null) {
+                        if (currFieldInfo.overlayInfo.isNext) {
+                            sizeSoFar.getOrDefault(targetFieldDefinition.name, 0)
+                        } else {
+                            0
+                        }
+                    } else {
+                        (currFieldInfo.overlayInfo.posValue - 1).toInt()
+                    }
+                    // refers to a non overlayed field
+                    if (currFieldInfo.explicitStartOffset == null) {
+                        currFieldInfo.explicitStartOffset = (targetFieldDefinition.startOffset ?: throw IllegalStateException("No start offset for ${targetFieldDefinition.name}")) + extraOffset
+                    } else {
+                        currFieldInfo.explicitStartOffset = targetFieldDefinition.explicitStartOffset!! + extraOffset
+                    }
+                    // TODO this toAst causes issues in case of overlays
+                    val elementSize = currFieldInfo.toAst(0, this).type.elementSize()
+                    sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) +  elementSize.toInt()
+                }
+            }
+        }
+    }
+
+        // This should hopefully works because overlays should refer only to previous fields
     fun considerOverlays(dataDefinitionName: String) {
+        //this.calculateElementSizeWherePossible()
+        this.considerOverlaysFirstRound(dataDefinitionName)
         var nextOffset: Long = 0L
         fields.forEach {
 
@@ -465,43 +542,43 @@ class FieldsList(val fields: List<FieldInfo>) {
                     }
                     it.explicitStartOffset = extraOffset.toInt()
                 } else {
-                    // The overlay refers to the a data structure field, the offset is relative
-                    // D SSFLD                        600
-                    // D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
-                    // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
-                    val targetFieldDefinition = fields.find { it.name == it.overlayInfo!!.targetFieldName }
-                            ?: throw RuntimeException("Target of overlay not found: ${it.overlayInfo.targetFieldName}")
-
-                    val extraOffset: Int = if (it.overlayInfo.posValue == null) {
-                        if (it.overlayInfo.isNext) {
-                            nextOffset.toInt()
-                        } else {
-                            0
-                        }
-                    } else {
-                        (it.overlayInfo.posValue - 1).toInt()
-                    }
-                    // refers to a non overlayed field
-                    if (it.explicitStartOffset == null) {
-                        it.explicitStartOffset = targetFieldDefinition.startOffset!! + extraOffset
-                    } else {
-                        it.explicitStartOffset = targetFieldDefinition.explicitStartOffset!! + extraOffset
-                    }
-                    // TODO this toAst causes issues in case of overlays
-                    val elementSize = it.toAst(0, this).type.elementSize()
-                    it.nextOffset = it.nextOffset!! +  elementSize.toInt()
+//                    // The overlay refers to the a data structure field, the offset is relative
+//                    // D SSFLD                        600
+//                    // D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
+//                    // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
+//                    val targetFieldDefinition = fields.find { it.name == it.overlayInfo!!.targetFieldName }
+//                            ?: throw RuntimeException("Target of overlay not found: ${it.overlayInfo.targetFieldName}")
+//
+//                    val extraOffset: Int = if (it.overlayInfo.posValue == null) {
+//                        if (it.overlayInfo.isNext) {
+//                            nextOffset.toInt()
+//                        } else {
+//                            0
+//                        }
+//                    } else {
+//                        (it.overlayInfo.posValue - 1).toInt()
+//                    }
+//                    // refers to a non overlayed field
+//                    if (it.explicitStartOffset == null) {
+//                        it.explicitStartOffset = targetFieldDefinition.startOffset!! + extraOffset
+//                    } else {
+//                        it.explicitStartOffset = targetFieldDefinition.explicitStartOffset!! + extraOffset
+//                    }
+//                    // TODO this toAst causes issues in case of overlays
+//                    val elementSize = it.toAst(0, this).type.elementSize()
+//                    it.nextOffset = it.nextOffset!! +  elementSize.toInt()
                 }
             }
             // TODO this toAst causes issues in case of overlays
             //val elementSize = it.toAst(0, this).type.elementSize()
             // updates the *NEXT offset
 
-            THE PROBLEM SEEM TO BE THAT WE ARE CALCULATING THE SIZE OF AR01 IN CONSIDER OVERLAYS, WHILE WE SHOULD AVOID
-            DOING SO AS IT IS NOT YET AVAILABLE
-            TO CALCULATE THE SIZE OF AR01 WE NEED TO CONSIDER FIRST ALL THE STUFF THAT IS OVERLAYING ON IT AND THEIR POSITION
-            SOMEHOW
-            PERHAPS WE COULD TENTATIVELY FIX THE START OFFSET AND STOP OFFSET FOR THE FIELDS FOR WHICH WE CAN CALCULATE IT
-            IN OTHER WORDS WE COULD DO CONSIDER OVERLAYS IN TWO STEPS
+//            THE PROBLEM SEEM TO BE THAT WE ARE CALCULATING THE SIZE OF AR01 IN CONSIDER OVERLAYS, WHILE WE SHOULD AVOID
+//            DOING SO AS IT IS NOT YET AVAILABLE
+//            TO CALCULATE THE SIZE OF AR01 WE NEED TO CONSIDER FIRST ALL THE STUFF THAT IS OVERLAYING ON IT AND THEIR POSITION
+//            SOMEHOW
+//            PERHAPS WE COULD TENTATIVELY FIX THE START OFFSET AND STOP OFFSET FOR THE FIELDS FOR WHICH WE CAN CALCULATE IT
+//            IN OTHER WORDS WE COULD DO CONSIDER OVERLAYS IN TWO STEPS
 
             nextOffset = it.nextOffset!!.toLong()
         }
