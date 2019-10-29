@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.overlay
 
+import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -51,20 +52,12 @@ class RpgDeceditTest09 {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
-        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        annotations.forEach { (line, annotation) ->
-            try {
-                assertTrue(annotation.result.asBoolean().value)
-            } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
-                failed++
-            }
-        }
+        var failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
@@ -76,21 +69,13 @@ class RpgDeceditTest09 {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02_COMMA", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
-        var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         // Changes the default decedit
         interpreter.decedit = ","
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        annotations.forEach { (line, annotation) ->
-            try {
-                assertTrue(annotation.result.asBoolean().value)
-            } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
-                failed++
-            }
-        }
+        var failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
@@ -102,21 +87,12 @@ class RpgDeceditTest09 {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02A", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
-        var failed: Int = 0
-
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.decedit = "0,"
         // Changes the default decedit
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        annotations.forEach { (line, annotation) ->
-            try {
-                assertTrue(annotation.result.asBoolean().value)
-            } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
-                failed++
-            }
-        }
+        var failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }

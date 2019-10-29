@@ -3,11 +3,14 @@ package com.smeup.rpgparser.parsing
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -108,20 +111,15 @@ class RpgParserDataStruct {
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
-        var failed: Int = 0
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        annotations.forEach { (line, annotation) ->
-            try {
-                assertTrue(annotation.result.asBoolean().value)
-            } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
-                failed++
-            }
-        }
+        var failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
+
     }
+
+
     /**
      * Test for all data type
      */
@@ -135,16 +133,8 @@ class RpgParserDataStruct {
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
-        var failed: Int = 0
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        annotations.forEach { (line, annotation) ->
-            try {
-                assertTrue(annotation.result.asBoolean().value)
-            } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
-                failed++
-            }
-        }
+        var failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
