@@ -64,7 +64,6 @@ class RpgParserOverlayTest11 {
         val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
         cu.resolve()
 
-
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
@@ -103,7 +102,6 @@ class RpgParserOverlayTest11 {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
         cu.resolve()
-
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

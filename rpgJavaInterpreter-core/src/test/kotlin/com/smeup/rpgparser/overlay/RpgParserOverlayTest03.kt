@@ -11,7 +11,6 @@ import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File
-import kotlin.test.assertTrue
 
 @Ignore
 public class RpgParserOverlayTest03 {
