@@ -305,8 +305,8 @@ fun rpgProgram(name: String): RpgProgram {
 }
 
 class DummyProgramFinder(val path: String) : RpgProgramFinder {
-    override fun findRpgProgram(name: String): RpgProgram? {
-        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("$path$name.rpgle"), name)
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle"), nameOrSource)
     }
 }
 
