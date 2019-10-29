@@ -400,6 +400,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                         minuend is IntValue && subtrahend is DecimalValue -> assign(statement.result, DecimalValue(minuend.asDecimal().value.subtract(subtrahend.value)))
                         minuend is DecimalValue && subtrahend is IntValue -> assign(statement.result, DecimalValue(minuend.value.subtract(subtrahend.asDecimal().value)))
                         minuend is DecimalValue && subtrahend is DecimalValue -> assign(statement.result, DecimalValue(minuend.value - subtrahend.value))
+                        else -> throw UnsupportedOperationException("I do not know how to subtract $minuend and $subtrahend at ${statement.position}")
                     }
                 }
                 is TimeStmt -> {
