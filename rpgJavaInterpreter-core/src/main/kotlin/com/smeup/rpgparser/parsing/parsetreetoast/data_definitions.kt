@@ -353,6 +353,9 @@ internal fun FieldInfo.toElementType(fieldsList: FieldsList): Type {
         null -> TODO()
         "" -> {
             if (this.typeInfo.decimalPositions != null) {
+
+                TODO create a method named "explicitElementSize" which return Int?
+
                 val rpgType = this.typeInfo.stringCode
                 val decimalPositions = this.typeInfo.decimalPositions!!
                 val es = elementSize ?: (this.typeInfo.decimalPositions + this.typeInfo.integerPositions!!)
