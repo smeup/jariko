@@ -102,7 +102,7 @@ Total files: 1, resolved: 3, executed: 3, failed:0
 
 SUCCESS
 ```
-There is also an utility to run just one file with the MUTE engine. To create the appropriate jar, run
+It is also possible to package the MUTE engine as a single jar that can be run independently. To create such jar, yoi can run:
 
 ```
  ./gradlew fatMuteJar
