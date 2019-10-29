@@ -13,6 +13,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Test
+import java.lang.StringBuilder
 import kotlin.test.assertTrue
 
 class RpgParserOverlayTest11 {
@@ -116,6 +117,7 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_16_runtime() {
+        RpgSystem.clearFinders()
         RpgSystem.addProgramFinder(DummyProgramFinder("/overlay/"))
         val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
         cu.resolve()
@@ -125,17 +127,20 @@ class RpgParserOverlayTest11 {
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        val messages = StringBuilder()
         annotations.forEach { (line, annotation) ->
             try {
                 assertTrue(annotation.succeeded())
             } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.succeeded()}")
+                val msg = "${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.succeeded()}"
+                println(msg)
+                messages.appendln(msg)
                 failed++
             }
         }
         if (failed > 0) {
             // Flaky test
-            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) $messages")
         }
     }
 }
