@@ -6,6 +6,8 @@ import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import java.io.File
 import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 
 typealias LoggingConfiguration = Properties
 
@@ -37,16 +39,28 @@ interface DBInterface {
     fun open(name: String): DBFile?
 }
 
-data class Field(val name: String, val value: Value)
+data class RecordField(val name: String, val value: Value)
 
-class Record(vararg fields: Field) : ArrayList<Field>(fields.asList())
+class Record(vararg fields: RecordField) : LinkedHashMap<String, Value>() {
+    init {
+        fields.forEach {
+            add(it)
+        }
+    }
+
+    fun matches(keyFields: List<RecordField>) = keyFields.all { this[it.name] == it.value }
+
+    fun add(field: RecordField) {
+        put(field.name, field.value)
+    }
+}
 
 interface DBFile {
     fun chain(key: Value): Record
-    fun chain(keys: List<Field>): Record
+    fun chain(keys: List<RecordField>): Record
     fun readEqual(): Record
     fun readEqual(key: Value): Record
-    fun readEqual(keys: List<Field>): Record
+    fun readEqual(keys: List<RecordField>): Record
     fun eof(): Boolean
 }
 

@@ -157,14 +157,13 @@ jacocoTestReport {
 
 //gradlew runExample -Pargs="CALCFIB,9"
 task runExample (type: JavaExec) {
-    if (project.hasProperty('programArgs')){
+    if(project.hasProperty('programArgs')){
         args(project.getProperties().get("programArgs").split(','))
     }
     main="com.smeup.rpgparser.execution.RunnerKt"
     classpath = sourceSets.test.runtimeClasspath
 }
 
-//Creates smeup-rpg/rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-all.jar
 task fatJar(type: Jar) {
     manifest {
         attributes 'Main-Class': 'com.smeup.rpgparser.execution.RunnerKt'
@@ -195,8 +194,9 @@ task runMutes(type: JavaExec) {
     }
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.smeup.rpgparser.mute.MuterunnerKt'
-    args muteDir, "-s", "-lc", "$muteDir/mute_logging.config"
+    args '../mutes_for_ci', "-v", "-lc", "../mutes_for_ci/mute_logging.config"
 }
 
 check.dependsOn runMutes
 //check.dependsOn jacocoTestReport
+

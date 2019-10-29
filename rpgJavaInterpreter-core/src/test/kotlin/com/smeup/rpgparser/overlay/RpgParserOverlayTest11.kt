@@ -12,12 +12,10 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgSystem
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertTrue
 
-@Ignore
 class RpgParserOverlayTest11 {
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
@@ -61,10 +59,26 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_11C_runtime() {
+        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
         cu.resolve()
+
+        var failed: Int = 0
+
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        annotations.forEach { (line, annotation) ->
+            try {
+                assertTrue(annotation.result.asBoolean().value)
+            } catch (e: AssertionError) {
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
+                failed++
+            }
+        }
+        if (failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
     }
 
     @Test
@@ -81,8 +95,23 @@ class RpgParserOverlayTest11 {
     fun parseMUTE11_15_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
         cu.resolve()
+
+        var failed: Int = 0
+
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        annotations.forEach { (line, annotation) ->
+            try {
+                assertTrue(annotation.result.asBoolean().value)
+            } catch (e: AssertionError) {
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
+                failed++
+            }
+        }
+        if (failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
     }
 
     @Test

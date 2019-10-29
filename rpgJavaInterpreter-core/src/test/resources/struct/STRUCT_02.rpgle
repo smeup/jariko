@@ -9,7 +9,7 @@
       *---------------------------------------------------------------
       * M A I N
       *---------------------------------------------------------------
-     C                   EVAL MYDS.FLD1 = 0
+     C                   EVAL MYDS.FLD1 = 21
      C                   EVAL MYDS.FLD2 = 'ABCD'
      C                   DSPLY                   MYDS.FLD1
      C                   DSPLY                   MYDS.FLD2

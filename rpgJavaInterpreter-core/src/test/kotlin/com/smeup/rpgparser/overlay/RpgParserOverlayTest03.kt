@@ -28,23 +28,23 @@ public class RpgParserOverlayTest03 {
     @Test
     fun parseMUTE03_09_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
-        val cu = assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced("overlay/MUTE03_09_NOAR", considerPosition = true, withMuteSupport = true)
         cu.resolve()
         var failed: Int = 0
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExecutedAnnotation()
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         annotations.forEach { (line, annotation) ->
             try {
-                assertTrue(annotation.succeeded())
+                assertTrue(annotation.result.asBoolean().value)
             } catch (e: AssertionError) {
-                println("$line ${annotation.headerDescription()} ${annotation.succeeded()}")
+                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
                 failed++
             }
         }
         if (failed > 0) {
-            throw AssertionError("$failed failed annotation(s)")
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
 }

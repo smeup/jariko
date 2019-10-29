@@ -27,7 +27,10 @@ sealed class Type {
     }
 
     abstract val size: Long
+
+    fun toArray(nElements: Int) = ArrayType(this, nElements)
 }
+
 object KListType : Type() {
     override val size: Long
         get() = 0
@@ -55,6 +58,10 @@ object TimeStampType : Type() {
         get() = 26
 }
 
+/**
+ * A CharacterType is basically very similar to an array of characters
+ * and very similar to a string.
+ */
 data class CharacterType(val nChars: Int) : Type() {
     override val size: Long
         get() = nChars.toLong()

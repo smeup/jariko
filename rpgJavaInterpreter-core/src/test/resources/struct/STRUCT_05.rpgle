@@ -1,12 +1,12 @@
       *---------------------------------------------------------------
       * Test Template and LikeDS support
       *---------------------------------------------------------------
-     DFULLNAME         DS                TEMPLATE QUALIFIED
+     DFULLNAME         DS
      D FIRST                         10A
      D LAST                          10A
       *
-     DTEACHER          DS                LIKEDS(FULLNAME)
-     DSTUDENT          DS                LIKEDS(FULLNAME)
+     DTEACHER          DS                  LIKEDS (FULLNAME)
+     DSTUDENT          DS                  LIKEDS(FULLNAME)
 
       *---------------------------------------------------------------
       * M A I N

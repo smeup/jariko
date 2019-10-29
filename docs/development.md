@@ -54,7 +54,15 @@ All tests (except for performance tests) can be executed by running:
 ./gradlew check
 ```
 
-Information about [performance test are explained here.](performance_tests.md)
+To run performance tests (i.e. tests tagged with the annotation `@Category(PerformanceTest::class)`) run:
+```
+./gradlew testPerformance
+```
+
+To run all tests:
+```
+./gradlew testAll
+```
 
 
 If you want to force the execution of all checks:
@@ -106,8 +114,4 @@ You can check formatting rules using:
 gradlew ktlintCheck
 ``` 
 We suggest to set the *"Kotlin style guide"* as the code style for this project: 
-
 ![Code style settings](images/code_style.png)
-
-## Getting started
-If don't know how to get started, try reading this document on [how to write your first test](first_test.md)

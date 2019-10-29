@@ -166,6 +166,7 @@ data class IntValue(val value: Long) : NumberValue, Value() {
 data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     override fun negate(): Value = DecimalValue(-value)
     override fun asInt(): IntValue {
+
         return IntValue(value.toLong())
     }
 
@@ -176,7 +177,9 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
         return expectedType is NumberType
     }
 
-    fun isPositive() = value.signum() >= 0
+    fun isPositive(): Boolean {
+        return value >= BigDecimal.ZERO
+    }
 
     companion object {
         val ZERO = DecimalValue(BigDecimal.ZERO)
@@ -324,6 +327,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         require(index <= arrayLength())
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val containerElement = container.getElement(index)
+        // TODO to review
         if (containerElement is StringValue) {
             if (value is StringValue) {
                 containerElement.setSubstring(field.startOffset, field.endOffset, value)
@@ -334,14 +338,24 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
             } else {
                 TODO()
             }
-        } else {
-            TODO()
+        } else if (containerElement is DataStructValue) {
+            if (value is StringValue) {
+                containerElement.setSubstring(field.startOffset, field.endOffset, value)
+            } else if (value is IntValue) {
+                var s = value.value.toString()
+                val pad = s.padStart(field.endOffset - field.startOffset)
+                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
+            } else {
+                TODO()
+            }
         }
     }
 
     override fun getElement(index: Int): Value {
         val containerElement = container.getElement(index)
         if (containerElement is StringValue) {
+            return containerElement.getSubstring(field.startOffset, field.endOffset)
+        } else if (containerElement is DataStructValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
         } else {
             TODO()
@@ -368,12 +382,67 @@ fun Type.blank(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) {
             this.element.blank()
         }
-        is DataStructureType -> StringValue.blank(this.size.toInt())
+        is DataStructureType -> DataStructValue.blank(this.size.toInt())
         is StringType -> StringValue.blank(this.size.toInt())
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
-        else -> TODO()
+        is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
+        else -> TODO("I do not know how to produce a blank $this")
+    }
+}
+
+// StringValue wrapper
+data class DataStructValue(var value: String) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        return when (expectedType) {
+            is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
+            is StringType -> expectedType.size == this.value.length.toLong()
+            else -> false
+        }
+    }
+
+    fun set(data: FieldDefinition, value: Value) {
+        val v = data.toDataStructureValue(value)
+        this.setSubstring(data.startOffset, data.startOffset + data.size.toInt(), v)
+    }
+
+    operator fun get(data: FieldDefinition): Value {
+        return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
+    }
+
+    val valueWithoutPadding: String
+        get() = value.removeNullChars()
+
+    fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
+        require(startOffset >= 0)
+        require(startOffset <= value.length)
+        require(endOffset >= startOffset)
+        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
+        require(endOffset - startOffset == substringValue.value.length)
+        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
+        value = newValue.replace('\u0000', ' ')
+    }
+
+    fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
+        require(startOffset >= 0)
+        require(startOffset <= value.length)
+        require(endOffset >= startOffset)
+        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
+        val s = value.substring(startOffset, endOffset)
+        return StringValue(s)
+    }
+
+    companion object {
+        fun blank(length: Int) = DataStructValue(PAD_STRING.repeat(length))
+    }
+    override fun toString(): String {
+        return "StringValue[${value.length}]($valueWithoutPadding)"
+    }
+
+    override fun asString() = StringValue(this.value)
+    fun isBlank(): Boolean {
+        return this.valueWithoutPadding.isBlank()
     }
 }

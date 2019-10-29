@@ -81,7 +81,7 @@
       *----------------------------------------------------------------
      D £FUND2          DS           512    INZ
       *----------------------------------------------------------------
-     D DSP             S             50
+     D DSP             S            512
       *
       * La £FUN è una delle entry standardizzate più utilizzate in SMEUP
       *

@@ -336,9 +336,9 @@ class InterpreterTest {
     @Test
     @Ignore // we are working on DECEDIT
     fun executeBIFEDITC_J() {
-        assertEquals(listOf("x   123,456    123,456-  1,234.56 X",
-                            "x  1,234.56-       .00 X",
-                            "x  1,234.50 X"),
+        assertEquals(listOf("x   123,456   123,456-  1,234.56X",
+                            "x  1,234.56-       .00X",
+                            "x  1,234.50X"),
             outputOf("BIFEDITC_J"))
     }
 
@@ -702,8 +702,8 @@ class InterpreterTest {
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun open(name: String): DBFile? = object : MockDBFile() {
                 override fun chain(key: Value): Record = Record()
-                override fun chain(keys: List<Field>): Record =
-                    Record(Field("DESTST", someDescription))
+                override fun chain(keys: List<RecordField>): Record =
+                    Record(RecordField("DESTST", someDescription))
             }
 
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
@@ -729,9 +729,9 @@ class InterpreterTest {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
             override fun open(name: String): DBFile? = object : MockDBFile() {
                 override fun chain(key: Value): Record =
-                    Record(Field("FIRSTNME", StringValue("Giovanni")), Field("LASTNAME", StringValue("Boccaccio")))
+                    Record(RecordField("FIRSTNME", StringValue("Giovanni")), RecordField("LASTNAME", StringValue("Boccaccio")))
                 override fun readEqual(): Record =
-                    Record(Field("FIRSTNME", StringValue("Cecco")), Field("LASTNAME", StringValue("Angiolieri")))
+                    Record(RecordField("FIRSTNME", StringValue("Cecco")), RecordField("LASTNAME", StringValue("Angiolieri")))
                 override fun eof(): Boolean {
                     nrOfCallToEoF++
                     return nrOfCallToEoF > 1

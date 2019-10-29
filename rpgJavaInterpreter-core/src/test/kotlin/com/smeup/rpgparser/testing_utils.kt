@@ -193,6 +193,10 @@ fun CompilationUnit.assertDataDefinitionIsPresent(
     assertTrue(this.hasDataDefinition(name), message = "Data definition $name not found in Compilation Unit")
     val dataDefinition = this.getDataDefinition(name)
     assertEquals(dataType, dataDefinition.type)
+    assertEquals(fields.size, dataDefinition.fields.size, "Expected ${fields.size} fields, found ${dataDefinition.fields.size}")
+    for (i in 0 until fields.size) {
+        assertEquals(fields[i], dataDefinition.fields[i], "Expected field $i was ${fields[i]}, found ${dataDefinition.fields[i]}")
+    }
     assertEquals(fields, dataDefinition.fields)
     return dataDefinition
 }
@@ -315,9 +319,9 @@ class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
 
 open class MockDBFile : DBFile {
     override fun chain(key: Value): Record = TODO()
-    override fun chain(keys: List<Field>): Record = TODO()
+    override fun chain(keys: List<RecordField>): Record = TODO()
     override fun readEqual(): Record = TODO()
     override fun readEqual(key: Value): Record = TODO()
-    override fun readEqual(keys: List<Field>): Record = TODO()
+    override fun readEqual(keys: List<RecordField>): Record = TODO()
     override fun eof(): Boolean = TODO()
 }

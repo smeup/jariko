@@ -48,7 +48,8 @@ class DBSQLTest {
         assertTrue(dbFile!!.chain(StringValue("ABC")).isEmpty())
         val chainedRecord = dbFile.chain(StringValue("XXX"))
         assertEquals(2, chainedRecord.size)
-        assertEquals(StringValue("XXX"), chainedRecord[0].value)
-        assertEquals(DecimalValue(bigDecimalValue), chainedRecord[1].value)
+        val fieldsIterator = chainedRecord.iterator()
+        assertEquals(StringValue("XXX"), fieldsIterator.next().value)
+        assertEquals(DecimalValue(bigDecimalValue), fieldsIterator.next().value)
     }
 }
