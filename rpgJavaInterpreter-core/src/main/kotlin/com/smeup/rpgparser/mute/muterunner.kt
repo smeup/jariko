@@ -38,6 +38,7 @@ data class ExecutionResult(
 ) {
     fun success(): Boolean = failed == 0 && exceptions.isEmpty() && syntaxErrors.isEmpty()
 
+    // codebeat:disable[ABC]
     override fun toString(): String {
         val sb = StringBuilder()
         sb.appendln("------------")
@@ -56,6 +57,7 @@ data class ExecutionResult(
         }
         return addFileLink(sb)
     }
+    // codebeat:enable[ABC]
 
     private fun addFileLink(sb: StringBuilder): String {
         var result = sb.toString()
