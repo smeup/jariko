@@ -63,10 +63,10 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                         it.dcl_ds() != null -> {
                             val name = it.dcl_ds().name
                             if (name == declName) {
-                                val fieldsInfo: List<FieldInfo> = it.dcl_ds().calculateFieldInfos()
+                                val fieldsList = it.dcl_ds().calculateFieldInfos()
                                 return it.dcl_ds().type(
                                         it.dcl_ds().declaredSize(),
-                                        fieldsInfo).numberOfElements()
+                                        fieldsList).numberOfElements()
                             }
                         }
                     }

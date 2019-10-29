@@ -58,11 +58,6 @@ object TimeStampType : Type() {
         get() = 26
 }
 
-object DeferredType : Type() {
-    override val size: Long
-        get() = TODO()
-}
-
 /**
  * A CharacterType is basically very similar to an array of characters
  * and very similar to a string.
