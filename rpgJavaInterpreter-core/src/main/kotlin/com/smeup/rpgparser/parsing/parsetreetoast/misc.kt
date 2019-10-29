@@ -200,6 +200,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csTIME() != null -> this.csTIME().toAst(conf)
         this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
         this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
+        this.csADD() != null -> this.csADD().toAst(conf)
         this.csZ_SUB() != null -> this.csZ_SUB().toAst(conf)
         this.csSUB() != null -> this.csSUB().toAst(conf)
         this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
@@ -446,6 +447,15 @@ internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val position = toPosition(conf.considerPosition)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZAddStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
+}
+
+internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
+    val result = this.cspec_fixed_standard_parts().result.text
+    val left = leftExpr(conf)
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("ADD operation requires factor 2: ${this.text}")
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return AddStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
 }
 
 internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZSubStmt {

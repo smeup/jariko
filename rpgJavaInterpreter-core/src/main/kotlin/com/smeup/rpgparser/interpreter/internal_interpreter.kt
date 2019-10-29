@@ -375,6 +375,27 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 is ZAddStmt -> {
                     assign(statement.target, eval(statement.expression))
                 }
+                is AddStmt -> {
+                    val addend1 = if (statement.left == null) {
+                        interpret(statement.result)
+                    } else {
+                        interpret(statement.left)
+                    }
+                    require(addend1 is NumberValue) {
+                        "$addend1 should be a number"
+                    }
+                    val addend2 = interpret(statement.right)
+                    require(addend2 is NumberValue) {
+                        "$addend2 should be a number"
+                    }
+                    when {
+                        addend1 is IntValue && addend2 is IntValue -> assign(statement.result, IntValue(addend1.asInt().value.plus(addend2.asInt().value)))
+                        addend1 is IntValue && addend2 is DecimalValue -> assign(statement.result, DecimalValue(addend1.asDecimal().value.plus(addend2.value)))
+                        addend1 is DecimalValue && addend2 is IntValue -> assign(statement.result, DecimalValue(addend1.value.plus(addend2.asDecimal().value)))
+                        addend1 is DecimalValue && addend2 is DecimalValue -> assign(statement.result, DecimalValue(addend1.value.plus(addend2.value)))
+                        else -> throw UnsupportedOperationException("I do not know how to sum $addend1 and $addend2 at ${statement.position}")
+                    }
+                }
                 is ZSubStmt -> {
                     val value = eval(statement.expression)
                     require(value is NumberValue) {
