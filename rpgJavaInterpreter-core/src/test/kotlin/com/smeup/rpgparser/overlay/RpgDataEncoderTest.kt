@@ -13,7 +13,6 @@ class RpgDataEncoderTest {
 
     @Test
     fun encodeDecodeBinary2() {
-
         for (i in -9999..9999) {
             val binary2 = i.toBigDecimal()
             val encoded2 = encodeBinary(binary2, 2)
@@ -25,7 +24,6 @@ class RpgDataEncoderTest {
 
     @Test
     fun encodeDecodeBinary4() {
-
         for (i in -9999999..9999999) {
             val binary4 = i.toBigDecimal()
             val encoded4 = encodeBinary(binary4, 4)
