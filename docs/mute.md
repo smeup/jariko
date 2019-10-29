@@ -108,7 +108,7 @@ It is also possible to package the MUTE engine as a single jar that can be run i
  ./gradlew fatMuteJar
  ```
 
-This command creates `rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar`
+This command creates the JAR `rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar`.
 
 Then run the mute test with:
 
