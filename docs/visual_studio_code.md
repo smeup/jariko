@@ -35,6 +35,7 @@ For example:
 ```
 
 6. Run the code with one of these methods:
+
     * use shortcut Ctrl+Alt+N
     * or press F1 and then select/type Run Code,
     * or right click the Text Editor and then click Run Code in editor context menu
