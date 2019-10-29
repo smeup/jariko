@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntr
 import com.smeup.rpgparser.utils.*
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
+import java.math.MathContext
 import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
@@ -378,6 +379,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 }
                 is MultStmt -> {
                     assign(statement.target, mult(statement))
+                }
+                is DivStmt -> {
+                    assign(statement.target, div(statement))
                 }
                 is TimeStmt -> {
                     when (statement.value) {
@@ -861,9 +865,28 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         val type = statement.target.variable.referred!!.type
         require(type is NumberType)
         return if (statement.halfAdjust) {
-            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_DOWN))
+            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
         } else {
             DecimalValue(result.setScale(type.decimalDigits, RoundingMode.DOWN))
+        }
+    }
+
+    private fun div(statement: DivStmt): Value {
+        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
+        require(statement.target is DataRefExpr)
+        val dividend: BigDecimal = if (statement.factor1 != null) {
+            BigDecimal(interpret(statement.factor1).render())
+        } else {
+            BigDecimal(get(statement.target.variable.referred!!).render())
+        }
+        val divisor = BigDecimal(interpret(statement.factor2).render())
+        val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
+        val type = statement.target.variable.referred!!.type
+        require(type is NumberType)
+        return if (statement.halfAdjust) {
+            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
+        } else {
+            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.DOWN))
         }
     }
 
