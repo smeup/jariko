@@ -41,7 +41,9 @@ data class ExecutionResult(
     override fun toString(): String {
         val sb = StringBuilder()
         sb.appendln("------------")
-        sb.appendln("$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}".color(success()))
+        val message =
+            "$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}"
+        sb.appendln(message.color(success()))
         val sw = StringWriter()
         val printWriter = PrintWriter(sw)
         exceptions.forEach {
