@@ -49,6 +49,7 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
             else -> TODO(expression.toString())
         }
     }
+
     protected open fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
         rContext.statement()
                 .forEach {
@@ -62,7 +63,10 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                         it.dcl_ds() != null -> {
                             val name = it.dcl_ds().name
                             if (name == declName) {
-                                return it.dcl_ds().type().numberOfElements()
+                                val fieldsInfo: List<FieldInfo> = it.dcl_ds().calculateFieldInfos()
+                                return it.dcl_ds().type(
+                                        it.dcl_ds().declaredSize(),
+                                        fieldsInfo).numberOfElements()
                             }
                         }
                     }

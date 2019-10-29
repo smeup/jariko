@@ -215,7 +215,9 @@ fun RpgParser.Dcl_dsContext.fieldLines(): List<RpgParser.Parm_fixedContext> {
     return this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
 }
 
-fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = ToAstConfiguration()): Type {
+internal fun RpgParser.Dcl_dsContext.type(size: Int? = null,
+                                 fieldInfos: List<FieldInfo>,
+                                 conf: ToAstConfiguration = ToAstConfiguration()): Type {
     val keywords = if (this.parm_fixed().isEmpty()) {
         this.keyword()
     } else {
@@ -223,9 +225,9 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = T
     }
     val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
-    val others = this.fieldLines()
-    val fieldTypes: List<FieldType> = others.map { it.toFieldType() }
-    processDeferredTypes(fieldTypes, others)
+    //val others = this.fieldLines()
+    val fieldTypes: List<FieldType> = fieldInfos.map { it.toFieldType() }
+    //processDeferredTypes(fieldTypes, others)
     val elementSize = this.elementSizeOf()
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
@@ -235,23 +237,23 @@ fun RpgParser.Dcl_dsContext.type(size: Int? = null, conf: ToAstConfiguration = T
     }
 }
 
-/**
- * For some types the size depends on the elements overlaying on them, so we initially
- * set them to having the deferred type. We when need to actually replace those deferred types with proper values.
- */
-private fun processDeferredTypes(fieldTypes: List<FieldType>, others: List<RpgParser.Parm_fixedContext>) {
-    fieldTypes.forEachIndexed { index, fieldType ->
-        if (fieldType.type is DeferredType) {
-            TODO()
-        } else if (fieldType.type is ArrayType) {
-            if (fieldType.type.element is DeferredType) {
-                val overlayingFields =  others.filter { it.isOverlayingOn(fieldType.name) }
-                overlayingFields.map { it. }
-                TODO()
-            }
-        }
-    }
-}
+///**
+// * For some types the size depends on the elements overlaying on them, so we initially
+// * set them to having the deferred type. We when need to actually replace those deferred types with proper values.
+// */
+//private fun processDeferredTypes(fieldTypes: List<FieldType>, others: List<RpgParser.Parm_fixedContext>) {
+//    fieldTypes.forEachIndexed { index, fieldType ->
+//        if (fieldType.type is DeferredType) {
+//            TODO()
+//        } else if (fieldType.type is ArrayType) {
+//            if (fieldType.type.element is DeferredType) {
+//                val overlayingFields =  others.filter { it.isOverlayingOn(fieldType.name) }
+//                overlayingFields.map { it. }
+//                TODO()
+//            }
+//        }
+//    }
+//}
 
 private val RpgParser.Parm_fixedContext.name : String
     get() = this.ds_name().text
@@ -264,16 +266,44 @@ private fun RpgParser.Parm_fixedContext.isOverlayingOn(name: String): Boolean {
     return keywordOverlay?.name?.text?.equals(name, ignoreCase = true) ?: false
 }
 
+data class FieldInfo(val name: String) {
+    fun toFieldType(): FieldType {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
-internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
+    fun toAst(nElements: Int?, conf: ToAstConfiguration): FieldDefinition {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
+
+fun RpgParser.Dcl_dsContext.calculateFieldInfos() : List<FieldInfo> {
+    val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
+    return others.map { it.toFieldInfo() }
+}
+
+private fun RpgParser.Parm_fixedContext.toFieldInfo(): FieldInfo {
+    TODO()
+}
+
+fun RpgParser.Dcl_dsContext.declaredSize() : Int? {
     val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
         this.TO_POSITION().text.asInt()
     } else {
         null
     }
+    return size
+}
 
-    val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
-    val type: Type = this.type(size)
+
+internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
+    val size = this.declaredSize()
+
+    // Calculating information about the DS and its fields is full of interdependecies
+    // therefore we do that in steps
+
+    //val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
+    val fieldsInfo = calculateFieldInfos()
+    val type: Type = this.type(size, fieldsInfo, conf)
     val nElements = if (type is ArrayType) {
         type.nElements
     } else {
@@ -283,9 +313,9 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     val dataDefinition = DataDefinition(
             this.name,
             type,
-            fields = others.map { it.toAst(nElements, conf) },
+            fields = fieldsInfo.map { it.toAst(nElements, conf) },
             position = this.toPosition(true))
-    considerOverlays(dataDefinition, others)
+    considerOverlays(dataDefinition, fieldsInfo)
     return dataDefinition
 }
 
@@ -319,73 +349,74 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
 }
 
 // This should hopefully works because overlays should refer only to previous fields
-private fun considerOverlays(dataDefinition: DataDefinition, fieldsParseTrees: List<RpgParser.Parm_fixedContext>) {
+private fun considerOverlays(dataDefinition: DataDefinition, fieldInfos: List<FieldInfo>) {
     var nextOffset: Long = 0L
     dataDefinition.fields.forEach { it.parent = dataDefinition }
-    fieldsParseTrees.forEach {
-
-        // Size of the data struct field
-        val elementSize = it.toAst(0).type.elementSize()
-
-        // Detects if the OVERLAY keyword is present
-        val overlay = it.keyword().find { it.keyword_overlay() != null }
-        if (overlay != null) {
-            val fieldName = it.ds_name().text
-            val pos = overlay.keyword_overlay().pos
-            val nameExpr = overlay.keyword_overlay().name
-            val targetFieldName = nameExpr.identifier().text
-
-            // The overlay refers to the data definition, for example:
-            // D SSFLD                        600
-            // D  APPNAME                      02    OVERLAY(SSFLD:1)
-            if (targetFieldName == dataDefinition.name) {
-                val extraOffset = if (pos == null) {
-                    // consider *NEXT
-                    if (overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT") {
-                        nextOffset
-                    } else {
-                        0
-                    }
-                } else {
-                    // pos
-                    val posValue = (pos.number().toAst() as IntLiteral).value
-                    posValue - 1
-                }
-                val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
-                    ?: throw RuntimeException("User of overlay not found: $fieldName")
-                thisFieldDefinition.explicitStartOffset = extraOffset.toInt()
-            } else {
-                // The overlay refers to the a data structure field, the offset is relative
-                // D SSFLD                        600
-                // D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
-                // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
-                val targetFieldDefinition = dataDefinition.fields.find { it.name == targetFieldName }
-                        ?: throw RuntimeException("Target of overlay not found: $targetFieldName")
-                val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
-                        ?: throw RuntimeException("User of overlay not found: $fieldName")
-
-                val extraOffset: Int = if (pos == null) {
-                    if (overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT") {
-                        targetFieldDefinition.nextOffset
-                    } else {
-                        0
-                    }
-                } else {
-                    val posValue = (pos.number().toAst() as IntLiteral).value
-                    (posValue - 1).toInt()
-                }
-                    // refers to a non overlayed field
-                    if (thisFieldDefinition.explicitStartOffset == null) {
-                        thisFieldDefinition.explicitStartOffset = targetFieldDefinition.startOffset + extraOffset
-                    } else {
-                        thisFieldDefinition.explicitStartOffset = targetFieldDefinition.explicitStartOffset!! + extraOffset
-                    }
-                    targetFieldDefinition.nextOffset += elementSize.toInt()
-                }
-        }
-        // updates the *NEXT offset
-        nextOffset += elementSize
-    }
+//    fieldsParseTrees.forEach {
+//
+//        // Size of the data struct field
+//        val elementSize = it.toAst(0).type.elementSize()
+//
+//        // Detects if the OVERLAY keyword is present
+//        val overlay = it.keyword().find { it.keyword_overlay() != null }
+//        if (overlay != null) {
+//            val fieldName = it.ds_name().text
+//            val pos = overlay.keyword_overlay().pos
+//            val nameExpr = overlay.keyword_overlay().name
+//            val targetFieldName = nameExpr.identifier().text
+//
+//            // The overlay refers to the data definition, for example:
+//            // D SSFLD                        600
+//            // D  APPNAME                      02    OVERLAY(SSFLD:1)
+//            if (targetFieldName == dataDefinition.name) {
+//                val extraOffset = if (pos == null) {
+//                    // consider *NEXT
+//                    if (overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT") {
+//                        nextOffset
+//                    } else {
+//                        0
+//                    }
+//                } else {
+//                    // pos
+//                    val posValue = (pos.number().toAst() as IntLiteral).value
+//                    posValue - 1
+//                }
+//                val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
+//                    ?: throw RuntimeException("User of overlay not found: $fieldName")
+//                thisFieldDefinition.explicitStartOffset = extraOffset.toInt()
+//            } else {
+//                // The overlay refers to the a data structure field, the offset is relative
+//                // D SSFLD                        600
+//                // D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
+//                // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
+//                val targetFieldDefinition = dataDefinition.fields.find { it.name == targetFieldName }
+//                        ?: throw RuntimeException("Target of overlay not found: $targetFieldName")
+//                val thisFieldDefinition = dataDefinition.fields.find { it.name == fieldName }
+//                        ?: throw RuntimeException("User of overlay not found: $fieldName")
+//
+//                val extraOffset: Int = if (pos == null) {
+//                    if (overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT") {
+//                        targetFieldDefinition.nextOffset
+//                    } else {
+//                        0
+//                    }
+//                } else {
+//                    val posValue = (pos.number().toAst() as IntLiteral).value
+//                    (posValue - 1).toInt()
+//                }
+//                    // refers to a non overlayed field
+//                    if (thisFieldDefinition.explicitStartOffset == null) {
+//                        thisFieldDefinition.explicitStartOffset = targetFieldDefinition.startOffset + extraOffset
+//                    } else {
+//                        thisFieldDefinition.explicitStartOffset = targetFieldDefinition.explicitStartOffset!! + extraOffset
+//                    }
+//                    targetFieldDefinition.nextOffset += elementSize.toInt()
+//                }
+//        }
+//        // updates the *NEXT offset
+//        nextOffset += elementSize
+//    }
+    TODO()
 }
 
 fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
