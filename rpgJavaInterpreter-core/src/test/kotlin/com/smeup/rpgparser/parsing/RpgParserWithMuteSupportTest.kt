@@ -41,7 +41,7 @@ class RpgParserWithMuteSupportTest {
                 tokens.add(t)
             }
         } while (t.type != Token.EOF)
-        assertTrue(tokens.size >= 11)
+        assertTrue(tokens.size >= 10)
     }
 
     // Test if the parser returns errors

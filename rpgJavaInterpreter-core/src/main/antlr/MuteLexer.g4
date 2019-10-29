@@ -27,4 +27,5 @@ FAIL : [Ff][Aa][Ii][Ll] ;
 
 WS : [ \r\t\n]+ -> skip ;
 EXP: '['.*?']';
+EXP2: OPEN_PAREN~[0-9].*?CLOSE_PAREN;
 
