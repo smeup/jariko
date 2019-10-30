@@ -65,8 +65,8 @@ class DataDefinitionTest {
                         FieldType("\$\$SVARVA", StringType(1000))),
                 1050), 200),
                 fields = listOf(
-                        FieldDefinition("\$\$SVARCD", ArrayType(StringType(50), 200), explicitStartOffset = 0),
-                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200), explicitStartOffset = 50)
+                        FieldDefinition("\$\$SVARCD", ArrayType(StringType(50), 200), explicitStartOffset = null),
+                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200), explicitStartOffset = null)
                 ))
     }
 
@@ -138,6 +138,7 @@ class DataDefinitionTest {
     fun deriveLengthOfFieldFromOverrideClause() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolve()
-        TODO("Test the length of AR01")
+        val AR01 = cu.getDataDefinition("ARDS").getFieldByName("AR01")
+        assertEquals(3500, AR01.elementSize())
     }
 }

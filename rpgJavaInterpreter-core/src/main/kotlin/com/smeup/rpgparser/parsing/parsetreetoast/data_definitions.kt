@@ -39,26 +39,26 @@ private fun RpgParser.Parm_fixedContext.prevField(): RpgParser.Parm_fixedContext
     return fields[index - 1]
 }
 
-private fun RpgParser.Parm_fixedContext.endOffset(): Int {
+private fun RpgParser.Parm_fixedContext.endOffset(): Int? {
     val explicitEndOffset = if (this.explicitStartOffset() != null) this.explicitEndOffset() else null
     if (explicitEndOffset != null) {
         return explicitEndOffset
     }
-    TODO()
     //return startOffset() + this.toType().size.toInt()
+    return null
 }
 
-private fun inferDsSizeFromFieldLines(fieldLines: List<RpgParser.Parm_fixedContext>): Int {
-    require(fieldLines.isNotEmpty())
+private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
+    require(fieldsList.isNotEmpty())
     var maxEnd = 0
-    fieldLines.forEach {
-        val end = it.endOffset()
+    fieldsList.fields.forEach {
+        val end = it.endOffset ?: throw IllegalStateException("No end offset set for field ${it.name}")
         maxEnd = max(maxEnd, end)
     }
     return maxEnd
 }
 
-fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
+fun RpgParser.Dcl_dsContext.elementSizeOf(fieldsList: FieldsList = this.calculateFieldInfos()): Int {
     var toPosition = if (this.nameIsInFirstLine) {
         this.TO_POSITION().text
     } else {
@@ -67,10 +67,10 @@ fun RpgParser.Dcl_dsContext.elementSizeOf(): Int {
     }
     return if (toPosition.isBlank()) {
         // The element size has to be calculated, as it is not explicitly specified
-        val fieldLines = this.fieldLines()
+        //val fieldLines = this.fieldLines()
 
         // return fieldTypes.map { it.type. }
-        inferDsSizeFromFieldLines(fieldLines)
+        inferDsSizeFromFieldLines(fieldsList)
     } else {
         toPosition.trim().toInt()
     }
@@ -231,7 +231,7 @@ internal fun RpgParser.Dcl_dsContext.type(size: Int? = null,
     //val others = this.fieldLines()
     val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType(fieldsList) }
     //processDeferredTypes(fieldTypes, others)
-    val elementSize = this.elementSizeOf()
+    val elementSize = this.elementSizeOf(fieldsList)
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
         baseType
@@ -287,15 +287,18 @@ data class FieldInfo(val name: String,
                      val explicitElementType: Type? = null,
                      val position: Position?) {
 
-    var startOffset: Int? = null // these are mutable as they can be calculated using next
-    var endOffset: Int? = null   // these are mutable as they can be calculated using next
+    var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
+    var endOffset: Int? = explicitEndOffset   // these are mutable as they can be calculated using next
+
+    var calculatedElementSize: Long? = null
+    var calculatedElementType: Type? = null
 
     val explicitElementSize: Long?
         get() = explicitElementType?.size
 
     val elementType: Type
         get() {
-            return explicitElementType ?: throw IllegalStateException("No element type available for $name")
+            return explicitElementType ?: (calculatedElementType ?: throw IllegalStateException("No element type available for $name"))
         }
 
     fun type(): Type {
@@ -471,12 +474,15 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
 fun RpgParser.Dcl_dsContext.calculateFieldInfos() : FieldsList {
     val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
     val fieldsList = FieldsList(others.map { it.toFieldInfo() })
+
     // The first field, if does not use the overlay directive, starts at offset 0
     if (fieldsList.fields.isNotEmpty()) {
         if (fieldsList.fields.first().overlayInfo == null) {
             fieldsList.fields.first().startOffset = 0
         }
     }
+
+    fieldsList.considerOverlays(this.name)
     return fieldsList
 }
 
@@ -527,14 +533,10 @@ class FieldsList(val fields: List<FieldInfo>) {
 
     // This should hopefully works because overlays should refer only to previous fields
     private fun considerOverlaysFirstRound(dataDefinitionName: String) {
-        var nextOffset: Long = 0L
+//        var nextOffset: Long = 0L
         val sizeSoFar = HashMap<String, Int>()
         if (fields.isEmpty()) {
             return
-        }
-        val firstField = fields.first()
-        if (firstField.overlayInfo == null) {
-            firstField.startOffset = 0
         }
         fields.forEach {currFieldInfo ->
             if (currFieldInfo.overlayInfo != null) {
@@ -585,10 +587,7 @@ class FieldsList(val fields: List<FieldInfo>) {
         }
     }
 
-        // This should hopefully works because overlays should refer only to previous fields
-    fun considerOverlays(dataDefinitionName: String) {
-        //this.calculateElementSizeWherePossible()
-        this.considerOverlaysFirstRound(dataDefinitionName)
+    private fun considerOverlaysSecondRound(dataDefinitionName: String) {
         var nextOffset: Long = 0L
         fields.forEach {
 
@@ -653,6 +652,35 @@ class FieldsList(val fields: List<FieldInfo>) {
             //nextOffset = it.nextOffset!!.toLong()
         }
     }
+
+    private fun determineSizeByOverlayingFields() {
+        fields.forEach {
+            if (it.explicitElementSize == null) {
+                val overlayingFields = this.fieldsOverlayingOn(it)
+                check(overlayingFields.isNotEmpty()) { "I cannot calculate the size of ${it.name} from the overlaying fields as there are none" }
+                val overlayingFieldsWithoutEndOffset = overlayingFields.filter { it.endOffset == null }
+                check(overlayingFieldsWithoutEndOffset.isEmpty()) { "I cannot calculate the size of ${it.name} because it should be determined by the fields overlaying on it, but for some I do not know the end offset. They are: ${overlayingFieldsWithoutEndOffset.joinToString(separator = ", ") { it.name }}" }
+                val lastOffset = overlayingFields.map { it.endOffset!! }.max()!!.toLong()
+                it.calculatedElementSize = lastOffset
+
+                if (it.explicitElementType == null) {
+                    it.calculatedElementType = StringType(it.calculatedElementSize!!)
+                }
+                if (it.endOffset == null) {
+                    it.endOffset = (it.startOffset!! + it.elementType.size).toInt()
+                }
+            }
+        }
+    }
+
+    // This should hopefully works because overlays should refer only to previous fields
+    fun considerOverlays(dataDefinitionName: String) {
+        this.considerOverlaysFirstRound(dataDefinitionName)
+        this.considerOverlaysSecondRound(dataDefinitionName)
+        this.determineSizeByOverlayingFields()
+    }
+
+    fun isNotEmpty() = fields.isNotEmpty()
 }
 
 
@@ -663,7 +691,6 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     // therefore we do that in steps
 
     val fieldsList = calculateFieldInfos()
-    fieldsList.considerOverlays(this.name)
     val type: Type = this.type(size, fieldsList, conf)
     val nElements = if (type is ArrayType) {
         type.nElements
