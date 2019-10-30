@@ -376,18 +376,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     assign(statement.target, eval(statement.expression))
                 }
                 is AddStmt -> {
-                    val addend1 = if (statement.left == null) {
-                        interpret(statement.result)
-                    } else {
-                        interpret(statement.left)
-                    }
+                    val addend1 = interpret(statement.addend1)
+
                     require(addend1 is NumberValue) {
                         "$addend1 should be a number"
                     }
+
                     val addend2 = interpret(statement.right)
+
                     require(addend2 is NumberValue) {
                         "$addend2 should be a number"
                     }
+
                     when {
                         addend1 is IntValue && addend2 is IntValue -> assign(statement.result, IntValue(addend1.asInt().value.plus(addend2.asInt().value)))
                         addend1 is IntValue && addend2 is DecimalValue -> assign(statement.result, DecimalValue(addend1.asDecimal().value.plus(addend2.value)))

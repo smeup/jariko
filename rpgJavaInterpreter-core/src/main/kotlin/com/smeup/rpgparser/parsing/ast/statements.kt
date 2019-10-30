@@ -262,6 +262,9 @@ data class AddStmt(
         }
         return emptyList()
     }
+    @Derived
+    val addend1: Expression
+        get() = left ?: result
 }
 
 data class ZSubStmt(
