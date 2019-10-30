@@ -386,25 +386,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     assign(statement.target, value.negate())
                 }
                 is SubStmt -> {
-                    val minuend = if (statement.left == null) {
-                        interpret(statement.result)
-                    } else {
-                        interpret(statement.left)
-                    }
-                    require(minuend is NumberValue) {
-                        "$minuend should be a number"
-                    }
-                    val subtrahend = interpret(statement.right)
-                    require(subtrahend is NumberValue) {
-                        "$subtrahend should be a number"
-                    }
-                    when {
-                        minuend is IntValue && subtrahend is IntValue -> assign(statement.result, IntValue(minuend.asInt().value.minus(subtrahend.asInt().value)))
-                        minuend is IntValue && subtrahend is DecimalValue -> assign(statement.result, DecimalValue(minuend.asDecimal().value.subtract(subtrahend.value)))
-                        minuend is DecimalValue && subtrahend is IntValue -> assign(statement.result, DecimalValue(minuend.value.subtract(subtrahend.asDecimal().value)))
-                        minuend is DecimalValue && subtrahend is DecimalValue -> assign(statement.result, DecimalValue(minuend.value - subtrahend.value))
-                        else -> throw UnsupportedOperationException("I do not know how to subtract $minuend and $subtrahend at ${statement.position}")
-                    }
+                    assign(statement.result, sub(statement))
                 }
                 is TimeStmt -> {
                     when (statement.value) {
@@ -971,6 +953,24 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             addend1 is DecimalValue && addend2 is IntValue -> DecimalValue(addend1.value.plus(addend2.asDecimal().value))
             addend1 is DecimalValue && addend2 is DecimalValue -> DecimalValue(addend1.value.plus(addend2.value))
             else -> throw UnsupportedOperationException("I do not know how to sum $addend1 and $addend2 at ${statement.position}")
+        }
+    }
+
+    private fun sub(statement: SubStmt): Value {
+        val minuend = interpret(statement.minuend)
+        require(minuend is NumberValue) {
+            "$minuend should be a number"
+        }
+        val subtrahend = interpret(statement.right)
+        require(subtrahend is NumberValue) {
+            "$subtrahend should be a number"
+        }
+        return when {
+            minuend is IntValue && subtrahend is IntValue -> IntValue(minuend.asInt().value.minus(subtrahend.asInt().value))
+            minuend is IntValue && subtrahend is DecimalValue -> DecimalValue(minuend.asDecimal().value.minus(subtrahend.value))
+            minuend is DecimalValue && subtrahend is IntValue -> DecimalValue(minuend.value.minus(subtrahend.asDecimal().value))
+            minuend is DecimalValue && subtrahend is DecimalValue -> DecimalValue(minuend.value.minus(subtrahend.value))
+            else -> throw UnsupportedOperationException("I do not know how to sum $minuend and $subtrahend at ${statement.position}")
         }
     }
 

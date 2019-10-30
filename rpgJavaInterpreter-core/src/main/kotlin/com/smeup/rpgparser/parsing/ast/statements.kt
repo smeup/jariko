@@ -295,6 +295,9 @@ data class SubStmt(
         }
         return emptyList()
     }
+    @Derived
+    val minuend: Expression
+        get() = left ?: result
 }
 
 data class TimeStmt(
