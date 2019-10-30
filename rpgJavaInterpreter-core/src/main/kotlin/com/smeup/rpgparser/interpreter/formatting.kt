@@ -19,6 +19,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
 
     fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
 
+    // The functions below correspond to the EDITC parameter, one function per value
     fun f1(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
 
@@ -80,6 +81,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         } else
             return f3(decedit)
     }
+
     fun fA(decedit: String): String {
         return if (this.value < ZERO) {
             f1(decedit) + "CR"
