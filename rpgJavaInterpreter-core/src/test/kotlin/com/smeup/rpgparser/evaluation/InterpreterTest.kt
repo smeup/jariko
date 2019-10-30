@@ -300,6 +300,12 @@ class InterpreterTest {
         assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
     }
 
+    @Test @Ignore
+    fun executeREPLACEBIF() {
+        assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!"),
+            outputOf("REPLACEBIF"))
+    }
+
     @Test
     fun executeBIFEDITC_1() {
         assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00X"), outputOf("BIFEDITC_1"))
