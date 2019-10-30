@@ -59,26 +59,7 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_11C_runtime() {
-        RpgSystem.addProgramFinder(DummyProgramFinder("/overlay/"))
-        val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
-
-        var failed: Int = 0
-
-        val interpreter = InternalInterpreter(JavaSystemInterface())
-        interpreter.execute(cu, mapOf())
-        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        annotations.forEach { (line, annotation) ->
-            try {
-                assertTrue(annotation.result.asBoolean().value)
-            } catch (e: AssertionError) {
-                println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
-                failed++
-            }
-        }
-        if (failed > 0) {
-            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
-        }
+        assertMutesInExampleSucceed("overlay/MUTE11_11C")
     }
 
     @Test
