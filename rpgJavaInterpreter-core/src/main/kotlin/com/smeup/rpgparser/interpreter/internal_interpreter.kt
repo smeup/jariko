@@ -1271,6 +1271,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val dataStringValue = containerValue as DataStructValue
                 return dataStringValue[expression.field.referred ?: throw IllegalStateException("Referenced to field not resolved: ${expression.field.name}")]
             }
+            is ReplaceExpr -> {
+                val replString = eval(expression.replacement).asString().value
+                val sourceString = eval(expression.source).asString().value
+                return StringValue(sourceString.replaceRange(0..replString.length-1, replString))
+            }
             else -> TODO(expression.toString())
         }
     }

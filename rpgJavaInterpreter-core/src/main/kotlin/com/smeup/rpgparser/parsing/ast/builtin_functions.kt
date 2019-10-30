@@ -181,10 +181,10 @@ data class DiffExpr(
 
 // %REPLACE
 data class ReplaceExpr(
-    var value1: Expression,
-    var value2: Expression,
-    var value3: Expression? = null,
-    var value4: Expression? = null,
+    var replacement: Expression,
+    var source: Expression,
+    var start: Expression? = null,
+    var length: Expression? = null,
     override val position: Position? = null
 ) :
     Expression(position)
