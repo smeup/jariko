@@ -1274,7 +1274,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is ReplaceExpr -> {
                 val replString = eval(expression.replacement).asString().value
                 val sourceString = eval(expression.source).asString().value
-                return StringValue(sourceString.replaceRange(0..replString.length-1, replString))
+                if (expression.start == null) {
+                    return StringValue(sourceString.replaceRange(0..replString.length - 1, replString))
+                }
+                val startNr = eval(expression.start).asInt().value.toInt()
+                return StringValue(sourceString.replaceRange((startNr -1)..(startNr + replString.length + 1), replString))
             }
             else -> TODO(expression.toString())
         }
