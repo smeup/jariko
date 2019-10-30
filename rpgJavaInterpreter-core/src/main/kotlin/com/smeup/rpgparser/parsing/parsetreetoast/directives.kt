@@ -22,7 +22,7 @@ fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
             val content = this.hs_string().content.map { it.text }.joinToString(separator = "")
             return StringLiteral(content, position = this.toPosition(conf.considerPosition))
         }
-        else -> TODO("Invaldi param in decedit directive")
+        else -> TODO("Invalid param in decedit directive")
     }
 }
 
