@@ -143,7 +143,7 @@ data class FieldDefinition(
                         return StringValue(encoded)
                     }
                 }
-                TODO("Not implmented $type")
+                TODO("Not implemented $type")
             }
             is StringType -> {
                 return StringValue(value.asString().value)
