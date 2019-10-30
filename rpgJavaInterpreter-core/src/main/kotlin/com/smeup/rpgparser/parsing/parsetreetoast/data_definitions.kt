@@ -276,32 +276,44 @@ private fun RpgParser.Parm_fixedContext.isOverlayingOn(name: String): Boolean {
  */
 data class FieldInfo(val name: String,
                      val overlayInfo: OverlayInfo? = null,
-                     var explicitStartOffset: Int? = null, // these are mutable as they can be calculated using next
-                     var explicitEndOffset: Int? = null,   // these are mutable as they can be calculated using next
+                     val explicitStartOffset: Int?,
+                     val explicitEndOffset: Int?,
                      val arraySizeDeclared: Int? = null,
-                     val typeInfo: TypeInfo,
+                     // This can be set when the type permits to get the element size
+                     // For example, here it is possible:
+                     // D  FI07                         15  3 OVERLAY(AR01:*NEXT)
+                     // While here it is not:
+                     // D AR01                                DIM(100) ASCEND
+                     val explicitElementType: Type? = null,
                      val position: Position?) {
 
-    var nextOffset: Int? = null
-    var startOffset: Int? = null
+    var startOffset: Int? = null // these are mutable as they can be calculated using next
+    var endOffset: Int? = null   // these are mutable as they can be calculated using next
 
-    fun type(fieldsList: FieldsList): Type {
-        val et : Type = this.toElementType(fieldsList)
+    val explicitElementSize: Long?
+        get() = explicitElementType?.size
+
+    val elementType: Type
+        get() {
+            return explicitElementType ?: throw IllegalStateException("No element type available for $name")
+        }
+
+    fun type(): Type {
         return if (arraySizeDeclared == null) {
-            et
+            elementType
         } else {
-            ArrayType(et, arraySizeDeclared)
+            ArrayType(elementType, arraySizeDeclared)
         }
     }
 
     data class OverlayInfo(val targetFieldName: String, val isNext: Boolean, val posValue: Long?)
 
     fun toFieldType(fieldsList: FieldsList): FieldType {
-        return FieldType(name, type(fieldsList))
+        return FieldType(name, type())
     }
 
     fun toAst(nElements: Int?, fieldsList: FieldsList, conf: ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
-        var baseType = type(fieldsList)
+        var baseType = type()
         if (nElements != null) {
             baseType = ArrayType(baseType, nElements)
         }
@@ -309,7 +321,7 @@ data class FieldInfo(val name: String,
                 baseType,
                 explicitStartOffset = this.explicitStartOffset,
                 explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
-                position = this.position)
+                position = if (conf.considerPosition) this.position else null)
     }
 }
 
@@ -340,99 +352,151 @@ fun RpgParser.Parm_fixedContext.toTypeInfo() : TypeInfo {
     )
 }
 
-internal fun FieldInfo.toElementType(fieldsList: FieldsList): Type {
-    val startPosition = this.explicitStartOffset
-    val endPosition = this.explicitEndOffset
-    val elementSize = when {
+internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
+    val rpgCodeType = DATA_TYPE()?.text?.trim()
+    val integerPositions = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
+    val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
+    val isPackEven = keyword().any { it.keyword_packeven() != null }
+    val startPosition = this.explicitStartOffset()
+    val endPosition = this.explicitEndOffset()
+    val explicitElementSize = when {
         startPosition == null -> endPosition
         endPosition == null -> endPosition
         else -> endPosition - startPosition.toInt() + 1
     }
 
-    return when (this.typeInfo.stringCode) {
-        null -> TODO()
+    return when (rpgCodeType) {
         "" -> {
-            if (this.typeInfo.decimalPositions != null) {
-
-                TODO create a method named "explicitElementSize" which return Int?
-
-                val rpgType = this.typeInfo.stringCode
-                val decimalPositions = this.typeInfo.decimalPositions!!
-                val es = elementSize ?: (this.typeInfo.decimalPositions + this.typeInfo.integerPositions!!)
-                NumberType(es - decimalPositions, decimalPositions, rpgType)
+            if (decimalPositions == null && integerPositions == null) {
+                null
+            } else if (decimalPositions == null) {
+                StringType(explicitElementSize!!.toLong())
             } else {
-//                StringType(elementSize?.toLong()
-//                        ?: throw RuntimeException("The string has no specified length"))
-                if (elementSize == null) {
-                    if (this.typeInfo.integerPositions != null) {
-                        return StringType(this.typeInfo.integerPositions!!.toLong())
-                    }
-                    val overlayingFields = fieldsList.fieldsOverlayingOn(this)
-                    val lastByte = overlayingFields.map { it.explicitEndOffset!! }.max()
-                    //DeferredType
-                    TODO("There is no ElementSize for $name so we do not know how to calculate the element type")
-                } else {
-                    StringType(elementSize?.toLong()
-                            ?: throw RuntimeException("The string has no specified length"))
-                }
+                NumberType(integerPositions!!, decimalPositions, rpgCodeType)
             }
         }
         RpgType.PACKED.rpgType -> {
-            val rpgType = this.typeInfo.stringCode
-            if (this.typeInfo.isPackEven) {
+            val elementSize = decimalPositions!! + integerPositions!!
+            if (isPackEven) {
                 // The PACKEVEN keyword indicates that the packed field or array has an even number of digits.
                 // The keyword is only valid for packed program-described data-structure subfields defined using
                 // FROM/TO positions.
 
                 // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
-                val decimalPositions = this.typeInfo.decimalPositions!!
                 val numberOfDigits = 2 * (elementSize!! - 1)
 
-                NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
+                NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgCodeType)
             }
             // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
-            val decimalPositions = this.typeInfo.decimalPositions!!
             val numberOfDigits = 2 * elementSize!! - 1
-            NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
-        }
-        RpgType.ZONED.rpgType -> {
-            val rpgType = this.typeInfo.stringCode
-            val decimalPositions = this.typeInfo.decimalPositions!!
-            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+            NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgCodeType)
         }
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
-            val rpgType = this.typeInfo.stringCode
-            val decimalPositions = this.typeInfo.decimalPositions!!
-            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+            NumberType(integerPositions!!, decimalPositions!!, rpgCodeType)
         }
-        "N" -> BooleanType
-        "A" -> CharacterType(elementSize!!)
-        else -> throw UnsupportedOperationException("<${this.typeInfo.stringCode}>")
+        else -> TODO("Support RPG code type '$rpgCodeType', field $name")
     }
+
+//    val startPosition = this.explicitStartOffset
+//    val endPosition = this.explicitEndOffset
+//    val elementSize = when {
+//        startPosition == null -> endPosition
+//        endPosition == null -> endPosition
+//        else -> endPosition - startPosition.toInt() + 1
+//    }
+//
+//    return when (this.typeInfo.stringCode) {
+//        null -> TODO()
+//        "" -> {
+//            if (this.typeInfo.decimalPositions != null) {
+//
+//                //TODO create a method named "explicitElementSize" which return Int?
+//
+//                val rpgType = this.typeInfo.stringCode
+//                val decimalPositions = this.typeInfo.decimalPositions!!
+//                val es = elementSize ?: (this.typeInfo.decimalPositions + this.typeInfo.integerPositions!!)
+//                NumberType(es - decimalPositions, decimalPositions, rpgType)
+//            } else {
+////                StringType(elementSize?.toLong()
+////                        ?: throw RuntimeException("The string has no specified length"))
+//                if (elementSize == null) {
+//                    if (this.typeInfo.integerPositions != null) {
+//                        return StringType(this.typeInfo.integerPositions!!.toLong())
+//                    }
+//                    val overlayingFields = fieldsList.fieldsOverlayingOn(this)
+//                    val lastByte = overlayingFields.map { it.explicitEndOffset!! }.max()
+//                    //DeferredType
+//                    TODO("There is no ElementSize for $name so we do not know how to calculate the element type")
+//                } else {
+//                    StringType(elementSize?.toLong()
+//                            ?: throw RuntimeException("The string has no specified length"))
+//                }
+//            }
+//        }
+//        RpgType.PACKED.rpgType -> {
+//            val rpgType = this.typeInfo.stringCode
+//            if (this.typeInfo.isPackEven) {
+//                // The PACKEVEN keyword indicates that the packed field or array has an even number of digits.
+//                // The keyword is only valid for packed program-described data-structure subfields defined using
+//                // FROM/TO positions.
+//
+//                // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
+//                val decimalPositions = this.typeInfo.decimalPositions!!
+//                val numberOfDigits = 2 * (elementSize!! - 1)
+//
+//                NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
+//            }
+//            // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
+//            val decimalPositions = this.typeInfo.decimalPositions!!
+//            val numberOfDigits = 2 * elementSize!! - 1
+//            NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgType)
+//        }
+//        RpgType.ZONED.rpgType -> {
+//            val rpgType = this.typeInfo.stringCode
+//            val decimalPositions = this.typeInfo.decimalPositions!!
+//            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+//        }
+//        RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
+//            val rpgType = this.typeInfo.stringCode
+//            val decimalPositions = this.typeInfo.decimalPositions!!
+//            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgType)
+//        }
+//        "N" -> BooleanType
+//        "A" -> CharacterType(elementSize!!)
+//        else -> throw UnsupportedOperationException("<${this.typeInfo.stringCode}>")
+//    }
+    TODO()
 }
 
 fun RpgParser.Dcl_dsContext.calculateFieldInfos() : FieldsList {
     val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
-    return FieldsList(others.map { it.toFieldInfo() })
+    val fieldsList = FieldsList(others.map { it.toFieldInfo() })
+    // The first field, if does not use the overlay directive, starts at offset 0
+    if (fieldsList.fields.isNotEmpty()) {
+        if (fieldsList.fields.first().overlayInfo == null) {
+            fieldsList.fields.first().startOffset = 0
+        }
+    }
+    return fieldsList
 }
 
 private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration()): FieldInfo {
-        var overlayInfo : FieldInfo.OverlayInfo? = null
-        val overlay = this.keyword().find { it.keyword_overlay() != null }
-        if (overlay != null) {
-            val fieldName = this.name
-            val pos = overlay.keyword_overlay().pos
-            val nameExpr = overlay.keyword_overlay().name
-            val targetFieldName = nameExpr.identifier().text
-            val isNext = overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT"
-            val posValue = if (pos != null) (pos.number().toAst() as IntLiteral).value else null
-            overlayInfo = FieldInfo.OverlayInfo(targetFieldName, isNext, posValue = posValue)
-        }
+    var overlayInfo : FieldInfo.OverlayInfo? = null
+    val overlay = this.keyword().find { it.keyword_overlay() != null }
+    if (overlay != null) {
+        val fieldName = this.name
+        val pos = overlay.keyword_overlay().pos
+        val nameExpr = overlay.keyword_overlay().name
+        val targetFieldName = nameExpr.identifier().text
+        val isNext = overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT"
+        val posValue = if (pos != null) (pos.number().toAst() as IntLiteral).value else null
+        overlayInfo = FieldInfo.OverlayInfo(targetFieldName, isNext, posValue = posValue)
+    }
 
     return FieldInfo(this.name, overlayInfo = overlayInfo,
-            explicitStartOffset = null,
-            explicitEndOffset = null,
-            typeInfo = this.toTypeInfo(),
+            explicitStartOffset = this.explicitStartOffset(),
+            explicitEndOffset = this.explicitEndOffset(),
+            explicitElementType = this.calculateExplicitElementType(),
             arraySizeDeclared = this.arraySizeDeclared(),
             position = this.toPosition(conf.considerPosition))
 }
@@ -465,6 +529,9 @@ class FieldsList(val fields: List<FieldInfo>) {
     private fun considerOverlaysFirstRound(dataDefinitionName: String) {
         var nextOffset: Long = 0L
         val sizeSoFar = HashMap<String, Int>()
+        if (fields.isEmpty()) {
+            return
+        }
         val firstField = fields.first()
         if (firstField.overlayInfo == null) {
             firstField.startOffset = 0
@@ -505,10 +572,10 @@ class FieldsList(val fields: List<FieldInfo>) {
                         (currFieldInfo.overlayInfo.posValue - 1).toInt()
                     }
                     // refers to a non overlayed field
-                    if (currFieldInfo.explicitStartOffset == null) {
-                        currFieldInfo.explicitStartOffset = (targetFieldDefinition.startOffset ?: throw IllegalStateException("No start offset for ${targetFieldDefinition.name}")) + extraOffset
+                    if (currFieldInfo.startOffset == null) {
+                        currFieldInfo.startOffset = (targetFieldDefinition.startOffset ?: throw IllegalStateException("No start offset for ${targetFieldDefinition.name}")) + extraOffset
                     } else {
-                        currFieldInfo.explicitStartOffset = targetFieldDefinition.explicitStartOffset!! + extraOffset
+                        currFieldInfo.startOffset = targetFieldDefinition.startOffset!! + extraOffset
                     }
                     // TODO this toAst causes issues in case of overlays
                     val elementSize = currFieldInfo.toAst(0, this).type.elementSize()
@@ -543,7 +610,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                     } else {
                         it.overlayInfo.posValue - 1
                     }
-                    it.explicitStartOffset = extraOffset.toInt()
+                    it.startOffset = extraOffset.toInt()
                 } else {
 //                    // The overlay refers to the a data structure field, the offset is relative
 //                    // D SSFLD                        600
@@ -583,7 +650,7 @@ class FieldsList(val fields: List<FieldInfo>) {
 //            PERHAPS WE COULD TENTATIVELY FIX THE START OFFSET AND STOP OFFSET FOR THE FIELDS FOR WHICH WE CAN CALCULATE IT
 //            IN OTHER WORDS WE COULD DO CONSIDER OVERLAYS IN TWO STEPS
 
-            nextOffset = it.nextOffset!!.toLong()
+            //nextOffset = it.nextOffset!!.toLong()
         }
     }
 }
