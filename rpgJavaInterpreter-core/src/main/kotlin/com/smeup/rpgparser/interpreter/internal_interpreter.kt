@@ -110,7 +110,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             else -> {
                 var previous: Value? = null
-                if (globalSymbolTable.contains(data.name)) {
+                if (data.name in globalSymbolTable) {
                     previous = globalSymbolTable[data.name]
                 }
                 log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
