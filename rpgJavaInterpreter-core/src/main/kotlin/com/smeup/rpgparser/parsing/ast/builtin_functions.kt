@@ -179,6 +179,16 @@ data class DiffExpr(
 ) :
     Expression(position)
 
+// %REPLACE
+data class ReplaceExpr(
+    var value1: Expression,
+    var value2: Expression,
+    var value3: Expression? = null,
+    var value4: Expression? = null,
+    override val position: Position? = null
+) :
+    Expression(position)
+
 // TODO Move and handle different types of duration
 // TODO document what a duration code is
 data class DurationCodeExpr(override var position: Position? = null) :

@@ -25,8 +25,18 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
         this.bif_abs() != null -> this.bif_abs().toAst(conf)
         this.bif_int() != null -> this.bif_int().toAst(conf)
         this.bif_editw() != null -> this.bif_editw().toAst(conf)
+        this.bif_replace() != null -> this.bif_replace().toAst(conf)
         else -> TODO(this.text + " " + toPosition(conf.considerPosition))
     }
+}
+
+internal fun RpgParser.Bif_replaceContext.toAst(conf: ToAstConfiguration): Expression {
+    return ReplaceExpr(
+        this.expression(0).toAst(conf),
+        this.expression(1).toAst(conf),
+        this.expression(2)?.toAst(conf),
+        this.expression(3)?.toAst(conf),
+        toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.Bif_absContext.toAst(conf: ToAstConfiguration): Expression {
