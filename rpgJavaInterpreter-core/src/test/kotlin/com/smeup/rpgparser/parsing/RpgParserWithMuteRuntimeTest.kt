@@ -1,10 +1,8 @@
 package com.smeup.rpgparser.parsing
 
+import com.smeup.rpgparser.assertCanBeParsedResult
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.execute
-import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import com.smeup.rpgparser.parsing.facade.RpgParserResult
-import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
@@ -15,18 +13,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.junit.Test
 
-public class RpgParserWithMuteRuntimeTest {
-
-    // Temporary replacement to return RpgParserResult
-    private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
-        val result = RpgParserFacade()
-                .apply { this.muteSupport = withMuteSupport }
-                .parse(inputStreamFor(exampleName))
-        assertTrue(result.correct,
-                message = "Errors: ${result.errors.joinToString(separator = ", ")}")
-
-        return result
-    }
+class RpgParserWithMuteRuntimeTest {
 
     // Temporary replacement
     private fun assertASTCanBeProduced(
@@ -34,7 +21,7 @@ public class RpgParserWithMuteRuntimeTest {
         considerPosition: Boolean = false,
         withMuteSupport: Boolean = true
     ): CompilationUnit {
-        val parseTreeRoot = assertCanBeParsed(exampleName, withMuteSupport)
+        val parseTreeRoot = assertCanBeParsedResult(exampleName, withMuteSupport)
         val ast = parseTreeRoot.root!!.rContext.toAst(ToAstConfiguration(
                 considerPosition = considerPosition))
         if (withMuteSupport) {
