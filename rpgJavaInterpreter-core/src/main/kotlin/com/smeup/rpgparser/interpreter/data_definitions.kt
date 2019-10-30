@@ -148,7 +148,7 @@ data class FieldDefinition(
             is StringType -> {
                 return StringValue(value.asString().value)
             }
-            else -> TODO("Not implmented $type")
+            else -> TODO("Not implemented $type")
         }
     }
 
