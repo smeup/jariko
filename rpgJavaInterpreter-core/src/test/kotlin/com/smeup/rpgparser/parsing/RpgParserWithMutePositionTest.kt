@@ -1,15 +1,13 @@
 package com.smeup.rpgparser.parsing
 
+import com.smeup.rpgparser.assertCanBeParsedResult
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
-import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import com.smeup.rpgparser.parsing.facade.RpgParserResult
-import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import kotlin.test.assertTrue
 import org.junit.Test
 
-public class RpgParserWithMutePositionTest {
+class RpgParserWithMutePositionTest {
 
     var printResults: Boolean = true
 
@@ -31,21 +29,11 @@ public class RpgParserWithMutePositionTest {
         }
         return null
     }
-    // Temporary replacement to return RpgParserResult
-    private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RpgParserResult {
-        val result = RpgParserFacade()
-                .apply { this.muteSupport = withMuteSupport }
-                .parse(inputStreamFor(exampleName))
-        assertTrue(result.correct,
-                message = "Errors: ${result.errors.joinToString(separator = ", ")}")
-
-        return result
-    }
 
     @Test
     fun parseMUTE01_position_for() {
         val resolved: List<MuteAnnotationResolved>
-        val result = assertCanBeParsed("mute/MUTE01_POSITION", withMuteSupport = true)
+        val result = assertCanBeParsedResult("mute/MUTE01_POSITION", withMuteSupport = true)
 
         result.root!!.rContext.toAst().apply {
             resolved = this.injectMuteAnnotation(result.root!!.muteContexts!!)
@@ -70,7 +58,7 @@ public class RpgParserWithMutePositionTest {
     @Test
     fun parseMUTE02_position_select() {
         val resolved: List<MuteAnnotationResolved>
-        val result = assertCanBeParsed("mute/MUTE02_POSITION", withMuteSupport = true)
+        val result = assertCanBeParsedResult("mute/MUTE02_POSITION", withMuteSupport = true)
         result.root!!.rContext.toAst().apply {
             resolved = this.injectMuteAnnotation(result.root!!.muteContexts!!)
         }
@@ -99,7 +87,7 @@ public class RpgParserWithMutePositionTest {
     @Test
     fun parseMUTE02_position_if() {
         val resolved: List<MuteAnnotationResolved>
-        val result = assertCanBeParsed("mute/MUTE03_POSITION", withMuteSupport = true)
+        val result = assertCanBeParsedResult("mute/MUTE03_POSITION", withMuteSupport = true)
         result.root!!.rContext.toAst().apply {
             resolved = this.injectMuteAnnotation(result.root!!.muteContexts!!)
         }
@@ -127,7 +115,7 @@ public class RpgParserWithMutePositionTest {
     @Test
     fun parseMUTE02_position_do() {
         val resolved: List<MuteAnnotationResolved>
-        val result = assertCanBeParsed("mute/MUTE04_POSITION", withMuteSupport = true)
+        val result = assertCanBeParsedResult("mute/MUTE04_POSITION", withMuteSupport = true)
         result.root!!.rContext.toAst().apply {
             resolved = this.injectMuteAnnotation(result.root!!.muteContexts!!)
         }
