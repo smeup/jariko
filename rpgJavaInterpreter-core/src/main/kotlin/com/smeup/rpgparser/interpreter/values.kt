@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
+import java.lang.Exception
+import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
@@ -403,9 +405,15 @@ data class DataStructValue(var value: String) : Value() {
         }
     }
 
-    fun set(data: FieldDefinition, value: Value) {
-        val v = data.toDataStructureValue(value)
-        this.setSubstring(data.startOffset, data.startOffset + data.size.toInt(), v)
+    fun set(field: FieldDefinition, value: Value) {
+        val v = field.toDataStructureValue(value)
+        val startIndex = field.startOffset
+        val endIndex = field.startOffset + field.size.toInt()
+        try {
+            this.setSubstring(startIndex, endIndex, v)
+        } catch (e: Exception) {
+            throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}", e)
+        }
     }
 
     operator fun get(data: FieldDefinition): Value {

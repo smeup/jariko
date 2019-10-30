@@ -3,7 +3,7 @@ package com.smeup.rpgparser.parsing
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
-import com.smeup.rpgparser.interpreter.InternalInterpreter
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
@@ -33,6 +33,32 @@ class RpgParserDataStruct {
         val cu = assertASTCanBeProduced("struct/STRUCT_01", true)
 
         cu.resolve()
+
+        val MYDS = cu.getDataDefinition("MYDS")
+        val FLD1 = MYDS.getFieldByName("FLD1")
+        val FLD2 = MYDS.getFieldByName("FLD2")
+        assertEquals(0, FLD1.startOffset)
+        assertEquals(5, FLD1.endOffset)
+        assertEquals(5, FLD2.startOffset)
+        assertEquals(15, FLD2.endOffset)
+
+        assertEquals(5, FLD1.size)
+        assertEquals(5, FLD1.elementSize())
+
+        assertEquals(10, FLD2.size)
+        assertEquals(10, FLD2.elementSize())
+
+        assertEquals(DataStructureType(listOf(
+                FieldType("FLD1", NumberType(5, 0)),
+                FieldType("FLD2", StringType(10))
+        ), 15), MYDS.type)
+
+        HERE I GET AN ERROR AS THE ELEMENT SIZE IS 10, NOT FIFTEEN
+        THIS IS THE CASE BECAUSE THE EXPLICIT END OFFSET OF FLD2 IS RECOGNIZED AS 10, WHICH I THINK IS WRONG
+        WE SHOULD ASK CLARIFICATIONS ON THIS
+
+        assertEquals(15, MYDS.elementSize())
+
         execute(cu, mapOf())
     }
 
