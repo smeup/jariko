@@ -1113,7 +1113,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     is StringValue -> value.value.length.asValue()
                     is DataStructValue -> value.value.length.asValue()
                     else -> {
-                        TODO(value.toString())
+                        TODO("Invalid LEN parameter $value")
                     }
                 }
             }
@@ -1157,7 +1157,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is DivExpr -> {
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
-                // TODO check type
+                // Check the type and select the correct operation
                 if (v1 is DecimalValue && v2 is DecimalValue) {
 
                     val parent = expression.parent as EvalStmt
@@ -1240,7 +1240,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is EditwExpr -> {
                 val n = eval(expression.value)
                 val format = eval(expression.format)
-                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
+                require(format is StringValue) { "Required string value, but got $format at ${expression.position}" }
                 return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
             }
             is IntExpr -> {
