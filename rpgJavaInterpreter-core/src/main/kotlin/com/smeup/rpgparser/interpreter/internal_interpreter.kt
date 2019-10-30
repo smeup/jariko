@@ -92,6 +92,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     operator fun get(data: AbstractDataDefinition): Value {
         return globalSymbolTable[data]
     }
+
     operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -104,7 +105,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
                 val dd = get(ds.name) as DataStructValue
-                // DataStructValuw Wrapper
+                // DataStructValue Wrapper
                 dd.set(data, value)
             }
             else -> {
