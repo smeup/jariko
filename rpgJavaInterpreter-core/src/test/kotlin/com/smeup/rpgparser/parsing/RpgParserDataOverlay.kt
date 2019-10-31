@@ -7,7 +7,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Test
 import kotlin.test.assertEquals
 
-// @Ignore
 class RpgParserDataOverlay {
 
     /**

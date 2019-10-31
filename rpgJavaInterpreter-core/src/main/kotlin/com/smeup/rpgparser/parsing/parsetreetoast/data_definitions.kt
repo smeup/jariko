@@ -624,6 +624,9 @@ class FieldsList(val fields: List<FieldInfo>) {
                         it.overlayInfo.posValue - 1
                     }
                     it.startOffset = extraOffset.toInt()
+                    if (it.elementSize != null) {
+                        it.endOffset = (it.startOffset!! + it.elementSize!!).toInt()
+                    }
                 } else {
 //                    // The overlay refers to the a data structure field, the offset is relative
 //                    // D SSFLD                        600
