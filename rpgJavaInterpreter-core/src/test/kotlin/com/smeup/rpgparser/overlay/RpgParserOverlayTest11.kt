@@ -2,6 +2,8 @@ package com.smeup.rpgparser.overlay
 
 import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.interpreter.InternalInterpreter
+import com.smeup.rpgparser.interpreter.NumberType
+import com.smeup.rpgparser.interpreter.StringType
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
@@ -14,6 +16,7 @@ import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Test
 import java.io.File
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RpgParserOverlayTest11 {
@@ -88,7 +91,14 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_15_ast() {
-        assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
+        cu.resolve()
+
+        val FUND1 = cu.getDataDefinition("£FUND1")
+        val FUNQT = FUND1.getFieldByName("£FUNQT")
+        assertEquals(Pair(442, 457), FUNQT.offsets)
+        assertEquals(NumberType(entireDigits=11, decimalDigits=5, rpgType=""), FUNQT.type)
+        assertEquals(16, FUNQT.size)
     }
 
     @Test

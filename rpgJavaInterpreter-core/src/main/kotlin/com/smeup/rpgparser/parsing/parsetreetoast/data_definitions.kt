@@ -316,12 +316,14 @@ data class FieldInfo(val name: String,
     }
 
     fun toAst(nElements: Int?, fieldsList: FieldsList, conf: ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
-        var baseType = type()
-        if (nElements != null) {
-            baseType = ArrayType(baseType, nElements)
+        val baseType = type()
+        val type = if (nElements != null) {
+            ArrayType(baseType, nElements)
+        } else {
+            baseType
         }
         return FieldDefinition(this.name,
-                baseType,
+                type,
                 explicitStartOffset = this.explicitStartOffset,
                 explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
                 calculatedStartOffset = this.startOffset,
@@ -377,7 +379,8 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
             } else if (decimalPositions == null) {
                 StringType(explicitElementSize!!.toLong())
             } else {
-                NumberType(integerPositions!!, decimalPositions, rpgCodeType)
+                val es = explicitElementSize ?: (decimalPositions + integerPositions!!)
+                NumberType(es - decimalPositions, decimalPositions, rpgCodeType)
             }
         }
         RpgType.PACKED.rpgType -> {
