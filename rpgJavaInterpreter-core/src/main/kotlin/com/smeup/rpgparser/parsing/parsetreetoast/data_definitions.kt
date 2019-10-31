@@ -397,6 +397,10 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
             NumberType(integerPositions!!, decimalPositions!!, rpgCodeType)
         }
+        RpgType.ZONED.rpgType -> {
+            val elementSize = decimalPositions!! + integerPositions!!
+            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgCodeType)
+        }
         else -> TODO("Support RPG code type '$rpgCodeType', field $name")
     }
 
@@ -741,7 +745,7 @@ fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     return if (text.isBlank()) {
         null
     } else {
-        text.toInt()
+        text.toInt() - 1
     }
 }
 

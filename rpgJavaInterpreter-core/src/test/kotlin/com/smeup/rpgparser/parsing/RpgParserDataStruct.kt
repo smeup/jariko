@@ -37,8 +37,12 @@ class RpgParserDataStruct {
         val MYDS = cu.getDataDefinition("MYDS")
         val FLD1 = MYDS.getFieldByName("FLD1")
         val FLD2 = MYDS.getFieldByName("FLD2")
+        assertEquals(null, FLD1.explicitStartOffset)
+        assertEquals(null, FLD1.explicitEndOffset)
         assertEquals(0, FLD1.startOffset)
         assertEquals(5, FLD1.endOffset)
+        assertEquals(null, FLD2.explicitStartOffset)
+        assertEquals(null, FLD2.explicitEndOffset)
         assertEquals(5, FLD2.startOffset)
         assertEquals(15, FLD2.endOffset)
 
@@ -53,9 +57,9 @@ class RpgParserDataStruct {
                 FieldType("FLD2", StringType(10))
         ), 15), MYDS.type)
 
-        HERE I GET AN ERROR AS THE ELEMENT SIZE IS 10, NOT FIFTEEN
-        THIS IS THE CASE BECAUSE THE EXPLICIT END OFFSET OF FLD2 IS RECOGNIZED AS 10, WHICH I THINK IS WRONG
-        WE SHOULD ASK CLARIFICATIONS ON THIS
+//        HERE I GET AN ERROR AS THE ELEMENT SIZE IS 10, NOT FIFTEEN
+//        THIS IS THE CASE BECAUSE THE EXPLICIT END OFFSET OF FLD2 IS RECOGNIZED AS 10, WHICH I THINK IS WRONG
+//        WE SHOULD ASK CLARIFICATIONS ON THIS
 
         assertEquals(15, MYDS.elementSize())
 
@@ -75,12 +79,54 @@ class RpgParserDataStruct {
     }
 
     @Test
+    fun parseSTRUCT_03_recognizeOffsets() {
+        assertCanBeParsed("struct/STRUCT_03", withMuteSupport = true)
+
+        val cu = assertASTCanBeProduced("struct/STRUCT_03", true)
+        cu.resolve()
+
+        val CURTIMSTP = cu.getDataDefinition("CURTIMSTP")
+        val CURTIMDATE = CURTIMSTP.getFieldByName("CURTIMDATE")
+        val CURRYEAR = CURTIMSTP.getFieldByName("CURRYEAR")
+        val CURRMONTH = CURTIMSTP.getFieldByName("CURRMONTH")
+        val CURRDAY = CURTIMSTP.getFieldByName("CURRDAY")
+        val CURRHRS = CURTIMSTP.getFieldByName("CURRHRS")
+        val CURRMINS = CURTIMSTP.getFieldByName("CURRMINS")
+        val CURRSECS = CURTIMSTP.getFieldByName("CURRSECS")
+
+        assertEquals(0, CURTIMDATE.explicitStartOffset)
+        assertEquals(0, CURRYEAR.explicitStartOffset)
+        assertEquals(4, CURRMONTH.explicitStartOffset)
+        assertEquals(6, CURRDAY.explicitStartOffset)
+        assertEquals(8, CURRHRS.explicitStartOffset)
+        assertEquals(10, CURRMINS.explicitStartOffset)
+        assertEquals(12, CURRSECS.explicitStartOffset)
+
+        assertEquals(8, CURTIMDATE.explicitEndOffset)
+        assertEquals(4, CURRYEAR.explicitEndOffset)
+        assertEquals(6, CURRMONTH.explicitEndOffset)
+        assertEquals(8, CURRDAY.explicitEndOffset)
+        assertEquals(10, CURRHRS.explicitEndOffset)
+        assertEquals(12, CURRMINS.explicitEndOffset)
+        assertEquals(16, CURRSECS.explicitEndOffset)
+
+        assertEquals(Pair(0, 8), CURTIMDATE.offsets)
+        assertEquals(Pair(0, 4), CURRYEAR.offsets)
+        assertEquals(Pair(4, 6), CURRMONTH.offsets)
+        assertEquals(Pair(6, 8), CURRDAY.offsets)
+        assertEquals(Pair(8, 10), CURRHRS.offsets)
+        assertEquals(Pair(10, 12), CURRMINS.offsets)
+        assertEquals(Pair(12, 16), CURRSECS.offsets)
+    }
+
+    @Test
     @Ignore // this is probably failing because of TIMESTAMP()
     fun parseSTRUCT_03() {
         assertCanBeParsed("struct/STRUCT_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_03", true)
         cu.resolve()
+
         execute(cu, mapOf())
     }
 
