@@ -65,8 +65,13 @@ class DataDefinitionTest {
                         FieldType("\$\$SVARVA", StringType(1000))),
                 1050), 200),
                 fields = listOf(
-                        FieldDefinition("\$\$SVARCD", ArrayType(StringType(50), 200), explicitStartOffset = null),
-                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200), explicitStartOffset = null)
+                        FieldDefinition("\$\$SVARCD", ArrayType(StringType(50), 200),
+                                explicitStartOffset = null,
+                                calculatedStartOffset = 0,
+                                calculatedEndOffset = 50),
+                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200), explicitStartOffset = null,
+                                calculatedStartOffset = 50,
+                                calculatedEndOffset = 1050)
                 ))
     }
 

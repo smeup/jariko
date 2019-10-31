@@ -114,7 +114,7 @@ data class FieldDefinition(
             AbstractDataDefinition(name, type, position) {
 
     init {
-        require((explicitStartOffset != null) != (calculatedStartOffset != null))
+        require((explicitStartOffset != null) != (calculatedStartOffset != null)) { "Field $name should have either an explicit start offset ($explicitStartOffset) or a calculated one ($calculatedStartOffset)" }
         require((explicitEndOffset != null) != (calculatedEndOffset != null))
     }
 

@@ -611,7 +611,8 @@ class FieldsList(val fields: List<FieldInfo>) {
     }
 
     private fun considerOverlaysSecondRound(dataDefinitionName: String) {
-        var nextOffset: Long = 0L
+        //var nextOffset: Long = 0L
+        val sizeSoFar = HashMap<String, Int>()
         fields.forEach {
 
             // Size of the data struct field
@@ -622,10 +623,10 @@ class FieldsList(val fields: List<FieldInfo>) {
                 // D SSFLD                        600
                 // D  APPNAME                      02    OVERLAY(SSFLD:1)
                 if (it.overlayInfo.targetFieldName == dataDefinitionName) {
-                    val extraOffset = if (it.overlayInfo.posValue == null) {
+                    val extraOffset : Long = if (it.overlayInfo.posValue == null) {
                         // consider *NEXT
                         if (it.overlayInfo.isNext) {
-                            nextOffset
+                            sizeSoFar.getOrDefault(it.overlayInfo.targetFieldName, 0).toLong()
                         } else {
                             0
                         }
@@ -636,6 +637,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                     if (it.endOffset == null && it.elementSize != null) {
                         it.endOffset = (it.startOffset!! + it.elementSize!!).toInt()
                     }
+                    sizeSoFar[it.overlayInfo.targetFieldName] = it.endOffset!!
                 } else {
 //                    // The overlay refers to the a data structure field, the offset is relative
 //                    // D SSFLD                        600
