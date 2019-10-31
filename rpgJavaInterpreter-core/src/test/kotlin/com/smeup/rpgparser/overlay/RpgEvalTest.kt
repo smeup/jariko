@@ -14,9 +14,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rgpinterop.RpgSystem
-import java.io.File
 
 class RpgEvalTest {
 
@@ -52,7 +49,6 @@ class RpgEvalTest {
 
     @Test
     fun EVAL_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
         val cu = com.smeup.rpgparser.assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
         cu.resolve()
         var failed: Int = 0

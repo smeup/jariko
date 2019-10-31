@@ -248,6 +248,25 @@ data class ZAddStmt(
     }
 }
 
+data class AddStmt(
+    val left: Expression?,
+    val result: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val right: Expression,
+    override val position: Position? = null
+) :
+    Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+    @Derived
+    val addend1: Expression
+        get() = left ?: result
+}
+
 data class ZSubStmt(
     val target: AssignableExpression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -261,6 +280,24 @@ data class ZSubStmt(
         }
         return emptyList()
     }
+}
+data class SubStmt(
+    val left: Expression?,
+    val result: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val right: Expression,
+    override val position: Position? = null
+) :
+    Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+    @Derived
+    val minuend: Expression
+        get() = left ?: result
 }
 
 data class TimeStmt(
