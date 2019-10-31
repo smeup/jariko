@@ -40,12 +40,9 @@ private fun RpgParser.Parm_fixedContext.prevField(): RpgParser.Parm_fixedContext
 }
 
 private fun RpgParser.Parm_fixedContext.endOffset(): Int? {
-    val explicitEndOffset = if (this.explicitStartOffset() != null) this.explicitEndOffset() else null
-    if (explicitEndOffset != null) {
-        return explicitEndOffset
-    }
-    //return startOffset() + this.toType().size.toInt()
-    return null
+    // The end offset is really an enf offset only when the value is specified
+    // also for the start offset, otherwise it has another meaning
+    return if (explicitStartOffset() != null) explicitEndOffset() else null
 }
 
 private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {

@@ -184,7 +184,7 @@ data class FieldDefinition(
      */
     val endOffset: Int
         get() = explicitEndOffset ?: container.endOffset(this)
-    
+
     val offsets: Pair<Int, Int>
         get() = Pair(startOffset, endOffset)
 
