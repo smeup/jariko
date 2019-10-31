@@ -293,6 +293,9 @@ data class FieldInfo(val name: String,
     var calculatedElementSize: Long? = null
     var calculatedElementType: Type? = null
 
+    val elementSize: Long?
+        get() = explicitElementSize ?: calculatedElementSize
+
     val explicitElementSize: Long?
         get() = explicitElementType?.size
 
@@ -485,10 +488,17 @@ fun RpgParser.Dcl_dsContext.calculateFieldInfos() : FieldsList {
             fieldsList.fields.first().startOffset = 0
         }
     }
-
+    fieldsList.considerFieldSequence()
     fieldsList.considerOverlays(this.name)
+    fieldsList.fields.filter { it.startOffset == null }.let {
+        require(it.isEmpty()) { "Start offset not calculated for fields ${it.joinToString(separator = ", ") { it.name }}" }
+    }
+    fieldsList.fields.filter { it.endOffset == null }.let {
+        require(it.isEmpty()) { "End offset not calculated for fields ${it.joinToString(separator = ", ") { it.name }}" }
+    }
     return fieldsList
 }
+
 
 private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration()): FieldInfo {
     var overlayInfo : FieldInfo.OverlayInfo? = null
@@ -505,7 +515,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
 
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
-            explicitEndOffset = this.explicitEndOffset(),
+            explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
             explicitElementType = this.calculateExplicitElementType(),
             arraySizeDeclared = this.arraySizeDeclared(),
             position = this.toPosition(conf.considerPosition))
@@ -682,6 +692,28 @@ class FieldsList(val fields: List<FieldInfo>) {
         this.considerOverlaysFirstRound(dataDefinitionName)
         this.considerOverlaysSecondRound(dataDefinitionName)
         this.determineSizeByOverlayingFields()
+    }
+
+    fun considerFieldSequence() {
+        fields.forEachIndexed { index, field ->
+            if (field.startOffset == null) {
+                if (field.overlayInfo == null) {
+                    if (index > 0) {
+                        val prevField = fields[index - 1]
+                        if (prevField.endOffset != null) {
+                            field.startOffset = prevField.endOffset
+                        }
+                    }
+                }
+            }
+            if (field.endOffset == null) {
+                if (field.overlayInfo == null) {
+                    if (field.startOffset != null && field.elementSize != null) {
+                        field.endOffset = (field.startOffset!! + field.elementSize!!).toInt()
+                    }
+                }
+            }
+        }
     }
 
     fun isNotEmpty() = fields.isNotEmpty()

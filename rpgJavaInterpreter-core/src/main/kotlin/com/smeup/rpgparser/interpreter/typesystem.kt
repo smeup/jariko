@@ -37,8 +37,8 @@ object KListType : Type() {
 
     override fun canBeAssigned(value: Value): Boolean = false
 }
-data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
 
+data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
     override val size: Long
         get() = elementSize.toLong()
 }
