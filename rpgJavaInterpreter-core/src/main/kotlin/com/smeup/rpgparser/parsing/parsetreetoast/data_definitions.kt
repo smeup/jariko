@@ -324,6 +324,8 @@ data class FieldInfo(val name: String,
                 baseType,
                 explicitStartOffset = this.explicitStartOffset,
                 explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
+                calculatedStartOffset = this.startOffset,
+                calculatedEndOffset = this.endOffset,
                 position = if (conf.considerPosition) this.position else null)
     }
 }
@@ -404,6 +406,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
         "A" -> {
             CharacterType(integerPositions!!)
         }
+        "N" -> BooleanType
         else -> TODO("Support RPG code type '$rpgCodeType', field $name")
     }
 

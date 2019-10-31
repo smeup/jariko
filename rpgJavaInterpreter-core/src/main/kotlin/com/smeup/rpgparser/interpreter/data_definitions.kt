@@ -72,6 +72,8 @@ data class DataDefinition(
 
     fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
+
+    @Deprecated("The start offset should be calculated before defining the FieldDefinition")
     fun startOffset(fieldDefinition: FieldDefinition): Int {
         var start = 0
         for (f in fields) {
@@ -83,6 +85,8 @@ data class DataDefinition(
         }
         throw IllegalArgumentException("Unknown field $fieldDefinition")
     }
+
+    @Deprecated("The end offset should be calculated before defining the FieldDefinition")
     fun endOffset(fieldDefinition: FieldDefinition): Int {
         return (startOffset(fieldDefinition) + fieldDefinition.elementSize()).toInt()
     }
@@ -97,6 +101,8 @@ data class FieldDefinition(
     override val type: Type,
     var explicitStartOffset: Int? = null,
     var explicitEndOffset: Int? = null,
+    var calculatedStartOffset: Int? = null,
+    var calculatedEndOffset: Int? = null,
     var nextOffset: Int = 0,
         // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
         // container. We basically duplicate it
@@ -105,6 +111,12 @@ data class FieldDefinition(
     override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {
+
+    init {
+        require(explicitStartOffset != null || calculatedStartOffset != null)
+        require(explicitEndOffset != null || calculatedEndOffset != null)
+    }
+
     val size: Long = type.size
 
     fun toDataStructureValue(value: Value): StringValue {
@@ -171,7 +183,7 @@ data class FieldDefinition(
      * In this case CURTIMDATE will have startOffset 0.
      */
     val startOffset: Int
-        get() = explicitStartOffset ?: container.startOffset(this)
+        get() = explicitStartOffset ?: calculatedStartOffset ?: container.startOffset(this)
 
     /**
      * The end offset is non-inclusive if considered zero based, or inclusive if considered one based.
@@ -183,7 +195,7 @@ data class FieldDefinition(
      * In this case CURTIMDATE will have endOffset 8.
      */
     val endOffset: Int
-        get() = explicitEndOffset ?: container.endOffset(this)
+        get() = explicitEndOffset ?: calculatedEndOffset ?: container.endOffset(this)
 
     val offsets: Pair<Int, Int>
         get() = Pair(startOffset, endOffset)
