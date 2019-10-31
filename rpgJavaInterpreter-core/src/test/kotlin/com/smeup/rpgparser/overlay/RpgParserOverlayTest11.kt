@@ -12,6 +12,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.RpgSystem
+import kotlin.test.Ignore
 import org.junit.Test
 import java.lang.StringBuilder
 import kotlin.test.assertTrue
@@ -77,7 +78,7 @@ class RpgParserOverlayTest11 {
         assertMutesInExampleSucceed("overlay/MUTE11_15")
     }
 
-    @Test
+    @Test @Ignore
     fun parseMUTE11_16_runtime() {
         // Flaky test
         assertMutesInExampleSucceed("overlay/MUTE11O16")
