@@ -144,7 +144,6 @@ class RpgParserDataStruct {
      * Test for TEMPLATE and LIKEDS support
      */
     @Test
-    // @Ignore // the parser does not handle this
     fun parseSTRUCT_05() {
         assertCanBeParsed("struct/STRUCT_05", withMuteSupport = true)
 
@@ -157,7 +156,6 @@ class RpgParserDataStruct {
      * Test for all data type
      */
     @Test
-    // @Ignore // the parser does not handle this
     fun parseSTRUCT_06() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 

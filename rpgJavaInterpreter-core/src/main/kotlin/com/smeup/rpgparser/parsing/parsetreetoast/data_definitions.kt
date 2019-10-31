@@ -404,6 +404,9 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
             val elementSize = decimalPositions!! + integerPositions!!
             NumberType(elementSize!! - decimalPositions, decimalPositions, rpgCodeType)
         }
+        "A" -> {
+            CharacterType(integerPositions!!)
+        }
         else -> TODO("Support RPG code type '$rpgCodeType', field $name")
     }
 
