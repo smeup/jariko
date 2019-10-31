@@ -160,7 +160,7 @@ data class FieldDefinition(
     @Derived
     val container
         get() = overriddenContainer ?: this.parent as DataDefinition
-    // TODO consider overlay directive
+
     /**
      * The start offset is zero based, while in RPG code you could find explicit one-based offsets.
      *
@@ -172,12 +172,19 @@ data class FieldDefinition(
      */
     val startOffset: Int
         get() = explicitStartOffset ?: container.startOffset(this)
-    // TODO consider overlay directive
+
     /**
      * The end offset is non-inclusive if considered zero based, or inclusive if considered one based.
+     *
+     * For example:
+     * 0002.00 DCURTIMSTP        DS
+     * 0003.00 DCURTIMDATE               1      8S 0
+     *
+     * In this case CURTIMDATE will have endOffset 8.
      */
     val endOffset: Int
         get() = explicitEndOffset ?: container.endOffset(this)
+    
     val offsets: Pair<Int, Int>
         get() = Pair(startOffset, endOffset)
 
