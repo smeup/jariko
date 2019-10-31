@@ -55,7 +55,16 @@ fun String.divideAtIndex(i: Int): Pair<String, String> {
 
 fun String.asLong(): Long = this.trim().toLong()
 fun String.asInt(): Int = this.trim().toInt()
-
+fun String?.asDouble(): Double {
+    if (this == null) {
+        return 0.0
+    }
+    try {
+        return java.lang.Double.parseDouble(this)
+    } catch (e: Exception) {
+        return 0.0
+    }
+}
 fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
 fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this) == 0
 
