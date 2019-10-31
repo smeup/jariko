@@ -326,8 +326,8 @@ data class FieldInfo(val name: String,
                 type,
                 explicitStartOffset = this.explicitStartOffset,
                 explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
-                calculatedStartOffset = this.startOffset,
-                calculatedEndOffset = this.endOffset,
+                calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
+                calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
                 position = if (conf.considerPosition) this.position else null)
     }
 }
@@ -369,7 +369,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
     val explicitElementSize = when {
         startPosition == null -> endPosition
         endPosition == null -> endPosition
-        else -> endPosition - startPosition.toInt() + 1
+        else -> endPosition - startPosition.toInt()
     }
 
     return when (rpgCodeType) {

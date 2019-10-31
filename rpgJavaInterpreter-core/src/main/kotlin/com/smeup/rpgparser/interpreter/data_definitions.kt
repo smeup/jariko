@@ -99,10 +99,11 @@ data class DataDefinition(
 data class FieldDefinition(
     override val name: String,
     override val type: Type,
-    var explicitStartOffset: Int? = null,
-    var explicitEndOffset: Int? = null,
-    var calculatedStartOffset: Int? = null,
-    var calculatedEndOffset: Int? = null,
+    val explicitStartOffset: Int? = null,
+    val explicitEndOffset: Int? = null,
+    val calculatedStartOffset: Int? = null,
+    val calculatedEndOffset: Int? = null,
+    @Deprecated("It should not be necessary anymore")
     var nextOffset: Int = 0,
         // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
         // container. We basically duplicate it
@@ -113,8 +114,8 @@ data class FieldDefinition(
             AbstractDataDefinition(name, type, position) {
 
     init {
-        require(explicitStartOffset != null || calculatedStartOffset != null)
-        require(explicitEndOffset != null || calculatedEndOffset != null)
+        require((explicitStartOffset != null) != (calculatedStartOffset != null))
+        require((explicitEndOffset != null) != (calculatedEndOffset != null))
     }
 
     val size: Long = type.size

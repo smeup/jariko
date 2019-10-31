@@ -119,18 +119,18 @@ class DataDefinitionTest {
                         FieldType("\$PARA", StringType(10))),
                 50),
                 listOf(
-                        FieldDefinition("\$TIPO", StringType(2), 1, 2),
-                        FieldDefinition("\$OBBL", StringType(1), 3, 3),
-                        FieldDefinition("\$INDI", StringType(2), 4, 5),
-                        FieldDefinition("\$PARA", StringType(10), 21, 30)
+                        FieldDefinition("\$TIPO", StringType(2), 0, 2),
+                        FieldDefinition("\$OBBL", StringType(1), 2, 3),
+                        FieldDefinition("\$INDI", StringType(2), 3, 5),
+                        FieldDefinition("\$PARA", StringType(10), 20, 30)
                 ))
-        assertEquals(1, dataDef.fields[0].startOffset)
+        assertEquals(0, dataDef.fields[0].startOffset)
         assertEquals(2, dataDef.fields[0].endOffset)
-        assertEquals(3, dataDef.fields[1].startOffset)
+        assertEquals(2, dataDef.fields[1].startOffset)
         assertEquals(3, dataDef.fields[1].endOffset)
-        assertEquals(4, dataDef.fields[2].startOffset)
+        assertEquals(3, dataDef.fields[2].startOffset)
         assertEquals(5, dataDef.fields[2].endOffset)
-        assertEquals(21, dataDef.fields[3].startOffset)
+        assertEquals(20, dataDef.fields[3].startOffset)
         assertEquals(30, dataDef.fields[3].endOffset)
     }
 
