@@ -97,8 +97,8 @@ class RpgParserOverlayTest11 {
         val FUND1 = cu.getDataDefinition("£FUND1")
         val FUNQT = FUND1.getFieldByName("£FUNQT")
         assertEquals(Pair(442, 457), FUNQT.offsets)
-        assertEquals(NumberType(entireDigits=11, decimalDigits=5, rpgType=""), FUNQT.type)
-        assertEquals(16, FUNQT.size)
+        assertEquals(NumberType(entireDigits=10, decimalDigits=5, rpgType=""), FUNQT.type)
+        assertEquals(15, FUNQT.size)
     }
 
     @Test
