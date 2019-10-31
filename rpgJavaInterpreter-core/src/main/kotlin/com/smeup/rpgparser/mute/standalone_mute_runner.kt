@@ -1,3 +1,5 @@
+@file:JvmName("StandaloneMuteRunner")
+
 package com.smeup.rpgparser.mute
 
 import java.io.File
