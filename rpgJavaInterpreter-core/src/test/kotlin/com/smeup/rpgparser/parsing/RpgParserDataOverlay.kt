@@ -42,17 +42,25 @@ class RpgParserDataOverlay {
         val dataDefinition = cu.dataDefinitions[0]
         assertEquals(1, cu.dataDefinitions.size)
 
+        val fieldPartnum = dataDefinition.fields.find { it.name == "PARTNUM" }!!
+        assertEquals(null, fieldPartnum.explicitStartOffset)
+        assertEquals(0, fieldPartnum.startOffset)
+        assertEquals(10, fieldPartnum.endOffset)
+
         val fieldFamily = dataDefinition.fields.find { it.name == "FAMILY" }!!
-        assertEquals(0, fieldFamily.explicitStartOffset)
+        assertEquals(null, fieldFamily.explicitStartOffset)
         assertEquals(0, fieldFamily.startOffset)
+        assertEquals(3, fieldFamily.endOffset)
 
         val fieldSequence = dataDefinition.fields.find { it.name == "SEQUENCE" }!!
-        assertEquals(3, fieldSequence.explicitStartOffset)
+        assertEquals(null, fieldSequence.explicitStartOffset)
         assertEquals(3, fieldSequence.startOffset)
+        assertEquals(9, fieldSequence.endOffset)
 
         val fieldLanguage = dataDefinition.fields.find { it.name == "LANGUAGE" }!!
-        assertEquals(9, fieldLanguage.explicitStartOffset)
+        assertEquals(null, fieldLanguage.explicitStartOffset)
         assertEquals(9, fieldLanguage.startOffset)
+        assertEquals(10, fieldLanguage.endOffset)
 
         execute(cu, mapOf())
     }
