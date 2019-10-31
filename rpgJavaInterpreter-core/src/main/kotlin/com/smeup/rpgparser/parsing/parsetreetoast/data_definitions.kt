@@ -593,6 +593,9 @@ class FieldsList(val fields: List<FieldInfo>) {
                     } else {
                         currFieldInfo.startOffset = targetFieldDefinition.startOffset!! + extraOffset
                     }
+                    if (currFieldInfo.endOffset == null && currFieldInfo.elementSize != null) {
+                        currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()
+                    }
                     // TODO this toAst causes issues in case of overlays
                     val elementSize = currFieldInfo.toAst(0, this).type.elementSize()
                     sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) +  elementSize.toInt()
@@ -624,7 +627,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                         it.overlayInfo.posValue - 1
                     }
                     it.startOffset = extraOffset.toInt()
-                    if (it.elementSize != null) {
+                    if (it.endOffset == null && it.elementSize != null) {
                         it.endOffset = (it.startOffset!! + it.elementSize!!).toInt()
                     }
                 } else {
