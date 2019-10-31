@@ -98,7 +98,6 @@ class RpgParserDataStruct {
      * Test for all data type
      */
     @Test
-    // @Ignore // the parser does not handle this
     fun parseSTRUCT_06_runtime() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
