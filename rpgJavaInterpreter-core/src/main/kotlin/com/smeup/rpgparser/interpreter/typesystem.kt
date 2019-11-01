@@ -2,6 +2,9 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.DataRefExpr
 import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import java.lang.IllegalStateException
+import kotlin.math.ceil
 
 // Supported data types:
 // * Character Format
@@ -67,13 +70,55 @@ data class CharacterType(val nChars: Int) : Type() {
         get() = nChars.toLong()
 }
 
+infix fun Int.pow(exponent: Int) : Long {
+    require(exponent >= 0)
+    return if (exponent == 0) {
+        1
+    } else {
+        this * this.pow(exponent - 1)
+    }
+}
+
+infix fun Long.log(base: Int) : Double {
+    return (Math.log(this.toDouble()) / Math.log(base.toDouble()))
+}
+
 data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType: String? = "") : Type() {
+
+    constructor(entireDigits: Int, decimalDigits: Int, rpgType: RpgType) : this(entireDigits, decimalDigits, rpgType.rpgType)
+
     override val size: Long
-        get() = (entireDigits + decimalDigits).toLong()
+        get() {
+            return when (rpgType) {
+                RpgType.PACKED.rpgType -> (numberOfDigits + 1) / 2
+                RpgType.INTEGER.rpgType -> {
+                    when (entireDigits) {
+                        3 -> 1
+                        5 -> 2
+                        10 -> 4
+                        20 -> 8
+                        else -> throw IllegalStateException("Only predefined length allowed for integer")
+                    }
+                }
+                RpgType.UNSIGNED.rpgType -> {
+                    when (entireDigits) {
+                        3 -> 1
+                        5 -> 2
+                        10 -> 4
+                        20 -> 8
+                        else -> throw IllegalStateException("Only predefined length allowed for unsigned integer")
+                    }
+                }
+                else -> numberOfDigits
+            }.toLong()
+        }
+
     val integer: Boolean
         get() = decimalDigits == 0
     val decimal: Boolean
         get() = !integer
+    val numberOfDigits: Int
+        get() = entireDigits + decimalDigits
 }
 
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {

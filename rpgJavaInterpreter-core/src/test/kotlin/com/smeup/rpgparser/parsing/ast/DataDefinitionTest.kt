@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import kotlin.test.Test
@@ -140,6 +141,22 @@ class DataDefinitionTest {
     }
 
     @Test
+    fun sizeOfIntegerData() {
+        assertEquals(1, NumberType(3, 0, RpgType.INTEGER).size)
+        assertEquals(2, NumberType(5, 0, RpgType.INTEGER).size)
+        assertEquals(4, NumberType(10, 0, RpgType.INTEGER).size)
+        assertEquals(8, NumberType(20, 0, RpgType.INTEGER).size)
+    }
+
+    @Test
+    fun sizeOfUnsignedIntegerData() {
+        assertEquals(1, NumberType(3, 0, RpgType.UNSIGNED).size)
+        assertEquals(2, NumberType(5, 0, RpgType.UNSIGNED).size)
+        assertEquals(4, NumberType(10, 0, RpgType.UNSIGNED).size)
+        assertEquals(8, NumberType(20, 0, RpgType.UNSIGNED).size)
+    }
+
+    @Test
     fun deriveLengthOfFieldFromOverrideClause() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolve()
@@ -166,6 +183,10 @@ class DataDefinitionTest {
         val FI19 = cu.getDataDefinition("ARDS").getFieldByName("FI19")
         val FI20 = cu.getDataDefinition("ARDS").getFieldByName("FI20")
 
+        assertEquals(ArrayType(NumberType(12, 3, ""), 100), FI07.type)
+        assertEquals(ArrayType(NumberType(2, 0, "B"), 100), FI11.type)
+        assertEquals(ArrayType(NumberType(3, 0, "U"), 100), FI17.type)
+
         assertEquals(15, FI01.elementSize())
         assertEquals(10, FI02.elementSize())
         assertEquals(35, FI03.elementSize())
@@ -177,20 +198,46 @@ class DataDefinitionTest {
         assertEquals(1, FI08.elementSize())
         assertEquals(1, FI09.elementSize())
 
-        I NEED HELP FROM MAURIZIO TO FIGURE THIS ONE OUT
+        // Number of digits for FI10 = 15 (12 integers, 3 decimals)
+        // For packed: Number of digits = 2n - 1
+        // Where n is the size in bytes
+        // So size in bytes = (NbOfDigits + 1) / 2, rounded
 
-        assertEquals(18, FI10.elementSize())
+        assertEquals(8, FI10.elementSize())
         assertEquals(2, FI11.elementSize())
         assertEquals(4, FI12.elementSize())
-        assertEquals(3, FI13.elementSize())
-        assertEquals(5, FI14.elementSize())
-        assertEquals(10, FI15.elementSize())
-        assertEquals(20, FI16.elementSize())
-        assertEquals(3, FI17.elementSize())
-        assertEquals(5, FI18.elementSize())
-        assertEquals(10, FI19.elementSize())
-        assertEquals(20, FI20.elementSize())
+        assertEquals(1, FI13.elementSize())
+        assertEquals(2, FI14.elementSize())
+        assertEquals(4, FI15.elementSize())
+        assertEquals(8, FI16.elementSize())
+        assertEquals(1, FI17.elementSize())
+        assertEquals(2, FI18.elementSize())
+        assertEquals(4, FI19.elementSize())
+        assertEquals(8, FI20.elementSize())
 
-        assertEquals(3500, AR01.elementSize())
+        val allFieldsElementSize = FI01.elementSize() +
+                FI02.elementSize() +
+                FI03.elementSize() +
+                FI04.elementSize() +
+                FI05.elementSize() +
+                FI06.elementSize() +
+                FI07.elementSize() +
+                FI08.elementSize() +
+                FI09.elementSize() +
+                FI10.elementSize() +
+                FI11.elementSize() +
+                FI12.elementSize() +
+                FI13.elementSize() +
+                FI14.elementSize() +
+                FI15.elementSize() +
+                FI16.elementSize() +
+                FI17.elementSize() +
+                FI18.elementSize() +
+                FI19.elementSize() +
+                FI20.elementSize()
+
+        assertEquals(124, allFieldsElementSize)
+
+        assertEquals(12400, AR01.elementSize())
     }
 }

@@ -393,11 +393,11 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
                 // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
                 val numberOfDigits = 2 * (elementSize!! - 1)
 
-                NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgCodeType)
+                NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
             }
             // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
-            val numberOfDigits = 2 * elementSize!! - 1
-            NumberType(numberOfDigits - decimalPositions, decimalPositions, rpgCodeType)
+            //val numberOfDigits = 2 * elementSize!! - 1
+            NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
         }
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
             NumberType(integerPositions!!, decimalPositions!!, rpgCodeType)
