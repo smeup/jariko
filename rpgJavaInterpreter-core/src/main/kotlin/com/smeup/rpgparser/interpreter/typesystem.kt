@@ -97,7 +97,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
     override val size: Long
         get() {
             return when (rpgType) {
-                RpgType.PACKED.rpgType -> (numberOfDigits + 1) / 2
+                RpgType.PACKED.rpgType -> ceil((numberOfDigits + 1).toDouble() / 2.toFloat()).toInt()
                 RpgType.INTEGER.rpgType -> {
                     when (entireDigits) {
                         in 1..3 -> 1

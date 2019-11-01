@@ -124,28 +124,36 @@ data class FieldDefinition(
         when (type) {
             // case numeric
             is NumberType -> {
-                // Packed or Zoned
-                if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
+                if (type.rpgType == RpgType.ZONED.rpgType) {
+                    val s = encodeToZoned(value.asDecimal().value, type.entireDigits, type.decimalDigits)
+                    val fitted = s.padStart(type.numberOfDigits, '0')
+                    return StringValue(fitted)
+                }
+                // Packed
+                if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == "") {
                     return if (type.decimal) {
                         // Transform the numeric to an encoded string
                         val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, type.decimalDigits)
                         // adjust the size to fit the target field
-                        val fitted = encoded.padEnd(type.entireDigits + type.decimalDigits)
-                        StringValue(fitted)
+                        //val fitted = encoded.padEnd(type.entireDigits + type.decimalDigits)
+                        //StringValue(fitted)
+                        StringValue(encoded)
                     } else {
                         // Transform the numeric to an encoded string
                         val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
                         // adjust the size to fit the target field
-                        val fitted = encoded.padEnd(type.entireDigits, ' ')
-                        StringValue(fitted)
+                        //val fitted = encoded.padEnd(type.entireDigits, ' ')
+                        //StringValue(fitted)
+                        StringValue(encoded)
                     }
                 }
                 if (type.rpgType == RpgType.INTEGER.rpgType || type.rpgType == RpgType.UNSIGNED.rpgType) {
-                    // Transform the numeric to an encoded string
-                    val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
-                    // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(type.entireDigits, ' ')
-                    return StringValue(fitted)
+//                    // Transform the numeric to an encoded string
+//                    val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
+//                    // adjust the size to fit the target field
+//                    val fitted = encoded.padEnd(type.entireDigits, ' ')
+//                    return StringValue(fitted)
+                    TODO("Conversion of integers and unsigned should be supported")
                 }
                 // To date only 2 and 4 bytes are supported
                 if (type.rpgType == RpgType.BINARY.rpgType) {
@@ -262,6 +270,36 @@ fun decodeBinary(value: String, digits: Int): BigDecimal {
         return BigDecimal(number.toInt().toString())
     }
     TODO("encode binary for $digits not implemented")
+}
+
+//
+// Encode a numeric value for a data structure
+//
+fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
+    // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
+    val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
+    var buffer = IntArray(inChars.size)
+
+    // read the sign
+    val sign = inValue.signum()
+
+    inChars.forEachIndexed { index, char ->
+        val digit = char - '0'
+        buffer[index] = digit
+    }
+
+    if (sign != -1) {
+        buffer[0] += 0xF0
+    } else {
+        buffer[0] += 0xD0
+    }
+
+    var s = ""
+    buffer.forEach { byte ->
+        s += byte.toChar()
+    }
+
+    return s
 }
 
 //

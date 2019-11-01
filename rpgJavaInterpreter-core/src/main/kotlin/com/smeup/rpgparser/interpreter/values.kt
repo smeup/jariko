@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.math.BigDecimal
@@ -412,7 +413,7 @@ data class DataStructValue(var value: String) : Value() {
         try {
             this.setSubstring(startIndex, endIndex, v)
         } catch (e: Exception) {
-            throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}", e)
+            throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value", e)
         }
     }
 
@@ -428,7 +429,7 @@ data class DataStructValue(var value: String) : Value() {
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        require(endOffset - startOffset == substringValue.value.length)
+        require(endOffset - startOffset == substringValue.value.length) { "Setting value ${substringValue}, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
         val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
         value = newValue.replace('\u0000', ' ')
     }

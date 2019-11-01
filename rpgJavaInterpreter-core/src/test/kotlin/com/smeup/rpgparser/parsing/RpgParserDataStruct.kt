@@ -5,9 +5,11 @@ import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Ignore
 import org.junit.Test
+import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -156,6 +158,61 @@ class RpgParserDataStruct {
      * Test for all data type
      */
     @Test
+    fun parseSTRUCT_06_ast() {
+        assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
+
+        val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
+        cu.resolve()
+
+        val MYDS = cu.getDataDefinition("MYDS")
+
+        val FILLER1 = MYDS.getFieldByName("FILLER1")
+        assertEquals(Pair(0, 6), FILLER1.offsets)
+        assertEquals(StringType(6), FILLER1.type)
+        assertEquals(6, FILLER1.size)
+
+        val PAC030 = MYDS.getFieldByName("PAC030")
+        assertEquals(Pair(6, 8), PAC030.offsets)
+        assertEquals(NumberType(3, 0, "P"), PAC030.type)
+        assertEquals(2, PAC030.size)
+
+        val PAC040 = MYDS.getFieldByName("PAC040")
+        assertEquals(Pair(14, 17), PAC040.offsets)
+        assertEquals(NumberType(4, 0, "P"), PAC040.type)
+        assertEquals(3, PAC040.size)
+
+        val PAC113 = MYDS.getFieldByName("PAC113")
+        assertEquals(NumberType(8, 3, "P"), PAC113.type)
+        assertEquals(6, PAC113.size)
+
+        val INT001 = MYDS.getFieldByName("INT001")
+        assertEquals(NumberType(3, 0, "I"), INT001.type)
+        assertEquals(1, INT001.size)
+    }
+
+    @Test
+    fun numberTypeSizeForPackedInteger() {
+        assertEquals(1, NumberType(1, 0, "P").size)
+        assertEquals(2, NumberType(2, 0, "P").size)
+        assertEquals(2, NumberType(3, 0, "P").size)
+        assertEquals(3, NumberType(4, 0, "P").size)
+        assertEquals(3, NumberType(5, 0, "P").size)
+        assertEquals(4, NumberType(6, 0, "P").size)
+        assertEquals(4, NumberType(7, 0, "P").size)
+        assertEquals(5, NumberType(8, 0, "P").size)
+        assertEquals(5, NumberType(9, 0, "P").size)
+        assertEquals(6, NumberType(10, 0, "P").size)
+    }
+
+    @Test
+    fun numberTypeSizeForPackedDecimal() {
+        assertEquals(6, NumberType(8, 3, "P").size)
+    }
+
+    /**
+     * Test for all data type
+     */
+    @Test
     fun parseSTRUCT_06() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
@@ -163,6 +220,40 @@ class RpgParserDataStruct {
         cu.resolve()
         execute(cu, mapOf())
     }
+
+    @Test
+    fun compressionIntoDSofPackedValue() {
+        val PAC030 = FieldDefinition(name = "PAC030",
+                type=NumberType(3, 0, RpgType.PACKED),
+                explicitStartOffset = null,
+                explicitEndOffset = null,
+                calculatedStartOffset = 6,
+                calculatedEndOffset = 8,
+                nextOffset = 0,
+                overriddenContainer = null,
+                position = null)
+        val encodedValue = PAC030.toDataStructureValue(IntValue(999))
+        assertEquals(2, encodedValue.value.length)
+    }
+
+//    private fun stringFromBytes(vararg bytes: Int) : String {
+//        return String(bytes.map {
+//            if (it > 127) {
+//                it - 256
+//            } else {
+//                it
+//            }.toByte()
+//        }.toByteArray())
+//    }
+//
+//    @Test
+//    fun encodeToZonedTest() {
+//        val e = stringFromBytes(0xF5)
+//        val a = encodeToZoned(BigDecimal(5), 1, 0)
+//        assertEquals(stringFromBytes(0xF5), encodeToZoned(BigDecimal(5), 1, 0))
+//        assertEquals(stringFromBytes(0xD5), encodeToZoned(BigDecimal(-5), 1, 0))
+//        assertEquals(stringFromBytes(0x03, 0x04, 0xD5), encodeToZoned(BigDecimal(-345), 3, 0))
+//    }
 
     /**
      * Test for all data type
