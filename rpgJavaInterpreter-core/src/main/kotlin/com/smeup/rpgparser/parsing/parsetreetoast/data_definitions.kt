@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsing.ast.IntLiteral
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
+import java.lang.Exception
 import java.lang.IllegalStateException
 import java.lang.RuntimeException
 import kotlin.math.max
@@ -400,7 +401,8 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
             NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
         }
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
-            NumberType(integerPositions!!, decimalPositions!!, rpgCodeType)
+            val elementSize = explicitElementSize ?: (integerPositions!! + decimalPositions!!)
+            NumberType(elementSize - decimalPositions!!, decimalPositions!!, rpgCodeType)
         }
         RpgType.ZONED.rpgType -> {
             val elementSize = decimalPositions!! + integerPositions!!
@@ -505,26 +507,29 @@ fun RpgParser.Dcl_dsContext.calculateFieldInfos() : FieldsList {
     return fieldsList
 }
 
-
 private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration()): FieldInfo {
-    var overlayInfo : FieldInfo.OverlayInfo? = null
-    val overlay = this.keyword().find { it.keyword_overlay() != null }
-    if (overlay != null) {
-        val fieldName = this.name
-        val pos = overlay.keyword_overlay().pos
-        val nameExpr = overlay.keyword_overlay().name
-        val targetFieldName = nameExpr.identifier().text
-        val isNext = overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT"
-        val posValue = if (pos != null) (pos.number().toAst() as IntLiteral).value else null
-        overlayInfo = FieldInfo.OverlayInfo(targetFieldName, isNext, posValue = posValue)
-    }
+    try {
+        var overlayInfo : FieldInfo.OverlayInfo? = null
+        val overlay = this.keyword().find { it.keyword_overlay() != null }
+        if (overlay != null) {
+            val fieldName = this.name
+            val pos = overlay.keyword_overlay().pos
+            val nameExpr = overlay.keyword_overlay().name
+            val targetFieldName = nameExpr.identifier().text
+            val isNext = overlay.keyword_overlay().SPLAT_NEXT() != null && overlay.keyword_overlay().SPLAT_NEXT().toString() == "*NEXT"
+            val posValue = if (pos != null) (pos.number().toAst() as IntLiteral).value else null
+            overlayInfo = FieldInfo.OverlayInfo(targetFieldName, isNext, posValue = posValue)
+        }
 
-    return FieldInfo(this.name, overlayInfo = overlayInfo,
-            explicitStartOffset = this.explicitStartOffset(),
-            explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-            explicitElementType = this.calculateExplicitElementType(),
-            arraySizeDeclared = this.arraySizeDeclared(),
-            position = this.toPosition(conf.considerPosition))
+        return FieldInfo(this.name, overlayInfo = overlayInfo,
+                explicitStartOffset = this.explicitStartOffset(),
+                explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
+                explicitElementType = this.calculateExplicitElementType(),
+                arraySizeDeclared = this.arraySizeDeclared(),
+                position = this.toPosition(conf.considerPosition))
+    } catch (e : Exception) {
+        throw RuntimeException("Problem arose converting to AST field ${this.name}", e)
+    }
 }
 
 fun RpgParser.Dcl_dsContext.declaredSize() : Int? {
