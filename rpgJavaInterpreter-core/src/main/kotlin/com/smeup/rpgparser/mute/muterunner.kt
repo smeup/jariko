@@ -18,6 +18,7 @@ import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
 import com.strumenta.kolasu.validation.Error
 import java.io.File
@@ -84,7 +85,8 @@ fun showSourceAbsolutePath(): Boolean = "true" == System.getProperty("showSource
 fun executeWithMutes(
     path: Path,
     verbose: Boolean = false,
-    logConfigurationFile: File?
+    logConfigurationFile: File?,
+    programFinders: List<RpgProgramFinder> = emptyList()
 ): ExecutionResult {
     var failed = 0
     var executed = 0
@@ -109,7 +111,7 @@ fun executeWithMutes(
                 }
             }
             cu.resolve()
-            val interpreter = InternalInterpreter(SimpleSystemInterface().useConfigurationFile(logConfigurationFile))
+            val interpreter = InternalInterpreter(SimpleSystemInterface(programFinders = programFinders).useConfigurationFile(logConfigurationFile))
 
             interpreter.execute(cu, mapOf())
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()

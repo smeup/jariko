@@ -2,6 +2,8 @@
 
 package com.smeup.rpgparser.mute
 
+import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -13,6 +15,7 @@ fun main(args: Array<String>) {
         "${muteSource.canonicalPath} does not exist"
     }
     println("Running ${muteSource.canonicalPath}")
-    val result = executeWithMutes(muteSource.toPath(), true, null)
+    val programFinders = listOf<RpgProgramFinder>(DirRpgProgramFinder(muteSource.parentFile))
+    val result = executeWithMutes(muteSource.toPath(), true, null, programFinders = programFinders)
     println(result)
 }
