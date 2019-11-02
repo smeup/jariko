@@ -2,7 +2,6 @@ package com.smeup.rpgparser.mute
 
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertTrue

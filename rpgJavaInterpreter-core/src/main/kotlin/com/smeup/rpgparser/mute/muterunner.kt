@@ -22,6 +22,7 @@ import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
 import com.strumenta.kolasu.validation.Error
 import java.io.File
+import java.io.PrintStream
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.nio.file.Files
@@ -86,7 +87,8 @@ fun executeWithMutes(
     path: Path,
     verbose: Boolean = false,
     logConfigurationFile: File?,
-    programFinders: List<RpgProgramFinder> = emptyList()
+    programFinders: List<RpgProgramFinder> = emptyList(),
+    output: PrintStream? = null
 ): ExecutionResult {
     var failed = 0
     var executed = 0
@@ -111,7 +113,7 @@ fun executeWithMutes(
                 }
             }
             cu.resolve()
-            val interpreter = InternalInterpreter(SimpleSystemInterface(programFinders = programFinders).useConfigurationFile(logConfigurationFile))
+            val interpreter = InternalInterpreter(SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(logConfigurationFile))
 
             interpreter.execute(cu, mapOf())
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()

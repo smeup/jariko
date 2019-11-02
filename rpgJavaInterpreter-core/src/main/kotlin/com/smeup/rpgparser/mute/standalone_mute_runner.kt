@@ -16,6 +16,7 @@ fun main(args: Array<String>) {
     }
     println("Running ${muteSource.canonicalPath}")
     val programFinders = listOf<RpgProgramFinder>(DirRpgProgramFinder(muteSource.parentFile))
-    val result = executeWithMutes(muteSource.toPath(), true, null, programFinders = programFinders)
+    val result =
+        executeWithMutes(muteSource.toPath(), true, null, programFinders = programFinders, output = System.out)
     println(result)
 }
