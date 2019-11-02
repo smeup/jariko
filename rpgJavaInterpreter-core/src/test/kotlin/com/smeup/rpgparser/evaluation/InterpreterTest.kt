@@ -569,6 +569,21 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeFIZZBUZZ() {
+        assertEquals(listOf("7"),
+            outputOf("FIZZBUZZ", mapOf("NBR" to IntValue(7), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("FIZZ"),
+            outputOf("FIZZBUZZ", mapOf("NBR" to IntValue(3), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("BUZZ"),
+            outputOf("FIZZBUZZ", mapOf("NBR" to IntValue(5), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("FIZZBUZZ"),
+            outputOf("FIZZBUZZ", mapOf("NBR" to IntValue(30), "RESULT" to StringValue(""))))
+    }
+
+    @Test
     fun executeECHO2() {
         assertEquals(listOf("Hello"), outputOf("ECHO2", mapOf("inTxt" to StringValue("Hello"))))
     }

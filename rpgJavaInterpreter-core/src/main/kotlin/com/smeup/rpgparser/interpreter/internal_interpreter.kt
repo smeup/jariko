@@ -1266,6 +1266,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
                 }
             }
+            is RemExpr -> {
+                val n = eval(expression.dividend).asInt().value
+                val m = eval(expression.divisor).asInt().value
+                return IntValue(n % m)
+            }
             is QualifiedAccessExpr -> {
                 val containerValue = eval(expression.container)
                 val dataStringValue = containerValue as DataStructValue
