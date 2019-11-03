@@ -35,6 +35,8 @@ For example:
 	}
 ```
 
+Here you can find a [rpg.json](../misc/visual_studio_code/rpg.json) file.
+
 6. Run the code with one of these methods:
 
     * use shortcut Ctrl+Alt+N
