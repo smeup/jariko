@@ -72,5 +72,12 @@
       "C                   IF        $1=$2"
     ],
     "description": "If statement"
+  },
+  "DSPLY": {
+    "prefix": "dsp",
+    "body": [
+      "C                   DSPLY                   $1"
+    ],
+    "description": "DSPLY statement"
   }
 }
