@@ -2,13 +2,13 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.DataRefExpr
 import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
@@ -17,19 +17,18 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import com.strumenta.kolasu.model.ReferenceByName
-import java.io.InputStream
-import java.lang.IllegalStateException
-import java.nio.charset.StandardCharsets
-import java.util.*
 import junit.framework.Assert
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
 import java.io.File
 import java.io.FileInputStream
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
+import java.util.*
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 // Used only to get a class to be used for getResourceAsStream
 class Dummy

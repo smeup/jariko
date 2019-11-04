@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.parsing.ast.DataRefExpr
-import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.*
+import java.math.BigDecimal
 
 // Supported data types:
 // * Character Format
@@ -95,7 +95,18 @@ data class FieldType(val name: String, val type: Type)
 
 fun Expression.type(): Type {
     return when (this) {
-        is DataRefExpr -> this.variable.referred!!.type
+        is DataRefExpr -> {
+            this.variable.referred!!.type
+        }
+        is StringLiteral -> {
+            StringType(this.value.length.toLong())
+        }
+        is IntLiteral -> {
+            NumberType(BigDecimal.valueOf(this.value).precision(), decimalDigits = 0)
+        }
+        is RealLiteral -> {
+            NumberType(this.value.precision() - this.value.scale(), this.value.scale())
+        }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
 }
