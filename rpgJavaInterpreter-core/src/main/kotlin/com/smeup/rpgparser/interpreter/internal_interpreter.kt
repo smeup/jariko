@@ -449,6 +449,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                                 }
                             }
                         }
+                        require(program.params().size > index) {
+                            "Line: ${statement.position.line()} - Parameter nr. ${index + 1} can't be found"
+                        }
                         program.params()[index].name to get(it.param.name)
                     }.toMap(LinkedHashMap())
 
