@@ -12,7 +12,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgSystem
-import kotlin.test.Ignore
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertTrue
@@ -115,7 +114,7 @@ class RpgParserOverlayTest11 {
         }
     }
 
-    @Test @Ignore
+    @Test
     fun parseMUTE11_16_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
