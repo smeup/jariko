@@ -15,6 +15,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import com.strumenta.kolasu.model.ReferenceByName
 import java.io.InputStream
 import java.lang.IllegalStateException
@@ -301,6 +302,12 @@ fun execute(programName: String, initialValues: Map<String, Value>, si: Collecto
 
 fun rpgProgram(name: String): RpgProgram {
     return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
+}
+
+class DummyProgramFinder(val path: String) : RpgProgramFinder {
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle"), nameOrSource)
+    }
 }
 
 class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
