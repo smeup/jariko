@@ -463,7 +463,7 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val position = toPosition(conf.considerPosition)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
-    return MultStmt(DataRefExpr(ReferenceByName(result), position), dataDefinition, 'H' in extenders, factor1, factor2, position)
+    return MultStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
 }
 
 internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DivStmt {
@@ -473,7 +473,7 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val position = toPosition(conf.considerPosition)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
-    return DivStmt(DataRefExpr(ReferenceByName(result), position), dataDefinition, 'H' in extenders, factor1, factor2, position)
+    return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
 }
 
 private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
