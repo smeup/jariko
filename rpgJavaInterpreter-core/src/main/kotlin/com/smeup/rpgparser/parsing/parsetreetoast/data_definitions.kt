@@ -215,7 +215,8 @@ fun RpgParser.Dcl_dsContext.fieldLines(): List<RpgParser.Parm_fixedContext> {
 internal fun RpgParser.Dcl_dsContext.type(
     size: Int? = null,
     fieldsList: FieldsList,
-    conf: ToAstConfiguration = ToAstConfiguration()): Type {
+    conf: ToAstConfiguration = ToAstConfiguration()
+): Type {
     val keywords = if (this.parm_fixed().isEmpty()) {
         this.keyword()
     } else {
@@ -249,7 +250,8 @@ private fun RpgParser.Parm_fixedContext.isOverlayingOn(name: String): Boolean {
  * be enriched as we calculate more information. Some information can be calculated by looking at other
  * fields or the containing data definition and this is way we cannot build FieldDefinitions in one step.
  */
-data class FieldInfo(val name: String,
+data class FieldInfo(
+    val name: String,
     val overlayInfo: OverlayInfo? = null,
     val explicitStartOffset: Int?,
     val explicitEndOffset: Int?,
@@ -260,7 +262,8 @@ data class FieldInfo(val name: String,
     // While here it is not:
     // D AR01                                DIM(100) ASCEND
     val explicitElementType: Type? = null,
-    val position: Position?) {
+    val position: Position?
+) {
 
     var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
     var endOffset: Int? = explicitEndOffset // these are mutable as they can be calculated using next
@@ -324,7 +327,8 @@ data class TypeInfo(
     val stringCode: String?,
     val integerPositions: Int?,
     val decimalPositions: Int?,
-    val isPackEven: Boolean)
+    val isPackEven: Boolean
+)
 
 fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
     val fp = this.FROM_POSITION()

@@ -219,7 +219,7 @@ class RpgParserDataStruct {
     @Test
     fun compressionIntoDSofPackedValue() {
         val PAC030 = FieldDefinition(name = "PAC030",
-                type=NumberType(3, 0, RpgType.PACKED),
+                type = NumberType(3, 0, RpgType.PACKED),
                 explicitStartOffset = null,
                 explicitEndOffset = null,
                 calculatedStartOffset = 6,

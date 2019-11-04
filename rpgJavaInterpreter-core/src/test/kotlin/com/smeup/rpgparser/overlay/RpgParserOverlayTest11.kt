@@ -5,7 +5,6 @@ import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.NumberType
-import com.smeup.rpgparser.interpreter.StringType
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
@@ -13,7 +12,6 @@ import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class RpgParserOverlayTest11 {
 
@@ -55,7 +53,7 @@ class RpgParserOverlayTest11 {
         val FUND1 = cu.getDataDefinition("£FUND1")
         val FUNQT = FUND1.getFieldByName("£FUNQT")
         assertEquals(Pair(442, 457), FUNQT.offsets)
-        assertEquals(NumberType(entireDigits=10, decimalDigits=5, rpgType=""), FUNQT.type)
+        assertEquals(NumberType(entireDigits = 10, decimalDigits = 5, rpgType = ""), FUNQT.type)
         assertEquals(15, FUNQT.size)
     }
 

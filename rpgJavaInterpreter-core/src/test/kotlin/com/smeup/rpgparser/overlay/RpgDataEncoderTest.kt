@@ -9,7 +9,6 @@ import kotlin.test.assertTrue
 
 class RpgDataEncoderTest {
 
-
     @Test
     fun encodeDecodeInteger1() {
         for (i in -128..127) {
@@ -34,7 +33,7 @@ class RpgDataEncoderTest {
 
     @Test
     fun encodeDecodeInteger4() {
-        for (i in -2147483648..2147483647  step 64) {
+        for (i in -2147483648..2147483647 step 64) {
             val integer4 = i.toBigDecimal()
             val encoded4 = encodeInteger(integer4, 4)
             assertTrue(encoded4.length == 4)
@@ -47,7 +46,7 @@ class RpgDataEncoderTest {
     @Ignore
     fun encodeDecodeInteger8() {
         val range = LongRange(Long.MIN_VALUE, Long.MAX_VALUE)
-        for (i in range  step 64) {
+        for (i in range step 64) {
             val integer8 = i.toBigDecimal()
             val encoded8 = encodeInteger(integer8, 8)
             assertTrue(encoded8.length == 8)
@@ -77,7 +76,6 @@ class RpgDataEncoderTest {
             assertTrue(unsigned2.compareTo(decoded1) == 0)
         }
     }
-
 
     @Test
     fun encodeDecodeBinary2() {
