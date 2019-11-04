@@ -12,9 +12,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.RpgSystem
-import kotlin.test.Ignore
+import org.junit.Ignore
 import org.junit.Test
-import java.lang.StringBuilder
 import kotlin.test.assertTrue
 
 class RpgParserOverlayTest11 {

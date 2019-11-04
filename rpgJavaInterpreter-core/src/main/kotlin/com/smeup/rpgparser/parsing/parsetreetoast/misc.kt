@@ -1,13 +1,12 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
-import java.lang.IllegalStateException
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
@@ -208,6 +207,8 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csKLIST() != null -> this.csKLIST().toAst(conf)
         this.csREADE() != null -> this.csREADE().toAst(conf)
         this.csCOMP() != null -> this.csCOMP().toAst(conf)
+        this.csMULT() != null -> this.csMULT().toAst(conf)
+        this.csDIV() != null -> this.csDIV().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -449,6 +450,34 @@ internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return ZAddStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
 }
 
+internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MultStmt {
+    val result = this.cspec_fixed_standard_parts().result.text
+    val factor1 = leftExpr(conf)
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    return MultStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
+}
+
+internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DivStmt {
+    val result = this.cspec_fixed_standard_parts().result.text
+    val factor1 = leftExpr(conf)
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
+}
+
+private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
+    return if (this.factor1Context()?.content?.text?.isNotBlank() == true) {
+        this.factor1Context().content.toAst(conf)
+    } else {
+        null
+    }
+}
+
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
     val result = this.cspec_fixed_standard_parts().result.text
     val left = leftExpr(conf)
@@ -473,14 +502,6 @@ internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val position = toPosition(conf.considerPosition)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return SubStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
-}
-
-private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
-    return if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
-        this.factor1Context().content.toAst(conf)
-    } else {
-        null
-    }
 }
 
 // TODO add real implementation

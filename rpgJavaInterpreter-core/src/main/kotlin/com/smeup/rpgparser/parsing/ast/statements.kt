@@ -248,6 +248,22 @@ data class ZAddStmt(
     }
 }
 
+data class MultStmt(
+    val target: AssignableExpression,
+    val halfAdjust: Boolean = false,
+    val factor1: Expression?,
+    val factor2: Expression,
+    override val position: Position? = null
+) : Statement(position)
+
+data class DivStmt(
+    val target: AssignableExpression,
+    val halfAdjust: Boolean = false,
+    val factor1: Expression?,
+    val factor2: Expression,
+    override val position: Position? = null
+) : Statement(position)
+
 data class AddStmt(
     val left: Expression?,
     val result: AssignableExpression,
