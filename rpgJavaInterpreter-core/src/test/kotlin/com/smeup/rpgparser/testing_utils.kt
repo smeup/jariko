@@ -303,6 +303,19 @@ fun rpgProgram(name: String): RpgProgram {
     return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
 }
 
+fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
+    var failed: Int = 0
+    annotations.forEach { (line, annotation) ->
+        try {
+            assertTrue(annotation.result.asBoolean().value)
+        } catch (e: AssertionError) {
+            println("${annotation.programName}: $line ${annotation.expression.render()} ${annotation.result.asBoolean().value}")
+            failed++
+        }
+    }
+    return failed
+}
+
 class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
     private val rpgPrograms = HashMap<String, RpgProgram>()
 

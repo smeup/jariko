@@ -70,7 +70,6 @@ data class CompilationUnit(
             if (dataDefinition == null) {
                 dataDefinitionMap[it.name] = it
             } else {
-                // throws exception in test 16A, as why has been added
                 require(dataDefinition.type == it.type) {
                     "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
                 }

@@ -228,8 +228,9 @@ class InStatementDataDefinition(
 ) : AbstractDataDefinition(name, type, position)
 
 /**
- * Encode a binary value for a data structure
+ * Encoding/Decoding a binary value for a data structure
  */
+
 fun encodeBinary(inValue: BigDecimal, digits: Int): String {
     val buffer = ByteArray(digits)
     val lsb = inValue.toInt()
@@ -303,7 +304,7 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
 }
 
 /**
- * Encode a numeric value for a data structure
+ * Encoding/Decoding a numeric value for a data structure
  */
 fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
@@ -326,10 +327,10 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     }
 
     // place last digit and sign nibble
-    if (inPosition == inChars.size) {
-        firstNibble = 0x00F0
+    firstNibble = if (inPosition == inChars.size) {
+        0x00F0
     } else {
-        firstNibble = (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
+        (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
     }
     if (sign != -1) {
         buffer[offset] = (firstNibble + 0x000F).toInt()
