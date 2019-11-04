@@ -137,24 +137,22 @@ data class FieldDefinition(
                         // Transform the numeric to an encoded string
                         val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, type.decimalDigits)
                         // adjust the size to fit the target field
-                        //val fitted = encoded.padEnd(type.entireDigits + type.decimalDigits)
-                        //StringValue(fitted)
-                        StringValue(encoded)
+                        val fitted = encoded.padEnd(type.size.toInt())
+                        StringValue(fitted)
                     } else {
                         // Transform the numeric to an encoded string
                         val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
                         // adjust the size to fit the target field
-                        //val fitted = encoded.padEnd(type.entireDigits, ' ')
-                        //StringValue(fitted)
-                        StringValue(encoded)
+                        val fitted = encoded.padEnd(type.size.toInt())
+                        StringValue(fitted)
                     }
                 }
                 if (type.rpgType == RpgType.INTEGER.rpgType || type.rpgType == RpgType.UNSIGNED.rpgType) {
 //                    // Transform the numeric to an encoded string
 //                    val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
-//                    // adjust the size to fit the target field
-//                    val fitted = encoded.padEnd(type.entireDigits, ' ')
-//                    return StringValue(fitted)
+                    // adjust the size to fit the target field
+                    // val fitted = encoded.padEnd(type.size.toInt())
+                    // StringValue(fitted)
                     TODO("Conversion of integers and unsigned should be supported")
                 }
                 // To date only 2 and 4 bytes are supported
@@ -163,15 +161,16 @@ data class FieldDefinition(
                     if (type.entireDigits == 2 || type.entireDigits == 4) {
                         val encoded = encodeBinary(value.asDecimal().value, type.entireDigits)
                         // adjust the size to fit the target field
-                        return StringValue(encoded)
+                        val fitted = encoded.padEnd(type.size.toInt())
+                        StringValue(fitted)
                     }
                 }
-                TODO("Not implmented $type")
+                TODO("Not implemented $type")
             }
             is StringType -> {
                 return StringValue(value.asString().value)
             }
-            else -> TODO("Not implmented $type")
+            else -> TODO("Not implemented $type")
         }
     }
 
@@ -228,10 +227,9 @@ class InStatementDataDefinition(
     val initializationValue: Expression? = null
 ) : AbstractDataDefinition(name, type, position)
 
-//
-// Encode a binary value for a data structure
-//
-
+/**
+ * Encode a binary value for a data structure
+ */
 fun encodeBinary(inValue: BigDecimal, digits: Int): String {
     val buffer = ByteArray(digits)
     val lsb = inValue.toInt()
@@ -274,9 +272,9 @@ fun decodeBinary(value: String, digits: Int): BigDecimal {
     TODO("encode binary for $digits not implemented")
 }
 
-//
-// Encode a numeric value for a data structure
-//
+/**
+ * Encode a numeric value for a data structure
+ */
 fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
@@ -304,9 +302,9 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     return s
 }
 
-//
-// Encode a numeric value for a data structure
-//
+/**
+ * Encode a numeric value for a data structure
+ */
 fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
@@ -381,9 +379,9 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
         number = number.substring(0, len - scale) + "." + number.substring(len - scale, len)
     }
     number = sign + number
-    try {
-        return value.toBigDecimal()
+    return try {
+        value.toBigDecimal()
     } catch (e: Exception) {
-        return number.toBigDecimal()
+        number.toBigDecimal()
     }
 }
