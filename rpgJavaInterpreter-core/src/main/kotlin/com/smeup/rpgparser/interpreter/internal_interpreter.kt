@@ -11,6 +11,7 @@ import com.smeup.rpgparser.parsing.ast.Comparison.NE
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
+import java.lang.IllegalArgumentException
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -427,7 +428,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(CallExecutionLogEntry(this.interpretationContext.currentProgramName, statement))
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall)
-                        ?: throw RuntimeException("Program $programToCall cannot be found")
+                    require(program != null) {
+                        "Line: ${statement.position.line()} - Program $programToCall cannot be found"
+                    }
 
                     val params = statement.params.mapIndexed { index, it ->
                         if (it.dataDefinition != null) {
@@ -716,6 +719,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 else -> TODO(statement.toString())
             }
         } catch (e: InterruptForDebuggingPurposes) {
+            throw e
+        } catch (e: IllegalArgumentException) {
             throw e
         } catch (e: RuntimeException) {
             throw RuntimeException("Issue executing statement $statement -> $e", e)

@@ -515,8 +515,7 @@ class InterpreterTest {
 
     @Test
     fun executeZADDERR() {
-        // TODO better error assertion
-        assertFailsWith(Throwable::class) {
+        assertFailsWith(IllegalArgumentException::class) {
             execute("ZADDERR", emptyMap())
         }
     }
