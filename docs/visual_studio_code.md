@@ -44,3 +44,5 @@ Here you can find a [rpg.json](../misc/visual_studio_code/rpg.json) file.
     * or right click the Text Editor and then click Run Code in editor context menu
     * or click Run Code button in editor title menu
     * or click Run Code button in context menu of file explorer
+
+7. In order to ease fixed format typing, install [Overtype](https://marketplace.visualstudio.com/items?itemName=adammaras.overtype) by [Adam Maras](https://github.com/AdamMaras)
