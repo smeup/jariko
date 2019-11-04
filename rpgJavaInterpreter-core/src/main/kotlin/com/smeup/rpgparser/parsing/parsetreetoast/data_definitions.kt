@@ -212,9 +212,10 @@ fun RpgParser.Dcl_dsContext.fieldLines(): List<RpgParser.Parm_fixedContext> {
     return this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
 }
 
-internal fun RpgParser.Dcl_dsContext.type(size: Int? = null,
-                                 fieldsList: FieldsList,
-                                 conf: ToAstConfiguration = ToAstConfiguration()): Type {
+internal fun RpgParser.Dcl_dsContext.type(
+    size: Int? = null,
+    fieldsList: FieldsList,
+    conf: ToAstConfiguration = ToAstConfiguration()): Type {
     val keywords = if (this.parm_fixed().isEmpty()) {
         this.keyword()
     } else {
@@ -232,7 +233,7 @@ internal fun RpgParser.Dcl_dsContext.type(size: Int? = null,
     }
 }
 
-private val RpgParser.Parm_fixedContext.name : String
+private val RpgParser.Parm_fixedContext.name: String
     get() = this.ds_name().text
 
 private fun RpgParser.Parm_fixedContext.isOverlayingOn(name: String): Boolean {
@@ -249,20 +250,20 @@ private fun RpgParser.Parm_fixedContext.isOverlayingOn(name: String): Boolean {
  * fields or the containing data definition and this is way we cannot build FieldDefinitions in one step.
  */
 data class FieldInfo(val name: String,
-                     val overlayInfo: OverlayInfo? = null,
-                     val explicitStartOffset: Int?,
-                     val explicitEndOffset: Int?,
-                     val arraySizeDeclared: Int? = null,
-                     // This can be set when the type permits to get the element size
-                     // For example, here it is possible:
-                     // D  FI07                         15  3 OVERLAY(AR01:*NEXT)
-                     // While here it is not:
-                     // D AR01                                DIM(100) ASCEND
-                     val explicitElementType: Type? = null,
-                     val position: Position?) {
+    val overlayInfo: OverlayInfo? = null,
+    val explicitStartOffset: Int?,
+    val explicitEndOffset: Int?,
+    val arraySizeDeclared: Int? = null,
+    // This can be set when the type permits to get the element size
+    // For example, here it is possible:
+    // D  FI07                         15  3 OVERLAY(AR01:*NEXT)
+    // While here it is not:
+    // D AR01                                DIM(100) ASCEND
+    val explicitElementType: Type? = null,
+    val position: Position?) {
 
     var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
-    var endOffset: Int? = explicitEndOffset   // these are mutable as they can be calculated using next
+    var endOffset: Int? = explicitEndOffset // these are mutable as they can be calculated using next
 
     var calculatedElementSize: Long? = null
     var calculatedElementType: Type? = null
@@ -320,12 +321,12 @@ internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(): Int? {
 }
 
 data class TypeInfo(
-        val stringCode: String?,
-        val integerPositions: Int?,
-        val decimalPositions: Int?,
-        val isPackEven: Boolean)
+    val stringCode: String?,
+    val integerPositions: Int?,
+    val decimalPositions: Int?,
+    val isPackEven: Boolean)
 
-fun RpgParser.Parm_fixedContext.toTypeInfo() : TypeInfo {
+fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
     val fp = this.FROM_POSITION()
     val foo = this.TO_POSITION()
     return TypeInfo(
@@ -373,7 +374,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
                 NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
             }
             // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
-            //val numberOfDigits = 2 * elementSize!! - 1
+            // val numberOfDigits = 2 * elementSize!! - 1
             NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
         }
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
@@ -392,7 +393,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
     }
 }
 
-fun RpgParser.Dcl_dsContext.calculateFieldInfos() : FieldsList {
+fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
     val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
     val fieldsList = FieldsList(others.map { it.toFieldInfo() })
 
@@ -415,7 +416,7 @@ fun RpgParser.Dcl_dsContext.calculateFieldInfos() : FieldsList {
 
 private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration()): FieldInfo {
     try {
-        var overlayInfo : FieldInfo.OverlayInfo? = null
+        var overlayInfo: FieldInfo.OverlayInfo? = null
         val overlay = this.keyword().find { it.keyword_overlay() != null }
         if (overlay != null) {
             val fieldName = this.name
@@ -433,12 +434,12 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                 explicitElementType = this.calculateExplicitElementType(),
                 arraySizeDeclared = this.arraySizeDeclared(),
                 position = this.toPosition(conf.considerPosition))
-    } catch (e : Exception) {
+    } catch (e: Exception) {
         throw RuntimeException("Problem arose converting to AST field ${this.name}", e)
     }
 }
 
-fun RpgParser.Dcl_dsContext.declaredSize() : Int? {
+fun RpgParser.Dcl_dsContext.declaredSize(): Int? {
     return if (TO_POSITION().text.trim().isNotEmpty()) {
         TO_POSITION().text.asInt()
     } else {
@@ -448,7 +449,7 @@ fun RpgParser.Dcl_dsContext.declaredSize() : Int? {
 
 class FieldsList(val fields: List<FieldInfo>) {
 
-    fun fieldsOverlayingOn(targetField: FieldInfo) : List<FieldInfo> {
+    fun fieldsOverlayingOn(targetField: FieldInfo): List<FieldInfo> {
         return fields.filter { it.overlayInfo != null && it.overlayInfo.targetFieldName == targetField.name }
     }
 
@@ -458,7 +459,7 @@ class FieldsList(val fields: List<FieldInfo>) {
         if (fields.isEmpty()) {
             return
         }
-        fields.forEach {currFieldInfo ->
+        fields.forEach { currFieldInfo ->
             if (currFieldInfo.overlayInfo != null) {
 
                 // The overlay refers to the data definition, for example:
@@ -492,14 +493,14 @@ class FieldsList(val fields: List<FieldInfo>) {
                     }
                     // TODO this toAst causes issues in case of overlays
                     val elementSize = currFieldInfo.toAst(0, this).type.elementSize()
-                    sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) +  elementSize.toInt()
+                    sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) + elementSize.toInt()
                 }
             }
         }
     }
 
     private fun considerOverlaysSecondRound(dataDefinitionName: String) {
-        //var nextOffset: Long = 0L
+        // var nextOffset: Long = 0L
         val sizeSoFar = HashMap<String, Int>()
         fields.forEach {
 
@@ -511,7 +512,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                 // D SSFLD                        600
                 // D  APPNAME                      02    OVERLAY(SSFLD:1)
                 if (it.overlayInfo.targetFieldName == dataDefinitionName) {
-                    val extraOffset : Long = if (it.overlayInfo.posValue == null) {
+                    val extraOffset: Long = if (it.overlayInfo.posValue == null) {
                         // consider *NEXT
                         if (it.overlayInfo.isNext) {
                             sizeSoFar.getOrDefault(it.overlayInfo.targetFieldName, 0).toLong()
@@ -582,7 +583,6 @@ class FieldsList(val fields: List<FieldInfo>) {
 
     fun isNotEmpty() = fields.isNotEmpty()
 }
-
 
 internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
     val size = this.declaredSize()

@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.math.BigDecimal

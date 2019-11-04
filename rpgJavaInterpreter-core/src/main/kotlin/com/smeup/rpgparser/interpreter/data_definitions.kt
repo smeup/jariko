@@ -147,20 +147,16 @@ data class FieldDefinition(
                     }
                 }
                 if (type.rpgType == RpgType.INTEGER.rpgType) {
-                    // Transform the numeric to an encoded string
+                    // Transform the integer to an encoded string
                     val encoded = encodeInteger(value.asDecimal().value, type.size.toInt())
                     val fitted = encoded.padEnd(type.size.toInt())
                     return StringValue(fitted)
-
-                    //TODO("Conversion of integers and unsigned should be supported")
                 }
                 if (type.rpgType == RpgType.UNSIGNED.rpgType) {
+                    // Transform the unsigned to an encoded string
                     val encoded = encodeUnsigned(value.asDecimal().value, type.size.toInt())
                     val fitted = encoded.padEnd(type.size.toInt())
                     return StringValue(fitted)
-
-                    TODO("Conversion of integers and unsigned should be supported")
-
                 }
                 // To date only 2 and 4 bytes are supported
                 if (type.rpgType == RpgType.BINARY.rpgType) {
@@ -238,7 +234,6 @@ class InStatementDataDefinition(
  * Encoding/Decoding a binary value for a data structure
  */
 
-
 fun encodeBinary(inValue: BigDecimal, size: Int): String {
     val buffer = ByteArray(size)
     val lsb = inValue.toInt()
@@ -278,17 +273,17 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
         buffer[7] = (llsb and 0x0000FFFF).toByte()
 
         return buffer[7].toChar().toString() + buffer[6].toChar().toString() + buffer[5].toChar().toString() + buffer[4].toChar().toString() +
-               buffer[3].toChar().toString() + buffer[2].toChar().toString() + buffer[1].toChar().toString() + buffer[0].toChar().toString()
+        buffer[3].toChar().toString() + buffer[2].toChar().toString() + buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
     TODO("encode binary for $size not implemented")
 }
 
 fun encodeInteger(inValue: BigDecimal, size: Int): String {
-    return encodeBinary(inValue,size)
+    return encodeBinary(inValue, size)
 }
 
 fun encodeUnsigned(inValue: BigDecimal, size: Int): String {
-    return encodeBinary(inValue,size)
+    return encodeBinary(inValue, size)
 }
 
 fun decodeBinary(value: String, size: Int): BigDecimal {
@@ -319,7 +314,7 @@ fun decodeBinary(value: String, size: Int): BigDecimal {
     }
     if (size == 8) {
         val number = (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8)  +
+                ((value[1].toLong() and 0x00FF) shl 8) +
                 ((value[2].toLong() and 0x00FF) shl 16) +
                 ((value[3].toLong() and 0x00FF) shl 24) +
                 ((value[4].toLong() and 0x00FF) shl 32) +
@@ -357,7 +352,7 @@ fun decodeInteger(value: String, size: Int): BigDecimal {
     }
     if (size == 8) {
         val number = (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8)  +
+                ((value[1].toLong() and 0x00FF) shl 8) +
                 ((value[2].toLong() and 0x00FF) shl 16) +
                 ((value[3].toLong() and 0x00FF) shl 24) +
                 ((value[4].toLong() and 0x00FF) shl 32) +
@@ -371,7 +366,7 @@ fun decodeInteger(value: String, size: Int): BigDecimal {
 }
 
 fun decodeUnsigned(value: String, size: Int): BigDecimal {
-    return decodeBinary(value,size)
+    return decodeBinary(value, size)
 }
 
 /**

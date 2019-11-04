@@ -70,7 +70,7 @@ data class CharacterType(val nChars: Int) : Type() {
         get() = nChars.toLong()
 }
 
-infix fun Int.pow(exponent: Int) : Long {
+infix fun Int.pow(exponent: Int): Long {
     require(exponent >= 0)
     return if (exponent == 0) {
         1
@@ -79,7 +79,7 @@ infix fun Int.pow(exponent: Int) : Long {
     }
 }
 
-infix fun Long.log(base: Int) : Double {
+infix fun Long.log(base: Int): Double {
     return (Math.log(this.toDouble()) / Math.log(base.toDouble()))
 }
 
