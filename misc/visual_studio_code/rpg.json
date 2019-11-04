@@ -62,7 +62,7 @@
   "DN": {
     "prefix": "dn",
     "body": [
-      "D $1               S              $2  $3 INZ($4)"
+      "D x               S             00  0 inz(00)"
     ],
     "description": "Declare Numeric variable"
   },
@@ -79,5 +79,12 @@
       "C                   DSPLY                   $1"
     ],
     "description": "DSPLY statement"
+  },
+  "ENTRY": {
+    "prefix": "ent",
+    "body": [
+      "C     *entry        plist"
+    ],
+    "description": "Entry plist"
   }
 }
