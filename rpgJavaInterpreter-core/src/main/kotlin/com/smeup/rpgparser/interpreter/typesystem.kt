@@ -89,7 +89,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
 
     init {
         if (rpgType == RpgType.INTEGER.rpgType || rpgType == RpgType.UNSIGNED.rpgType) {
-            //require(entireDigits in setOf(3, 5, 10, 20)) { "Integer or Unsigned integer can have only length 3, 5, 10, or 20. Value specified: $this" }
+            require(entireDigits <= 20) { "Integer or Unsigned integer can have only length up to 20. Value specified: $this" }
             require(decimalDigits == 0)
         }
     }
@@ -98,22 +98,13 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         get() {
             return when (rpgType) {
                 RpgType.PACKED.rpgType -> ceil((numberOfDigits + 1).toDouble() / 2.toFloat()).toInt()
-                RpgType.INTEGER.rpgType -> {
+                RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> {
                     when (entireDigits) {
                         in 1..3 -> 1
                         in 4..5 -> 2
                         in 6..10 -> 4
                         in 11..20 -> 8
-                        else -> throw IllegalStateException("Only predefined length allowed for integer")
-                    }
-                }
-                RpgType.UNSIGNED.rpgType -> {
-                    when (entireDigits) {
-                        in 1..3 -> 1
-                        in 4..5 -> 2
-                        in 6..10 -> 4
-                        in 11..20 -> 8
-                        else -> throw IllegalStateException("Only predefined length allowed for unsigned integer")
+                        else -> throw IllegalStateException("Only predefined length allowed for integer, signed or unsigned")
                     }
                 }
                 else -> numberOfDigits
