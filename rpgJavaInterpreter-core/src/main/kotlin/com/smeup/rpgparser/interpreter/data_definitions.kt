@@ -103,8 +103,6 @@ data class FieldDefinition(
     val explicitEndOffset: Int? = null,
     val calculatedStartOffset: Int? = null,
     val calculatedEndOffset: Int? = null,
-    @Deprecated("It should not be necessary anymore")
-    var nextOffset: Int = 0,
         // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
         // container. We basically duplicate it
     @property:Link

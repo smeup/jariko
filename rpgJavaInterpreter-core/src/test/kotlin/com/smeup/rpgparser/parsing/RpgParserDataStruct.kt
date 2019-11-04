@@ -229,7 +229,6 @@ class RpgParserDataStruct {
                 explicitEndOffset = null,
                 calculatedStartOffset = 6,
                 calculatedEndOffset = 8,
-                nextOffset = 0,
                 overriddenContainer = null,
                 position = null)
         val encodedValue = PAC030.toDataStructureValue(IntValue(999))
