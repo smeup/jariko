@@ -504,14 +504,6 @@ internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     return SubStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
 }
 
-private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
-    return if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
-        this.factor1Context().content.toAst(conf)
-    } else {
-        null
-    }
-}
-
 // TODO add real implementation
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
     val position = toPosition(conf.considerPosition)

@@ -14,7 +14,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Ignore
 import org.junit.Test
-import java.lang.StringBuilder
 import kotlin.test.assertTrue
 
 class RpgParserOverlayTest11 {
@@ -73,7 +72,7 @@ class RpgParserOverlayTest11 {
         assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
     }
 
-    @Test @Ignore
+    @Test
     fun parseMUTE11_15_runtime() {
         assertMutesInExampleSucceed("overlay/MUTE11_15")
     }
