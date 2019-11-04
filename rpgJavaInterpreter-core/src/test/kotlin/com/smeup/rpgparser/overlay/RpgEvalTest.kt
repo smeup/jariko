@@ -1,11 +1,7 @@
 package com.smeup.rpgparser.overlay
 
 import com.smeup.rpgparser.inputStreamFor
-import com.smeup.rpgparser.interpreter.*
-import org.junit.Test
-
-import kotlin.test.assertTrue
-
+import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
@@ -14,9 +10,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rgpinterop.RpgSystem
-import java.io.File
+import org.junit.Test
+import kotlin.test.assertTrue
 
 class RpgEvalTest {
 
@@ -52,7 +47,6 @@ class RpgEvalTest {
 
     @Test
     fun EVAL_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
         val cu = com.smeup.rpgparser.assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
         cu.resolve()
         var failed: Int = 0

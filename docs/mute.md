@@ -102,6 +102,19 @@ Total files: 1, resolved: 3, executed: 3, failed:0
 
 SUCCESS
 ```
+It is also possible to package the MUTE engine as a single jar that can be run independently. To create such jar, yoi can run:
+
+```
+ ./gradlew fatMuteJar
+ ```
+
+This command creates the JAR `rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar`.
+
+Then run the mute test with:
+
+```
+java -jar rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar MY_TEST.rpgle
+```
 
 ## Mute as part of the CI
 
@@ -129,3 +142,6 @@ To be more specific, you can follow these steps to run your own MUTE tests:
 
 With this technique, you can have a (sort of) debug view of the execution of your program.
 
+## MUTEs and Visual Studio Code
+
+You can run MUTE tests in Visual Studio Code: see the [documentation](visual_studio_code.md)
