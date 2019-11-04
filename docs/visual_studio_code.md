@@ -35,7 +35,7 @@ For example:
 	}
 ```
 
-Here you can find a [rpg.json](../misc/visual_studio_code/rpg.json) file.
+Here you can find a [rpg.json](../misc/visual_studio_code/rpg.json) file, in order to configure the snippets for the RPG language in Visual Studio Code.
 
 6. Run the code with one of these methods:
 
