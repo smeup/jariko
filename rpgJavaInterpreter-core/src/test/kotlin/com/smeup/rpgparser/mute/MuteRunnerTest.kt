@@ -4,6 +4,7 @@ import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import org.junit.Test
 import java.io.File
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class MuteRunnerTest {
@@ -24,5 +25,20 @@ class MuteRunnerTest {
         val programFinders = listOf<RpgProgramFinder>(DirRpgProgramFinder(aPgm.parentFile))
         val result = executeWithMutes(aPgm.toPath(), true, null, programFinders = programFinders)
         assertTrue(result.success())
+    }
+
+    @Test
+    fun muteRunerCanCountAnnotations() {
+        val aSource = """
+     D x               S             50    inz('Hello world!')
+    MU* VAL1('Hello world!') VAL2(x) COMP(EQ) 
+     C                   seton                                        lr         
+"""
+        val tempDir = createTempDir()
+        val aPgm = File(tempDir, "A.rpgle")
+        aPgm.writeText(aSource)
+        val result = executeWithMutes(aPgm.toPath(), true, null)
+        assertTrue(result.success())
+        assertEquals(1, result.resolved)
     }
 }
