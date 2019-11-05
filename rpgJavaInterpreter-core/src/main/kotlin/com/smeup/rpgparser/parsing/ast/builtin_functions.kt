@@ -95,6 +95,14 @@ data class LenExpr(var value: Expression, override val position: Position? = nul
     }
 }
 
+// %REM
+data class RemExpr(
+    val dividend: Expression,
+    val divisor: Expression,
+    override val position: Position? = null
+) :
+    Expression(position)
+
 // %DEC
 data class DecExpr(
     var value: Expression,

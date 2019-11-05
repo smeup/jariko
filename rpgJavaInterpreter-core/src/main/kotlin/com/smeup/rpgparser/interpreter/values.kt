@@ -24,6 +24,7 @@ abstract class Value {
 
 interface NumberValue {
     fun negate(): Value
+    val bigDecimal: BigDecimal
 }
 
 // TODO Should we change value to a val in order tho share instances?
@@ -112,6 +113,12 @@ fun String.removeNullChars(): String {
 }
 
 data class IntValue(val value: Long) : NumberValue, Value() {
+
+    private val internalValue = BigDecimal(value)
+
+    override val bigDecimal: BigDecimal
+        get() = BigDecimal(value)
+
     override fun negate(): Value = IntValue(-value)
 
     override fun assignableTo(expectedType: Type): Boolean {
@@ -121,7 +128,7 @@ data class IntValue(val value: Long) : NumberValue, Value() {
 
     override fun asInt() = this
     // TODO Verify conversion
-    override fun asDecimal(): DecimalValue = DecimalValue(BigDecimal(value))
+    override fun asDecimal(): DecimalValue = DecimalValue(internalValue)
 
     fun increment() = IntValue(value + 1)
 
@@ -164,7 +171,12 @@ data class IntValue(val value: Long) : NumberValue, Value() {
 }
 
 data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
+
+    override val bigDecimal: BigDecimal
+        get() = value
+
     override fun negate(): Value = DecimalValue(-value)
+
     override fun asInt(): IntValue {
 
         return IntValue(value.toLong())
@@ -178,11 +190,15 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     }
 
     fun isPositive(): Boolean {
-        return value >= BigDecimal.ZERO
+        return value.signum() >= 0
     }
 
     companion object {
         val ZERO = DecimalValue(BigDecimal.ZERO)
+    }
+
+    override fun render(): String {
+        return value.toString()
     }
 }
 
@@ -327,16 +343,17 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         require(index <= arrayLength())
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val containerElement = container.getElement(index)
-        // TODO to review
+
+        // Set the value within the projected Array
         if (containerElement is StringValue) {
             if (value is StringValue) {
                 containerElement.setSubstring(field.startOffset, field.endOffset, value)
             } else if (value is IntValue) {
-                var s = value.value.toString()
+                val s = value.value.toString()
                 val pad = s.padStart(field.endOffset - field.startOffset)
                 containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
             } else {
-                TODO()
+                TODO("$value not supported")
             }
         } else if (containerElement is DataStructValue) {
             if (value is StringValue) {
@@ -346,7 +363,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
                 val pad = s.padStart(field.endOffset - field.startOffset)
                 containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
             } else {
-                TODO()
+                TODO("$value not supported")
             }
         }
     }
@@ -358,7 +375,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         } else if (containerElement is DataStructValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
         } else {
-            TODO()
+            TODO("$containerElement not supported")
         }
     }
 }
@@ -393,11 +410,15 @@ fun Type.blank(): Value {
     }
 }
 
-// StringValue wrapper
+/**
+ * StringValue wrapper
+ */
+
 data class DataStructValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
-            is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
+            // Check if the size of the value mathches the expected size within the DS
+            is DataStructureType -> expectedType.elementSize == value.length
             is StringType -> expectedType.size == this.value.length.toLong()
             else -> false
         }
@@ -437,6 +458,7 @@ data class DataStructValue(var value: String) : Value() {
     companion object {
         fun blank(length: Int) = DataStructValue(PAD_STRING.repeat(length))
     }
+
     override fun toString(): String {
         return "StringValue[${value.length}]($valueWithoutPadding)"
     }

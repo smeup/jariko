@@ -3,6 +3,6 @@
      D RESULT          S              8  0 INZ(0)
      D MSG             S             15    INZ('Failure message')
       *
-    MU* FAIL[MSG]
+    MU* FAIL(MSG)
      C                   EVAL      RESULT = A + B
      C                   SETON                                        LR

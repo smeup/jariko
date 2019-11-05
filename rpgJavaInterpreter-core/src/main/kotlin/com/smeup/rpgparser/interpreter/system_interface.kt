@@ -4,7 +4,9 @@ import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import java.io.File
+import java.io.PrintStream
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
@@ -104,7 +106,7 @@ object DummySystemInterface : SystemInterface {
     }
 }
 
-class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = null, val programFinders: List<RpgProgramFinder> = emptyList(), val output: PrintStream? = null) : SystemInterface {
     override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
@@ -118,11 +120,19 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
     }
 
     override fun findProgram(name: String): Program? {
+        programFinders.forEach {
+            val program = it.findRpgProgram(name)
+            if (program != null) {
+                return program
+            }
+        }
         return null
     }
 
     override fun display(value: String) {
-        // doing nothing
+        if (output != null) {
+            output.println(value)
+        }
     }
 
     fun useConfigurationFile(configurationFile: File?): SystemInterface {
