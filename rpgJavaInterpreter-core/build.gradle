@@ -174,12 +174,29 @@ task fatJar(type: Jar) {
     with jar
 }
 
-task runMutesTests(type: JavaExec) {
+//Creates smeup-rpg/rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar
+task fatMuteJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'com.smeup.rpgparser.mute.StandaloneMuteRunner'
+    }
+    archiveBaseName = project.name + '-mute-all'
+    archiveVersion = ''
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task runMutes(type: JavaExec) {
+    dependsOn compileKotlin
+
+    def muteDir = '../mutes_for_ci'
+    if (project.hasProperty("muteDir")){
+        muteDir = project.getProperties().get("muteDir")
+    }
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.smeup.rpgparser.mute.MuterunnerKt'
     args '../mutes_for_ci', "-v", "-lc", "../mutes_for_ci/mute_logging.config"
 }
 
+check.dependsOn runMutes
+//check.dependsOn jacocoTestReport
 
-check.dependsOn runMutesTests
-check.dependsOn jacocoTestReport

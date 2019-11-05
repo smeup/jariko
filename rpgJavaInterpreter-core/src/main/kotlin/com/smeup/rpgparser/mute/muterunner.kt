@@ -12,14 +12,17 @@ import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.SimpleSystemInterface
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
+import com.smeup.rpgparser.parsing.ast.MuteComparisonAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
 import com.strumenta.kolasu.validation.Error
 import java.io.File
+import java.io.PrintStream
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.nio.file.Files
@@ -37,10 +40,13 @@ data class ExecutionResult(
 ) {
     fun success(): Boolean = failed == 0 && exceptions.isEmpty() && syntaxErrors.isEmpty()
 
+    // codebeat:disable[ABC]
     override fun toString(): String {
         val sb = StringBuilder()
         sb.appendln("------------")
-        sb.appendln("$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}".color(success()))
+        val message =
+            "$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}"
+        sb.appendln(message.color(success()))
         val sw = StringWriter()
         val printWriter = PrintWriter(sw)
         exceptions.forEach {
@@ -53,6 +59,7 @@ data class ExecutionResult(
         }
         return addFileLink(sb)
     }
+    // codebeat:enable[ABC]
 
     private fun addFileLink(sb: StringBuilder): String {
         var result = sb.toString()
@@ -66,24 +73,34 @@ data class ExecutionResult(
 
 fun String.color(success: Boolean) = if (success) this.green() else this.red()
 
-fun File.linkTo(line: Int) = "${this.name}(${this.name}:$line)"
+fun File.linkTo(line: Int) = if (showSourceAbsolutePath()) {
+    // For linking to source from Visual Studio Code console
+    "${this.absolutePath}:$line"
+} else {
+    // For linking to source from IDEA console
+    "${this.name}(${this.name}:$line)"
+}
+
+fun showSourceAbsolutePath(): Boolean = "true" == System.getProperty("showSourceAbsolutePath")
 
 fun executeWithMutes(
     path: Path,
     verbose: Boolean = false,
-    logConfigurationFile: File?
+    logConfigurationFile: File?,
+    programFinders: List<RpgProgramFinder> = emptyList(),
+    output: PrintStream? = null
 ): ExecutionResult {
     var failed = 0
     var executed = 0
-    var resolved: List<MuteAnnotationResolved> = listOf()
+    var resolved: List<MuteAnnotationResolved>
     var exceptions = LinkedList<Throwable>()
 
     var result: RpgParserResult? = null
     val file = File(path.toString())
     try {
         result =
-                RpgParserFacade().apply { this.muteSupport = true }
-                        .parse(file.inputStream())
+            RpgParserFacade().apply { this.muteSupport = true }
+            .parse(file.inputStream())
         if (result.correct) {
             val cu = result.root!!.rContext.toAst().apply {
                 resolved = this.injectMuteAnnotation(result.root?.muteContexts!!)
@@ -96,16 +113,17 @@ fun executeWithMutes(
                 }
             }
             cu.resolve()
-            val interpreter = InternalInterpreter(SimpleSystemInterface().useConfigurationFile(logConfigurationFile))
+            val interpreter = InternalInterpreter(SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(logConfigurationFile))
 
             interpreter.execute(cu, mapOf())
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
             sorted.forEach { (line, annotation) ->
-                if (!annotation.result.asBoolean().value) {
-                    println("Mute annotation at line $line ${annotation.expression.render()} failed ${file.linkTo(line)}")
-                    println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
-                    println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
-                    failed++
+                if (verbose || !annotation.succeeded()) {
+                    println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
+                    if (annotation is MuteComparisonAnnotationExecuted && !annotation.succeeded()) {
+                        println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
+                        println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
+                    }
                 }
                 executed++
             }
@@ -113,7 +131,7 @@ fun executeWithMutes(
     } catch (e: Throwable) {
         exceptions.add(e)
     }
-    return ExecutionResult(file, resolved.size, executed, failed, exceptions, result?.errors ?: emptyList())
+    return ExecutionResult(file, result?.root?.muteContexts?.size ?: 0, executed, failed, exceptions, result?.errors ?: emptyList())
 }
 
 object MuteRunner {
@@ -150,9 +168,11 @@ const val FAILURE_EXIT_CODE = 1
 
 class MuteRunnerCLI : CliktCommand() {
     val verbosity by option().switch("--verbose" to true, "-v" to true, "--silent" to false, "-s" to false).default(
-            false
+        false
     )
+
     val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
+
     val pathsToProcessArgs by argument(name = "Paths to process").file(
             exists = true,
             folderOkay = true,

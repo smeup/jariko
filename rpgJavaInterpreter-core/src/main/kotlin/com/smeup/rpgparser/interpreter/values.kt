@@ -24,6 +24,7 @@ abstract class Value {
 
 interface NumberValue {
     fun negate(): Value
+    val bigDecimal: BigDecimal
 }
 
 // TODO Should we change value to a val in order tho share instances?
@@ -98,7 +99,7 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun render(): String {
-        return valueWithoutPadding.toString()
+        return valueWithoutPadding
     }
 }
 
@@ -112,6 +113,12 @@ fun String.removeNullChars(): String {
 }
 
 data class IntValue(val value: Long) : NumberValue, Value() {
+
+    private val internalValue = BigDecimal(value)
+
+    override val bigDecimal: BigDecimal
+        get() = BigDecimal(value)
+
     override fun negate(): Value = IntValue(-value)
 
     override fun assignableTo(expectedType: Type): Boolean {
@@ -121,7 +128,7 @@ data class IntValue(val value: Long) : NumberValue, Value() {
 
     override fun asInt() = this
     // TODO Verify conversion
-    override fun asDecimal(): DecimalValue = DecimalValue(BigDecimal(value))
+    override fun asDecimal(): DecimalValue = DecimalValue(internalValue)
 
     fun increment() = IntValue(value + 1)
 
@@ -164,6 +171,10 @@ data class IntValue(val value: Long) : NumberValue, Value() {
 }
 
 data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
+
+    override val bigDecimal: BigDecimal
+        get() = value
+
     override fun negate(): Value = DecimalValue(-value)
 
     override fun asInt(): IntValue {
@@ -184,6 +195,10 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
 
     companion object {
         val ZERO = DecimalValue(BigDecimal.ZERO)
+    }
+
+    override fun render(): String {
+        return value.toString()
     }
 }
 
@@ -334,7 +349,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
             if (value is StringValue) {
                 containerElement.setSubstring(field.startOffset, field.endOffset, value)
             } else if (value is IntValue) {
-                var s = value.value.toString()
+                val s = value.value.toString()
                 val pad = s.padStart(field.endOffset - field.startOffset)
                 containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
             } else {

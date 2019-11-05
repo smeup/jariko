@@ -3,7 +3,7 @@ package com.smeup.rpgparser.interpreter
 import java.lang.IllegalStateException
 
 class SymbolTable {
-    private val values = HashMap<AbstractDataDefinition, Value>()
+    private val values = LinkedHashMap<AbstractDataDefinition, Value>()
 
     operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
 

@@ -9,13 +9,13 @@ class RecordTest {
     @Test
     fun matchesOK() {
         val record = Record(
-            Field("F1", StringValue("A")),
-            Field("F2", IntValue(8)),
-            Field("F3", StringValue("W"))
+            RecordField("F1", StringValue("A")),
+            RecordField("F2", IntValue(8)),
+            RecordField("F3", StringValue("W"))
         )
         val keyFieldsOK = listOf(
-            Field("F2", IntValue(8)),
-            Field("F3", StringValue("W"))
+            RecordField("F2", IntValue(8)),
+            RecordField("F3", StringValue("W"))
         )
         assertTrue(record.matches((keyFieldsOK)))
     }
@@ -23,13 +23,13 @@ class RecordTest {
     @Test
     fun matchesKO() {
         val record = Record(
-            Field("F1", StringValue("A")),
-            Field("F2", IntValue(8)),
-            Field("F3", StringValue("W"))
+            RecordField("F1", StringValue("A")),
+            RecordField("F2", IntValue(8)),
+            RecordField("F3", StringValue("W"))
         )
         val keyFieldsKO = listOf(
-            Field("F2", IntValue(8)),
-            Field("F3", StringValue("XXXXXXX"))
+            RecordField("F2", IntValue(8)),
+            RecordField("F3", StringValue("XXXXXXX"))
         )
         assertFalse(record.matches((keyFieldsKO)))
     }

@@ -47,42 +47,42 @@ class RpgParserWithMuteRuntimeTest {
         // VAL1(FIELD1) VAL2('AAAA') COMP(EQ)
         var annotation = interpreter.systemInterface.getExecutedAnnotation()[3]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
 
         // VAL1(NBR) VAL2(11) COMP(LT)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[7]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
 
         // VAL1(FIELD1) VAL2('A ' + ' B') COMP(NE)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[14]
         assertTrue(actual = annotation != null)
-        assertFalse(annotation.result.asBoolean().value)
+        assertFalse(annotation.succeeded())
 
         // VAL1(B) VAL2(1) COMP(GE)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[16]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
 
         // VAL1(B) VAL2(1) COMP(LE)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[17]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
 
         // VAL1(B) VAL2(1) COMP(GT)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[19]
         assertTrue(actual = annotation != null)
-        assertFalse(annotation.result.asBoolean().value)
+        assertFalse(annotation.succeeded())
 
         // VAL1(B) VAL2(1) COMP(LT)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[20]
         assertTrue(actual = annotation != null)
-        assertFalse(annotation.result.asBoolean().value)
+        assertFalse(annotation.succeeded())
 
         // VAL1(COUNT) VAL2(4) COMP(LE)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[28]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
     }
 
     @Test
@@ -97,28 +97,28 @@ class RpgParserWithMuteRuntimeTest {
         // VAL1(VAR1) VAL2(%TRIM(' AAAA ')) COMP(EQ)
         var annotation = interpreter.systemInterface.getExecutedAnnotation()[3]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
 
         //  VAL1(VALUE1) VAL2('AAA:') COMP(EQ)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[10]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
 
         //  VAL1(VALUE1) VAL2('  AAA:') COMP(EQ)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[12]
         assertTrue(actual = annotation != null)
         // this one fail, as expected
-        assertFalse(annotation.result.asBoolean().value)
+        assertFalse(annotation.succeeded())
 
         //  VAL1(%TRIMR(VAR1) +':') VAL2('  AAA:') COMP(EQ)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[14]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
 
         //  VAL1(VALUE1) VAL2('AAA                         :') COMP(NE)
         annotation = interpreter.systemInterface.getExecutedAnnotation()[15]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
     }
 
     @Test
@@ -133,6 +133,6 @@ class RpgParserWithMuteRuntimeTest {
         // VAL1(AR(1)) VAL2(4) COMP(NE)
         val annotation = interpreter.systemInterface.getExecutedAnnotation()[2]
         assertTrue(actual = annotation != null)
-        assertTrue(annotation.result.asBoolean().value)
+        assertTrue(annotation.succeeded())
     }
 }

@@ -1,39 +1,44 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.MuteParser
-import com.smeup.rpgparser.parsing.ast.*
-import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.LogEntry
 import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.MutesImmutableMap
+import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.utils.asLong
 import com.strumenta.kolasu.model.Position
-import com.strumenta.kolasu.validation.Error
-import java.util.*
+import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
+import java.util.*
 
 data class MuteAnnotationExecutionLogEntry(override val programName: String, val annotation: MuteAnnotation, var result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return when (annotation) {
             is MuteComparisonAnnotation -> "executing MuteComparisonAnnotation: ${annotation.position} $result ${annotation.val1} ${annotation.comparison} ${annotation.val2} "
+            is MuteFailAnnotation -> "executing MuteFail: ${annotation.position} - ${result.render()}"
             else -> this.toString()
         }
     }
 }
 
 fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), position: Position? = null): MuteAnnotation {
-    val annotation = this.muteAnnotation()
-    return when (annotation) {
-        is MuteParser.MuteComparisonAnnotationContext -> {
-            val errors = LinkedList<Error>()
-            val val1 = RpgParserFacade().createParser(BOMInputStream(("".padStart(8) + annotation.val1.text.substring(1, annotation.val1.text.lastIndex)).byteInputStream(Charsets.UTF_8)), errors, longLines = true)
-                    .expression()
-                    .toAst(conf)
+    fun extractExpressionFrom(token: Token): Expression {
+        return RpgParserFacade().createParser(
+            BOMInputStream(
+                ("".padStart(8) + token.text.substring(
+                    1,
+                    token.text.lastIndex
+                )).byteInputStream(Charsets.UTF_8)
+            ), errors = mutableListOf(), longLines = true
+        ).expression().toAst(conf)
+    }
 
-            val val2 = RpgParserFacade().createParser(BOMInputStream(("".padStart(8) + annotation.val2.text.substring(1, annotation.val2.text.lastIndex)).byteInputStream(Charsets.UTF_8)), errors, longLines = true)
-                    .expression()
-                    .toAst(conf)
+    return when (val annotation = this.muteAnnotation()) {
+        is MuteParser.MuteComparisonAnnotationContext -> {
+            val val1 = extractExpressionFrom(annotation.val1)
+            val val2 = extractExpressionFrom(annotation.val2)
 
             MuteComparisonAnnotation(val1, val2, Comparison.valueOf(annotation.cp.text.substring(1, annotation.cp.text.lastIndex)), position = position)
         }
@@ -43,6 +48,10 @@ fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
         }
         is MuteParser.MuteTimeoutContext -> {
             MuteTimeoutAnnotation(annotation.intNumber().NUMBER().text.asLong(), position)
+        }
+        is MuteParser.MuteFailAnnotationContext -> {
+            val message = extractExpressionFrom(annotation.msg)
+            MuteFailAnnotation(message, position)
         }
         else -> TODO(this.text.toString())
     }

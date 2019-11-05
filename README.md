@@ -21,6 +21,10 @@ The project supports configurable logging, described in a [separate document](do
 We support special annotations to be used to write unit tests in RPG.
 For details see [this document](docs/mute.md).
 
+### MUTEs and Visual Studio Code
+
+You can run MUTE tests in Visual Studio Code: see the [documentation](docs/visual_studio_code.md)
+
 ## How the repository is organized
 
 * _generated-src_ contains the code generated from the grammar
