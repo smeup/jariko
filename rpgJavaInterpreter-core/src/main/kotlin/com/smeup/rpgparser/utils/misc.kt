@@ -65,7 +65,6 @@ fun String?.asDouble(): Double {
         return 0.0
     }
 }
-
 fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
 fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this) == 0
 

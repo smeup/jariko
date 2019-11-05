@@ -80,10 +80,6 @@ class JDExamplesTest {
         assert(urlCalled is ArrayValue)
     }
 
-    /*
-     FIXME currently failing because paramsTypesOfJD_001 fails.
-     The param type U$SVARSK is not considering the LIKE directive
-     */
     @Test
     fun executeJD_000() {
         assertEquals(listOf("", "", "Url", "http://xxx.smaup.com"), outputOf("JD_000"))

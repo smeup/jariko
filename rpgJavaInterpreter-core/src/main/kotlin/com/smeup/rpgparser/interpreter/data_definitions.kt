@@ -143,12 +143,12 @@ data class FieldDefinition(
                         return StringValue(encoded)
                     }
                 }
-                TODO("Not implmented $type")
+                TODO("Not implemented $type")
             }
             is StringType -> {
                 return StringValue(value.asString().value)
             }
-            else -> TODO("Not implmented $type")
+            else -> TODO("Not implemented $type")
         }
     }
 
@@ -184,9 +184,9 @@ class InStatementDataDefinition(
     val initializationValue: Expression? = null
 ) : AbstractDataDefinition(name, type, position)
 
-//
-// Encode a binary value for a data structure
-//
+/**
+ * Encoding/Decoding a binary value for a data structure
+*/
 
 fun encodeBinary(inValue: BigDecimal, digits: Int): String {
     val buffer = ByteArray(digits)
@@ -230,9 +230,9 @@ fun decodeBinary(value: String, digits: Int): BigDecimal {
     TODO("encode binary for $digits not implemented")
 }
 
-//
-// Encode a numeric value for a data structure
-//
+/**
+ * Encoding/Decoding a numeric value for a data structure
+ */
 fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()

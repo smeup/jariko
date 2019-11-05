@@ -12,7 +12,7 @@ fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigura
     if (this.content is RpgParser.SetDeceditContext) {
         return (this.content as RpgParser.SetDeceditContext).hs_decedit_set().toAst(conf)
     } else {
-        TODO()
+        TODO("Unexpected ${this.content} in decedit directive")
     }
 }
 
@@ -22,7 +22,7 @@ fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
             val content = this.hs_string().content.map { it.text }.joinToString(separator = "")
             return StringLiteral(content, position = this.toPosition(conf.considerPosition))
         }
-        else -> TODO()
+        else -> TODO("Invalid param in decedit directive")
     }
 }
 

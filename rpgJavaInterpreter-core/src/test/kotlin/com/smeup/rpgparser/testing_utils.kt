@@ -303,6 +303,19 @@ fun rpgProgram(name: String): RpgProgram {
     return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
 }
 
+fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
+    var failed: Int = 0
+    annotations.forEach { (line, annotation) ->
+        try {
+            assertTrue(annotation.result.asBoolean().value)
+        } catch (e: AssertionError) {
+            println("${annotation.programName}: $line ${annotation.headerDescription()} ${annotation.result.asBoolean().value}")
+            failed++
+        }
+    }
+    return failed
+}
+
 class DummyProgramFinder(val path: String) : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle"), nameOrSource)

@@ -99,6 +99,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     override operator fun get(data: AbstractDataDefinition): Value {
         return globalSymbolTable[data]
     }
+
     operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -111,12 +112,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
                 val dd = get(ds.name) as DataStructValue
-                // DataStructValuw Wrapper
+                // DataStructValue Wrapper
                 dd.set(data, value)
             }
             else -> {
                 var previous: Value? = null
-                if (globalSymbolTable.contains(data.name)) {
+                if (data.name in globalSymbolTable) {
                     previous = globalSymbolTable[data.name]
                 }
                 log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
@@ -1230,7 +1231,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     is StringValue -> value.value.length.asValue()
                     is DataStructValue -> value.value.length.asValue()
                     else -> {
-                        TODO(value.toString())
+                        TODO("Invalid LEN parameter $value")
                     }
                 }
             }
@@ -1274,7 +1275,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is DivExpr -> {
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
-                // TODO check type
+                // Check the type and select the correct operation
                 if (v1 is DecimalValue && v2 is DecimalValue) {
 
                     val parent = expression.parent as EvalStmt
@@ -1357,7 +1358,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is EditwExpr -> {
                 val n = eval(expression.value)
                 val format = eval(expression.format)
-                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
+                require(format is StringValue) { "Required string value, but got $format at ${expression.position}" }
                 return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
             }
             is IntExpr -> {

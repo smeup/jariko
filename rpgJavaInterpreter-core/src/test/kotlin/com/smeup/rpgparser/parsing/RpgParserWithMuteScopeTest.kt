@@ -1,9 +1,7 @@
 package com.smeup.rpgparser.parsing
 
+import com.smeup.rpgparser.assertCanBeParsedResult
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
-import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import com.smeup.rpgparser.parsing.facade.RpgParserResult
-import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import kotlin.test.assertEquals
@@ -33,21 +31,10 @@ public class RpgParserWithMuteScopeTest {
         return null
     }
 
-    // Temporary replacement to return RpgParserResult
-    private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false): RpgParserResult {
-        val result = RpgParserFacade()
-                .apply { this.muteSupport = withMuteSupport }
-                .parse(inputStreamFor(exampleName))
-        assertTrue(result.correct,
-                message = "Errors: ${result.errors.joinToString(separator = ", ")}")
-
-        return result
-    }
-
     @Test
     fun parseMUTE01_scope() {
         val resolved: List<MuteAnnotationResolved>
-        val result = assertCanBeParsed("mute/MUTE01_SCOPE", withMuteSupport = true)
+        val result = assertCanBeParsedResult("mute/MUTE01_SCOPE", withMuteSupport = true)
 
         result.root!!.rContext.toAst().apply {
             resolved = this.injectMuteAnnotation(result.root!!.muteContexts!!)

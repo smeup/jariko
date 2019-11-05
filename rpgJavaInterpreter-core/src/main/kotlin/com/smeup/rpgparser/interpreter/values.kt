@@ -176,6 +176,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
         get() = value
 
     override fun negate(): Value = DecimalValue(-value)
+
     override fun asInt(): IntValue {
 
         return IntValue(value.toLong())
@@ -189,7 +190,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     }
 
     fun isPositive(): Boolean {
-        return value >= BigDecimal.ZERO
+        return value.signum() >= 0
     }
 
     companion object {
@@ -342,7 +343,8 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         require(index <= arrayLength())
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
         val containerElement = container.getElement(index)
-        // TODO to review
+
+        // Set the value within the projected Array
         if (containerElement is StringValue) {
             if (value is StringValue) {
                 containerElement.setSubstring(field.startOffset, field.endOffset, value)
@@ -351,7 +353,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
                 val pad = s.padStart(field.endOffset - field.startOffset)
                 containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
             } else {
-                TODO()
+                TODO("$value not supported")
             }
         } else if (containerElement is DataStructValue) {
             if (value is StringValue) {
@@ -361,7 +363,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
                 val pad = s.padStart(field.endOffset - field.startOffset)
                 containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
             } else {
-                TODO()
+                TODO("$value not supported")
             }
         }
     }
@@ -373,7 +375,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         } else if (containerElement is DataStructValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
         } else {
-            TODO()
+            TODO("$containerElement not supported")
         }
     }
 }
@@ -408,11 +410,15 @@ fun Type.blank(): Value {
     }
 }
 
-// StringValue wrapper
+/**
+ * StringValue wrapper
+ */
+
 data class DataStructValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
-            is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
+            // Check if the size of the value mathches the expected size within the DS
+            is DataStructureType -> expectedType.elementSize == value.length
             is StringType -> expectedType.size == this.value.length.toLong()
             else -> false
         }
@@ -452,6 +458,7 @@ data class DataStructValue(var value: String) : Value() {
     companion object {
         fun blank(length: Int) = DataStructValue(PAD_STRING.repeat(length))
     }
+
     override fun toString(): String {
         return "StringValue[${value.length}]($valueWithoutPadding)"
     }
