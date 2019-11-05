@@ -6,7 +6,6 @@ import com.smeup.rpgparser.utils.processFilesInDirectory
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
-import java.io.File
 import kotlin.test.assertEquals
 
 class RpgParsingAcceptanceTest {
@@ -16,7 +15,7 @@ class RpgParsingAcceptanceTest {
     @Category(AcceptanceTest::class)
     fun parseAllDataExamples() {
         var failures = 0
-        processFilesInDirectory(File("src/test/resources/data"), 13) { rpgFile ->
+        processFilesInDirectory("src/test/resources/data", 13) { rpgFile ->
             try {
                 assertCanBeParsed(rpgFile)
             } catch (e: AssertionError) {

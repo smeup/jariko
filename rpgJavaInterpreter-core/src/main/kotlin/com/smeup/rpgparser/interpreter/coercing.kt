@@ -47,16 +47,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 createArrayValue(type.element, type.nElements) {
-                    // TODO
                     type.element.blank()
                 }
             }
         }
-        // TODO
+
         is NumberType -> {
             if (type.integer) {
                 when {
-                    value.isBlank() -> IntValue(0)
+                    value.isBlank() -> IntValue.ZERO
                     type.rpgType == "B" -> {
                         val intValue = decodeBinary(value.value.trim(), type.entireDigits)
                         IntValue(intValue.longValueExact())
@@ -127,7 +126,6 @@ fun coerce(value: Value, type: Type): Value {
             }
         }
 
-        // TODO support for integer
         is HiValValue -> {
             when (type) {
                 is NumberType -> {
@@ -193,7 +191,7 @@ private fun computeHiValue(type: NumberType): Value {
             }
         }
     }
-    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is too big")
+    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }
 
 private fun computeLowValue(type: NumberType): Value {
@@ -219,7 +217,7 @@ private fun computeLowValue(type: NumberType): Value {
     }
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
-        return IntValue(0)
+        return IntValue.ZERO
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
@@ -234,5 +232,5 @@ private fun computeLowValue(type: NumberType): Value {
             }
         }
     }
-    TODO("")
+    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }

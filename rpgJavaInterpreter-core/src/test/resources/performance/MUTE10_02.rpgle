@@ -26,6 +26,7 @@
      C                   EXSR      F_CERCA
       *
     MU* Type="NOXMI"
+    MU* TIMEOUT(4000)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test CERCA

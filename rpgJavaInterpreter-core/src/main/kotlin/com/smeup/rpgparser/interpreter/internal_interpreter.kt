@@ -2,23 +2,18 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.ast.Comparison.EQ
-import com.smeup.rpgparser.parsing.ast.Comparison.GE
-import com.smeup.rpgparser.parsing.ast.Comparison.GT
-import com.smeup.rpgparser.parsing.ast.Comparison.LE
-import com.smeup.rpgparser.parsing.ast.Comparison.LT
-import com.smeup.rpgparser.parsing.ast.Comparison.NE
+import com.smeup.rpgparser.parsing.ast.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
 import java.lang.IllegalArgumentException
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
+import java.math.MathContext
 import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeoutException
-import kotlin.UnsupportedOperationException
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
@@ -30,6 +25,17 @@ interface InterpretationContext {
     val currentProgramName: String
     fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
     fun shouldReinitialize(): Boolean
+}
+
+/**
+ * Expose interpreter core method could be useful in statements logic implementation
+ **/
+interface InterpreterCoreHelper {
+
+    fun log(logEntry: LogEntry)
+    fun assign(target: AssignableExpression, value: Value): Value
+    fun interpret(expression: Expression): Value
+    operator fun get(data: AbstractDataDefinition): Value
 }
 
 object DummyInterpretationContext : InterpretationContext {
@@ -62,7 +68,7 @@ class DBFileMap(private val dbInterface: DBInterface) {
     operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
-class InternalInterpreter(val systemInterface: SystemInterface) {
+class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
     // TODO default value DECEDIT can be changed
@@ -82,7 +88,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
-    private fun log(logEntry: LogEntry) {
+    override fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
     }
 
@@ -90,9 +96,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
 
     private fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    operator fun get(data: AbstractDataDefinition): Value {
+    override operator fun get(data: AbstractDataDefinition): Value {
         return globalSymbolTable[data]
     }
+
     operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
@@ -105,12 +112,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
                 val dd = get(ds.name) as DataStructValue
-                // DataStructValuw Wrapper
+                // DataStructValue Wrapper
                 dd.set(data, value)
             }
             else -> {
                 var previous: Value? = null
-                if (globalSymbolTable.contains(data.name)) {
+                if (data.name in globalSymbolTable) {
                     previous = globalSymbolTable[data.name]
                 }
                 log(AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous))
@@ -311,7 +318,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is MoveLStmt -> {
-                    TODO("IMPLEMENT MOVEL")
+                    val value = movel(statement.operationExtender, statement.target, statement.expression, this)
+                    log(MoveLStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is SelectStmt -> {
                     for (case in statement.cases) {
@@ -376,12 +384,24 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 is ZAddStmt -> {
                     assign(statement.target, eval(statement.expression))
                 }
+                is AddStmt -> {
+                    assign(statement.result, add(statement))
+                }
                 is ZSubStmt -> {
                     val value = eval(statement.expression)
                     require(value is NumberValue) {
                         "$value should be a number"
                     }
                     assign(statement.target, value.negate())
+                }
+                is MultStmt -> {
+                    assign(statement.target, mult(statement))
+                }
+                is DivStmt -> {
+                    assign(statement.target, div(statement))
+                }
+                is SubStmt -> {
+                    assign(statement.result, sub(statement))
                 }
                 is TimeStmt -> {
                     when (statement.value) {
@@ -727,6 +747,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             throw e
         } catch (e: RuntimeException) {
             throw RuntimeException("Issue executing statement $statement -> $e", e)
+        } catch (e: NotImplementedError) {
+            throw RuntimeException("Issue executing statement $statement -> $e", e)
         }
     }
 
@@ -859,6 +881,44 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
+    private fun mult(statement: MultStmt): Value {
+        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
+        require(statement.target is DataRefExpr)
+        val rightValue: BigDecimal = if (statement.factor1 != null) {
+            BigDecimal(interpret(statement.factor1).render())
+        } else {
+            BigDecimal(get(statement.target.variable.referred!!).render())
+        }
+        val leftValue = BigDecimal(interpret(statement.factor2).render())
+        val result = rightValue.multiply(leftValue)
+        val type = statement.target.variable.referred!!.type
+        require(type is NumberType)
+        return if (statement.halfAdjust) {
+            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
+        } else {
+            DecimalValue(result.setScale(type.decimalDigits, RoundingMode.DOWN))
+        }
+    }
+
+    private fun div(statement: DivStmt): Value {
+        // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
+        require(statement.target is DataRefExpr)
+        val dividend: BigDecimal = if (statement.factor1 != null) {
+            BigDecimal(interpret(statement.factor1).render())
+        } else {
+            BigDecimal(get(statement.target.variable.referred!!).render())
+        }
+        val divisor = BigDecimal(interpret(statement.factor2).render())
+        val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
+        val type = statement.target.variable.referred!!.type
+        require(type is NumberType)
+        return if (statement.halfAdjust) {
+            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
+        } else {
+            DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.DOWN))
+        }
+    }
+
     private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
@@ -866,7 +926,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         return coercedValue
     }
 
-    private fun assign(target: AssignableExpression, value: Value): Value {
+    override fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
@@ -940,7 +1000,43 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
         }
     }
 
-    fun interpret(expression: Expression): Value {
+    private fun add(statement: AddStmt): Value {
+        val addend1 = interpret(statement.addend1)
+        require(addend1 is NumberValue) {
+            "$addend1 should be a number"
+        }
+        val addend2 = interpret(statement.right)
+        require(addend2 is NumberValue) {
+            "$addend2 should be a number"
+        }
+        return when {
+            addend1 is IntValue && addend2 is IntValue -> IntValue(addend1.asInt().value.plus(addend2.asInt().value))
+            addend1 is IntValue && addend2 is DecimalValue -> DecimalValue(addend1.asDecimal().value.plus(addend2.value))
+            addend1 is DecimalValue && addend2 is IntValue -> DecimalValue(addend1.value.plus(addend2.asDecimal().value))
+            addend1 is DecimalValue && addend2 is DecimalValue -> DecimalValue(addend1.value.plus(addend2.value))
+            else -> throw UnsupportedOperationException("I do not know how to sum $addend1 and $addend2 at ${statement.position}")
+        }
+    }
+
+    private fun sub(statement: SubStmt): Value {
+        val minuend = interpret(statement.minuend)
+        require(minuend is NumberValue) {
+            "$minuend should be a number"
+        }
+        val subtrahend = interpret(statement.right)
+        require(subtrahend is NumberValue) {
+            "$subtrahend should be a number"
+        }
+        return when {
+            minuend is IntValue && subtrahend is IntValue -> IntValue(minuend.asInt().value.minus(subtrahend.asInt().value))
+            minuend is IntValue && subtrahend is DecimalValue -> DecimalValue(minuend.asDecimal().value.minus(subtrahend.value))
+            minuend is DecimalValue && subtrahend is IntValue -> DecimalValue(minuend.value.minus(subtrahend.asDecimal().value))
+            minuend is DecimalValue && subtrahend is DecimalValue -> DecimalValue(minuend.value.minus(subtrahend.value))
+            else -> throw UnsupportedOperationException("I do not know how to sum $minuend and $subtrahend at ${statement.position}")
+        }
+    }
+
+    override fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
         if (expression !is StringLiteral && expression !is IntLiteral &&
             expression !is DataRefExpr && expression !is BlanksRefExpr
@@ -1135,7 +1231,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     is StringValue -> value.value.length.asValue()
                     is DataStructValue -> value.value.length.asValue()
                     else -> {
-                        TODO(value.toString())
+                        TODO("Invalid LEN parameter $value")
                     }
                 }
             }
@@ -1179,7 +1275,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is DivExpr -> {
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
-                // TODO check type
+                // Check the type and select the correct operation
                 if (v1 is DecimalValue && v2 is DecimalValue) {
 
                     val parent = expression.parent as EvalStmt
@@ -1262,7 +1358,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             is EditwExpr -> {
                 val n = eval(expression.value)
                 val format = eval(expression.format)
-                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
+                require(format is StringValue) { "Required string value, but got $format at ${expression.position}" }
                 return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
             }
             is IntExpr -> {

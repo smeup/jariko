@@ -6,10 +6,10 @@ import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
-import java.util.*
 import org.antlr.v4.runtime.*
 import org.apache.commons.io.input.BOMInputStream
 import org.junit.Test
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

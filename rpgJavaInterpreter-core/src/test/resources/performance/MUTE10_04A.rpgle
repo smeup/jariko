@@ -12,26 +12,18 @@
       * Considerare i seguenti codici operativi
       *+----------+--+---------!--+
       *!RPGLE     !ST!BUILT-IN !ST!
-      *+-------------+ --------!--+
-      *!LOOKUP    !  !%LOOKUP  !  !
       *+----------+--+---------+--+
      D $S              S             10  0
      D $C              S             10  0
-     D $V              S             10  0
      D SI              S             10    DIM(17) PERRCD(1) CTDATA             _NOTXT
      D V1              S          30000
-     D S1              S            100
-     D V2              S          30000    Varying
-     D I1              S              5  0
-     D $TIMST          S               Z   INZ
-     D $TIMEN          S               Z   INZ
-     D $TIMMS          S             10  0
       *---------------------------------------------------------------------
      D MSG             S             52
       *---------------------------------------------------------------------
      C                   EXSR      F_CERCA
       *
     MU* Type="NOXMI"
+    MU* TIMEOUT(5500)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test CERCA
@@ -39,7 +31,6 @@
      C     F_CERCA       BEGSR
       *
       * carico stringa 30Kb
-     C                   TIME                    $TIMST
      C                   EVAL      $S=0
      C                   EVAL      $C=1
      C                   DOW       %LEN(%TRIM(V1)) < 30000
