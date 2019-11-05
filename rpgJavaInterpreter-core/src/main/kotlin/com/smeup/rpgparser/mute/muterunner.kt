@@ -18,9 +18,11 @@ import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
 import com.strumenta.kolasu.validation.Error
 import java.io.File
+import java.io.PrintStream
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.nio.file.Files
@@ -84,11 +86,13 @@ fun showSourceAbsolutePath(): Boolean = "true" == System.getProperty("showSource
 fun executeWithMutes(
     path: Path,
     verbose: Boolean = false,
-    logConfigurationFile: File?
+    logConfigurationFile: File?,
+    programFinders: List<RpgProgramFinder> = emptyList(),
+    output: PrintStream? = null
 ): ExecutionResult {
     var failed = 0
     var executed = 0
-    var resolved: List<MuteAnnotationResolved> = listOf()
+    var resolved: List<MuteAnnotationResolved>
     var exceptions = LinkedList<Throwable>()
 
     var result: RpgParserResult? = null
@@ -109,13 +113,13 @@ fun executeWithMutes(
                 }
             }
             cu.resolve()
-            val interpreter = InternalInterpreter(SimpleSystemInterface().useConfigurationFile(logConfigurationFile))
+            val interpreter = InternalInterpreter(SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(logConfigurationFile))
 
             interpreter.execute(cu, mapOf())
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
             sorted.forEach { (line, annotation) ->
                 if (verbose || !annotation.succeeded()) {
-                    println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} ${file.linkTo(line)}".color(annotation.succeeded()))
+                    println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
                     if (annotation is MuteComparisonAnnotationExecuted && !annotation.succeeded()) {
                         println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
                         println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
@@ -128,7 +132,7 @@ fun executeWithMutes(
     } catch (e: Throwable) {
         exceptions.add(e)
     }
-    return ExecutionResult(file, resolved.size, executed, failed, exceptions, result?.errors ?: emptyList())
+    return ExecutionResult(file, result?.root?.muteContexts?.size ?: 0, executed, failed, exceptions, result?.errors ?: emptyList())
 }
 
 object MuteRunner {

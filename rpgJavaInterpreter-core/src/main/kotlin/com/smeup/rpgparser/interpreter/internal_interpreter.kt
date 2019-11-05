@@ -6,6 +6,7 @@ import com.smeup.rpgparser.parsing.ast.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
+import java.lang.IllegalArgumentException
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.math.MathContext
@@ -446,7 +447,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log(CallExecutionLogEntry(this.interpretationContext.currentProgramName, statement))
                     val programToCall = eval(statement.expression).asString().value
                     val program = systemInterface.findProgram(programToCall)
-                        ?: throw RuntimeException("Program $programToCall cannot be found")
+                    require(program != null) {
+                        "Line: ${statement.position.line()} - Program $programToCall cannot be found"
+                    }
 
                     val params = statement.params.mapIndexed { index, it ->
                         if (it.dataDefinition != null) {
@@ -464,6 +467,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                                     assign(it.dataDefinition, eval(BlanksRefExpr()))
                                 }
                             }
+                        }
+                        require(program.params().size > index) {
+                            "Line: ${statement.position.line()} - Parameter nr. ${index + 1} can't be found"
                         }
                         program.params()[index].name to get(it.param.name)
                     }.toMap(LinkedHashMap())
@@ -735,6 +741,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 else -> TODO(statement.toString())
             }
         } catch (e: InterruptForDebuggingPurposes) {
+            throw e
+        } catch (e: IllegalArgumentException) {
             throw e
         } catch (e: RuntimeException) {
             throw RuntimeException("Issue executing statement $statement -> $e", e)
@@ -1360,6 +1368,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         value.asInt()
                     else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
                 }
+            }
+            is RemExpr -> {
+                val n = eval(expression.dividend).asInt().value
+                val m = eval(expression.divisor).asInt().value
+                return IntValue(n % m)
             }
             is QualifiedAccessExpr -> {
                 val containerValue = eval(expression.container)

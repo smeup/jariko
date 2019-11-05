@@ -276,6 +276,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeREMTEST() {
+        assertEquals(listOf("1", "1", "-1", "-1"), outputOf("REMTEST"))
+    }
+
+    @Test
     fun executeASSIGN() {
         assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"))
     }
@@ -515,8 +520,7 @@ class InterpreterTest {
 
     @Test
     fun executeZADDERR() {
-        // TODO better error assertion
-        assertFailsWith(Throwable::class) {
+        assertFailsWith(IllegalArgumentException::class) {
             execute("ZADDERR", emptyMap())
         }
     }
@@ -566,6 +570,21 @@ class InterpreterTest {
     @Test
     fun executeECHO() {
         assertEquals(listOf("Hello"), outputOf("ECHO", mapOf("inTxt" to StringValue("Hello"))))
+    }
+
+    @Test
+    fun executeFIZZBUZZ() {
+        assertEquals(listOf("7"),
+            outputOf("FIZZBUZZ", mapOf("NBRPAR" to StringValue("7"), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("FIZZ"),
+            outputOf("FIZZBUZZ", mapOf("NBRPAR" to StringValue("3"), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("BUZZ"),
+            outputOf("FIZZBUZZ", mapOf("NBRPAR" to StringValue("5"), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("FIZZBUZZ"),
+            outputOf("FIZZBUZZ", mapOf("NBRPAR" to StringValue("30"), "RESULT" to StringValue(""))))
     }
 
     @Test

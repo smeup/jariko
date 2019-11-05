@@ -578,8 +578,10 @@ internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Ass
 }
 
 internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallStmt {
-    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
     val position = this.toPosition(true)
+    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1) {
+        "Missing factor 1 in call statement at line ${position.line()}"
+    }
     var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
     var functionCalled: Expression?
     functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
