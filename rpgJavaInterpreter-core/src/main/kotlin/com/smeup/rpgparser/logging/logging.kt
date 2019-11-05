@@ -77,10 +77,11 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
 
     val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFORMANCE_LOGGER, RESOLUTION_LOGGER)
     val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
-    val ctx = LogManager.getContext(false) as LoggerContext
+    val ctx: LoggerContext by lazy {
+        LogManager.getContext(false) as LoggerContext
+    }
 
     try {
-
         val dataSeparator = config.getProperty("logger.data.separator")
         // TODO error
 
