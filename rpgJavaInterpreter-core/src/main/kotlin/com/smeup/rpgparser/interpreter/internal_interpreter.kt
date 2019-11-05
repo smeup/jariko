@@ -1380,6 +1380,27 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val dataStringValue = containerValue as DataStructValue
                 return dataStringValue[expression.field.referred ?: throw IllegalStateException("Referenced to field not resolved: ${expression.field.name}")]
             }
+            is ReplaceExpr -> {
+                val replString = eval(expression.replacement).asString().value
+                val sourceString = eval(expression.source).asString().value
+                val replStringLength: Int = replString.length
+                // case of %REPLACE(stringToReplaceWith:stringSource)
+                if (expression.start == null) {
+                    return StringValue(sourceString.replaceRange(0..replStringLength - 1, replString))
+                }
+                // case of %REPLACE(stringToReplaceWith:stringSource:startIndex)
+                if (expression.start != null && expression.length == null) {
+                    val startNr = eval(expression.start).asInt().value.toInt()
+                    return StringValue(sourceString.replaceRange((startNr - 1)..(startNr + replStringLength - 2), replString))
+                }
+                // case of %REPLACE(stringToReplaceWith:stringSource:startIndex:nrOfCharsToReplace)
+                if (expression.start != null && expression.length != null) {
+                    val startNr = eval(expression.start).asInt().value.toInt() - 1
+                    val nrOfCharsToReplace = eval(expression.length).asInt().value.toInt()
+                    return StringValue(sourceString.replaceRange(startNr, (startNr + nrOfCharsToReplace), replString))
+                }
+                return StringValue(sourceString)
+            }
             else -> TODO(expression.toString())
         }
     }
