@@ -580,16 +580,16 @@ class InterpreterTest {
     @Test
     fun executeFIZZBUZZ() {
         assertEquals(listOf("7"),
-            outputOf("FIZZBUZZ", mapOf("NBRPAR" to StringValue("7"), "RESULT" to StringValue(""))))
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("7"), "RESULT" to StringValue(""))))
 
         assertEquals(listOf("FIZZ"),
-            outputOf("FIZZBUZZ", mapOf("NBRPAR" to StringValue("3"), "RESULT" to StringValue(""))))
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("3"), "RESULT" to StringValue(""))))
 
         assertEquals(listOf("BUZZ"),
-            outputOf("FIZZBUZZ", mapOf("NBRPAR" to StringValue("5"), "RESULT" to StringValue(""))))
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("5"), "RESULT" to StringValue(""))))
 
         assertEquals(listOf("FIZZBUZZ"),
-            outputOf("FIZZBUZZ", mapOf("NBRPAR" to StringValue("30"), "RESULT" to StringValue(""))))
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("30"), "RESULT" to StringValue(""))))
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.smeup.rpgparser.assertCanBeParsedResult
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.DummySystemInterface
+import com.smeup.rpgparser.interpreter.SimpleSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -14,7 +15,6 @@ import kotlin.test.assertTrue
 import org.junit.Test
 
 class RpgParserWithMuteRuntimeTest {
-
     // Temporary replacement
     private fun assertASTCanBeProduced(
         exampleName: String,
@@ -134,5 +134,19 @@ class RpgParserWithMuteRuntimeTest {
         val annotation = interpreter.systemInterface.getExecutedAnnotation()[2]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.succeeded())
+    }
+
+    @Test
+    fun executingFIZZBUZZTEST() {
+        DummySystemInterface.executedAnnotationInternal.clear()
+        val cu = assertASTCanBeProduced("mute/FIZZBUZZTEST", true)
+        cu.resolve()
+        val si = SimpleSystemInterface(programFinders = listOf(ResourceProgramFinder("/mute/")))
+
+        val interpreter = execute(cu, mapOf(), systemInterface = si)
+
+        val executedAnnotation = interpreter.systemInterface.getExecutedAnnotation()
+        assertEquals(executedAnnotation.size, 4)
+        assertTrue(executedAnnotation.all { it.value.succeeded() })
     }
 }

@@ -119,20 +119,13 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
         return null
     }
 
-    override fun findProgram(name: String): Program? {
-        programFinders.forEach {
-            val program = it.findRpgProgram(name)
-            if (program != null) {
-                return program
-            }
-        }
-        return null
-    }
+    override fun findProgram(name: String): Program? =
+        programFinders.asSequence().mapNotNull {
+            it.findRpgProgram(name)
+        }.firstOrNull()
 
     override fun display(value: String) {
-        if (output != null) {
-            output.println(value)
-        }
+        output?.println(value)
     }
 
     fun useConfigurationFile(configurationFile: File?): SystemInterface {
