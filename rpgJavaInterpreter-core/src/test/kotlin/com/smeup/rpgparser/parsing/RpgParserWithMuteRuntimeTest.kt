@@ -2,10 +2,12 @@ package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.inputStreamFor
 import com.smeup.rpgparser.interpreter.DummySystemInterface
+import com.smeup.rpgparser.interpreter.SimpleSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -15,7 +17,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.junit.Test
 
-public class RpgParserWithMuteRuntimeTest {
+class RpgParserWithMuteRuntimeTest {
 
     // Temporary replacement to return RpgParserResult
     private fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = true): RpgParserResult {
@@ -147,5 +149,19 @@ public class RpgParserWithMuteRuntimeTest {
         val annotation = interpreter.systemInterface.getExecutedAnnotation()[2]
         assertTrue(actual = annotation != null)
         assertTrue(annotation.succeeded())
+    }
+
+    @Test
+    fun executingFIZZBUZZTEST() {
+        DummySystemInterface.executedAnnotationInternal.clear()
+        val cu = assertASTCanBeProduced("mute/FIZZBUZZTEST", true)
+        cu.resolve()
+        val si = SimpleSystemInterface(programFinders = listOf(ResourceProgramFinder("/mute/")))
+
+        val interpreter = execute(cu, mapOf(), systemInterface = si)
+
+        val executedAnnotation = interpreter.systemInterface.getExecutedAnnotation()
+        assertEquals(executedAnnotation.size, 4)
+        assertTrue(executedAnnotation.all { it.value.succeeded() })
     }
 }
