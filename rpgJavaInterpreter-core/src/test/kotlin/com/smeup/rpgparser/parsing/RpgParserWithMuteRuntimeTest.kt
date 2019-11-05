@@ -3,6 +3,7 @@ package com.smeup.rpgparser.parsing
 import com.smeup.rpgparser.assertCanBeParsedResult
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.interpreter.SimpleSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
