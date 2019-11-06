@@ -133,8 +133,8 @@ class ToAstSmokeTest {
     @Test
     fun buildAstForMUTE10_01() {
         assertASTCanBeProduced("performance/MUTE10_01")
-        assertASTCanBeProduced("MUTE10_01A")
-        assertASTCanBeProduced("MUTE10_01B")
-        assertASTCanBeProduced("MUTE10_01C")
+        assertASTCanBeProduced("performance/MUTE10_01A")
+        assertASTCanBeProduced("performance/MUTE10_01B")
+        assertASTCanBeProduced("performance/MUTE10_01C")
     }
 }
