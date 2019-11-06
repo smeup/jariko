@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.execution
 
-import com.smeup.rpgparser.utils.measureAndCatch
+import com.smeup.rpgparser.utils.measureAndPrint
 import java.io.*
 
 // TODO describe what this program does
@@ -25,10 +25,9 @@ object SimpleShell {
                 }
                 val args = commandLine.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 if (args.isNotEmpty()) {
-                    val timeElapsed = measureAndCatch {
+                    measureAndPrint {
                         r(args[0], args.toList().subList(1, args.size))
                     }
-                    println("Function executed in $timeElapsed milliseconds")
                 }
             }
         }

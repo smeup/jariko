@@ -139,7 +139,6 @@ class RpgParserWithMuteRuntimeTest {
 
     @Test
     fun executingFIZZBUZZTEST() {
-        DummySystemInterface.executedAnnotationInternal.clear()
         val cu = assertASTCanBeProduced("mute/FIZZBUZZTEST", true)
         cu.resolve()
         val si = SimpleSystemInterface(programFinders = listOf(ResourceProgramFinder("/mute/")))

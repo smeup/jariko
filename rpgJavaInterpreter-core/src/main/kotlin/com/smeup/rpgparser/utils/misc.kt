@@ -11,6 +11,11 @@ fun <T> enrichPossibleExceptionWith(v: Any?, block: () -> T): T {
     }
 }
 
+fun measureAndPrint(block: () -> Unit) {
+    val timeElapsed = measureAndCatch(block)
+    println("Function executed in $timeElapsed milliseconds")
+}
+
 fun measureAndCatch(block: () -> Unit): Long {
     return measureTimeMillis {
         try {
