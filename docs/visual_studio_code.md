@@ -47,6 +47,6 @@ Here you can find a [rpg.json](../misc/visual_studio_code/rpg.json) file, in ord
 
 7. In order to ease fixed format typing, install [Overtype](https://marketplace.visualstudio.com/items?itemName=adammaras.overtype) by [Adam Maras](https://github.com/AdamMaras)
 
-Here is a screenshot on how the Visual Studio Code Environment could work this way.
+Here is a screenshot on how the Visual Studio Code environment could work this way.
 
 ![Visual Studio Code for RPG](images/vscode_en.png)
