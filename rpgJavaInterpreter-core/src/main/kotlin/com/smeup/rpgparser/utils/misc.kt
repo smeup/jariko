@@ -70,6 +70,16 @@ fun String?.asDouble(): Double {
         return 0.0
     }
 }
+fun String?.asBigDecimal(): BigDecimal? {
+    if (this == null) {
+        return null
+    }
+    return try {
+        BigDecimal(this)
+    } catch (e: Exception) {
+        null
+    }
+}
 fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
 fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this) == 0
 
