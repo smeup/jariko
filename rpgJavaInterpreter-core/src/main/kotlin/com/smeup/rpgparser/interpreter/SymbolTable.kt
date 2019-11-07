@@ -6,6 +6,7 @@ class SymbolTable {
     private val values = LinkedHashMap<AbstractDataDefinition, Value>()
 
     operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
+    operator fun contains(data: AbstractDataDefinition): Boolean = data in values
 
     operator fun get(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
@@ -48,6 +49,9 @@ class SymbolTable {
             values.keys.firstOrNull { it.name.equals(dataName, ignoreCase = true) }
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
+        require(!(data !in this && data.name in this)) {
+            "This data definition would conflict with an existing data definition with the same name"
+        }
         values[data] = value
     }
 }
