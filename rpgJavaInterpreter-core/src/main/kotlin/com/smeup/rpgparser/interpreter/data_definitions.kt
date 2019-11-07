@@ -182,7 +182,11 @@ class InStatementDataDefinition(
     override val type: Type,
     override val position: Position? = null,
     val initializationValue: Expression? = null
-) : AbstractDataDefinition(name, type, position)
+) : AbstractDataDefinition(name, type, position) {
+    override fun toString(): String {
+        return "InStatementDataDefinition name=$name, type=$type, position=$position"
+    }
+}
 
 /**
  * Encoding/Decoding a binary value for a data structure

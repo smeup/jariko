@@ -50,7 +50,7 @@ class SymbolTable {
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(!(data !in this && data.name in this)) {
-            "This data definition would conflict with an existing data definition with the same name"
+            "This data definition would conflict with an existing data definition with the same name. This data definition: $data. Existing data definition: ${this[data.name]}"
         }
         values[data] = value
     }
