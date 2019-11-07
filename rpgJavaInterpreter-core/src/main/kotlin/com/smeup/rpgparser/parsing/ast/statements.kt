@@ -210,6 +210,8 @@ data class PlistStmt(
 ) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         val allDataDefinitions = params.mapNotNull { it.dataDefinition }
+        // We do not want params in plist to shadow existing data definitions
+        // They are implicit data definitions only when explicit data definitions are not present
         val filtered = allDataDefinitions.filter {paramDataDef ->
             val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
             containingCU!!.dataDefinitions.none { it.name == paramDataDef.name}
