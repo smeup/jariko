@@ -63,7 +63,7 @@ data class CompilationUnit(
             return _allDataDefinitions
         }
 
-    private fun checkDuplicatedDataDefinition(dataDefinitions: List<AbstractDataDefinition>) : List<AbstractDataDefinition> {
+    private fun checkDuplicatedDataDefinition(dataDefinitions: List<AbstractDataDefinition>): List<AbstractDataDefinition> {
         val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
         return dataDefinitions.filter {
             val dataDefinition = dataDefinitionMap[it.name]
