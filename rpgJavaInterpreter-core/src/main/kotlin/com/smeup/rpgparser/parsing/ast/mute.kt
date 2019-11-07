@@ -42,6 +42,7 @@ abstract class MuteAnnotationExecuted() {
     abstract val programName: String
     abstract val result: BooleanValue
     fun succeeded(): Boolean = result.value
+    fun failed(): Boolean = !succeeded()
     fun resultAsString() = if (succeeded()) {
         "succeded"
     } else {
