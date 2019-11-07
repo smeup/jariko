@@ -809,6 +809,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
             value2 is HiValValue -> Comparison.SMALLER
+            value1 is NumberValue && value2 is NumberValue -> when {
+                value1.bigDecimal == value2.bigDecimal -> Comparison.EQUAL
+                value1.bigDecimal < value2.bigDecimal -> Comparison.SMALLER
+                else -> Comparison.GREATER
+            }
             else -> TODO("Unable to compare: value 1 is $value1, Value 2 is $value2")
         }
     }

@@ -118,11 +118,14 @@ fun executeWithMutes(
             interpreter.execute(cu, mapOf())
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
             sorted.forEach { (line, annotation) ->
-                if (verbose || !annotation.succeeded()) {
+                if (verbose || annotation.failed()) {
                     println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
-                    if (annotation is MuteComparisonAnnotationExecuted && !annotation.succeeded()) {
-                        println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
-                        println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
+                    if (annotation.failed()) {
+                        failed++
+                        if (annotation is MuteComparisonAnnotationExecuted) {
+                            println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
+                            println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
+                        }
                     }
                 }
                 executed++

@@ -119,10 +119,16 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
         return null
     }
 
-    override fun findProgram(name: String): Program? =
-        programFinders.asSequence().mapNotNull {
-            it.findRpgProgram(name)
-        }.firstOrNull()
+    private val programs = java.util.HashMap<String, Program?>()
+
+    override fun findProgram(name: String): Program? {
+        programs.computeIfAbsent(name) {
+            programFinders.asSequence().mapNotNull {
+                it.findRpgProgram(name)
+            }.firstOrNull()
+        }
+        return programs[name]
+    }
 
     override fun display(value: String) {
         output?.println(value)

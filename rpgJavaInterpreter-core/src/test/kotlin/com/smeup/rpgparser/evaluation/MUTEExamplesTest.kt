@@ -11,6 +11,8 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_01_perf_calls() {
+        // TODO check policy for finding programs in tests, for examole:
+        // val programFinders = listOf<RpgProgramFinder>(DirRpgProgramFinder(aPgm.parentFile))
         assertEquals(LinkedList<String>(), outputOf("performance/MUTE10_01"))
     }
 
