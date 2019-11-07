@@ -5,11 +5,12 @@ import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MuteRunnerTest {
     @Test
-    fun muteRunerCanCallRPGsInTheSameDirectory() {
+    fun muteRunnerCanCallRPGsInTheSameDirectory() {
         val aSource = """
      C                   call      'B'
      C                   SETON                                          LR            
@@ -28,7 +29,7 @@ class MuteRunnerTest {
     }
 
     @Test
-    fun muteRunerCanCountAnnotations() {
+    fun muteRunnerCanCountAnnotations() {
         val aSource = """
      D x               S             50    inz('Hello world!')
     MU* VAL1('Hello world!') VAL2(x) COMP(EQ) 
@@ -40,5 +41,23 @@ class MuteRunnerTest {
         val result = executeWithMutes(aPgm.toPath(), true, null)
         assertTrue(result.success())
         assertEquals(1, result.resolved)
+        assertEquals(1, result.executed)
+        assertEquals(0, result.failed)
+    }
+
+    @Test
+    fun muteRunnerCanCountFailingAnnotations() {
+        val aSource = """
+    MU* VAL1(1) VAL2(2) COMP(EQ) 
+     C                   seton                                        lr     
+"""
+        val tempDir = createTempDir()
+        val aPgm = File(tempDir, "A.rpgle")
+        aPgm.writeText(aSource)
+        val result = executeWithMutes(aPgm.toPath(), true, null)
+        assertFalse(result.success())
+        assertEquals(1, result.resolved)
+        assertEquals(1, result.executed)
+        assertEquals(1, result.failed)
     }
 }
