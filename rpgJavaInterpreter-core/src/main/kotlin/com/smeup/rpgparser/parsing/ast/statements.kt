@@ -214,7 +214,7 @@ data class PlistStmt(
         // They are implicit data definitions only when explicit data definitions are not present
         val filtered = allDataDefinitions.filter { paramDataDef ->
             val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
-            containingCU!!.dataDefinitions.none { it.name == paramDataDef.name }
+            containingCU.dataDefinitions.none { it.name == paramDataDef.name }
         }
         return filtered
     }
