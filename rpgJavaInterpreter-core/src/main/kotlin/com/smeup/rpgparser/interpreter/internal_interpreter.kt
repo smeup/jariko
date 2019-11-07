@@ -104,7 +104,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
-            "Line ${data.position.line()}: $data cannot be assigned the value $value"
+            "${data.name} of type ${data.type} defined at line ${data.position.line()} cannot be assigned the value $value"
         }
 
         when (data) {
@@ -1098,11 +1098,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is DecExpr -> {
                 val decDigits = interpret(expression.decDigits).asInt().value
-                val valueAsString = interpret(expression.value).asString().value
+                val valueAsString = interpret(expression.value).asString().value.removeNullChars()
+                val valueAsBigDecimal = valueAsString.asBigDecimal()
+                require(valueAsBigDecimal != null) {
+                    "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
+                }
                 return if (decDigits == 0L) {
-                    IntValue(valueAsString.removeNullChars().asLong())
+                    IntValue(valueAsBigDecimal.toLong())
                 } else {
-                    DecimalValue(BigDecimal(valueAsString))
+                    DecimalValue(valueAsBigDecimal)
                 }
             }
             is PlusExpr -> {
@@ -1284,7 +1288,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     if (expression.parent is EvalStmt) {
                         // EVAL(H)
                         if (parent.flags.halfAdjust) {
-                            val targetType = parent.target.type() as NumberType
                             // perform the calculation, adjust the operand scale to the target
                             val res = v1.value.setScale(targetType.decimalDigits).divide(v2.value.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
                             return DecimalValue(res)
@@ -1389,17 +1392,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     return StringValue(sourceString.replaceRange(0..replStringLength - 1, replString))
                 }
                 // case of %REPLACE(stringToReplaceWith:stringSource:startIndex)
-                if (expression.start != null && expression.length == null) {
+                if (expression.length == null) {
                     val startNr = eval(expression.start).asInt().value.toInt()
                     return StringValue(sourceString.replaceRange((startNr - 1)..(startNr + replStringLength - 2), replString))
-                }
+                } else {
                 // case of %REPLACE(stringToReplaceWith:stringSource:startIndex:nrOfCharsToReplace)
-                if (expression.start != null && expression.length != null) {
                     val startNr = eval(expression.start).asInt().value.toInt() - 1
                     val nrOfCharsToReplace = eval(expression.length).asInt().value.toInt()
                     return StringValue(sourceString.replaceRange(startNr, (startNr + nrOfCharsToReplace), replString))
                 }
-                return StringValue(sourceString)
             }
             else -> TODO(expression.toString())
         }
