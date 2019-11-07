@@ -7,6 +7,7 @@ import com.smeup.rpgparser.interpreter.KListType
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
+import java.lang.IllegalStateException
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -207,7 +208,14 @@ data class PlistStmt(
     val isEntry: Boolean,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> = params.mapNotNull { it.dataDefinition }
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val allDataDefinitions = params.mapNotNull { it.dataDefinition }
+        val filtered = allDataDefinitions.filter {paramDataDef ->
+            val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
+            containingCU!!.dataDefinitions.none { it.name == paramDataDef.name}
+        }
+        return filtered
+    }
 }
 
 data class PlistParam(
