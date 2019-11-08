@@ -5,6 +5,8 @@ import org.junit.Ignore
 import org.junit.Test
 
 import java.math.MathContext
+import kotlin.random.Random.Default.nextInt
+import kotlin.random.Random.Default.nextLong
 import kotlin.test.assertTrue
 
 class RpgDataEncoderTest {
@@ -33,8 +35,11 @@ class RpgDataEncoderTest {
 
     @Test
     fun encodeDecodeInteger4() {
-        for (i in -2147483648..2147483647 step 64) {
-            val integer4 = i.toBigDecimal()
+        // To speed up the test, is generated a random value
+        // uniformly distributed between Int.MIN_VALUE
+        // and Int.MAX_VALUE (inclusive).
+        for (i in 0..1048576) {
+            val integer4 = nextInt().toBigDecimal()
             val encoded4 = encodeInteger(integer4, 4)
             assertTrue(encoded4.length == 4)
             val decoded4 = decodeInteger(encoded4, 4)
@@ -43,17 +48,19 @@ class RpgDataEncoderTest {
     }
 
     @Test
-    @Ignore
     fun encodeDecodeInteger8() {
-        val range = LongRange(Long.MIN_VALUE, Long.MAX_VALUE)
-        for (i in range step 64) {
-            val integer8 = i.toBigDecimal()
+        // To speed up the test, is generated a random value
+        // uniformly distributed between Long.MIN_VALUE
+        // and Long.MAX_VALUE (inclusive).
+        for (i in 0..1048576) {
+            val integer8 = nextLong().toBigDecimal()
             val encoded8 = encodeInteger(integer8, 8)
             assertTrue(encoded8.length == 8)
             val decoded8 = decodeInteger(encoded8, 8)
             assertTrue(integer8.compareTo(decoded8) == 0)
         }
     }
+
 
     @Test
     fun encodeDecodeUnsigned1() {
