@@ -1112,6 +1112,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return when (value) {
                     is StringValue -> value.value.length.asValue()
                     is DataStructValue -> value.value.length.asValue()
+                    is ConcreteArrayValue -> {
+                        (value.arrayLength() * value.elementSize()).asValue()
+                    }
                     else -> {
                         TODO("Invalid LEN parameter $value")
                     }
