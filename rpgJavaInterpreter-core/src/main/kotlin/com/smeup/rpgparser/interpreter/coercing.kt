@@ -131,6 +131,14 @@ fun coerce(value: Value, type: Type): Value {
                 is NumberType -> {
                     return computeHiValue(type)
                 }
+                is ArrayType -> {
+                    when (type.element) {
+                        is NumberType -> {
+                            return computeHiValue(type.element )
+                        }
+                        else -> TODO("Converting HiValValue to $type")
+                    }
+                }
                 else -> TODO("Converting HiValValue to $type")
             }
         }
@@ -138,6 +146,14 @@ fun coerce(value: Value, type: Type): Value {
             when (type) {
                 is NumberType -> {
                     return computeLowValue(type)
+                }
+                is ArrayType -> {
+                    when (type.element) {
+                        is NumberType -> {
+                            return computeHiValue(type.element )
+                        }
+                        else -> TODO("Converting LowValValue to $type")
+                    }
                 }
                 else -> TODO("Converting LowValValue to $type")
             }
