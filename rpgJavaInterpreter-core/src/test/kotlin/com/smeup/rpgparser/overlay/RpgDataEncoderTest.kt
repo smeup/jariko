@@ -1,9 +1,7 @@
 package com.smeup.rpgparser.overlay
 
 import com.smeup.rpgparser.interpreter.*
-import org.junit.Ignore
 import org.junit.Test
-
 import java.math.MathContext
 import kotlin.random.Random.Default.nextInt
 import kotlin.random.Random.Default.nextLong
@@ -60,7 +58,6 @@ class RpgDataEncoderTest {
             assertTrue(integer8.compareTo(decoded8) == 0)
         }
     }
-
 
     @Test
     fun encodeDecodeUnsigned1() {
