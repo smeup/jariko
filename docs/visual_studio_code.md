@@ -50,3 +50,13 @@ Here you can find a [rpg.json](../misc/visual_studio_code/rpg.json) file, in ord
 Here is a screenshot on how the Visual Studio Code environment could work this way.
 
 ![Visual Studio Code for RPG](images/vscode_en.png)
+
+8. To ease the editing of fixed format RPG files, you can add rulers to the editor. For example, in order to have a ruler at column 5, you could edit your `settings.json`this way:
+
+`
+    "[rpg]": {
+        "editor.rulers": [5]
+    },
+`
+    
+    
