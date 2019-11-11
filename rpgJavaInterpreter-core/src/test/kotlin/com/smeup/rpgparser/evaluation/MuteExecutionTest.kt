@@ -12,10 +12,7 @@ import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.TimeoutException
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 class MuteExecutionTest {
 
@@ -72,6 +69,30 @@ class MuteExecutionTest {
         assertEquals(1, cu.timeouts.size)
         assertEquals(12345, cu.timeouts[0].timeout)
         execute(cu, emptyMap())
+    }
+
+    @Test
+    fun parsingSIMPLE_MUTE_FAIL_STATIC_MESSAGE() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_STATIC_MESSAGE", true, withMuteSupport = true)
+        cu.resolve()
+        assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertFalse(muteAnnotationExecuted.succeeded())
+        assertEquals("This code should not be executed", muteAnnotationExecuted.headerDescription())
+    }
+
+    @Test
+    fun parsingSIMPLE_MUTE_FAIL_EVALUATED_MESSAGE() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_EVALUATED_MESSAGE", true, withMuteSupport = true)
+        cu.resolve()
+        assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertFalse(muteAnnotationExecuted.succeeded())
+        assertEquals("Failure message", muteAnnotationExecuted.headerDescription())
     }
 
     @Test
