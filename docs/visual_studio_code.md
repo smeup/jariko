@@ -51,7 +51,7 @@ Here is a screenshot on how the Visual Studio Code environment could work this w
 
 ![Visual Studio Code for RPG](images/vscode_en.png)
 
-8. To ease the editing of fixed format RPG files, you can add rulers to the editor. For example, in order to have a ruler at column 5, you could edit your `settings.json`this way:
+8. To find more easily the right position of keywords in fixed format RPG files, you can add rulers to the editor. For example, in order to have a ruler at column 5, you could edit your `settings.json`this way:
 
 `
     "[rpg]": {
