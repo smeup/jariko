@@ -4,8 +4,10 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.LR
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.RT
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
+import com.strumenta.kolasu.model.collectByType
 import org.junit.Ignore
 import kotlin.test.assertEquals
 import org.junit.Test as test
@@ -239,5 +241,21 @@ class StatementsTest {
 
     @test fun parseEvalWithGlobalIndicatorTarget() {
         assertStatementCanBeParsed("EVAL      *IN=*ON", addPrefix = true)
+    }
+
+    @test fun plistDeclareVariable() {
+        val cu = assertASTCanBeProduced("ECHO")
+        cu.resolve()
+        val plists = cu.collectByType(PlistStmt::class.java).distinct()
+        assertEquals(1, plists.size)
+        assertEquals(1, plists.first().dataDefinition().size)
+    }
+
+    @test fun plistDoesNotDeclareVariable() {
+        val cu = assertASTCanBeProduced("ECHO2")
+        cu.resolve()
+        val plists = cu.collectByType(PlistStmt::class.java).distinct()
+        assertEquals(1, plists.size)
+        assertEquals(0, plists.first().dataDefinition().size)
     }
 }
