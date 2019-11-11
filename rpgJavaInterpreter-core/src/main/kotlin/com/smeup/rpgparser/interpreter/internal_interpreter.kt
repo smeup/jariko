@@ -104,9 +104,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
-                val dd = get(ds.name) as DataStructValue
-                // DataStructValue Wrapper
-                dd.set(data, value)
+                when (val containerValue = get(ds.name)) {
+                    is ArrayValue -> {
+                        val valuesToAssign = value as ArrayValue
+                        require(containerValue.arrayLength() == valuesToAssign.arrayLength())
+                        // The container value is an array of datastructurevalues
+                        // we assign to each data structure the corresponding field value
+                        for (i in 1..containerValue.arrayLength()) {
+                            val dataStructValue = containerValue.getElement(i) as DataStructValue
+                            dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                        }
+                    }
+                    is DataStructValue -> {
+                        containerValue.set(data, value)
+                    }
+                    else -> TODO()
+                }
             }
             else -> {
                 var previous: Value? = null
@@ -1112,9 +1125,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return when (value) {
                     is StringValue -> value.value.length.asValue()
                     is DataStructValue -> value.value.length.asValue()
-                    is ConcreteArrayValue -> {
-                        (value.arrayLength() * value.elementSize()).asValue()
-                    }
+                    is ArrayValue -> value.totalSize().asValue()
                     else -> {
                         TODO("Invalid LEN parameter $value")
                     }
@@ -1267,6 +1278,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return dataDefinition.type.blank()
+
     }
 }
 

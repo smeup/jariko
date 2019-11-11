@@ -118,7 +118,13 @@ data class IntValue(val value: Long) : NumberValue, Value() {
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
-        return expectedType is NumberType
+        when ( expectedType ) {
+            is NumberType -> return expectedType is NumberType
+            is ArrayType -> {
+                return expectedType.element is NumberType
+            }
+        }
+        return false
     }
 
     override fun asInt() = this
@@ -177,7 +183,13 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
-        return expectedType is NumberType
+        when ( expectedType ) {
+            is NumberType -> return expectedType is NumberType
+            is ArrayType -> {
+                return expectedType.element is NumberType
+            }
+        }
+        return false
     }
 
     fun isPositive(): Boolean {
@@ -228,6 +240,7 @@ data class TimeStampValue(val value: Date) : Value() {
 abstract class ArrayValue : Value() {
     abstract fun arrayLength(): Int
     abstract fun elementSize(): Int
+    fun totalSize() = elementSize() * arrayLength()
     abstract fun setElement(index: Int, value: Value)
     abstract fun getElement(index: Int): Value
     fun elements(): List<Value> {
@@ -248,7 +261,9 @@ abstract class ArrayValue : Value() {
             return true
         }
         if (expectedType is ArrayType) {
-            return elements().all { it.assignableTo(expectedType.element) }
+            return elements().all {
+                it.assignableTo(expectedType.element)
+            }
         }
         if (expectedType is StringType) {
             return expectedType.length >= arrayLength() * elementSize()
@@ -273,7 +288,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
     }
 
     override fun getElement(index: Int): Value {
-        require(index >= 1)
+        require(index >= 1) { "Indexes should be >=1. Index asked: $index" }
         require(index <= arrayLength())
         return elements[index - 1]
     }
@@ -343,15 +358,17 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
                 TODO("$value not supported")
             }
         } else if (containerElement is DataStructValue) {
-            if (value is StringValue) {
-                containerElement.setSubstring(field.startOffset, field.endOffset, value)
-            } else if (value is IntValue) {
-                var s = value.value.toString()
-                val pad = s.padStart(field.endOffset - field.startOffset)
-                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
-            } else {
-                TODO("$value not supported")
-            }
+            containerElement.set(field,value)
+
+//            if (value is StringValue) {
+//                containerElement.setSubstring(field.startOffset, field.endOffset, value)
+//            } else if (value is IntValue) {
+//                var s = value.value.toString()
+//                val pad = s.padStart(field.endOffset - field.startOffset)
+//                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
+//            } else {
+//                TODO("$value not supported")
+//            }
         }
     }
 
@@ -360,7 +377,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         if (containerElement is StringValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
         } else if (containerElement is DataStructValue) {
-            return containerElement.getSubstring(field.startOffset, field.endOffset)
+            return containerElement.get(field)
         } else {
             TODO("$containerElement not supported")
         }
@@ -395,6 +412,8 @@ fun Type.blank(): Value {
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
         else -> TODO("I do not know how to produce a blank $this")
     }
+
+
 }
 
 /**
@@ -408,6 +427,26 @@ data class DataStructValue(var value: String) : Value() {
             is DataStructureType -> expectedType.elementSize == value.length
             is StringType -> expectedType.size == this.value.length.toLong()
             else -> false
+        }
+    }
+
+    /**
+     * A DataStructure could also be an array of data structures. In that case the field is seen as
+     * an array itself, so setting the field value requires an array value. In cases in which we
+     * want to set a field of a single instance of the data structure we can use this method.
+     */
+    fun setSingleField(field: FieldDefinition, value: Value) {
+        try {
+            val v = (field.type as ArrayType).element.toDataStructureValue(value)
+            val startIndex = field.startOffset
+            val endIndex = field.startOffset + field.elementSize().toInt()
+            try {
+                this.setSubstring(startIndex, endIndex, v)
+            } catch (e: Exception) {
+                throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value", e)
+            }
+        } catch (e: Throwable) {
+            throw RuntimeException("Issue arose while setting field ${field.name}. Value: $value", e)
         }
     }
 
@@ -453,7 +492,7 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     override fun toString(): String {
-        return "StringValue[${value.length}]($valueWithoutPadding)"
+        return "DataStructureValue[${value.length}]($valueWithoutPadding)"
     }
 
     override fun asString() = StringValue(this.value)

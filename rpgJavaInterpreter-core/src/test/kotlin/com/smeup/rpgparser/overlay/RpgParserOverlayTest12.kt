@@ -95,6 +95,11 @@ class RpgParserOverlayTest12 {
         cu.resolve()
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        var failed: Int = executeAnnotations(annotations)
+        if (failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
     }
 
     @Test

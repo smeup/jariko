@@ -107,6 +107,17 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
                         else -> throw IllegalStateException("Only predefined length allowed for integer, signed or unsigned")
                     }
                 }
+                RpgType.BINARY.rpgType -> {
+                    when (entireDigits) {
+                        in 1..4 -> 2
+                        in 5..9 -> 4
+                        else -> throw IllegalStateException("Only predefined length allowed binary ")
+                    }
+                }
+                RpgType.ZONED.rpgType -> {
+                    entireDigits
+                }
+
                 else -> numberOfDigits
             }.toLong()
         }

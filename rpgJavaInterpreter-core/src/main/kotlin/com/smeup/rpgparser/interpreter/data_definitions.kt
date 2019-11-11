@@ -95,6 +95,63 @@ data class DataDefinition(
     }
 }
 
+fun Type.toDataStructureValue(value: Value): StringValue {
+    when (this) {
+        // case numeric
+        is NumberType -> {
+            if (this.rpgType == RpgType.ZONED.rpgType) {
+                val s = encodeToZoned(value.asDecimal().value, this.entireDigits, this.decimalDigits)
+                val fitted = s.padStart(this.numberOfDigits, '0')
+                return StringValue(fitted)
+            }
+            // Packed
+            if (this.rpgType == RpgType.PACKED.rpgType || this.rpgType == "") {
+                return if (this.decimal) {
+                    // Transform the numeric to an encoded string
+                    val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, this.decimalDigits)
+                    // adjust the size to fit the target field
+                    val fitted = encoded.padEnd(this.size.toInt())
+                    StringValue(fitted)
+                } else {
+                    // Transform the numeric to an encoded string
+                    val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, 0)
+                    // adjust the size to fit the target field
+                    val fitted = encoded.padEnd(this.size.toInt())
+                    StringValue(fitted)
+                }
+            }
+            if (this.rpgType == RpgType.INTEGER.rpgType) {
+                // Transform the integer to an encoded string
+                val encoded = encodeInteger(value.asDecimal().value, this.size.toInt())
+                val fitted = encoded.padEnd(this.size.toInt())
+                return StringValue(fitted)
+            }
+            if (this.rpgType == RpgType.UNSIGNED.rpgType) {
+                // Transform the unsigned to an encoded string
+                val encoded = encodeUnsigned(value.asDecimal().value, this.size.toInt())
+                val fitted = encoded.padEnd(this.size.toInt())
+                return StringValue(fitted)
+            }
+            // To date only 2 and 4 bytes are supported
+            if (this.rpgType == RpgType.BINARY.rpgType) {
+                // Transform the numeric to an encoded string
+                if (this.entireDigits == 2 || this.entireDigits == 4) {
+                    val encoded = encodeBinary(value.asDecimal().value, this.entireDigits)
+                    // adjust the size to fit the target field
+                    val fitted = encoded.padEnd(this.size.toInt())
+                    return StringValue(fitted)
+                }
+            }
+            TODO("Not implemented $this")
+        }
+        is StringType -> {
+            return StringValue(value.asString().value)
+        }
+        else -> TODO("Conversion to data struct value not implemented for $this")
+    }
+}
+
+
 data class FieldDefinition(
     override val name: String,
     override val type: Type,
@@ -121,61 +178,7 @@ data class FieldDefinition(
 
     val size: Long = type.size
 
-    fun toDataStructureValue(value: Value): StringValue {
-        when (type) {
-            // case numeric
-            is NumberType -> {
-                if (type.rpgType == RpgType.ZONED.rpgType) {
-                    val s = encodeToZoned(value.asDecimal().value, type.entireDigits, type.decimalDigits)
-                    val fitted = s.padStart(type.numberOfDigits, '0')
-                    return StringValue(fitted)
-                }
-                // Packed
-                if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == "") {
-                    return if (type.decimal) {
-                        // Transform the numeric to an encoded string
-                        val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, type.decimalDigits)
-                        // adjust the size to fit the target field
-                        val fitted = encoded.padEnd(type.size.toInt())
-                        StringValue(fitted)
-                    } else {
-                        // Transform the numeric to an encoded string
-                        val encoded = encodeToDS(value.asDecimal().value, type.entireDigits, 0)
-                        // adjust the size to fit the target field
-                        val fitted = encoded.padEnd(type.size.toInt())
-                        StringValue(fitted)
-                    }
-                }
-                if (type.rpgType == RpgType.INTEGER.rpgType) {
-                    // Transform the integer to an encoded string
-                    val encoded = encodeInteger(value.asDecimal().value, type.size.toInt())
-                    val fitted = encoded.padEnd(type.size.toInt())
-                    return StringValue(fitted)
-                }
-                if (type.rpgType == RpgType.UNSIGNED.rpgType) {
-                    // Transform the unsigned to an encoded string
-                    val encoded = encodeUnsigned(value.asDecimal().value, type.size.toInt())
-                    val fitted = encoded.padEnd(type.size.toInt())
-                    return StringValue(fitted)
-                }
-                // To date only 2 and 4 bytes are supported
-                if (type.rpgType == RpgType.BINARY.rpgType) {
-                    // Transform the numeric to an encoded string
-                    if (type.entireDigits == 2 || type.entireDigits == 4) {
-                        val encoded = encodeBinary(value.asDecimal().value, type.entireDigits)
-                        // adjust the size to fit the target field
-                        val fitted = encoded.padEnd(type.size.toInt())
-                        return StringValue(fitted)
-                    }
-                }
-                TODO("Not implemented $type")
-            }
-            is StringType -> {
-                return StringValue(value.asString().value)
-            }
-            else -> TODO("Not implemented $type")
-        }
-    }
+    fun toDataStructureValue(value: Value) = type.toDataStructureValue(value)
 
     /**
      * The fields used through LIKEDS cannot be used unqualified

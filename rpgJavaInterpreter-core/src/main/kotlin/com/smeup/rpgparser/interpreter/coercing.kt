@@ -132,12 +132,7 @@ fun coerce(value: Value, type: Type): Value {
                     return computeHiValue(type)
                 }
                 is ArrayType -> {
-                    when (type.element) {
-                        is NumberType -> {
-                            return computeHiValue(type.element )
-                        }
-                        else -> TODO("Converting HiValValue to $type")
-                    }
+                    return createArrayValue(type.element, type.nElements) { coerce(HiValValue, type.element) }
                 }
                 else -> TODO("Converting HiValValue to $type")
             }
@@ -148,12 +143,7 @@ fun coerce(value: Value, type: Type): Value {
                     return computeLowValue(type)
                 }
                 is ArrayType -> {
-                    when (type.element) {
-                        is NumberType -> {
-                            return computeHiValue(type.element )
-                        }
-                        else -> TODO("Converting LowValValue to $type")
-                    }
+                    return createArrayValue(type.element, type.nElements) { coerce(LowValValue, type.element) }
                 }
                 else -> TODO("Converting LowValValue to $type")
             }
@@ -212,7 +202,7 @@ private fun computeHiValue(type: NumberType): Value {
 
 private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone
-    if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType) {
+    if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType.isNullOrBlank()) {
         return if (type.decimalDigits == 0) {
             val ed = "9".repeat(type.entireDigits)
             IntValue("-$ed".toLong())
@@ -248,5 +238,5 @@ private fun computeLowValue(type: NumberType): Value {
             }
         }
     }
-    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
+    TODO("Type '${type.rpgType}' with ${type.entireDigits} digit is not valid")
 }
