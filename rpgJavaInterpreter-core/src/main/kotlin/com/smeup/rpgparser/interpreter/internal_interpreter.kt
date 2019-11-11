@@ -1278,7 +1278,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return dataDefinition.type.blank()
-
     }
 }
 

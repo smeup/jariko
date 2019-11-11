@@ -151,7 +151,6 @@ fun Type.toDataStructureValue(value: Value): StringValue {
     }
 }
 
-
 data class FieldDefinition(
     override val name: String,
     override val type: Type,
