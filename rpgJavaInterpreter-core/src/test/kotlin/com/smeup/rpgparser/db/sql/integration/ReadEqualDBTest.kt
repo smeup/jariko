@@ -51,12 +51,24 @@ class ReadEqualDBTest {
 
     @Test
     @Ignore
-    // At the moment this test fails because it find all the records with key A000, and not just the first 4
+    // At the moment this test fails because it finds all the records with key A000, and not just the first 4
     fun findsExistingRecordsIfReadWithKeyStartingFromFirstKey() {
         assertEquals(
             listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"),
             outputOfDBPgm(
                 "db/READENOCHN",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("A00"))
+            )
+        )
+    }
+
+    @Test @Ignore
+    fun setllReadeFindExistingRecord() {
+        assertEquals(
+            listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "SEAN O'CONNELL", "DIAN HEMMINGER", "GREG ORLANDO"),
+            outputOfDBPgm(
+                "db/SETLLOK01",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
                 mapOf("toFind" to StringValue("A00"))
             )
