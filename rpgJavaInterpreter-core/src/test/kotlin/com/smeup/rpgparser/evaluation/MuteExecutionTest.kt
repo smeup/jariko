@@ -9,10 +9,10 @@ import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
-import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.TimeoutException
 import kotlin.test.*
+import kotlin.test.Ignore
 
 class MuteExecutionTest {
 
@@ -72,7 +72,7 @@ class MuteExecutionTest {
     }
 
     @Test
-    fun parsingSIMPLE_MUTE_FAIL_STATIC_MESSAGE() {
+    fun executeSIMPLE_MUTE_FAIL_STATIC_MESSAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_STATIC_MESSAGE", true, withMuteSupport = true)
         cu.resolve()
         assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
@@ -84,7 +84,7 @@ class MuteExecutionTest {
     }
 
     @Test
-    fun parsingSIMPLE_MUTE_FAIL_EVALUATED_MESSAGE() {
+    fun executeSIMPLE_MUTE_FAIL_EVALUATED_MESSAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_EVALUATED_MESSAGE", true, withMuteSupport = true)
         cu.resolve()
         assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
@@ -93,6 +93,22 @@ class MuteExecutionTest {
         val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
         assertEquals("Failure message", muteAnnotationExecuted.headerDescription())
+    }
+
+    @Test @Ignore
+    fun executeSIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF", true, withMuteSupport = true)
+        cu.resolve()
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
+    }
+
+    @Test
+    fun executeSSIMPLE_MUTE_FAIL_WITH_IF_AND_STATEMENTS_BEFORE_ENDIF() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_AND_STATEMENTS_BEFORE_ENDIF", true, withMuteSupport = true)
+        cu.resolve()
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
     }
 
     @Test
