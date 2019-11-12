@@ -702,42 +702,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     }
                 }
                 is ChainStmt -> {
-                    val dbFile = dbFileMap[statement.name]
-                    require(dbFile != null) {
-                        "Line: ${statement.position.line()} - File definition ${statement.name} not found"
-                    }
-                    lastDBFile = dbFile
+                    val dbFile = dbFile(statement.name, statement)
                     val record = if (statement.searchArg.type() is KListType) {
                         dbFile.chain(toSearchValues(statement.searchArg))
                     } else {
                         dbFile.chain(eval(statement.searchArg))
                     }
-                    if (!record.isEmpty()) {
-                        lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
-                    } else {
-                        lastFound = false
-                    }
+                    fillDataFrom(record)
                 }
                 is ReadEqualStmt -> {
-                    val dbFile = dbFileMap[statement.name]
-                    require(dbFile != null) {
-                        "Line: ${statement.position.line()} - File definition ${statement.name} not found"
+                    val dbFile = dbFile(statement.name, statement)
+                    val record = when {
+                        statement.searchArg == null -> dbFile.readEqual()
+                        statement.searchArg.type() is KListType -> dbFile.readEqual(toSearchValues(statement.searchArg))
+                        else -> dbFile.readEqual(eval(statement.searchArg))
                     }
-                    lastDBFile = dbFile
-                    val record = if (statement.searchArg == null) {
-                        dbFile.readEqual()
-                    } else if (statement.searchArg.type() is KListType) {
-                        dbFile.readEqual(toSearchValues(statement.searchArg))
-                    } else {
-                        dbFile.readEqual(eval(statement.searchArg))
-                    }
-                    if (!record.isEmpty()) {
-                        lastFound = true
-                        record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
-                    } else {
-                        lastFound = false
-                    }
+                    fillDataFrom(record)
                 }
                 else -> TODO(statement.toString())
             }
@@ -748,6 +728,24 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         } catch (e: RuntimeException) {
             throw RuntimeException("Issue executing statement $statement -> $e", e)
         }
+    }
+
+    private fun fillDataFrom(record: Record) {
+        if (!record.isEmpty()) {
+            lastFound = true
+            record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
+        } else {
+            lastFound = false
+        }
+    }
+
+    private fun dbFile(name: String, statement: Statement): DBFile {
+        val dbFile = dbFileMap[name]
+        require(dbFile != null) {
+            "Line: ${statement.position.line()} - File definition $name not found"
+        }
+        lastDBFile = dbFile
+        return dbFile
     }
 
     private fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
