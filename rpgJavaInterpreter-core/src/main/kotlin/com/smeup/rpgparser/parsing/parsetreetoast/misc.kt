@@ -294,7 +294,7 @@ private fun handleParsingOfTargets(code: String, position: Position?): Assignabl
         val containerCode = parts.dropLast(1).joinToString(separator = ".")
         QualifiedAccessExpr(
                 container = handleParsingOfTargets(containerCode, position),
-                field = ReferenceByName(parts.last()!!),
+                field = ReferenceByName(parts.last()),
                 position = position)
     }
 }
@@ -420,7 +420,7 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
 
 internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
     // TODO implement indicators handling
-    val factor1 = this.factor1Context()?.content?.toAst(conf)
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("SETLL operation requires factor 1: ${this.text}")
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
     return SetllStmt(
         factor1,

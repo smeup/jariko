@@ -12,7 +12,6 @@
      C     *entry        plist
      C                   parm                    toFind
       *-------------------------------------------------------------------------
-     C     'Searching'   dsply
      C     toFind        Setll     XEMP2
      C                   dow       not %eof
      C     toFind        reade     XEMP2

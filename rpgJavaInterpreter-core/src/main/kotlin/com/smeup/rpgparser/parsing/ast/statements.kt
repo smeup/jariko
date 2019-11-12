@@ -131,7 +131,7 @@ data class ReadEqualStmt(
     Statement(position)
 
 data class SetllStmt(
-    val searchArg: Expression?, // Factor1
+    val searchArg: Expression, // Factor1
     val name: String, // Factor 2
     override val position: Position? = null
 ) :
