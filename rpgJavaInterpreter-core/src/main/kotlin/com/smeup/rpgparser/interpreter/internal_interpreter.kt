@@ -864,9 +864,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
-                require(arrayValue.assignableTo(target.array.type()))
+                val targetType = target.array.type()
+                // Before assigning the single element we do a sanity check:
+                // is the value we have for the array compatible with the type
+                // we expect for such array?
+                require(arrayValue.assignableTo(targetType)) {
+                    "The value $arrayValue is not assignable to $targetType"
+                }
                 val indexValue = interpret(target.index)
-                val elementType = (target.array.type() as ArrayType).element
+                val elementType = (targetType as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
                 log(

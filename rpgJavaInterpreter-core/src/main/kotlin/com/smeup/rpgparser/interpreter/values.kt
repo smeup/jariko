@@ -358,7 +358,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
                 TODO("$value not supported")
             }
         } else if (containerElement is DataStructValue) {
-            containerElement.set(field, value)
+            containerElement.setSingleField(field, value)
 
 //            if (value is StringValue) {
 //                containerElement.setSubstring(field.startOffset, field.endOffset, value)
@@ -377,7 +377,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
         if (containerElement is StringValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
         } else if (containerElement is DataStructValue) {
-            return containerElement.get(field)
+            return containerElement.getSingleField(field)
         } else {
             TODO("$containerElement not supported")
         }
@@ -461,6 +461,14 @@ data class DataStructValue(var value: String) : Value() {
 
     operator fun get(data: FieldDefinition): Value {
         return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
+    }
+
+    /**
+     * See setSingleField
+     */
+    fun getSingleField(data: FieldDefinition): Value {
+        require(data.type is ArrayType)
+        return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type.element)
     }
 
     val valueWithoutPadding: String
