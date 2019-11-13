@@ -7,6 +7,7 @@ import com.smeup.rpgparser.interpreter.KListType
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
+import java.lang.IllegalStateException
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -108,11 +109,11 @@ data class MoveStmt(
     Statement(position)
 
 data class MoveLStmt(
+    val operationExtender: String?,
     val target: AssignableExpression,
     var expression: Expression,
     override val position: Position? = null
-) :
-    Statement(position)
+) : Statement(position)
 
 // TODO add other parameters
 data class ChainStmt(
@@ -207,7 +208,16 @@ data class PlistStmt(
     val isEntry: Boolean,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> = params.mapNotNull { it.dataDefinition }
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val allDataDefinitions = params.mapNotNull { it.dataDefinition }
+        // We do not want params in plist to shadow existing data definitions
+        // They are implicit data definitions only when explicit data definitions are not present
+        val filtered = allDataDefinitions.filter { paramDataDef ->
+            val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
+            containingCU.dataDefinitions.none { it.name == paramDataDef.name }
+        }
+        return filtered
+    }
 }
 
 data class PlistParam(
@@ -248,6 +258,41 @@ data class ZAddStmt(
     }
 }
 
+data class MultStmt(
+    val target: AssignableExpression,
+    val halfAdjust: Boolean = false,
+    val factor1: Expression?,
+    val factor2: Expression,
+    override val position: Position? = null
+) : Statement(position)
+
+data class DivStmt(
+    val target: AssignableExpression,
+    val halfAdjust: Boolean = false,
+    val factor1: Expression?,
+    val factor2: Expression,
+    override val position: Position? = null
+) : Statement(position)
+
+data class AddStmt(
+    val left: Expression?,
+    val result: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val right: Expression,
+    override val position: Position? = null
+) :
+    Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+    @Derived
+    val addend1: Expression
+        get() = left ?: result
+}
+
 data class ZSubStmt(
     val target: AssignableExpression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -261,6 +306,24 @@ data class ZSubStmt(
         }
         return emptyList()
     }
+}
+data class SubStmt(
+    val left: Expression?,
+    val result: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val right: Expression,
+    override val position: Position? = null
+) :
+    Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+    @Derived
+    val minuend: Expression
+        get() = left ?: result
 }
 
 data class TimeStmt(

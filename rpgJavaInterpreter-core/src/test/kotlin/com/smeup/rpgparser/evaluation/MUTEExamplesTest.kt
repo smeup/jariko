@@ -11,6 +11,8 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_01_perf_calls() {
+        // TODO check policy for finding programs in tests, for examole:
+        // val programFinders = listOf<RpgProgramFinder>(DirRpgProgramFinder(aPgm.parentFile))
         assertEquals(LinkedList<String>(), outputOf("performance/MUTE10_01"))
     }
 
@@ -20,13 +22,8 @@ class MUTEExamplesTest {
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_04_A_perf_strings() {
-        assertEquals(listOf("001.1_d01.1_A01.1_c01.1_B01.1_b01.1_C01.1_901.1_101."), outputOf("performance/MUTE10_04_A"))
-    }
-
-    @Test @Category(PerformanceTest::class)
-    fun executeMUTE11_02() {
-        assertEquals(emptyList(), outputOf("performance/MUTE11_02"))
+    fun executeMUTE10_04A_perf_strings() {
+        assertEquals(listOf("001.1_d01.1_A01.1_c01.1_B01.1_b01.1_C01.1_901.1_101."), outputOf("performance/MUTE10_04A"))
     }
 
     @Test @Category(PerformanceTest::class) @Ignore

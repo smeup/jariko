@@ -7,7 +7,7 @@
      V* 16/10/19  V5R1    BMA   Check-out 001166 in SMEDEV
      V*=====================================================================
      V* OBIETTIVO
-     V*  Programma finalizzato ai test sulla MOVEL
+     V*  Programma finalizzato ai test sulla Z-SUB
      V*
      V*=====================================================================
      D*----------------------------------------------------------------

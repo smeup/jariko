@@ -1,14 +1,10 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
-import com.smeup.rpgparser.parsing.ast.CallStmt
-import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.parsing.ast.Statement
-import com.smeup.rpgparser.parsing.ast.Subroutine
+import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
 import java.util.*
-import com.strumenta.kolasu.model.Node
 
 abstract class LogEntry(open val programName: String) {
 
@@ -395,6 +391,17 @@ class ProgramExecutionLogEnd(programName: String, val elapsed: Long = -1) : LogE
         val data = "PROGRAM END${sep}$filename"
 
         return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class MoveLStatemenExecutionLog(programName: String, val statement: MoveLStmt, val result: Value) : LogEntry(programName) {
+    override fun toString(): String {
+        return "MOVEL"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "MOVEL${sep}${statement.expression.render()} TO ${statement.target.render()}${sep}${result.render()}"
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
 
