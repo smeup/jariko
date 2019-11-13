@@ -160,35 +160,28 @@ private fun computeHiValue(type: NumberType): Value {
     }
     // Integer
     if (type.rpgType == RpgType.INTEGER.rpgType) {
-        when (type.entireDigits) {
-            1 -> return IntValue(Byte.MAX_VALUE.toLong())
-            3 -> return IntValue(Byte.MAX_VALUE.toLong())
-            5 -> return IntValue(Short.MAX_VALUE.toLong())
-            10 -> return IntValue(Int.MAX_VALUE.toLong())
-            else -> return IntValue(Long.MAX_VALUE)
+        return when (type.entireDigits) {
+            1, 3 -> IntValue(Byte.MAX_VALUE.toLong())
+            5 -> IntValue(Short.MAX_VALUE.toLong())
+            10 -> IntValue(Int.MAX_VALUE.toLong())
+            else -> IntValue(Long.MAX_VALUE)
         }
     }
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
-        when (type.entireDigits) {
-            1 -> return IntValue(UByte.MAX_VALUE.toLong())
-            3 -> return IntValue(UByte.MAX_VALUE.toLong())
-            5 -> return IntValue(UShort.MAX_VALUE.toLong())
-            10 -> return IntValue(UInt.MAX_VALUE.toLong())
+        return when (type.entireDigits) {
+            1, 3 -> IntValue(UByte.MAX_VALUE.toLong())
+            5 -> IntValue(UShort.MAX_VALUE.toLong())
+            10 -> IntValue(UInt.MAX_VALUE.toLong())
             else -> TODO("Number with ${type.entireDigits} digit is too big for IntValue")
         }
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
-        when (type.entireDigits) {
-            2 -> {
-                val ed = "9".repeat(4)
-                return IntValue("$ed".toLong())
-            }
-            4 -> {
-                val ed = "9".repeat(9)
-                return IntValue("$ed".toLong())
-            }
+        return when (type.entireDigits) {
+            2 -> IntValue.sequenceOfNines(4)
+            4 -> IntValue.sequenceOfNines(9)
+            else -> TODO("Binary umber with ${type.entireDigits} digit is not supported")
         }
     }
     TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
@@ -208,11 +201,11 @@ private fun computeLowValue(type: NumberType): Value {
     }
     // Integer
     if (type.rpgType == RpgType.INTEGER.rpgType) {
-        when (type.entireDigits) {
-            3 -> return IntValue(Byte.MIN_VALUE.toLong())
-            5 -> return IntValue(Short.MIN_VALUE.toLong())
-            10 -> return IntValue(Int.MIN_VALUE.toLong())
-            else -> return IntValue(Long.MIN_VALUE)
+        return when (type.entireDigits) {
+            3 -> IntValue(Byte.MIN_VALUE.toLong())
+            5 -> IntValue(Short.MIN_VALUE.toLong())
+            10 -> IntValue(Int.MIN_VALUE.toLong())
+            else -> IntValue(Long.MIN_VALUE)
         }
     }
     // Unsigned
