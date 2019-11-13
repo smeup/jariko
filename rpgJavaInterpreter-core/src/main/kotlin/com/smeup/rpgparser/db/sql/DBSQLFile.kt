@@ -4,6 +4,7 @@ import com.smeup.rpgparser.interpreter.DBFile
 import com.smeup.rpgparser.interpreter.RecordField
 import com.smeup.rpgparser.interpreter.Record
 import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.utils.Comparison
 import java.sql.Connection
 import java.sql.ResultSet
 
@@ -11,7 +12,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     private var resultSet: ResultSet? = null
     private var lastKey: List<RecordField> = emptyList()
 
-    private val keys: List<String> by lazy {
+    private val thisFileKeys: List<String> by lazy {
         val indexes = connection.primaryKeys(name)
         if (indexes.isEmpty()) connection.orderingFields(name) else indexes
     }
@@ -60,18 +61,19 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
 
     override fun eof(): Boolean = resultSet?.isLast ?: false
 
-    override fun chain(key: Value): Record {
-        return chain(toFields(key))
-    }
+    override fun chain(key: Value): Record = chain(toFields(key))
+
+    override fun setll(key: Value) = setll(toFields(key))
 
     private fun toFields(keyValue: Value): List<RecordField> {
-        val keyName = keys.first()
+        val keyName = thisFileKeys.first()
         return listOf(RecordField(keyName, keyValue))
     }
 
     override fun chain(keys: List<RecordField>): Record {
         val keyNames = keys.map { it.name }
-        val sql = "SELECT * FROM $name ${keyNames.whereSQL()} ${keyNames.orderBySQL()}"
+        // TODO Using thisFileKeys: TESTS NEEDED!!!
+        val sql = "SELECT * FROM $name ${keyNames.whereSQL()} ${thisFileKeys.orderBySQL()}"
         val values = keys.map { it.value }
         resultSet.closeIfOpen()
         connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
@@ -79,5 +81,17 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
             resultSet = it.executeQuery()
         }
         return resultSet.toValues()
+    }
+
+    override fun setll(keys: List<RecordField>) {
+        val keyNames = keys.map { it.name }
+        // TODO Using thisFileKeys: TESTS NEEDED!!!
+        val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
+        val values = keys.map { it.value }
+        resultSet.closeIfOpen()
+        connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
+            it.bind(values)
+            resultSet = it.executeQuery()
+        }
     }
 }
