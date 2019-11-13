@@ -166,7 +166,7 @@ data class IntValue(val value: Long) : NumberValue, Value() {
     companion object {
         val ZERO = IntValue(0)
 
-        fun sequenceOfNines(length: Int) : IntValue {
+        fun sequenceOfNines(length: Int): IntValue {
             require(length >= 1)
             val ed = "9".repeat(length)
             return IntValue("$ed".toLong())
