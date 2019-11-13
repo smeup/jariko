@@ -64,7 +64,6 @@ class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // require fix in offset calculation FROM/TO
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         cu.resolve()

@@ -135,12 +135,17 @@ fun Type.toDataStructureValue(value: Value): StringValue {
             // To date only 2 and 4 bytes are supported
             if (this.rpgType == RpgType.BINARY.rpgType) {
                 // Transform the numeric to an encoded string
-                if (this.entireDigits == 2 || this.entireDigits == 4) {
-                    val encoded = encodeBinary(value.asDecimal().value, this.entireDigits)
-                    // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size.toInt())
-                    return StringValue(fitted)
+                var len = when (this.entireDigits) {
+                    in 1..4 -> 2
+                    in 5..9 -> 4
+                    else -> 8
                 }
+                val encoded = encodeBinary(value.asDecimal().value, len )
+                // adjust the size to fit the target field
+                val fitted = encoded.padEnd(this.size.toInt())
+                return StringValue(fitted)
+                //if (this.entireDigits == 2 || this.entireDigits == 4) {
+                //}
             }
             TODO("Not implemented $this")
         }
