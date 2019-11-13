@@ -186,16 +186,8 @@ private fun computeHiValue(type: NumberType): Value {
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
-        when (type.entireDigits) {
-            2 -> {
-                val ed = "9".repeat(2)
-                return IntValue("$ed".toLong())
-            }
-            4 -> {
-                val ed = "9".repeat(4)
-                return IntValue("$ed".toLong())
-            }
-        }
+        val ed = "9".repeat(type.entireDigits)
+        return IntValue("$ed".toLong())
     }
     TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }
@@ -227,17 +219,8 @@ private fun computeLowValue(type: NumberType): Value {
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
-        when (type.entireDigits) {
-            2 -> {
-                val ed = "9".repeat(2)
-                return IntValue("-$ed".toLong())
-            }
-
-            4 -> {
-                val ed = "9".repeat(4)
-                return IntValue("-$ed".toLong())
-            }
-        }
+        val ed = "9".repeat(type.entireDigits)
+        return IntValue("-$ed".toLong())
     }
     TODO("Type '${type.rpgType}' with ${type.entireDigits} digit is not valid")
 }
