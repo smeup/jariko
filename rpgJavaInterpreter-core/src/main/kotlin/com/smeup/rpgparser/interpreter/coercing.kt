@@ -188,11 +188,11 @@ private fun computeHiValue(type: NumberType): Value {
     if (type.rpgType == RpgType.BINARY.rpgType) {
         when (type.entireDigits) {
             2 -> {
-                val ed = "9".repeat(4)
+                val ed = "9".repeat(2)
                 return IntValue("$ed".toLong())
             }
             4 -> {
-                val ed = "9".repeat(9)
+                val ed = "9".repeat(4)
                 return IntValue("$ed".toLong())
             }
         }
@@ -229,11 +229,12 @@ private fun computeLowValue(type: NumberType): Value {
     if (type.rpgType == RpgType.BINARY.rpgType) {
         when (type.entireDigits) {
             2 -> {
-                val ed = "9".repeat(4)
+                val ed = "9".repeat(2)
                 return IntValue("-$ed".toLong())
             }
+
             4 -> {
-                val ed = "9".repeat(9)
+                val ed = "9".repeat(4)
                 return IntValue("-$ed".toLong())
             }
         }

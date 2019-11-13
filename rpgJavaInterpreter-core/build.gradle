@@ -157,7 +157,7 @@ jacocoTestReport {
 
 //gradlew runExample -Pargs="CALCFIB,9"
 task runExample (type: JavaExec) {
-    if(project.hasProperty('programArgs')){
+    if (project.hasProperty('programArgs')){
         args(project.getProperties().get("programArgs").split(','))
     }
     main="com.smeup.rpgparser.execution.RunnerKt"
