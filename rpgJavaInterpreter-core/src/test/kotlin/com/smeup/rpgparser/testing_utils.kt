@@ -337,8 +337,8 @@ class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
 }
 
 open class MockDBFile : DBFile {
-    override fun setll(key: Value): Record = TODO()
-    override fun setll(keys: List<RecordField>): Record = TODO()
+    override fun setll(key: Value) = TODO()
+    override fun setll(keys: List<RecordField>) = TODO()
     override fun chain(key: Value): Record = TODO()
     override fun chain(keys: List<RecordField>): Record = TODO()
     override fun readEqual(): Record = TODO()

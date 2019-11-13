@@ -2,7 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.ast.Comparison.*
+import com.smeup.rpgparser.utils.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.utils.*
@@ -712,12 +712,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SetllStmt -> {
                     val dbFile = dbFile(statement.name, statement)
-                    val record = if (statement.searchArg.type() is KListType) {
+                    if (statement.searchArg.type() is KListType) {
                         dbFile.setll(toSearchValues(statement.searchArg))
                     } else {
                         dbFile.setll(eval(statement.searchArg))
                     }
-                    fillDataFrom(record)
                 }
                 is ReadEqualStmt -> {
                     val dbFile = dbFile(statement.name, statement)

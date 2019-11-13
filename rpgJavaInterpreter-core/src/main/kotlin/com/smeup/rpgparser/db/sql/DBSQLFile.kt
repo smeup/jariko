@@ -4,6 +4,7 @@ import com.smeup.rpgparser.interpreter.DBFile
 import com.smeup.rpgparser.interpreter.RecordField
 import com.smeup.rpgparser.interpreter.Record
 import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.utils.Comparison
 import java.sql.Connection
 import java.sql.ResultSet
 
@@ -60,13 +61,9 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
 
     override fun eof(): Boolean = resultSet?.isLast ?: false
 
-    override fun chain(key: Value): Record {
-        return chain(toFields(key))
-    }
+    override fun chain(key: Value): Record = chain(toFields(key))
 
-    override fun setll(key: Value): Record {
-        return setll(toFields(key))
-    }
+    override fun setll(key: Value) = setll(toFields(key))
 
     private fun toFields(keyValue: Value): List<RecordField> {
         val keyName = thisFileKeys.first()
@@ -86,7 +83,15 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         return resultSet.toValues()
     }
 
-    override fun setll(keys: List<RecordField>): Record {
-        TODO("SETLL for SQL tables")
+    override fun setll(keys: List<RecordField>) {
+        val keyNames = keys.map { it.name }
+        // TODO Using thisFileKeys: TESTS NEEDED!!!
+        val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
+        val values = keys.map { it.value }
+        resultSet.closeIfOpen()
+        connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
+            it.bind(values)
+            resultSet = it.executeQuery()
+        }
     }
 }

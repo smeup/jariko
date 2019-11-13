@@ -63,7 +63,7 @@ class ReadEqualDBTest {
         )
     }
 
-    @Test @Ignore
+    @Test
     fun setllReadeFindExistingRecord() {
         assertEquals(
             listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "SEAN O'CONNELL", "DIAN HEMMINGER", "GREG ORLANDO"),

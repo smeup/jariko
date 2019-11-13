@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.utils.Comparison
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
