@@ -114,10 +114,6 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
                         else -> throw IllegalStateException("Only predefined length allowed binary ")
                     }
                 }
-                RpgType.ZONED.rpgType -> {
-                    entireDigits
-                }
-
                 else -> numberOfDigits
             }.toLong()
         }
