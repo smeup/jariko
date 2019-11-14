@@ -1131,6 +1131,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                     is StringValue -> value.value.length.asValue()
                     is DataStructValue -> value.value.length.asValue()
                     is ArrayValue -> {
+                        // Incorrect data structure size calculation #28
                         when(expression.value) {
                             is DataRefExpr -> value.totalSize().asValue()
                             is ArrayAccessExpr ->  value.elementSize().asValue()
