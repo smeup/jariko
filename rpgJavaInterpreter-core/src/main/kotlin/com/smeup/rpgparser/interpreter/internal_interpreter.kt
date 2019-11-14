@@ -821,7 +821,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
                 v1 == v2
             }
-
             else -> value1 == value2
         }
     }
@@ -1131,7 +1130,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) {
                 return when (value) {
                     is StringValue -> value.value.length.asValue()
                     is DataStructValue -> value.value.length.asValue()
-                    is ArrayValue -> value.totalSize().asValue()
+                    is ArrayValue -> {
+                        when(expression.value) {
+                            is DataRefExpr -> value.totalSize().asValue()
+                            is ArrayAccessExpr ->  value.elementSize().asValue()
+                            else -> {
+                                TODO("Invalid LEN parameter $value")
+                            }
+                        }
+                    }
                     else -> {
                         TODO("Invalid LEN parameter $value")
                     }
