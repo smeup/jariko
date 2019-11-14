@@ -57,7 +57,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 when {
                     value.isBlank() -> IntValue.ZERO
                     type.rpgType == "B" -> {
-                        val intValue = decodeBinary(value.value.trim(), type.entireDigits)
+                        val intValue = decodeBinary(value.value, type.entireDigits)
+                        IntValue(intValue.longValueExact())
+                    }
+                    type.rpgType == "I" -> {
+                        val intValue = decodeInteger(value.value, type.entireDigits)
+                        IntValue(intValue.longValueExact())
+                    }
+                    type.rpgType == "U" -> {
+                        val intValue = decodeUnsigned(value.value, type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
                     else -> {
@@ -178,7 +186,9 @@ private fun computeHiValue(type: NumberType): Value {
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
         when (type.entireDigits) {
             1 -> return IntValue(UByte.MAX_VALUE.toLong())
+            2 -> return IntValue(UByte.MAX_VALUE.toLong())
             3 -> return IntValue(UByte.MAX_VALUE.toLong())
+            4 -> return IntValue(UShort.MAX_VALUE.toLong())
             5 -> return IntValue(UShort.MAX_VALUE.toLong())
             10 -> return IntValue(UInt.MAX_VALUE.toLong())
             else -> TODO("Number with ${type.entireDigits} digit is too big for IntValue")
