@@ -144,8 +144,6 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                 // adjust the size to fit the target field
                 val fitted = encoded.padEnd(this.size.toInt())
                 return StringValue(fitted)
-                //if (this.entireDigits == 2 || this.entireDigits == 4) {
-                //}
             }
             TODO("Not implemented $this")
         }
