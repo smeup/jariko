@@ -82,4 +82,32 @@
       *    -7      P
       *    -8      Q
       *    -9      R
+    MU* VAL1(FI07A(001)) VAL2('99999999999999R') COMP(EQ)
+    MU* VAL1(FI07(100)) VAL2(-999999999999,999) COMP(EQ)
+    MU* VAL1(FI07A(100)) VAL2('99999999999999R')COMP(EQ)
+     C                   EVAL      FI07=*LOVAL
+      *
+    MU* VAL1(N1) VAL2(20) COMP(EQ)
+     C                   EVAL      N1=%LEN(KEV(01))
+    MU* VAL1(KEVRES(1)) VAL2('AAAAAAAAAAAA') COMP(EQ)
+    MU* VAL1(KEVTEV(1)) VAL2('BBB') COMP(EQ)
+    MU* VAL1(KEVORD(1)) VAL2('AAAAAAAAAAAABBB') COMP(EQ)
+    MU* VAL1(KEV(1)) VAL2('AAAAAAAAAAAABBB     ') COMP(EQ)
+     C                   EVAL      KEVRES(1)='AAAAAAAAAAAA'                     COSTANTE
+     C                   EVAL      KEVTEV(1)='BBB'                              COSTANTE
+      *
+    MU* VAL1(LOG1) VAL2('0F0L1L2L3L4L5L') COMP(EQ)
+    MU* VAL1(LOG(1)) VAL2('0F') COMP(EQ)
+    MU* VAL1(LOG(2)) VAL2('0L') COMP(EQ)
+    MU* VAL1(LOG(3)) VAL2('1L') COMP(EQ)
+    MU* VAL1(LOG(4)) VAL2('2L') COMP(EQ)
+    MU* VAL1(LOG(5)) VAL2('3L') COMP(EQ)
+    MU* VAL1(LOG(6)) VAL2('4L') COMP(EQ)
+    MU* VAL1(LOG(7)) VAL2('5L') COMP(EQ)
+    MU* VAL1(N1) VAL2(14) COMP(EQ)
+     C                   EVAL      N1=%LEN(LOG1)
+      *
+    MU* Type="NOXMI"
+     C                   SETON                                        LR
+
      C                   SETON                                        LR
