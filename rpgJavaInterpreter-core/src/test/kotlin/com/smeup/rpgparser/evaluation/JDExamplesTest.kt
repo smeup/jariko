@@ -20,7 +20,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_000_datainit() {
         val cu = assertASTCanBeProduced("JD_000_datainit", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         assertEquals("U\$SVARSK", cu.allDataDefinitions[0].name)
         assertEquals("\$\$SVARCD", cu.allDataDefinitions[1].name)
@@ -54,7 +54,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_000_base() {
         val cu = assertASTCanBeProduced("JD_000_base", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -72,7 +72,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_000", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
         assertEquals(1, callsToJDURL.size)
         val urlCalled = callsToJDURL[0].get("URL")
@@ -88,8 +88,8 @@ class JDExamplesTest {
     @Test
     fun paramsTypesOfJD_001() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve()
-        val programJD_001 = RpgProgram(cu, "JD_001")
+        cu.resolve(DummyDBInterface)
+        val programJD_001 = RpgProgram(cu, DummyDBInterface, "JD_001")
         val params = programJD_001.params()
         assertEquals(4, params.size)
 
@@ -109,7 +109,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_plist() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
@@ -127,7 +127,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_settingVars() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
@@ -143,7 +143,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_inzFunz() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
@@ -163,7 +163,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_complete_url_not_found() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
@@ -185,7 +185,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
@@ -232,7 +232,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_002", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
@@ -268,7 +268,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_002", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
@@ -323,7 +323,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_002", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
@@ -374,7 +374,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_003", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()),
                 systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
@@ -430,7 +430,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_003", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {

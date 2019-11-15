@@ -81,14 +81,14 @@ class DataDefinitionTest {
 
     @test fun inStatementDataDefinitionInClearIsProcessed() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         assertTrue(cu.hasAnyDataDefinition("dsp"))
         assertEquals(StringType(50), cu.getAnyDataDefinition("dsp").type)
     }
 
     @test fun executeJD_useOfLike() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = InternalInterpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
@@ -97,7 +97,7 @@ class DataDefinitionTest {
 
     @test fun executeJD_useOfDim() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = InternalInterpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")

@@ -4,6 +4,7 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.executeAnnotations
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -16,7 +17,7 @@ class RpgParserDataStruct {
     @Test
     fun parseSTRUCT_01_MYDS_isRecognizedCorrectly() {
         val cu = assertASTCanBeProduced("struct/STRUCT_01", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val dataDefinition = cu.getDataDefinition("MYDS")
         assertEquals(0, dataDefinition.fields[0].startOffset)
@@ -32,7 +33,7 @@ class RpgParserDataStruct {
 
         val cu = assertASTCanBeProduced("struct/STRUCT_01", true)
 
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -44,7 +45,7 @@ class RpgParserDataStruct {
         assertCanBeParsed("struct/STRUCT_02", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_02", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -54,7 +55,7 @@ class RpgParserDataStruct {
         assertCanBeParsed("struct/STRUCT_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_03", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -64,7 +65,7 @@ class RpgParserDataStruct {
         assertCanBeParsed("struct/STRUCT_04", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_04", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -76,7 +77,7 @@ class RpgParserDataStruct {
         assertCanBeParsed("struct/STRUCT_05", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_05", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -89,7 +90,7 @@ class RpgParserDataStruct {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -101,7 +102,7 @@ class RpgParserDataStruct {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -120,7 +121,7 @@ class RpgParserDataStruct {
         assertCanBeParsed("struct/STRUCT_07", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_07", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

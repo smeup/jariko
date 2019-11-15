@@ -126,7 +126,7 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
     override fun findProgram(name: String): Program? {
         programs.computeIfAbsent(name) {
             programFinders.asSequence().mapNotNull {
-                it.findRpgProgram(name)
+                it.findRpgProgram(name, db)
             }.firstOrNull()
         }
         return programs[name]

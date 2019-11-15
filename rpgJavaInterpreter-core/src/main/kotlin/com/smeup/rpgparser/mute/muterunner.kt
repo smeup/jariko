@@ -112,8 +112,12 @@ fun executeWithMutes(
                     }
                 }
             }
-            cu.resolve()
-            val interpreter = InternalInterpreter(SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(logConfigurationFile))
+            val systemInterface =
+                SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(
+                    logConfigurationFile
+                )
+            cu.resolve(systemInterface.db)
+            val interpreter = InternalInterpreter(systemInterface)
 
             interpreter.execute(cu, mapOf())
             val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()

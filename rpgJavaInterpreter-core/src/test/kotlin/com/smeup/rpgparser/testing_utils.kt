@@ -294,13 +294,13 @@ private const val TRACE = false
 
 fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE), printTree: Boolean = false): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
-    cu.resolve()
+    cu.resolve(si.db)
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
 }
 
-fun rpgProgram(name: String): RpgProgram {
-    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
+fun rpgProgram(name: String, dbInterface: DBInterface = DummyDBInterface): RpgProgram {
+    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), dbInterface, name)
 }
 
 fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
@@ -317,8 +317,8 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
 }
 
 class DummyProgramFinder(val path: String) : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
-        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle"), nameOrSource)
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
+        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle"), dbInterface, nameOrSource)
     }
 }
 
@@ -331,7 +331,7 @@ class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
 
     private fun findRpgProgram(name: String): Program? {
         return rpgPrograms.getOrPut(name) {
-            rpgProgram(name)
+            rpgProgram(name, db)
         }
     }
 }

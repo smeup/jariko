@@ -3,6 +3,7 @@ package com.smeup.rpgparser.overlay
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -29,7 +30,7 @@ class RpgParserOverlayTest11 {
     fun parseMUTE11_11C_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -53,7 +54,7 @@ class RpgParserOverlayTest11 {
     @Test
     fun parseMUTE11_15_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -68,7 +69,7 @@ class RpgParserOverlayTest11 {
     fun parseMUTE11_16_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

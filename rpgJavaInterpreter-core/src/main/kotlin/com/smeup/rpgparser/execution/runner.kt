@@ -44,10 +44,10 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
 }
 
 class ResourceProgramFinder(val path: String) : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
         val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
         return if (resourceStream != null) {
-            RpgProgram.fromInputStream(BOMInputStream(resourceStream), nameOrSource)
+            RpgProgram.fromInputStream(BOMInputStream(resourceStream), dbInterface, nameOrSource)
         } else {
             println("Resource $path not found")
             null
@@ -71,13 +71,16 @@ fun getProgram(
     systemInterface: SystemInterface = JavaSystemInterface(),
     programFinders: List<RpgProgramFinder> = defaultProgramFinders()
 ): CommandLineProgram {
-    RpgSystem.addProgramFinder(SourceProgramFinder())
-    RpgSystem.addProgramFinder(DirRpgProgramFinder())
-    RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+    RpgSystem.db = systemInterface.db
+
+    programFinders.forEach {
+        RpgSystem.addProgramFinder(it)
+    }
 
     RpgSystem.programFinders.forEach {
         systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
     }
+
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
