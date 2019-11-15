@@ -109,7 +109,6 @@ class ReadEqualDBTest {
         assertTrue(lines.joinToString().contains("LUCCHESSI"))
     }
 
-
     private fun createEMPLOYEE() =
         """
     CREATE TABLE EMPLOYEE ( 
