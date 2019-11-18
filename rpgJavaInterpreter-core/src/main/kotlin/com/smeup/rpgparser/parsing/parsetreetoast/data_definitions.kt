@@ -373,13 +373,13 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
                 // FROM/TO positions.
 
                 // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
-                val numberOfDigits = if (decimalPositions != null && precision != null) precision else 2 * (elementSize!! - 1)
+                val numberOfDigits = if (explicitElementSize == null) precision!! else 2 * (elementSize!! - 1)
 
-                NumberType(numberOfDigits - decimalPositions!!, decimalPositions, rpgCodeType)
+                NumberType(numberOfDigits!! - decimalPositions!!, decimalPositions, rpgCodeType)
             } else {
                 // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
-                val numberOfDigits = if (decimalPositions != null && precision != null) precision else 2 * elementSize!! - 1
-                NumberType(numberOfDigits - decimalPositions!!, decimalPositions, rpgCodeType)
+                val numberOfDigits = if (explicitElementSize == null) precision else 2 * elementSize!! - 1
+                NumberType(numberOfDigits!! - decimalPositions!!, decimalPositions, rpgCodeType)
             }
         }
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
