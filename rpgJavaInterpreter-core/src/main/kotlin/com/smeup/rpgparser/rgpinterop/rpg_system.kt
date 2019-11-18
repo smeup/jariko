@@ -65,12 +65,14 @@ object RpgSystem {
 
     internal val programFinders = LinkedHashSet<RpgProgramFinder>()
 
-    @Synchronized
+    fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {
+        programFinders.addAll(programFindersList)
+    }
+
     fun addProgramFinder(programFinder: RpgProgramFinder) {
         programFinders.add(programFinder)
     }
 
-    @Synchronized
     fun getProgram(programName: String): RpgProgram {
         programFinders.forEach {
             val program = it.findRpgProgram(programName, db)
