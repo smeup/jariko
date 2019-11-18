@@ -3,6 +3,7 @@ package com.smeup.rpgparser.db.sql.integration
 import com.smeup.rpgparser.db.sql.CONVENTIONAL_INDEX_SUFFIX
 import com.smeup.rpgparser.db.sql.outputOfDBPgm
 import com.smeup.rpgparser.interpreter.StringValue
+import org.junit.Assert.assertFalse
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -107,6 +108,7 @@ class ReadEqualDBTest {
         )
         assertEquals("_##_ENDROW", lines.last())
         assertTrue(lines.joinToString().contains("LUCCHESSI"))
+        assertFalse(lines.joinToString().contains("YAMAMOTO"))
     }
 
     @Test
@@ -117,6 +119,7 @@ class ReadEqualDBTest {
             mapOf("toFind" to StringValue("D11"))
         )
         assertEquals("_##_ENDROW", lines.last())
+        assertFalse(lines.joinToString().contains("LUCCHESSI"))
         assertTrue(lines.joinToString().contains("YAMAMOTO"))
     }
 

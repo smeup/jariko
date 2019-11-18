@@ -55,7 +55,9 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         } else {
             readFromPositionedResultSet()
         }
-        lastKey = keys
+        if (!keys.isEmpty()) {
+            lastKey = keys
+        }
         return filterRecord(result)
     }
 
@@ -88,6 +90,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         // TODO Using thisFileKeys: TESTS NEEDED!!!
         val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
         val values = keys.map { it.value }
+        lastKey = keys
         resultSet.closeIfOpen()
         connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
             it.bind(values)
