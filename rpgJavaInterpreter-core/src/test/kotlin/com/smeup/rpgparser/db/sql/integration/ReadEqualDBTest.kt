@@ -109,6 +109,17 @@ class ReadEqualDBTest {
         assertTrue(lines.joinToString().contains("LUCCHESSI"))
     }
 
+    @Test
+    fun findsEmployeesSecondDept() {
+        val lines = outputOfDBPgm(
+            "db/EMPBYDEPT",
+            listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+            mapOf("toFind" to StringValue("D11"))
+        )
+        assertEquals("_##_ENDROW", lines.last())
+        assertTrue(lines.joinToString().contains("YAMAMOTO"))
+    }
+
     private fun createEMPLOYEE() =
         """
     CREATE TABLE EMPLOYEE ( 

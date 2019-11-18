@@ -27,7 +27,7 @@
      C                   eval      msg = '_##_ROWS'
      C     msg           dsply
       *-------------------------------------------------------------------------
-     C     toFind        ReadE     XEMP2
+     C     toFind        Setll     XEMP2
      C                   dow       not %eof
      C                   eval      msg = 'FIRSTNME_##_' + %trim(FIRSTNME)
      C     msg           dsply

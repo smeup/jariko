@@ -63,12 +63,14 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 object RpgSystem {
     var db: DBInterface = DummyDBInterface
 
-    internal val programFinders = LinkedList<RpgProgramFinder>()
+    internal val programFinders = LinkedHashSet<RpgProgramFinder>()
 
+    @Synchronized
     fun addProgramFinder(programFinder: RpgProgramFinder) {
         programFinders.add(programFinder)
     }
 
+    @Synchronized
     fun getProgram(programName: String): RpgProgram {
         programFinders.forEach {
             val program = it.findRpgProgram(programName, db)
