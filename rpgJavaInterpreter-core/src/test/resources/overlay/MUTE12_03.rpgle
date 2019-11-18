@@ -90,10 +90,10 @@
     MU* VAL1(N1) VAL2(20) COMP(EQ)
      C                   EVAL      N1=%LEN(KEV(01))
     MU* VAL1(KEVRES(1)) VAL2('AAAAAAAAAAAA') COMP(EQ)
+     C                   EVAL      KEVRES(1)='AAAAAAAAAAAA'                     COSTANTE
     MU* VAL1(KEVTEV(1)) VAL2('BBB') COMP(EQ)
     MU* VAL1(KEVORD(1)) VAL2('AAAAAAAAAAAABBB') COMP(EQ)
     MU* VAL1(KEV(1)) VAL2('AAAAAAAAAAAABBB     ') COMP(EQ)
-     C                   EVAL      KEVRES(1)='AAAAAAAAAAAA'                     COSTANTE
      C                   EVAL      KEVTEV(1)='BBB'                              COSTANTE
       *
     MU* VAL1(LOG1) VAL2('0F0L1L2L3L4L5L') COMP(EQ)
@@ -108,4 +108,6 @@
      C                   EVAL      N1=%LEN(LOG1)
       *
     MU* Type="NOXMI"
+     C                   SETON                                        LR
+
      C                   SETON                                        LR

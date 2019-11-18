@@ -64,7 +64,7 @@ class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // require fix in offset calculation FROM/TO
+    @Ignore
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         cu.resolve()
@@ -85,18 +85,22 @@ class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // Requires size calculation AR01
     fun parseMUTE12_03_ast() {
         assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
     }
 
     @Test
-    @Ignore // Requires size calculation AR01
+    @Ignore
     fun parseMUTE12_03_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
         cu.resolve()
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        var failed: Int = executeAnnotations(annotations)
+        if (failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
     }
 
     @Test

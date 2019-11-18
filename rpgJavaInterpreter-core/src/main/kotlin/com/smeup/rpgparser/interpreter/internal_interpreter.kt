@@ -111,9 +111,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
-                val dd = get(ds.name) as DataStructValue
-                // DataStructValue Wrapper
-                dd.set(data, value)
+                when (val containerValue = get(ds.name)) {
+                    is ArrayValue -> {
+                        val valuesToAssign = value as ArrayValue
+                        require(containerValue.arrayLength() == valuesToAssign.arrayLength())
+                        // The container value is an array of datastructurevalues
+                        // we assign to each data structure the corresponding field value
+                        for (i in 1..containerValue.arrayLength()) {
+                            val dataStructValue = containerValue.getElement(i) as DataStructValue
+                            dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                        }
+                    }
+                    is DataStructValue -> {
+                        containerValue.set(data, value)
+                    }
+                    else -> TODO()
+                }
             }
             else -> {
                 var previous: Value? = null
@@ -861,7 +874,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
                 v1 == v2
             }
-
             else -> value1 == value2
         }
     }
@@ -942,9 +954,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is ArrayAccessExpr -> {
                 val arrayValue = interpret(target.array) as ArrayValue
-                require(arrayValue.assignableTo(target.array.type()))
+                val targetType = target.array.type()
+                // Before assigning the single element we do a sanity check:
+                // is the value we have for the array compatible with the type
+                // we expect for such array?
+                require(arrayValue.assignableTo(targetType)) {
+                    "The value $arrayValue is not assignable to $targetType"
+                }
                 val indexValue = interpret(target.index)
-                val elementType = (target.array.type() as ArrayType).element
+                val elementType = (targetType as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
                 log(
@@ -1243,6 +1261,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return when (value) {
                     is StringValue -> value.value.length.asValue()
                     is DataStructValue -> value.value.length.asValue()
+                    is ArrayValue -> {
+                        // Incorrect data structure size calculation #28
+                        when (expression.value) {
+                            is DataRefExpr -> value.totalSize().asValue()
+                            is ArrayAccessExpr -> value.elementSize().asValue()
+                            else -> {
+                                TODO("Invalid LEN parameter $value")
+                            }
+                        }
+                    }
                     else -> {
                         TODO("Invalid LEN parameter $value")
                     }
