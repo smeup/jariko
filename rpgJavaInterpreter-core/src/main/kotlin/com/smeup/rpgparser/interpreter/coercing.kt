@@ -57,7 +57,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 when {
                     value.isBlank() -> IntValue.ZERO
                     type.rpgType == "B" -> {
-                        val intValue = decodeBinary(value.value.trim(), type.entireDigits)
+                        val intValue = decodeBinary(value.value, type.entireDigits)
+                        IntValue(intValue.longValueExact())
+                    }
+                    type.rpgType == "I" -> {
+                        val intValue = decodeInteger(value.value, type.entireDigits)
+                        IntValue(intValue.longValueExact())
+                    }
+                    type.rpgType == "U" -> {
+                        val intValue = decodeUnsigned(value.value, type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
                     else -> {
@@ -131,6 +139,9 @@ fun coerce(value: Value, type: Type): Value {
                 is NumberType -> {
                     return computeHiValue(type)
                 }
+                is ArrayType -> {
+                    return createArrayValue(type.element, type.nElements) { coerce(HiValValue, type.element) }
+                }
                 else -> TODO("Converting HiValValue to $type")
             }
         }
@@ -138,6 +149,9 @@ fun coerce(value: Value, type: Type): Value {
             when (type) {
                 is NumberType -> {
                     return computeLowValue(type)
+                }
+                is ArrayType -> {
+                    return createArrayValue(type.element, type.nElements) { coerce(LowValValue, type.element) }
                 }
                 else -> TODO("Converting LowValValue to $type")
             }
@@ -170,7 +184,10 @@ private fun computeHiValue(type: NumberType): Value {
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
         return when (type.entireDigits) {
-            1, 3 -> IntValue(UByte.MAX_VALUE.toLong())
+            1 -> IntValue(UByte.MAX_VALUE.toLong())
+            2 -> IntValue(UByte.MAX_VALUE.toLong())
+            3 -> IntValue(UByte.MAX_VALUE.toLong())
+            4 -> IntValue(UShort.MAX_VALUE.toLong())
             5 -> IntValue(UShort.MAX_VALUE.toLong())
             10 -> IntValue(UInt.MAX_VALUE.toLong())
             else -> TODO("Number with ${type.entireDigits} digit is too big for IntValue")
@@ -178,18 +195,15 @@ private fun computeHiValue(type: NumberType): Value {
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
-        return when (type.entireDigits) {
-            2 -> IntValue.sequenceOfNines(4)
-            4 -> IntValue.sequenceOfNines(9)
-            else -> TODO("Binary umber with ${type.entireDigits} digit is not supported")
-        }
+        val ed = "9".repeat(type.entireDigits)
+        return IntValue("$ed".toLong())
     }
     TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }
 
 private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone
-    if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType) {
+    if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType.isNullOrBlank()) {
         return if (type.decimalDigits == 0) {
             val ed = "9".repeat(type.entireDigits)
             IntValue("-$ed".toLong())
@@ -214,16 +228,8 @@ private fun computeLowValue(type: NumberType): Value {
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
-        when (type.entireDigits) {
-            2 -> {
-                val ed = "9".repeat(4)
-                return IntValue("-$ed".toLong())
-            }
-            4 -> {
-                val ed = "9".repeat(9)
-                return IntValue("-$ed".toLong())
-            }
-        }
+        val ed = "9".repeat(type.entireDigits)
+        return IntValue("-$ed".toLong())
     }
-    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
+    TODO("Type '${type.rpgType}' with ${type.entireDigits} digit is not valid")
 }
