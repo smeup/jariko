@@ -366,7 +366,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
             }
         }
         RpgType.PACKED.rpgType -> {
-            val elementSize = decimalPositions!! + integerPositions!!
+            val elementSize = explicitElementSize ?: (decimalPositions!! + integerPositions!!)
             if (isPackEven) {
                 // The PACKEVEN keyword indicates that the packed field or array has an even number of digits.
                 // The keyword is only valid for packed program-described data-structure subfields defined using
@@ -375,11 +375,12 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
                 // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
                 val numberOfDigits = 2 * (elementSize!! - 1)
 
-                NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
+                NumberType(numberOfDigits - decimalPositions!!, decimalPositions, rpgCodeType)
+            } else {
+                // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
+                val numberOfDigits = 2 * elementSize!! - 1
+                NumberType(numberOfDigits - decimalPositions!!, decimalPositions, rpgCodeType)
             }
-            // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
-            // val numberOfDigits = 2 * elementSize!! - 1
-            NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
         }
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
             val elementSize = explicitElementSize ?: (integerPositions!! + decimalPositions!!)

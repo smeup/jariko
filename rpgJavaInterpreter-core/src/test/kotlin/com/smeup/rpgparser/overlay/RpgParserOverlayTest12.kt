@@ -64,9 +64,14 @@ class RpgParserOverlayTest12 {
     fun parseMUTE12_02_ast() {
         val ast = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         val ds = ast.getDataDefinition("DS00DS")
+
         val ds0004 = ds.getFieldByName("DS0004")
         assertEquals(NumberType(8, 3, RpgType.PACKED), ds0004.type)
         assertEquals(6, ds0004.size)
+
+        val ds0005 = ds.getFieldByName("DS0005")
+        assertEquals(NumberType(7, 3, RpgType.PACKED), ds0005.type)
+        assertEquals(6, ds0005.size)
     }
 
     @Test
