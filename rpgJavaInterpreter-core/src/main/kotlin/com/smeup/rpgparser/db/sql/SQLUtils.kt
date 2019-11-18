@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.utils.Comparison
 
 fun FileMetadata.toSQL(): List<String> =
     listOf(
@@ -21,11 +22,11 @@ fun String.insertSQL(values: List<Pair<String, Value>>): String {
     return "INSERT INTO $this ($names) VALUES($questionMarks)"
 }
 
-fun List<String>.whereSQL(): String =
+fun List<String>.whereSQL(comparation: Comparison = Comparison.EQ): String =
     if (this.isEmpty()) {
         ""
     } else {
-        "WHERE " + this.joinToString(" AND ") { "$it = ?" }
+        "WHERE " + this.joinToString(" AND ") { "$it ${comparation.symbol} ?" }
     }
 
 fun List<String>.orderBySQL(): String =

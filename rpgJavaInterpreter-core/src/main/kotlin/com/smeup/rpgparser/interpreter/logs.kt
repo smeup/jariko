@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.utils.asNonNullString
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import java.io.PrintStream
@@ -548,6 +549,7 @@ fun List<InterpreterLogHandler>.log(logEntry: LogEntry) {
     }
 }
 
-fun Position?.line() = this?.start?.line?.toString() ?: ""
-fun Node?.startLine() = this?.position?.start?.line?.toString() ?: ""
-fun Node?.endLine() = this?.position?.end?.line?.toString() ?: ""
+fun Position?.line() = this?.start?.line.asNonNullString()
+fun Position?.atLine() = this?.start?.line?.let { "line $it " } ?: ""
+fun Node?.startLine() = this?.position?.start?.line.asNonNullString()
+fun Node?.endLine() = this?.position?.end?.line.asNonNullString()

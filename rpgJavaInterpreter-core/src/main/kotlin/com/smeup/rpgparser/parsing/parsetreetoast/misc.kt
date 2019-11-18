@@ -213,6 +213,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
         this.csCHECK() != null -> this.csCHECK().toAst(conf)
         this.csKLIST() != null -> this.csKLIST().toAst(conf)
+        this.csSETLL() != null -> this.csSETLL().toAst(conf)
         this.csREADE() != null -> this.csREADE().toAst(conf)
         this.csCOMP() != null -> this.csCOMP().toAst(conf)
         this.csMULT() != null -> this.csMULT().toAst(conf)
@@ -293,7 +294,7 @@ private fun handleParsingOfTargets(code: String, position: Position?): Assignabl
         val containerCode = parts.dropLast(1).joinToString(separator = ".")
         QualifiedAccessExpr(
                 container = handleParsingOfTargets(containerCode, position),
-                field = ReferenceByName(parts.last()!!),
+                field = ReferenceByName(parts.last()),
                 position = position)
     }
 }
@@ -412,6 +413,16 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
     val factor1 = this.factor1Context()?.content?.toAst(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
     return ReadEqualStmt(
+        factor1,
+        factor2,
+        toPosition(conf.considerPosition))
+}
+
+internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
+    // TODO implement indicators handling
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("SETLL operation requires factor 1: ${this.text}")
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
+    return SetllStmt(
         factor1,
         factor2,
         toPosition(conf.considerPosition))

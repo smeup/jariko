@@ -7,11 +7,11 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.MutesImmutableMap
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.utils.Comparison
 import com.smeup.rpgparser.utils.asLong
 import com.strumenta.kolasu.model.Position
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
-import java.util.*
 
 data class MuteAnnotationExecutionLogEntry(override val programName: String, val annotation: MuteAnnotation, var result: Value) : LogEntry(programName) {
     override fun toString(): String {

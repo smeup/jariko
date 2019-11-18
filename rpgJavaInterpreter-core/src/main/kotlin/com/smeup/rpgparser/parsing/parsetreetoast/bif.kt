@@ -1,14 +1,14 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
-import com.smeup.rpgparser.interpreter.line
+import com.smeup.rpgparser.interpreter.atLine
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.mapping.toPosition
 
 internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     val position = toPosition(conf.considerPosition)
-    return enrichPossibleExceptionWith("Error at line ${position?.line()} - ${this.text}") {
+    return enrichPossibleExceptionWith("${position.atLine()}${this.text}") {
         when {
             this.bif_elem() != null -> NumberOfElementsExpr(
                 this.bif_elem().expression().toAst(conf),
