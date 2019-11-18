@@ -83,7 +83,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         return resultSet.toValues()
     }
 
-    override fun setll(keys: List<RecordField>) {
+    override fun setll(keys: List<RecordField>): Boolean {
         val keyNames = keys.map { it.name }
         // TODO Using thisFileKeys: TESTS NEEDED!!!
         val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
@@ -93,5 +93,6 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
             it.bind(values)
             resultSet = it.executeQuery()
         }
+        return (resultSet?.isBeforeFirst) ?: false
     }
 }

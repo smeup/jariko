@@ -60,8 +60,8 @@ class Record(vararg fields: RecordField) : LinkedHashMap<String, Value>() {
 interface DBFile {
     fun chain(key: Value): Record
     fun chain(keys: List<RecordField>): Record
-    fun setll(key: Value)
-    fun setll(keys: List<RecordField>)
+    fun setll(key: Value): Boolean
+    fun setll(keys: List<RecordField>): Boolean
     fun readEqual(): Record
     fun readEqual(key: Value): Record
     fun readEqual(keys: List<RecordField>): Record

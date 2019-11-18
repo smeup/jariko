@@ -27,7 +27,8 @@
      C                   eval      msg = '_##_ROWS'
      C     msg           dsply
       *-------------------------------------------------------------------------
-     C     toFind        Setll     XEMP2
+     C     toFind        SETLL     XEMP2
+     C                   IF        %FOUND
      C                   dow       not %eof
      C                   eval      msg = 'FIRSTNME_##_' + %trim(FIRSTNME)
      C     msg           dsply
@@ -37,5 +38,6 @@
      C     msg           dsply
      C                   ReadE     XEMP2
      C                   enddo
+     C                   ENDIF
       * Closing resources.
      C                   seton                                        lr
