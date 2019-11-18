@@ -2,7 +2,6 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.interpreter.DBInterface
 import com.smeup.rpgparser.interpreter.DataDefinition
-import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.model.*
@@ -23,7 +22,7 @@ private fun CompilationUnit.allStatements(): List<Statement> {
     return result
 }
 
-fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
+fun CompilationUnit.resolve(databaseInterface: DBInterface) {
     this.assignParents()
 
     this.findInStatementDataDefinitions()

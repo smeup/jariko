@@ -5,6 +5,7 @@ import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.ArrayType
 import com.smeup.rpgparser.interpreter.CharacterType
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -41,7 +42,7 @@ class RpgParserOverlayTest12 {
     @Ignore // Require qualified array support
     fun parseMUTE12_01_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
@@ -67,7 +68,7 @@ class RpgParserOverlayTest12 {
     @Ignore
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
@@ -93,7 +94,7 @@ class RpgParserOverlayTest12 {
     @Ignore
     fun parseMUTE12_03_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
@@ -116,7 +117,7 @@ class RpgParserOverlayTest12 {
     @Test
     fun parseMUTE12_04_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_04", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
     }
@@ -134,7 +135,7 @@ class RpgParserOverlayTest12 {
     @Test
     fun parseMUTE12_05_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_05", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
@@ -161,7 +162,7 @@ class RpgParserOverlayTest12 {
     @Ignore // Not yet implemented
     fun parseMUTE12_06_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_06", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
     }

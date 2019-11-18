@@ -22,7 +22,7 @@ class MuteExecutionTest {
     @Test
     fun executeSimpleMute() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         assertEquals(3, cu.main.stmts[0].muteAnnotations.size)
         val interpreter = execute(cu, emptyMap())
         assertEquals(3, interpreter.systemInterface.getExecutedAnnotation().size)
@@ -34,7 +34,7 @@ class MuteExecutionTest {
     @Test
     fun parsingSimpleMuteTimeout() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         assertEquals(3, cu.main.stmts[0].muteAnnotations.size)
         assertEquals(2, cu.timeouts.size)
         assertEquals(123, cu.timeouts[0].timeout)
@@ -44,7 +44,7 @@ class MuteExecutionTest {
     @Test
     fun executionWithShortTimeoutFails() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT_SHORT", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         assertEquals(2, cu.timeouts.size)
         assertEquals(1, cu.timeouts[0].timeout)
         assertEquals(234, cu.timeouts[1].timeout)
@@ -68,7 +68,7 @@ class MuteExecutionTest {
     @Test
     fun executionWithLongTimeoutDoesNotFail() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT_LONG", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         assertEquals(1, cu.timeouts.size)
         assertEquals(12345, cu.timeouts[0].timeout)
         execute(cu, emptyMap())
@@ -77,7 +77,7 @@ class MuteExecutionTest {
     @Test
     fun executeCALCFIB_initialDeclarations_inz() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         assertTrue(cu.getDataDefinition("ppdat").initializationValue == null)
         assertTrue(cu.getDataDefinition("NBR").initializationValue == null)
@@ -95,7 +95,7 @@ class MuteExecutionTest {
     @Test
     fun executeCALCFIB_otherClauseOfSelect() {
         val cu = assertASTCanBeProduced("CALCFIB_2", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
@@ -107,7 +107,7 @@ class MuteExecutionTest {
 
     private fun assertFibonacci(input: String, output: String) {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
@@ -148,7 +148,7 @@ class MuteExecutionTest {
     @Test
     fun executeHELLO() {
         val cu = assertASTCanBeProduced("HELLO", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf(), si, listOf(logHandler))
@@ -159,7 +159,7 @@ class MuteExecutionTest {
     @Test
     fun executeCallToFibonacciWrittenInRpg() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
@@ -171,7 +171,7 @@ class MuteExecutionTest {
     @Test
     fun executeCallToFibonacciWrittenOnTheJvm() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
@@ -197,9 +197,9 @@ class MuteExecutionTest {
     @Test
     fun executeFibonacciWrittenInRpgAsProgram() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
-        val rpgProgram = RpgProgram(cu)
+        val rpgProgram = RpgProgram(cu, DummyDBInterface)
         rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
         assertEquals(1, rpgProgram.params().size)
         assertEquals(ProgramParam("ppdat", StringType(8)), rpgProgram.params()[0])

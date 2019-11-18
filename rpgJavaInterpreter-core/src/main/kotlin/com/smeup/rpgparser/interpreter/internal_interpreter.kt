@@ -725,7 +725,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SetllStmt -> {
                     val dbFile = dbFile(statement.name, statement)
-                    if (statement.searchArg.type() is KListType) {
+                    lastFound = if (statement.searchArg.type() is KListType) {
                         dbFile.setll(toSearchValues(statement.searchArg))
                     } else {
                         dbFile.setll(eval(statement.searchArg))
