@@ -77,11 +77,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         // TODO Using thisFileKeys: TESTS NEEDED!!!
         val sql = "SELECT * FROM $name ${keyNames.whereSQL()} ${thisFileKeys.orderBySQL()}"
         val values = keys.map { it.value }
-        resultSet.closeIfOpen()
-        connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
-            it.bind(values)
-            resultSet = it.executeQuery()
-        }
+        executeQuery(sql, values)
         return resultSet.toValues()
     }
 
@@ -91,11 +87,15 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
         val values = keys.map { it.value }
         lastKey = keys
+        executeQuery(sql, values)
+        return resultSet.hasRecords()
+    }
+
+    private fun executeQuery(sql: String, values: List<Value>) {
         resultSet.closeIfOpen()
         connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
             it.bind(values)
             resultSet = it.executeQuery()
         }
-        return (resultSet?.isBeforeFirst) ?: false
     }
 }
