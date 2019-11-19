@@ -77,6 +77,18 @@ class ReadEqualDBTest {
     }
 
     @Test
+    fun setllSetdFoundFlag() {
+        assertEquals(
+            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS", "KIM NATZ"),
+            outputOfDBPgm(
+                "db/SETLLOK01",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("C01"))
+            )
+        )
+    }
+
+    @Test
     fun findsAtLeastExistingRecordsIfReadWithKeyStartingFromFirstKey() {
         assertTrue(
             outputOfDBPgm(
