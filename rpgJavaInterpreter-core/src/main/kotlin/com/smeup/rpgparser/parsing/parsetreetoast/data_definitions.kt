@@ -343,54 +343,55 @@ fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
 
 internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
     val rpgCodeType = DATA_TYPE()?.text?.trim()
-    val integerPositions = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
+    val precision = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
     val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
     val isPackEven = keyword().any { it.keyword_packeven() != null }
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
     val explicitElementSize = when {
-        startPosition == null -> endPosition
+        startPosition == null -> null
         endPosition == null -> endPosition
         else -> endPosition - startPosition.toInt()
     }
 
     return when (rpgCodeType) {
         "" -> {
-            if (decimalPositions == null && integerPositions == null) {
+            if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
-                StringType(explicitElementSize!!.toLong())
+                StringType((explicitElementSize ?: precision)!!.toLong())
             } else {
-                val es = explicitElementSize ?: (decimalPositions + integerPositions!!)
+                val es = explicitElementSize ?: precision!!
                 NumberType(es - decimalPositions, decimalPositions, rpgCodeType)
             }
         }
         RpgType.PACKED.rpgType -> {
-            val elementSize = decimalPositions!! + integerPositions!!
+            val elementSize = explicitElementSize ?: (decimalPositions!! + precision!!)
             if (isPackEven) {
                 // The PACKEVEN keyword indicates that the packed field or array has an even number of digits.
                 // The keyword is only valid for packed program-described data-structure subfields defined using
                 // FROM/TO positions.
 
                 // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
-                val numberOfDigits = 2 * (elementSize!! - 1)
+                val numberOfDigits = if (explicitElementSize == null) precision!! else 2 * (elementSize!! - 1)
 
-                NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
+                NumberType(numberOfDigits!! - decimalPositions!!, decimalPositions, rpgCodeType)
+            } else {
+                // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
+                val numberOfDigits = if (explicitElementSize == null) precision else 2 * elementSize!! - 1
+                NumberType(numberOfDigits!! - decimalPositions!!, decimalPositions, rpgCodeType)
             }
-            // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
-            // val numberOfDigits = 2 * elementSize!! - 1
-            NumberType(integerPositions - decimalPositions, decimalPositions, rpgCodeType)
         }
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
-            val elementSize = explicitElementSize ?: (integerPositions!! + decimalPositions!!)
+            val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
             NumberType(elementSize - decimalPositions!!, decimalPositions!!, rpgCodeType)
         }
         RpgType.ZONED.rpgType -> {
-            val elementSize = decimalPositions!! + integerPositions!!
+            val elementSize = decimalPositions!! + precision!!
             NumberType(elementSize!! - decimalPositions, decimalPositions, rpgCodeType)
         }
         "A" -> {
-            CharacterType(integerPositions!!)
+            CharacterType(precision!!)
         }
         "N" -> BooleanType
         else -> TODO("Support RPG code type '$rpgCodeType', field $name")
