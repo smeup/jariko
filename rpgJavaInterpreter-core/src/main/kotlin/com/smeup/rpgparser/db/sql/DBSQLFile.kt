@@ -17,6 +17,16 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         if (indexes.isEmpty()) connection.orderingFields(name) else indexes
     }
 
+    override fun read(): Record {
+        if (resultSet == null) {
+            setll(emptyList())
+        }
+        require(resultSet != null) {
+            "Read with empty result set"
+        }
+        return readFromPositionedResultSet()
+    }
+
     override fun readEqual(): Record {
         require(resultSet != null) {
             "ReadEqual with no previous search"
@@ -47,6 +57,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
 
     private fun signalEOF() {
         resultSet?.last()
+        resultSet?.next()
     }
 
     override fun readEqual(keys: List<RecordField>): Record {
@@ -61,7 +72,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         return filterRecord(result)
     }
 
-    override fun eof(): Boolean = resultSet?.isLast ?: false
+    override fun eof(): Boolean = resultSet?.isAfterLast ?: true
 
     override fun chain(key: Value): Record = chain(toFields(key))
 

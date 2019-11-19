@@ -130,6 +130,12 @@ data class ReadEqualStmt(
 ) :
     Statement(position)
 
+data class ReadStmt(
+    val name: String, // Factor 2
+    override val position: Position? = null
+) :
+    Statement(position)
+
 data class SetllStmt(
     val searchArg: Expression, // Factor1
     val name: String, // Factor 2

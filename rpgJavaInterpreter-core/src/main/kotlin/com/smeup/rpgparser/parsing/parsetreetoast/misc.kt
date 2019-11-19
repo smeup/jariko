@@ -215,6 +215,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csKLIST() != null -> this.csKLIST().toAst(conf)
         this.csSETLL() != null -> this.csSETLL().toAst(conf)
         this.csREADE() != null -> this.csREADE().toAst(conf)
+        this.csREAD() != null -> this.csREAD().toAst(conf)
         this.csCOMP() != null -> this.csCOMP().toAst(conf)
         this.csMULT() != null -> this.csMULT().toAst(conf)
         this.csDIV() != null -> this.csDIV().toAst(conf)
@@ -414,6 +415,14 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
     return ReadEqualStmt(
         factor1,
+        factor2,
+        toPosition(conf.considerPosition))
+}
+
+internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
+    // TODO implement DS in result field
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
+    return ReadStmt(
         factor2,
         toPosition(conf.considerPosition))
 }
