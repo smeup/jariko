@@ -727,6 +727,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     }
                     fillDataFrom(record)
                 }
+                is ReadStmt -> {
+                    val dbFile = dbFile(statement.name, statement)
+                    val record = dbFile.read()
+                    fillDataFrom(record)
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e: InterruptForDebuggingPurposes) {

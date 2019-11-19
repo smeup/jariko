@@ -66,6 +66,7 @@ interface DBFile {
     fun readEqual(key: Value): Record
     fun readEqual(keys: List<RecordField>): Record
     fun eof(): Boolean
+    fun read(): Record
 }
 
 data class DBField(val name: String, val type: Type, val primaryKey: Boolean = false) {

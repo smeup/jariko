@@ -28,7 +28,7 @@ class ReadEqualDBTest {
     fun findsExistingRecords() {
         assertEquals(
             // TODO is the order of results mandatory?
-            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS"),
+            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS", "KIM NATZ"),
             outputOfDBPgm(
                 "db/CHAINREADE",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),

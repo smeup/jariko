@@ -345,4 +345,5 @@ open class MockDBFile : DBFile {
     override fun readEqual(key: Value): Record = TODO()
     override fun readEqual(keys: List<RecordField>): Record = TODO()
     override fun eof(): Boolean = TODO()
+    override fun read(): Record = TODO()
 }
