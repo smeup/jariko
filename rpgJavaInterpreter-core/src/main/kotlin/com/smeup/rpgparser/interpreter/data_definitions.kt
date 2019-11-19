@@ -4,6 +4,7 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.MuteAnnotation
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.facade.MutesMap
+import com.smeup.rpgparser.parsing.parsetreetoast.FieldInfo
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
@@ -165,6 +166,7 @@ data class FieldDefinition(
         // container. We basically duplicate it
     @property:Link
     var overriddenContainer: DataDefinition? = null,
+    var overlaidField: FieldInfo? = null,
     override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {

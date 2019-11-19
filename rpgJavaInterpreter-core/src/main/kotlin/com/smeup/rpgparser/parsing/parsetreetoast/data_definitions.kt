@@ -303,12 +303,19 @@ data class FieldInfo(
         } else {
             baseType
         }
+        val overlaidField = if(this.overlayInfo == null) null else  {
+            fieldsList.getFieldInfoByName(this.overlayInfo.targetFieldName )
+        }
+
+
+
         return FieldDefinition(this.name,
                 type,
                 explicitStartOffset = this.explicitStartOffset,
                 explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
                 calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
                 calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
+                overlaidField = overlaidField,
                 position = if (conf.considerPosition) this.position else null)
     }
 }
@@ -584,6 +591,14 @@ class FieldsList(val fields: List<FieldInfo>) {
                 }
             }
         }
+    }
+
+    fun getFieldInfoByName(name : String) : FieldInfo?  {
+
+        fields.forEach {
+            if( it.name == name) return it
+        }
+        return null
     }
 
     fun isNotEmpty() = fields.isNotEmpty()

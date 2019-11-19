@@ -395,6 +395,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
     override fun getElement(index: Int): Value {
         val containerElement = container.getElement(index)
+
         if (containerElement is StringValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
         } else if (containerElement is DataStructValue) {
@@ -489,7 +490,20 @@ data class DataStructValue(var value: String) : Value() {
      */
     fun getSingleField(data: FieldDefinition): Value {
         require(data.type is ArrayType)
-        return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type.element)
+
+        when {
+            data.type.element is StringType && data.overlaidField?.elementType is NumberType -> {
+                val value = this.getSubstring(data.startOffset, data.endOffset)
+                return StringValue(decodeFromDS(value.value.trimEnd(),0,0).toString())
+
+            }
+            else -> {
+                return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type.element)
+            }
+
+        }
+
+
     }
 
     val valueWithoutPadding: String
