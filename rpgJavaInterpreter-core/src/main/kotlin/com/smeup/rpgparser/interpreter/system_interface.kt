@@ -13,7 +13,7 @@ import kotlin.collections.LinkedHashMap
 
 typealias LoggingConfiguration = Properties
 
-fun consoleVerboseConfiguration() : LoggingConfiguration {
+fun consoleVerboseConfiguration(): LoggingConfiguration {
     val props = Properties()
     props.setProperty("logger.data.separator", "\t")
     props.setProperty("logger.date.pattern", "HH:mm:ss.SSS")
