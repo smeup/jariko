@@ -303,11 +303,6 @@ data class FieldInfo(
         } else {
             baseType
         }
-        val overlaidField = if(this.overlayInfo == null) null else  {
-            fieldsList.getFieldInfoByName(this.overlayInfo.targetFieldName )
-        }
-
-
 
         return FieldDefinition(this.name,
                 type,
@@ -315,7 +310,6 @@ data class FieldInfo(
                 explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
                 calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
                 calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
-                overlaidField = overlaidField,
                 position = if (conf.considerPosition) this.position else null)
     }
 }
