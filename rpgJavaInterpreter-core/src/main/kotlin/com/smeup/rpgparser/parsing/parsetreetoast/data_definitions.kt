@@ -362,11 +362,6 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
     }
 
     return when (rpgCodeType) {
-        //-> {
-        //    // TODO Fix size
-        //    val elementSize = decimalPositions!! + precision!!
-        //    NumberType(elementSize!! - decimalPositions, decimalPositions, rpgCodeType)
-        //}
         "",RpgType.ZONED.rpgType -> {
             if (decimalPositions == null && precision == null) {
                 null
@@ -374,7 +369,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
                 StringType((explicitElementSize ?: precision)!!.toLong())
             } else {
                 val es = explicitElementSize ?: precision!!
-                NumberType(es - decimalPositions, decimalPositions, rpgCodeType)
+                NumberType(es - decimalPositions, decimalPositions,RpgType.ZONED.rpgType )
             }
         }
         RpgType.PACKED.rpgType -> {
