@@ -10,6 +10,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 import java.math.BigDecimal
 
+
 open class AbstractDataDefinition(
     override val name: String,
     open val type: Type,
@@ -392,14 +393,11 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     val sign = inValue.signum()
 
     inChars.forEachIndexed { index, char ->
-        val digit = char - '0'
+        val digit = char.toInt() //- '0'
         buffer[index] = digit
     }
-
-    if (sign != -1) {
-        buffer[0] += 0xF0
-    } else {
-        buffer[0] += 0xD0
+    if (sign < 0) {
+        buffer[inChars.size-1] = (buffer[inChars.size-1] - 0x030) + 0x0049
     }
 
     var s = ""
@@ -407,8 +405,28 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
         s += byte.toChar()
     }
 
+    s = s.padStart(digits , '0')
     return s
 }
+fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
+    val builder = StringBuilder()
+    var sign:String = ""
+
+    value.forEach {
+        when {
+            it.isDigit() -> builder.append(it)
+            else -> {
+                builder.insert(0,'-')
+                builder.append((it.toInt() - 0x0049 + 0x0030).toChar())
+            }
+        }
+    }
+    if( scale != 0 ) {
+        builder.insert(builder.length - scale, ".")
+    }
+    return BigDecimal(builder.toString())
+}
+
 
 /**
  * Encoding/Decoding a numeric value for a data structure

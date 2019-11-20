@@ -349,7 +349,7 @@ fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
 }
 
 internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
-    val rpgCodeType = DATA_TYPE()?.text?.trim()
+    val rpgCodeType = DATA_TYPE()?.text?.trim() ?: RpgType.ZONED.rpgType
     val precision = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
     val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
     val isPackEven = keyword().any { it.keyword_packeven() != null }
@@ -362,7 +362,12 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
     }
 
     return when (rpgCodeType) {
-        "" -> {
+        //-> {
+        //    // TODO Fix size
+        //    val elementSize = decimalPositions!! + precision!!
+        //    NumberType(elementSize!! - decimalPositions, decimalPositions, rpgCodeType)
+        //}
+        "",RpgType.ZONED.rpgType -> {
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
@@ -393,10 +398,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
             val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
             NumberType(elementSize - decimalPositions!!, decimalPositions!!, rpgCodeType)
         }
-        RpgType.ZONED.rpgType -> {
-            val elementSize = decimalPositions!! + precision!!
-            NumberType(elementSize!! - decimalPositions, decimalPositions, rpgCodeType)
-        }
+
         "A" -> {
             CharacterType(precision!!)
         }
