@@ -13,6 +13,29 @@ import kotlin.collections.LinkedHashMap
 
 typealias LoggingConfiguration = Properties
 
+fun consoleVerboseConfiguration(): LoggingConfiguration {
+    val props = Properties()
+    props.setProperty("logger.data.separator", "\t")
+    props.setProperty("logger.date.pattern", "HH:mm:ss.SSS")
+    props.setProperty("data.level", "all")
+    props.setProperty("data.output", "console")
+    props.setProperty("loop.level", "all")
+    props.setProperty("loop.output", "console")
+
+    props.setProperty("expression.level", "all")
+    props.setProperty("expression.output", "console")
+
+    props.setProperty("statement.level", "all")
+    props.setProperty("statement.output", "console")
+
+    props.setProperty("performance.level", "all")
+    props.setProperty("performance.output", "console")
+
+    props.setProperty("resolution.level", "all")
+    props.setProperty("resolution.output", "console")
+    return LoggingConfiguration(props)
+}
+
 /**
  * This represent the interface to the external world.
  * Printing, accessing databases, all sort of interactions should go through this interface.
