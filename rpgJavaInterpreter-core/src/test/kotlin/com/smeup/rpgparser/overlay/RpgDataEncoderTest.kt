@@ -5,6 +5,7 @@ import org.junit.Test
 import java.math.MathContext
 import kotlin.random.Random.Default.nextInt
 import kotlin.random.Random.Default.nextLong
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RpgDataEncoderTest {
@@ -110,7 +111,19 @@ class RpgDataEncoderTest {
             val encoded50 = encodeToDS(packed50, 5, 0)
             assertTrue(encoded50.length <= 7)
             val decoded50 = decodeFromDS(encoded50, 5, 0)
-            assertTrue(packed50.compareTo(decoded50) == 0)
+            assertEquals(packed50.compareTo(decoded50), 0)
         }
     }
+
+    @Test
+    fun encodeDecodeZoned() {
+        for (i in 0..1048576) {
+            val zoned153 = (nextInt().toString()+".999").toBigDecimal()
+            val encoded153 = encodeToZoned(zoned153, 15, 3);
+            assertEquals(encoded153.length, 15)
+            val decoded153 = decodeFromZoned(encoded153, 15, 3)
+            assertEquals(zoned153.compareTo(decoded153), 0)
+        }
+    }
+
 }
