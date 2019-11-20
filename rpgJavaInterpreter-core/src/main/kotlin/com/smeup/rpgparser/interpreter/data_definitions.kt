@@ -135,7 +135,7 @@ fun Type.toDataStructureValue(value: Value): StringValue {
             // To date only 2 and 4 bytes are supported
             if (this.rpgType == RpgType.BINARY.rpgType) {
                 // Transform the numeric to an encoded string
-                var len = when (this.entireDigits) {
+                val len = when (this.entireDigits) {
                     in 1..4 -> 2
                     in 5..9 -> 4
                     else -> 8
