@@ -4,12 +4,10 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.MuteAnnotation
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.facade.MutesMap
-import com.smeup.rpgparser.parsing.parsetreetoast.FieldInfo
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 import java.math.BigDecimal
-
 
 open class AbstractDataDefinition(
     override val name: String,
@@ -381,7 +379,7 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
 }
 
 /**
- * Encode a numeric value for a data structure
+ * Encode a zoned value for a data structure
  */
 fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
@@ -392,11 +390,11 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     val sign = inValue.signum()
 
     inChars.forEachIndexed { index, char ->
-        val digit = char.toInt() //- '0'
+        val digit = char.toInt()
         buffer[index] = digit
     }
     if (sign < 0) {
-        buffer[inChars.size-1] = (buffer[inChars.size-1] - 0x030) + 0x0049
+        buffer[inChars.size - 1] = (buffer[inChars.size - 1] - 0x030) + 0x0049
     }
 
     var s = ""
@@ -404,28 +402,27 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
         s += byte.toChar()
     }
 
-    s = s.padStart(digits , '0')
+    s = s.padStart(digits, '0')
     return s
 }
+
 fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
     val builder = StringBuilder()
-    var sign:String = ""
 
     value.forEach {
         when {
             it.isDigit() -> builder.append(it)
             else -> {
-                builder.insert(0,'-')
+                builder.insert(0, '-')
                 builder.append((it.toInt() - 0x0049 + 0x0030).toChar())
             }
         }
     }
-    if( scale != 0 ) {
+    if (scale != 0) {
         builder.insert(builder.length - scale, ".")
     }
     return BigDecimal(builder.toString())
 }
-
 
 /**
  * Encoding/Decoding a numeric value for a data structure

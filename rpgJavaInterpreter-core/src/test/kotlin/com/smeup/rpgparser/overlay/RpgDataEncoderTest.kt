@@ -118,12 +118,11 @@ class RpgDataEncoderTest {
     @Test
     fun encodeDecodeZoned() {
         for (i in 0..1048576) {
-            val zoned153 = (nextInt().toString()+".999").toBigDecimal()
-            val encoded153 = encodeToZoned(zoned153, 15, 3);
+            val zoned153 = (nextInt().toString() + ".999").toBigDecimal()
+            val encoded153 = encodeToZoned(zoned153, 15, 3)
             assertEquals(encoded153.length, 15)
             val decoded153 = decodeFromZoned(encoded153, 15, 3)
             assertEquals(zoned153.compareTo(decoded153), 0)
         }
     }
-
 }

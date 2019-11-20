@@ -356,14 +356,14 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
     }
 
     return when (rpgCodeType) {
-        "",RpgType.ZONED.rpgType -> {
+        "", RpgType.ZONED.rpgType -> {
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
                 StringType((explicitElementSize ?: precision)!!.toLong())
             } else {
                 val es = explicitElementSize ?: precision!!
-                NumberType(es - decimalPositions, decimalPositions,RpgType.ZONED.rpgType )
+                NumberType(es - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
             }
         }
         RpgType.PACKED.rpgType -> {
@@ -582,14 +582,6 @@ class FieldsList(val fields: List<FieldInfo>) {
                 }
             }
         }
-    }
-
-    fun getFieldInfoByName(name : String) : FieldInfo?  {
-
-        fields.forEach {
-            if( it.name == name) return it
-        }
-        return null
     }
 
     fun isNotEmpty() = fields.isNotEmpty()

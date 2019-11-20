@@ -55,7 +55,7 @@ class RpgParserDataStruct {
 
         assertEquals(DataStructureType(listOf(
                 // In datastruct if not specified default to ZONED (S)
-                FieldType("FLD1", NumberType(5, 0,"S")),
+                FieldType("FLD1", NumberType(5, 0, "S")),
                 FieldType("FLD2", StringType(10))
         ), 15), MYDS.type)
 

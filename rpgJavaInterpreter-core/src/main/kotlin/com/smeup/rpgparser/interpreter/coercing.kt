@@ -60,7 +60,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                         val intValue = decodeBinary(value.value, type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
-                    type.rpgType == RpgType.INTEGER.rpgType  -> {
+                    type.rpgType == RpgType.INTEGER.rpgType -> {
                         val intValue = decodeInteger(value.value, type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
@@ -75,7 +75,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    if( type.rpgType == RpgType.ZONED.rpgType ) {
+                    if (type.rpgType == RpgType.ZONED.rpgType) {
                         val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
                         DecimalValue(decimalValue)
                     } else {
