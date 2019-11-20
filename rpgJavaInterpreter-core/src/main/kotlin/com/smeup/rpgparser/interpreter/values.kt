@@ -490,20 +490,7 @@ data class DataStructValue(var value: String) : Value() {
      */
     fun getSingleField(data: FieldDefinition): Value {
         require(data.type is ArrayType)
-
-        when {
-            data.type.element is StringType && data.overlaidField?.elementType is NumberType -> {
-                val value = this.getSubstring(data.startOffset, data.endOffset)
-                return StringValue(decodeFromDS(value.value.trimEnd(),0,0).toString())
-
-            }
-            else -> {
-                return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type.element)
-            }
-
-        }
-
-
+        return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type.element)
     }
 
     val valueWithoutPadding: String
