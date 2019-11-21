@@ -247,5 +247,13 @@ class DataDefinitionTest {
         // The actual size is 12200
         // assertEquals(12400, AR01.elementSize())
         assertEquals(12200, AR01.elementSize())
+
+    }
+    @Test
+    fun initializatonValue() {
+        val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
+        cu.resolve()
+        val LOG1 = cu.getDataDefinition("LOG1")
+        assertTrue((LOG1.initializationValue as StringLiteral).value  == "0F0L1L2L3L4L5L")
     }
 }
