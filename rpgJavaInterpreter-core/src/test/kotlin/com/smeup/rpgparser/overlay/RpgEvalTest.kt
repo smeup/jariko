@@ -15,7 +15,7 @@ class RpgEvalTest {
     fun EVAL_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
         val cu = com.smeup.rpgparser.assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

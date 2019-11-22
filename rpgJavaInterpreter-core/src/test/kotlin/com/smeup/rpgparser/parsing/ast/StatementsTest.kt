@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.LR
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.RT
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
@@ -245,7 +246,7 @@ class StatementsTest {
 
     @test fun plistDeclareVariable() {
         val cu = assertASTCanBeProduced("ECHO")
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val plists = cu.collectByType(PlistStmt::class.java).distinct()
         assertEquals(1, plists.size)
         assertEquals(1, plists.first().dataDefinition().size)
@@ -253,7 +254,7 @@ class StatementsTest {
 
     @test fun plistDoesNotDeclareVariable() {
         val cu = assertASTCanBeProduced("ECHO2")
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val plists = cu.collectByType(PlistStmt::class.java).distinct()
         assertEquals(1, plists.size)
         assertEquals(0, plists.first().dataDefinition().size)

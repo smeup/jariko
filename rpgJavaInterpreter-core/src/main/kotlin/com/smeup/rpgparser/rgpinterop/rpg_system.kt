@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.rgpinterop
 
+import com.smeup.rpgparser.interpreter.DBInterface
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.RpgProgram
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -7,13 +9,13 @@ import java.io.FileInputStream
 import java.util.*
 
 interface RpgProgramFinder {
-    fun findRpgProgram(nameOrSource: String): RpgProgram?
+    fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram?
 }
 
 class SourceProgramFinder : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
         if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
-            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), nameOrSource)
+            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), dbInterface, nameOrSource)
         }
         return null
     }
@@ -29,10 +31,10 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         directory?.let { require(it.exists()) { "The specified directory should exist: ${directory.path} -> ${directory.absolutePath}" } }
     }
 
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
         val file = File(prefix() + nameAndSuffix(nameOrSource))
         return if (file.exists()) {
-            RpgProgram.fromInputStream(FileInputStream(file), nameOrSource)
+            RpgProgram.fromInputStream(FileInputStream(file), dbInterface, nameOrSource)
         } else {
             println("Not found file ${file.absolutePath}")
             null
@@ -59,7 +61,13 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 }
 
 object RpgSystem {
-    internal val programFinders = LinkedList<RpgProgramFinder>()
+    var db: DBInterface = DummyDBInterface
+
+    internal val programFinders = LinkedHashSet<RpgProgramFinder>()
+
+    fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {
+        programFinders.addAll(programFindersList)
+    }
 
     fun addProgramFinder(programFinder: RpgProgramFinder) {
         programFinders.add(programFinder)
@@ -67,7 +75,7 @@ object RpgSystem {
 
     fun getProgram(programName: String): RpgProgram {
         programFinders.forEach {
-            val program = it.findRpgProgram(programName)
+            val program = it.findRpgProgram(programName, db)
             if (program != null) {
                 return program
             }

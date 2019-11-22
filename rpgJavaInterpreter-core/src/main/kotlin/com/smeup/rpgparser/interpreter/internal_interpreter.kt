@@ -725,7 +725,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SetllStmt -> {
                     val dbFile = dbFile(statement.name, statement)
-                    if (statement.searchArg.type() is KListType) {
+                    lastFound = if (statement.searchArg.type() is KListType) {
                         dbFile.setll(toSearchValues(statement.searchArg))
                     } else {
                         dbFile.setll(eval(statement.searchArg))
@@ -738,6 +738,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         statement.searchArg.type() is KListType -> dbFile.readEqual(toSearchValues(statement.searchArg))
                         else -> dbFile.readEqual(eval(statement.searchArg))
                     }
+                    fillDataFrom(record)
+                }
+                is ReadStmt -> {
+                    val dbFile = dbFile(statement.name, statement)
+                    val record = dbFile.read()
                     fillDataFrom(record)
                 }
                 else -> TODO(statement.toString())
