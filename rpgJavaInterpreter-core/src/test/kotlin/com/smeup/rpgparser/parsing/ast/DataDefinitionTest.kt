@@ -1,7 +1,9 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.*
+import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.assertDataDefinitionIsPresent
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -247,13 +249,12 @@ class DataDefinitionTest {
         // The actual size is 12200
         // assertEquals(12400, AR01.elementSize())
         assertEquals(12200, AR01.elementSize())
-
     }
     @Test
     fun initializatonValue() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolve()
         val LOG1 = cu.getDataDefinition("LOG1")
-        assertTrue((LOG1.initializationValue as StringLiteral).value  == "0F0L1L2L3L4L5L")
+        assertEquals((LOG1.initializationValue as StringLiteral).value, "0F0L1L2L3L4L5L")
     }
 }

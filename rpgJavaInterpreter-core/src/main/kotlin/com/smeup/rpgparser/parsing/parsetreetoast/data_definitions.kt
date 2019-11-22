@@ -436,8 +436,8 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
 
         var initializationValue: Expression? = null
         var hasInitValue = this.keyword().find { it.keyword_inz() != null }
-        if(hasInitValue != null) {
-            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf)  as Expression
+        if (hasInitValue != null) {
+            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
         }
 
         return FieldInfo(this.name, overlayInfo = overlayInfo,
@@ -598,7 +598,7 @@ class FieldsList(val fields: List<FieldInfo>) {
 }
 
 internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
-    var initializationValue : Expression? = null
+    var initializationValue: Expression? = null
     val size = this.declaredSize()
 
     // Calculating information about the DS and its fields is full of interdependecies
@@ -612,10 +612,10 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
         null
     }
     // If the name of the DS is not provided, it takes the first field name
-    if(this.hasHeader) {
+    if (this.hasHeader) {
         var hasInitValue = this.parm_fixed().first().keyword().find { it.keyword_inz() != null }
-        if(hasInitValue != null) {
-            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf)  as Expression
+        if (hasInitValue != null) {
+            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
         }
     }
     val dataDefinition = DataDefinition(
@@ -639,7 +639,6 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
         } else {
             null
         }
-
 
         val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
 
