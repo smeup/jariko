@@ -253,7 +253,7 @@ class DataDefinitionTest {
     @Test
     fun initializatonValue() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val LOG1 = cu.getDataDefinition("LOG1")
         assertEquals((LOG1.initializationValue as StringLiteral).value, "0F0L1L2L3L4L5L")
     }
