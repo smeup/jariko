@@ -72,10 +72,53 @@ class RpgParserOverlayTest12 {
         val ds0005 = ds.getFieldByName("DS0005")
         assertEquals(NumberType(7, 3, RpgType.PACKED), ds0005.type)
         assertEquals(6, ds0005.size)
+
+        val ds0011 = ds.getFieldByName("DS0011")
+        assertEquals(NumberType(2, 0, RpgType.BINARY), ds0011.type)
+        assertEquals(2, ds0011.size)
+
+        val ds0012 = ds.getFieldByName("DS0012")
+        assertEquals(NumberType(2, 0, RpgType.BINARY), ds0012.type)
+        assertEquals(2, ds0012.size)
+
+
+        val ds0013 = ds.getFieldByName("DS0013")
+        assertEquals(NumberType(3, 0, RpgType.INTEGER), ds0013.type)
+        assertEquals(1, ds0013.size)
+
+        val ds0014 = ds.getFieldByName("DS0014")
+        assertEquals(NumberType(3, 0, RpgType.UNSIGNED), ds0014.type)
+        assertEquals(1, ds0014.size)
+
+
+        val ds0015 = ds.getFieldByName("DS0015")
+        assertEquals(NumberType(5, 0, RpgType.INTEGER), ds0015.type)
+        assertEquals(2, ds0015.size)
+
+        val ds0016 = ds.getFieldByName("DS0016")
+        assertEquals(NumberType(5, 0, RpgType.UNSIGNED), ds0016.type)
+        assertEquals(2, ds0016.size)
+
+        val ds0017 = ds.getFieldByName("DS0017")
+        assertEquals(NumberType(10, 0, RpgType.INTEGER), ds0017.type)
+        assertEquals(4, ds0017.size)
+
+        val ds0018 = ds.getFieldByName("DS0018")
+        assertEquals(NumberType(10, 0, RpgType.UNSIGNED), ds0018.type)
+        assertEquals(4, ds0018.size)
+
+        val ds0019 = ds.getFieldByName("DS0019")
+        assertEquals(NumberType(19, 0, RpgType.INTEGER), ds0019.type)
+        assertEquals(8, ds0019.size)
+
+        val ds0020 = ds.getFieldByName("DS0020")
+        assertEquals(NumberType(19, 0, RpgType.UNSIGNED), ds0020.type)
+        assertEquals(8, ds0020.size)
+
+
     }
 
     @Test
-    @Ignore // 26 annotations still failing
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         cu.resolve()

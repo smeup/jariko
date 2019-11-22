@@ -385,9 +385,25 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
                 NumberType(numberOfDigits!! - decimalPositions!!, decimalPositions, rpgCodeType)
             }
         }
-        RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType, RpgType.BINARY.rpgType -> {
+        RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> {
             val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
-            NumberType(elementSize - decimalPositions!!, decimalPositions!!, rpgCodeType)
+            when(elementSize) {
+                1 -> NumberType(3, 0, rpgCodeType)
+                2 -> NumberType(5, 0, rpgCodeType)
+                4 -> NumberType(10, 0, rpgCodeType)
+                8 -> NumberType(19, 0, rpgCodeType)
+                else -> NumberType(elementSize - decimalPositions!!, decimalPositions!!, rpgCodeType)
+            }
+
+        }
+        RpgType.BINARY.rpgType -> {
+            val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
+            when(elementSize) {
+                2,3,4 -> NumberType(2, 0, rpgCodeType)
+                5,6,7,8-> NumberType(4, 0, rpgCodeType)
+                else -> NumberType(8, 0, rpgCodeType)
+            }
+
         }
 
         "A" -> {
