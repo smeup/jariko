@@ -379,7 +379,7 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
 }
 
 /**
- * Encode a numeric value for a data structure
+ * Encode a zoned value for a data structure
  */
 fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
@@ -390,14 +390,11 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     val sign = inValue.signum()
 
     inChars.forEachIndexed { index, char ->
-        val digit = char - '0'
+        val digit = char.toInt()
         buffer[index] = digit
     }
-
-    if (sign != -1) {
-        buffer[0] += 0xF0
-    } else {
-        buffer[0] += 0xD0
+    if (sign < 0) {
+        buffer[inChars.size - 1] = (buffer[inChars.size - 1] - 0x030) + 0x0049
     }
 
     var s = ""
@@ -405,7 +402,26 @@ fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
         s += byte.toChar()
     }
 
+    s = s.padStart(digits, '0')
     return s
+}
+
+fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
+    val builder = StringBuilder()
+
+    value.forEach {
+        when {
+            it.isDigit() -> builder.append(it)
+            else -> {
+                builder.insert(0, '-')
+                builder.append((it.toInt() - 0x0049 + 0x0030).toChar())
+            }
+        }
+    }
+    if (scale != 0) {
+        builder.insert(builder.length - scale, ".")
+    }
+    return BigDecimal(builder.toString())
 }
 
 /**

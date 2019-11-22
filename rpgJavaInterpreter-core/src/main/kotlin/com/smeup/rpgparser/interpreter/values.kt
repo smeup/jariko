@@ -395,6 +395,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
     override fun getElement(index: Int): Value {
         val containerElement = container.getElement(index)
+
         if (containerElement is StringValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
         } else if (containerElement is DataStructValue) {

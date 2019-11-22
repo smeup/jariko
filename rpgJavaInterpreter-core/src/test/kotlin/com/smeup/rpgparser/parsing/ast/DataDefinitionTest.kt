@@ -183,7 +183,7 @@ class DataDefinitionTest {
         val FI19 = cu.getDataDefinition("ARDS").getFieldByName("FI19")
         val FI20 = cu.getDataDefinition("ARDS").getFieldByName("FI20")
 
-        assertEquals(ArrayType(NumberType(12, 3, ""), 100), FI07.type)
+        assertEquals(ArrayType(NumberType(12, 3, RpgType.ZONED), 100), FI07.type)
         assertEquals(ArrayType(NumberType(12, 3, RpgType.PACKED), 100), FI10.type)
         assertEquals(ArrayType(NumberType(2, 0, "B"), 100), FI11.type)
         assertEquals(ArrayType(NumberType(3, 0, "U"), 100), FI17.type)
