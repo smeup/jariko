@@ -165,6 +165,7 @@ data class FieldDefinition(
         // container. We basically duplicate it
     @property:Link
     var overriddenContainer: DataDefinition? = null,
+    val initializationValue: Expression? = null,
     override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {

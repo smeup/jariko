@@ -95,7 +95,11 @@ private fun coerceString(value: StringValue, type: Type): Value {
             }
         }
         is DataStructureType -> {
-            type.blank()
+            if( value.isBlank() ) {
+                type.blank()
+            } else {
+                DataStructValue(value.value)
+            }
         }
         is CharacterType -> {
             return StringValue(value.value)

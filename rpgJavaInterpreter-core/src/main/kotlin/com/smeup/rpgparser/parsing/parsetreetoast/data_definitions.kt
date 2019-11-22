@@ -262,6 +262,7 @@ data class FieldInfo(
     // While here it is not:
     // D AR01                                DIM(100) ASCEND
     val explicitElementType: Type? = null,
+    val initializationValue: Expression? = null,
     val position: Position?
 ) {
 
@@ -310,6 +311,7 @@ data class FieldInfo(
                 explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
                 calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
                 calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
+                initializationValue = this.initializationValue,
                 position = if (conf.considerPosition) this.position else null)
     }
 }
@@ -419,6 +421,7 @@ fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
 
 private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration()): FieldInfo {
     try {
+
         var overlayInfo: FieldInfo.OverlayInfo? = null
         val overlay = this.keyword().find { it.keyword_overlay() != null }
         if (overlay != null) {
@@ -431,11 +434,18 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
             overlayInfo = FieldInfo.OverlayInfo(targetFieldName, isNext, posValue = posValue)
         }
 
+        var initializationValue: Expression? = null
+        var hasInitValue = this.keyword().find { it.keyword_inz() != null }
+        if(hasInitValue != null) {
+            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf)  as Expression
+        }
+
         return FieldInfo(this.name, overlayInfo = overlayInfo,
                 explicitStartOffset = this.explicitStartOffset(),
                 explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
                 explicitElementType = this.calculateExplicitElementType(),
                 arraySizeDeclared = this.arraySizeDeclared(),
+                initializationValue = initializationValue,
                 position = this.toPosition(conf.considerPosition))
     } catch (e: Exception) {
         throw RuntimeException("Problem arose converting to AST field ${this.name}", e)
@@ -588,6 +598,7 @@ class FieldsList(val fields: List<FieldInfo>) {
 }
 
 internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
+    var initializationValue : Expression? = null
     val size = this.declaredSize()
 
     // Calculating information about the DS and its fields is full of interdependecies
@@ -600,11 +611,18 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     } else {
         null
     }
-
+    // If the name of the DS is not provided, it takes the first field name
+    if(this.hasHeader) {
+        var hasInitValue = this.parm_fixed().first().keyword().find { it.keyword_inz() != null }
+        if(hasInitValue != null) {
+            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf)  as Expression
+        }
+    }
     val dataDefinition = DataDefinition(
             this.name,
             type,
             fields = fieldsList.fields.map { it.toAst(nElements, fieldsList, conf) },
+            initializationValue = initializationValue,
             position = this.toPosition(true))
     dataDefinition.fields.forEach { it.parent = dataDefinition }
     return dataDefinition
@@ -622,7 +640,6 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
             null
         }
 
-        val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
 
         val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
 
