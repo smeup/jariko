@@ -9,13 +9,10 @@ import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.asInt
-import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.TimeoutException
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
+import kotlin.test.Ignore
 
 class MuteExecutionTest {
 
@@ -72,6 +69,56 @@ class MuteExecutionTest {
         assertEquals(1, cu.timeouts.size)
         assertEquals(12345, cu.timeouts[0].timeout)
         execute(cu, emptyMap())
+    }
+
+    @Test
+    fun executeSIMPLE_MUTE_FAIL_STATIC_MESSAGE() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_STATIC_MESSAGE", true, withMuteSupport = true)
+        cu.resolve()
+        assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertFalse(muteAnnotationExecuted.succeeded())
+        assertEquals("This code should not be executed", muteAnnotationExecuted.headerDescription())
+    }
+
+    @Test
+    fun executeSIMPLE_MUTE_FAIL_EVALUATED_MESSAGE() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_EVALUATED_MESSAGE", true, withMuteSupport = true)
+        cu.resolve()
+        assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertFalse(muteAnnotationExecuted.succeeded())
+        assertEquals("Failure message", muteAnnotationExecuted.headerDescription())
+    }
+
+    @Test
+    fun executeSIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_WRONG_USAGE() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_WRONG_USAGE", true, withMuteSupport = true)
+        cu.resolve()
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertFalse(muteAnnotationExecuted.succeeded())
+    }
+
+    @Test
+    fun executeSIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_CORRECT_USAGE() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_CORRECT_USAGE", true, withMuteSupport = true)
+        cu.resolve()
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
+    }
+
+    @Test
+    fun executeSSIMPLE_MUTE_FAIL_WITH_IF_AND_STATEMENTS_BEFORE_ENDIF() {
+        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_AND_STATEMENTS_BEFORE_ENDIF", true, withMuteSupport = true)
+        cu.resolve()
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
     }
 
     @Test
