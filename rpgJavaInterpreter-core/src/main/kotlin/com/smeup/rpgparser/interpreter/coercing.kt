@@ -56,15 +56,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (type.integer) {
                 when {
                     value.isBlank() -> IntValue.ZERO
-                    type.rpgType == "B" -> {
+                    type.rpgType == RpgType.BINARY.rpgType -> {
                         val intValue = decodeBinary(value.value, type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
-                    type.rpgType == "I" -> {
+                    type.rpgType == RpgType.INTEGER.rpgType -> {
                         val intValue = decodeInteger(value.value, type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
-                    type.rpgType == "U" -> {
+                    type.rpgType == RpgType.UNSIGNED.rpgType -> {
                         val intValue = decodeUnsigned(value.value, type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
@@ -75,8 +75,13 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                    DecimalValue(decimalValue)
+                    if (type.rpgType == RpgType.ZONED.rpgType) {
+                        val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                        DecimalValue(decimalValue)
+                    } else {
+                        val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                        DecimalValue(decimalValue)
+                    }
                 } else {
                     DecimalValue(BigDecimal.ZERO)
                 }
@@ -90,7 +95,11 @@ private fun coerceString(value: StringValue, type: Type): Value {
             }
         }
         is DataStructureType -> {
-            type.blank()
+            if (value.isBlank()) {
+                type.blank()
+            } else {
+                DataStructValue(value.value)
+            }
         }
         is CharacterType -> {
             return StringValue(value.value)

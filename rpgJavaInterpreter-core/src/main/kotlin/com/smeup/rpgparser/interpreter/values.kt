@@ -395,6 +395,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
     override fun getElement(index: Int): Value {
         val containerElement = container.getElement(index)
+
         if (containerElement is StringValue) {
             return containerElement.getSubstring(field.startOffset, field.endOffset)
         } else if (containerElement is DataStructValue) {
@@ -481,6 +482,22 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     operator fun get(data: FieldDefinition): Value {
+        if (data.type is ArrayType) {
+            val value = this.getSubstring(data.startOffset, data.size.toInt())
+
+            if (data.type.element is StringType) {
+                val arraySize = data.type.nElements
+                val elementSize = data.type.element.size.toInt()
+                // # extract the entire value of
+                val valueForArray = value.value.padEnd(elementSize * arraySize)
+                return createArrayValue(data.type.element, data.type.nElements) {
+                    val start = it * elementSize
+                    val end = start + elementSize
+                    val arrayValue = valueForArray.substring(start, end).padEnd(elementSize)
+                    StringValue(arrayValue)
+                }
+            }
+        }
         return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
     }
 

@@ -1,7 +1,9 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.*
+import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.assertDataDefinitionIsPresent
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -183,7 +185,8 @@ class DataDefinitionTest {
         val FI19 = cu.getDataDefinition("ARDS").getFieldByName("FI19")
         val FI20 = cu.getDataDefinition("ARDS").getFieldByName("FI20")
 
-        assertEquals(ArrayType(NumberType(12, 3, ""), 100), FI07.type)
+        assertEquals(ArrayType(NumberType(12, 3, RpgType.ZONED), 100), FI07.type)
+        assertEquals(ArrayType(NumberType(12, 3, RpgType.PACKED), 100), FI10.type)
         assertEquals(ArrayType(NumberType(2, 0, "B"), 100), FI11.type)
         assertEquals(ArrayType(NumberType(3, 0, "U"), 100), FI17.type)
 
@@ -246,5 +249,13 @@ class DataDefinitionTest {
         // The actual size is 12200
         // assertEquals(12400, AR01.elementSize())
         assertEquals(12200, AR01.elementSize())
+    }
+
+    @Test
+    fun initializatonValue() {
+        val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
+        cu.resolve(DummyDBInterface)
+        val LOG1 = cu.getDataDefinition("LOG1")
+        assertEquals((LOG1.initializationValue as StringLiteral).value, "0F0L1L2L3L4L5L")
     }
 }
