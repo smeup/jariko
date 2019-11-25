@@ -277,13 +277,15 @@
      C                   EVAL      DS0010=*HIVAL
     MU* VAL1(DS0010) VAL2(-9999999999,99999) COMP(EQ)
      C                   EVAL      DS0010=*LOVAL
-    MU* VAL1(DS0011) VAL2(9999) COMP(EQ)
+      * TODO incorrect, DS0011 is 2 bytes
+    MU* VAL1(DS0011) VAL2(99) COMP(EQ)
      C                   EVAL      DS0011=*HIVAL
-    MU* VAL1(DS0011) VAL2(-9999) COMP(EQ)
+    MU* VAL1(DS0011) VAL2(-99) COMP(EQ)
      C                   EVAL      DS0011=*LOVAL
-    MU* VAL1(DS0012) VAL2(999999999) COMP(EQ)
+      * TODO incorrect, DS0012 is 2 bytes
+    MU* VAL1(DS0012) VAL2(99) COMP(EQ)
      C                   EVAL      DS0012=*HIVAL
-    MU* VAL1(DS0012) VAL2(-999999999) COMP(EQ)
+    MU* VAL1(DS0012) VAL2(-99) COMP(EQ)
      C                   EVAL      DS0012=*LOVAL
     MU* VAL1(DS0013) VAL2(127) COMP(EQ)
      C                   EVAL      DS0013=*HIVAL
@@ -295,7 +297,8 @@
      C                   EVAL      DS0014=*LOVAL
     MU* VAL1(DS0015) VAL2(32767) COMP(EQ)
      C                   EVAL      DS0015=*HIVAL
-    MU* VAL1(DS0015) VAL2(-32768) COMP(EQ)
+      * TODO MU* VAL1(DS0015) VAL2(-32768) COMP(EQ) incorrect, DS0015 is unsigned
+    MU* VAL1(DS0015) VAL2(0) COMP(EQ)
      C                   EVAL      DS0015=*LOVAL
     MU* VAL1(DS0016) VAL2(65535) COMP(EQ)
      C                   EVAL      DS0016=*HIVAL

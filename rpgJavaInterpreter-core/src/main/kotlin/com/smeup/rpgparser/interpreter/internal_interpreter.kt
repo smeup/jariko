@@ -850,10 +850,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             value1 is IntValue && value2 is DecimalValue -> {
                 value1.asInt() == value2.asInt()
             }
+
             value1 is DecimalValue && value2 is DecimalValue -> {
                 // Convert everything to Decimal then compare
                 value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
             }
+
 
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()

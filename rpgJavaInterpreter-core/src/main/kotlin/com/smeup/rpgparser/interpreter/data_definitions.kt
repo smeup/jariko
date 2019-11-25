@@ -142,8 +142,8 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                 }
                 val encoded = encodeBinary(value.asDecimal().value, len)
                 // adjust the size to fit the target field
-                val fitted = encoded.padEnd(this.size.toInt())
-                return StringValue(fitted)
+                //val fitted = encoded.padEnd(this.size.toInt())
+                return StringValue(encoded)
             }
             TODO("Not implemented $this")
         }
