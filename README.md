@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/smeup/jariko.svg?branch=master)](https://travis-ci.org/smeup/jariko)
 [![CircleCI](https://circleci.com/gh/smeup/jariko.svg?style=svg)](https://circleci.com/gh/smeup/jariko)
 [![codebeat badge](https://codebeat.co/badges/92633ae2-5640-47b3-a0e7-b324f68288ac)](https://codebeat.co/projects/github-com-smeup-smeup-rpg-master)
-[![](https://jitpack.io/v/smeup/smeup-rpg.svg)](https://jitpack.io/#smeup/smeup-rpg)
+[![jitpack](https://jitpack.io/v/smeup/jariko.svg)](https://jitpack.io/#smeup/jariko)
 
 This project contains an interpreter for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). This interpreter runs on the JVM since it's written in Kotlin.
 
@@ -51,7 +51,7 @@ If you use Maven, add these lines to your pom.xml in order to add the repository
 Then add the following dependencies for the core library:
 	
     <dependency>
-        <groupId>com.github.smeup.smeup-rpg</groupId>
+        <groupId>com.github.smeup.jariko</groupId>
         <artifactId>rpgJavaInterpreter-core</artifactId>
         <version>-SNAPSHOT</version>
     </dependency>
@@ -59,7 +59,7 @@ Then add the following dependencies for the core library:
 And this if you want to include the examples too:
 		
     <dependency>
-        <groupId>com.github.smeup.smeup-rpg</groupId>
+        <groupId>com.github.smeup.jariko</groupId>
         <artifactId>examples</artifactId>
         <version>-SNAPSHOT</version>
     </dependency>
