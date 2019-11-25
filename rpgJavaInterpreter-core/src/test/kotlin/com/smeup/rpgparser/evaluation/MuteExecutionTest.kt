@@ -74,7 +74,7 @@ class MuteExecutionTest {
     @Test
     fun executeSIMPLE_MUTE_FAIL_STATIC_MESSAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_STATIC_MESSAGE", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
         val interpreter = execute(cu, emptyMap())
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
@@ -86,7 +86,7 @@ class MuteExecutionTest {
     @Test
     fun executeSIMPLE_MUTE_FAIL_EVALUATED_MESSAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_EVALUATED_MESSAGE", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
         val interpreter = execute(cu, emptyMap())
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
@@ -98,7 +98,7 @@ class MuteExecutionTest {
     @Test
     fun executeSIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_WRONG_USAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_WRONG_USAGE", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, emptyMap())
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
         val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
@@ -108,7 +108,7 @@ class MuteExecutionTest {
     @Test
     fun executeSIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_CORRECT_USAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_CORRECT_USAGE", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, emptyMap())
         assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
     }
@@ -116,7 +116,7 @@ class MuteExecutionTest {
     @Test
     fun executeSSIMPLE_MUTE_FAIL_WITH_IF_AND_STATEMENTS_BEFORE_ENDIF() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_AND_STATEMENTS_BEFORE_ENDIF", true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, emptyMap())
         assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
     }

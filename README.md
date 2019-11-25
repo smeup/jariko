@@ -1,8 +1,8 @@
 # jariko
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build Status](https://travis-ci.org/smeup/smeup-rpg.svg?branch=master)](https://travis-ci.org/smeup/smeup-rpg)
-[![CircleCI](https://circleci.com/gh/smeup/smeup-rpg.svg?style=svg)](https://circleci.com/gh/smeup/smeup-rpg)
+[![Build Status](https://travis-ci.org/smeup/jariko.svg?branch=master)](https://travis-ci.org/smeup/jariko)
+[![CircleCI](https://circleci.com/gh/smeup/jariko.svg?style=svg)](https://circleci.com/gh/smeup/jariko)
 [![codebeat badge](https://codebeat.co/badges/92633ae2-5640-47b3-a0e7-b324f68288ac)](https://codebeat.co/projects/github-com-smeup-smeup-rpg-master)
 [![](https://jitpack.io/v/smeup/smeup-rpg.svg)](https://jitpack.io/#smeup/smeup-rpg)
 
