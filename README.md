@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://travis-ci.org/smeup/jariko.svg?branch=master)](https://travis-ci.org/smeup/jariko)
 [![CircleCI](https://circleci.com/gh/smeup/jariko.svg?style=svg)](https://circleci.com/gh/smeup/jariko)
-[![codebeat badge](https://codebeat.co/badges/92633ae2-5640-47b3-a0e7-b324f68288ac)](https://codebeat.co/projects/github-com-smeup-smeup-rpg-master)
+[![codebeat badge](https://codebeat.co/badges/220f492a-ca5b-4c88-aa11-c873b568a84b)](https://codebeat.co/projects/github-com-smeup-jariko-master)
 [![jitpack](https://jitpack.io/v/smeup/jariko.svg)](https://jitpack.io/#smeup/jariko)
 
 This project contains an interpreter for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). This interpreter runs on the JVM since it's written in Kotlin.
@@ -64,7 +64,7 @@ And this if you want to include the examples too:
         <version>-SNAPSHOT</version>
     </dependency>
 
-Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient).
+Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient), and here is [another one](https://github.com/smeup/rpgweb).
 
 _Side note for maven users who use mirrors: remember to change your .m2/settings.xml with settings like this:_
 
