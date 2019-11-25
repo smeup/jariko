@@ -60,8 +60,26 @@ An expression can be used for the failing message:
      MU* FAIL(MSG)
  ```
 
-This kind of assertion can be used everywhere in the RPG source code, and it's not tied with the instruction it annotates.
-The execution of the program contiues even after the failing of the assertion, but an error is reported at the end of the MUTE tests.
+This kind of assertion is still an annotation, so it's tied with the instruction it annotates.
+For example, this is a wrong way of using a ```FAIL``` assertion, since it results to annotate the ```DSPLY``` instruction.
+
+```
+     C                   IF        1=2
+    MU* FAIL('This code should not be executed')
+     C                   ENDIF
+     C     ''            DSPLY
+```
+
+The correct way of doing this should be:
+
+```
+     C                   IF        1=2
+    MU* FAIL('This code should not be executed')
+     C     ''            DSPLY
+     C                   ENDIF
+```
+
+The execution of the program continues even after the failing of the assertion, but an error is reported at the end of the MUTE tests.
 
 ## Command line utility
 
