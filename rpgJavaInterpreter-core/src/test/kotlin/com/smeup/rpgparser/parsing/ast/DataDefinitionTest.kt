@@ -250,6 +250,7 @@ class DataDefinitionTest {
         // assertEquals(12400, AR01.elementSize())
         assertEquals(12200, AR01.elementSize())
     }
+
     @Test
     fun initializatonValue() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)

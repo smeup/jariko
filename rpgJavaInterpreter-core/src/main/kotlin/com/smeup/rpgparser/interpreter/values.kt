@@ -491,7 +491,6 @@ data class DataStructValue(var value: String) : Value() {
                 // # extract the entire value of
                 val valueForArray = value.value.padEnd(elementSize * arraySize)
                 return createArrayValue(data.type.element, data.type.nElements) {
-                    // TODO Since value property of StringValue is a var, we cannot share instances of StringValue
                     val start = it * elementSize
                     val end = start + elementSize
                     val arrayValue = valueForArray.substring(start, end).padEnd(elementSize)
