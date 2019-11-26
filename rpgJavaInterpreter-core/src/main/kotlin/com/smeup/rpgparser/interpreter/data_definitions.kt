@@ -16,7 +16,7 @@ open class AbstractDataDefinition(
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
-    fun elementSize() = type.elementSize()
+    open fun elementSize() = type.elementSize()
 
     fun accept(mutes: MutesMap, start: Int, end: Int):
             MutableList<MuteAnnotationResolved> {
@@ -180,6 +180,14 @@ data class FieldDefinition(
     }
 
     val size: Long = type.size
+
+    override fun elementSize() : Long {
+        return if (container.type is ArrayType) {
+            super.elementSize()
+        } else {
+            size
+        }
+    }
 
     fun toDataStructureValue(value: Value) = type.toDataStructureValue(value)
 

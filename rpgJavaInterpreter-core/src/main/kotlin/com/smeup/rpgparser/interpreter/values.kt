@@ -482,7 +482,6 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     operator fun get(data: FieldDefinition): Value {
-
         return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
     }
 

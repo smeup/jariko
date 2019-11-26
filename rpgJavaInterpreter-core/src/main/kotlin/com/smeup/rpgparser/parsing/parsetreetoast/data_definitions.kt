@@ -288,7 +288,8 @@ data class FieldInfo(
         return if (arraySizeDeclared == null) {
             elementType
         } else {
-            ArrayType(elementType, arraySizeDeclared)
+            elementType
+            //ArrayType(elementType, arraySizeDeclared)
         }
     }
 
@@ -358,7 +359,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
         else -> endPosition - startPosition.toInt()
     }
 
-    return when (rpgCodeType) {
+    val baseType = when (rpgCodeType) {
         "", RpgType.ZONED.rpgType -> {
             if (decimalPositions == null && precision == null) {
                 null
@@ -412,6 +413,14 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
         }
         "N" -> BooleanType
         else -> TODO("Support RPG code type '$rpgCodeType', field $name")
+    }
+    if (baseType == null) {
+        return null
+    }
+    return if (this.arraySizeDeclared() != null) {
+        ArrayType(baseType!!, this.arraySizeDeclared()!!)
+    } else {
+        baseType
     }
 }
 
@@ -522,7 +531,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                         currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()
                     }
                     // TODO this toAst causes issues in case of overlays
-                    val elementSize = currFieldInfo.toAst(0, this).type.elementSize()
+                    val elementSize = currFieldInfo.toAst(null, this).type.elementSize()
                     sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) + elementSize.toInt()
                 }
             }
