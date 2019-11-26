@@ -257,11 +257,16 @@ class DataDefinitionTest {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolve()
         val unnamedDs = cu.getDataDefinition("@UNNAMED_DS_48")
+        assertEquals(DataStructureType(listOf(
+                FieldType("LOG1", StringType(14)),
+                FieldType("LOG", ArrayType(StringType(2), 7))), 14), unnamedDs.type)
 
         val LOG1 = unnamedDs.getFieldByName("LOG1")
+        assertEquals(StringType(14), LOG1.type)
         assertEquals((LOG1.initializationValue as StringLiteral).value, "0F0L1L2L3L4L5L")
 
         val LOG = unnamedDs.getFieldByName("LOG")
+        assertEquals(ArrayType(StringType(2), 7), LOG.type)
         assertEquals(LOG.initializationValue, null)
     }
 
