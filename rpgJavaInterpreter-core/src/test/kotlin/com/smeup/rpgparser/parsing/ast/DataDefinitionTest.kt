@@ -270,8 +270,17 @@ class DataDefinitionTest {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolve()
         val result = execute(cu, emptyMap())
+        val unnamedDsValue = result["@UNNAMED_DS_48"]
+        assertEquals(DataStructValue("0F0L1L2L3L4L5L"), unnamedDsValue)
         val log1Value = result["LOG1"]
+        assertEquals(StringValue("0F0L1L2L3L4L5L"), log1Value)
         val logValue = result["LOG"]
-        println()
+        assertEquals(ConcreteArrayValue(mutableListOf(StringValue("0F"),
+                StringValue("0L"),
+                StringValue("1L"),
+                StringValue("2L"),
+                StringValue("3L"),
+                StringValue("4L"),
+                StringValue("5L")), StringType(2)), logValue)
     }
 }
