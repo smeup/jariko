@@ -257,8 +257,8 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
 
     if (size == 2) {
 
-        buffer[0] = ((lsb shr 8) and 0x0000FFFF).toByte()
-        buffer[1] = (lsb and 0x0000FFFF).toByte()
+        buffer[0] = ((lsb shr 8) and 0x000000FF).toByte()
+        buffer[1] = (lsb and 0x000000FF).toByte()
 
         return buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
@@ -297,6 +297,7 @@ fun encodeUnsigned(inValue: BigDecimal, size: Int): String {
 }
 
 fun decodeBinary(value: String, size: Int): BigDecimal {
+
     if (size == 1) {
         var number: Long = 0x0000000
         if (value[0].toInt() and 0x0010 != 0) {
@@ -308,12 +309,13 @@ fun decodeBinary(value: String, size: Int): BigDecimal {
 
     if (size == 2) {
         var number: Long = 0x0000000
-        if (value[1].toInt() and 0x1000 != 0) {
+        if (value[1].toInt() and 0x8000 != 0) {
             number = 0xFFFF0000
         }
         number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
         return BigDecimal(number.toInt().toString())
     }
+
     if (size == 4) {
         val number = (value[0].toLong() and 0x00FF) +
                 ((value[1].toLong() and 0x00FF) shl 8) +
@@ -346,7 +348,7 @@ fun decodeInteger(value: String, size: Int): BigDecimal {
 
     if (size == 2) {
         var number: Long = 0x0000000
-        if (value[1].toInt() and 0x1000 != 0) {
+        if (value[1].toInt() and 0x8000 != 0) {
             number = 0xFFFF0000
         }
         number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
@@ -376,7 +378,48 @@ fun decodeInteger(value: String, size: Int): BigDecimal {
 }
 
 fun decodeUnsigned(value: String, size: Int): BigDecimal {
-    return decodeBinary(value, size)
+
+    if (size == 1) {
+        var number: Long = 0x0000000
+        if (value[0].toInt() and 0x0010 != 0) {
+            number = 0x00000000
+        }
+        number += (value[0].toInt() and 0x00FF)
+        return BigDecimal(number.toInt().toString())
+    }
+
+    if (size == 2) {
+        var number: Long = 0x0000000
+        if (value[1].toInt() and 0x1000 != 0) {
+            number = 0xFFFF0000
+        }
+        number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
+        // make sure you count onlu 16 bits
+        number = number and 0x0000FFFF
+        return BigDecimal(number.toString())
+    }
+    if (size == 4) {
+        val number = (value[0].toLong() and 0x00FF) +
+                ((value[1].toLong() and 0x00FF) shl 8) +
+                ((value[2].toLong() and 0x00FF) shl 16) +
+                ((value[3].toLong() and 0x00FF) shl 24)
+
+        return BigDecimal(number.toString())
+    }
+    if (size == 8) {
+        val number = (value[0].toLong() and 0x00FF) +
+                ((value[1].toLong() and 0x00FF) shl 8) +
+                ((value[2].toLong() and 0x00FF) shl 16) +
+                ((value[3].toLong() and 0x00FF) shl 24) +
+                ((value[4].toLong() and 0x00FF) shl 32) +
+                ((value[5].toLong() and 0x00FF) shl 40) +
+                ((value[6].toLong() and 0x00FF) shl 48) +
+                ((value[7].toLong() and 0x00FF) shl 56)
+
+        return BigDecimal(number.toInt().toString())
+    }
+    TODO("decode binary for $size not implemented")
+
 }
 
 /**
