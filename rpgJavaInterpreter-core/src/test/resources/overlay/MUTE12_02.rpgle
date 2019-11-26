@@ -297,8 +297,7 @@
      C                   EVAL      DS0014=*LOVAL
     MU* VAL1(DS0015) VAL2(32767) COMP(EQ)
      C                   EVAL      DS0015=*HIVAL
-      * TODO MU* VAL1(DS0015) VAL2(-32768) COMP(EQ) incorrect, DS0015 is unsigned
-    MU* VAL1(DS0015) VAL2(0) COMP(EQ)
+    MU* VAL1(DS0015) VAL2(-32768) COMP(EQ)
      C                   EVAL      DS0015=*LOVAL
     MU* VAL1(DS0016) VAL2(65535) COMP(EQ)
      C                   EVAL      DS0016=*HIVAL
