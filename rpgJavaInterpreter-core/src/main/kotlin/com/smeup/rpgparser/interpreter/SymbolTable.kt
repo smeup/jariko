@@ -38,7 +38,11 @@ class SymbolTable {
                     it.name.equals(dataName, ignoreCase = true) && it.canBeUsedUnqualified()
                 }
                 if (field != null) {
-                    return ProjectedArrayValue(e.value as ArrayValue, field)
+                    if (e.key.type is ArrayValue) {
+                        return ProjectedArrayValue(e.value as ArrayValue, field)
+                    } else {
+                        return e.value
+                    }
                 }
             }
         }

@@ -164,6 +164,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         )
                         else -> blankValue(it)
                     }
+                    if (it.name !in initialValues) {
+                        it.fields.forEach { field ->
+                            if (field.initializationValue != null) {
+                                val fieldValue = interpret(field.initializationValue)
+                                (value as DataStructValue).set(field, fieldValue)
+                            }
+                        }
+                    }
                 } else if (it is InStatementDataDefinition && it.parent is PlistParam) {
                     value = when {
                         it.name in initialValues -> initialValues[it.name]

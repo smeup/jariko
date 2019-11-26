@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertDataDefinitionIsPresent
+import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
@@ -250,11 +251,27 @@ class DataDefinitionTest {
         // assertEquals(12400, AR01.elementSize())
         assertEquals(12200, AR01.elementSize())
     }
+
     @Test
-    fun initializatonValue() {
+    fun initializationValue() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolve()
-        val LOG1 = cu.getDataDefinition("LOG1")
+        val unnamedDs = cu.getDataDefinition("@UNNAMED_DS_48")
+
+        val LOG1 = unnamedDs.getFieldByName("LOG1")
         assertEquals((LOG1.initializationValue as StringLiteral).value, "0F0L1L2L3L4L5L")
+
+        val LOG = unnamedDs.getFieldByName("LOG")
+        assertEquals(LOG.initializationValue, null)
+    }
+
+    @Test
+    fun initializationValueOnOverlay() {
+        val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
+        cu.resolve()
+        val result = execute(cu, emptyMap())
+        val log1Value = result["LOG1"]
+        val logValue = result["LOG"]
+        println()
     }
 }

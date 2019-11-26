@@ -197,9 +197,10 @@ val RpgParser.Dcl_dsContext.name: String
         return if (nameIsInFirstLine) {
             this.ds_name().text.trim()
         } else {
-            require(this.parm_fixed().isNotEmpty())
-            val header = this.parm_fixed().first()
-            header.ds_name().text
+            //require(this.parm_fixed().isNotEmpty())
+            //val header = this.parm_fixed().first()
+            //header.ds_name().text
+            "@UNNAMED_DS_${this.toPosition(true)!!.start.line}"
         }
     }
 
@@ -209,7 +210,7 @@ val RpgParser.Dcl_dsContext.hasHeader: Boolean
     }
 
 fun RpgParser.Dcl_dsContext.fieldLines(): List<RpgParser.Parm_fixedContext> {
-    return this.parm_fixed().drop(if (nameIsInFirstLine) 0 else 1)
+    return this.parm_fixed()//.drop(if (nameIsInFirstLine) 0 else 0)
 }
 
 internal fun RpgParser.Dcl_dsContext.type(
@@ -415,7 +416,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
 }
 
 fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
-    val others = this.parm_fixed().drop(if (this.hasHeader) 1 else 0)
+    val others = this.parm_fixed()//.drop(if (this.hasHeader) 1 else 0)
     val fieldsList = FieldsList(others.map { it.toFieldInfo() })
 
     // The first field, if does not use the overlay directive, starts at offset 0
@@ -628,12 +629,12 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
         null
     }
     // If the name of the DS is not provided, it takes the first field name
-    if (this.hasHeader) {
-        var hasInitValue = this.parm_fixed().first().keyword().find { it.keyword_inz() != null }
-        if (hasInitValue != null) {
-            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
-        }
-    }
+//    if (this.hasHeader) {
+//        var hasInitValue = this.parm_fixed().first().keyword().find { it.keyword_inz() != null }
+//        if (hasInitValue != null) {
+//            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+//        }
+//    }
     val dataDefinition = DataDefinition(
             this.name,
             type,
