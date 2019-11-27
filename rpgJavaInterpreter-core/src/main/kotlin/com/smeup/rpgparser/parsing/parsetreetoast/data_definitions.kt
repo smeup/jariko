@@ -344,7 +344,7 @@ fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
     )
 }
 
-internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
+internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeDeclared: Int?): Type? {
     val rpgCodeType = DATA_TYPE()?.text?.trim() ?: RpgType.ZONED.rpgType
     val precision = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
     val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
@@ -362,7 +362,11 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
-                StringType((explicitElementSize ?: precision)!!.toLong())
+                if( arraySizeDeclared != null ) {
+                    StringType((explicitElementSize ?: precision)!!.toLong()/arraySizeDeclared)
+                } else {
+                    StringType((explicitElementSize ?: precision)!!.toLong())
+                }
             } else {
                 val es = explicitElementSize ?: precision!!
                 NumberType(es - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
@@ -456,10 +460,11 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
             initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
         }
 
+        val arraySizeDeclared = this.arraySizeDeclared()
         return FieldInfo(this.name, overlayInfo = overlayInfo,
                 explicitStartOffset = this.explicitStartOffset(),
                 explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-                explicitElementType = this.calculateExplicitElementType(),
+                explicitElementType = this.calculateExplicitElementType(arraySizeDeclared),
                 arraySizeDeclared = this.arraySizeDeclared(),
                 initializationValue = initializationValue,
                 position = this.toPosition(conf.considerPosition))
