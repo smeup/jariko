@@ -7,6 +7,7 @@ import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
+import java.lang.IllegalStateException
 import java.math.BigDecimal
 
 open class AbstractDataDefinition(
@@ -198,10 +199,13 @@ data class FieldDefinition(
 
     val size: Long = type.size
 
+    @property:Link
     var overlayingOn: FieldDefinition? = null
 
     override fun elementSize() : Long {
         return if (container.type is ArrayType) {
+            super.elementSize()
+        } else if (this.declaredArrayInLine != null) {
             super.elementSize()
         } else {
             size
@@ -217,7 +221,7 @@ data class FieldDefinition(
 
     @Derived
     val container
-        get() = overriddenContainer ?: this.parent as DataDefinition
+        get() = overriddenContainer ?: this.parent as? DataDefinition ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
 
     /**
      * The start offset is zero based, while in RPG code you could find explicit one-based offsets.

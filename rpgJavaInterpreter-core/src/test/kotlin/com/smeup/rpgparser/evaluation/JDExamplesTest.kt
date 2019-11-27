@@ -19,7 +19,7 @@ import javax.xml.crypto.Data
 class JDExamplesTest {
 
     @Test
-    fun executeJD_000_datainit() {
+    fun executeJD_000_datadefinitions() {
         val cu = assertASTCanBeProduced("JD_000_datainit", true)
         cu.resolve()
 
@@ -35,12 +35,25 @@ class JDExamplesTest {
         val svarcdDef = cu.allDataDefinitions.find { it.name == "\$\$SVARCD" }!! as FieldDefinition
         val svarvaDef = cu.allDataDefinitions.find { it.name == "\$\$SVARVA" }!! as FieldDefinition
 
+        assertEquals(1050, svarskDef.elementSize())
+        assertEquals(50, svarcdDef.elementSize())
+        assertEquals(1000, svarvaDef.elementSize())
+
+        assertEquals(0, svarskDef.startOffset)
+        assertEquals(1050, svarskDef.endOffset)
+        assertEquals(null, svarskDef.overlayingOn)
         assertEquals(0, svarcdDef.startOffset)
         assertEquals(50, svarcdDef.endOffset)
         assertEquals(svarskDef, svarcdDef.overlayingOn)
         assertEquals(50, svarvaDef.startOffset)
         assertEquals(1050, svarvaDef.endOffset)
         assertEquals(svarskDef, svarvaDef.overlayingOn)
+    }
+
+    @Test
+    fun executeJD_000_datainit() {
+        val cu = assertASTCanBeProduced("JD_000_datainit", true)
+        cu.resolve()
 
         val interpreter = execute(cu, mapOf())
 
