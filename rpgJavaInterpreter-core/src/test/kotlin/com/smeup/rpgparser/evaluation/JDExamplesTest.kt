@@ -202,9 +202,19 @@ class JDExamplesTest {
         if (a !is ConcreteArrayValue) {
             fail("Expected array, found $a")
         }
-        assertEquals(a.getElement(1).asString(),
-            StringValue("Url".padEnd(50) +
-                "https://www.myurl.com".padEnd(1000)))
+        val elementValue = a.getElement(1)
+        assertEquals("Url", elementValue.asString().value.substring(0, 3))
+        for (i in 4 until 50) {
+            assertEquals(0.toByte(), elementValue.asString().value.toCharArray()[i].toByte(), "I expected 0 at $i")
+        }
+        assertEquals("https://www.myurl.com", elementValue.asString().value.substring(50, 71))
+        for (i in 71 until 1050) {
+            assertEquals(0.toByte(), elementValue.asString().value.toCharArray()[i].toByte(), "I expected 0 at $i")
+        }
+        assertEquals(
+            StringValue("Url".padEnd(50, '\u0000') +
+                "https://www.myurl.com".padEnd(1000, '\u0000')),
+                elementValue.asString())
     }
 
     @Test
