@@ -166,7 +166,17 @@ data class FieldDefinition(
     @property:Link
     var overriddenContainer: DataDefinition? = null,
     val initializationValue: Expression? = null,
-    override val position: Position? = null
+    override val position: Position? = null,
+
+    // true when the FieldDefinition contains a DIM keyword on its line
+    // or when the field is overlaying on an a field which has the DIM keyword
+    val declaredArrayInLine : Int? = null,
+
+    // when they are arrays, how many bytes should we skip into the DS to find the next element?
+    // normally it would be the same size as an element of the DS, however if they are declared
+    // as on overlay of a field with a DIM keyword, then we should use the size of an element
+    // of such field
+    var stepSize: Int? = null
 ) :
             AbstractDataDefinition(name, type, position) {
 

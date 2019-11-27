@@ -331,8 +331,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     )
                 }
                 is EvalStmt -> {
-                    val result = assign(statement.target, statement.expression, statement.operator)
-                    log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
+                    try {
+                        val result = assign(statement.target, statement.expression, statement.operator)
+                        log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
+                    } catch (e : Exception) {
+                        throw java.lang.RuntimeException("Issue executing statement ${statement} at line ${statement.startLine()}", e)
+                    }
                 }
                 is MoveStmt -> {
                     val value = move(statement.target, statement.expression)

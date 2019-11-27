@@ -90,6 +90,9 @@ open class BaseCompileTimeInterpreter(val knownDataDefinitions: List<DataDefinit
             }
             val field = it.fields.find { it.name == declName }
             if (field != null) {
+                if (field.declaredArrayInLine != null) {
+                    return (field.elementSize() / field.declaredArrayInLine!!).toInt()
+                }
                 return field.elementSize().toInt()
             }
         }

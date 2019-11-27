@@ -318,7 +318,8 @@ data class FieldInfo(
                 calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
                 calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
                 initializationValue = this.initializationValue,
-                position = if (conf.considerPosition) this.position else null)
+                position = if (conf.considerPosition) this.position else null,
+                declaredArrayInLine = arraySizeDeclared)
     }
 }
 

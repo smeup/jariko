@@ -354,6 +354,9 @@ class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
     }
 }
 
+/**
+ * The container should always be a DS value
+ */
 class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition) : ArrayValue() {
     override fun elementSize(): Int {
         TODO("not implemented") // To change body of created functions use File | Settings | File Templates.

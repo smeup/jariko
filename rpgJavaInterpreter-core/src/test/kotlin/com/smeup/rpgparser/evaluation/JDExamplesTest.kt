@@ -173,12 +173,18 @@ class JDExamplesTest {
         assertEquals(ArrayType(StringType(1050), 200), SVAR.type)
         assertEquals(0, SVAR.startOffset)
         assertEquals(210000, SVAR.endOffset)
+        assertEquals(200, SVAR.declaredArrayInLine)
 
-        val SVARCD = cu.getDataOrFieldDefinition("\$\$SVARCD")
+        val SVARCD = cu.getDataOrFieldDefinition("\$\$SVARCD") as FieldDefinition
         assertEquals(ArrayType(StringType(50), 200), SVARCD.type)
+        assertEquals(200, SVARCD.declaredArrayInLine)
 
-        val SVARVA = cu.getDataOrFieldDefinition("\$\$SVARVA")
+        val SVARVA = cu.getDataOrFieldDefinition("\$\$SVARVA") as FieldDefinition
         assertEquals(ArrayType(StringType(1000), 200), SVARVA.type)
+        assertEquals(200, SVARVA.declaredArrayInLine)
+
+        val USVARSK = cu.getDataOrFieldDefinition("U\$SVARSK") as DataDefinition
+        assertEquals(ArrayType(StringType(1050), 200), USVARSK.type)
     }
 
     @Test
