@@ -153,7 +153,7 @@ fun Type.toDataStructureValue(value: Value): StringValue {
         is ArrayType -> {
             val sb = StringBuilder()
             (value as ArrayValue).elements().forEach {
-                sb.append(this.element.toDataStructureValue(it))
+                sb.append(this.element.toDataStructureValue(it).value)
             }
             return StringValue(sb.toString())
         }
