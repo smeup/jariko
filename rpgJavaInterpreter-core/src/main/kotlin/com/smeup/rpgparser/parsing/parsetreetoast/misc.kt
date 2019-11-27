@@ -43,15 +43,22 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
-    var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList<DataDefinitionProvider>()
+    var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
+    val knownDataDefinitions = LinkedList<DataDefinition>()
     dataDefinitionProviders.addAll(this.statement()
             .mapNotNull {
                 when {
-                    it.dspec() != null -> DataDefinitionHolder(it.dspec().toAst(conf))
+                    it.dspec() != null -> {
+                        val dataDefinition = it.dspec().toAst(conf, knownDataDefinitions)
+                        knownDataDefinitions.add(dataDefinition)
+                        DataDefinitionHolder(dataDefinition)
+                    }
                     it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
                     } else {
-                        DataDefinitionHolder(it.dcl_ds().toAst(conf))
+                        val dataDefinition = it.dcl_ds().toAst(conf)
+                        knownDataDefinitions.add(dataDefinition)
+                        DataDefinitionHolder(dataDefinition)
                     }
                     else -> null
                 }

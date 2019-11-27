@@ -164,6 +164,16 @@ class JDExamplesTest {
     fun executeJD_001_complete_url_not_found() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
+
+        val SVAR = cu.getDataOrFieldDefinition("\$\$SVAR")
+        assertEquals(ArrayType(StringType(1050), 200), SVAR.type)
+
+        val SVARCD = cu.getDataOrFieldDefinition("\$\$SVARCD")
+        assertEquals(ArrayType(StringType(50), 200), SVARCD.type)
+
+        val SVARVA = cu.getDataOrFieldDefinition("\$\$SVARVA")
+        assertEquals(ArrayType(StringType(1000), 200), SVARVA.type)
+
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)

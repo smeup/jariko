@@ -83,7 +83,11 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     return fileDefinition
 }
 
-internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
+internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(),
+                                          knownDataDefinitions: List<DataDefinition>): DataDefinition {
+
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions)
+
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
     //    C UCS-2 (Fixed or Variable-length format)
@@ -124,7 +128,9 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
         }
     }
     val elementSize = when {
-        like != null -> conf.compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!)
+        like != null -> {
+            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!)
+        }
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
 
@@ -167,13 +173,13 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
         var compileTimeRecordsPerLine: Int? = null
         if (compileTimeArray) {
             if (elementsPerLineExpression != null) {
-                compileTimeRecordsPerLine = conf.compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
+                compileTimeRecordsPerLine = compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
             } else {
                 compileTimeRecordsPerLine = 1
             }
             require(compileTimeRecordsPerLine > 0)
         }
-        ArrayType(baseType, conf.compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine)
+        ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine)
     } else {
         baseType
     }
@@ -252,19 +258,19 @@ private fun RpgParser.Parm_fixedContext.isOverlayingOn(name: String): Boolean {
  * fields or the containing data definition and this is way we cannot build FieldDefinitions in one step.
  */
 data class FieldInfo(
-    val name: String,
-    val overlayInfo: OverlayInfo? = null,
-    val explicitStartOffset: Int?,
-    val explicitEndOffset: Int?,
-    val arraySizeDeclared: Int? = null,
+        val name: String,
+        val overlayInfo: OverlayInfo? = null,
+        val explicitStartOffset: Int?,
+        val explicitEndOffset: Int?,
+        var arraySizeDeclared: Int? = null,
     // This can be set when the type permits to get the element size
     // For example, here it is possible:
     // D  FI07                         15  3 OVERLAY(AR01:*NEXT)
     // While here it is not:
     // D AR01                                DIM(100) ASCEND
-    val explicitElementType: Type? = null,
-    val initializationValue: Expression? = null,
-    val position: Position?
+        var explicitElementType: Type? = null,
+        val initializationValue: Expression? = null,
+        val position: Position?
 ) {
 
     var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
@@ -302,7 +308,8 @@ data class FieldInfo(
     fun toAst(nElements: Int?, fieldsList: FieldsList, conf: ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
         val baseType = type()
         val type = if (nElements != null) {
-            ArrayType(baseType, nElements)
+            //ArrayType(baseType, nElements)
+            baseType
         } else {
             baseType
         }
@@ -498,6 +505,7 @@ class FieldsList(val fields: List<FieldInfo>) {
         if (fields.isEmpty()) {
             return
         }
+
         fields.forEach { currFieldInfo ->
             if (currFieldInfo.overlayInfo != null) {
 
@@ -511,6 +519,21 @@ class FieldsList(val fields: List<FieldInfo>) {
                     // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
                     val targetFieldDefinition = fields.find { it.name == currFieldInfo.overlayInfo!!.targetFieldName }
                             ?: throw RuntimeException("Target of overlay not found: ${currFieldInfo.overlayInfo.targetFieldName}")
+
+                    // We should consider that on overlay which does overlay of a field which is an array
+                    // become itself an array
+                    if (targetFieldDefinition.arraySizeDeclared != null) {
+                        if (currFieldInfo.arraySizeDeclared != null) {
+                            TODO()
+                        } else {
+                            currFieldInfo.arraySizeDeclared = targetFieldDefinition.arraySizeDeclared
+                            if (currFieldInfo.explicitElementType != null) {
+                                currFieldInfo.explicitElementType = ArrayType(currFieldInfo.explicitElementType!!, currFieldInfo.arraySizeDeclared!!)
+                            } else {
+                                TODO()
+                            }
+                        }
+                    }
 
                     val extraOffset: Int = if (currFieldInfo.overlayInfo.posValue == null) {
                         if (currFieldInfo.overlayInfo.isNext) {

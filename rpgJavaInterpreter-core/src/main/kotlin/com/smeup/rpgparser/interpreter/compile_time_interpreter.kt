@@ -16,9 +16,9 @@ interface CompileTimeInterpreter {
     fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression): Int
 }
 
-object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter()
+object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter(emptyList())
 
-class InjectableCompileTimeInterpreter : BaseCompileTimeInterpreter() {
+class InjectableCompileTimeInterpreter(knownDataDefinitions: List<DataDefinition> = emptyList()) : BaseCompileTimeInterpreter(knownDataDefinitions) {
     override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
         return mockedDecls[declName]?.numberOfElements() ?: super.evaluateNumberOfElementsOf(rContext, declName)
     }
@@ -34,7 +34,7 @@ class InjectableCompileTimeInterpreter : BaseCompileTimeInterpreter() {
     }
 }
 
-open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
+open class BaseCompileTimeInterpreter(val knownDataDefinitions: List<DataDefinition>) : CompileTimeInterpreter {
     override fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value {
         return when (expression) {
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
@@ -51,6 +51,15 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
     }
 
     protected open fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
+        knownDataDefinitions.forEach {
+            if (it.name == declName) {
+                return it.numberOfElements()
+            }
+            val field = it.fields.find { it.name == declName }
+            if (field != null) {
+                return field.numberOfElements()
+            }
+        }
         rContext.statement()
                 .forEach {
                     when {
@@ -75,6 +84,16 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
     }
 
     open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String): Int {
+        knownDataDefinitions.forEach {
+            if (it.name == declName) {
+                return it.elementSize().toInt()
+            }
+            val field = it.fields.find { it.name == declName }
+            if (field != null) {
+                return field.elementSize().toInt()
+            }
+        }
+
         rContext.statement()
                 .forEach {
                     when {
