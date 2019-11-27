@@ -14,6 +14,7 @@ import org.junit.Ignore
 import org.junit.Test
 import com.smeup.rpgparser.utils.StringOutputStream
 import java.io.PrintStream
+import javax.xml.crypto.Data
 
 class JDExamplesTest {
 
@@ -22,13 +23,24 @@ class JDExamplesTest {
         val cu = assertASTCanBeProduced("JD_000_datainit", true)
         cu.resolve()
 
-        assertEquals("U\$SVARSK", cu.allDataDefinitions[0].name)
-        assertEquals("\$\$SVARCD", cu.allDataDefinitions[1].name)
-        assertEquals("\$\$SVARVA", cu.allDataDefinitions[2].name)
-        assertEquals(0, (cu.allDataDefinitions[1] as FieldDefinition).startOffset)
-        assertEquals(50, (cu.allDataDefinitions[1] as FieldDefinition).endOffset)
-        assertEquals(50, (cu.allDataDefinitions[2] as FieldDefinition).startOffset)
-        assertEquals(1050, (cu.allDataDefinitions[2] as FieldDefinition).endOffset)
+        val allDefinitions = cu.allDataDefinitions
+
+        val unnamedDs = allDefinitions.find { it.name == "@UNNAMED_DS_12" } as DataDefinition
+        assertEquals(3, unnamedDs.fields.size)
+        assertEquals("U\$SVARSK", unnamedDs.fields[0].name)
+        assertEquals("\$\$SVARCD", unnamedDs.fields[1].name)
+        assertEquals("\$\$SVARVA", unnamedDs.fields[2].name)
+
+        val svarskDef = cu.allDataDefinitions.find { it.name == "U\$SVARSK" }!! as FieldDefinition
+        val svarcdDef = cu.allDataDefinitions.find { it.name == "\$\$SVARCD" }!! as FieldDefinition
+        val svarvaDef = cu.allDataDefinitions.find { it.name == "\$\$SVARVA" }!! as FieldDefinition
+
+        assertEquals(0, svarcdDef.startOffset)
+        assertEquals(50, svarcdDef.endOffset)
+        assertEquals(svarskDef, svarcdDef.overlayingOn)
+        assertEquals(50, svarvaDef.startOffset)
+        assertEquals(1050, svarvaDef.endOffset)
+        assertEquals(svarskDef, svarvaDef.overlayingOn)
 
         val interpreter = execute(cu, mapOf())
 

@@ -198,6 +198,8 @@ data class FieldDefinition(
 
     val size: Long = type.size
 
+    var overlayingOn: FieldDefinition? = null
+
     override fun elementSize() : Long {
         return if (container.type is ArrayType) {
             super.elementSize()
