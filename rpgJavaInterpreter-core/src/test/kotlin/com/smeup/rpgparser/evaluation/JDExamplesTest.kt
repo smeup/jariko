@@ -161,9 +161,12 @@ class JDExamplesTest {
     }
 
     @Test
-    fun executeJD_001_complete_url_not_found() {
+    fun executeJD_001_recognizeDataDefinitions() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve()
+
+        val unnamedDS = cu.getDataDefinition("@UNNAMED_DS_16")
+        assertEquals(210000, unnamedDS.type.size)
 
         val SVAR = cu.getDataOrFieldDefinition("\$\$SVAR")
         assertEquals(ArrayType(StringType(1050), 200), SVAR.type)
@@ -173,6 +176,12 @@ class JDExamplesTest {
 
         val SVARVA = cu.getDataOrFieldDefinition("\$\$SVARVA")
         assertEquals(ArrayType(StringType(1000), 200), SVARVA.type)
+    }
+
+    @Test
+    fun executeJD_001_complete_url_not_found() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
 
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
