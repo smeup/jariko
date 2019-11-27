@@ -150,6 +150,13 @@ fun Type.toDataStructureValue(value: Value): StringValue {
         is StringType -> {
             return StringValue(value.asString().value)
         }
+        is ArrayType -> {
+            val sb = StringBuilder()
+            (value as ArrayValue).elements().forEach {
+                sb.append(this.element.toDataStructureValue(it))
+            }
+            return StringValue(sb.toString())
+        }
         else -> TODO("Conversion to data struct value not implemented for $this")
     }
 }
