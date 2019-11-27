@@ -224,15 +224,12 @@ internal fun RpgParser.Dcl_dsContext.type(
     fieldsList: FieldsList,
     conf: ToAstConfiguration = ToAstConfiguration()
 ): Type {
-    val keywords = if (this.parm_fixed().isEmpty()) {
-        this.keyword()
-    } else {
-        this.parm_fixed().first().keyword()
-    }
+    val keywords = this.keyword()
     val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType(fieldsList) }
-    val elementSize = this.elementSizeOf(fieldsList)
+    //val elementSize = this.elementSizeOf(fieldsList)
+    val elementSize = fieldsList.fields.map { it.endOffset!! }.max() ?: throw IllegalStateException()
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
         baseType

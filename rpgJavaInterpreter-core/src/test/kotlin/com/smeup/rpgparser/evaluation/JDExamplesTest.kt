@@ -166,10 +166,13 @@ class JDExamplesTest {
         cu.resolve()
 
         val unnamedDS = cu.getDataDefinition("@UNNAMED_DS_16")
+        assertEquals(false, unnamedDS.type is ArrayType)
         assertEquals(210000, unnamedDS.type.size)
 
-        val SVAR = cu.getDataOrFieldDefinition("\$\$SVAR")
+        val SVAR = cu.getDataOrFieldDefinition("\$\$SVAR") as FieldDefinition
         assertEquals(ArrayType(StringType(1050), 200), SVAR.type)
+        assertEquals(0, SVAR.startOffset)
+        assertEquals(210000, SVAR.endOffset)
 
         val SVARCD = cu.getDataOrFieldDefinition("\$\$SVARCD")
         assertEquals(ArrayType(StringType(50), 200), SVARCD.type)
