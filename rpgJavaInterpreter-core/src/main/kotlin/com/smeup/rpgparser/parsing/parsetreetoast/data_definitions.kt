@@ -372,7 +372,8 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
                 null
             } else if (decimalPositions == null) {
                 if( arraySizeDeclared != null ) {
-                    StringType((explicitElementSize ?: precision)!!.toLong()/arraySizeDeclared)
+                    //StringType((explicitElementSize ?: precision)!!.toLong()/arraySizeDeclared)
+                    StringType((explicitElementSize ?: precision)!!.toLong())
                 } else {
                     StringType((explicitElementSize ?: precision)!!.toLong())
                 }
