@@ -485,7 +485,11 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     operator fun get(data: FieldDefinition): Value {
-        return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
+        if (data.declaredArrayInLine != null) {
+            return coerce(this.getSubstring(data.startOffset, data.endOffset * data.declaredArrayInLine!!), data.type)
+        } else {
+            return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
+        }
     }
 
     /**
