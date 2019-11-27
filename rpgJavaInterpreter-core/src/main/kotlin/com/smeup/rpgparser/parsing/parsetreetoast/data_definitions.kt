@@ -229,7 +229,13 @@ internal fun RpgParser.Dcl_dsContext.type(
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType(fieldsList) }
     //val elementSize = this.elementSizeOf(fieldsList)
-    val elementSize = fieldsList.fields.map { it.endOffset!! }.max() ?: throw IllegalStateException()
+    val elementSize = fieldsList.fields.map {
+        if (it.arraySizeDeclared == null) {
+            it.endOffset!!
+        } else {
+            it.endOffset!! * it.arraySizeDeclared!!
+        }
+    }.max() ?: throw IllegalStateException()
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
         baseType

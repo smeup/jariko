@@ -27,6 +27,10 @@ class JDExamplesTest {
 
         val unnamedDs = allDefinitions.find { it.name == "@UNNAMED_DS_12" } as DataDefinition
         assertEquals(3, unnamedDs.fields.size)
+        assertTrue(unnamedDs.type is DataStructureType)
+        val dst = unnamedDs.type as DataStructureType
+        assertEquals(210000, dst.elementSize)
+        assertEquals(210000, unnamedDs.type.elementSize())
         assertEquals("U\$SVARSK", unnamedDs.fields[0].name)
         assertEquals("\$\$SVARCD", unnamedDs.fields[1].name)
         assertEquals("\$\$SVARVA", unnamedDs.fields[2].name)
