@@ -102,6 +102,16 @@ class JDExamplesTest {
         }
         val cu = assertASTCanBeProduced("JD_000", true)
         cu.resolve()
+
+        val jd001program = si.findProgram("JD_001")!!
+        val jd001params = jd001program.params()
+
+        val paraSVARSK = jd001params.find { it.name == "U\$SVARSK" }!!
+        assertEquals(ArrayType(StringType(1050), 200), paraSVARSK.type)
+
+        val svarskDef = cu.allDataDefinitions.find { it.name == "U\$SVARSK" }!! as FieldDefinition
+        assertEquals(ArrayType(StringType(1050), 200), svarskDef.type)
+
         execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
         assertEquals(1, callsToJDURL.size)
         val urlCalled = callsToJDURL[0].get("URL")
