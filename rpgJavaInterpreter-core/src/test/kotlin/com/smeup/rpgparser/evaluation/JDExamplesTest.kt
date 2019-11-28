@@ -265,7 +265,7 @@ class JDExamplesTest {
         val SVAR = cu.getDataOrFieldDefinition("\$\$SVAR") as FieldDefinition
         assertEquals(ArrayType(StringType(1050), 200), SVAR.type)
         assertEquals(0, SVAR.startOffset)
-        assertEquals(210000, SVAR.endOffset)
+        assertEquals(1050, SVAR.endOffset)
         assertEquals(200, SVAR.declaredArrayInLine)
 
         val SVARCD = cu.getDataOrFieldDefinition("\$\$SVARCD") as FieldDefinition
