@@ -134,21 +134,25 @@ class JDExamplesTest {
 
         execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
 
+//        We have a problem when assigning the Url value. We assign it on a ConcreateArrayValue of SVARSK, and that is not
+//        reflected on the containing data structure.
+//        The setElement with index 1 modifies an array, and the original value is not modified.
+
         assertEquals(3, programExecutions.size)
         assertEquals(StringValue("INZ"), programExecutions[0].params["U\$FUNZ"])
         assertEquals(StringValue("ESE"), programExecutions[1].params["U\$FUNZ"])
         val SVARSK_forEse = programExecutions[1].params["U\$SVARSK"] as ArrayValue
         assertEquals(200, SVARSK_forEse.arrayLength())
 
-        val SVARSK_forEse_firstRow = SVARSK_forEse.getElement(0) as StringValue
+        val SVARSK_forEse_firstRow = SVARSK_forEse.getElement(1) as StringValue
         assertEquals("Url", SVARSK_forEse_firstRow.value.substring(0, 3))
         assertEquals("http://xxx.smeup.com", SVARSK_forEse_firstRow.value.substring(50, 70))
 
-        val SVARSK_forEse_secondRow = SVARSK_forEse.getElement(1) as StringValue
+        val SVARSK_forEse_secondRow = SVARSK_forEse.getElement(2) as StringValue
         assertEquals("Key", SVARSK_forEse_secondRow.value.substring(0, 3))
         assertEquals("Value", SVARSK_forEse_secondRow.value.substring(50, 55))
 
-        val SVARSK_forEse_thirdRow = SVARSK_forEse.getElement(2) as StringValue
+        val SVARSK_forEse_thirdRow = SVARSK_forEse.getElement(3) as StringValue
         assertEquals("Key2", SVARSK_forEse_thirdRow.value.substring(0, 4))
         assertEquals("Value2", SVARSK_forEse_thirdRow.value.substring(50, 56))
 

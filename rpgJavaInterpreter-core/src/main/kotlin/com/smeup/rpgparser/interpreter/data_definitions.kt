@@ -10,7 +10,7 @@ import com.strumenta.kolasu.model.*
 import java.lang.IllegalStateException
 import java.math.BigDecimal
 
-open class AbstractDataDefinition(
+abstract class AbstractDataDefinition(
     override val name: String,
     open val type: Type,
     override val position: Position? = null,
@@ -46,6 +46,10 @@ open class AbstractDataDefinition(
 
         return mutesAttached
     }
+
+    open fun isArray(): Boolean {
+        return type is ArrayType
+    }
 }
 
 data class FileDefinition private constructor(override val name: String, override val position: Position?) : Node(position), Named {
@@ -70,7 +74,7 @@ data class DataDefinition(
 ) :
             AbstractDataDefinition(name, type, position) {
 
-    fun isArray() = type is ArrayType
+    override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
 
     @Deprecated("The start offset should be calculated before defining the FieldDefinition")
@@ -221,7 +225,7 @@ data class FieldDefinition(
 
     @Derived
     val container
-        get() = overriddenContainer ?: this.parent as? DataDefinition ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
+        get() = overriddenContainer ?: overlayingOn ?: this.parent as? DataDefinition ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
 
     /**
      * The start offset is zero based, while in RPG code you could find explicit one-based offsets.
@@ -233,7 +237,19 @@ data class FieldDefinition(
      * In this case CURTIMDATE will have startOffset 0.
      */
     val startOffset: Int
-        get() = explicitStartOffset ?: calculatedStartOffset ?: container.startOffset(this)
+        get() {
+            if (explicitStartOffset != null) {
+                return explicitStartOffset
+            }
+            if (calculatedStartOffset != null) {
+                return calculatedStartOffset
+            }
+            if (container is DataDefinition) {
+                return (container as DataDefinition).startOffset(this)
+            } else {
+                TODO()
+            }
+        }
 
     /**
      * The end offset is non-inclusive if considered zero based, or inclusive if considered one based.
@@ -245,7 +261,19 @@ data class FieldDefinition(
      * In this case CURTIMDATE will have endOffset 8.
      */
     val endOffset: Int
-        get() = explicitEndOffset ?: calculatedEndOffset ?: container.endOffset(this)
+        get() {
+            if (explicitEndOffset != null) {
+                return explicitEndOffset
+            }
+            if (calculatedEndOffset != null) {
+                return calculatedEndOffset
+            }
+            if (container is DataDefinition) {
+                return (container as DataDefinition).endOffset(this)
+            } else {
+                TODO()
+            }
+        }
 
     val offsets: Pair<Int, Int>
         get() = Pair(startOffset, endOffset)
@@ -253,6 +281,7 @@ data class FieldDefinition(
     override fun hashCode(): Int {
         return name.hashCode() * 31 + type.hashCode() * 7
     }
+
 }
 
 // Positions 64 through 68 specify the length of the result field. This entry is optional, but can be used to define a
