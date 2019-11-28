@@ -1,19 +1,20 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
-import java.util.*
 import kotlin.test.assertEquals
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import kotlin.test.Ignore
+import kotlin.test.assertTrue
 
 class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_01_perf_calls() {
-        // TODO check policy for finding programs in tests, for examole:
-        // val programFinders = listOf<RpgProgramFinder>(DirRpgProgramFinder(aPgm.parentFile))
-        assertEquals(LinkedList<String>(), outputOf("performance/MUTE10_01"))
+        val si = ExtendedCollectorSystemInterface()
+        si.programFinders.add(DummyProgramFinder("/performance/"))
+        execute("performance/MUTE10_01", mapOf(), si)
+        assertTrue(si.displayed.isEmpty())
     }
 
     @Test @Category(PerformanceTest::class)

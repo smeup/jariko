@@ -83,8 +83,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     var cycleLimit: Int? = null
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    var lastFound = false
-    var lastDBFile: DBFile? = null
+    private var lastFound = false
+    private var lastDBFile: DBFile? = null
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
