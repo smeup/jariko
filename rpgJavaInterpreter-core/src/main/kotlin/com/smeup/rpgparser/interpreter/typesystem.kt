@@ -34,6 +34,7 @@ sealed class Type {
     abstract val size: Long
 
     fun toArray(nElements: Int) = ArrayType(this, nElements)
+    fun isArray() = this is ArrayType
 }
 
 object KListType : Type() {

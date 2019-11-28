@@ -182,13 +182,7 @@ data class FieldDefinition(
 
     // true when the FieldDefinition contains a DIM keyword on its line
     // or when the field is overlaying on an a field which has the DIM keyword
-    val declaredArrayInLine : Int? = null,
-
-    // when they are arrays, how many bytes should we skip into the DS to find the next element?
-    // normally it would be the same size as an element of the DS, however if they are declared
-    // as on overlay of a field with a DIM keyword, then we should use the size of an element
-    // of such field
-    var stepSize: Int? = null
+    val declaredArrayInLine : Int? = null
 ) :
             AbstractDataDefinition(name, type, position) {
 
@@ -205,6 +199,13 @@ data class FieldDefinition(
 
     @property:Link
     var overlayingOn: FieldDefinition? = null
+
+    // when they are arrays, how many bytes should we skip into the DS to find the next element?
+    // normally it would be the same size as an element of the DS, however if they are declared
+    // as on overlay of a field with a DIM keyword, then we should use the size of an element
+    // of such field
+    val stepSize: Long
+        get() = overlayingOn?.elementSize() ?: elementSize()
 
     override fun elementSize() : Long {
         return if (container.type is ArrayType) {
@@ -225,7 +226,7 @@ data class FieldDefinition(
 
     @Derived
     val container
-        get() = overriddenContainer ?: overlayingOn ?: this.parent as? DataDefinition ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
+        get() = overriddenContainer /*?: overlayingOn*/ ?: this.parent as? DataDefinition ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
 
     /**
      * The start offset is zero based, while in RPG code you could find explicit one-based offsets.

@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import java.lang.IllegalStateException
+import java.lang.UnsupportedOperationException
 
 class SymbolTable {
     private val values = LinkedHashMap<AbstractDataDefinition, Value>()
@@ -12,15 +13,21 @@ class SymbolTable {
         if (data is FieldDefinition) {
             val containerValue = get(data.container)
             return if (data.container.isArray()) {
-                ProjectedArrayValue(containerValue as ArrayValue, data)
+                TODO()
+                //ProjectedArrayValue(containerValue as ArrayValue, data)
+            } else if (data.declaredArrayInLine != null) {
+                val stepSize = data.stepSize
+                val arrayLength = data.declaredArrayInLine!!
+                ProjectedArrayValue(containerValue as DataStructValue, data, data.startOffset, stepSize, arrayLength)
             } else {
                 // Should be always a DataStructValue
                 if (containerValue is DataStructValue) {
-                    return coerce(containerValue.get(data), data.type)
+                    return coerce(containerValue[data], data.type)
                 } else {
-                    val structValue = (containerValue as? StructValue)
-                            ?: throw IllegalStateException("Container expected to be a struct value: $containerValue")
-                    structValue.elements[data]!!
+                    throw UnsupportedOperationException()
+//                    val structValue = (containerValue as? StructValue)
+//                            ?: throw IllegalStateException("Container expected to be a struct value: $containerValue")
+//                    structValue.elements[data]!!
                 }
             }
         }
@@ -39,7 +46,8 @@ class SymbolTable {
                 }
                 if (field != null) {
                     return if (e.key.type is ArrayValue) {
-                        ProjectedArrayValue(e.value as ArrayValue, field)
+                        TODO()
+                        //ProjectedArrayValue(e.value as ArrayValue, field)
                     } else {
                         (e.value as DataStructValue)[field]
                     }

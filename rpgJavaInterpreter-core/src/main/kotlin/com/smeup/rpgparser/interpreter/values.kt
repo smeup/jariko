@@ -357,55 +357,82 @@ class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
 /**
  * The container should always be a DS value
  */
-class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition) : ArrayValue() {
+class ProjectedArrayValue(val container: DataStructValue,
+                          val field: FieldDefinition,
+                          val startOffset: Int,
+                          val step: Long,
+                          val arrayLength: Int) : ArrayValue() {
     override fun elementSize(): Int {
         TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun arrayLength() = container.arrayLength()
+    override fun arrayLength() = arrayLength
 
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
-        val containerElement = container.getElement(index)
+        val startIndex = (this.startOffset + this.step * (index - 1)).toInt()
+        val endIndex = (startIndex + this.field.elementSize()).toInt()
+        container.setSubstring(startIndex, endIndex, coerce(value, StringType(this.field.elementSize())) as StringValue)
 
-        // Set the value within the projected Array
-        if (containerElement is StringValue) {
-            if (value is StringValue) {
-                containerElement.setSubstring(field.startOffset, field.endOffset, value)
-            } else if (value is IntValue) {
-                val s = value.value.toString()
-                val pad = s.padStart(field.endOffset - field.startOffset)
-                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
-            } else {
-                TODO("$value not supported")
-            }
-        } else if (containerElement is DataStructValue) {
-            containerElement.setSingleField(field, value)
+        //CONVERT AND SET SUBSTRING
 
+        //TODO()
+
+//        val containerElement = container.getSubstring(startIndex, endIndex)
+//        return coerce(StringValue(containerElement), field.type)
+//
+//        // Set the value within the projected Array
+//        if (containerElement is StringValue) {
 //            if (value is StringValue) {
 //                containerElement.setSubstring(field.startOffset, field.endOffset, value)
 //            } else if (value is IntValue) {
-//                var s = value.value.toString()
+//                val s = value.value.toString()
 //                val pad = s.padStart(field.endOffset - field.startOffset)
 //                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
 //            } else {
 //                TODO("$value not supported")
 //            }
-        }
+//        } else if (containerElement is DataStructValue) {
+//            containerElement.setSingleField(field, value)
+//
+////            if (value is StringValue) {
+////                containerElement.setSubstring(field.startOffset, field.endOffset, value)
+////            } else if (value is IntValue) {
+////                var s = value.value.toString()
+////                val pad = s.padStart(field.endOffset - field.startOffset)
+////                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
+////            } else {
+////                TODO("$value not supported")
+////            }
+//        }
     }
 
     override fun getElement(index: Int): Value {
-        val containerElement = container.getElement(index)
+        require(index >= 1) { "Indexes should be >=1. Index asked: $index" }
+        require(index <= arrayLength())
 
-        if (containerElement is StringValue) {
-            return containerElement.getSubstring(field.startOffset, field.endOffset)
-        } else if (containerElement is DataStructValue) {
-            return containerElement.getSingleField(field)
-        } else {
-            TODO("$containerElement not supported")
-        }
+        val startIndex = (this.startOffset + this.step * (index - 1)).toInt()
+        val endIndex = (startIndex + this.field.elementSize()).toInt()
+        val substringValue = container.getSubstring(startIndex, endIndex)
+
+        return coerce(substringValue, (this.field.type as ArrayType).element)
+
+//        if (this.field.declaredArrayInLine == null) {
+//            TODO()
+//        } else {
+//            TODO()
+//        }
+//        val containerElement = container.getElement(index)
+//
+//        if (containerElement is StringValue) {
+//            return containerElement.getSubstring(field.startOffset, field.endOffset)
+//        } else if (containerElement is DataStructValue) {
+//            return containerElement.getSingleField(field)
+//        } else {
+//            TODO("$containerElement not supported")
+//        }
     }
 }
 
@@ -485,10 +512,14 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     operator fun get(data: FieldDefinition): Value {
-        if (data.declaredArrayInLine != null) {
-            return coerce(this.getSubstring(data.startOffset, data.endOffset * data.declaredArrayInLine!!), data.type)
+        return if (data.declaredArrayInLine != null) {
+            val start = data.startOffset
+            val end = data.endOffset * data.declaredArrayInLine!!
+            val length = end - start
+            require(length == data.type.size.toInt())
+            coerce(this.getSubstring(start, end), data.type)
         } else {
-            return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
+            coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
         }
     }
 

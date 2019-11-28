@@ -137,9 +137,15 @@ class JDExamplesTest {
 //        We have a problem when assigning the Url value. We assign it on a ConcreateArrayValue of SVARSK, and that is not
 //        reflected on the containing data structure.
 //        The setElement with index 1 modifies an array, and the original value is not modified.
+//      maybe it is better to not use the field overlaying as a container, but specify values in terms of the original
+//      data structure
 
-        assertEquals(3, programExecutions.size)
+        assertEquals(4, programExecutions.size)
+
+        // call to JD_001
         assertEquals(StringValue("INZ"), programExecutions[0].params["U\$FUNZ"])
+
+        // call to JD_001
         assertEquals(StringValue("ESE"), programExecutions[1].params["U\$FUNZ"])
         val SVARSK_forEse = programExecutions[1].params["U\$SVARSK"] as ArrayValue
         assertEquals(200, SVARSK_forEse.arrayLength())
@@ -156,7 +162,10 @@ class JDExamplesTest {
         assertEquals("Key2", SVARSK_forEse_thirdRow.value.substring(0, 4))
         assertEquals("Value2", SVARSK_forEse_thirdRow.value.substring(50, 56))
 
-        assertEquals(StringValue("CLO"), programExecutions[2].params["U\$FUNZ"])
+        // call to JD_URL
+
+        // call to JD_001
+        assertEquals(StringValue("CLO"), programExecutions[3].params["U\$FUNZ"])
 
         assertEquals(1, callsToJDURL.size)
         val urlCalled = callsToJDURL[0]["URL"]
