@@ -88,6 +88,18 @@ class JDExamplesTest {
     }
 
     @Test
+    fun executeJD_001_datadefinitions() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve()
+
+        val svarDef = cu.getDataOrFieldDefinition("\$\$SVAR") as FieldDefinition
+        assertEquals(ArrayType(StringType(1050), 200), svarDef.type)
+
+        val svarskDef = cu.getDataOrFieldDefinition("U\$SVARSK") as DataDefinition
+        assertEquals(ArrayType(StringType(1050), 200), svarskDef.type)
+    }
+
+    @Test
     fun executeJD_000_countsNrOfCalls() {
         val si = ExtendedCollectorSystemInterface()
         val callsToJDURL = LinkedList<Map<String, Value>>()
