@@ -250,6 +250,10 @@ class DataDefinitionTest {
         // The actual size is 12200
         // assertEquals(12400, AR01.elementSize())
         assertEquals(122, AR01.elementSize())
+
+        assertEquals(15, FI01.endOffset)
+        assertEquals(25, FI02.endOffset)
+        assertEquals(122, FI20.endOffset)
     }
 
     @Test
@@ -284,6 +288,7 @@ class DataDefinitionTest {
         cu.resolve()
 
         val AR01 = cu.getDataOrFieldDefinition("AR01") as FieldDefinition
+        assertEquals(122, AR01.elementSize())
         assertEquals(ArrayType(StringType(122), 100), AR01.type)
 
         val result = execute(cu, emptyMap())

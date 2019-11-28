@@ -297,8 +297,8 @@ data class FieldInfo(
         return if (arraySizeDeclared == null) {
             elementType
         } else {
-            elementType
-            //ArrayType(elementType, arraySizeDeclared)
+            //elementType
+            ArrayType(elementType, arraySizeDeclared!!)
         }
     }
 
