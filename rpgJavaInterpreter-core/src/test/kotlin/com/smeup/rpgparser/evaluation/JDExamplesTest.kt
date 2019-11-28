@@ -607,8 +607,8 @@ class JDExamplesTest {
         val returnStatus = "U\$IN35"
         val parms = mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
-                "U\$METO" to StringValue(""),
-                "U\$SVARSK" to StringValue(""),
+                "U\$METO" to StringValue("".padEnd(10, PAD_CHAR)),
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { StringValue("".padEnd(1050, PAD_CHAR)) },
                 returnStatus to StringValue(" ")
         )
         val si = CollectorSystemInterface()
@@ -647,7 +647,7 @@ class JDExamplesTest {
             }
         }
         execute("JD_003", parms, si)
-        assertEquals(" ", parms[returnStatus]!!.value)
+        assertEquals(" ", (parms[returnStatus]!! as StringValue).value)
     }
 
     @Test
@@ -655,8 +655,8 @@ class JDExamplesTest {
         val returnStatus = "U\$IN35"
         val parms = mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
-                "U\$METO" to StringValue(""),
-                "U\$SVARSK" to StringValue(""),
+                "U\$METO" to StringValue("".padEnd(10, PAD_CHAR)),
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { StringValue("".padEnd(1050, PAD_CHAR)) },
                 returnStatus to StringValue(" ")
         )
         val si = CollectorSystemInterface()

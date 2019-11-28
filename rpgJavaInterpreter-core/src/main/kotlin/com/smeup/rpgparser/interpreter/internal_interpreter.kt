@@ -155,8 +155,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 var value: Value? = null
                 if (it is DataDefinition) {
                     value = when {
-                        it.name in initialValues -> initialValues[it.name]
-                            ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        it.name in initialValues -> {
+                            val initialValue = initialValues[it.name]
+                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
+                            require(initialValue.assignableTo(it.type)) {
+                                "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                            }
+                            initialValue
+                        }
                         it.initializationValue != null -> interpret(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
