@@ -362,6 +362,15 @@ class ProjectedArrayValue(val container: DataStructValue,
                           val startOffset: Int,
                           val step: Long,
                           val arrayLength: Int) : ArrayValue() {
+
+    companion object {
+        fun forData(containerValue: DataStructValue, data: FieldDefinition) : ProjectedArrayValue {
+            val stepSize = data.stepSize
+            val arrayLength = data.declaredArrayInLine!!
+            return ProjectedArrayValue(containerValue, data, data.startOffset, stepSize, arrayLength)
+        }
+    }
+
     override fun elementSize(): Int {
         TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
@@ -513,11 +522,14 @@ data class DataStructValue(var value: String) : Value() {
 
     operator fun get(data: FieldDefinition): Value {
         return if (data.declaredArrayInLine != null) {
-            val start = data.startOffset
-            val end = data.endOffset * data.declaredArrayInLine!!
-            val length = end - start
-            require(length == data.type.size.toInt())
-            coerce(this.getSubstring(start, end), data.type)
+            ProjectedArrayValue.forData(this, data)
+//            val start = data.startOffset
+//            val end = data.endOffset * data.declaredArrayInLine!!
+//            val length = end - start
+//            require(length == data.type.size.toInt()) {
+//                "Length of the substring calculated to be $length (start: $start, end: $end), however type is ${data.type} and it has size ${data.type.size}"
+//            }
+//            coerce(this.getSubstring(start, end), data.type)
         } else {
             coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
         }

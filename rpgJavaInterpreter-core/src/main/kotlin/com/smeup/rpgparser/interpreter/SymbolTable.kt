@@ -16,9 +16,7 @@ class SymbolTable {
                 TODO()
                 //ProjectedArrayValue(containerValue as ArrayValue, data)
             } else if (data.declaredArrayInLine != null) {
-                val stepSize = data.stepSize
-                val arrayLength = data.declaredArrayInLine!!
-                ProjectedArrayValue(containerValue as DataStructValue, data, data.startOffset, stepSize, arrayLength)
+                ProjectedArrayValue.forData(containerValue as DataStructValue, data)
             } else {
                 // Should be always a DataStructValue
                 if (containerValue is DataStructValue) {
