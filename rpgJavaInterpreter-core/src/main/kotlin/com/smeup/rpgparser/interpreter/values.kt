@@ -295,6 +295,27 @@ abstract class ArrayValue : Value() {
         return "Array(${elements().size})"
     }
     override fun asArray() = this
+
+    fun areEquivalent(other: ArrayValue) : Boolean {
+        if (this.arrayLength() != other.arrayLength()) {
+            return false
+        }
+        for (i in 1..this.arrayLength()) {
+            if (this.getElement(i) != other.getElement(i)) {
+                return false
+            }
+        }
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var res = this.arrayLength()
+        if (this.arrayLength() > 0) {
+            res *= 7 * this.getElement(1).hashCode()
+            res *= 3 * this.getElement(this.arrayLength()).hashCode()
+        }
+        return res
+    }
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
     override fun elementSize() = elementType.size.toInt()
@@ -312,6 +333,18 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
         require(index >= 1) { "Indexes should be >=1. Index asked: $index" }
         require(index <= arrayLength())
         return elements[index - 1]
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is ArrayValue) {
+            this.areEquivalent(other)
+        } else {
+            false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return super.hashCode()
     }
 }
 
@@ -442,6 +475,18 @@ class ProjectedArrayValue(val container: DataStructValue,
 //        } else {
 //            TODO("$containerElement not supported")
 //        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is ArrayValue) {
+            this.areEquivalent(other)
+        } else {
+            false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return super.hashCode()
     }
 }
 
