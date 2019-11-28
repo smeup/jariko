@@ -57,6 +57,9 @@ interface SystemInterface {
     fun getAllLogHandlers() = (configureLog(this.loggingConfiguration() ?: defaultLoggingConfiguration()) + this.extraLogHandlers).toMutableList()
     fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted>
     fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted)
+    fun registerProgramExecutionStart(program: Program, params: Map<String, Value>) {
+        // do nothing by default
+    }
 }
 
 interface DBInterface {

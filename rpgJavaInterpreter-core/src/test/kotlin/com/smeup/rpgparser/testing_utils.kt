@@ -322,7 +322,7 @@ class DummyProgramFinder(val path: String) : RpgProgramFinder {
     }
 }
 
-class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
+open class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
     private val rpgPrograms = HashMap<String, RpgProgram>()
 
     override fun findProgram(name: String): Program? {

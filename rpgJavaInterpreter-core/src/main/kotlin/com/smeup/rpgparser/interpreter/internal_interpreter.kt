@@ -503,6 +503,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val startTime = currentTimeMillis()
                     val paramValuesAtTheEnd =
                         try {
+                            systemInterface.registerProgramExecutionStart(program, params)
                             program.execute(systemInterface, params).apply {
                                 log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             }

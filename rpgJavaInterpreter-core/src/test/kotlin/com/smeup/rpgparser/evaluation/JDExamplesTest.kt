@@ -101,7 +101,15 @@ class JDExamplesTest {
 
     @Test
     fun executeJD_000_countsNrOfCalls() {
-        val si = ExtendedCollectorSystemInterface()
+        data class ProgramExecution(val program: Program, val params: Map<String, Value>)
+        val programExecutions = LinkedList<ProgramExecution>()
+
+        val si = object : ExtendedCollectorSystemInterface() {
+            override fun registerProgramExecutionStart(program: Program, params: Map<String, Value>) {
+                programExecutions.add(ProgramExecution(program, params))
+            }
+
+        }
         val callsToJDURL = LinkedList<Map<String, Value>>()
         si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
                 ProgramParam("funz", StringType(10)),
@@ -125,8 +133,29 @@ class JDExamplesTest {
         assertEquals(ArrayType(StringType(1050), 200), svarskDef.type)
 
         execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
+
+        assertEquals(3, programExecutions.size)
+        assertEquals(StringValue("INZ"), programExecutions[0].params["U\$FUNZ"])
+        assertEquals(StringValue("ESE"), programExecutions[1].params["U\$FUNZ"])
+        val SVARSK_forEse = programExecutions[1].params["U\$SVARSK"] as ArrayValue
+        assertEquals(200, SVARSK_forEse.arrayLength())
+
+        val SVARSK_forEse_firstRow = SVARSK_forEse.getElement(0) as StringValue
+        assertEquals("Url", SVARSK_forEse_firstRow.value.substring(0, 3))
+        assertEquals("http://xxx.smeup.com", SVARSK_forEse_firstRow.value.substring(50, 70))
+
+        val SVARSK_forEse_secondRow = SVARSK_forEse.getElement(1) as StringValue
+        assertEquals("Key", SVARSK_forEse_secondRow.value.substring(0, 3))
+        assertEquals("Value", SVARSK_forEse_secondRow.value.substring(50, 55))
+
+        val SVARSK_forEse_thirdRow = SVARSK_forEse.getElement(2) as StringValue
+        assertEquals("Key2", SVARSK_forEse_thirdRow.value.substring(0, 4))
+        assertEquals("Value2", SVARSK_forEse_thirdRow.value.substring(50, 56))
+
+        assertEquals(StringValue("CLO"), programExecutions[2].params["U\$FUNZ"])
+
         assertEquals(1, callsToJDURL.size)
-        val urlCalled = callsToJDURL[0].get("URL")
+        val urlCalled = callsToJDURL[0]["URL"]
         assertNotNull(urlCalled)
         assert(urlCalled is ArrayValue)
     }
