@@ -24,6 +24,7 @@ import org.apache.commons.io.input.BOMInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
+import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.test.assertEquals
@@ -318,21 +319,31 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
 
 class DummyProgramFinder(val path: String) : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
-        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle"), dbInterface, nameOrSource)
+        val inputStream = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle") ?: return null
+        return RpgProgram.fromInputStream(inputStream, dbInterface, nameOrSource)
     }
 }
 
 class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
+    val programFinders = mutableListOf<RpgProgramFinder>(DummyProgramFinder("/"))
     private val rpgPrograms = HashMap<String, RpgProgram>()
 
     override fun findProgram(name: String): Program? {
-        return super.findProgram(name) ?: findRpgProgram(name)
+        return super.findProgram(name) ?: findWithFinders(name)
     }
 
-    private fun findRpgProgram(name: String): Program? {
+    private fun findWithFinders(name: String): Program? {
         return rpgPrograms.getOrPut(name) {
-            rpgProgram(name, db)
+            find(name)
         }
+    }
+
+    private fun find(name: String): RpgProgram {
+        programFinders.forEach {
+            val pgm = it.findRpgProgram(name, db)
+            if (pgm != null) return pgm
+        }
+        throw IllegalArgumentException("Program $name cannot be found")
     }
 }
 
