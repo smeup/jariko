@@ -457,7 +457,7 @@ class JDExamplesTest {
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToListFld.add(params)
+                callsToListFld.add(params.mapValues { it.value.copy() }.toMutableMap())
                 if (callsToListFld.size >= 5) {
                     throw InterruptForDebuggingPurposes()
                 }
@@ -472,7 +472,7 @@ class JDExamplesTest {
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToNfyeve.add(params)
+                callsToNfyeve.add(params.mapValues { it.value.copy() }.toMutableMap())
                 throw InterruptForDebuggingPurposes()
             }
         }
@@ -545,7 +545,7 @@ class JDExamplesTest {
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToRcvsck.add(params)
+                callsToRcvsck.add(params.mapValues { it.value.copy() }.toMutableMap())
                 if (callsToRcvsck.size >= 5) {
                     throw InterruptForDebuggingPurposes()
                 }
@@ -579,7 +579,7 @@ class JDExamplesTest {
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToNfyeve.add(params)
+                callsToNfyeve.add(params.mapValues { it.value.copy() }.toMutableMap())
                 throw InterruptForDebuggingPurposes()
             }
         }
