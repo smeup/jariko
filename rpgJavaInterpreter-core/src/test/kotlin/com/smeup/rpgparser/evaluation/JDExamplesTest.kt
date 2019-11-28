@@ -598,7 +598,7 @@ class JDExamplesTest {
         assertEquals(1, callsToRcvsck.size)
         assertEquals("addressToListen", callsToRcvsck[0]["addr"]!!.asString().value)
         assertEquals(1, callsToNfyeve.size)
-        assertEquals("Targa".padEnd(50) + "ZZ000AA".padEnd(1000), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
+        assertEquals("Targa".padEnd(50, PAD_CHAR) + "ZZ000AA".padEnd(1000, PAD_CHAR), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
     }
 
     @Test
