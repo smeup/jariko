@@ -30,8 +30,7 @@ interface NumberValue {
     val bigDecimal: BigDecimal
 }
 
-// TODO Should we change value to a val in order tho share instances?
-data class StringValue(var value: String) : Value() {
+data class StringValue(val value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
@@ -73,24 +72,24 @@ data class StringValue(var value: String) : Value() {
         return valueWithoutPadding.hashCode()
     }
 
-    fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
-        require(startOffset >= 0)
-        require(startOffset <= value.length)
-        require(endOffset >= startOffset)
-        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        require(endOffset - startOffset == substringValue.value.length)
-        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue.replace('\u0000', ' ')
-    }
-
-    fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
-        require(startOffset >= 0)
-        require(startOffset <= value.length)
-        require(endOffset >= startOffset)
-        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        val s = value.substring(startOffset, endOffset)
-        return StringValue(s)
-    }
+//    fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
+//        require(startOffset >= 0)
+//        require(startOffset <= value.length)
+//        require(endOffset >= startOffset)
+//        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
+//        require(endOffset - startOffset == substringValue.value.length)
+//        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
+//        value = newValue.replace('\u0000', ' ')
+//    }
+//
+//    fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
+//        require(startOffset >= 0)
+//        require(startOffset <= value.length)
+//        require(endOffset >= startOffset)
+//        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
+//        val s = value.substring(startOffset, endOffset)
+//        return StringValue(s)
+//    }
 
     override fun toString(): String {
         return "StringValue[${value.length}]($valueWithoutPadding)"

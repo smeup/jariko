@@ -500,14 +500,14 @@ class JDExamplesTest {
                 ), callsToListFld[0])
         assertEquals(1, callsToNfyeve.size)
         val v = callsToNfyeve[0]["var"] as ArrayValue
-        assertEquals(StringValue("Object name".padEnd(50) +
-                "myFile.png".padEnd(1000)),
+        assertEquals(StringValue("Object name".padEnd(50, PAD_CHAR) +
+                "myFile.png".padEnd(1000, PAD_CHAR)),
                 v.getElement(1))
-        assertEquals(StringValue("Object type".padEnd(50) +
-                "FILE".padEnd(1000)),
+        assertEquals(StringValue("Object type".padEnd(50, PAD_CHAR) +
+                "FILE".padEnd(1000, PAD_CHAR)),
                 v.getElement(2))
-        assertEquals(StringValue("Operation type".padEnd(50) +
-                "ADD".padEnd(1000)),
+        assertEquals(StringValue("Operation type".padEnd(50, PAD_CHAR) +
+                "ADD".padEnd(1000, PAD_CHAR)),
                 v.getElement(3))
     }
 
