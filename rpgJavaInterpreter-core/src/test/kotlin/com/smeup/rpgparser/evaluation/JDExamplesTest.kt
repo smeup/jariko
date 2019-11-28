@@ -316,11 +316,34 @@ class JDExamplesTest {
                         else -> "".padEnd(1050, PAD_CHAR)
                     }.asValue()
                 }), systemInterface = si)
+
+        // Something does not work as expected in the assigned of U$SVARSK to $$SVAR
+        val usvarskValue = interpreter["U\$SVARSK"] as ArrayValue
+        val svarValue = interpreter["\$\$SVAR"] as ArrayValue
+
+        assertEquals(200, usvarskValue.arrayLength())
+
+        val usvarskEl1 = usvarskValue.getElement(1) as StringValue
+        val usvarskEl2 = usvarskValue.getElement(2) as StringValue
+        val usvarskEl3 = usvarskValue.getElement(3) as StringValue
+        assertEquals(StringValue("Url".padEnd(50, PAD_CHAR) + "https://xxx.myurl.com".padEnd(1000, PAD_CHAR)), usvarskEl1)
+        assertEquals(StringValue("x".padEnd(50, PAD_CHAR) + "w".padEnd(1000, PAD_CHAR)), usvarskEl2)
+        assertEquals(StringValue("".padEnd(1050, PAD_CHAR)), usvarskEl3)
+
+        val svarEl1 = svarValue.getElement(1) as StringValue
+        val svarEl2 = svarValue.getElement(2) as StringValue
+        val svarEl3 = svarValue.getElement(3) as StringValue
+        assertEquals(StringValue("Url".padEnd(50, PAD_CHAR) + "https://xxx.myurl.com".padEnd(1000, PAD_CHAR)), svarEl1)
+        assertEquals(StringValue("x".padEnd(50, PAD_CHAR) + "w".padEnd(1000, PAD_CHAR)), svarEl2)
+        assertEquals(StringValue("".padEnd(1050, PAD_CHAR)), svarEl3)
+
+        assertEquals(usvarskValue, svarValue)
+
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(callsToJDURL.size, 1)
         val a = callsToJDURL[0]["URL"]
-        if (a !is ConcreteArrayValue) {
+        if (a !is ArrayValue) {
             fail("Expected array, found $a")
         }
         val elementValue = a.getElement(1)
