@@ -249,7 +249,7 @@ class DataDefinitionTest {
 
         // The actual size is 12200
         // assertEquals(12400, AR01.elementSize())
-        assertEquals(12200, AR01.elementSize())
+        assertEquals(122, AR01.elementSize())
     }
 
     @Test
@@ -282,6 +282,10 @@ class DataDefinitionTest {
     fun initializationValueOnOverlay() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolve()
+
+        val AR01 = cu.getDataOrFieldDefinition("AR01") as FieldDefinition
+        assertEquals(ArrayType(StringType(122), 100), AR01.type)
+
         val result = execute(cu, emptyMap())
         val unnamedDsValue = result["@UNNAMED_DS_48"]
         assertEquals(DataStructValue("0F0L1L2L3L4L5L"), unnamedDsValue)
