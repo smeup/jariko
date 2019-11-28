@@ -642,7 +642,7 @@ class JDExamplesTest {
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToNfyeve.add(params)
+                callsToNfyeve.add(params.mapValues { it.value.copy() }.toMutableMap())
                 throw InterruptForDebuggingPurposes()
             }
         }
@@ -702,7 +702,7 @@ class JDExamplesTest {
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToNfyeve.add(params)
+                callsToNfyeve.add(params.mapValues { it.value.copy() }.toMutableMap())
                 throw InterruptForDebuggingPurposes()
             }
         }
