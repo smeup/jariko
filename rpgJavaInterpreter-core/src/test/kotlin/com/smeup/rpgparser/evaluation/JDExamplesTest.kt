@@ -301,7 +301,7 @@ class JDExamplesTest {
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", ArrayType(StringType(1050), 200)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToJDURL.add(params)
+                callsToJDURL.add(params.mapValues { it.value.copy() })
                 return emptyList()
             }
         }

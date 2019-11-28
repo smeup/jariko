@@ -22,6 +22,7 @@ abstract class Value {
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
+    abstract fun copy(): Value
 }
 
 interface NumberValue {
@@ -103,6 +104,8 @@ data class StringValue(var value: String) : Value() {
     override fun render(): String {
         return valueWithoutPadding
     }
+
+    override fun copy(): StringValue = this
 }
 
 fun String.removeNullChars(): String {
@@ -182,6 +185,8 @@ data class IntValue(val value: Long) : NumberValue, Value() {
     override fun render(): String {
         return value.toString()
     }
+
+    override fun copy(): IntValue = this
 }
 
 data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
@@ -220,6 +225,8 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     override fun render(): String {
         return value.toString()
     }
+
+    override fun copy(): DecimalValue = this
 }
 
 data class BooleanValue(val value: Boolean) : Value() {
@@ -238,12 +245,16 @@ data class BooleanValue(val value: Boolean) : Value() {
     override fun render(): String {
         return value.toString()
     }
+
+    override fun copy(): BooleanValue = this
 }
 
 data class CharacterValue(val value: Array<Char>) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is CharacterType
     }
+
+    override fun copy(): CharacterValue = this
 }
 
 data class TimeStampValue(val value: Date) : Value() {
@@ -256,6 +267,8 @@ data class TimeStampValue(val value: Date) : Value() {
     companion object {
         val LOVAL = TimeStampValue(GregorianCalendar(0, Calendar.JANUARY, 0).time)
     }
+
+    override fun copy(): TimeStampValue = this
 }
 
 abstract class ArrayValue : Value() {
@@ -316,8 +329,14 @@ abstract class ArrayValue : Value() {
         }
         return res
     }
+
+    abstract val elementType : Type
+
+    override fun copy(): ArrayValue {
+        return ConcreteArrayValue(this.elements().map { it.copy() }.toMutableList(), this.elementType)
+    }
 }
-data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
+data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
     override fun elementSize() = elementType.size.toInt()
 
     override fun arrayLength() = elements.size
@@ -357,6 +376,8 @@ object BlanksValue : Value() {
         // FIXME
         return true
     }
+
+    override fun copy(): BlanksValue = this
 }
 
 object HiValValue : Value() {
@@ -368,6 +389,8 @@ object HiValValue : Value() {
         // FIXME
         return true
     }
+
+    override fun copy(): HiValValue = this
 }
 object LowValValue : Value() {
     override fun toString(): String {
@@ -378,12 +401,18 @@ object LowValValue : Value() {
         // FIXME
         return true
     }
+
+    override fun copy(): LowValValue = this
 }
 
 class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
         return true
+    }
+
+    override fun copy(): StructValue {
+        return StructValue(elements.mapValues { it.value.copy() }.toMutableMap())
     }
 }
 
@@ -395,6 +424,8 @@ class ProjectedArrayValue(val container: DataStructValue,
                           val startOffset: Int,
                           val step: Long,
                           val arrayLength: Int) : ArrayValue() {
+    override val elementType: Type
+        get() = (this.field.type as ArrayType).element
 
     companion object {
         fun forData(containerValue: DataStructValue, data: FieldDefinition) : ProjectedArrayValue {
@@ -533,6 +564,8 @@ data class DataStructValue(var value: String) : Value() {
             else -> false
         }
     }
+
+    override fun copy(): DataStructValue = DataStructValue(value)
 
     /**
      * A DataStructure could also be an array of data structures. In that case the field is seen as
