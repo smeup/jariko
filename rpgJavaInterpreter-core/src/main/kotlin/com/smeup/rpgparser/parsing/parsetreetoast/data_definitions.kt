@@ -378,12 +378,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
-                if( arraySizeDeclared != null ) {
-                    //StringType((explicitElementSize ?: precision)!!.toLong()/arraySizeDeclared)
-                    StringType((explicitElementSize ?: precision)!!.toLong())
-                } else {
-                    StringType((explicitElementSize ?: precision)!!.toLong())
-                }
+                StringType((explicitElementSize ?: precision)!!.toLong())
             } else {
                 val es = explicitElementSize ?: precision!!
                 NumberType(es - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
@@ -433,20 +428,11 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
         "N" -> BooleanType
         else -> TODO("Support RPG code type '$rpgCodeType', field $name")
     }
-    if (baseType == null) {
-        return null
-    }
-    return if (this.arraySizeDeclared() != null) {
-        //ArrayType(baseType!!, this.arraySizeDeclared()!!)
-        baseType
-    } else {
-        baseType
-    }
+    return baseType
 }
 
 fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
-    val others = this.parm_fixed()//.drop(if (this.hasHeader) 1 else 0)
-    val fieldsList = FieldsList(others.map { it.toFieldInfo() })
+    val fieldsList = FieldsList(this.parm_fixed().map { it.toFieldInfo() })
 
     // The first field, if does not use the overlay directive, starts at offset 0
     if (fieldsList.fields.isNotEmpty()) {
@@ -542,9 +528,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                             TODO()
                         } else {
                             currFieldInfo.arraySizeDeclared = targetFieldDefinition.arraySizeDeclared
-                            if (currFieldInfo.explicitElementType != null) {
-                                //currFieldInfo.explicitElementType = ArrayType(currFieldInfo.explicitElementType!!, currFieldInfo.arraySizeDeclared!!)
-                            } else {
+                            if (currFieldInfo.explicitElementType == null) {
                                 TODO()
                             }
                         }
@@ -566,13 +550,8 @@ class FieldsList(val fields: List<FieldInfo>) {
                         currFieldInfo.startOffset = targetFieldDefinition.startOffset!! + extraOffset
                     }
                     if (currFieldInfo.endOffset == null && currFieldInfo.elementSize != null) {
-                        if (currFieldInfo.arraySizeDeclared != null) {
-                            currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()// / currFieldInfo.arraySizeDeclared!!).toInt()
-                        } else {
-                            currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()
-                        }
+                        currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()
                     }
-                    // TODO this toAst causes issues in case of overlays
                     val elementSize = currFieldInfo.toAst().type.elementSize()
                     sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) + elementSize.toInt()
                 }
@@ -655,11 +634,7 @@ class FieldsList(val fields: List<FieldInfo>) {
             if (field.endOffset == null) {
                 if (field.overlayInfo == null) {
                     if (field.startOffset != null && field.elementSize != null) {
-                        if (field.arraySizeDeclared != null) {
-                            field.endOffset = (field.startOffset!! + field.elementSize!!).toInt()
-                        } else {
-                            field.endOffset = (field.startOffset!! + field.elementSize!!).toInt()
-                        }
+                        field.endOffset = (field.startOffset!! + field.elementSize!!).toInt()
                     }
                 }
             }
