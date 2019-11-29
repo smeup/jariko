@@ -188,7 +188,6 @@ data class FieldDefinition(
     override val position: Position? = null,
 
     // true when the FieldDefinition contains a DIM keyword on its line
-    // or when the field is overlaying on an a field which has the DIM keyword
     val declaredArrayInLineOnThisField : Int? = null
 ) :
             AbstractDataDefinition(name, type, position) {
@@ -242,7 +241,9 @@ data class FieldDefinition(
 
     @Derived
     val container
-        get() = overriddenContainer /*?: overlayingOn*/ ?: this.parent as? DataDefinition ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
+        get() = overriddenContainer
+                ?: this.parent as? DataDefinition
+                ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
 
     /**
      * The start offset is zero based, while in RPG code you could find explicit one-based offsets.
@@ -261,11 +262,7 @@ data class FieldDefinition(
             if (calculatedStartOffset != null) {
                 return calculatedStartOffset
             }
-            if (container is DataDefinition) {
-                return (container as DataDefinition).startOffset(this)
-            } else {
-                TODO()
-            }
+            return container.startOffset(this)
         }
 
     /**
@@ -285,11 +282,7 @@ data class FieldDefinition(
             if (calculatedEndOffset != null) {
                 return calculatedEndOffset
             }
-            if (container is DataDefinition) {
-                return (container as DataDefinition).endOffset(this)
-            } else {
-                TODO()
-            }
+            return (container as DataDefinition).endOffset(this)
         }
 
     val offsets: Pair<Int, Int>
