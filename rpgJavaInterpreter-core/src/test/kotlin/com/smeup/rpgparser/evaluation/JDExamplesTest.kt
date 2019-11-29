@@ -14,7 +14,6 @@ import org.junit.Ignore
 import org.junit.Test
 import com.smeup.rpgparser.utils.StringOutputStream
 import java.io.PrintStream
-import javax.xml.crypto.Data
 
 class JDExamplesTest {
 
