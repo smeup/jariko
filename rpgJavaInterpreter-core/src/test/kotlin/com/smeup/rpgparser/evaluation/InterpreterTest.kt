@@ -658,23 +658,6 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeARRAY06checkDataDefinitions() {
-        val cu = assertASTCanBeProduced("ARRAY06", true)
-        cu.resolve()
-        val msg = cu.getDataDefinition("MSG")
-        val ar = cu.getDataDefinition("Ar")
-        val br = cu.getDataDefinition("Br")
-        val cr = cu.getDataDefinition("Cr")
-        val str = cu.getDataDefinition("Str")
-
-        assertEquals(StringType(50), msg.type)
-        assertEquals(ArrayType(StringType(1), 3), ar.type)
-        assertEquals(ArrayType(StringType(2), 3), br.type)
-        assertEquals(ArrayType(StringType(4), 3), cr.type)
-        assertEquals(StringType(3), str.type)
-    }
-
-    @Test
     fun executeARRAY06() {
         assertEquals(listOf("A-A-A", "AB-AB-AB", "ABC -ABC -ABC -"), outputOf("ARRAY06"))
     }
