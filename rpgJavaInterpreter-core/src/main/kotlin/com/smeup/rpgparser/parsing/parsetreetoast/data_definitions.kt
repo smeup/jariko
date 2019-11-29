@@ -86,7 +86,7 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
 internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(),
                                           knownDataDefinitions: List<DataDefinition>): DataDefinition {
 
-    val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions)
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
 
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
