@@ -224,12 +224,13 @@ internal fun RpgParser.Dcl_dsContext.type(
     fieldsList: FieldsList,
     conf: ToAstConfiguration = ToAstConfiguration()
 ): Type {
+    val explicitSize = this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     val keywords = this.keyword()
     val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType(fieldsList) }
     //val elementSize = this.elementSizeOf(fieldsList)
-    val elementSize = fieldsList.fields.map {
+    val calculatedElementSize = fieldsList.fields.map {
         if (it.overlayInfo == null) {
             if (it.arraySizeDeclared == null) {
                 it.endOffset!!
@@ -239,7 +240,10 @@ internal fun RpgParser.Dcl_dsContext.type(
         } else {
             0
         }
-    }.max() ?: throw IllegalStateException("No fields in DS ${this.name}, so we cannot calculate the element size")
+    }.max()
+    val elementSize = explicitSize
+            ?: calculatedElementSize
+            ?: throw IllegalStateException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
         baseType
