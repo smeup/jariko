@@ -39,6 +39,10 @@ private fun coerceString(value: StringValue, type: Type): Value {
         }
         is ArrayType -> {
             if (type.element is StringType) {
+                // We are coercing a String into an array of Strings
+                // We split the string in substrings and copy each piece into
+                // an element of the array
+
                 val elementSize = type.element.size.toInt()
                 var i = 0
                 createArrayValue(type.element, type.nElements) {

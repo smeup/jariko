@@ -35,16 +35,16 @@ class SymbolTable {
         }
         // We did not find a top-level declaration with that name,
         // looking among fields
-        for (e in values) {
-            if (e.key is DataDefinition) {
-                val field = (e.key as DataDefinition).fields.firstOrNull {
+        for (topLevelValue in values) {
+            if (topLevelValue.key is DataDefinition) {
+                val field = (topLevelValue.key as DataDefinition).fields.firstOrNull {
                     it.name.equals(dataName, ignoreCase = true) && it.canBeUsedUnqualified()
                 }
                 if (field != null) {
-                    return if (e.key.type is ArrayValue) {
-                        TODO("We do not yet handle fields of array type")
+                    return if (topLevelValue.key.type is ArrayValue) {
+                        TODO("We do not yet handle top level values of array type")
                     } else {
-                        (e.value as DataStructValue)[field]
+                        (topLevelValue.value as DataStructValue)[field]
                     }
                 }
             }
