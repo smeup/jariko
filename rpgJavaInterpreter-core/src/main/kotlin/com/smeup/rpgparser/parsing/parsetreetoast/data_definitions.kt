@@ -230,10 +230,14 @@ internal fun RpgParser.Dcl_dsContext.type(
     val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType(fieldsList) }
     //val elementSize = this.elementSizeOf(fieldsList)
     val elementSize = fieldsList.fields.map {
-        if (it.arraySizeDeclared == null) {
-            it.endOffset!!
+        if (it.overlayInfo == null) {
+            if (it.arraySizeDeclared == null) {
+                it.endOffset!!
+            } else {
+                it.endOffset!! * it.arraySizeDeclared!!
+            }
         } else {
-            it.endOffset!! * it.arraySizeDeclared!!
+            0
         }
     }.max() ?: throw IllegalStateException()
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
@@ -434,7 +438,8 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
         return null
     }
     return if (this.arraySizeDeclared() != null) {
-        ArrayType(baseType!!, this.arraySizeDeclared()!!)
+        //ArrayType(baseType!!, this.arraySizeDeclared()!!)
+        baseType
     } else {
         baseType
     }
@@ -538,7 +543,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                         } else {
                             currFieldInfo.arraySizeDeclared = targetFieldDefinition.arraySizeDeclared
                             if (currFieldInfo.explicitElementType != null) {
-                                currFieldInfo.explicitElementType = ArrayType(currFieldInfo.explicitElementType!!, currFieldInfo.arraySizeDeclared!!)
+                                //currFieldInfo.explicitElementType = ArrayType(currFieldInfo.explicitElementType!!, currFieldInfo.arraySizeDeclared!!)
                             } else {
                                 TODO()
                             }
@@ -562,7 +567,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                     }
                     if (currFieldInfo.endOffset == null && currFieldInfo.elementSize != null) {
                         if (currFieldInfo.arraySizeDeclared != null) {
-                            currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!! / currFieldInfo.arraySizeDeclared!!).toInt()
+                            currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()// / currFieldInfo.arraySizeDeclared!!).toInt()
                         } else {
                             currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()
                         }
@@ -651,7 +656,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                 if (field.overlayInfo == null) {
                     if (field.startOffset != null && field.elementSize != null) {
                         if (field.arraySizeDeclared != null) {
-                            field.endOffset = (field.startOffset!! + field.elementSize!! / field.arraySizeDeclared!!).toInt()
+                            field.endOffset = (field.startOffset!! + field.elementSize!!).toInt()
                         } else {
                             field.endOffset = (field.startOffset!! + field.elementSize!!).toInt()
                         }

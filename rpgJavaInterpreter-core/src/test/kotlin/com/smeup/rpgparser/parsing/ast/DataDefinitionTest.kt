@@ -63,19 +63,28 @@ class DataDefinitionTest {
                 "D \$\$SVAR                      1050    DIM(200)",
                 "D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name",
                 "D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value"))
-        cu.assertDataDefinitionIsPresent("\$\$SVAR", ArrayType(DataStructureType(
+        cu.assertDataDefinitionIsPresent("@UNNAMED_DS_5", DataStructureType(
                 listOf(
-                        FieldType("\$\$SVARCD", StringType(50)),
-                        FieldType("\$\$SVARVA", StringType(1000))),
-                1050), 200),
+                        FieldType("\$\$SVAR", ArrayType(StringType(1050), 200)),
+                        FieldType("\$\$SVARCD", ArrayType(StringType(50), 200)),
+                        FieldType("\$\$SVARVA", ArrayType(StringType(1000), 200))),
+                210000),
                 fields = listOf(
+                        FieldDefinition("\$\$SVAR", ArrayType(StringType(1050), 200),
+                                explicitStartOffset = null,
+                                calculatedStartOffset = 0,
+                                calculatedEndOffset = 1050,
+                                declaredArrayInLine = 200),
                         FieldDefinition("\$\$SVARCD", ArrayType(StringType(50), 200),
                                 explicitStartOffset = null,
                                 calculatedStartOffset = 0,
-                                calculatedEndOffset = 50),
-                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200), explicitStartOffset = null,
+                                calculatedEndOffset = 50,
+                                declaredArrayInLine = 200),
+                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200),
+                                explicitStartOffset = null,
                                 calculatedStartOffset = 50,
-                                calculatedEndOffset = 1050)
+                                calculatedEndOffset = 1050,
+                                declaredArrayInLine = 200)
                 ))
     }
 
