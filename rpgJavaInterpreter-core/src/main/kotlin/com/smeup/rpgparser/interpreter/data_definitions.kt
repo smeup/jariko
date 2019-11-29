@@ -162,6 +162,13 @@ fun Type.toDataStructureValue(value: Value): StringValue {
             }
             return StringValue(sb.toString())
         }
+        is CharacterType -> {
+            val sb = StringBuilder()
+            (value as StringValue).value.forEach {
+                sb.append(it)
+            }
+            return StringValue(sb.toString())
+        }
         else -> TODO("Conversion to data struct value not implemented for $this")
     }
 }
