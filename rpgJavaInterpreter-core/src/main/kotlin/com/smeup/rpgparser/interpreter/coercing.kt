@@ -40,7 +40,6 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is ArrayType -> {
             if (type.element is StringType) {
                 val elementSize = type.element.size.toInt()
-                //val valueForArray = value.value.padEnd(elementSize).take(elementSize)
                 var i = 0
                 createArrayValue(type.element, type.nElements) {
                     val valueForArray = value.value.substring(i, i + elementSize)

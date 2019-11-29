@@ -13,8 +13,7 @@ class SymbolTable {
         if (data is FieldDefinition) {
             val containerValue = get(data.container)
             return if (data.container.isArray()) {
-                TODO()
-                //ProjectedArrayValue(containerValue as ArrayValue, data)
+                TODO("We do not yet handle an array container")
             } else if (data.declaredArrayInLine != null) {
                 ProjectedArrayValue.forData(containerValue as DataStructValue, data)
             } else {
@@ -22,10 +21,7 @@ class SymbolTable {
                 if (containerValue is DataStructValue) {
                     return coerce(containerValue[data], data.type)
                 } else {
-                    throw UnsupportedOperationException()
-//                    val structValue = (containerValue as? StructValue)
-//                            ?: throw IllegalStateException("Container expected to be a struct value: $containerValue")
-//                    structValue.elements[data]!!
+                    throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is ${containerValue}")
                 }
             }
         }
@@ -37,6 +33,8 @@ class SymbolTable {
         if (data != null) {
             return values[data] ?: throw IllegalArgumentException("Cannot find searched value for $data")
         }
+        // We did not find a top-level declaration with that name,
+        // looking among fields
         for (e in values) {
             if (e.key is DataDefinition) {
                 val field = (e.key as DataDefinition).fields.firstOrNull {
@@ -44,8 +42,7 @@ class SymbolTable {
                 }
                 if (field != null) {
                     return if (e.key.type is ArrayValue) {
-                        TODO()
-                        //ProjectedArrayValue(e.value as ArrayValue, field)
+                        TODO("We do not yet handle fields of array type")
                     } else {
                         (e.value as DataStructValue)[field]
                     }
