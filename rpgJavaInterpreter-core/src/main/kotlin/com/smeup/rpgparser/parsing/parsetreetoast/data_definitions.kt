@@ -203,9 +203,8 @@ val RpgParser.Dcl_dsContext.name: String
         return if (nameIsInFirstLine) {
             this.ds_name().text.trim()
         } else {
-            //require(this.parm_fixed().isNotEmpty())
-            //val header = this.parm_fixed().first()
-            //header.ds_name().text
+            // These DS are not accessible in RPG code, however we give them
+            // a name for debugging purposes
             "@UNNAMED_DS_${this.toPosition(true)!!.start.line}"
         }
     }
@@ -216,7 +215,7 @@ val RpgParser.Dcl_dsContext.hasHeader: Boolean
     }
 
 fun RpgParser.Dcl_dsContext.fieldLines(): List<RpgParser.Parm_fixedContext> {
-    return this.parm_fixed()//.drop(if (nameIsInFirstLine) 0 else 0)
+    return this.parm_fixed()
 }
 
 internal fun RpgParser.Dcl_dsContext.type(
@@ -228,8 +227,7 @@ internal fun RpgParser.Dcl_dsContext.type(
     val keywords = this.keyword()
     val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
-    val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType(fieldsList) }
-    //val elementSize = this.elementSizeOf(fieldsList)
+    val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType() }
     val calculatedElementSize = fieldsList.fields.map {
         if (it.overlayInfo == null) {
             if (it.arraySizeDeclared == null) {
@@ -306,28 +304,19 @@ data class FieldInfo(
         return if (arraySizeDeclared == null) {
             elementType
         } else {
-            //elementType
             ArrayType(elementType, arraySizeDeclared!!)
         }
     }
 
     data class OverlayInfo(val targetFieldName: String, val isNext: Boolean, val posValue: Long?)
 
-    fun toFieldType(fieldsList: FieldsList): FieldType {
+    fun toFieldType(): FieldType {
         return FieldType(name, type())
     }
 
-    fun toAst(nElements: Int?, fieldsList: FieldsList, conf: ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
-        val baseType = type()
-        val type = if (nElements != null) {
-            //ArrayType(baseType, nElements)
-            baseType
-        } else {
-            baseType
-        }
-
+    fun toAst(conf: ToAstConfiguration = ToAstConfiguration()): FieldDefinition {
         return FieldDefinition(this.name,
-                type,
+                type(),
                 explicitStartOffset = this.explicitStartOffset,
                 explicitEndOffset = if (explicitStartOffset != null) this.explicitEndOffset else null,
                 calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
@@ -584,7 +573,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                         }
                     }
                     // TODO this toAst causes issues in case of overlays
-                    val elementSize = currFieldInfo.toAst(null, this).type.elementSize()
+                    val elementSize = currFieldInfo.toAst().type.elementSize()
                     sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) + elementSize.toInt()
                 }
             }
@@ -689,22 +678,10 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
 
     val fieldsList = calculateFieldInfos()
     val type: Type = this.type(size, fieldsList, conf)
-    val nElements = if (type is ArrayType) {
-        type.nElements
-    } else {
-        null
-    }
-    // If the name of the DS is not provided, it takes the first field name
-//    if (this.hasHeader) {
-//        var hasInitValue = this.parm_fixed().first().keyword().find { it.keyword_inz() != null }
-//        if (hasInitValue != null) {
-//            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
-//        }
-//    }
     val dataDefinition = DataDefinition(
             this.name,
             type,
-            fields = fieldsList.fields.map { it.toAst(nElements, fieldsList, conf) },
+            fields = fieldsList.fields.map { it.toAst(conf) },
             initializationValue = initializationValue,
             position = this.toPosition(true))
 

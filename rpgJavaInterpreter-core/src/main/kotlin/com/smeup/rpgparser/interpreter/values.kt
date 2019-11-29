@@ -386,17 +386,6 @@ object LowValValue : Value() {
     override fun copy(): LowValValue = this
 }
 
-class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
-    override fun assignableTo(expectedType: Type): Boolean {
-        // FIXME
-        return true
-    }
-
-    override fun copy(): StructValue {
-        return StructValue(elements.mapValues { it.value.copy() }.toMutableMap())
-    }
-}
-
 /**
  * The container should always be a DS value
  */
@@ -478,7 +467,6 @@ fun Type.blank(): Value {
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
-        else -> TODO("I do not know how to produce a blank $this")
     }
 }
 
@@ -576,6 +564,7 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     override fun asString() = StringValue(this.value)
+
     fun isBlank(): Boolean {
         return this.valueWithoutPadding.isBlank()
     }
