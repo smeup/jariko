@@ -8,9 +8,13 @@ import java.util.*
 import kotlin.streams.toList
 
 const val PAD_CHAR = '\u0000'
+const val PROPER_PAD_CHAR = ' '
 const val PAD_STRING = PAD_CHAR.toString()
 
 abstract class Value {
+    val isArray: Boolean
+        get() = this is ArrayValue
+
     open fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
     open fun asString(): StringValue = throw UnsupportedOperationException()

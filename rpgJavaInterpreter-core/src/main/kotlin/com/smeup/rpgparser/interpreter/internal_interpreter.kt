@@ -962,10 +962,29 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
-        val coercedValue = coerce(value, dataDefinition.type)
-        set(dataDefinition, coercedValue)
+        if (dataDefinition.isArray() && !value.isArray) {
+            var coercedValue : Value? = null
+            for (i in 1..dataDefinition.numberOfElements()) {
+                coercedValue = coerce(value, (dataDefinition.type as ArrayType).element)
+                assignElement(coercedValue, i, globalSymbolTable[dataDefinition] as ArrayValue,
+                        dataDefinition.type as ArrayType)
+            }
+            return coercedValue!!
+        } else {
+            val coercedValue = coerce(value, dataDefinition.type)
+            set(dataDefinition, coercedValue)
 
-        return coercedValue
+            return coercedValue
+        }
+    }
+
+    private fun assignElement(value: Value, index: Int,
+                              arrayValue: ArrayValue,
+                              arrayType: ArrayType) : Value {
+        val elementType = arrayType.element
+        val evaluatedValue = coerce(value, elementType)
+        arrayValue.setElement(index, evaluatedValue)
+        return evaluatedValue
     }
 
     override fun assign(target: AssignableExpression, value: Value): Value {
@@ -983,19 +1002,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     "The value $arrayValue is not assignable to $targetType"
                 }
                 val indexValue = interpret(target.index)
-                val elementType = (targetType as ArrayType).element
-                val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
+                val res = assignElement(value, index, arrayValue, target.array.type() as ArrayType)
                 log(
-                    AssignmentOfElementLogEntry(
-                        this.interpretationContext.currentProgramName,
-                        target.array,
-                        index,
-                        evaluatedValue
-                    )
+                        AssignmentOfElementLogEntry(
+                                this.interpretationContext.currentProgramName,
+                                target.array,
+                                index,
+                                res
+                        )
                 )
-                arrayValue.setElement(index, evaluatedValue)
-                return evaluatedValue
+                return res
             }
             is SubstExpr -> {
                 val oldValue = eval(target.string).asString().value
