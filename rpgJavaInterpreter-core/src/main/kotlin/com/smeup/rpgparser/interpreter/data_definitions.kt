@@ -198,12 +198,12 @@ data class FieldDefinition(
     // true when the FieldDefinition contains a DIM keyword on its line
     // or when the field is overlaying on an a field which has the DIM keyword
     val declaredArrayInLine : Int?
-        get() = declaredArrayInLineOnThisField ?: overlayingOn?.declaredArrayInLine
+        get() = declaredArrayInLineOnThisField ?: (overlayingOn as? FieldDefinition)?.declaredArrayInLine
 
     val size: Long = type.size
 
     @property:Link
-    var overlayingOn: FieldDefinition? = null
+    var overlayingOn: AbstractDataDefinition? = null
 
     // when they are arrays, how many bytes should we skip into the DS to find the next element?
     // normally it would be the same size as an element of the DS, however if they are declared

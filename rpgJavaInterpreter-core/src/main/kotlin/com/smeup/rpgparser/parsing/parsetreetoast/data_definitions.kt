@@ -707,7 +707,15 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     fieldsList.fields.forEach { fieldInfo ->
         if (fieldInfo.overlayInfo != null) {
             val correspondingFieldDefinition = dataDefinition.fields.find { it.name == fieldInfo.name }!!
-            correspondingFieldDefinition.overlayingOn = dataDefinition.fields.find { it.name == fieldInfo.overlayInfo!!.targetFieldName }!!
+            val overlayTarget = fieldInfo.overlayInfo!!.targetFieldName
+            if (overlayTarget == dataDefinition.name) {
+                correspondingFieldDefinition.overlayingOn = dataDefinition
+            } else {
+                correspondingFieldDefinition.overlayingOn = dataDefinition.fields.find { fieldDefinition ->
+                    fieldDefinition.name == overlayTarget
+                }
+                        ?: throw IllegalStateException("Field not found: the overlay target is $overlayTarget. Fields available: ${dataDefinition.fields.joinToString(separator = ", ") { it.name }}")
+            }
         }
     }
 
