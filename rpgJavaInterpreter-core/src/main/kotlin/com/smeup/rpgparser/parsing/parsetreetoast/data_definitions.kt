@@ -274,6 +274,7 @@ data class FieldInfo(
         val explicitStartOffset: Int?,
         val explicitEndOffset: Int?,
         var arraySizeDeclared: Int? = null,
+        var arraySizeDeclaredOnThisField: Int? = null,
     // This can be set when the type permits to get the element size
     // For example, here it is possible:
     // D  FI07                         15  3 OVERLAY(AR01:*NEXT)
@@ -333,7 +334,7 @@ data class FieldInfo(
                 calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
                 initializationValue = this.initializationValue,
                 position = if (conf.considerPosition) this.position else null,
-                declaredArrayInLine = arraySizeDeclared)
+                declaredArrayInLineOnThisField = arraySizeDeclaredOnThisField)
     }
 }
 
@@ -497,6 +498,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                 explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
                 explicitElementType = this.calculateExplicitElementType(arraySizeDeclared),
                 arraySizeDeclared = this.arraySizeDeclared(),
+                arraySizeDeclaredOnThisField = this.arraySizeDeclared(),
                 initializationValue = initializationValue,
                 position = this.toPosition(conf.considerPosition))
     } catch (e: Exception) {

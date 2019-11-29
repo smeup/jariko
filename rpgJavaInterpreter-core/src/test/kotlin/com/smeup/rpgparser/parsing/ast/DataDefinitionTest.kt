@@ -74,17 +74,17 @@ class DataDefinitionTest {
                                 explicitStartOffset = null,
                                 calculatedStartOffset = 0,
                                 calculatedEndOffset = 1050,
-                                declaredArrayInLine = 200),
+                                declaredArrayInLineOnThisField = 200),
                         FieldDefinition("\$\$SVARCD", ArrayType(StringType(50), 200),
                                 explicitStartOffset = null,
                                 calculatedStartOffset = 0,
                                 calculatedEndOffset = 50,
-                                declaredArrayInLine = 200),
+                                declaredArrayInLineOnThisField = null),
                         FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200),
                                 explicitStartOffset = null,
                                 calculatedStartOffset = 50,
                                 calculatedEndOffset = 1050,
-                                declaredArrayInLine = 200)
+                                declaredArrayInLineOnThisField = null)
                 ))
     }
 
@@ -298,18 +298,25 @@ class DataDefinitionTest {
         assertEquals(122, AR01.elementSize())
         assertEquals(ArrayType(StringType(122), 100), AR01.type)
 
+        val LOG = cu.getDataOrFieldDefinition("LOG") as FieldDefinition
+        assertEquals(0, LOG.startOffset)
+        assertEquals(2, LOG.endOffset)
+
         val result = execute(cu, emptyMap())
         val unnamedDsValue = result["@UNNAMED_DS_48"]
         assertEquals(DataStructValue("0F0L1L2L3L4L5L"), unnamedDsValue)
         val log1Value = result["LOG1"]
         assertEquals(StringValue("0F0L1L2L3L4L5L"), log1Value)
-        val logValue = result["LOG"]
+        val logValue = result["LOG"] as ProjectedArrayValue
+        assertEquals(0, logValue.startOffset)
+        assertEquals(2, logValue.step)
+        assertEquals(7, logValue.arrayLength)
         assertEquals(ConcreteArrayValue(mutableListOf(StringValue("0F"),
                 StringValue("0L"),
                 StringValue("1L"),
                 StringValue("2L"),
                 StringValue("3L"),
                 StringValue("4L"),
-                StringValue("5L")), StringType(2)), logValue)
+                StringValue("5L")), StringType(2)) as ArrayValue, logValue)
     }
 }

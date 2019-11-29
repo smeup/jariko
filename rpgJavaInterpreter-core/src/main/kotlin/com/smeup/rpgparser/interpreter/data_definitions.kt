@@ -182,7 +182,7 @@ data class FieldDefinition(
 
     // true when the FieldDefinition contains a DIM keyword on its line
     // or when the field is overlaying on an a field which has the DIM keyword
-    val declaredArrayInLine : Int? = null
+    val declaredArrayInLineOnThisField : Int? = null
 ) :
             AbstractDataDefinition(name, type, position) {
 
@@ -195,6 +195,11 @@ data class FieldDefinition(
         }
     }
 
+    // true when the FieldDefinition contains a DIM keyword on its line
+    // or when the field is overlaying on an a field which has the DIM keyword
+    val declaredArrayInLine : Int?
+        get() = declaredArrayInLineOnThisField ?: overlayingOn?.declaredArrayInLine
+
     val size: Long = type.size
 
     @property:Link
@@ -205,7 +210,11 @@ data class FieldDefinition(
     // as on overlay of a field with a DIM keyword, then we should use the size of an element
     // of such field
     val stepSize: Long
-        get() = overlayingOn?.elementSize() ?: elementSize()
+        get() {
+            if (declaredArrayInLineOnThisField != null) {
+                return elementSize()
+            } else return overlayingOn?.elementSize() ?: elementSize()
+        }
 
     override fun elementSize() : Long {
         return if (container.type is ArrayType) {
