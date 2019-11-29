@@ -72,25 +72,6 @@ data class StringValue(val value: String) : Value() {
         return valueWithoutPadding.hashCode()
     }
 
-//    fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
-//        require(startOffset >= 0)
-//        require(startOffset <= value.length)
-//        require(endOffset >= startOffset)
-//        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-//        require(endOffset - startOffset == substringValue.value.length)
-//        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-//        value = newValue.replace('\u0000', ' ')
-//    }
-//
-//    fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
-//        require(startOffset >= 0)
-//        require(startOffset <= value.length)
-//        require(endOffset >= startOffset)
-//        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-//        val s = value.substring(startOffset, endOffset)
-//        return StringValue(s)
-//    }
-
     override fun toString(): String {
         return "StringValue[${value.length}]($valueWithoutPadding)"
     }
@@ -335,6 +316,7 @@ abstract class ArrayValue : Value() {
         return ConcreteArrayValue(this.elements().map { it.copy() }.toMutableList(), this.elementType)
     }
 }
+
 data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
     override fun elementSize() = elementType.size.toInt()
 
@@ -448,37 +430,6 @@ class ProjectedArrayValue(val container: DataStructValue,
         val endIndex = (startIndex + this.field.elementSize()).toInt()
         container.setSubstring(startIndex, endIndex, coerce(value, StringType(this.field.elementSize())) as StringValue)
 
-        //CONVERT AND SET SUBSTRING
-
-        //TODO()
-
-//        val containerElement = container.getSubstring(startIndex, endIndex)
-//        return coerce(StringValue(containerElement), field.type)
-//
-//        // Set the value within the projected Array
-//        if (containerElement is StringValue) {
-//            if (value is StringValue) {
-//                containerElement.setSubstring(field.startOffset, field.endOffset, value)
-//            } else if (value is IntValue) {
-//                val s = value.value.toString()
-//                val pad = s.padStart(field.endOffset - field.startOffset)
-//                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
-//            } else {
-//                TODO("$value not supported")
-//            }
-//        } else if (containerElement is DataStructValue) {
-//            containerElement.setSingleField(field, value)
-//
-////            if (value is StringValue) {
-////                containerElement.setSubstring(field.startOffset, field.endOffset, value)
-////            } else if (value is IntValue) {
-////                var s = value.value.toString()
-////                val pad = s.padStart(field.endOffset - field.startOffset)
-////                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
-////            } else {
-////                TODO("$value not supported")
-////            }
-//        }
     }
 
     override fun getElement(index: Int): Value {
@@ -490,21 +441,6 @@ class ProjectedArrayValue(val container: DataStructValue,
         val substringValue = container.getSubstring(startIndex, endIndex)
 
         return coerce(substringValue, (this.field.type as ArrayType).element)
-
-//        if (this.field.declaredArrayInLine == null) {
-//            TODO()
-//        } else {
-//            TODO()
-//        }
-//        val containerElement = container.getElement(index)
-//
-//        if (containerElement is StringValue) {
-//            return containerElement.getSubstring(field.startOffset, field.endOffset)
-//        } else if (containerElement is DataStructValue) {
-//            return containerElement.getSingleField(field)
-//        } else {
-//            TODO("$containerElement not supported")
-//        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -513,10 +449,6 @@ class ProjectedArrayValue(val container: DataStructValue,
         } else {
             false
         }
-    }
-
-    override fun hashCode(): Int {
-        return super.hashCode()
     }
 }
 
@@ -600,13 +532,6 @@ data class DataStructValue(var value: String) : Value() {
     operator fun get(data: FieldDefinition): Value {
         return if (data.declaredArrayInLine != null) {
             ProjectedArrayValue.forData(this, data)
-//            val start = data.startOffset
-//            val end = data.endOffset * data.declaredArrayInLine!!
-//            val length = end - start
-//            require(length == data.type.size.toInt()) {
-//                "Length of the substring calculated to be $length (start: $start, end: $end), however type is ${data.type} and it has size ${data.type.size}"
-//            }
-//            coerce(this.getSubstring(start, end), data.type)
         } else {
             coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
         }
