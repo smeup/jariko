@@ -278,16 +278,14 @@ class DataDefinitionTest {
         assertEquals(StringType(14), LOG1.type)
         assertEquals((LOG1.initializationValue as StringLiteral).value, "0F0L1L2L3L4L5L")
 
-        // The problem is that the end offset in the FieldInfo is set to the wrong value
-
         val LOG = unnamedDs.getFieldByName("LOG")
         assertEquals(ArrayType(StringType(2), 7), LOG.type)
         assertEquals(LOG.initializationValue, null)
-        assertEquals(14, LOG.elementSize())
+        assertEquals(2, LOG.elementSize())
         assertEquals(LOG.startOffset, 0)
         assertEquals(LOG.explicitEndOffset, null)
-        assertEquals(LOG.calculatedEndOffset, 14)
-        assertEquals(LOG.endOffset, 14)
+        assertEquals(LOG.calculatedEndOffset, 2)
+        assertEquals(LOG.endOffset, 2)
         assertEquals(LOG.size, 14)
     }
 

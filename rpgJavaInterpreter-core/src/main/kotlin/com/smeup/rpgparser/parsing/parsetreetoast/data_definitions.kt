@@ -239,7 +239,7 @@ internal fun RpgParser.Dcl_dsContext.type(
         } else {
             0
         }
-    }.max() ?: throw IllegalStateException()
+    }.max() ?: throw IllegalStateException("No fields in DS ${this.name}, so we cannot calculate the element size")
     val baseType = DataStructureType(fieldTypes, size ?: elementSize)
     return if (nElements == null) {
         baseType
