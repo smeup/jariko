@@ -144,7 +144,6 @@ class RpgParserOverlayTest12 {
 
         val fto = fds.getFieldByName("£40FTO")
         assertEquals(ArrayType(StringType(12),500), fto.type)
-
     }
 
     @Test

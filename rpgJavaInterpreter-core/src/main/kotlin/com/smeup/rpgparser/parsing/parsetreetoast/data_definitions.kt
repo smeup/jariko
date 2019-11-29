@@ -373,10 +373,15 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     val isPackEven = keyword().any { it.keyword_packeven() != null }
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
-    val explicitElementSize = when {
+    val totalSize = when {
         startPosition == null -> null
         endPosition == null -> endPosition
         else -> endPosition - startPosition.toInt()
+    }
+    val explicitElementSize = if (arraySizeDeclared != null) {
+        totalSize?.let { it / arraySizeDeclared()!! }
+    } else {
+        totalSize
     }
 
     val baseType = when (rpgCodeType) {
