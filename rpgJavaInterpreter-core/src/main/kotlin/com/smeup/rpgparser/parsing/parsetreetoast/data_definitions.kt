@@ -83,8 +83,10 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     return fileDefinition
 }
 
-internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(),
-                                          knownDataDefinitions: List<DataDefinition>): DataDefinition {
+internal fun RpgParser.DspecContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: List<DataDefinition>
+): DataDefinition {
 
     val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
 
@@ -267,20 +269,20 @@ private fun RpgParser.Parm_fixedContext.isOverlayingOn(name: String): Boolean {
  * fields or the containing data definition and this is way we cannot build FieldDefinitions in one step.
  */
 data class FieldInfo(
-        val name: String,
-        val overlayInfo: OverlayInfo? = null,
-        val explicitStartOffset: Int?,
-        val explicitEndOffset: Int?,
-        var arraySizeDeclared: Int? = null,
-        var arraySizeDeclaredOnThisField: Int? = null,
+    val name: String,
+    val overlayInfo: OverlayInfo? = null,
+    val explicitStartOffset: Int?,
+    val explicitEndOffset: Int?,
+    var arraySizeDeclared: Int? = null,
+    var arraySizeDeclaredOnThisField: Int? = null,
     // This can be set when the type permits to get the element size
     // For example, here it is possible:
     // D  FI07                         15  3 OVERLAY(AR01:*NEXT)
     // While here it is not:
     // D AR01                                DIM(100) ASCEND
-        var explicitElementType: Type? = null,
-        val initializationValue: Expression? = null,
-        val position: Position?
+    var explicitElementType: Type? = null,
+    val initializationValue: Expression? = null,
+    val position: Position?
 ) {
 
     var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
@@ -403,23 +405,21 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
         }
         RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> {
             val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
-            when(elementSize) {
+            when (elementSize) {
                 1 -> NumberType(3, 0, rpgCodeType)
                 2 -> NumberType(5, 0, rpgCodeType)
                 4 -> NumberType(10, 0, rpgCodeType)
                 8 -> NumberType(19, 0, rpgCodeType)
                 else -> NumberType(elementSize - decimalPositions!!, decimalPositions!!, rpgCodeType)
             }
-
         }
         RpgType.BINARY.rpgType -> {
             val elementSize = explicitElementSize ?: (precision!! + decimalPositions!!)
-            when(elementSize) {
-                2,3,4 -> NumberType(2, 0, rpgCodeType)
-                5,6,7,8-> NumberType(4, 0, rpgCodeType)
+            when (elementSize) {
+                2, 3, 4 -> NumberType(2, 0, rpgCodeType)
+                5, 6, 7, 8 -> NumberType(4, 0, rpgCodeType)
                 else -> NumberType(8, 0, rpgCodeType)
             }
-
         }
 
         "A" -> {

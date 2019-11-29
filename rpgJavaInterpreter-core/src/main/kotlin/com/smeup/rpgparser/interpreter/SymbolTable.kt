@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import java.lang.IllegalStateException
-import java.lang.UnsupportedOperationException
 
 class SymbolTable {
     private val values = LinkedHashMap<AbstractDataDefinition, Value>()
@@ -21,7 +20,7 @@ class SymbolTable {
                 if (containerValue is DataStructValue) {
                     return coerce(containerValue[data], data.type)
                 } else {
-                    throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is ${containerValue}")
+                    throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
                 }
             }
         }

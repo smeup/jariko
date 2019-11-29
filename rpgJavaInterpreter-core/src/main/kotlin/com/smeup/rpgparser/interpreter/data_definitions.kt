@@ -147,7 +147,7 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                 }
                 val encoded = encodeBinary(value.asDecimal().value, len)
                 // adjust the size to fit the target field
-                //val fitted = encoded.padEnd(this.size.toInt())
+                // val fitted = encoded.padEnd(this.size.toInt())
                 return StringValue(encoded)
             }
             TODO("Not implemented $this")
@@ -188,7 +188,7 @@ data class FieldDefinition(
     override val position: Position? = null,
 
     // true when the FieldDefinition contains a DIM keyword on its line
-    val declaredArrayInLineOnThisField : Int? = null
+    val declaredArrayInLineOnThisField: Int? = null
 ) :
             AbstractDataDefinition(name, type, position) {
 
@@ -203,7 +203,7 @@ data class FieldDefinition(
 
     // true when the FieldDefinition contains a DIM keyword on its line
     // or when the field is overlaying on an a field which has the DIM keyword
-    val declaredArrayInLine : Int?
+    val declaredArrayInLine: Int?
         get() = declaredArrayInLineOnThisField ?: (overlayingOn as? FieldDefinition)?.declaredArrayInLine
 
     val size: Long = type.size
@@ -222,7 +222,7 @@ data class FieldDefinition(
             } else return overlayingOn?.elementSize() ?: elementSize()
         }
 
-    override fun elementSize() : Long {
+    override fun elementSize(): Long {
         return if (container.type is ArrayType) {
             super.elementSize()
         } else if (this.declaredArrayInLine != null) {
@@ -291,7 +291,6 @@ data class FieldDefinition(
     override fun hashCode(): Int {
         return name.hashCode() * 31 + type.hashCode() * 7
     }
-
 }
 
 // Positions 64 through 68 specify the length of the result field. This entry is optional, but can be used to define a
@@ -489,7 +488,6 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
         return BigDecimal(number.toInt().toString())
     }
     TODO("decode binary for $size not implemented")
-
 }
 
 /**

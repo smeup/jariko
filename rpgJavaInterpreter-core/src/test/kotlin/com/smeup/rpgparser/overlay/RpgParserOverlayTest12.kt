@@ -78,7 +78,6 @@ class RpgParserOverlayTest12 {
         assertEquals(NumberType(2, 0, RpgType.BINARY), ds0012.type)
         assertEquals(2, ds0012.size)
 
-
         val ds0013 = ds.getFieldByName("DS0013")
         assertEquals(NumberType(3, 0, RpgType.INTEGER), ds0013.type)
         assertEquals(1, ds0013.size)
@@ -86,7 +85,6 @@ class RpgParserOverlayTest12 {
         val ds0014 = ds.getFieldByName("DS0014")
         assertEquals(NumberType(3, 0, RpgType.UNSIGNED), ds0014.type)
         assertEquals(1, ds0014.size)
-
 
         val ds0015 = ds.getFieldByName("DS0015")
         assertEquals(NumberType(5, 0, RpgType.INTEGER), ds0015.type)
@@ -122,18 +120,18 @@ class RpgParserOverlayTest12 {
         assertEquals(StringType(50), fre.type)
 
         val fnt = fds.getFieldByName("£40FNT")
-        assertEquals(NumberType(5,0,RpgType.ZONED), fnt.type)
+        assertEquals(NumberType(5, 0, RpgType.ZONED), fnt.type)
 
         val fmso = fds.getFieldByName("£40F_MSO")
         assertEquals(StringType(1), fmso.type)
 
-        val fmwl  = fds.getFieldByName("£40F_MWL")
+        val fmwl = fds.getFieldByName("£40F_MWL")
         assertEquals(StringType(1), fmwl.type)
 
-        val fmwc  = fds.getFieldByName("£40F_MWC")
+        val fmwc = fds.getFieldByName("£40F_MWC")
         assertEquals(StringType(1), fmwc.type)
 
-        val flu  = fds.getFieldByName("£40FLU")
+        val flu = fds.getFieldByName("£40FLU")
         assertEquals(StringType(2), flu.type)
 
         val fmsr = fds.getFieldByName("£40F_MSR")
@@ -143,7 +141,7 @@ class RpgParserOverlayTest12 {
         assertEquals(StringType(1), fns.type)
 
         val fto = fds.getFieldByName("£40FTO")
-        assertEquals(ArrayType(StringType(12),500), fto.type)
+        assertEquals(ArrayType(StringType(12), 500), fto.type)
     }
 
     @Test
@@ -171,8 +169,6 @@ class RpgParserOverlayTest12 {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
         cu.resolve()
         // After th
-
-
     }
 
     @Test

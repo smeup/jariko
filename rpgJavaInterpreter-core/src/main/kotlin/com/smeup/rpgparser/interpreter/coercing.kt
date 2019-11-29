@@ -62,7 +62,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (type.integer) {
                 when {
                     // TODO commented out see #45
-                    //value.isBlank() -> IntValue.ZERO
+                    // value.isBlank() -> IntValue.ZERO
                     type.rpgType == RpgType.BINARY.rpgType -> {
                         val intValue = decodeBinary(value.value, type.size.toInt())
                         IntValue(intValue.longValueExact())

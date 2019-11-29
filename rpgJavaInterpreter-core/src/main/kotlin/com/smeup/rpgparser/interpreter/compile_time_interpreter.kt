@@ -4,8 +4,6 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
-import java.lang.Exception
-import java.lang.IllegalStateException
 import java.lang.RuntimeException
 
 /**
@@ -22,8 +20,10 @@ interface CompileTimeInterpreter {
 
 object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter(emptyList())
 
-class InjectableCompileTimeInterpreter(knownDataDefinitions: List<DataDefinition> = emptyList(),
-                                       delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null) : BaseCompileTimeInterpreter(knownDataDefinitions, delegatedCompileTimeInterpreter) {
+class InjectableCompileTimeInterpreter(
+    knownDataDefinitions: List<DataDefinition> = emptyList(),
+    delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
+) : BaseCompileTimeInterpreter(knownDataDefinitions, delegatedCompileTimeInterpreter) {
     override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
         return mockedDecls[declName]?.numberOfElements() ?: super.evaluateNumberOfElementsOf(rContext, declName)
     }
@@ -41,8 +41,10 @@ class InjectableCompileTimeInterpreter(knownDataDefinitions: List<DataDefinition
 
 class NotFoundAtCompileTimeException(val declName: String) : RuntimeException("Unable to calculate element size of $declName")
 
-open class BaseCompileTimeInterpreter(val knownDataDefinitions: List<DataDefinition>,
-                                      val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null) : CompileTimeInterpreter {
+open class BaseCompileTimeInterpreter(
+    val knownDataDefinitions: List<DataDefinition>,
+    val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
+) : CompileTimeInterpreter {
     override fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value {
         return when (expression) {
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
@@ -142,7 +144,7 @@ open class BaseCompileTimeInterpreter(val knownDataDefinitions: List<DataDefinit
             is DataRefExpr -> {
                 try {
                     evaluateElementSizeOf(rContext, expression.variable.name)
-                } catch (e : NotFoundAtCompileTimeException) {
+                } catch (e: NotFoundAtCompileTimeException) {
                     if (delegatedCompileTimeInterpreter != null) {
                         return delegatedCompileTimeInterpreter!!.evaluateElementSizeOf(rContext, expression)
                     } else {

@@ -107,7 +107,6 @@ class JDExamplesTest {
             override fun registerProgramExecutionStart(program: Program, params: Map<String, Value>) {
                 programExecutions.add(ProgramExecution(program, params))
             }
-
         }
         val callsToJDURL = LinkedList<Map<String, Value>>()
         si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(

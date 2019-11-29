@@ -340,8 +340,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     try {
                         val result = assign(statement.target, statement.expression, statement.operator)
                         log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
-                    } catch (e : Exception) {
-                        throw java.lang.RuntimeException("Issue executing statement ${statement} at line ${statement.startLine()}", e)
+                    } catch (e: Exception) {
+                        throw java.lang.RuntimeException("Issue executing statement $statement at line ${statement.startLine()}", e)
                     }
                 }
                 is MoveStmt -> {
@@ -874,7 +874,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 // Convert everything to Decimal then compare
                 value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
             }
-
 
             value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()

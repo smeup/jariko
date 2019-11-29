@@ -289,7 +289,7 @@ abstract class ArrayValue : Value() {
     }
     override fun asArray() = this
 
-    fun areEquivalent(other: ArrayValue) : Boolean {
+    fun areEquivalent(other: ArrayValue): Boolean {
         if (this.arrayLength() != other.arrayLength()) {
             return false
         }
@@ -310,7 +310,7 @@ abstract class ArrayValue : Value() {
         return res
     }
 
-    abstract val elementType : Type
+    abstract val elementType: Type
 
     override fun copy(): ArrayValue {
         return ConcreteArrayValue(this.elements().map { it.copy() }.toMutableList(), this.elementType)
@@ -389,16 +389,18 @@ object LowValValue : Value() {
 /**
  * The container should always be a DS value
  */
-class ProjectedArrayValue(val container: DataStructValue,
-                          val field: FieldDefinition,
-                          val startOffset: Int,
-                          val step: Long,
-                          val arrayLength: Int) : ArrayValue() {
+class ProjectedArrayValue(
+    val container: DataStructValue,
+    val field: FieldDefinition,
+    val startOffset: Int,
+    val step: Long,
+    val arrayLength: Int
+) : ArrayValue() {
     override val elementType: Type
         get() = (this.field.type as ArrayType).element
 
     companion object {
-        fun forData(containerValue: DataStructValue, data: FieldDefinition) : ProjectedArrayValue {
+        fun forData(containerValue: DataStructValue, data: FieldDefinition): ProjectedArrayValue {
             val stepSize = data.stepSize
             val arrayLength = data.declaredArrayInLine!!
             return ProjectedArrayValue(containerValue, data, data.startOffset, stepSize, arrayLength)
@@ -418,7 +420,6 @@ class ProjectedArrayValue(val container: DataStructValue,
         val startIndex = (this.startOffset + this.step * (index - 1)).toInt()
         val endIndex = (startIndex + this.field.elementSize()).toInt()
         container.setSubstring(startIndex, endIndex, coerce(value, StringType(this.field.elementSize())) as StringValue)
-
     }
 
     override fun getElement(index: Int): Value {
@@ -543,7 +544,7 @@ data class DataStructValue(var value: String) : Value() {
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
         require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
         val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue //.replace('\u0000', ' ')
+        value = newValue // .replace('\u0000', ' ')
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
