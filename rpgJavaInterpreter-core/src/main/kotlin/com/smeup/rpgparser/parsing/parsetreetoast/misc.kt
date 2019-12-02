@@ -226,6 +226,17 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
 // FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
 //        in the grammar
 internal fun referenceToExpression(text: String, position: Position?): Expression {
+    if (text.toUpperCase() == "*IN"){
+        return PredefinedGlobalIndicatorExpr(position)
+    }
+    if (text.toUpperCase().startsWith("*IN(") && text.endsWith(")")){
+        val index = text.toUpperCase().removePrefix("*IN(").removeSuffix(")").toInt()
+        return PredefinedIndicatorExpr(index, position)
+    }
+    if (text.toUpperCase().startsWith("*IN")){
+        val index = text.toUpperCase().removePrefix("*IN").toInt()
+        return PredefinedIndicatorExpr(index, position)
+    }
     var expr: Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
         DataRefExpr(ReferenceByName(varName), position)

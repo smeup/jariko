@@ -167,7 +167,6 @@ class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // Not yet implemented
     fun parseMUTE12_06_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_06", considerPosition = true, withMuteSupport = true)
         cu.resolve()

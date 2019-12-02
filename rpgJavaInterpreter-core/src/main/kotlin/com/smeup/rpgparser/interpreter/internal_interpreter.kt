@@ -68,6 +68,8 @@ class DBFileMap(private val dbInterface: DBInterface) {
     operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
+val ALL_PREDEFINED_INDEXES = 1..99
+
 class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
@@ -394,6 +396,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                                 )
                             )
                             Unit
+                        }
+                        is PredefinedIndicatorExpr -> {
+                            val value = assign(statement.value, BlanksRefExpr())
+                            log(
+                                    ClearStatemenExecutionLog(
+                                            this.interpretationContext.currentProgramName,
+                                            statement,
+                                            value
+                                    )
+                            )
                         }
                         else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
                     }
@@ -997,6 +1009,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is QualifiedAccessExpr -> {
                 val container = eval(target.container) as DataStructValue
                 return container[target.field.referred!!]
+            }
+            is PredefinedIndicatorExpr -> {
+                val coercedValue = coerce(value, BooleanType)
+                predefinedIndicators[target.index] = coercedValue
+                return coercedValue
+            }
+            is PredefinedGlobalIndicatorExpr -> {
+                val coercedValue = coerce(value, BooleanType)
+                for (index in ALL_PREDEFINED_INDEXES) {
+                    predefinedIndicators[index] = coercedValue
+                }
+                return coercedValue
             }
             else -> TODO(target.toString())
         }
