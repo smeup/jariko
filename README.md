@@ -76,7 +76,7 @@ _Side note for maven users who use mirrors: remember to change your .m2/settings
 
 ## Contributing
 
-Every kind of contribution to this project is really welcome. See our [contributing](CONTRIBUTING.md) for more details.
+Every kind of contribution to this project is really welcome. See our [contributing guide](CONTRIBUTING.md) for more details.
 
 ## Credits
 
