@@ -3,7 +3,6 @@ package com.smeup.rpgparser.db.orient
 import com.smeup.rpgparser.db.sql.withType
 import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
-import java.math.BigDecimal
 import kotlin.test.*
 
 class DBOrientTest {

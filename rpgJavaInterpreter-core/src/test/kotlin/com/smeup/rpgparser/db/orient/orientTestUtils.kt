@@ -6,4 +6,3 @@ import com.smeup.rpgparser.interpreter.FileMetadata
 fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBInterface {
     TODO()
 }
-
