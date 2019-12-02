@@ -1,6 +1,6 @@
-# Contribute to Jariko
+# Contribute to JaRIKo
 
-Feedback and pull requests are very welcome.
+Feedback and pull requests are very welcome!
 
 ## Ask for help, feature or report a bug
 
