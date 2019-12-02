@@ -196,6 +196,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
         this.csCALL() != null -> this.csCALL().toAst(conf)
         this.csSETON() != null -> this.csSETON().toAst(conf)
+        this.csSETOFF() != null -> this.csSETOFF().toAst(conf)
         this.csPLIST() != null -> this.csPLIST().toAst(conf)
         this.csCLEAR() != null -> this.csCLEAR().toAst(conf)
         this.csLEAVE() != null -> LeaveStmt(toPosition(conf.considerPosition))
@@ -350,17 +351,35 @@ internal fun Token.asLong(): Long? {
     }
 }
 
-internal fun CsSETONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SetOnStmt {
-    return SetOnStmt(indicators(this.cspec_fixed_standard_parts()), toPosition(conf.considerPosition))
+internal fun CsSETONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SetStmt {
+    try {
+        return SetStmt(SetStmt.ValueSet.ON, indicators(this.cspec_fixed_standard_parts(), conf.considerPosition), toPosition(conf.considerPosition))
+    } catch (e: Exception) {
+        throw RuntimeException("Problem translating ${this.text} at ${this.toPosition(true)}", e)
+    }
 }
 
-internal fun indicators(cspecs: Cspec_fixed_standard_partsContext): List<DataWrapUpChoice> {
+internal fun CsSETOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SetStmt {
+    try {
+        return SetStmt(SetStmt.ValueSet.OFF, indicators(this.cspec_fixed_standard_parts(), conf.considerPosition), toPosition(conf.considerPosition))
+    } catch (e: Exception) {
+        throw RuntimeException("Problem translating ${this.text} at ${this.toPosition(true)}", e)
+    }
+}
+
+internal fun indicators(cspecs: Cspec_fixed_standard_partsContext, considerPosition: Boolean = true): List<AssignableExpression> {
     return listOf(cspecs.hi, cspecs.lo, cspecs.eq)
             .asSequence()
             .map { it.text }
             .filter { !it.isNullOrBlank() }
             .map(String::toUpperCase)
-            .map(DataWrapUpChoice::valueOf)
+            .map {
+                if (it.isInt()) {
+                    PredefinedIndicatorExpr(it.toInt(), cspecs.toPosition(considerPosition))
+                } else {
+                    DataWrapUpIndicatorExpr(DataWrapUpChoice.valueOf(it.toUpperCase()), cspecs.toPosition(considerPosition))
+                }
+            }
             .toList()
 }
 

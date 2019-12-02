@@ -354,9 +354,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         execute(statement.other!!.body)
                     }
                 }
-                is SetOnStmt -> {
-                    statement.choices.forEach {
-                        interpretationContext.setDataWrapUpPolicy(it)
+                is SetStmt -> {
+                    statement.indicators.forEach {
+                        when (it) {
+                            is DataWrapUpIndicatorExpr -> interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
+                            is PredefinedIndicatorExpr -> predefinedIndicators[it.index] = BooleanValue.TRUE
+                            else -> TODO()
+                        }
                     }
                 }
                 is PlistStmt -> {

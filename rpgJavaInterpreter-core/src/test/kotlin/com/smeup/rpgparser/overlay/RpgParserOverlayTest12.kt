@@ -155,14 +155,13 @@ class RpgParserOverlayTest12 {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
     }
+
     @Test
-    @Ignore // Not yet implemented
     fun parseMUTE12_06_syntax() {
         assertCanBeParsed("overlay/MUTE12_06", withMuteSupport = true)
     }
 
     @Test
-    @Ignore // Not yet implemented
     fun parseMUTE12_06_ast() {
         assertASTCanBeProduced("overlay/MUTE12_06", considerPosition = true, withMuteSupport = true)
     }
