@@ -4,7 +4,6 @@ import com.smeup.rpgparser.db.sql.CONVENTIONAL_INDEX_SUFFIX
 import com.smeup.rpgparser.db.sql.outputOfDBPgm
 import com.smeup.rpgparser.interpreter.StringValue
 import org.junit.Assert.assertFalse
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -51,11 +50,9 @@ class ReadEqualDBTest {
     }
 
     @Test
-    @Ignore
-    // At the moment this test fails because it finds all the records with key A000, and not just the first 4
     fun findsExistingRecordsIfReadWithKeyStartingFromFirstKey() {
         assertEquals(
-            listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"),
+            listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "SEAN O'CONNELL", "DIAN HEMMINGER", "GREG ORLANDO"),
             outputOfDBPgm(
                 "db/READENOCHN",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
