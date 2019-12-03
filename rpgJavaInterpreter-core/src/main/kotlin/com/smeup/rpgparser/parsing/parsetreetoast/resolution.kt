@@ -37,7 +37,7 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface) {
 
                 val fieldName = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
 
-                val resField = this.allDataDefinitions.find { if (it.name == null) false else it.name.equals(fieldName, true) }
+                val resField = this.allDataDefinitions.find { it.name.equals(fieldName, true) }
                 dre.variable.referred = resField
             } else {
 
@@ -57,7 +57,7 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface) {
     this.specificProcess(QualifiedAccessExpr::class.java) { qae ->
         if (!qae.field.resolved) {
             if (qae.container is DataRefExpr) {
-                val dataRef = qae.container as DataRefExpr
+                val dataRef = qae.container
                 val dataDefinition = dataRef.variable.referred!! as DataDefinition
                 require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
                     "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"

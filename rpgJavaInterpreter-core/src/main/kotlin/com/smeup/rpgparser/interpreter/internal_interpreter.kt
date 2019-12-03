@@ -1404,7 +1404,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val n = eval(expression.value)
                 val format = eval(expression.format)
                 require(format is StringValue) { "Required string value, but got $format at ${expression.position}" }
-                return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
+                return n.asDecimal().formatAsWord(format.value, expression.value.type())
             }
             is IntExpr -> {
                 return when (val value = interpret(expression.value)) {

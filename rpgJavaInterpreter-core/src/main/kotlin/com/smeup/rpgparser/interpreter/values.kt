@@ -126,7 +126,7 @@ data class IntValue(val value: Long) : NumberValue, Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         when (expectedType) {
-            is NumberType -> return expectedType is NumberType
+            is NumberType -> return true
             is ArrayType -> {
                 return expectedType.element is NumberType
             }
@@ -201,7 +201,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         when (expectedType) {
-            is NumberType -> return expectedType is NumberType
+            is NumberType -> return true
             is ArrayType -> {
                 return expectedType.element is NumberType
             }
@@ -432,7 +432,6 @@ fun Type.blank(): Value {
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
-        else -> TODO("I do not know how to produce a blank $this")
     }
 }
 
