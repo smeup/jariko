@@ -207,7 +207,12 @@ data class ElseClause(val body: List<Statement>, override val position: Position
 
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
+data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
+    enum class ValueSet {
+        ON,
+        OFF
+    }
+}
 
 // A Plist is a list of parameters
 data class PlistStmt(

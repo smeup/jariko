@@ -24,6 +24,9 @@ private fun coerceBlanks(type: Type): Value {
         is DataStructureType -> {
             type.blank()
         }
+        is BooleanType -> {
+            BooleanValue.FALSE
+        }
         else -> TODO("Converting BlanksValue to $type")
     }
 }

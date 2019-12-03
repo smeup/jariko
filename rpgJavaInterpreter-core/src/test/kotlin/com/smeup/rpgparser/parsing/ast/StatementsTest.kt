@@ -130,13 +130,13 @@ class StatementsTest {
     // TODO select with other
 
     @test fun setOnParsing() {
-        assertEquals(SetOnStmt(listOf(LR)), statement("SETON                                        LR"))
-        assertEquals(SetOnStmt(listOf(RT)), statement("SETON                                        RT"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(LR))), statement("SETON                                        LR"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(RT))), statement("SETON                                        RT"))
     }
 
     @test fun setOnParsingSecondPlace() {
-        assertEquals(SetOnStmt(listOf(LR)), statement("SETON                                          LR"))
-        assertEquals(SetOnStmt(listOf(RT)), statement("SETON                                          RT"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(LR))), statement("SETON                                          LR"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(RT))), statement("SETON                                          RT"))
     }
 
     @test fun clearParsing() {
