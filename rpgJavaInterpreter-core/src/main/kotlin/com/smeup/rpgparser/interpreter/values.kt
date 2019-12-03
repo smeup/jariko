@@ -22,6 +22,7 @@ abstract class Value {
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
+    abstract fun copy(): Value
 }
 
 interface NumberValue {
@@ -29,8 +30,7 @@ interface NumberValue {
     val bigDecimal: BigDecimal
 }
 
-// TODO Should we change value to a val in order tho share instances?
-data class StringValue(var value: String) : Value() {
+data class StringValue(val value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
@@ -72,25 +72,6 @@ data class StringValue(var value: String) : Value() {
         return valueWithoutPadding.hashCode()
     }
 
-    fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
-        require(startOffset >= 0)
-        require(startOffset <= value.length)
-        require(endOffset >= startOffset)
-        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        require(endOffset - startOffset == substringValue.value.length)
-        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue.replace('\u0000', ' ')
-    }
-
-    fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
-        require(startOffset >= 0)
-        require(startOffset <= value.length)
-        require(endOffset >= startOffset)
-        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        val s = value.substring(startOffset, endOffset)
-        return StringValue(s)
-    }
-
     override fun toString(): String {
         return "StringValue[${value.length}]($valueWithoutPadding)"
     }
@@ -103,6 +84,8 @@ data class StringValue(var value: String) : Value() {
     override fun render(): String {
         return valueWithoutPadding
     }
+
+    override fun copy(): StringValue = this
 }
 
 fun String.removeNullChars(): String {
@@ -182,6 +165,8 @@ data class IntValue(val value: Long) : NumberValue, Value() {
     override fun render(): String {
         return value.toString()
     }
+
+    override fun copy(): IntValue = this
 }
 
 data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
@@ -220,6 +205,8 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     override fun render(): String {
         return value.toString()
     }
+
+    override fun copy(): DecimalValue = this
 }
 
 data class BooleanValue(val value: Boolean) : Value() {
@@ -238,12 +225,16 @@ data class BooleanValue(val value: Boolean) : Value() {
     override fun render(): String {
         return value.toString()
     }
+
+    override fun copy(): BooleanValue = this
 }
 
 data class CharacterValue(val value: Array<Char>) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is CharacterType
     }
+
+    override fun copy(): CharacterValue = this
 }
 
 data class TimeStampValue(val value: Date) : Value() {
@@ -256,6 +247,8 @@ data class TimeStampValue(val value: Date) : Value() {
     companion object {
         val LOVAL = TimeStampValue(GregorianCalendar(0, Calendar.JANUARY, 0).time)
     }
+
+    override fun copy(): TimeStampValue = this
 }
 
 abstract class ArrayValue : Value() {
@@ -295,8 +288,36 @@ abstract class ArrayValue : Value() {
         return "Array(${elements().size})"
     }
     override fun asArray() = this
+
+    fun areEquivalent(other: ArrayValue): Boolean {
+        if (this.arrayLength() != other.arrayLength()) {
+            return false
+        }
+        for (i in 1..this.arrayLength()) {
+            if (this.getElement(i) != other.getElement(i)) {
+                return false
+            }
+        }
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var res = this.arrayLength()
+        if (this.arrayLength() > 0) {
+            res *= 7 * this.getElement(1).hashCode()
+            res *= 3 * this.getElement(this.arrayLength()).hashCode()
+        }
+        return res
+    }
+
+    abstract val elementType: Type
+
+    override fun copy(): ArrayValue {
+        return ConcreteArrayValue(this.elements().map { it.copy() }.toMutableList(), this.elementType)
+    }
 }
-data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
+
+data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
     override fun elementSize() = elementType.size.toInt()
 
     override fun arrayLength() = elements.size
@@ -313,6 +334,18 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType:
         require(index <= arrayLength())
         return elements[index - 1]
     }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is ArrayValue) {
+            this.areEquivalent(other)
+        } else {
+            false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return super.hashCode()
+    }
 }
 
 object BlanksValue : Value() {
@@ -324,6 +357,8 @@ object BlanksValue : Value() {
         // FIXME
         return true
     }
+
+    override fun copy(): BlanksValue = this
 }
 
 object HiValValue : Value() {
@@ -335,6 +370,8 @@ object HiValValue : Value() {
         // FIXME
         return true
     }
+
+    override fun copy(): HiValValue = this
 }
 object LowValValue : Value() {
     override fun toString(): String {
@@ -345,63 +382,62 @@ object LowValValue : Value() {
         // FIXME
         return true
     }
+
+    override fun copy(): LowValValue = this
 }
 
-class StructValue(val elements: MutableMap<FieldDefinition, Value>) : Value() {
-    override fun assignableTo(expectedType: Type): Boolean {
-        // FIXME
-        return true
+/**
+ * The container should always be a DS value
+ */
+class ProjectedArrayValue(
+    val container: DataStructValue,
+    val field: FieldDefinition,
+    val startOffset: Int,
+    val step: Long,
+    val arrayLength: Int
+) : ArrayValue() {
+    override val elementType: Type
+        get() = (this.field.type as ArrayType).element
+
+    companion object {
+        fun forData(containerValue: DataStructValue, data: FieldDefinition): ProjectedArrayValue {
+            val stepSize = data.stepSize
+            val arrayLength = data.declaredArrayInLine!!
+            return ProjectedArrayValue(containerValue, data, data.startOffset, stepSize, arrayLength)
+        }
     }
-}
 
-class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition) : ArrayValue() {
     override fun elementSize(): Int {
         TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun arrayLength() = container.arrayLength()
+    override fun arrayLength() = arrayLength
 
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
-        val containerElement = container.getElement(index)
-
-        // Set the value within the projected Array
-        if (containerElement is StringValue) {
-            if (value is StringValue) {
-                containerElement.setSubstring(field.startOffset, field.endOffset, value)
-            } else if (value is IntValue) {
-                val s = value.value.toString()
-                val pad = s.padStart(field.endOffset - field.startOffset)
-                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
-            } else {
-                TODO("$value not supported")
-            }
-        } else if (containerElement is DataStructValue) {
-            containerElement.setSingleField(field, value)
-
-//            if (value is StringValue) {
-//                containerElement.setSubstring(field.startOffset, field.endOffset, value)
-//            } else if (value is IntValue) {
-//                var s = value.value.toString()
-//                val pad = s.padStart(field.endOffset - field.startOffset)
-//                containerElement.setSubstring(field.startOffset, field.endOffset, StringValue(pad))
-//            } else {
-//                TODO("$value not supported")
-//            }
-        }
+        val startIndex = (this.startOffset + this.step * (index - 1)).toInt()
+        val endIndex = (startIndex + this.field.elementSize()).toInt()
+        container.setSubstring(startIndex, endIndex, coerce(value, StringType(this.field.elementSize())) as StringValue)
     }
 
     override fun getElement(index: Int): Value {
-        val containerElement = container.getElement(index)
+        require(index >= 1) { "Indexes should be >=1. Index asked: $index" }
+        require(index <= arrayLength())
 
-        if (containerElement is StringValue) {
-            return containerElement.getSubstring(field.startOffset, field.endOffset)
-        } else if (containerElement is DataStructValue) {
-            return containerElement.getSingleField(field)
+        val startIndex = (this.startOffset + this.step * (index - 1)).toInt()
+        val endIndex = (startIndex + this.field.elementSize()).toInt()
+        val substringValue = container.getSubstring(startIndex, endIndex)
+
+        return coerce(substringValue, (this.field.type as ArrayType).element)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is ArrayValue) {
+            this.areEquivalent(other)
         } else {
-            TODO("$containerElement not supported")
+            false
         }
     }
 }
@@ -432,7 +468,6 @@ fun Type.blank(): Value {
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
-        else -> TODO("I do not know how to produce a blank $this")
     }
 }
 
@@ -449,6 +484,8 @@ data class DataStructValue(var value: String) : Value() {
             else -> false
         }
     }
+
+    override fun copy(): DataStructValue = DataStructValue(value)
 
     /**
      * A DataStructure could also be an array of data structures. In that case the field is seen as
@@ -482,24 +519,11 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     operator fun get(data: FieldDefinition): Value {
-        if (data.type is ArrayType) {
-            val value = this.getSubstring(data.startOffset, data.size.toInt())
-
-            if (data.type.element is StringType) {
-                val arraySize = data.type.nElements
-                val elementSize = data.type.element.size.toInt()
-                // # extract the entire value of
-                val valueForArray = value.value.padEnd(elementSize * arraySize)
-                return createArrayValue(data.type.element, data.type.nElements) {
-                    // TODO Since value property of StringValue is a var, we cannot share instances of StringValue
-                    val start = it * elementSize
-                    val end = start + elementSize
-                    val arrayValue = valueForArray.substring(start, end).padEnd(elementSize)
-                    StringValue(arrayValue)
-                }
-            }
+        return if (data.declaredArrayInLine != null) {
+            ProjectedArrayValue.forData(this, data)
+        } else {
+            coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
         }
-        return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
     }
 
     /**
@@ -520,7 +544,7 @@ data class DataStructValue(var value: String) : Value() {
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
         require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
         val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue.replace('\u0000', ' ')
+        value = newValue // .replace('\u0000', ' ')
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
@@ -541,6 +565,7 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     override fun asString() = StringValue(this.value)
+
     fun isBlank(): Boolean {
         return this.valueWithoutPadding.isBlank()
     }

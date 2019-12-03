@@ -42,11 +42,17 @@ private fun coerceString(value: StringValue, type: Type): Value {
         }
         is ArrayType -> {
             if (type.element is StringType) {
+                // We are coercing a String into an array of Strings
+                // We split the string in substrings and copy each piece into
+                // an element of the array
+
                 val elementSize = type.element.size.toInt()
-                val valueForArray = value.value.padEnd(elementSize).take(elementSize)
+                var i = 0
                 createArrayValue(type.element, type.nElements) {
-                    // TODO Since value property of StringValue is a var, we cannot share instances of StringValue
-                    StringValue(valueForArray)
+                    val valueForArray = value.value.substring(i, i + elementSize)
+                    val res = StringValue(valueForArray)
+                    i += elementSize
+                    res
                 }
             } else {
                 createArrayValue(type.element, type.nElements) {
@@ -58,17 +64,18 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is NumberType -> {
             if (type.integer) {
                 when {
-                    value.isBlank() -> IntValue.ZERO
+                    // TODO commented out see #45
+                    // value.isBlank() -> IntValue.ZERO
                     type.rpgType == RpgType.BINARY.rpgType -> {
-                        val intValue = decodeBinary(value.value, type.entireDigits)
+                        val intValue = decodeBinary(value.value, type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.INTEGER.rpgType -> {
-                        val intValue = decodeInteger(value.value, type.entireDigits)
+                        val intValue = decodeInteger(value.value, type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                        val intValue = decodeUnsigned(value.value, type.entireDigits)
+                        val intValue = decodeUnsigned(value.value, type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
                     else -> {

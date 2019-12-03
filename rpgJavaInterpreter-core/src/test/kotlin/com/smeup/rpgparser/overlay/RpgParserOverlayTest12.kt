@@ -3,10 +3,7 @@ package com.smeup.rpgparser.overlay
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
-import com.smeup.rpgparser.interpreter.ArrayType
-import com.smeup.rpgparser.interpreter.CharacterType
-import com.smeup.rpgparser.interpreter.InternalInterpreter
-import com.smeup.rpgparser.interpreter.NumberType
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -72,10 +69,82 @@ class RpgParserOverlayTest12 {
         val ds0005 = ds.getFieldByName("DS0005")
         assertEquals(NumberType(7, 3, RpgType.PACKED), ds0005.type)
         assertEquals(6, ds0005.size)
+
+        val ds0011 = ds.getFieldByName("DS0011")
+        assertEquals(NumberType(2, 0, RpgType.BINARY), ds0011.type)
+        assertEquals(2, ds0011.size)
+
+        val ds0012 = ds.getFieldByName("DS0012")
+        assertEquals(NumberType(2, 0, RpgType.BINARY), ds0012.type)
+        assertEquals(2, ds0012.size)
+
+        val ds0013 = ds.getFieldByName("DS0013")
+        assertEquals(NumberType(3, 0, RpgType.INTEGER), ds0013.type)
+        assertEquals(1, ds0013.size)
+
+        val ds0014 = ds.getFieldByName("DS0014")
+        assertEquals(NumberType(3, 0, RpgType.UNSIGNED), ds0014.type)
+        assertEquals(1, ds0014.size)
+
+        val ds0015 = ds.getFieldByName("DS0015")
+        assertEquals(NumberType(5, 0, RpgType.INTEGER), ds0015.type)
+        assertEquals(2, ds0015.size)
+
+        val ds0016 = ds.getFieldByName("DS0016")
+        assertEquals(NumberType(5, 0, RpgType.UNSIGNED), ds0016.type)
+        assertEquals(2, ds0016.size)
+
+        val ds0017 = ds.getFieldByName("DS0017")
+        assertEquals(NumberType(10, 0, RpgType.INTEGER), ds0017.type)
+        assertEquals(4, ds0017.size)
+
+        val ds0018 = ds.getFieldByName("DS0018")
+        assertEquals(NumberType(10, 0, RpgType.UNSIGNED), ds0018.type)
+        assertEquals(4, ds0018.size)
+
+        val ds0019 = ds.getFieldByName("DS0019")
+        assertEquals(NumberType(19, 0, RpgType.INTEGER), ds0019.type)
+        assertEquals(8, ds0019.size)
+
+        val ds0020 = ds.getFieldByName("DS0020")
+        assertEquals(NumberType(19, 0, RpgType.UNSIGNED), ds0020.type)
+        assertEquals(8, ds0020.size)
+
+        // Data structure £40FDS
+        val fds = ast.getDataDefinition("£40FDS")
+
+        val fde = fds.getFieldByName("£40FDE")
+        assertEquals(StringType(30), fde.type)
+
+        val fre = fds.getFieldByName("£40FRE")
+        assertEquals(StringType(50), fre.type)
+
+        val fnt = fds.getFieldByName("£40FNT")
+        assertEquals(NumberType(5, 0, RpgType.ZONED), fnt.type)
+
+        val fmso = fds.getFieldByName("£40F_MSO")
+        assertEquals(StringType(1), fmso.type)
+
+        val fmwl = fds.getFieldByName("£40F_MWL")
+        assertEquals(StringType(1), fmwl.type)
+
+        val fmwc = fds.getFieldByName("£40F_MWC")
+        assertEquals(StringType(1), fmwc.type)
+
+        val flu = fds.getFieldByName("£40FLU")
+        assertEquals(StringType(2), flu.type)
+
+        val fmsr = fds.getFieldByName("£40F_MSR")
+        assertEquals(StringType(1), fmsr.type)
+
+        val fns = fds.getFieldByName("£40FNS")
+        assertEquals(StringType(1), fns.type)
+
+        val fto = fds.getFieldByName("£40FTO")
+        assertEquals(ArrayType(StringType(12), 500), fto.type)
     }
 
     @Test
-    @Ignore // 26 annotations still failing
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         cu.resolve()
@@ -97,7 +166,14 @@ class RpgParserOverlayTest12 {
 
     @Test
     fun parseMUTE12_03_ast() {
-        assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
+        cu.resolve()
+        // After th
+    }
+
+    @Test
+    fun parseMUTE12_03_inz() {
+        val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
     }
 
     @Test

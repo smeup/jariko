@@ -157,14 +157,28 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 var value: Value? = null
                 if (it is DataDefinition) {
                     value = when {
-                        it.name in initialValues -> initialValues[it.name]
-                            ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        it.name in initialValues -> {
+                            val initialValue = initialValues[it.name]
+                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
+                            require(initialValue.assignableTo(it.type)) {
+                                "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                            }
+                            initialValue
+                        }
                         it.initializationValue != null -> interpret(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
                             (it.type as ArrayType)
                         )
                         else -> blankValue(it)
+                    }
+                    if (it.name !in initialValues) {
+                        it.fields.forEach { field ->
+                            if (field.initializationValue != null) {
+                                val fieldValue = interpret(field.initializationValue)
+                                (value as DataStructValue).set(field, fieldValue)
+                            }
+                        }
                     }
                 } else if (it is InStatementDataDefinition && it.parent is PlistParam) {
                     value = when {
@@ -325,8 +339,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     )
                 }
                 is EvalStmt -> {
-                    val result = assign(statement.target, statement.expression, statement.operator)
-                    log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
+                    try {
+                        val result = assign(statement.target, statement.expression, statement.operator)
+                        log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
+                    } catch (e: Exception) {
+                        throw java.lang.RuntimeException("Issue executing statement $statement at line ${statement.startLine()}", e)
+                    }
                 }
                 is MoveStmt -> {
                     val value = move(statement.target, statement.expression)
@@ -507,6 +525,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val startTime = currentTimeMillis()
                     val paramValuesAtTheEnd =
                         try {
+                            systemInterface.registerProgramExecutionStart(program, params)
                             program.execute(systemInterface, params).apply {
                                 log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             }
@@ -866,6 +885,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             value1 is IntValue && value2 is DecimalValue -> {
                 value1.asInt() == value2.asInt()
             }
+
             value1 is DecimalValue && value2 is DecimalValue -> {
                 // Convert everything to Decimal then compare
                 value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
