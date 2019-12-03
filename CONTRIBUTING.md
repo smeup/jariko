@@ -19,7 +19,8 @@ See [Development guide](docs/development.md)
 
 ## Coding standard
 
-Follow the [Kotlin conventions](https://kotlinlang.org/docs/reference/coding-conventions.html)
+Follow the [Kotlin conventions](https://kotlinlang.org/docs/reference/coding-conventions.html). 
+We have gradle tasks for code formatting, see the [development guide](docs/development.md#Autoformatting)
 
 ## Open a pull request
 
@@ -27,7 +28,7 @@ Follow the [Kotlin conventions](https://kotlinlang.org/docs/reference/coding-con
 * Fork the project 
 * Write automated tests covering the new feature or fix
 * Make sure the build passes (run `./gradlew check`)
-* You could help our work of integrating your pull request by keeping it small: consider tos split it in many smaller ones if necessary
+* You could help our work of integrating your pull request by keeping it small: consider to split it in many smaller ones if necessary
 * Write a description
   * explain what problem is solved (with a reference to an existing issue if applicable)
   * help to read and understand the code changes
