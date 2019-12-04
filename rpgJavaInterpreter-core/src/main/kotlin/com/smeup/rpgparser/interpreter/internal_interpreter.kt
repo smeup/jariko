@@ -173,6 +173,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         else -> blankValue(it)
                     }
                     if (it.name !in initialValues) {
+                        blankValue(it)
                         it.fields.forEach { field ->
                             if (field.initializationValue != null) {
                                 val fieldValue = interpret(field.initializationValue)
@@ -1493,7 +1494,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
-        return dataDefinition.type.blank()
+        return when (dataDefinition.type) {
+            is DataStructureType -> dataDefinition.type.blank(dataDefinition)
+            else -> dataDefinition.type.blank()
+        }
     }
 }
 

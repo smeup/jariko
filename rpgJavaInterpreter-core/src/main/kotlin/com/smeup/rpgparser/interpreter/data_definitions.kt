@@ -70,6 +70,7 @@ data class DataDefinition(
     override val type: Type,
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
+    val inz: Boolean = false,
     override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {
@@ -525,8 +526,12 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
         when {
             it.isDigit() -> builder.append(it)
             else -> {
-                builder.insert(0, '-')
-                builder.append((it.toInt() - 0x0049 + 0x0030).toChar())
+                if (it.toInt() == 0) {
+                    builder.append('0')
+                } else {
+                    builder.insert(0, '-')
+                    builder.append((it.toInt() - 0x0049 + 0x0030).toChar())
+                }
             }
         }
     }
@@ -587,6 +592,7 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
 
     var sign: String = ""
     var number: String = ""
+
     var nibble = ((buffer[buffer.size - 1]).toInt() and 0x0F)
     if (nibble == 0x0B || nibble == 0x0D) {
         sign = "-"
@@ -608,7 +614,7 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
         number += Character.toString((nibble or 0x30).toChar())
     }
     // adjust the scale
-    if (scale > 0) {
+    if (scale > 0 && number != "0") {
         val len = number.length
         number = number.substring(0, len - scale) + "." + number.substring(len - scale, len)
     }

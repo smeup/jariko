@@ -653,11 +653,13 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
 
     val fieldsList = calculateFieldInfos()
     val type: Type = this.type(size, fieldsList, conf)
+    val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
     val dataDefinition = DataDefinition(
             this.name,
             type,
             fields = fieldsList.fields.map { it.toAst(conf) },
             initializationValue = initializationValue,
+            inz = inz != null,
             position = this.toPosition(true))
 
     // set the "overlayingOn" value for all field definitions

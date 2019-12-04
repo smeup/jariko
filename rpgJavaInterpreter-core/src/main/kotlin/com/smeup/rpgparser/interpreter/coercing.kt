@@ -78,9 +78,17 @@ private fun coerceString(value: StringValue, type: Type): Value {
                         val intValue = decodeUnsigned(value.value, type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
+                    type.rpgType == RpgType.ZONED.rpgType -> {
+                            val intValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            IntValue(intValue.longValueExact())
+                    }
                     else -> {
-                        val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        IntValue(intValue.longValueExact())
+                        if (!value.isBlank()) {
+                            val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            IntValue(intValue.longValueExact())
+                        } else {
+                            IntValue(0)
+                        }
                     }
                 }
             } else {

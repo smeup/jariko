@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.math.BigDecimal
@@ -456,6 +457,56 @@ fun String.asIsoDate(): Date {
     return SimpleDateFormat(FORMAT_DATE_ISO).parse(this.take(FORMAT_DATE_ISO.length))
 }
 
+fun Type.blank(dataDefinition: DataDefinition): Value {
+    return when (this) {
+        is ArrayType -> createArrayValue(this.element, this.nElements) {
+            this.element.blank()
+        }
+        is DataStructureType -> {
+            val ds = DataStructValue.blank(this.size.toInt())
+            if (!dataDefinition.inz) {
+                dataDefinition.fields.forEach {
+                    when (it.type) {
+                        is NumberType -> when {
+                            it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
+                                var rnd = (1..9).random().toBigDecimal()
+                                ds.set(it, DecimalValue(rnd))
+                            }
+                            it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
+                                var rnd = (1..9).random()
+                                ds.set(it, IntValue(rnd.toLong()))
+                            }
+                        }
+                    }
+                }
+            } else {
+                dataDefinition.fields.forEach {
+                    when (it.type) {
+                        is NumberType -> {
+                            when {
+                                it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
+                                    ds.set(it, DecimalValue(BigDecimal.ZERO))
+                                }
+                                it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
+                                    ds.set(it, IntValue(0))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ds
+        }
+        is StringType -> StringValue.blank(this.size.toInt())
+        is NumberType -> IntValue(0)
+        is BooleanType -> BooleanValue(false)
+        is TimeStampType -> TimeStampValue.LOVAL
+        is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
+        is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
+    }
+}
+
+// Deprecated?
 fun Type.blank(): Value {
     return when (this) {
         is ArrayType -> createArrayValue(this.element, this.nElements) {
