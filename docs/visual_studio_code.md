@@ -35,6 +35,8 @@ For example:
 	}
 ```
 
+Here you can find a [rpg.json](../misc/visual_studio_code/rpg.json) file, in order to configure the snippets for the RPG language in Visual Studio Code.
+
 6. Run the code with one of these methods:
 
     * use shortcut Ctrl+Alt+N
@@ -42,3 +44,19 @@ For example:
     * or right click the Text Editor and then click Run Code in editor context menu
     * or click Run Code button in editor title menu
     * or click Run Code button in context menu of file explorer
+
+7. In order to ease fixed format typing, install [Overtype](https://marketplace.visualstudio.com/items?itemName=adammaras.overtype) by [Adam Maras](https://github.com/AdamMaras)
+
+Here is a screenshot on how the Visual Studio Code environment could work this way.
+
+![Visual Studio Code for RPG](images/vscode_en.png)
+
+8. To find more easily the right position of keywords in fixed format RPG files, you can add rulers to the editor. For example, in order to have a ruler at column 5, you could edit your `settings.json`this way:
+
+`
+    "[rpg]": {
+        "editor.rulers": [5]
+    },
+`
+    
+    

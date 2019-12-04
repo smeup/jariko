@@ -47,18 +47,25 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 createArrayValue(type.element, type.nElements) {
-                    // TODO
                     type.element.blank()
                 }
             }
         }
-        // TODO
+
         is NumberType -> {
             if (type.integer) {
                 when {
-                    value.isBlank() -> IntValue(0)
-                    type.rpgType == "B" -> {
-                        val intValue = decodeBinary(value.value.trim(), type.entireDigits)
+                    value.isBlank() -> IntValue.ZERO
+                    type.rpgType == RpgType.BINARY.rpgType -> {
+                        val intValue = decodeBinary(value.value, type.entireDigits)
+                        IntValue(intValue.longValueExact())
+                    }
+                    type.rpgType == RpgType.INTEGER.rpgType -> {
+                        val intValue = decodeInteger(value.value, type.entireDigits)
+                        IntValue(intValue.longValueExact())
+                    }
+                    type.rpgType == RpgType.UNSIGNED.rpgType -> {
+                        val intValue = decodeUnsigned(value.value, type.entireDigits)
                         IntValue(intValue.longValueExact())
                     }
                     else -> {
@@ -68,8 +75,13 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                    DecimalValue(decimalValue)
+                    if (type.rpgType == RpgType.ZONED.rpgType) {
+                        val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                        DecimalValue(decimalValue)
+                    } else {
+                        val decimalValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                        DecimalValue(decimalValue)
+                    }
                 } else {
                     DecimalValue(BigDecimal.ZERO)
                 }
@@ -83,7 +95,11 @@ private fun coerceString(value: StringValue, type: Type): Value {
             }
         }
         is DataStructureType -> {
-            type.blank()
+            if (value.isBlank()) {
+                type.blank()
+            } else {
+                DataStructValue(value.value)
+            }
         }
         is CharacterType -> {
             return StringValue(value.value)
@@ -127,11 +143,13 @@ fun coerce(value: Value, type: Type): Value {
             }
         }
 
-        // TODO support for integer
         is HiValValue -> {
             when (type) {
                 is NumberType -> {
                     return computeHiValue(type)
+                }
+                is ArrayType -> {
+                    return createArrayValue(type.element, type.nElements) { coerce(HiValValue, type.element) }
                 }
                 else -> TODO("Converting HiValValue to $type")
             }
@@ -140,6 +158,9 @@ fun coerce(value: Value, type: Type): Value {
             when (type) {
                 is NumberType -> {
                     return computeLowValue(type)
+                }
+                is ArrayType -> {
+                    return createArrayValue(type.element, type.nElements) { coerce(LowValValue, type.element) }
                 }
                 else -> TODO("Converting LowValValue to $type")
             }
@@ -162,43 +183,36 @@ private fun computeHiValue(type: NumberType): Value {
     }
     // Integer
     if (type.rpgType == RpgType.INTEGER.rpgType) {
-        when (type.entireDigits) {
-            1 -> return IntValue(Byte.MAX_VALUE.toLong())
-            3 -> return IntValue(Byte.MAX_VALUE.toLong())
-            5 -> return IntValue(Short.MAX_VALUE.toLong())
-            10 -> return IntValue(Int.MAX_VALUE.toLong())
-            else -> return IntValue(Long.MAX_VALUE)
+        return when (type.entireDigits) {
+            1, 3 -> IntValue(Byte.MAX_VALUE.toLong())
+            5 -> IntValue(Short.MAX_VALUE.toLong())
+            10 -> IntValue(Int.MAX_VALUE.toLong())
+            else -> IntValue(Long.MAX_VALUE)
         }
     }
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
-        when (type.entireDigits) {
-            1 -> return IntValue(UByte.MAX_VALUE.toLong())
-            3 -> return IntValue(UByte.MAX_VALUE.toLong())
-            5 -> return IntValue(UShort.MAX_VALUE.toLong())
-            10 -> return IntValue(UInt.MAX_VALUE.toLong())
+        return when (type.entireDigits) {
+            1 -> IntValue(UByte.MAX_VALUE.toLong())
+            2 -> IntValue(UByte.MAX_VALUE.toLong())
+            3 -> IntValue(UByte.MAX_VALUE.toLong())
+            4 -> IntValue(UShort.MAX_VALUE.toLong())
+            5 -> IntValue(UShort.MAX_VALUE.toLong())
+            10 -> IntValue(UInt.MAX_VALUE.toLong())
             else -> TODO("Number with ${type.entireDigits} digit is too big for IntValue")
         }
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
-        when (type.entireDigits) {
-            2 -> {
-                val ed = "9".repeat(4)
-                return IntValue("$ed".toLong())
-            }
-            4 -> {
-                val ed = "9".repeat(9)
-                return IntValue("$ed".toLong())
-            }
-        }
+        val ed = "9".repeat(type.entireDigits)
+        return IntValue("$ed".toLong())
     }
-    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is too big")
+    TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }
 
 private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone
-    if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType) {
+    if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType.isNullOrBlank()) {
         return if (type.decimalDigits == 0) {
             val ed = "9".repeat(type.entireDigits)
             IntValue("-$ed".toLong())
@@ -210,29 +224,21 @@ private fun computeLowValue(type: NumberType): Value {
     }
     // Integer
     if (type.rpgType == RpgType.INTEGER.rpgType) {
-        when (type.entireDigits) {
-            3 -> return IntValue(Byte.MIN_VALUE.toLong())
-            5 -> return IntValue(Short.MIN_VALUE.toLong())
-            10 -> return IntValue(Int.MIN_VALUE.toLong())
-            else -> return IntValue(Long.MIN_VALUE)
+        return when (type.entireDigits) {
+            3 -> IntValue(Byte.MIN_VALUE.toLong())
+            5 -> IntValue(Short.MIN_VALUE.toLong())
+            10 -> IntValue(Int.MIN_VALUE.toLong())
+            else -> IntValue(Long.MIN_VALUE)
         }
     }
     // Unsigned
     if (type.rpgType == RpgType.UNSIGNED.rpgType) {
-        return IntValue(0)
+        return IntValue.ZERO
     }
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
-        when (type.entireDigits) {
-            2 -> {
-                val ed = "9".repeat(4)
-                return IntValue("-$ed".toLong())
-            }
-            4 -> {
-                val ed = "9".repeat(9)
-                return IntValue("-$ed".toLong())
-            }
-        }
+        val ed = "9".repeat(type.entireDigits)
+        return IntValue("-$ed".toLong())
     }
-    TODO("")
+    TODO("Type '${type.rpgType}' with ${type.entireDigits} digit is not valid")
 }

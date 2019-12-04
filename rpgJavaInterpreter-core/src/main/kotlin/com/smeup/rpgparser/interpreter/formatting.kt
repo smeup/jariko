@@ -19,6 +19,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
 
     fun decimalsFormatString(t: NumberType) = if (t.decimalDigits == 0) "" else "." + "".padEnd(t.decimalDigits, '0')
 
+    // The functions below correspond to the EDITC parameter, one function per value
     fun f1(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
 
@@ -80,6 +81,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         } else
             return f3(decedit)
     }
+
     fun fA(decedit: String): String {
         return if (this.value < ZERO) {
             f1(decedit) + "CR"
@@ -124,7 +126,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
 
     fun toBlnk(c: Char) = if (c == '0') ' ' else c
 
-    fun fY(decedit: String): String {
+    fun fY(): String {
         var stringN = this.value.abs().unscaledValue().toString().trim()
         return if (type.elementSize() <= 6) {
             stringN = stringN.padStart(6, '0')
@@ -165,13 +167,13 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         "O" -> StringValue(fO(decedit))
         "P" -> StringValue(fP(decedit))
         "Q" -> StringValue(fQ(decedit))
-        "Y" -> StringValue(fY(decedit))
+        "Y" -> StringValue(fY())
         "Z" -> StringValue(fZ(decedit))
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
 }
 
-internal fun DecimalValue.formatAsWord(format: String, type: Type, decedit: String): StringValue {
+internal fun DecimalValue.formatAsWord(format: String, type: Type): StringValue {
     fun isConst(formatChar: Char): Boolean =
         when (formatChar) {
             '0', '*' -> false // TODO

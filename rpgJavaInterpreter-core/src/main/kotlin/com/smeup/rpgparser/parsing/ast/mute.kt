@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.BooleanValue
 import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.utils.Comparison
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 
@@ -42,6 +43,7 @@ abstract class MuteAnnotationExecuted() {
     abstract val programName: String
     abstract val result: BooleanValue
     fun succeeded(): Boolean = result.value
+    fun failed(): Boolean = !succeeded()
     fun resultAsString() = if (succeeded()) {
         "succeded"
     } else {

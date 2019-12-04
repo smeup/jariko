@@ -1,13 +1,12 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
-import java.lang.IllegalStateException
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
@@ -141,7 +140,7 @@ internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
         return l.toAst(conf)
     }
     val text = this.CS_FactorContent().text
-    val regexp = Regex("(\\+|\\-)?(\\d|,|\\.)+(\\+|\\-)?")
+    val regexp = Regex("([+\\-])?(\\d|,|\\.)+([+\\-])?")
     return if (text.matches(regexp)) {
         literalToNumber(text, position)
     } else if (text.startsWith("\'")) {
@@ -155,16 +154,24 @@ fun literalToNumber(
     text: String,
     position: Position?
 ): Expression {
+    // fix minus at right
+    val value = if (text.endsWith('-')) {
+        "-" + text.replaceFirst("-", "")
+    } else {
+        text
+    }
     return when {
         // When assigning a value to a numeric field we could either use
         // a comma or a dot as decimal separators
-        text.contains('.') -> {
-            text.toRealLiteral(position, Locale.US)
+        value.contains('.') -> {
+            value.toRealLiteral(position, Locale.US)
         }
-        text.contains(',') -> {
-            text.toRealLiteral(position, Locale.ITALIAN)
+        value.contains(',') -> {
+            value.toRealLiteral(position, Locale.ITALIAN)
         }
-        else -> IntLiteral(text.toLong(), position)
+        else -> {
+            IntLiteral(value.toLong(), position)
+        }
     }
 }
 
@@ -200,12 +207,18 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csTIME() != null -> this.csTIME().toAst(conf)
         this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
         this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
+        this.csADD() != null -> this.csADD().toAst(conf)
         this.csZ_SUB() != null -> this.csZ_SUB().toAst(conf)
+        this.csSUB() != null -> this.csSUB().toAst(conf)
         this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
         this.csCHECK() != null -> this.csCHECK().toAst(conf)
         this.csKLIST() != null -> this.csKLIST().toAst(conf)
+        this.csSETLL() != null -> this.csSETLL().toAst(conf)
         this.csREADE() != null -> this.csREADE().toAst(conf)
+        this.csREAD() != null -> this.csREAD().toAst(conf)
         this.csCOMP() != null -> this.csCOMP().toAst(conf)
+        this.csMULT() != null -> this.csMULT().toAst(conf)
+        this.csDIV() != null -> this.csDIV().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -255,11 +268,7 @@ internal fun CsKLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DisplayStmt {
-    val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
-        this.factor1Context().content.toAst(conf)
-    } else {
-        null
-    }
+    val left = leftExpr(conf)
     val right = if (this.cspec_fixed_standard_parts()?.result?.text?.isNotBlank() ?: false) {
         this.cspec_fixed_standard_parts().result.toAst(conf)
     } else {
@@ -286,7 +295,7 @@ private fun handleParsingOfTargets(code: String, position: Position?): Assignabl
         val containerCode = parts.dropLast(1).joinToString(separator = ".")
         QualifiedAccessExpr(
                 container = handleParsingOfTargets(containerCode, position),
-                field = ReferenceByName(parts.last()!!),
+                field = ReferenceByName(parts.last()),
                 position = position)
     }
 }
@@ -383,11 +392,7 @@ internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubDurStmt {
-    val left = if (this.factor1Context()?.content?.text?.isNotBlank() ?: false) {
-        this.factor1Context().content.toAst(conf)
-    } else {
-        null
-    }
+    val left = leftExpr(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUBDUR operation requires factor 2: ${this.text}")
     // TODO handle duration code after the :
     val target = this.cspec_fixed_standard_parts().result.text.split(":")
@@ -409,6 +414,24 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
     val factor1 = this.factor1Context()?.content?.toAst(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
     return ReadEqualStmt(
+        factor1,
+        factor2,
+        toPosition(conf.considerPosition))
+}
+
+internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
+    // TODO implement DS in result field
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
+    return ReadStmt(
+        factor2,
+        toPosition(conf.considerPosition))
+}
+
+internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
+    // TODO implement indicators handling
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("SETLL operation requires factor 1: ${this.text}")
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
+    return SetllStmt(
         factor1,
         factor2,
         toPosition(conf.considerPosition))
@@ -444,7 +467,7 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text}")
     val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
-    return MoveLStmt(DataRefExpr(ReferenceByName(name), position), expression, position)
+    return MoveLStmt(this.operationExtender?.text, DataRefExpr(ReferenceByName(name), position), expression, position)
 }
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {
@@ -455,6 +478,43 @@ internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return ZAddStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
 }
 
+internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MultStmt {
+    val result = this.cspec_fixed_standard_parts().result.text
+    val factor1 = leftExpr(conf)
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    return MultStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
+}
+
+internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DivStmt {
+    val result = this.cspec_fixed_standard_parts().result.text
+    val factor1 = leftExpr(conf)
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
+}
+
+private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
+    return if (this.factor1Context()?.content?.text?.isNotBlank() == true) {
+        this.factor1Context().content.toAst(conf)
+    } else {
+        null
+    }
+}
+
+internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
+    val result = this.cspec_fixed_standard_parts().result.text
+    val left = leftExpr(conf)
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("ADD operation requires factor 2: ${this.text}")
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return AddStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
+}
+
 internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZSubStmt {
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-SUB operation requires factor 2: ${this.text}")
     val name = this.cspec_fixed_standard_parts().result.text
@@ -462,6 +522,16 @@ internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZSubStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
 }
+
+internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubStmt {
+    val result = this.cspec_fixed_standard_parts().result.text
+    val left = leftExpr(conf)
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return SubStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
+}
+
 // TODO add real implementation
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
     val position = toPosition(conf.considerPosition)
@@ -528,8 +598,10 @@ internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): Ass
 }
 
 internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallStmt {
-    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1)
     val position = this.toPosition(true)
+    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1) {
+        "Missing factor 1 in call statement at line ${position.line()}"
+    }
     var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
     var functionCalled: Expression?
     functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)

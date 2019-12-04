@@ -21,7 +21,7 @@
     MU* VAL1(NUM003) VAL2(0) COMP(EQ)
      C                   EVAL      NUM003=0
       *
-     C                   CALL      'MUTE11_16A'
+     C                   CALL      'MUTE11O16A'
      C                   PARM                    NUM001           30 9
      C                   PARM                    NUM002           30 9
      C                   PARM                    NUM003           30 9

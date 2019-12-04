@@ -3,9 +3,10 @@ package com.smeup.rpgparser.interpreter
 import java.lang.IllegalStateException
 
 class SymbolTable {
-    private val values = HashMap<AbstractDataDefinition, Value>()
+    private val values = LinkedHashMap<AbstractDataDefinition, Value>()
 
     operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
+    operator fun contains(data: AbstractDataDefinition): Boolean = data in values
 
     operator fun get(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
@@ -13,9 +14,9 @@ class SymbolTable {
             return if (data.container.isArray()) {
                 ProjectedArrayValue(containerValue as ArrayValue, data)
             } else {
+                // Should be always a DataStructValue
                 if (containerValue is DataStructValue) {
                     return coerce(containerValue.get(data), data.type)
-                    // return coerce(containerValue.getSubstring(data.startOffset, data.endOffset), data.type)
                 } else {
                     val structValue = (containerValue as? StructValue)
                             ?: throw IllegalStateException("Container expected to be a struct value: $containerValue")
@@ -48,6 +49,9 @@ class SymbolTable {
             values.keys.firstOrNull { it.name.equals(dataName, ignoreCase = true) }
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
+        require(!(data !in this && data.name in this)) {
+            "This data definition would conflict with an existing data definition with the same name. This data definition: $data. Existing data definition: ${this[data.name]}"
+        }
         values[data] = value
     }
 }

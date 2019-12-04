@@ -20,7 +20,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_initialDeclarations_dec() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
         assertIsIntValue(interpreter["NBR"], 3)
     }
@@ -28,7 +28,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_initialDeclarations_inz() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         assertTrue(cu.getDataDefinition("ppdat").initializationValue == null)
         assertTrue(cu.getDataDefinition("NBR").initializationValue == null)
@@ -46,7 +46,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_otherClauseOfSelect() {
         val cu = assertASTCanBeProduced("CALCFIB_2", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
@@ -58,7 +58,7 @@ class InterpreterTest {
 
     private fun assertFibonacci(input: String, output: String) {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
@@ -99,7 +99,7 @@ class InterpreterTest {
     @Test
     fun executeHELLO() {
         val cu = assertASTCanBeProduced("HELLO", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf(), si, listOf(logHandler))
@@ -110,7 +110,7 @@ class InterpreterTest {
     @Test
     fun executeCallToFibonacciWrittenInRpg() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
@@ -122,7 +122,7 @@ class InterpreterTest {
     @Test
     fun executeCallToFibonacciWrittenOnTheJvm() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
@@ -148,9 +148,9 @@ class InterpreterTest {
     @Test
     fun executeFibonacciWrittenInRpgAsProgram() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
-        val rpgProgram = RpgProgram(cu)
+        val rpgProgram = RpgProgram(cu, DummyDBInterface)
         rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
         assertEquals(1, rpgProgram.params().size)
         assertEquals(ProgramParam("ppdat", StringType(8)), rpgProgram.params()[0])
@@ -229,6 +229,11 @@ class InterpreterTest {
         assertEquals(listOf("1"), outputOf("CAL01"))
     }
 
+    @Test @Ignore
+    fun executeMOVEL01() {
+        assertEquals(listOf("1111.1"), outputOf("MOVEL01"))
+    }
+
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
@@ -276,6 +281,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeREMTEST() {
+        assertEquals(listOf("1", "1", "-1", "-1"), outputOf("REMTEST"))
+    }
+
+    @Test
     fun executeASSIGN() {
         assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"))
     }
@@ -298,6 +308,12 @@ class InterpreterTest {
     @Test
     fun executeXLATEBIF() {
         assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
+    }
+
+    @Test
+    fun executeREPLACEBIF() {
+        assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!"),
+            outputOf("REPLACEBIF"))
     }
 
     @Test
@@ -515,8 +531,7 @@ class InterpreterTest {
 
     @Test
     fun executeZADDERR() {
-        // TODO better error assertion
-        assertFailsWith(Throwable::class) {
+        assertFailsWith(IllegalArgumentException::class) {
             execute("ZADDERR", emptyMap())
         }
     }
@@ -566,6 +581,21 @@ class InterpreterTest {
     @Test
     fun executeECHO() {
         assertEquals(listOf("Hello"), outputOf("ECHO", mapOf("inTxt" to StringValue("Hello"))))
+    }
+
+    @Test
+    fun executeFIZZBUZZ() {
+        assertEquals(listOf("7"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("7"), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("FIZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("3"), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("BUZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("5"), "RESULT" to StringValue(""))))
+
+        assertEquals(listOf("FIZZBUZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("30"), "RESULT" to StringValue(""))))
     }
 
     @Test

@@ -95,6 +95,14 @@ data class LenExpr(var value: Expression, override val position: Position? = nul
     }
 }
 
+// %REM
+data class RemExpr(
+    val dividend: Expression,
+    val divisor: Expression,
+    override val position: Position? = null
+) :
+    Expression(position)
+
 // %DEC
 data class DecExpr(
     var value: Expression,
@@ -175,6 +183,16 @@ data class DiffExpr(
     var value1: Expression,
     var value2: Expression,
     val durationCode: Expression,
+    override val position: Position? = null
+) :
+    Expression(position)
+
+// %REPLACE
+data class ReplaceExpr(
+    val replacement: Expression,
+    val source: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
     override val position: Position? = null
 ) :
     Expression(position)

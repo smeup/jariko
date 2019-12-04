@@ -5,7 +5,6 @@ import com.smeup.rpgparser.assertCanBeLexed
 import com.smeup.rpgparser.utils.processFilesInDirectory
 import org.junit.Test
 import org.junit.experimental.categories.Category
-import java.io.File
 import kotlin.test.assertEquals
 
 class RpgLexingAcceptanceTest {
@@ -14,7 +13,7 @@ class RpgLexingAcceptanceTest {
     @Category(AcceptanceTest::class)
     fun lexAllDataExamples() {
         var failures = 0
-        processFilesInDirectory(File("src/test/resources/data"), 13) { rpgFile ->
+        processFilesInDirectory("src/test/resources/data", 13) { rpgFile ->
             try {
                 assertCanBeLexed(rpgFile)
             } catch (e: AssertionError) {

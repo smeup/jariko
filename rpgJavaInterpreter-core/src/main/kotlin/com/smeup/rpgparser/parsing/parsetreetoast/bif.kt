@@ -1,32 +1,58 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.interpreter.atLine
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.mapping.toPosition
 
 internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    return when {
-        this.bif_elem() != null -> NumberOfElementsExpr(this.bif_elem().expression().toAst(conf), position = toPosition(conf.considerPosition))
-        this.bif_lookup() != null -> this.bif_lookup().toAst(conf)
-        this.bif_xlate() != null -> this.bif_xlate().toAst(conf)
-        this.bif_scan() != null -> this.bif_scan().toAst(conf)
-        this.bif_trim() != null -> this.bif_trim().toAst(conf)
-        this.bif_trimr() != null -> this.bif_trimr().toAst(conf)
-        this.bif_triml() != null -> this.bif_triml().toAst(conf)
-        this.bif_subst() != null -> this.bif_subst().toAst(conf)
-        this.bif_len() != null -> this.bif_len().toAst(conf)
-        this.bif_dec() != null -> this.bif_dec().toAst(conf)
-        this.bif_char() != null -> this.bif_char().toAst(conf)
-        this.bif_timestamp() != null -> this.bif_timestamp().toAst(conf)
-        this.bif_diff() != null -> this.bif_diff().toAst(conf)
-        this.bif_editc() != null -> this.bif_editc().toAst(conf)
-        this.bif_found() != null -> this.bif_found().toAst(conf)
-        this.bif_eof() != null -> this.bif_eof().toAst(conf)
-        this.bif_abs() != null -> this.bif_abs().toAst(conf)
-        this.bif_int() != null -> this.bif_int().toAst(conf)
-        this.bif_editw() != null -> this.bif_editw().toAst(conf)
-        else -> TODO(this.text + " " + toPosition(conf.considerPosition))
+    val position = toPosition(conf.considerPosition)
+    return enrichPossibleExceptionWith("${position.atLine()}${this.text}") {
+        when {
+            this.bif_elem() != null -> NumberOfElementsExpr(
+                this.bif_elem().expression().toAst(conf),
+                position = position
+            )
+            this.bif_lookup() != null -> this.bif_lookup().toAst(conf)
+            this.bif_xlate() != null -> this.bif_xlate().toAst(conf)
+            this.bif_scan() != null -> this.bif_scan().toAst(conf)
+            this.bif_trim() != null -> this.bif_trim().toAst(conf)
+            this.bif_trimr() != null -> this.bif_trimr().toAst(conf)
+            this.bif_triml() != null -> this.bif_triml().toAst(conf)
+            this.bif_subst() != null -> this.bif_subst().toAst(conf)
+            this.bif_len() != null -> this.bif_len().toAst(conf)
+            this.bif_dec() != null -> this.bif_dec().toAst(conf)
+            this.bif_char() != null -> this.bif_char().toAst(conf)
+            this.bif_timestamp() != null -> this.bif_timestamp().toAst(conf)
+            this.bif_diff() != null -> this.bif_diff().toAst(conf)
+            this.bif_editc() != null -> this.bif_editc().toAst(conf)
+            this.bif_found() != null -> this.bif_found().toAst(conf)
+            this.bif_eof() != null -> this.bif_eof().toAst(conf)
+            this.bif_abs() != null -> this.bif_abs().toAst(conf)
+            this.bif_int() != null -> this.bif_int().toAst(conf)
+            this.bif_editw() != null -> this.bif_editw().toAst(conf)
+            this.bif_rem() != null -> this.bif_rem().toAst(conf)
+            this.bif_replace() != null -> this.bif_replace().toAst(conf)
+            else -> TODO()
+        }
     }
+}
+
+internal fun RpgParser.Bif_remContext.toAst(conf: ToAstConfiguration): Expression {
+    return RemExpr(
+        this.expression(0).toAst(conf),
+        this.expression(1).toAst(conf),
+        toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_replaceContext.toAst(conf: ToAstConfiguration): Expression {
+    return ReplaceExpr(
+        this.expression(0).toAst(conf),
+        this.expression(1).toAst(conf),
+        this.expression(2)?.toAst(conf),
+        this.expression(3)?.toAst(conf),
+        toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.Bif_absContext.toAst(conf: ToAstConfiguration): Expression {

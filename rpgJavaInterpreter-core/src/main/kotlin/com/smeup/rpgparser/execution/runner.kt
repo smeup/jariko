@@ -44,10 +44,10 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
 }
 
 class ResourceProgramFinder(val path: String) : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
         val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
         return if (resourceStream != null) {
-            RpgProgram.fromInputStream(BOMInputStream(resourceStream), nameOrSource)
+            RpgProgram.fromInputStream(BOMInputStream(resourceStream), dbInterface, nameOrSource)
         } else {
             println("Resource $path not found")
             null
@@ -59,7 +59,7 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     }
 }
 
-fun defaultProgramFinders() = listOf(
+val defaultProgramFinders = listOf(
         SourceProgramFinder(),
         DirRpgProgramFinder(),
         ResourceProgramFinder("/")
@@ -69,15 +69,18 @@ fun defaultProgramFinders() = listOf(
 fun getProgram(
     nameOrSource: String,
     systemInterface: SystemInterface = JavaSystemInterface(),
-    programFinders: List<RpgProgramFinder> = defaultProgramFinders()
+    programFinders: List<RpgProgramFinder> = defaultProgramFinders
 ): CommandLineProgram {
-    RpgSystem.addProgramFinder(SourceProgramFinder())
-    RpgSystem.addProgramFinder(DirRpgProgramFinder())
-    RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+    RpgSystem.db = systemInterface.db
+
+    programFinders.forEach {
+        RpgSystem.addProgramFinder(it)
+    }
 
     RpgSystem.programFinders.forEach {
         systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
     }
+
     return CommandLineProgram(nameOrSource, systemInterface)
 }
 
@@ -85,7 +88,7 @@ fun executePgmWithStringArgs(
     programName: String,
     programArgs: List<String>,
     logConfigurationFile: File? = null,
-    programFinders: List<RpgProgramFinder> = defaultProgramFinders()
+    programFinders: List<RpgProgramFinder> = defaultProgramFinders
 ) {
     val systemInterface = JavaSystemInterface()
     systemInterface.loggingConfiguration = logConfigurationFile?.let { loadLogConfiguration(logConfigurationFile) } ?: defaultLoggingConfiguration()
@@ -100,7 +103,7 @@ object RunnerCLI : CliktCommand() {
     val programArgs by argument().multiple(required = false)
 
     override fun run() {
-        val allProgramFinders = defaultProgramFinders() + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
+        val allProgramFinders = defaultProgramFinders + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
         executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders)
     }
 }

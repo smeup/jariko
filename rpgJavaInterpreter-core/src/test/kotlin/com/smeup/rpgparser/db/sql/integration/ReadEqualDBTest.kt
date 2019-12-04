@@ -3,6 +3,7 @@ package com.smeup.rpgparser.db.sql.integration
 import com.smeup.rpgparser.db.sql.CONVENTIONAL_INDEX_SUFFIX
 import com.smeup.rpgparser.db.sql.outputOfDBPgm
 import com.smeup.rpgparser.interpreter.StringValue
+import org.junit.Assert.assertFalse
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -27,7 +28,7 @@ class ReadEqualDBTest {
     fun findsExistingRecords() {
         assertEquals(
             // TODO is the order of results mandatory?
-            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS"),
+            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS", "KIM NATZ"),
             outputOfDBPgm(
                 "db/CHAINREADE",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
@@ -51,7 +52,7 @@ class ReadEqualDBTest {
 
     @Test
     @Ignore
-    // At the moment this test fails because it find all the records with key A000, and not just the first 4
+    // At the moment this test fails because it finds all the records with key A000, and not just the first 4
     fun findsExistingRecordsIfReadWithKeyStartingFromFirstKey() {
         assertEquals(
             listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "DIAN HEMMINGER", "GREG ORLANDO"),
@@ -59,6 +60,30 @@ class ReadEqualDBTest {
                 "db/READENOCHN",
                 listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
                 mapOf("toFind" to StringValue("A00"))
+            )
+        )
+    }
+
+    @Test
+    fun setllReadeFindExistingRecord() {
+        assertEquals(
+            listOf("CHRISTINE HAAS", "VINCENZO LUCCHESSI", "SEAN O'CONNELL", "DIAN HEMMINGER", "GREG ORLANDO"),
+            outputOfDBPgm(
+                "db/SETLLOK01",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("A00"))
+            )
+        )
+    }
+
+    @Test
+    fun setllSetdFoundFlag() {
+        assertEquals(
+            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS", "KIM NATZ"),
+            outputOfDBPgm(
+                "db/SETLLOK01",
+                listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+                mapOf("toFind" to StringValue("C01"))
             )
         )
     }
@@ -84,6 +109,30 @@ class ReadEqualDBTest {
                 mapOf("toFind" to StringValue("B01"))
             )
         )
+    }
+
+    @Test
+    fun findsEmployees() {
+        val lines = outputOfDBPgm(
+            "db/EMPBYDEPT",
+            listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+            mapOf("toFind" to StringValue("A00"))
+        )
+        assertEquals("_##_ENDROW", lines.last())
+        assertTrue(lines.joinToString().contains("LUCCHESSI"))
+        assertFalse(lines.joinToString().contains("YAMAMOTO"))
+    }
+
+    @Test
+    fun findsEmployeesSecondDept() {
+        val lines = outputOfDBPgm(
+            "db/EMPBYDEPT",
+            listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+            mapOf("toFind" to StringValue("D11"))
+        )
+        assertEquals("_##_ENDROW", lines.last())
+        assertFalse(lines.joinToString().contains("LUCCHESSI"))
+        assertTrue(lines.joinToString().contains("YAMAMOTO"))
     }
 
     private fun createEMPLOYEE() =

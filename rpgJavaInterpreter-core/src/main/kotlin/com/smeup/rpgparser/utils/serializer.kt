@@ -13,7 +13,7 @@ private fun String.encodeXmlChars(): String {
         '\'' to "&apos;",
         '"' to "&quot;"
     )
-    return this.map { it -> if (map[it] == null) it else map[it] }.joinToString(separator = "")
+    return this.map { it -> if (map[it] == null) it.toString() else map[it] }.joinToString(separator = "")
 }
 
 private fun String.openTag(indent: Int) = " ".repeat(indent) + "<${this.encodeXmlChars()}>\n"

@@ -58,22 +58,23 @@ data class CompilationUnit(
                     }
                 }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
-                checkDuplicatedDataDefinition(_allDataDefinitions)
+                _allDataDefinitions = checkDuplicatedDataDefinition(_allDataDefinitions).toMutableList()
             }
             return _allDataDefinitions
         }
 
-    private fun checkDuplicatedDataDefinition(dataDefinitions: List<AbstractDataDefinition>) {
+    private fun checkDuplicatedDataDefinition(dataDefinitions: List<AbstractDataDefinition>): List<AbstractDataDefinition> {
         val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
-        dataDefinitions.forEach {
+        return dataDefinitions.filter {
             val dataDefinition = dataDefinitionMap[it.name]
             if (dataDefinition == null) {
                 dataDefinitionMap[it.name] = it
+                true
             } else {
-                // throws exception in test 16A, as why has been added
                 require(dataDefinition.type == it.type) {
                     "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
                 }
+                false
             }
         }
     }

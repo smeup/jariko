@@ -55,7 +55,7 @@
      D  BIN002                        2B 0
      D  FILLER25                      6
       * Binary da 4 byte
-     D  BIN004                        4B 0
+     D  BIN004                        5B 0
 
       *---------------------------------------------------------------
       * M A I N
@@ -190,6 +190,10 @@
      C                   EVAL      UNS004=*HIVAL
     MU* VAL1(UNS004) VAL2(0) COMP(EQ)
      C                   EVAL      UNS004=*LOVAL
+      * INT 20.0
+    MU* VAL1(INT008) VAL2(9223372036854775807) COMP(EQ)
+     C                   EVAL      INT008=*HIVAL
+    MU* VAL1(INT008) VAL2(-9223372036854775808) COMP(EQ)
       * BINARY 2.0
     MU* VAL1(BIN002) VAL2(9999) COMP(EQ)
      C                   EVAL      BIN002=*HIVAL

@@ -87,6 +87,8 @@ fun ResultSet?.closeIfOpen() {
     }
 }
 
+fun ResultSet?.hasRecords() = (this?.isBeforeFirst) ?: false
+
 fun ResultSet?.toValues(): Record {
     if (this != null && this.next()) {
         return this.currentRecordToValues()

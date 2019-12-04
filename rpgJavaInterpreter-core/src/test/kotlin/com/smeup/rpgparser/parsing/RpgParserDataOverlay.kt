@@ -3,11 +3,11 @@ package com.smeup.rpgparser.parsing
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Test
 import kotlin.test.assertEquals
 
-// @Ignore
 class RpgParserDataOverlay {
 
     /**
@@ -18,7 +18,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_01", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_01", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -30,7 +30,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_02", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_02", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -39,21 +39,29 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_03", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val dataDefinition = cu.dataDefinitions[0]
         assertEquals(1, cu.dataDefinitions.size)
 
+        val fieldPartnum = dataDefinition.fields.find { it.name == "PARTNUM" }!!
+        assertEquals(null, fieldPartnum.explicitStartOffset)
+        assertEquals(0, fieldPartnum.startOffset)
+        assertEquals(10, fieldPartnum.endOffset)
+
         val fieldFamily = dataDefinition.fields.find { it.name == "FAMILY" }!!
-        assertEquals(0, fieldFamily.explicitStartOffset)
+        assertEquals(null, fieldFamily.explicitStartOffset)
         assertEquals(0, fieldFamily.startOffset)
+        assertEquals(3, fieldFamily.endOffset)
 
         val fieldSequence = dataDefinition.fields.find { it.name == "SEQUENCE" }!!
-        assertEquals(3, fieldSequence.explicitStartOffset)
+        assertEquals(null, fieldSequence.explicitStartOffset)
         assertEquals(3, fieldSequence.startOffset)
+        assertEquals(9, fieldSequence.endOffset)
 
         val fieldLanguage = dataDefinition.fields.find { it.name == "LANGUAGE" }!!
-        assertEquals(9, fieldLanguage.explicitStartOffset)
+        assertEquals(null, fieldLanguage.explicitStartOffset)
         assertEquals(9, fieldLanguage.startOffset)
+        assertEquals(10, fieldLanguage.endOffset)
 
         execute(cu, mapOf())
     }
@@ -63,7 +71,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_04", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_04", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -72,7 +80,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_05", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_05", true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         execute(cu, mapOf())
     }
 }
