@@ -9,6 +9,8 @@
      C     'EXACT MATCH' DSPLY
      C                   ELSEIF    %FOUND
      C     'HIGHER MATCH'DSPLY
+     ** The following instruction should never return true since
+     ** there is no previous read
      C                   ELSEIF    %EOF
      C     'END OF FILE' DSPLY
      C                   ELSE
