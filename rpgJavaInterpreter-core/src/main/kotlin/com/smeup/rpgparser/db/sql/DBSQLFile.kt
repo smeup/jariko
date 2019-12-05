@@ -9,6 +9,7 @@ import java.sql.Connection
 import java.sql.ResultSet
 
 class DBSQLFile(private val name: String, private val connection: Connection) : DBFile {
+    private var lastSllSql: String? = null
     private var resultSet: ResultSet? = null
     private var lastKey: List<RecordField> = emptyList()
 
@@ -96,11 +97,23 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         val keyNames = keys.map { it.name }
         // TODO Using thisFileKeys: TESTS NEEDED!!!
         val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
+        lastSllSql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.EQ)} ${thisFileKeys.orderBySQL()}"
         val values = keys.map { it.value }
         lastKey = keys
         executeQuery(sql, values)
         return resultSet.hasRecords()
     }
+
+    override fun equal(): Boolean =
+        if (lastSllSql == null) {
+            false
+        } else {
+            val values = lastKey.map { it.value }
+            connection.prepareStatement(lastSllSql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
+                it.bind(values)
+                it.executeQuery()
+            }.hasRecords()
+        }
 
     private fun executeQuery(sql: String, values: List<Value>) {
         resultSet.closeIfOpen()
