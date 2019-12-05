@@ -225,8 +225,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun executeEachStatement(compilationUnit: CompilationUnit) {
         try {
-            compilationUnit.main.stmts.forEach {
-                executeWithMute(it)
+            val statements = compilationUnit.main.stmts
+            var i = 0
+            while (i < statements.size) {
+                try {
+                    executeWithMute(statements[i++])
+                } catch (e: GotoException) {
+                    i = statements.indexOfFirst {
+                        it is TagStmt && it.tag == e.tag
+                    }
+                }
             }
         } catch (e: ReturnException) {
             // TODO use return value
@@ -240,11 +248,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun execute(statements: List<Statement>) {
-        try {
-            statements.forEach { executeWithMute(it) }
-        } catch (e: ReturnException) {
-            // TODO use return value
-        }
+        statements.forEach { executeWithMute(it) }
     }
 
     private fun executeWithMute(statement: Statement) {
@@ -760,9 +764,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is TagStmt -> {
                     // Nothing to do here
                 }
+                is GotoStmt -> {
+                    throw GotoException(statement.tag)
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e: ReturnException) {
+            throw e
+        } catch (e: GotoException) {
             throw e
         } catch (e: InterruptForDebuggingPurposes) {
             throw e
@@ -1489,6 +1498,8 @@ private fun Boolean.asValue() = BooleanValue(this)
 class InterruptForDebuggingPurposes : RuntimeException()
 
 class ReturnException(val returnValue: Value?) : RuntimeException()
+
+class GotoException(val tag: String) : RuntimeException()
 
 private fun cleanNumericString(s: String): String {
     val result = s.removeNullChars().moveEndingString("-")

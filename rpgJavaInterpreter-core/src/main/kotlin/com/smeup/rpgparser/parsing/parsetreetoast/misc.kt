@@ -221,6 +221,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csDIV() != null -> this.csDIV().toAst(conf)
         this.csRETURN() != null -> this.csRETURN().toAst(conf)
         this.csTAG() != null -> this.csTAG().toAst(conf)
+        this.csGOTO() != null -> this.csGOTO().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -506,6 +507,10 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
 
 internal fun CsTAGContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TagStmt {
     return TagStmt(this.factor1Context()?.content?.text!!, toPosition(conf.considerPosition))
+}
+
+internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt {
+    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
 }
 
 private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
