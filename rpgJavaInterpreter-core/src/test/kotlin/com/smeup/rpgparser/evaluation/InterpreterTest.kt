@@ -574,6 +574,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeReturn01() {
+        assertEquals(listOf("Starting"), outputOf("RETURN01"))
+    }
+
+    @Test
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }

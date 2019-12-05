@@ -219,6 +219,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCOMP() != null -> this.csCOMP().toAst(conf)
         this.csMULT() != null -> this.csMULT().toAst(conf)
         this.csDIV() != null -> this.csDIV().toAst(conf)
+        this.csRETURN() != null -> this.csRETURN().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -374,6 +375,10 @@ internal fun CsEXSRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     require(this.cspec_fixed_standard_parts().lo.text.isBlank())
     require(this.cspec_fixed_standard_parts().result.text.isBlank())
     return ExecuteSubroutine(ReferenceByName(subroutineName), toPosition(conf.considerPosition))
+}
+
+internal fun CsRETURNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ReturnStmt {
+    return ReturnStmt(this.fixedexpression?.expression()?.toAst(conf), toPosition(conf.considerPosition))
 }
 
 internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalStmt {

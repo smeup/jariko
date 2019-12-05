@@ -224,8 +224,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun executeEachStatement(compilationUnit: CompilationUnit) {
-        compilationUnit.main.stmts.forEach {
-            executeWithMute(it)
+        try {
+            compilationUnit.main.stmts.forEach {
+                executeWithMute(it)
+            }
+        } catch (e: ReturnException) {
+            // TODO use return value
         }
     }
 
@@ -236,7 +240,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun execute(statements: List<Statement>) {
-        statements.forEach { executeWithMute(it) }
+        try {
+            statements.forEach { executeWithMute(it) }
+        } catch (e: ReturnException) {
+            // TODO use return value
+        }
     }
 
     private fun executeWithMute(statement: Statement) {
@@ -745,8 +753,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val record = dbFile.read()
                     fillDataFrom(record)
                 }
+                is ReturnStmt -> {
+                    val returnValue = statement.expression?.let { eval(statement.expression) }
+                    throw ReturnException(returnValue)
+                }
                 else -> TODO(statement.toString())
             }
+        } catch (e: ReturnException) {
+            throw e
         } catch (e: InterruptForDebuggingPurposes) {
             throw e
         } catch (e: IllegalArgumentException) {
@@ -1470,6 +1484,8 @@ private fun Boolean.asValue() = BooleanValue(this)
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
+
+class ReturnException(val returnValue: Value?) : RuntimeException()
 
 private fun cleanNumericString(s: String): String {
     val result = s.removeNullChars().moveEndingString("-")
