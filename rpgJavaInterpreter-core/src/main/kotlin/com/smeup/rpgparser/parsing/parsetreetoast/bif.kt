@@ -29,6 +29,7 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
             this.bif_editc() != null -> this.bif_editc().toAst(conf)
             this.bif_found() != null -> this.bif_found().toAst(conf)
             this.bif_eof() != null -> this.bif_eof().toAst(conf)
+            this.bif_equal() != null -> this.bif_equal().toAst(conf)
             this.bif_abs() != null -> this.bif_abs().toAst(conf)
             this.bif_int() != null -> this.bif_int().toAst(conf)
             this.bif_editw() != null -> this.bif_editw().toAst(conf)
@@ -71,6 +72,12 @@ internal fun RpgParser.Bif_eofContext.toAst(conf: ToAstConfiguration): Expressio
     return EofExpr(
             this.filenameident?.text,
             toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_equalContext.toAst(conf: ToAstConfiguration): Expression {
+    return EqualExpr(
+        this.filenameident?.text,
+        toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.Bif_editcContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EditcExpr {

@@ -159,6 +159,13 @@ data class EofExpr(
 ) :
         Expression(position)
 
+// %EQUAL
+data class EqualExpr(
+    var name: String? = null,
+    override val position: Position? = null
+) :
+        Expression(position)
+
 // %ABS
 data class AbsExpr(
     var value: Expression,

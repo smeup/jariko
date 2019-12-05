@@ -89,6 +89,7 @@ interface DBFile {
     fun readEqual(key: Value): Record
     fun readEqual(keys: List<RecordField>): Record
     fun eof(): Boolean
+    fun equal(): Boolean
     fun read(): Record
 }
 

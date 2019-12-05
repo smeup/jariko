@@ -1396,6 +1396,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
             }
+            is EqualExpr -> {
+                // TODO fix this bad implementation
+                if (expression.name == null) {
+                    return BooleanValue(lastDBFile?.equal() ?: false)
+                }
+                TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
+            }
             is AbsExpr -> {
                 val value = interpret(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
