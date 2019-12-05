@@ -220,6 +220,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csMULT() != null -> this.csMULT().toAst(conf)
         this.csDIV() != null -> this.csDIV().toAst(conf)
         this.csRETURN() != null -> this.csRETURN().toAst(conf)
+        this.csTAG() != null -> this.csTAG().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -501,6 +502,10 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
+}
+
+internal fun CsTAGContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TagStmt {
+    return TagStmt(this.factor1Context()?.content?.text!!, toPosition(conf.considerPosition))
 }
 
 private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {

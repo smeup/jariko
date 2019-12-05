@@ -757,6 +757,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val returnValue = statement.expression?.let { eval(statement.expression) }
                     throw ReturnException(returnValue)
                 }
+                is TagStmt -> {
+                    // Nothing to do here
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e: ReturnException) {

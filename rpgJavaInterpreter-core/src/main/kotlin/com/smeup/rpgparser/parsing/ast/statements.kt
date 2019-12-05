@@ -379,6 +379,8 @@ data class IterStmt(override val position: Position? = null) : Statement(positio
 
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 
+data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
+
 data class ForStmt(
     var init: Expression,
     val endValue: Expression,
