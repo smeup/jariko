@@ -464,33 +464,16 @@ fun Type.blank(dataDefinition: DataDefinition): Value {
         }
         is DataStructureType -> {
             val ds = DataStructValue.blank(this.size.toInt())
-            if (!dataDefinition.inz) {
-                dataDefinition.fields.forEach {
-                    when (it.type) {
-                        is NumberType -> when {
-                            it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
-                                var rnd = (1..9).random().toBigDecimal()
-                                ds.set(it, DecimalValue(rnd))
-                            }
-                            it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                                var rnd = (1..9).random()
-                                ds.set(it, IntValue(rnd.toLong()))
-                            }
+            dataDefinition.fields.forEach {
+                when (it.type) {
+                    is NumberType -> when {
+                        it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
+                            var rnd = if (dataDefinition.inz)  BigDecimal.ZERO else BigDecimal.ONE.unaryMinus()
+                            ds.set(it, DecimalValue(rnd))
                         }
-                    }
-                }
-            } else {
-                dataDefinition.fields.forEach {
-                    when (it.type) {
-                        is NumberType -> {
-                            when {
-                                it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
-                                    ds.set(it, DecimalValue(BigDecimal.ZERO))
-                                }
-                                it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                                    ds.set(it, IntValue(0))
-                                }
-                            }
+                        it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
+                            var rnd = if (dataDefinition.inz)  0 else (1..9).random()
+                            ds.set(it, IntValue(rnd.toLong()))
                         }
                     }
                 }
