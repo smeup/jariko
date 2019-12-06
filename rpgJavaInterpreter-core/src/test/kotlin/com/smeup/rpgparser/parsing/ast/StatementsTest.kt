@@ -25,6 +25,23 @@ class StatementsTest {
         return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
     }
 
+    @test fun gotoParsingWithIndicator() {
+        val stmt: GotoStmt = multiLineStatement("""
+     C  N50              GOTO      START            
+                    """) as GotoStmt
+        assertEquals("START", stmt.tag)
+        assertEquals(50, stmt.indicator)
+        assertEquals(true, stmt.offFlag)
+    }
+
+    @test fun gotoParsingWithoutIndicator() {
+        val stmt: GotoStmt = multiLineStatement("""
+     C                   GOTO      START            
+                    """) as GotoStmt
+        assertEquals("START", stmt.tag)
+        assertEquals(null, stmt.indicator)
+    }
+
     @test fun kListParsing() {
         assertEquals(KListStmt("KEY", listOf("KY1TST", "KY2TST")),
                     multiLineStatement("""

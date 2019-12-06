@@ -381,7 +381,7 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
 
 data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
-data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
+data class GotoStmt(val tag: String, val indicator: Int?, val offFlag: Boolean, override val position: Position? = null) : Statement(position)
 
 data class ForStmt(
     var init: Expression,

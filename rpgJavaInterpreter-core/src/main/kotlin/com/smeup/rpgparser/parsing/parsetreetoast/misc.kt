@@ -5,6 +5,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
+import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import org.antlr.v4.runtime.ParserRuleContext
@@ -509,16 +510,19 @@ internal fun CsTAGContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     return TagStmt(this.factor1Context()?.content?.text!!, toPosition(conf.considerPosition))
 }
 
-internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt {
-    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
-}
-
 private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
     return if (this.factor1Context()?.content?.text?.isNotBlank() == true) {
         this.factor1Context().content.toAst(conf)
     } else {
         null
     }
+}
+
+internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt {
+    var cspec_context = this.parent.parent as Cspec_fixedContext
+    var offFlag = cspec_context.onOffIndicatorsFlag().NoFlag() != null
+    var indicator = cspec_context.indicators.GeneralIndicator()?.text?.asInt()
+    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, indicator, offFlag, toPosition(conf.considerPosition))
 }
 
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
