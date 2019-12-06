@@ -87,6 +87,18 @@ data class StringValue(val value: String) : Value() {
     }
 
     override fun copy(): StringValue = this
+
+    fun length(varying : Boolean) : Int {
+        if( varying ) {
+            var len = 0
+            value.forEach {
+                if( it != PAD_CHAR )
+                    len++
+            }
+            return len
+        }
+        return value.length
+    }
 }
 
 fun String.removeNullChars(): String {

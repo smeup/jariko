@@ -142,14 +142,14 @@ internal fun RpgParser.DspecContext.toAst(
             /* TODO should be packed? */
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
-            StringType(elementSize!!.toLong())
+            val varying = this.keyword().any { it.keyword_varying() != null }
+            StringType(elementSize!!.toLong(),varying)
         }
         "A" -> StringType(elementSize!!.toLong())
         "N" -> BooleanType
         "Z" -> TimeStampType
         /* TODO should be zoned? */
         RpgType.ZONED.rpgType -> {
-            // StringType(elementSize!!.toLong())
             /* Zoned Type */
             NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
         }
@@ -370,7 +370,9 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
         else -> endPosition - startPosition.toInt()
     }
     val explicitElementSize = if (arraySizeDeclared != null) {
-        totalSize?.let { it / arraySizeDeclared()!! }
+        totalSize?.let {
+            it / arraySizeDeclared()!!
+        }
     } else {
         totalSize
     }

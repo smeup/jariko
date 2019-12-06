@@ -887,6 +887,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 value1.asInt() == value2.asInt()
             }
 
+            value1 is StringValue && value2 is BooleanValue -> {
+                (value1.value.toString() == "1") == value2.value
+            }
+
+            value1 is BooleanValue && value2 is StringValue -> {
+                (value2.value.toString() == "1") == value1.value
+            }
+
             value1 is DecimalValue && value2 is DecimalValue -> {
                 // Convert everything to Decimal then compare
                 value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
@@ -1308,8 +1316,30 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is LenExpr -> {
                 val value = eval(expression.value)
                 return when (value) {
-                    is StringValue -> value.value.length.asValue()
-                    is DataStructValue -> value.value.length.asValue()
+                    is StringValue -> {
+                        when (expression.value) {
+                            is DataRefExpr ->{
+                                val type = expression.value.type()
+                                when (type) {
+                                    is StringType -> {
+                                        value.length( type.varying ).asValue()
+                                    }
+                                    else ->  {
+                                        value.value.length.asValue()
+                                    }
+                                }
+                            }
+                            is ArrayAccessExpr -> {
+                                value.value.length.asValue()
+                                //value.elementSize().asValue()
+                            }
+                            else -> {
+                                TODO("Invalid LEN parameter $value")
+                            }
+                        }
+                    }
+                    is DataStructValue -> {
+                        value.value.length.asValue() }
                     is ArrayValue -> {
                         // Incorrect data structure size calculation #28
                         when (expression.value) {
