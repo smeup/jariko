@@ -60,6 +60,12 @@ fun String.divideAtIndex(i: Int): Pair<String, String> {
 
 fun String.asLong(): Long = this.trim().toLong()
 fun String.asInt(): Int = this.trim().toInt()
+fun String?.asIntOrNull(): Int? =
+    try {
+        this?.trim()?.toInt()
+    } catch (e: Exception) {
+        null
+    }
 
 fun String?.asDouble(): Double {
     if (this == null) {

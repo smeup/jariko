@@ -6,6 +6,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.utils.asInt
+import com.smeup.rpgparser.utils.asIntOrNull
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import org.antlr.v4.runtime.ParserRuleContext
@@ -551,10 +552,19 @@ internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     return SubStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
 }
 
-// TODO add real implementation
+internal fun ResultIndicatorContext?.asIntOrNull(): Int? = this?.text?.asIntOrNull()
+
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
+    val left = leftExpr(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 1: ${this.text}")
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text}")
     val position = toPosition(conf.considerPosition)
-    return CompStmt(position)
+    return CompStmt(
+        left,
+        right,
+        this.cspec_fixed_standard_parts().hi.asIntOrNull(),
+        this.cspec_fixed_standard_parts().lo.asIntOrNull(),
+        this.cspec_fixed_standard_parts().eq.asIntOrNull(),
+        position)
 }
 
 internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ClearStmt {
