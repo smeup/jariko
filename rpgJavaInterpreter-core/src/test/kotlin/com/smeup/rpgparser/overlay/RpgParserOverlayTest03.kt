@@ -3,6 +3,7 @@ package com.smeup.rpgparser.overlay
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
@@ -29,7 +30,7 @@ public class RpgParserOverlayTest03 {
     fun parseMUTE03_09_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

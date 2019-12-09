@@ -24,6 +24,7 @@ import org.apache.commons.io.input.BOMInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
+import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.test.assertEquals
@@ -294,13 +295,13 @@ private const val TRACE = false
 
 fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE), printTree: Boolean = false): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
-    cu.resolve()
+    cu.resolve(si.db)
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
 }
 
-fun rpgProgram(name: String): RpgProgram {
-    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
+fun rpgProgram(name: String, dbInterface: DBInterface = DummyDBInterface): RpgProgram {
+    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), dbInterface, name)
 }
 
 fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
@@ -317,22 +318,32 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
 }
 
 class DummyProgramFinder(val path: String) : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
-        return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle"), nameOrSource)
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
+        val inputStream = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle") ?: return null
+        return RpgProgram.fromInputStream(inputStream, dbInterface, nameOrSource)
     }
 }
 
 open class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
+    val programFinders = mutableListOf<RpgProgramFinder>(DummyProgramFinder("/"))
     private val rpgPrograms = HashMap<String, RpgProgram>()
 
     override fun findProgram(name: String): Program? {
-        return super.findProgram(name) ?: findRpgProgram(name)
+        return super.findProgram(name) ?: findWithFinders(name)
     }
 
-    private fun findRpgProgram(name: String): Program? {
+    private fun findWithFinders(name: String): Program? {
         return rpgPrograms.getOrPut(name) {
-            rpgProgram(name)
+            find(name)
         }
+    }
+
+    private fun find(name: String): RpgProgram {
+        programFinders.forEach {
+            val pgm = it.findRpgProgram(name, db)
+            if (pgm != null) return pgm
+        }
+        throw IllegalArgumentException("Program $name cannot be found")
     }
 }
 
@@ -345,4 +356,6 @@ open class MockDBFile : DBFile {
     override fun readEqual(key: Value): Record = TODO()
     override fun readEqual(keys: List<RecordField>): Record = TODO()
     override fun eof(): Boolean = TODO()
+    override fun equal(): Boolean = TODO()
+    override fun read(): Record = TODO()
 }

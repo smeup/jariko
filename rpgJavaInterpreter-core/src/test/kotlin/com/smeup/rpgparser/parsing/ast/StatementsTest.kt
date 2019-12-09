@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.LR
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.RT
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
@@ -22,6 +23,34 @@ class StatementsTest {
     private fun multiLineStatement(code: String): Statement {
         val stmtContext = assertStatementCanBeParsed(code)
         return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
+    }
+
+    @test fun gotoParsingWithIndicator() {
+        val stmt: GotoStmt = multiLineStatement("""
+     C  N50              GOTO      START            
+                    """) as GotoStmt
+        assertEquals("START", stmt.tag)
+        assertEquals(50, stmt.indicator)
+        assertEquals(true, stmt.offFlag)
+    }
+
+    @test fun gotoParsingWithoutIndicator() {
+        val stmt: GotoStmt = multiLineStatement("""
+     C                   GOTO      START            
+                    """) as GotoStmt
+        assertEquals("START", stmt.tag)
+        assertEquals(null, stmt.indicator)
+    }
+
+    @test fun compParsing() {
+        val stmt: CompStmt = multiLineStatement("""
+     C     A2            COMP      '01'                               50  51                    """)
+            as CompStmt
+        assertEquals("A2", (stmt.left as DataRefExpr).variable.name)
+        assertEquals("01", (stmt.right as StringLiteral).value)
+        assertEquals(50, stmt.hi)
+        assertEquals(null, stmt.lo)
+        assertEquals(51, stmt.eq)
     }
 
     @test fun kListParsing() {
@@ -245,7 +274,7 @@ class StatementsTest {
 
     @test fun plistDeclareVariable() {
         val cu = assertASTCanBeProduced("ECHO")
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val plists = cu.collectByType(PlistStmt::class.java).distinct()
         assertEquals(1, plists.size)
         assertEquals(1, plists.first().dataDefinition().size)
@@ -253,7 +282,7 @@ class StatementsTest {
 
     @test fun plistDoesNotDeclareVariable() {
         val cu = assertASTCanBeProduced("ECHO2")
-        cu.resolve()
+        cu.resolve(DummyDBInterface)
         val plists = cu.collectByType(PlistStmt::class.java).distinct()
         assertEquals(1, plists.size)
         assertEquals(0, plists.first().dataDefinition().size)

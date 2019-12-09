@@ -1,7 +1,11 @@
 package com.smeup.rpgparser.overlay
 
+import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.test.forAll
+import com.smeup.rpgparser.test.integerGenerator
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import java.math.MathContext
 import kotlin.random.Random.Default.nextInt
 import kotlin.random.Random.Default.nextLong
@@ -93,26 +97,46 @@ class RpgDataEncoderTest {
         }
     }
 
+    private val encodeDecodeBinary4Lambda: Int.() -> Boolean = {
+        val binary4 = toBigDecimal()
+        val encoded4 = encodeBinary(binary4, 4)
+        assertTrue(encoded4.length == 4)
+        val decoded4 = decodeBinary(encoded4, 4)
+        assertTrue(binary4.compareTo(decoded4) == 0)
+        true
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun encodeDecodeBinary4Slow() {
+        for (i in -9999999..9999999) {
+            i.encodeDecodeBinary4Lambda()
+        }
+    }
+
     @Test
     fun encodeDecodeBinary4() {
-        for (i in -9999999..9999999) {
-            val binary4 = i.toBigDecimal()
-            val encoded4 = encodeBinary(binary4, 4)
-            assertTrue(encoded4.length == 4)
-            val decoded4 = decodeBinary(encoded4, 4)
-            assertTrue(binary4.compareTo(decoded4) == 0)
+        forAll(integerGenerator(-9999999..9999999), property = encodeDecodeBinary4Lambda)
+    }
+
+    private val encodeDecodePackedLambda: Int.() -> Boolean = {
+        val packed50 = toBigDecimal(MathContext(0))
+        val encoded50 = encodeToDS(packed50, 5, 0)
+        assertTrue(encoded50.length <= 7)
+        val decoded50 = decodeFromDS(encoded50, 5, 0)
+        assertEquals(packed50.compareTo(decoded50), 0)
+        true
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun encodeDecodePackedSlow() {
+        for (i in -999999..999999) {
+            i.encodeDecodePackedLambda()
         }
     }
 
     @Test
     fun encodeDecodePacked() {
-        for (i in -999999..999999) {
-            val packed50 = i.toBigDecimal(MathContext(0))
-            val encoded50 = encodeToDS(packed50, 5, 0)
-            assertTrue(encoded50.length <= 7)
-            val decoded50 = decodeFromDS(encoded50, 5, 0)
-            assertEquals(packed50.compareTo(decoded50), 0)
-        }
+        forAll(integerGenerator(-999999..999999), property = encodeDecodePackedLambda)
     }
 
     @Test

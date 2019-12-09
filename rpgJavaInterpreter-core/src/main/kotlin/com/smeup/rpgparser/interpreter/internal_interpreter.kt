@@ -85,8 +85,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     var cycleLimit: Int? = null
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    var lastFound = false
-    var lastDBFile: DBFile? = null
+    private var lastFound = false
+    private var lastDBFile: DBFile? = null
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
@@ -241,8 +241,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun executeEachStatement(compilationUnit: CompilationUnit) {
-        compilationUnit.main.stmts.forEach {
-            executeWithMute(it)
+        try {
+            val statements = compilationUnit.main.stmts
+            var i = 0
+            while (i < statements.size) {
+                try {
+                    executeWithMute(statements[i++])
+                } catch (e: GotoException) {
+                    i = statements.indexOfFirst {
+                        it is TagStmt && it.tag == e.tag
+                    }
+                }
+            }
+        } catch (e: ReturnException) {
+            // TODO use return value
         }
     }
 
@@ -761,7 +773,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SetllStmt -> {
                     val dbFile = dbFile(statement.name, statement)
-                    if (statement.searchArg.type() is KListType) {
+                    lastFound = if (statement.searchArg.type() is KListType) {
                         dbFile.setll(toSearchValues(statement.searchArg))
                     } else {
                         dbFile.setll(eval(statement.searchArg))
@@ -776,8 +788,27 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     }
                     fillDataFrom(record)
                 }
+                is ReadStmt -> {
+                    val dbFile = dbFile(statement.name, statement)
+                    val record = dbFile.read()
+                    fillDataFrom(record)
+                }
+                is ReturnStmt -> {
+                    val returnValue = statement.expression?.let { eval(statement.expression) }
+                    throw ReturnException(returnValue)
+                }
+                is TagStmt -> {
+                    // Nothing to do here
+                }
+                is GotoStmt -> {
+                    throw GotoException(statement.tag)
+                }
                 else -> TODO(statement.toString())
             }
+        } catch (e: ReturnException) {
+            throw e
+        } catch (e: GotoException) {
+            throw e
         } catch (e: InterruptForDebuggingPurposes) {
             throw e
         } catch (e: IllegalArgumentException) {
@@ -1470,6 +1501,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
             }
+            is EqualExpr -> {
+                // TODO fix this bad implementation
+                if (expression.name == null) {
+                    return BooleanValue(lastDBFile?.equal() ?: false)
+                }
+                TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
+            }
             is AbsExpr -> {
                 val value = interpret(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
@@ -1478,7 +1516,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val n = eval(expression.value)
                 val format = eval(expression.format)
                 require(format is StringValue) { "Required string value, but got $format at ${expression.position}" }
-                return n.asDecimal().formatAsWord(format.value, expression.value.type(), this.decedit)
+                return n.asDecimal().formatAsWord(format.value, expression.value.type())
             }
             is IntExpr -> {
                 return when (val value = interpret(expression.value)) {
@@ -1540,6 +1578,10 @@ private fun Boolean.asValue() = BooleanValue(this)
 
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
+
+class ReturnException(val returnValue: Value?) : RuntimeException()
+
+class GotoException(val tag: String) : RuntimeException()
 
 private fun cleanNumericString(s: String): String {
     val result = s.removeNullChars().moveEndingString("-")

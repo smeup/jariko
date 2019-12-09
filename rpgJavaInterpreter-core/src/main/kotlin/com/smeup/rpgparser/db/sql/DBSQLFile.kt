@@ -9,12 +9,23 @@ import java.sql.Connection
 import java.sql.ResultSet
 
 class DBSQLFile(private val name: String, private val connection: Connection) : DBFile {
+    private var lastSllSql: String? = null
     private var resultSet: ResultSet? = null
     private var lastKey: List<RecordField> = emptyList()
 
     private val thisFileKeys: List<String> by lazy {
         val indexes = connection.primaryKeys(name)
         if (indexes.isEmpty()) connection.orderingFields(name) else indexes
+    }
+
+    override fun read(): Record {
+        if (resultSet == null) {
+            setll(emptyList())
+        }
+        require(resultSet != null) {
+            "Read with empty result set"
+        }
+        return readFromPositionedResultSet()
     }
 
     override fun readEqual(): Record {
@@ -47,6 +58,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
 
     private fun signalEOF() {
         resultSet?.last()
+        resultSet?.next()
     }
 
     override fun readEqual(keys: List<RecordField>): Record {
@@ -55,11 +67,13 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         } else {
             readFromPositionedResultSet()
         }
-        lastKey = keys
+        if (!keys.isEmpty()) {
+            lastKey = keys
+        }
         return filterRecord(result)
     }
 
-    override fun eof(): Boolean = resultSet?.isLast ?: false
+    override fun eof(): Boolean = resultSet?.isAfterLast ?: true
 
     override fun chain(key: Value): Record = chain(toFields(key))
 
@@ -75,19 +89,33 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         // TODO Using thisFileKeys: TESTS NEEDED!!!
         val sql = "SELECT * FROM $name ${keyNames.whereSQL()} ${thisFileKeys.orderBySQL()}"
         val values = keys.map { it.value }
-        resultSet.closeIfOpen()
-        connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
-            it.bind(values)
-            resultSet = it.executeQuery()
-        }
+        executeQuery(sql, values)
         return resultSet.toValues()
     }
 
-    override fun setll(keys: List<RecordField>) {
+    override fun setll(keys: List<RecordField>): Boolean {
         val keyNames = keys.map { it.name }
         // TODO Using thisFileKeys: TESTS NEEDED!!!
         val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
+        lastSllSql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.EQ)} ${thisFileKeys.orderBySQL()}"
         val values = keys.map { it.value }
+        lastKey = keys
+        executeQuery(sql, values)
+        return resultSet.hasRecords()
+    }
+
+    override fun equal(): Boolean =
+        if (lastSllSql == null) {
+            false
+        } else {
+            val values = lastKey.map { it.value }
+            connection.prepareStatement(lastSllSql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
+                it.bind(values)
+                it.executeQuery()
+            }.hasRecords()
+        }
+
+    private fun executeQuery(sql: String, values: List<Value>) {
         resultSet.closeIfOpen()
         connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).use {
             it.bind(values)

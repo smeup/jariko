@@ -86,12 +86,14 @@ class Record(vararg fields: RecordField) : LinkedHashMap<String, Value>() {
 interface DBFile {
     fun chain(key: Value): Record
     fun chain(keys: List<RecordField>): Record
-    fun setll(key: Value)
-    fun setll(keys: List<RecordField>)
+    fun setll(key: Value): Boolean
+    fun setll(keys: List<RecordField>): Boolean
     fun readEqual(): Record
     fun readEqual(key: Value): Record
     fun readEqual(keys: List<RecordField>): Record
     fun eof(): Boolean
+    fun equal(): Boolean
+    fun read(): Record
 }
 
 data class DBField(val name: String, val type: Type, val primaryKey: Boolean = false) {
@@ -152,7 +154,7 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
     override fun findProgram(name: String): Program? {
         programs.computeIfAbsent(name) {
             programFinders.asSequence().mapNotNull {
-                it.findRpgProgram(name)
+                it.findRpgProgram(name, db)
             }.firstOrNull()
         }
         return programs[name]

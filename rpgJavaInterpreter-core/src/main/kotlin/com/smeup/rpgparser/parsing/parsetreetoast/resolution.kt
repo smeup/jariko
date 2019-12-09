@@ -2,7 +2,6 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.interpreter.DBInterface
 import com.smeup.rpgparser.interpreter.DataDefinition
-import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.model.*
@@ -23,7 +22,7 @@ private fun CompilationUnit.allStatements(): List<Statement> {
     return result
 }
 
-fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
+fun CompilationUnit.resolve(databaseInterface: DBInterface) {
     this.assignParents()
 
     this.findInStatementDataDefinitions()
@@ -38,7 +37,7 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
 
                 val fieldName = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
 
-                val resField = this.allDataDefinitions.find { if (it.name == null) false else it.name.equals(fieldName, true) }
+                val resField = this.allDataDefinitions.find { it.name.equals(fieldName, true) }
                 dre.variable.referred = resField
             } else {
                 require(dre.variable.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
@@ -57,7 +56,7 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface = DummyDBInterface) {
     this.specificProcess(QualifiedAccessExpr::class.java) { qae ->
         if (!qae.field.resolved) {
             if (qae.container is DataRefExpr) {
-                val dataRef = qae.container as DataRefExpr
+                val dataRef = qae.container
                 val dataDefinition = dataRef.variable.referred!! as DataDefinition
                 require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
                     "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"

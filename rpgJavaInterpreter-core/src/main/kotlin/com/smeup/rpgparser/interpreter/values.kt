@@ -199,7 +199,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         when (expectedType) {
-            is NumberType -> return expectedType is NumberType
+            is NumberType -> return true
             is ArrayType -> {
                 return expectedType.element is NumberType
             }
