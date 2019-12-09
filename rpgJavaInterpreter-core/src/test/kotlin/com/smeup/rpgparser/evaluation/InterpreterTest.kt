@@ -496,6 +496,16 @@ class InterpreterTest {
         assertEquals(listOf("5", "11", "88"), outputOf("ZADD"))
     }
 
+    @Test @Ignore
+    fun executeZADDALL() {
+        assertEquals(listOf("51515"), outputOf("ZADDALL"))
+    }
+
+    @Test @Ignore
+    fun executeMOVELOVAL() {
+        assertEquals(listOf("99-"), outputOf("MOVELOVAL"))
+    }
+
     @Test
     fun executeCHECK() {
         assertEquals(listOf("Wrong char at 6", "Wrong char at 7", "No wrong chars 0"), outputOf("CHECK"))

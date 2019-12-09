@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
+import com.smeup.rpgparser.interpreter.atLine
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
@@ -43,6 +44,8 @@ data class OffRefExpr(override val position: Position? = null) : FigurativeConst
 data class HiValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 
 data class LowValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+
+data class AllExpr(val charsToRepeat: String, override val position: Position? = null) : FigurativeConstantRef(position)
 
 // /
 // / Comparisons
@@ -140,12 +143,18 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     AssignableExpression(position) {
 
     init {
-        require(variable.name.isNotBlank()) { "The variable name should not blank" }
-        require(variable.name.trim() == variable.name) {
-            "The variable name should not starts or ends with whitespace"
+        require(variable.name.isNotBlank()) {
+            "The variable name should not blank - ${position.atLine()}"
         }
-        require(!variable.name.contains(".")) { "The variable name should not contain any dot: <${variable.name}>" }
-        require(!variable.name.contains("(") && !variable.name.contains(")")) { "The variable name should not contain any parenthesis" }
+        require(variable.name.trim() == variable.name) {
+            "The variable name should not starts or ends with whitespace: $variable.name - ${position.atLine()}"
+        }
+        require(!variable.name.contains(".")) {
+            "The variable name should not contain any dot: <${variable.name}> - ${position.atLine()}"
+        }
+        require(!variable.name.contains("(") && !variable.name.contains(")")) {
+            "The variable name should not contain any parenthesis: $variable.name - ${position.atLine()}"
+        }
     }
 
     override fun size(): Long {
