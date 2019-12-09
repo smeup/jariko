@@ -1,4 +1,5 @@
 # JaRIKo: a JAva virtual machine Rpg Interpreter written in KOtlin 
+![jariko Logo](/images/jariko_small.png)  
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://travis-ci.org/smeup/jariko.svg?branch=master)](https://travis-ci.org/smeup/jariko)
