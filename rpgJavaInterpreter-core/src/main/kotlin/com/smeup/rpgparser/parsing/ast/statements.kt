@@ -215,6 +215,8 @@ data class ElseIfClause(val condition: Expression, val body: List<Statement>, ov
 
 data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
 
+data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position)
+
 // A Plist is a list of parameters
 data class PlistStmt(
     val params: List<PlistParam>,
@@ -253,8 +255,7 @@ data class ClearStmt(
     }
 }
 
-// TODO add real implementation
-data class CompStmt(override val position: Position? = null) : Statement(position)
+data class CompStmt(val left: Expression, val right: Expression, val hi: Int?, val lo: Int?, val eq: Int?, override val position: Position? = null) : Statement(position)
 
 data class ZAddStmt(
     val target: AssignableExpression,
@@ -376,6 +377,10 @@ data class LeaveStmt(override val position: Position? = null) : Statement(positi
 data class IterStmt(override val position: Position? = null) : Statement(position)
 
 data class OtherStmt(override val position: Position? = null) : Statement(position)
+
+data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
+
+data class GotoStmt(val tag: String, val indicator: Int?, val offFlag: Boolean, override val position: Position? = null) : Statement(position)
 
 data class ForStmt(
     var init: Expression,

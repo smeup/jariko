@@ -574,6 +574,22 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeReturn01() {
+        assertEquals(listOf("Starting"), outputOf("RETURN01"))
+    }
+
+    @Test
+    fun executeGoto01() {
+        assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO01"))
+    }
+
+    @Test @Ignore
+    // TODO This test fails because we cannot handle indicators at the moment
+    fun executeGoto02() {
+        assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO02"))
+    }
+
+    @Test
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }

@@ -5,6 +5,8 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
+import com.smeup.rpgparser.utils.asInt
+import com.smeup.rpgparser.utils.asIntOrNull
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import org.antlr.v4.runtime.ParserRuleContext
@@ -219,6 +221,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCOMP() != null -> this.csCOMP().toAst(conf)
         this.csMULT() != null -> this.csMULT().toAst(conf)
         this.csDIV() != null -> this.csDIV().toAst(conf)
+        this.csRETURN() != null -> this.csRETURN().toAst(conf)
+        this.csTAG() != null -> this.csTAG().toAst(conf)
+        this.csGOTO() != null -> this.csGOTO().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -376,6 +381,10 @@ internal fun CsEXSRContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     return ExecuteSubroutine(ReferenceByName(subroutineName), toPosition(conf.considerPosition))
 }
 
+internal fun CsRETURNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ReturnStmt {
+    return ReturnStmt(this.fixedexpression?.expression()?.toAst(conf), toPosition(conf.considerPosition))
+}
+
 internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalStmt {
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     val flags = EvalFlags(
@@ -498,12 +507,23 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
 }
 
+internal fun CsTAGContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TagStmt {
+    return TagStmt(this.factor1Context()?.content?.text!!, toPosition(conf.considerPosition))
+}
+
 private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
     return if (this.factor1Context()?.content?.text?.isNotBlank() == true) {
         this.factor1Context().content.toAst(conf)
     } else {
         null
     }
+}
+
+internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt {
+    var cspec_context = this.parent.parent as Cspec_fixedContext
+    var offFlag = cspec_context.onOffIndicatorsFlag().NoFlag() != null
+    var indicator = cspec_context.indicators.GeneralIndicator()?.text?.asInt()
+    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, indicator, offFlag, toPosition(conf.considerPosition))
 }
 
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
@@ -532,10 +552,19 @@ internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     return SubStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
 }
 
-// TODO add real implementation
+internal fun ResultIndicatorContext?.asIntOrNull(): Int? = this?.text?.asIntOrNull()
+
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
+    val left = leftExpr(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 1: ${this.text}")
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text}")
     val position = toPosition(conf.considerPosition)
-    return CompStmt(position)
+    return CompStmt(
+        left,
+        right,
+        this.cspec_fixed_standard_parts().hi.asIntOrNull(),
+        this.cspec_fixed_standard_parts().lo.asIntOrNull(),
+        this.cspec_fixed_standard_parts().eq.asIntOrNull(),
+        position)
 }
 
 internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ClearStmt {
