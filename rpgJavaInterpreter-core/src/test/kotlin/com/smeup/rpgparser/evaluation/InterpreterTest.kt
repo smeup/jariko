@@ -506,7 +506,7 @@ class InterpreterTest {
         assertEquals(listOf("WWWWWWWWWW"), outputOf("STARALL_MOVE"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeSTARALL_EVAL() {
         assertEquals(listOf("11111"), outputOf("STARALL_EVAL"))
     }

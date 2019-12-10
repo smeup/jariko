@@ -85,6 +85,9 @@ fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
 }
 
 internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+    if (this.text.toUpperCase().startsWith("*ALL")) {
+        return AllExpr(this.all().literal().toAst(conf), toPosition(conf.considerPosition))
+    }
     return when (this.text.toUpperCase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
         "*ZERO", "*ZEROS" -> TODO("*ZERO")
