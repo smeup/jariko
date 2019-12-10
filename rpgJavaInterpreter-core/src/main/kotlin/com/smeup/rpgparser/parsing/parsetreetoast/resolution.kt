@@ -40,7 +40,6 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface) {
                 val resField = this.allDataDefinitions.find { it.name.equals(fieldName, true) }
                 dre.variable.referred = resField
             } else {
-
                 require(dre.variable.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
                     "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
                 }
