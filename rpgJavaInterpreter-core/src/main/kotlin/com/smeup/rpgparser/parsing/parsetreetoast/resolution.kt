@@ -91,7 +91,8 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface) {
 
     this.specificProcess(EvalStmt::class.java) { s ->
         if (s.expression is EqualityExpr) {
-            s.expression.replace((s.expression as EqualityExpr).toAssignment())
+            // See issue %57 during the code review
+            // s.expression.replace((s.expression as EqualityExpr).toAssignment())
         }
     }
 
