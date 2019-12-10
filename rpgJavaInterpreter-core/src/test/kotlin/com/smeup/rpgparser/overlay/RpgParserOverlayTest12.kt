@@ -10,11 +10,16 @@ import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.NumberType
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.parsing.ast.ArrayAccessExpr
+import com.smeup.rpgparser.parsing.ast.FunctionCall
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.strumenta.kolasu.model.collectByType
+import com.strumenta.kolasu.model.specificProcess
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class RpgParserOverlayTest12 {
 
@@ -175,12 +180,18 @@ class RpgParserOverlayTest12 {
     fun parseMUTE12_03_ast() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
-        // After th
+        val functionCalls = cu.collectByType(FunctionCall::class.java)
+        assertEquals(0, functionCalls.size)
+        val arrayAccesses = cu.collectByType(ArrayAccessExpr::class.java)
+        assertTrue(arrayAccesses.find { it.array.render() == "AR01" } != null)
     }
 
     @Test
     fun parseMUTE12_03_inz() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
+        cu.resolve(DummyDBInterface)
+        val interpreter = InternalInterpreter(JavaSystemInterface())
+        interpreter.execute(cu, mapOf())
     }
 
     @Test
@@ -190,7 +201,7 @@ class RpgParserOverlayTest12 {
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }

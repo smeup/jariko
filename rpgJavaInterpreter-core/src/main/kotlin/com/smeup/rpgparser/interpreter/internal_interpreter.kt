@@ -5,7 +5,9 @@ import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.utils.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.*
+import com.strumenta.kolasu.model.ancestor
 import java.lang.IllegalArgumentException
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
@@ -190,7 +192,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 if (value != null) {
                     set(it, coerce(value, it.type))
-                    executeMutes(it.muteAnnotations)
+                    executeMutes(it.muteAnnotations, compilationUnit)
                 }
             }
         } else {
@@ -271,11 +273,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun executeWithMute(statement: Statement) {
         log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
         execute(statement)
-        executeMutes(statement.muteAnnotations)
+        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!)
     }
 
-    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>) {
+    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit) {
         muteAnnotations.forEach {
+            it.resolve(compilationUnit)
             when (it) {
                 is MuteComparisonAnnotation -> {
                     val exp: Expression = when (it.comparison) {
