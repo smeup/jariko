@@ -217,9 +217,11 @@ data class FieldDefinition(
     // of such field
     val stepSize: Long
         get() {
-            if (declaredArrayInLineOnThisField != null) {
-                return elementSize()
-            } else return overlayingOn?.elementSize() ?: elementSize()
+            return if (declaredArrayInLineOnThisField != null) {
+                elementSize()
+            } else {
+                (overlayingOn as? FieldDefinition)?.stepSize ?: elementSize()
+            }
         }
 
     override fun elementSize(): Long {
