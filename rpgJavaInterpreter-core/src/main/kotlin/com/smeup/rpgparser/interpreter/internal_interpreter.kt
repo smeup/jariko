@@ -31,7 +31,6 @@ interface InterpretationContext {
  * Expose interpreter core method could be useful in statements logic implementation
  **/
 interface InterpreterCoreHelper {
-
     fun log(logEntry: LogEntry)
     fun assign(target: AssignableExpression, value: Value): Value
     fun interpret(expression: Expression): Value
