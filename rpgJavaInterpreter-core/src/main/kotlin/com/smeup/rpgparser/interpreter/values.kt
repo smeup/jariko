@@ -505,7 +505,7 @@ fun Type.blank(dataDefinition: DataDefinition): Value {
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
-        is HiValType -> TODO()
+        is LowValType, is HiValType -> TODO()
     }
 }
 
@@ -522,7 +522,7 @@ fun Type.blank(): Value {
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
-        is HiValType -> TODO()
+        is LowValType, is HiValType -> TODO()
     }
 }
 

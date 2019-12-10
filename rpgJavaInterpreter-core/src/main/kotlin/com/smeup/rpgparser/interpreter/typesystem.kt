@@ -77,6 +77,13 @@ object HiValType : Type() {
     override fun hasVariableSize() = true
 }
 
+object LowValType : Type() {
+    override val size: Long
+        get() = throw IllegalStateException("Has variable size")
+
+    override fun hasVariableSize() = true
+}
+
 object TimeStampType : Type() {
     override val size: Long
         get() = 26
@@ -195,8 +202,14 @@ fun Expression.type(): Type {
         is HiValExpr -> {
             return HiValType
         }
+        is LowValExpr -> {
+            return LowValType
+        }
         is SubstExpr -> {
             return this.string.type()
+        }
+        is QualifiedAccessExpr -> {
+            return this.field.referred!!.type
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
