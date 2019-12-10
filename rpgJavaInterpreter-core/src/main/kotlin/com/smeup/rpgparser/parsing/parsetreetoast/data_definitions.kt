@@ -236,6 +236,11 @@ internal fun RpgParser.Dcl_dsContext.type(
                 it.endOffset!!
             } else {
                 it.endOffset!! * it.arraySizeDeclared!!
+                if (it.explicitStartOffset != null && it.explicitEndOffset != null) {
+                    it.endOffset!!
+                } else {
+                    it.endOffset!! * it.arraySizeDeclared!!
+                }
             }
         } else {
             0

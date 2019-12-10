@@ -31,7 +31,7 @@ interface NumberValue {
     val bigDecimal: BigDecimal
 }
 
-data class StringValue(val value: String) : Value() {
+data class StringValue(val value: String,val varying: Boolean = false) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
@@ -88,7 +88,7 @@ data class StringValue(val value: String) : Value() {
 
     override fun copy(): StringValue = this
 
-    fun length(varying : Boolean) : Int {
+    fun length() : Int {
         if( varying ) {
             var len = 0
             value.forEach {

@@ -38,7 +38,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.value.length > type.length) {
                 s = s.substring(0, type.length.toInt())
             }
-            return StringValue(s)
+            return StringValue(s,type.varying)
         }
         is ArrayType -> {
             if (type.element is StringType) {

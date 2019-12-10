@@ -1347,30 +1347,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is LenExpr -> {
                 val value = eval(expression.value)
                 return when (value) {
-                    is StringValue -> {
-                        when (expression.value) {
-                            is DataRefExpr ->{
-                                val type = expression.value.type()
-                                when (type) {
-                                    is StringType -> {
-                                        value.length( type.varying ).asValue()
-                                    }
-                                    else ->  {
-                                        value.value.length.asValue()
-                                    }
-                                }
-                            }
-                            is ArrayAccessExpr -> {
-                                value.value.length.asValue()
-                                //value.elementSize().asValue()
-                            }
-                            else -> {
-                                TODO("Invalid LEN parameter $value")
-                            }
-                        }
-                    }
-                    is DataStructValue -> {
-                        value.value.length.asValue() }
+                    is StringValue -> value.length().asValue()
+                    is DataStructValue -> value.value.length.asValue()
                     is ArrayValue -> {
                         // Incorrect data structure size calculation #28
                         when (expression.value) {
