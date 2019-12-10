@@ -61,6 +61,8 @@ data class StringType(val length: Long,val varying: Boolean = false) : Type() {
 object BooleanType : Type() {
     override val size: Long
         get() = 1
+
+    override fun toString() = this.javaClass.simpleName
 }
 
 object TimeStampType : Type() {
@@ -171,6 +173,12 @@ fun Expression.type(): Type {
         is ArrayAccessExpr -> {
             val type = this.array.type().asArray()
             return type.element
+        }
+        is PredefinedIndicatorExpr -> {
+            return BooleanType
+        }
+        is PredefinedGlobalIndicatorExpr -> {
+            return ArrayType(BooleanType, 99)
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
