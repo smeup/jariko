@@ -368,7 +368,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is EvalStmt -> {
                     try {
-                        val result = if (statement.target.type().isArray()) {
+                        // Should I assign it one by one?
+                        val result = if (statement.target.type().isArray()
+                                && statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
                             assignEachElement(statement.target, statement.expression, statement.operator)
                         } else {
                             assign(statement.target, statement.expression, statement.operator)

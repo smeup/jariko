@@ -31,6 +31,10 @@ sealed class Type {
         return value.assignableTo(this)
     }
 
+    open fun canBeAssigned(type: Type): Boolean {
+        return this == type
+    }
+
     abstract val size: Long
 
     fun toArray(nElements: Int) = ArrayType(this, nElements)
