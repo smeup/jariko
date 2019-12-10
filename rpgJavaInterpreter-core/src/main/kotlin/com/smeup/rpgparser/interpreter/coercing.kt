@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -163,6 +164,17 @@ fun coerce(value: Value, type: Type): Value {
                     return createArrayValue(type.element, type.nElements) { coerce(LowValValue, type.element) }
                 }
                 else -> TODO("Converting LowValValue to $type")
+            }
+        }
+        is AllValue -> {
+            when (type) {
+                is NumberType -> {
+                    return coerce(StringValue(value.charsToRepeat.repeatWithMaxSize(type.size.toInt())), type)
+                }
+                is StringType -> {
+                    return StringValue(value.charsToRepeat.repeatWithMaxSize(type.length.toInt()))
+                }
+                else -> TODO("Converting $value to $type")
             }
         }
         else -> value

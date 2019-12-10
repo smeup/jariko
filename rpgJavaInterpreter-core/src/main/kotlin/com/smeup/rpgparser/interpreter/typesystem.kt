@@ -36,6 +36,13 @@ sealed class Type {
     fun toArray(nElements: Int) = ArrayType(this, nElements)
 }
 
+object FigurativeType : Type() {
+    override val size: Long
+        get() = 0
+
+    override fun canBeAssigned(value: Value): Boolean = true
+}
+
 object KListType : Type() {
     override val size: Long
         get() = 0
@@ -158,6 +165,9 @@ fun Expression.type(): Type {
         }
         is RealLiteral -> {
             NumberType(this.value.precision() - this.value.scale(), this.value.scale())
+        }
+        is FigurativeConstantRef -> {
+            FigurativeType
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }

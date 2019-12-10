@@ -96,3 +96,8 @@ fun String.moveEndingString(s: String): String =
         } else {
             this
         }
+
+fun String.repeatWithMaxSize(l: Int): String {
+    val repetitions = (l / this.length) + 1
+    return this.repeat(repetitions).take(l)
+}

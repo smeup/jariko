@@ -27,13 +27,33 @@ class MUTEExamplesTest {
         assertEquals(listOf("001.1_d01.1_A01.1_c01.1_B01.1_b01.1_C01.1_901.1_101."), outputOf("performance/MUTE10_04A"))
     }
 
+    // We need to implement SORTA
     @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_02() {
         assertEquals(emptyList(), outputOf("performance/MUTE10_02"))
     }
 
+    // We need to implement SORTA
     @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_03() {
         assertEquals(emptyList(), outputOf("performance/MUTE10_03"))
+    }
+
+    // Problem at line 58: MOVEL with arrays
+    @Test @Category(PerformanceTest::class) @Ignore
+    fun executeMUTE10_05() {
+        assertEquals(emptyList(), outputOf("performance/MUTE10_05"))
+    }
+
+    // An operation is not implemented: *ZERO
+    @Test @Category(PerformanceTest::class) @Ignore
+    fun executeMUTE10_07A_Zoned() {
+        assertEquals(emptyList(), outputOf("performance/MUTE10_07A"))
+    }
+
+    // Line 206: *LOVAL
+    @Test @Category(PerformanceTest::class) @Ignore
+    fun executeMUTE10_07B_Packed() {
+        assertEquals(emptyList(), outputOf("performance/MUTE10_07B"))
     }
 }

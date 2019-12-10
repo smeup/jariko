@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.parsing.ast.AllExpr
 import com.smeup.rpgparser.parsing.ast.AssignableExpression
 import com.smeup.rpgparser.parsing.ast.DataRefExpr
 import com.smeup.rpgparser.parsing.ast.Expression
@@ -7,6 +8,9 @@ import java.math.BigDecimal
 
 private fun assignStringToString(operationExtender: String?, target: DataRefExpr, factor2: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     var newValue = interpreterCoreHelper.interpret(factor2)
+    if (factor2 is AllExpr) {
+        return interpreterCoreHelper.assign(target, newValue)
+    }
     if (factor2.type().size > target.size()) {
         newValue = newValue.takeFirst(target.size().toInt())
     } else if (factor2.type().size < target.size()) {
@@ -47,12 +51,13 @@ private fun assignNumberToString(target: DataRefExpr, factor2: Expression, inter
 
 fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     require(target is DataRefExpr)
-    return if (value.type() is StringType && target.type() is StringType) {
+    val valueType = value.type()
+    return if ((valueType is StringType || valueType is FigurativeType) && target.type() is StringType) {
         assignStringToString(operationExtender, target, value, interpreterCoreHelper)
-    } else if (value.type() is NumberType && target.type() is StringType) {
+    } else if (valueType is NumberType && target.type() is StringType) {
         assignNumberToString(target, value, interpreterCoreHelper)
     } else {
         throw IllegalArgumentException(
-                "Cannot assign ${value.type()::class.qualifiedName} to ${target.type()::class.qualifiedName}")
+                "Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}")
     }
 }

@@ -51,7 +51,7 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
     }
 }
 
-internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): StringLiteral {
     return StringLiteral(this.content?.text ?: "", toPosition(conf.considerPosition))
 }
 
@@ -85,9 +85,12 @@ fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
 }
 
 internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+    if (this.text.toUpperCase().startsWith("*ALL")) {
+        return AllExpr(this.all().literal().toAst(conf), toPosition(conf.considerPosition))
+    }
     return when (this.text.toUpperCase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
-        "*ZERO", "*ZEROS" -> TODO()
+        "*ZERO", "*ZEROS" -> TODO("*ZERO")
         "*HIVAL" -> HiValExpr(toPosition(conf.considerPosition))
         "*LOVAL" -> LowValExpr(toPosition(conf.considerPosition))
         "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
