@@ -22,9 +22,11 @@ abstract class Value {
     open fun render(): String = "Nope"
 }
 
-interface NumberValue {
-    fun negate(): Value
-    val bigDecimal: BigDecimal
+abstract class NumberValue : Value() {
+    fun isNegative(): Boolean = bigDecimal < BigDecimal.ZERO
+    fun abs(): NumberValue = if (isNegative()) negate() else this
+    abstract fun negate(): NumberValue
+    abstract val bigDecimal: BigDecimal
 }
 
 // TODO Should we change value to a val in order tho share instances?
@@ -112,14 +114,14 @@ fun String.removeNullChars(): String {
     }
 }
 
-data class IntValue(val value: Long) : NumberValue, Value() {
+data class IntValue(val value: Long) : NumberValue() {
 
     private val internalValue = BigDecimal(value)
 
     override val bigDecimal: BigDecimal
         get() = BigDecimal(value)
 
-    override fun negate(): Value = IntValue(-value)
+    override fun negate(): NumberValue = IntValue(-value)
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
@@ -182,17 +184,14 @@ data class IntValue(val value: Long) : NumberValue, Value() {
     }
 }
 
-data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
+data class DecimalValue(val value: BigDecimal) : NumberValue() {
 
     override val bigDecimal: BigDecimal
         get() = value
 
-    override fun negate(): Value = DecimalValue(-value)
+    override fun negate(): NumberValue = DecimalValue(-value)
 
-    override fun asInt(): IntValue {
-
-        return IntValue(value.toLong())
-    }
+    override fun asInt(): IntValue = IntValue(value.toLong())
 
     override fun asDecimal(): DecimalValue = this
 

@@ -440,7 +440,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     statement.factor1?.let { values.add(interpret(it)) }
                     statement.response?.let { values.add(interpret(it)) }
                     // TODO: receive input from systemInterface and assign value to response
-                    systemInterface.display(render(values))
+                    systemInterface.display(rawRender(values))
                 }
                 is IfStmt -> {
                     val condition = eval(statement.condition)
@@ -908,14 +908,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun render(values: List<Value>) = values.map { render(it) }.joinToString("")
+    private fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")
+
+    private fun rawRender(value: Value): String {
+        return when (value) {
+            is NumberValue -> if (value.isNegative()) "${value.abs().render()}-" else value.render()
+            else -> render(value)
+        }
+    }
 
     private fun render(value: Value): String {
         return when (value) {
             is StringValue -> value.valueWithoutPadding.trimEnd()
             is BooleanValue -> value.asString().value // TODO check if it's the best solution
-            is IntValue -> value.value.toString()
-            is DecimalValue -> value.value.toString() // TODO: formatting rules
+            is NumberValue -> value.render()
             is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
             is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
             is DataStructValue -> value.valueWithoutPadding.trimEnd()
@@ -1047,10 +1053,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun move(target: AssignableExpression, value: Expression): Value {
         when (target) {
             is DataRefExpr -> {
-                var newValue = interpret(value).takeLast(target.size().toInt())
-                if (value.type().size < target.size()) {
-                    newValue = get(target.variable.referred!!).takeFirst((target.size() - value.type().size).toInt())
-                        .concatenate(newValue)
+                var newValue = interpret(value)
+                if (value !is FigurativeConstantRef) {
+                    newValue = newValue.takeLast(target.size().toInt())
+                    if (value.type().size < target.size()) {
+                        newValue =
+                            get(target.variable.referred!!).takeFirst((target.size() - value.type().size).toInt())
+                                .concatenate(newValue)
+                    }
                 }
                 return assign(target, newValue)
             }
