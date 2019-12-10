@@ -168,6 +168,10 @@ fun Expression.type(): Type {
         is RealLiteral -> {
             NumberType(this.value.precision() - this.value.scale(), this.value.scale())
         }
+        is ArrayAccessExpr -> {
+            val type = this.array.type().asArray()
+            return type.element
+        }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
 }
