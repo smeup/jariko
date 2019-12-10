@@ -211,6 +211,7 @@ fun Expression.type(): Type {
         is QualifiedAccessExpr -> {
             return this.field.referred!!.type
         }
+        is OnRefExpr, is OffRefExpr -> return BooleanType
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
 }
