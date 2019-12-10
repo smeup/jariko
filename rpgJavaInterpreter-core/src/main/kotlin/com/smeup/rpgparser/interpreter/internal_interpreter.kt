@@ -118,9 +118,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 if (data.declaredArrayInLine != null) {
                     val dataStructValue = get(ds.name) as DataStructValue
                     var startOffset = data.startOffset
+                    var size = data.endOffset - data.startOffset
                     for (i in 1..data.declaredArrayInLine!!) {
                         val valueToAssign = value.asArray().getElement(i)
-                        dataStructValue.setSubstring(startOffset, data.endOffset - data.startOffset,
+                        dataStructValue.setSubstring(startOffset, startOffset + size,
                                 data.type.asArray().element.toDataStructureValue(valueToAssign))
                         startOffset += data.stepSize.toInt()
                     }
