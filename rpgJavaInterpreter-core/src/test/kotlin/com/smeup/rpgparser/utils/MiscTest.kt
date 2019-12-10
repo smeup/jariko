@@ -32,4 +32,11 @@ class MiscTest {
         assertEquals(Pair("a", "bcde"), "abcde".divideAtIndex(1))
         assertEquals(Pair("ab", "cde"), "abcde".divideAtIndex(2))
     }
+
+    @Test
+    fun repeatWithMaxSizeTest() {
+        assertEquals("abcab", "abc".repeatWithMaxSize(5))
+        assertEquals("aaaaa", "a".repeatWithMaxSize(5))
+        assertEquals("ab", "abc".repeatWithMaxSize(2))
+    }
 }

@@ -51,7 +51,7 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
     }
 }
 
-internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): StringLiteral {
     return StringLiteral(this.content?.text ?: "", toPosition(conf.considerPosition))
 }
 

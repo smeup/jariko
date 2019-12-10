@@ -496,9 +496,14 @@ class InterpreterTest {
         assertEquals(listOf("5", "11", "88"), outputOf("ZADD"))
     }
 
+    @Test
+    fun executeSTARALL_ZADD() {
+        assertEquals(listOf("51515"), outputOf("STARALL_ZADD"))
+    }
+
     @Test @Ignore
-    fun executeZADDALL() {
-        assertEquals(listOf("51515"), outputOf("ZADDALL"))
+    fun executeSTARALL() {
+        assertEquals(listOf("WWWWWWWWWW"), outputOf("STARALL_MOVE"))
     }
 
     @Test @Ignore

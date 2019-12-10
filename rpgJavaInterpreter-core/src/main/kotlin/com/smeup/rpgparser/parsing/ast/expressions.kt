@@ -45,7 +45,7 @@ data class HiValExpr(override val position: Position? = null) : FigurativeConsta
 
 data class LowValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 
-data class AllExpr(val charsToRepeat: String, override val position: Position? = null) : FigurativeConstantRef(position)
+data class AllExpr(var target: AssignableExpression?, val charsToRepeat: StringLiteral, override val position: Position? = null) : FigurativeConstantRef(position)
 
 // /
 // / Comparisons

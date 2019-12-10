@@ -1,7 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import java.lang.Exception
-import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
@@ -341,6 +339,13 @@ object LowValValue : Value() {
         return "LowValValue"
     }
 
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
+
+class AllValue(val charsToRepeat: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
         return true

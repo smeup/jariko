@@ -182,7 +182,10 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
     return when {
         this.SPLAT_HIVAL() != null -> HiValExpr(position)
         this.SPLAT_LOVAL() != null -> LowValExpr(position)
-        this.SPLAT_ALL() != null -> AllExpr(this.parent.getChild(1).text, position)
+        this.SPLAT_ALL() != null -> {
+            val content: LiteralContext = this.parent.getChild(1) as LiteralContext
+            AllExpr(null, content.toAst(conf), position)
+        }
         else -> TODO("$this - ${position?.line()}")
     }
 }
@@ -465,9 +468,6 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
 
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
     val position = toPosition(conf.considerPosition)
-    if (this.cspec_fixed_standard_parts().factor2Expression(conf) == null) {
-        println("Boom")
-    }
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
     val name = this.cspec_fixed_standard_parts().result.text
     return MoveStmt(DataRefExpr(ReferenceByName(name), position), expression, position)
