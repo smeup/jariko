@@ -42,6 +42,7 @@ sealed class Type {
     open fun asArray(): ArrayType {
         throw IllegalStateException("Not an ArrayType")
     }
+    open fun hasVariableSize() = false
 }
 
 object KListType : Type() {
@@ -67,6 +68,13 @@ object BooleanType : Type() {
         get() = 1
 
     override fun toString() = this.javaClass.simpleName
+}
+
+object HiValType : Type() {
+    override val size: Long
+        get() = throw IllegalStateException("Has variable size")
+
+    override fun hasVariableSize() = true
 }
 
 object TimeStampType : Type() {
@@ -183,6 +191,12 @@ fun Expression.type(): Type {
         }
         is PredefinedGlobalIndicatorExpr -> {
             return ArrayType(BooleanType, 99)
+        }
+        is HiValExpr -> {
+            return HiValType
+        }
+        is SubstExpr -> {
+            return this.string.type()
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }

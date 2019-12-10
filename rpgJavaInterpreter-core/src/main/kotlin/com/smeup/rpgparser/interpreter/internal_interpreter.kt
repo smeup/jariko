@@ -1414,7 +1414,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                                 //value.elementSize().asValue()
                             }
                             else -> {
-                                TODO("Invalid LEN parameter $value")
+                                return value.length().asValue()
                             }
                         }
                     }
