@@ -117,6 +117,8 @@ class RpgParserOverlayTest12 {
 
         // Data structure £40FDS
         val fds = ast.getDataDefinition("£40FDS")
+        assertEquals(7095, fds.type.elementSize())
+        assertEquals(7095, fds.elementSize())
 
         val fde = fds.getFieldByName("£40FDE")
         assertEquals(StringType(30), fde.type)
@@ -150,7 +152,6 @@ class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // 26 annotations still failing
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
