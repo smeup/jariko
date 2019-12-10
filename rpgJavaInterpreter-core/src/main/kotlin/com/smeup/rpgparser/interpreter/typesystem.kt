@@ -35,6 +35,9 @@ sealed class Type {
 
     fun toArray(nElements: Int) = ArrayType(this, nElements)
     fun isArray() = this is ArrayType
+    open fun asArray(): ArrayType {
+        throw IllegalStateException("Not an ArrayType")
+    }
 }
 
 object KListType : Type() {
@@ -140,6 +143,10 @@ data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecor
 
     override fun elementSize(): Long {
         return element.size
+    }
+
+    override fun asArray(): ArrayType {
+        return this
     }
 
     fun compileTimeArray(): Boolean = compileTimeRecordsPerLine != null

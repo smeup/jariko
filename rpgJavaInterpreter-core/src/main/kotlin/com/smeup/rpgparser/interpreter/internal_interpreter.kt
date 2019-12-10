@@ -115,21 +115,32 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
-                when (val containerValue = get(ds.name)) {
-                    is ArrayValue -> {
-                        val valuesToAssign = value as ArrayValue
-                        require(containerValue.arrayLength() == valuesToAssign.arrayLength())
-                        // The container value is an array of datastructurevalues
-                        // we assign to each data structure the corresponding field value
-                        for (i in 1..containerValue.arrayLength()) {
-                            val dataStructValue = containerValue.getElement(i) as DataStructValue
-                            dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                if (data.declaredArrayInLine != null) {
+                    val dataStructValue = get(ds.name) as DataStructValue
+                    var startOffset = data.startOffset
+                    for (i in 1..data.declaredArrayInLine!!) {
+                        val valueToAssign = value.asArray().getElement(i)
+                        dataStructValue.setSubstring(startOffset, data.endOffset - data.startOffset,
+                                data.type.asArray().element.toDataStructureValue(valueToAssign))
+                        startOffset += data.stepSize.toInt()
+                    }
+                } else {
+                    when (val containerValue = get(ds.name)) {
+                        is ArrayValue -> {
+                            val valuesToAssign = value as ArrayValue
+                            require(containerValue.arrayLength() == valuesToAssign.arrayLength())
+                            // The container value is an array of datastructurevalues
+                            // we assign to each data structure the corresponding field value
+                            for (i in 1..containerValue.arrayLength()) {
+                                val dataStructValue = containerValue.getElement(i) as DataStructValue
+                                dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                            }
                         }
+                        is DataStructValue -> {
+                            containerValue.set(data, value)
+                        }
+                        else -> TODO()
                     }
-                    is DataStructValue -> {
-                        containerValue.set(data, value)
-                    }
-                    else -> TODO()
                 }
             }
             else -> {
@@ -356,7 +367,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is EvalStmt -> {
                     try {
-                        val result = assign(statement.target, statement.expression, statement.operator)
+                        val result = if (statement.target.type().isArray()) {
+                            assignEachElement(statement.target, statement.expression, statement.operator)
+                        } else {
+                            assign(statement.target, statement.expression, statement.operator)
+                        }
                         log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
                     } catch (e: Exception) {
                         throw java.lang.RuntimeException("Issue executing statement $statement at line ${statement.startLine()}", e)
@@ -1026,6 +1041,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         return coercedValue
     }
 
+    fun assignEachElement(target: AssignableExpression, value: Value): Value {
+        val arrayType = target.type().asArray()
+        return assign(target, value.toArray(arrayType.nElements, arrayType.element))
+    }
+
     override fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
@@ -1101,6 +1121,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
             EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
+        }
+    }
+
+    private fun assignEachElement(
+            target: AssignableExpression,
+            value: Expression,
+            operator: AssignmentOperator = NORMAL_ASSIGNMENT
+    ): Value {
+        return when (operator) {
+            NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
+            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
+            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
+            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
+            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
+            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
         }
     }
 
