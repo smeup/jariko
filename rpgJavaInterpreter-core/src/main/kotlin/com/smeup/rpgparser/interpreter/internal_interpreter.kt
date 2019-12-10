@@ -5,7 +5,9 @@ import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.utils.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.*
+import com.strumenta.kolasu.model.ancestor
 import java.lang.IllegalArgumentException
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
@@ -113,21 +115,33 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
-                when (val containerValue = get(ds.name)) {
-                    is ArrayValue -> {
-                        val valuesToAssign = value as ArrayValue
-                        require(containerValue.arrayLength() == valuesToAssign.arrayLength())
-                        // The container value is an array of datastructurevalues
-                        // we assign to each data structure the corresponding field value
-                        for (i in 1..containerValue.arrayLength()) {
-                            val dataStructValue = containerValue.getElement(i) as DataStructValue
-                            dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                if (data.declaredArrayInLine != null) {
+                    val dataStructValue = get(ds.name) as DataStructValue
+                    var startOffset = data.startOffset
+                    var size = data.endOffset - data.startOffset
+                    for (i in 1..data.declaredArrayInLine!!) {
+                        val valueToAssign = value.asArray().getElement(i)
+                        dataStructValue.setSubstring(startOffset, startOffset + size,
+                                data.type.asArray().element.toDataStructureValue(valueToAssign))
+                        startOffset += data.stepSize.toInt()
+                    }
+                } else {
+                    when (val containerValue = get(ds.name)) {
+                        is ArrayValue -> {
+                            val valuesToAssign = value as ArrayValue
+                            require(containerValue.arrayLength() == valuesToAssign.arrayLength())
+                            // The container value is an array of datastructurevalues
+                            // we assign to each data structure the corresponding field value
+                            for (i in 1..containerValue.arrayLength()) {
+                                val dataStructValue = containerValue.getElement(i) as DataStructValue
+                                dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                            }
                         }
+                        is DataStructValue -> {
+                            containerValue.set(data, value)
+                        }
+                        else -> TODO()
                     }
-                    is DataStructValue -> {
-                        containerValue.set(data, value)
-                    }
-                    else -> TODO()
                 }
             }
             else -> {
@@ -190,7 +204,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 if (value != null) {
                     set(it, coerce(value, it.type))
-                    executeMutes(it.muteAnnotations)
+                    executeMutes(it.muteAnnotations, compilationUnit)
                 }
             }
         } else {
@@ -271,11 +285,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun executeWithMute(statement: Statement) {
         log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
         execute(statement)
-        executeMutes(statement.muteAnnotations)
+        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!)
     }
 
-    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>) {
+    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit) {
         muteAnnotations.forEach {
+            it.resolve(compilationUnit)
             when (it) {
                 is MuteComparisonAnnotation -> {
                     val exp: Expression = when (it.comparison) {
@@ -353,7 +368,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is EvalStmt -> {
                     try {
-                        val result = assign(statement.target, statement.expression, statement.operator)
+                        // Should I assign it one by one?
+                        val result = if (statement.target.type().isArray()
+                                && statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
+                            assignEachElement(statement.target, statement.expression, statement.operator)
+                        } else {
+                            assign(statement.target, statement.expression, statement.operator)
+                        }
                         log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
                     } catch (e: Exception) {
                         throw java.lang.RuntimeException("Issue executing statement $statement at line ${statement.startLine()}", e)
@@ -1023,6 +1044,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         return coercedValue
     }
 
+    fun assignEachElement(target: AssignableExpression, value: Value): Value {
+        val arrayType = target.type().asArray()
+        return assign(target, value.toArray(arrayType.nElements, arrayType.element))
+    }
+
     override fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
@@ -1076,11 +1102,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return coercedValue
             }
             is PredefinedGlobalIndicatorExpr -> {
-                val coercedValue = coerce(value, BooleanType)
-                for (index in ALL_PREDEFINED_INDEXES) {
-                    predefinedIndicators[index] = coercedValue
+                if (value.assignableTo(BooleanType)) {
+                    val coercedValue = coerce(value, BooleanType)
+                    for (index in ALL_PREDEFINED_INDEXES) {
+                        predefinedIndicators[index] = coercedValue
+                    }
+                    return coercedValue
+                } else {
+                    val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
+                    for (index in ALL_PREDEFINED_INDEXES) {
+                        predefinedIndicators[index] = coercedValue.getElement(index)
+                    }
+                    return coercedValue
                 }
-                return coercedValue
             }
             else -> TODO(target.toString())
         }
@@ -1098,6 +1132,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
             EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
+        }
+    }
+
+    private fun assignEachElement(
+            target: AssignableExpression,
+            value: Expression,
+            operator: AssignmentOperator = NORMAL_ASSIGNMENT
+    ): Value {
+        return when (operator) {
+            NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
+            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
+            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
+            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
+            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
+            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
         }
     }
 
@@ -1365,7 +1414,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                                 //value.elementSize().asValue()
                             }
                             else -> {
-                                TODO("Invalid LEN parameter $value")
+                                return value.length().asValue()
                             }
                         }
                     }

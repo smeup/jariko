@@ -137,12 +137,12 @@ fun coerce(value: Value, type: Type): Value {
             coerceString(value, type)
         }
         is ArrayValue -> {
-            when (type) {
+            return when (type) {
                 is StringType -> {
-                    return value.asString()
+                    value.asString()
                 }
                 is ArrayType -> {
-                    return value
+                    value
                 }
                 else -> TODO("Converting ArrayValue to $type")
             }

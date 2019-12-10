@@ -7,7 +7,6 @@ import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
-import java.lang.IllegalStateException
 import java.math.BigDecimal
 
 abstract class AbstractDataDefinition(
@@ -218,9 +217,11 @@ data class FieldDefinition(
     // of such field
     val stepSize: Long
         get() {
-            if (declaredArrayInLineOnThisField != null) {
-                return elementSize()
-            } else return overlayingOn?.elementSize() ?: elementSize()
+            return if (declaredArrayInLineOnThisField != null) {
+                elementSize()
+            } else {
+                (overlayingOn as? FieldDefinition)?.stepSize ?: elementSize()
+            }
         }
 
     override fun elementSize(): Long {
