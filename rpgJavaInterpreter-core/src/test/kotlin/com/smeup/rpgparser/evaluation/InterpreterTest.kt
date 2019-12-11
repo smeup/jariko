@@ -287,12 +287,12 @@ class InterpreterTest {
 
     @Test
     fun executeASSIGN() {
-        assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"))
+        assertEquals(listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"), outputOf("ASSIGN"))
     }
 
     @Test
     fun executePOWER() {
-        assertEquals(outputOf("POWER"), listOf("i is now 8"))
+        assertEquals(listOf("i is now 8"), outputOf("POWER"))
     }
 
     @Test
@@ -711,6 +711,11 @@ class InterpreterTest {
     @Test @Ignore
     fun executeELEM() {
         assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
+    }
+
+    @Test @Ignore
+    fun executeSUMDIVMULT() {
+        assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
     }
 
     @Test @Ignore
