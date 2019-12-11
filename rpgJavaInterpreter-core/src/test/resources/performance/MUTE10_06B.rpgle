@@ -13,6 +13,7 @@
      D ARRAY           S          10000    DIM(500)
      D TXT             S            100    DIM(10) PERRCD(1) CTDATA             _NOTXT
      D$MSG             S             52
+     D XXRET           S              1
       *
       * Main
      C                   EXSR      F_CALL
@@ -31,9 +32,10 @@
      C                   TIME                    $TIMST
       * Loop on PGM
      C                   DO        500
+     C                   EVAL      XXRET=' '
      C                   CALL      'MUTE10_06'
      C                   PARM                    ARRAY
-     C                   PARM      ' '           XXRET             1
+     C                   PARM                    XXRET
      C
      C                   ENDDO
       * End Time
