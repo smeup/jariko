@@ -56,6 +56,16 @@ class MUTEExamplesTest {
         assertEquals(emptyList(), outputOf("performance/MUTE10_05C", si = siWithProgramFinderInPerformanceFolder()))
     }
 
+    @Test @Category(PerformanceTest::class) @Ignore
+    fun executeMUTE10_06A() {
+        assertEquals(emptyList(), outputOf("performance/MUTE10_06A", si = siWithProgramFinderInPerformanceFolder()))
+    }
+
+    @Test @Category(PerformanceTest::class) @Ignore
+    fun executeMUTE10_06B() {
+        assertEquals(emptyList(), outputOf("performance/MUTE10_06B", si = siWithProgramFinderInPerformanceFolder()))
+    }
+
     // An operation is not implemented: *ZERO
     @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_07A_Zoned() {
