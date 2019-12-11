@@ -5,6 +5,8 @@
      V* 05/12/19  001345  BERNI Creato
      V* 09/12/19  001345  BMA   Alcune modifiche
      V* 09/12/19  V5R1    BMA   Check-out 001345 in SMEUP_TST
+     V* 11/12/19  001362  BERNI Aggiunti commenti
+     V* 11/12/19  V5R1    BMA   Check-out 001362 in SMEUP_TST
      V*=====================================================================
      D* OBIETTIVO
      D*  Programma finalizzato ai test performance su Statement vari
@@ -41,14 +43,14 @@
       *---------------------------------------------------------------------
      C     EXECUTE       BEGSR
       *
-      * In input ricevo il numero di volte che voglio ciclare
+      * Entry parameters for loop
      C     *ENTRY        PLIST
      C                   PARM                    $CICL
-      * rilevo TIME iniziale
+      * Start time
      C                   TIME                    $TIMST
-      * Ciclo
+      * Loop
      C                   DO        $CICL
-      *
+      * Miscellaneus operations
      C                   Z-SUB     0             $S
      C                   EVAL      $C=1
      C                   ADD       1             $S
@@ -79,18 +81,19 @@
      C                   EXSR      SR_01
      C                   EXSR      SR_02
       *
-      * fine ciclo principale
+      * End primary loop
      C                   ENDDO
-      * Calcolo istante di fine
+      * End time
      C                   TIME                    $TIMEN
-      * calcolo tempo intercorso
+      * Elapsed time
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
     MU* VAL1($TIMMS) VAL2(1000) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
-      * Espongo il messaggio
+      * Display message
      C                   EVAL      $MSG=%trim(TXT(1))+' '+
      C                             %TRIM(%EDITC($TIMMS:'Q'))+'ms'
      C     $MSG          DSPLY     £PDSSU
+      *
      C                   ENDSR
       *---------------------------------------------------------------------
     RD*    Subroutine 01
