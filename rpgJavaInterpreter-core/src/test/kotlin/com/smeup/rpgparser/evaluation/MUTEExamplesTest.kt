@@ -58,12 +58,14 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_06A() {
-        assertEquals(emptyList(), outputOf("performance/MUTE10_06A", si = siWithProgramFinderInPerformanceFolder()))
+        val result = outputOf("performance/MUTE10_06A", si = siWithProgramFinderInPerformanceFolder())
+        assertTrue(result[0].startsWith("Time spent"))
     }
 
     @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_06B() {
-        assertEquals(emptyList(), outputOf("performance/MUTE10_06B", si = siWithProgramFinderInPerformanceFolder()))
+        val result = outputOf("performance/MUTE10_06B", si = siWithProgramFinderInPerformanceFolder())
+        assertTrue(result[0].startsWith("Time spent"))
     }
 
     // An operation is not implemented: *ZERO

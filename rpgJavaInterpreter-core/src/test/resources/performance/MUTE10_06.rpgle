@@ -11,6 +11,7 @@
      D FIRAR           S          10000    DIM(500)                             First Array
      D ENDAR           S          10000    DIM(500)                             Final Array
      D $N              S              3  0
+     D XXRET           S              1
       * Main
      C                   EXSR      F_EXEC
       *
