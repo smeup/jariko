@@ -6,6 +6,8 @@
      V* 05/12/19  001345  BERNI Creato
      V* 09/12/19  001345  BMA   Alcune modifiche
      V* 09/12/19  V5R1    BMA   Check-out 001345 in SMEUP_TST
+     V* 11/12/19  001362  BERNI Aggiunti commenti
+     V* 11/12/19  V5R1    BMA   Check-out 001362 in SMEUP_TST
      V*=====================================================================
      D* OBIETTIVO
      D*  Programma finalizzato ai test performance sulla CALL
@@ -30,16 +32,18 @@
     RD* Routine test SORTA
       *---------------------------------------------------------------------
      C     F_CALL        BEGSR
-      *
+      * Start Time
      C                   TIME                    $TIMST
-      *
+      * Varable for loop
      C                   EVAL      $CICL=100000
-      *
+      * Call
      C                   CALL      'MUTE10_05'
      C                   PARM                    $CICL
-      *
+      * End time
      C                   TIME                    $TIMEN
+      * Elapsed time
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
     MU* VAL1($TIMMS) VAL2(250) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
+      *
      C                   ENDSR
