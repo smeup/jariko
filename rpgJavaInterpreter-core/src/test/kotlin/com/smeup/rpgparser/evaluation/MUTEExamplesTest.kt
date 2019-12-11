@@ -11,8 +11,7 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_01_perf_calls() {
-        val si = ExtendedCollectorSystemInterface()
-        si.programFinders.add(DummyProgramFinder("/performance/"))
+        val si = siWithProgramFinderInPerformanceFolder()
         execute("performance/MUTE10_01", mapOf(), si)
         assertTrue(si.displayed.isEmpty())
     }
@@ -41,8 +40,20 @@ class MUTEExamplesTest {
 
     // Problem at line 58: MOVEL with arrays
     @Test @Category(PerformanceTest::class) @Ignore
-    fun executeMUTE10_05() {
-        assertEquals(emptyList(), outputOf("performance/MUTE10_05"))
+    fun executeMUTE10_05A() {
+        assertEquals(emptyList(), outputOf("performance/MUTE10_05A", si = siWithProgramFinderInPerformanceFolder()))
+    }
+
+    // Problem at line 58: MOVEL with arrays
+    @Test @Category(PerformanceTest::class) @Ignore
+    fun executeMUTE10_05B() {
+        assertEquals(emptyList(), outputOf("performance/MUTE10_05B", si = siWithProgramFinderInPerformanceFolder()))
+    }
+
+    // Problem at line 58: MOVEL with arrays
+    @Test @Category(PerformanceTest::class) @Ignore
+    fun executeMUTE10_05C() {
+        assertEquals(emptyList(), outputOf("performance/MUTE10_05C", si = siWithProgramFinderInPerformanceFolder()))
     }
 
     // An operation is not implemented: *ZERO
@@ -55,5 +66,11 @@ class MUTEExamplesTest {
     @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_07B_Packed() {
         assertEquals(emptyList(), outputOf("performance/MUTE10_07B"))
+    }
+
+    private fun siWithProgramFinderInPerformanceFolder(): ExtendedCollectorSystemInterface {
+        val si = ExtendedCollectorSystemInterface()
+        si.programFinders.add(DummyProgramFinder("/performance/"))
+        return si
     }
 }

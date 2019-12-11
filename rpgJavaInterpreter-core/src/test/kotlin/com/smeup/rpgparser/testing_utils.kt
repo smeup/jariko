@@ -285,9 +285,8 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false): List<String> {
-    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree)
-    val si = interpreter.systemInterface as CollectorSystemInterface
+fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): List<String> {
+    execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si)
     return si.displayed.map(String::trimEnd)
 }
 
