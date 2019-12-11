@@ -1186,6 +1186,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         StringValue(s)
                     }
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
+                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal + right.bigDecimal)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
             }
@@ -1194,6 +1195,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val right = interpret(expression.right)
                 when {
                     left is IntValue && right is IntValue -> IntValue(left.value - right.value)
+                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal - right.bigDecimal)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
             }
@@ -1202,6 +1204,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val right = interpret(expression.right)
                 when {
                     left is IntValue && right is IntValue -> IntValue(left.value * right.value)
+                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal * right.bigDecimal)
                     else -> throw UnsupportedOperationException("I do not know how to multiply $left and $right at ${expression.position}")
                 }
             }
@@ -1359,33 +1362,33 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
                 // Check the type and select the correct operation
-                if (v1 is DecimalValue && v2 is DecimalValue) {
-
+                if (v1 is IntValue && v2 is IntValue) {
+                    return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
+                }
+                require(v1 is NumberValue && v2 is NumberValue)
+                val res = v1.bigDecimal.toDouble() / v2.bigDecimal.toDouble()
+                // Detects what kind of eval must be evaluated
+                if (expression.parent is EvalStmt) {
                     val parent = expression.parent as EvalStmt
                     val targetType = parent.target.type() as NumberType
-                    // Detects what kind of eval must be evaluated
-                    if (expression.parent is EvalStmt) {
-                        // EVAL(H)
-                        if (parent.flags.halfAdjust) {
-                            // perform the calculation, adjust the operand scale to the target
-                            val res = v1.value.setScale(targetType.decimalDigits).divide(v2.value.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
-                            return DecimalValue(res)
-                        }
-                        // Eval(M)
-                        if (parent.flags.maximumNumberOfDigitsRule) {
-                            TODO("EVAL(M) not supported yet")
-                        }
-                        // Eval(R)
-                        if (parent.flags.resultDecimalPositionRule) {
-                            TODO("EVAL(R) not supported yet")
-                        }
+                    // EVAL(H)
+                    if (parent.flags.halfAdjust) {
+                        // perform the calculation, adjust the operand scale to the target
+                        val res = v1.bigDecimal.setScale(targetType.decimalDigits).divide(v2.bigDecimal.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
+                        return DecimalValue(res)
                     }
-                    // As per documentation should use RoundingMode.DOWN
-                    val res = v1.value.toDouble() / v2.value.toDouble()
+                    // Eval(M)
+                    if (parent.flags.maximumNumberOfDigitsRule) {
+                        TODO("EVAL(M) not supported yet")
+                    }
+                    // Eval(R)
+                    if (parent.flags.resultDecimalPositionRule) {
+                        TODO("EVAL(R) not supported yet")
+                    }
                     return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits, RoundingMode.DOWN))
                 }
-
-                return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
+                // TODO rounding and scale???
+                return DecimalValue(BigDecimal(res))
             }
             is ExpExpr -> {
                 val v1 = eval(expression.left)
