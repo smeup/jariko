@@ -31,7 +31,7 @@ interface NumberValue {
     val bigDecimal: BigDecimal
 }
 
-data class StringValue(val value: String,val varying: Boolean = false) : Value() {
+data class StringValue(val value: String, val varying: Boolean = false) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
@@ -88,7 +88,7 @@ data class StringValue(val value: String,val varying: Boolean = false) : Value()
 
     override fun copy(): StringValue = this
 
-    fun length() : Int {
+    fun length(varying : Boolean = this.varying) : Int {
         if( varying ) {
             var len = 0
             value.forEach {
@@ -498,6 +498,7 @@ fun Type.blank(dataDefinition: DataDefinition): Value {
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
+        is LowValType, is HiValType -> TODO()
     }
 }
 
@@ -514,6 +515,7 @@ fun Type.blank(): Value {
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
+        is LowValType, is HiValType -> TODO()
     }
 }
 
