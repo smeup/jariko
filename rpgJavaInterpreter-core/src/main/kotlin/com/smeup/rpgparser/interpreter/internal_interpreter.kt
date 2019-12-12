@@ -946,11 +946,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
 
             value1 is StringValue && value2 is BooleanValue -> {
-                (value1.value.toString() == "1") == value2.value
+                value1.asBoolean().value == value2.value
             }
 
             value1 is BooleanValue && value2 is StringValue -> {
-                (value2.value.toString() == "1") == value1.value
+                value2.asBoolean().value == value1.value
             }
 
             value1 is DecimalValue && value2 is DecimalValue -> {
@@ -976,6 +976,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
                 val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
                 v1 == v2
+            }
+            // To be review
+            value1 is ProjectedArrayValue && value2 is StringValue -> {
+                value1.asArray().getElement(1) == value2
             }
             else -> value1 == value2
         }

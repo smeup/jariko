@@ -80,6 +80,12 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
         return valueWithoutPadding.hashCode()
     }
 
+    override fun asBoolean(): BooleanValue {
+        if(value == "1") {
+            return BooleanValue(true)
+        }
+        return BooleanValue(false)
+    }
     override fun toString(): String {
         return "StringValue[${value.length}]($valueWithoutPadding)"
     }
