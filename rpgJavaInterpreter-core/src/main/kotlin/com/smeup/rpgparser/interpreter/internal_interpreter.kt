@@ -190,7 +190,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         blankValue(it)
                         it.fields.forEach { field ->
                             if (field.initializationValue != null) {
-                                val fieldValue = interpret(field.initializationValue)
+                                val fieldValue = coerce( interpret(field.initializationValue) , field.type)
                                 (value as DataStructValue).set(field, fieldValue)
                             }
                         }
