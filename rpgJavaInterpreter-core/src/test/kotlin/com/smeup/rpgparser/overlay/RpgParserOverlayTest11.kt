@@ -8,14 +8,10 @@ import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.NumberType
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rgpinterop.RpgSystem
-import org.junit.Ignore
 import org.junit.Test
-import java.io.File
 import kotlin.test.assertEquals
 
-@Ignore // randomly fails, probably does not find the .rpgle file
+
 class RpgParserOverlayTest11 {
 
     @Test
@@ -30,7 +26,7 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_11C_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
+        //RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
 
@@ -56,7 +52,7 @@ class RpgParserOverlayTest11 {
         val FUND1 = cu.getDataDefinition("£FUND1")
         val FUNQT = FUND1.getFieldByName("£FUNQT")
         assertEquals(Pair(442, 457), FUNQT.offsets)
-        assertEquals(NumberType(entireDigits = 10, decimalDigits = 5, rpgType = ""), FUNQT.type)
+        assertEquals(NumberType(entireDigits = 10, decimalDigits = 5, rpgType = "S"), FUNQT.type)
         assertEquals(15, FUNQT.size)
     }
 
@@ -76,7 +72,6 @@ class RpgParserOverlayTest11 {
 
     @Test
     fun parseMUTE11_16_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_16", considerPosition = true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
 

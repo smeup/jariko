@@ -259,7 +259,6 @@ class StatementsTest {
         assertEquals(true, evalStmt.flags.resultDecimalPositionRule)
     }
 
-    @Ignore // working on qualified access
     @test fun parseEvalWithQualifiedDsAccess() {
         assertStatementCanBeParsed("EVAL      DS1.AR2=*ON", addPrefix = true)
     }

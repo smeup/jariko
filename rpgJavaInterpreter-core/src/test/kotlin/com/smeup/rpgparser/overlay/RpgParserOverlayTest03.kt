@@ -13,7 +13,7 @@ import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
-@Ignore
+
 public class RpgParserOverlayTest03 {
 
     @Test
@@ -28,7 +28,6 @@ public class RpgParserOverlayTest03 {
 
     @Test
     fun parseMUTE03_09_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
 
