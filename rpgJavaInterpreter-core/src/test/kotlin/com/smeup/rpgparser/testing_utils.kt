@@ -316,10 +316,13 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
     return failed
 }
 
-class DummyProgramFinder(val path: String) : RpgProgramFinder {
+class DummyProgramFinder(private val path: String) : RpgProgramFinder {
+    fun rpgSourceInputStream(nameOrSource: String): InputStream? = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
+
     override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
-        val inputStream = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle") ?: return null
-        return RpgProgram.fromInputStream(inputStream, dbInterface, nameOrSource)
+        return rpgSourceInputStream(nameOrSource)?.let {
+            RpgProgram.fromInputStream(it, dbInterface, nameOrSource)
+        }
     }
 }
 
