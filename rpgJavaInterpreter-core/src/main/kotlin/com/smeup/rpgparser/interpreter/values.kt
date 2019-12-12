@@ -24,6 +24,13 @@ abstract class Value {
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
     abstract fun copy(): Value
+    fun toArray(nElements: Int, elementType: Type): Value {
+        val elements = LinkedList<Value>()
+        for (i in 1..nElements) {
+            elements.add(coerce(this.copy(), elementType))
+        }
+        return ConcreteArrayValue(elements, elementType)
+    }
 }
 
 interface NumberValue {
