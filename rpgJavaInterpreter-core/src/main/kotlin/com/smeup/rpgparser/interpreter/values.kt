@@ -48,8 +48,10 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun concatenate(other: Value): Value {
-        require(other is StringValue)
-        return StringValue(value + other.value)
+        require(other is StringValue) {
+            "Cannot concatenate $value to $other"
+        }
+        return StringValue(value.removeNullChars() + other.value)
     }
 
     val valueWithoutPadding: String
@@ -165,7 +167,9 @@ data class IntValue(val value: Long) : NumberValue() {
     }
 
     override fun concatenate(other: Value): Value {
-        require(other is IntValue)
+        require(other is IntValue) {
+            "Cannot concatenate $value to $other"
+        }
         return IntValue((value.toString() + other.value.toString()).toLong())
     }
 

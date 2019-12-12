@@ -12,6 +12,7 @@
      V*  Programma finalizzato ai test su campi di tipo DECIMAL PACKED
      V*
      V*=====================================================================
+     DAAA015           S             15
      DP0               S              1P 0
     MU* VAL1(P1) VAL2(1500) COMP(EQ)
      DP1               S              5P 0 INZ(1500)
@@ -66,7 +67,6 @@
       * Display message
      C                   EVAL      $MSG=%trim(TXT(1))+' '+
      C                             %TRIM(%EDITC($TIMMS:'Q'))+'ms'
-     C     $MSG          DSPLY     £PDSSU
       *
       *
     MU* Type="NOXMI"
