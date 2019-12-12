@@ -57,10 +57,9 @@ data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) 
         get() = elementSize.toLong()
 }
 
-data class StringType(val length: Long,val varying: Boolean = false) : Type() {
+data class StringType(val length: Long, val varying: Boolean = false) : Type() {
     override val size: Long
         get() = length
-
 }
 
 object BooleanType : Type() {

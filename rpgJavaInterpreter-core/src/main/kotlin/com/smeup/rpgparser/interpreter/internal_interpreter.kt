@@ -369,8 +369,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is EvalStmt -> {
                     try {
                         // Should I assign it one by one?
-                        val result = if (statement.target.type().isArray()
-                                && statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
+                        val result = if (statement.target.type().isArray() &&
+                                statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
                             assignEachElement(statement.target, statement.expression, statement.operator)
                         } else {
                             assign(statement.target, statement.expression, statement.operator)
@@ -1136,9 +1136,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun assignEachElement(
-            target: AssignableExpression,
-            value: Expression,
-            operator: AssignmentOperator = NORMAL_ASSIGNMENT
+        target: AssignableExpression,
+        value: Expression,
+        operator: AssignmentOperator = NORMAL_ASSIGNMENT
     ): Value {
         return when (operator) {
             NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
@@ -1398,20 +1398,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return when (value) {
                     is StringValue -> {
                         when (expression.value) {
-                            is DataRefExpr ->{
+                            is DataRefExpr -> {
                                 val type = expression.value.type()
                                 when (type) {
                                     is StringType -> {
-                                        value.length( type.varying ).asValue()
+                                        value.length(type.varying).asValue()
                                     }
-                                    else ->  {
+                                    else -> {
                                         value.value.length.asValue()
                                     }
                                 }
                             }
                             is ArrayAccessExpr -> {
                                 value.value.length.asValue()
-                                //value.elementSize().asValue()
+                                // value.elementSize().asValue()
                             }
                             else -> {
                                 return value.length().asValue()

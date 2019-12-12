@@ -95,11 +95,11 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
 
     override fun copy(): StringValue = this
 
-    fun length(varying : Boolean = this.varying) : Int {
-        if( varying ) {
+    fun length(varying: Boolean = this.varying): Int {
+        if (varying) {
             var len = 0
             value.forEach {
-                if( it != PAD_CHAR )
+                if (it != PAD_CHAR)
                     len++
             }
             return len
@@ -487,11 +487,11 @@ fun Type.blank(dataDefinition: DataDefinition): Value {
                 when (it.type) {
                     is NumberType -> when {
                         it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
-                            var rnd = if (dataDefinition.inz)  BigDecimal.ZERO else BigDecimal.ONE.unaryMinus()
+                            var rnd = if (dataDefinition.inz) BigDecimal.ZERO else BigDecimal.ONE.unaryMinus()
                             ds.set(it, DecimalValue(rnd))
                         }
                         it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                            var rnd = if (dataDefinition.inz)  0 else (1..9).random()
+                            var rnd = if (dataDefinition.inz) 0 else (1..9).random()
                             ds.set(it, IntValue(rnd.toLong()))
                         }
                     }

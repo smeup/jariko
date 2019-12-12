@@ -143,7 +143,7 @@ internal fun RpgParser.DspecContext.toAst(
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
             val varying = this.keyword().any { it.keyword_varying() != null }
-            StringType(elementSize!!.toLong(),varying)
+            StringType(elementSize!!.toLong(), varying)
         }
         "A" -> StringType(elementSize!!.toLong())
         "N" -> BooleanType

@@ -15,7 +15,6 @@ import com.smeup.rpgparser.parsing.ast.FunctionCall
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.strumenta.kolasu.model.collectByType
-import com.strumenta.kolasu.model.specificProcess
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -228,7 +227,6 @@ class RpgParserOverlayTest12 {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
     }
 
     @Test

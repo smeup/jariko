@@ -9,6 +9,7 @@
      C                   Eval      Br = Str
      C                   Eval      Msg = Br(1) + '-' + Br(2) + '-' + Br(3)
      C     Msg           dsply
+      * Questa istruzione è equivalente alle 3 precedenti
      C                   Eval      Cr = Str
      C                   Eval      Msg = Cr(1) + '-' + Cr(2) + '-' + Cr(3) + '-'
      C     Msg           dsply
