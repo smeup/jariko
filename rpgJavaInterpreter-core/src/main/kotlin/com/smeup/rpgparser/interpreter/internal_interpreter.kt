@@ -412,7 +412,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     statement.indicators.forEach {
                         when (it) {
                             is DataWrapUpIndicatorExpr -> interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
-                            is PredefinedIndicatorExpr -> predefinedIndicators[it.index] = BooleanValue.TRUE
+                            is PredefinedIndicatorExpr -> {
+                                if( statement.valueSet.name == "ON" ) {
+                                    predefinedIndicators[it.index] = BooleanValue.TRUE
+                                } else {
+                                    predefinedIndicators[it.index] = BooleanValue.FALSE
+                                }
+                            }
                             else -> TODO()
                         }
                     }

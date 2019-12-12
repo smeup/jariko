@@ -87,7 +87,7 @@
     MU* VAL1(DS1.AR2(08)) VAL2(' ') COMP(EQ)
     MU* VAL1(DS1.AR2(09)) VAL2(' ') COMP(EQ)
     MU* VAL1(DS1.AR2(10)) VAL2(' ') COMP(EQ)
-    MU* VAL1(NN1) VAL2(140) COMP(EQ)
+    MU* VAL1(NN1) VAL2(410) COMP(EQ)
      C                   EVAL      NN1=%LEN(DS1)
     MU* VAL1(DS1.AR2(01)) VAL2('1') COMP(EQ)
     MU* VAL1(DS1.AR2(02)) VAL2('1') COMP(EQ)
