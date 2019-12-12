@@ -46,7 +46,6 @@ class RpgParserOverlayTest12 {
     }
 
     @Test
-    @Ignore // Require qualified array support
     fun parseMUTE12_01_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
@@ -270,5 +269,12 @@ class RpgParserOverlayTest12 {
         cu.resolve(DummyDBInterface)
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
+
+        val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
+        var failed: Int = executeAnnotations(annotations)
+        if (failed > 0) {
+            throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
+
     }
 }
