@@ -348,6 +348,17 @@ object LowValValue : Value() {
     }
 }
 
+object ZeroValue : Value() {
+    override fun toString(): String {
+        return "ZeroValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
+
 class AllValue(val charsToRepeat: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
