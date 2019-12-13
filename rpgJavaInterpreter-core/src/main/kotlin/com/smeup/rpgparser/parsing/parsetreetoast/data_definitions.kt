@@ -238,7 +238,7 @@ internal fun RpgParser.Dcl_dsContext.type(
                 if (it.explicitStartOffset != null && it.explicitEndOffset != null) {
                     it.endOffset!!
                 } else {
-                    it.endOffset!! * it.arraySizeDeclared!!
+                    it.startOffset!! + (it.elementSize!! * it.arraySizeDeclared!!).toInt()
                 }
             }
         } else {
@@ -290,7 +290,16 @@ data class FieldInfo(
 ) {
 
     var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
+
+    // In case of an array it indicated the end of the first element
     var endOffset: Int? = explicitEndOffset // these are mutable as they can be calculated using next
+
+    // In case this is not an array this is the same as endOffset, otherwise the end
+    // of the array
+    val endOffsetIncludingAllElement: Int?
+        get() = if (endOffset == null) null else if (this.arraySizeDeclared == null) endOffset!! else {
+            (startOffset!! + (elementSize!! *arraySizeDeclared!!)).toInt()
+        }
 
     var calculatedElementSize: Long? = null
     var calculatedElementType: Type? = null
@@ -631,8 +640,8 @@ class FieldsList(val fields: List<FieldInfo>) {
                 if (field.overlayInfo == null) {
                     if (index > 0) {
                         val prevField = fields[index - 1]
-                        if (prevField.endOffset != null) {
-                            field.startOffset = prevField.endOffset
+                        if (prevField.endOffsetIncludingAllElement != null) {
+                            field.startOffset = prevField.endOffsetIncludingAllElement
                         }
                     }
                 }

@@ -275,6 +275,8 @@ data class FieldDefinition(
      * 0003.00 DCURTIMDATE               1      8S 0
      *
      * In this case CURTIMDATE will have endOffset 8.
+     *
+     * In the case of an array endOffset indicates the end of the first element.
      */
     val endOffset: Int
         get() {

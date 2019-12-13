@@ -42,11 +42,15 @@ class RpgParserOverlayTest12 {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
         val ds1 = cu.dataDefinitions.find { it.name == "DS1" }!!
         val AR1 = ds1.getFieldByName("AR1")
+        val AR2 = ds1.getFieldByName("AR2")
         assertEquals(ArrayType(CharacterType(10), 10), AR1.type)
 
+        assertEquals(30, AR1.startOffset)
+        assertEquals(40, AR1.endOffset)
+        assertEquals(130, AR2.startOffset)
+        assertEquals(131, AR2.endOffset)
         assertEquals(140, ds1.type.elementSize())
         assertEquals(140, ds1.elementSize())
-
     }
 
     @Test
@@ -198,9 +202,6 @@ class RpgParserOverlayTest12 {
 
         val fto = ards.getFieldByName("AR01")
         assertEquals(ArrayType(StringType(122), 100), fto.type)
-
-
-
     }
 
     @Test
