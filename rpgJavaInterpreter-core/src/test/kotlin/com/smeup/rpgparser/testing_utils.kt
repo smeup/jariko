@@ -285,9 +285,8 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false): List<String> {
-    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree)
-    val si = interpreter.systemInterface as CollectorSystemInterface
+fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): List<String> {
+    execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si)
     return si.displayed.map(String::trimEnd)
 }
 
@@ -317,10 +316,13 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
     return failed
 }
 
-class DummyProgramFinder(val path: String) : RpgProgramFinder {
+class DummyProgramFinder(private val path: String) : RpgProgramFinder {
+    fun rpgSourceInputStream(nameOrSource: String): InputStream? = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
+
     override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
-        val inputStream = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle") ?: return null
-        return RpgProgram.fromInputStream(inputStream, dbInterface, nameOrSource)
+        return rpgSourceInputStream(nameOrSource)?.let {
+            RpgProgram.fromInputStream(it, dbInterface, nameOrSource)
+        }
     }
 }
 

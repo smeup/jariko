@@ -775,9 +775,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         } catch (e: InterruptForDebuggingPurposes) {
             throw e
         } catch (e: IllegalArgumentException) {
+            val message = e.toString()
+            if (!message.contains(statement.position.line())) {
+                throw IllegalArgumentException("Issue executing statement $statement -> $e at line ${statement.position.line()}", e)
+            }
             throw e
         } catch (e: RuntimeException) {
-            throw RuntimeException("Issue executing statement $statement -> $e", e)
+            throw RuntimeException("Issue executing statement $statement -> $e at line ${statement.position.line()}", e)
         }
     }
 

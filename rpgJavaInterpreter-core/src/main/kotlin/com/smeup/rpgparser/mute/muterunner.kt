@@ -11,7 +11,9 @@ import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.SimpleSystemInterface
-import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
+import com.smeup.rpgparser.interpreter.SystemInterface
+import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.ast.MuteComparisonAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
@@ -21,10 +23,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
 import com.strumenta.kolasu.validation.Error
-import java.io.File
-import java.io.PrintStream
-import java.io.PrintWriter
-import java.io.StringWriter
+import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -92,36 +91,20 @@ fun executeWithMutes(
 ): ExecutionResult {
     var failed = 0
     var executed = 0
-    var resolved: List<MuteAnnotationResolved>
-    var exceptions = LinkedList<Throwable>()
+    val exceptions = LinkedList<Throwable>()
 
-    var result: RpgParserResult? = null
+    var parserResult: RpgParserResult? = null
     val file = File(path.toString())
     try {
-        result =
-            RpgParserFacade().apply { this.muteSupport = true }
+        parserResult =
+            RpgParserFacade().apply { muteSupport = true }
             .parse(file.inputStream())
-        if (result.correct) {
-            val cu = result.root!!.rContext.toAst().apply {
-                resolved = this.injectMuteAnnotation(result.root?.muteContexts!!)
-
-                if (verbose) {
-                    val sorted = resolved.sortedWith(compareBy { it.muteLine })
-                    sorted.forEach {
-                        println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
-                    }
-                }
-            }
+        if (parserResult.correct) {
             val systemInterface =
                 SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(
                     logConfigurationFile
                 )
-            cu.resolve(systemInterface.db)
-            val interpreter = InternalInterpreter(systemInterface)
-
-            interpreter.execute(cu, mapOf())
-            val sorted = interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
-            sorted.forEach { (line, annotation) ->
+            parserResult.executeMuteAnnotations(verbose, systemInterface).forEach { (line, annotation) ->
                 if (verbose || annotation.failed()) {
                     println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
                     if (annotation.failed()) {
@@ -138,7 +121,45 @@ fun executeWithMutes(
     } catch (e: Throwable) {
         exceptions.add(e)
     }
-    return ExecutionResult(file, result?.root?.muteContexts?.size ?: 0, executed, failed, exceptions, result?.errors ?: emptyList())
+    return ExecutionResult(file, parserResult?.root?.muteContexts?.size ?: 0, executed, failed, exceptions, parserResult?.errors ?: emptyList())
+}
+
+fun executeMuteAnnotations(
+    programStream: InputStream,
+    systemInterface: SystemInterface,
+    verbose: Boolean = false,
+    parameters: Map<String, Value> = mapOf()
+): SortedMap<Int, MuteAnnotationExecuted>? {
+    val parserResult =
+        RpgParserFacade().apply { muteSupport = true }
+        .parse(programStream)
+    return if (parserResult.correct) {
+        parserResult.executeMuteAnnotations(verbose, systemInterface, parameters)
+    } else {
+        null
+    }
+}
+
+fun RpgParserResult.executeMuteAnnotations(
+    verbose: Boolean,
+    systemInterface: SystemInterface,
+    parameters: Map<String, Value> = mapOf()
+): SortedMap<Int, MuteAnnotationExecuted> {
+    val root = this.root!!
+    val cu = root.rContext.toAst().apply {
+        val resolved = this.injectMuteAnnotation(root.muteContexts!!)
+
+        if (verbose) {
+            val sorted = resolved.sortedWith(compareBy { it.muteLine })
+            sorted.forEach {
+                println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+            }
+        }
+    }
+    cu.resolve(systemInterface.db)
+    val interpreter = InternalInterpreter(systemInterface)
+    interpreter.execute(cu, parameters)
+    return interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
 }
 
 object MuteRunner {

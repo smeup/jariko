@@ -79,3 +79,6 @@ data class MuteFailAnnotationExecuted(
     override fun headerDescription(): String = message.render()
     override val result = BooleanValue.FALSE
 }
+
+fun HashMap<Int, MuteAnnotationExecuted>.failed(): List<MuteAnnotationExecuted> =
+    this.toSortedMap().filter { it.value.failed() }.map { it.value }
