@@ -23,14 +23,15 @@
      DS6               S             12S 2
      DS7               S             11S 1
      DS8               S             10S 0
-     DS9               S             21S 7
+     DS9               S             19S 7
       *
      DS10              S              4S 0
      DS11              S              4S 0
      DS12              S              2S 0
      DS13              S              2S 0
      DS14              S              8S 0
-     DS15              S             20S 0
+     DS15              S             19S 0
+     DAAA015           S             15
       *
      D TXT             S            100    DIM(10) PERRCD(1) CTDATA             _NOTXT
      D $TIMST          S               Z   INZ
@@ -77,11 +78,11 @@
      C     F_BIGD        BEGSR
       *
      C                   CLEAR                   S15
-     C                   CLEAR                   AAA020           20
-     C                   MOVEL     '1234567890'  AAA020
-     C                   MOVE      '1234567890'  AAA020
+     C                   CLEAR                   AAA019           19
+     C                   MOVEL     '1234567890'  AAA019
+     C                   MOVE      '1234567890'  AAA019
     MU* VAL1(S15) VAL2(12345678901234567890,0) COMP(EQ)
-     C                   MOVE      AAA020        S15
+     C                   MOVE      AAA019        S15
       *
      C                   CLEAR                   S15
     MU* VAL1(S15) VAL2(12345678901234567890,0) COMP(EQ)
@@ -218,9 +219,7 @@
      C     F_MOVE        BEGSR
       *
      C                   EVAL      S1=-9
-     C                   MOVE      S1            AAA015
      C                   MOVE      '-9'          AAA015
-     C                   MOVE      AAA015        S1
       *
     MU* VAL1(S1) VAL2(12345) COMP(EQ)
      C                   MOVE      '12345'       S1
@@ -228,12 +227,8 @@
      C                   CLEAR                   AAA015           15
     MU* VAL1(AAA015) VAL2('12345          ') COMP(EQ)
      C                   MOVEL(P)  S1            AAA015
-    MU* VAL1(AAA015) VAL2('          12345') COMP(EQ)
-     C                   MOVE (P)  S1            AAA015
      C                   CLEAR                   AAA015           15
      C                   EVAL      S4=-4321,12345
-    MU* VAL1(AAA015) VAL2('00000043211234N') COMP(EQ)
-     C                   MOVEL(P)  S4            AAA015
      C                   CLEAR                   AAA015           15
     MU* VAL1(AAA015) VAL2('00000043211234N') COMP(EQ)
      C                   MOVE (P)  S4            AAA015

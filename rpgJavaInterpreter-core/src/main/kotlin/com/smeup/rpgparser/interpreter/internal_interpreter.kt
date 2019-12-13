@@ -929,6 +929,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
             is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
             is DataStructValue -> value.valueWithoutPadding.trimEnd()
+            is ZeroValue -> "0"
             is AllValue -> value.charsToRepeat
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
@@ -1233,6 +1234,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is HiValExpr -> return HiValValue
             is LowValExpr -> return LowValValue
+            is ZeroExpr -> return ZeroValue
             is AllExpr -> return AllValue(eval(expression.charsToRepeat).asString().valueWithoutPadding)
             is TranslateExpr -> {
                 val originalChars = eval(expression.from).asString().valueWithoutPadding

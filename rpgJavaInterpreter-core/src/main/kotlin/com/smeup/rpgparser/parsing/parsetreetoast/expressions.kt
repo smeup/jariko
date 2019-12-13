@@ -90,7 +90,7 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
     }
     return when (this.text.toUpperCase()) {
         "*BLANK", "*BLANKS" -> BlanksRefExpr(toPosition(conf.considerPosition))
-        "*ZERO", "*ZEROS" -> TODO("*ZERO")
+        "*ZERO", "*ZEROS" -> ZeroExpr(toPosition(conf.considerPosition))
         "*HIVAL" -> HiValExpr(toPosition(conf.considerPosition))
         "*LOVAL" -> LowValExpr(toPosition(conf.considerPosition))
         "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
