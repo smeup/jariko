@@ -120,7 +120,8 @@
      C                   EVAL      V2=%TRIM(S1)
      C                   EVAL      V1=%EDITC($N1:'P')
      C                   EVAL      V1=%CHAR($N1)
-     C                   EVAL      $N1=%SCAN('a':TXT(1))
+     C                   EVAL      ST1=TXT(1)
+     C                   EVAL      $N1=%SCAN('a':ST1)
       *
      C                   ENDSR
 ** TXT
@@ -130,7 +131,3 @@ Time spent
 
 
 TEST
-
-
-
-
