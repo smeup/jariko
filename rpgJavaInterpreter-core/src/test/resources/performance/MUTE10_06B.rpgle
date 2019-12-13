@@ -19,7 +19,7 @@
      C                   EXSR      F_CALL
       *
     MU* Type="NOXMI"
-    MU* TIMEOUT(75000)
+    MU* TIMEOUT(40000)
       *
      C                   SETON                                        LR
       *
@@ -43,7 +43,6 @@
       * Elapsed Time
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
       *
-    MU* VAL1($TIMMS) VAL2(7500) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
       *
       * Display Message with elapsed time

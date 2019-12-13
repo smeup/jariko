@@ -87,7 +87,6 @@
      C                   TIME                    $TIMEN
       * Elapsed time
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
-    MU* VAL1($TIMMS) VAL2(1000) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
       * Display message
      C                   EVAL      $MSG=%trim(TXT(1))+' '+
@@ -102,8 +101,8 @@
       *
      C                   EVAL      $N1=123456,85
      C                   EVAL      $N2=34,678
-     C     $N2           DIV(H)    $N3           $N1
-     C                   EVAL(H)   $N1=$N2/$N3
+     C     $N1           DIV(H)    $N2           $N3
+     C                   EVAL(H)   $N3=$N1/$N2
       *
      C                   ENDSR
       *---------------------------------------------------------------------
