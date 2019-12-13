@@ -1,13 +1,16 @@
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.*
+import com.andreapivetta.kolor.yellow
+import com.smeup.rpgparser.CollectorSystemInterface
+import com.smeup.rpgparser.DummyProgramFinder
+import com.smeup.rpgparser.ExtendedCollectorSystemInterface
+import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.mute.executeMuteAnnotations
-import kotlin.test.assertEquals
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import kotlin.test.Ignore
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 import kotlin.test.fail
 
 class MUTEExamplesTest {
@@ -95,20 +98,23 @@ class MUTEExamplesTest {
         }
         executeMuteAnnotations(rpgSourceInputStream, si)
 
-        si.assertMutesSucceed()
+        si.assertMutesSucceed(programName)
         withOutput?.let {
             assertEquals(it, si.displayed)
         }
     }
 }
 
-fun CollectorSystemInterface.assertMutesSucceed() {
-    assertTrue(this.executedAnnotationInternal.size > 0, "No Mutes ran")
+fun CollectorSystemInterface.assertMutesSucceed(programName: String) {
+    if (this.executedAnnotationInternal.size == 0) {
+        println("WARNING: no MUTE assertion ran in $programName".yellow())
+    }
     val errors = mutableListOf<String>()
     this.executedAnnotationInternal.forEach {
         val annotation = it.value
         if (annotation.failed()) {
-            val message = "Mute annotation at line ${it.key} failed - ${annotation.headerDescription()} - "
+            println("Some assertion failed in $programName".color(false))
+            val message = "Mute annotation at line ${it.key} failed - ${annotation.headerDescription()}"
             println(message.color(false))
             errors.add(message)
         }

@@ -19,9 +19,9 @@
      D $S              S             10  0
      D $C              S             10  0
      D $V              S             10  0
-     D $N1             S             21  6
-     D $N2             S             21  6
-     D $N3             S             21  6
+     D $N1             S             19  6
+     D $N2             S             19  6
+     D $N3             S             19  6
      D $CICL           S              7  0
      D V1              S          30000
      D S1              S            100    INZ('TEST performance')
@@ -130,3 +130,7 @@ Time spent
 
 
 TEST
+
+
+
+
