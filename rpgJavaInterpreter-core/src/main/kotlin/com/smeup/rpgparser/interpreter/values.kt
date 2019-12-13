@@ -540,8 +540,9 @@ data class DataStructValue(var value: String) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             // Check if the size of the value mathches the expected size within the DS
-            is DataStructureType -> expectedType.elementSize == value.length
-            is StringType -> expectedType.size == this.value.length.toLong()
+            // TO REVIEW
+            is DataStructureType -> expectedType.elementSize >= value.length
+            is StringType -> expectedType.size >= this.value.length.toLong()
             else -> false
         }
     }
