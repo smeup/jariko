@@ -15,8 +15,6 @@
       * Main
      C                   EXSR      F_EXEC
       *
-    MU* Type="NOXMI"
-    MU* TIMEOUT(7500)
       *
       * Test entry parameter XXRET: 1=RT, Anything else=LR
      C                   IF        XXRET='1'

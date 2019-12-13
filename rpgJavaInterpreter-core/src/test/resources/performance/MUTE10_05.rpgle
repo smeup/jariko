@@ -19,15 +19,17 @@
      D $S              S             10  0
      D $C              S             10  0
      D $V              S             10  0
-     D $N1             S             21  6
-     D $N2             S             21  6
-     D $N3             S             21  6
+     D $N1             S             19  6
+     D $N2             S             19  6
+     D $N3             S             19  6
      D $CICL           S              7  0
      D V1              S          30000
-     D S1              C                   'TEST performance'                   COSTANTE
+     D S1              S            100    INZ('TEST performance')
      D V2              S          30000    Varying
      D TXT             S            100    DIM(10) PERRCD(1) CTDATA             _NOTXT
      D RES             S            100    DIM(10)
+     D ST1             S            100
+     D ST2             S            100
      D $TIMST          S               Z   INZ
      D $TIMEN          S               Z   INZ
      D $TIMMS          S             10  0
@@ -57,10 +59,14 @@
       *
      C                   SELECT
      C                   WHEN      $S > 20
-     C                   MOVEL     TXT(1)        RES(1)
+     C                   EVAL      RES(1)=TXT(1)
+     C                   EVAL      ST1=RES(1)
+     C                   MOVEL     ST1           ST2
      C     $S            MULT      $C            $V
      C                   OTHER
-     C                   MOVE      TXT(1)        RES(2)
+     C                   EVAL      RES(2)=TXT(1)
+     C                   EVAL      ST1=RES(2)
+     C                   MOVE      ST1           ST2
      C                   Z-ADD     1             $V
      C                   ENDSL
       *
@@ -68,11 +74,11 @@
      C                   CLEAR                   RES
      C                   EVAL      RES(5)=%SUBST(TXT(1):1:5)
      C                   ELSE
-     C                   EVAL      $V=%LOOKUP('PROVA':TXT:1)
+     C                   EVAL      $V=%LOOKUP('TEST':TXT:1)
      C                   ENDIF
       *
      C     $S            IFNE      $C
-     C                   EVAL      $V=%LOOKUP('PROVA':TXT:1)
+     C                   EVAL      $V=%LOOKUP('TEST':TXT:1)
      C                   ELSE
      C                   CLEAR                   RES
      C                   EVAL      RES(5)=%SUBST(TXT(1):1:5)
@@ -114,13 +120,14 @@
      C                   EVAL      V2=%TRIM(S1)
      C                   EVAL      V1=%EDITC($N1:'P')
      C                   EVAL      V1=%CHAR($N1)
-     C                   EVAL      $N1=%SCAN('a':TXT(1))
+     C                   EVAL      ST1=TXT(1)
+     C                   EVAL      $N1=%SCAN('a':ST1)
       *
      C                   ENDSR
 ** TXT
-Tempo impiegato
+Time spent
 
 
 
 
-PROVA
+TEST

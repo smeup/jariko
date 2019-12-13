@@ -239,6 +239,11 @@ class InterpreterTest {
         assertEquals(listOf("1111.1"), outputOf("MOVEL01"))
     }
 
+    @Test @Ignore
+    fun executeSCANARRAY() {
+        assertEquals(listOf("4"), outputOf("SCANARRAY"))
+    }
+
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
