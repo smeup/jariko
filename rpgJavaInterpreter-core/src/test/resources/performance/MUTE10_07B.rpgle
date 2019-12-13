@@ -62,7 +62,6 @@
      C                   TIME                    $TIMEN
       * Elapsed time
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
-    MU* VAL1($TIMMS) VAL2(1000) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
       * Display message
      C                   EVAL      $MSG=%trim(TXT(1))+' '+
@@ -70,7 +69,7 @@
       *
       *
     MU* Type="NOXMI"
-    MU* TIMEOUT(3500)
+    MU* TIMEOUT(600)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test Big decimal
