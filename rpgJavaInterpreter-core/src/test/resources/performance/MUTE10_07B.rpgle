@@ -22,7 +22,8 @@
      DP6               S             12P 2
      DP7               S             11P 1
      DP8               S             10P 0
-     DP9               S             21P 7
+     DP9               S             19P 7
+     DS3               S             19P 7
       *
      DP10              S              4P 0
      DP11              S              4P 0

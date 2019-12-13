@@ -70,13 +70,12 @@ class MUTEExamplesTest {
         assertMuteOK("MUTE10_06B")
     }
 
-    @Test @Category(PerformanceTest::class) @Ignore
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_07A_Zoned() {
         assertMuteOK("MUTE10_07A", withOutput = emptyList())
     }
 
-    // Moving numbers to/from strings not supported yet
-    @Test @Category(PerformanceTest::class)  @Ignore
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_07B_Packed() {
         assertMuteOK("MUTE10_07B", withOutput = emptyList())
     }
