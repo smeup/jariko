@@ -40,19 +40,19 @@ class MUTEExamplesTest {
     }
 
     // Problem at line 60 of MUTE10_05: MOVEL with arrays
-    @Test @Category(PerformanceTest::class) @Ignore
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05A() {
         assertMuteOK("MUTE10_05A", withOutput = emptyList())
     }
 
     // Problem at line 60 of MUTE10_05: MOVEL with arrays
-    @Test @Category(PerformanceTest::class) @Ignore
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05B() {
         assertMuteOK("MUTE10_05B", withOutput = emptyList())
     }
 
     // Problem at line 60 of MUTE10_05: MOVEL with arrays
-    @Test @Category(PerformanceTest::class) @Ignore
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05C() {
         assertMuteOK("MUTE10_05C", withOutput = emptyList())
     }
@@ -67,14 +67,13 @@ class MUTEExamplesTest {
         assertMuteOK("MUTE10_06B")
     }
 
-    // An operation is not implemented: *ZERO
     @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_07A_Zoned() {
         assertMuteOK("MUTE10_07A", withOutput = emptyList())
     }
 
     // Moving numbers to/from strings not supported yet
-    @Test @Category(PerformanceTest::class) @Ignore
+    @Test @Category(PerformanceTest::class)  @Ignore
     fun executeMUTE10_07B_Packed() {
         assertMuteOK("MUTE10_07B", withOutput = emptyList())
     }

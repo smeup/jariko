@@ -18,7 +18,6 @@
       * Main
      C                   EXSR      F_CALL
       *
-    MU* Type="NOXMI"
     MU* TIMEOUT(40000)
       *
      C                   SETON                                        LR
