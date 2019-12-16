@@ -119,7 +119,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val dataStructValue = get(ds.name) as DataStructValue
                     var startOffset = data.startOffset
                     var size = data.endOffset - data.startOffset
-                    for (i in 1..data.declaredArrayInLine!!) {
+
+                    // It should copy the number of elements in the value
+                    // for (i in 1..data.declaredArrayInLine!!) {
+
+                    for (i in 1..Math.min(value.asArray().arrayLength(),data.declaredArrayInLine!!) ) {
                         val valueToAssign = value.asArray().getElement(i)
                         dataStructValue.setSubstring(startOffset, startOffset + size,
                                 data.type.asArray().element.toDataStructureValue(valueToAssign))
@@ -202,6 +206,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         else -> null
                     }
                 }
+//              Attempt to fix issue on CTDATA
+//                val ctdata = compilationUnit.compileTimeArray(it.name);
+//                if(ctdata.name == it.name) {
+//                    val xx = toArrayValue(
+//                            compilationUnit.compileTimeArray(it.name),
+//                            (it.type as ArrayType))
+//                    set(it,xx)
+//                }
+
                 if (value != null) {
                     set(it, coerce(value, it.type))
                     executeMutes(it.muteAnnotations, compilationUnit)
@@ -1104,7 +1117,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is QualifiedAccessExpr -> {
                 val container = eval(target.container) as DataStructValue
-                return container[target.field.referred!!]
+                container[target.field.referred!!]
+                container.set(target.field.referred!!,value)
+                return value
             }
             is PredefinedIndicatorExpr -> {
                 val coercedValue = coerce(value, BooleanType)
