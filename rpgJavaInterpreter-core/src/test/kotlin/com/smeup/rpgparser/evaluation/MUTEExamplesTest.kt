@@ -80,6 +80,21 @@ class MUTEExamplesTest {
         assertMuteOK("MUTE10_07B", withOutput = emptyList())
     }
 
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_08A() {
+        assertMuteOK("MUTE10_08A", withOutput = emptyList())
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_08B() {
+        assertMuteOK("MUTE10_08B", withOutput = emptyList())
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_08C() {
+        assertMuteOK("MUTE10_08C", withOutput = emptyList())
+    }
+
     private fun siWithProgramFinderInPerformanceFolder(): ExtendedCollectorSystemInterface {
         val si = ExtendedCollectorSystemInterface()
         si.programFinders.add(dummyProgramFinder())
