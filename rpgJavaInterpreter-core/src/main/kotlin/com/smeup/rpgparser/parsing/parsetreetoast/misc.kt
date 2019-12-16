@@ -47,6 +47,25 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
     // after them
     var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
     val knownDataDefinitions = LinkedList<DataDefinition>()
+
+    // First pass ignore exception and all the know definitions
+    dataDefinitionProviders.addAll(this.statement()
+        .mapNotNull {
+        when {
+            it.dcl_ds() != null -> {
+                try {
+                    val dataDefinition = it.dcl_ds().toAst(conf)
+                    knownDataDefinitions.add(dataDefinition)
+                    DataDefinitionHolder(dataDefinition)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            else -> null
+        }
+    })
+
+    // Second pass, every
     dataDefinitionProviders.addAll(this.statement()
             .mapNotNull {
                 when {
@@ -58,9 +77,7 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                     it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
                     } else {
-                        val dataDefinition = it.dcl_ds().toAst(conf)
-                        knownDataDefinitions.add(dataDefinition)
-                        DataDefinitionHolder(dataDefinition)
+                        null
                     }
                     else -> null
                 }
