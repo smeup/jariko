@@ -118,10 +118,10 @@ class JDExamplesTest {
                 "U\$IN35" to blankString(1)),
                 logHandlers = listOf(logHandler))
         assertEquals(listOf("IMP0", "FIN0"), logHandler.getExecutedSubroutineNames())
-        assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
-        assertEquals(StringValue("Bar"), interpreter["U\$METO"])
+        assertEquals("Foo", interpreter["U\$FUNZ"].asString().value.trim())
+        assertEquals("Bar", interpreter["U\$METO"].asString().value.trim())
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK"])
-        assertEquals(StringValue(" "), interpreter["U\$IN35"])
+        assertEquals("", interpreter["U\$IN35"].asString().value.trim())
     }
 
     @Test
@@ -285,7 +285,7 @@ class JDExamplesTest {
         assertEquals(
                 mapOf(
                         "foldern" to StringValue.padded("my/path/to/folder", 1000),
-                        "name" to StringValue.blank(10),
+                        "name" to StringValue.blank(1000),
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])
@@ -340,7 +340,7 @@ class JDExamplesTest {
         assertEquals(
                 mapOf(
                         "foldern" to StringValue.padded("my/path/to/folder", 1000),
-                        "name" to StringValue.blank(10),
+                        "name" to StringValue.blank(1000),
                         "tip" to StringValue.blank(10),
                         "ope" to StringValue.blank(10)
                 ), callsToListFld[0])

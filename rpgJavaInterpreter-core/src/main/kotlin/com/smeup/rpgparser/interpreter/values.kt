@@ -71,7 +71,6 @@ data class StringValue(var value: String) : Value() {
         value = value.trimEnd()
     }
 
-
     override fun hashCode(): Int {
         return value.hashCode()
     }
@@ -81,9 +80,8 @@ data class StringValue(var value: String) : Value() {
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        require(endOffset - startOffset == substringValue.value.length)
-        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue.replace('\u0000', ' ')
+        substringValue.pad(endOffset - startOffset)
+        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
@@ -527,9 +525,8 @@ data class DataStructValue(var value: String) : Value() {
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
-        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue.replace('\u0000', ' ')
+        substringValue.pad(endOffset - startOffset)
+        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
