@@ -63,6 +63,15 @@ data class StringValue(var value: String) : Value() {
         }
     }
 
+    fun pad(size: Int) {
+        value += " ".repeat(size - value.length)
+    }
+
+    fun trimEnd() {
+        value = value.trimEnd()
+    }
+
+
     override fun hashCode(): Int {
         return value.hashCode()
     }
@@ -91,6 +100,7 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun asString() = this
+
     fun isBlank(): Boolean {
         return this.value.isBlank()
     }

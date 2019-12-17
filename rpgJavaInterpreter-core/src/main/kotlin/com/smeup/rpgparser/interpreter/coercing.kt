@@ -32,7 +32,6 @@ private fun coerceBlanks(type: Type): Value {
 private fun coerceString(value: StringValue, type: Type): Value {
     return when (type) {
         is StringType -> {
-//            var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
             if (value.value.length > type.length) {
                 return StringValue(value.value.substring(0, type.length.toInt()))
             }

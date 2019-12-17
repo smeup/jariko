@@ -80,7 +80,7 @@ fun String?.asDouble(): Double {
 
 fun String.asBigDecimal(): BigDecimal? =
     try {
-        BigDecimal(this)
+        BigDecimal(this.trim())
     } catch (e: Exception) {
         null
     }

@@ -62,7 +62,7 @@ class InterpreterTest {
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
-        assertEquals(listOf("FIBONACCI OF: $input IS: $output"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: ${input.padEnd(8)} IS: $output"), si.displayed)
         assertEquals(logHandler.getExecutedSubroutineNames()[0], "FIB")
     }
 
@@ -115,7 +115,7 @@ class InterpreterTest {
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
         execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
-        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed)
         assertEquals(1, logHandler.getExecutedSubroutines().size)
     }
 
@@ -125,7 +125,7 @@ class InterpreterTest {
         cu.resolve(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
-        si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
+        si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8, false)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 val n = params["ppdat"]!!.asString().value.asInt()
                 var t1 = 0
@@ -153,8 +153,8 @@ class InterpreterTest {
         val rpgProgram = RpgProgram(cu, DummyDBInterface)
         rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
         assertEquals(1, rpgProgram.params().size)
-        assertEquals(ProgramParam("ppdat", StringType(8)), rpgProgram.params()[0])
-        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+        assertEquals(ProgramParam("ppdat", StringType(8, false)), rpgProgram.params()[0])
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed)
     }
 
     @Test
@@ -226,7 +226,7 @@ class InterpreterTest {
 
     @Test
     fun executeCALCFIBCA5() {
-        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), outputOf("CALCFIBCA5"))
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), outputOf("CALCFIBCA5"))
     }
 
     @Test
@@ -781,9 +781,9 @@ class InterpreterTest {
 
         val cu = assertASTCanBeProduced("db/CHAIN2KEYS")
 
-        val f1 = DBField("KY1TST", StringType(5))
+        val f1 = DBField("KY1TST", StringType(5, false))
         val f2 = DBField("KY2TST", NumberType(2, 0))
-        val f3 = DBField("DESTST", StringType(40))
+        val f3 = DBField("DESTST", StringType(40, false))
 
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun open(name: String): DBFile? = object : MockDBFile() {
@@ -808,8 +808,8 @@ class InterpreterTest {
     fun executeCHAINREADE() {
         val cu = assertASTCanBeProduced("db/CHAINREADE")
 
-        val first = DBField("FIRSTNME", StringType(40))
-        val last = DBField("LASTNAME", StringType(40))
+        val first = DBField("FIRSTNME", StringType(40, false))
+        val last = DBField("LASTNAME", StringType(40, false))
         val mockDBInterface: DBInterface = object : DBInterface {
             var nrOfCallToEoF = 0
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))

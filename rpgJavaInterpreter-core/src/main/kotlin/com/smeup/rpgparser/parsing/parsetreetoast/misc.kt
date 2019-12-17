@@ -350,7 +350,7 @@ internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, po
 
 private fun dataType(len: Long, decimals: Long?): Type =
     if (decimals == null) {
-        StringType(len)
+        StringType(len, false)
     } else {
         NumberType(len.toInt() - decimals.toInt(), decimals.toInt())
     }

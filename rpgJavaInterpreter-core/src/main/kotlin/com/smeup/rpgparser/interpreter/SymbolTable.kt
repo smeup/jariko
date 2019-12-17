@@ -52,6 +52,17 @@ class SymbolTable {
         require(!(data !in this && data.name in this)) {
             "This data definition would conflict with an existing data definition with the same name. This data definition: $data. Existing data definition: ${this[data.name]}"
         }
-        values[data] = value
+        values[data] = value.forType(data.type)
     }
+}
+
+private fun Value.forType(type: Type): Value {
+    if (type is StringType && this is StringValue) {
+        if (type.varying) {
+            this.trimEnd()
+        } else {
+            if (this.value.length < type.length.toInt()) this.pad(type.length.toInt())
+        }
+    }
+    return this
 }

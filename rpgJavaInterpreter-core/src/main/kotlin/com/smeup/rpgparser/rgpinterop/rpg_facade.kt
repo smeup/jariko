@@ -139,11 +139,11 @@ abstract class RpgFacade<P> (
 private fun KType.toRpgType(size: Size? = null): Type {
     return when {
         this.classifier == String::class -> {
-            StringType(size!!.size.toLong())
+            StringType(size!!.size.toLong(), false)
         }
         this.classifier is KClass<*> -> {
             val length = (this.classifier as KClass<*>).memberProperties.map { it.rpgLength() }.foldRight(0L) { it, acc -> it + acc }
-            StringType(length)
+            StringType(length, false)
         }
         else -> TODO("$this")
     }

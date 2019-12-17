@@ -9,7 +9,7 @@ class SQLUtilsTest {
     fun sqlForCreateTableTestWithPrimaryKeys() {
         val fileMetadata = FileMetadata("TSTTAB", "TSTRECF",
             listOf(
-                "TSTFLDCHR" primaryKeyWithType StringType(5),
+                "TSTFLDCHR" primaryKeyWithType StringType(5, false),
                 "TSTFLDNBR" primaryKeyWithType NumberType(5, 2),
                 "TSTFLDNB2" withType NumberType(2, 0)))
         assertEquals(
@@ -22,7 +22,7 @@ class SQLUtilsTest {
     fun sqlForCreateTableTestWithoutPrimaryKeys() {
         val fileMetadata = FileMetadata("TSTTAB", "TSTRECF",
                 listOf(
-                        "TSTFLDCHR" withType StringType(5),
+                        "TSTFLDCHR" withType StringType(5, false),
                         "TSTFLDNBR" withType NumberType(5, 2),
                         "TSTFLDNB2" withType NumberType(2, 0)))
         assertEquals(
