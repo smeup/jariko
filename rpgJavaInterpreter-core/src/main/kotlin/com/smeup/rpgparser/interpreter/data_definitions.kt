@@ -169,6 +169,11 @@ fun Type.toDataStructureValue(value: Value): StringValue {
             }
             return StringValue(sb.toString())
         }
+        is BooleanType ->  {
+            if((value as BooleanValue).value)
+                return StringValue("1")
+            return  StringValue("0")
+        }
         else -> TODO("Conversion to data struct value not implemented for $this")
     }
 }
