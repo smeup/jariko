@@ -42,19 +42,16 @@ class MUTEExamplesTest {
         assertMuteOK("MUTE10_03", withOutput = emptyList())
     }
 
-    // Problem at line 60 of MUTE10_05: MOVEL with arrays
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05A() {
         assertMuteOK("MUTE10_05A", withOutput = emptyList())
     }
 
-    // Problem at line 60 of MUTE10_05: MOVEL with arrays
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05B() {
         assertMuteOK("MUTE10_05B", withOutput = emptyList())
     }
 
-    // Problem at line 60 of MUTE10_05: MOVEL with arrays
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05C() {
         assertMuteOK("MUTE10_05C", withOutput = emptyList())
