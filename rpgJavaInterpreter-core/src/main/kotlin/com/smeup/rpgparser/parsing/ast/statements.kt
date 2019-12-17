@@ -411,3 +411,11 @@ data class ForStmt(
         return acceptBody(body, mutes, start, end)
     }
 }
+
+/*
+ * For an array data structure, the keyed-ds-array operand is a qualified name consisting
+ * of the array to be sorted followed by the subfield to be used as a key for the sort.
+ */
+data class SortAStmt(val field : String ,override val position: Position? = null) : Statement(position) {
+
+}

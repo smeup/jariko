@@ -65,7 +65,7 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
         }
     })
 
-    // Second pass, every
+    // Second pass, everything, I mean everything
     dataDefinitionProviders.addAll(this.statement()
             .mapNotNull {
                 when {
@@ -249,6 +249,8 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csRETURN() != null -> this.csRETURN().toAst(conf)
         this.csTAG() != null -> this.csTAG().toAst(conf)
         this.csGOTO() != null -> this.csGOTO().toAst(conf)
+        this.csSORTA() != null -> this.csSORTA().toAst(conf)
+
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -694,6 +696,10 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
             toPosition(conf.considerPosition))
 }
 
+
+internal fun CsSORTAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SortAStmt {
+    return SortAStmt(this.fixedexpression.expression().text,toPosition(conf.considerPosition))
+}
 internal fun ResultIndicatorContext.asIndex(): Int? {
     // TODO: verify if we should cover other cases (e.g. external indicators)
     return this.GeneralIndicator()?.text?.toIntOrNull()
