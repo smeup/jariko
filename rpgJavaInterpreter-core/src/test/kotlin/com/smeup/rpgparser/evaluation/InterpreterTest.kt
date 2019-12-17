@@ -204,6 +204,11 @@ class InterpreterTest {
         assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
     }
 
+    @Test @Ignore
+    fun executeVARST1() {
+        assertEquals(listOf("A", "A", "A", "AA", "A"), outputOf("VARST1"))
+    }
+
     @Test
     fun executeCLEARDEC() {
         assertStartsWith(outputOf("CLEARDEC"), "Counter:")
