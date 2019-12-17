@@ -1,6 +1,7 @@
      D VarStr          S             50    Varying    Inz
      D VarStr2         S             50    Varying    Inz
      D StdStr          S             50    Inz
+     **-------------------------------------------------------------------
      C                   Eval      StdStr = %TrimR(StdStr) + 'A'
      C     StdStr        DSPLY
      **-------------------------------------------------------------------

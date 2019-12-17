@@ -15,80 +15,81 @@ import kotlin.test.fail
 
 class MUTEExamplesTest {
 
-    @Test
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_01_perf_calls() {
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_01() {
         assertMuteOK("MUTE10_01", withOutput = emptyList())
     }
 
-    @Test
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_04_perf_strings() {
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_04() {
         assertMuteOK("MUTE10_04", withOutput = listOf("Loop 1", "Loop 2", "Loop 3", "Loop 4", "Loop 5", "Loop 6"))
     }
 
-    @Test
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_04A_perf_strings() {
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_04A() {
         assertMuteOK("MUTE10_04A", withOutput = listOf("001.1_d01.1_A01.1_c01.1_B01.1_b01.1_C01.1_901.1_101."))
     }
 
     // We need to implement SORTA
-    @Test
-    @Category(PerformanceTest::class)
-    @Ignore
+    @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_02() {
         assertMuteOK("MUTE10_02", withOutput = emptyList())
     }
 
     // We need to implement SORTA
-    @Test
-    @Category(PerformanceTest::class)
-    @Ignore
+    @Test @Category(PerformanceTest::class) @Ignore
     fun executeMUTE10_03() {
         assertMuteOK("MUTE10_03", withOutput = emptyList())
     }
 
-    @Test
-    @Category(PerformanceTest::class)
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05A() {
         assertMuteOK("MUTE10_05A", withOutput = emptyList())
     }
 
-    @Test
-    @Category(PerformanceTest::class)
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05B() {
         assertMuteOK("MUTE10_05B", withOutput = emptyList())
     }
 
-    @Test
-    @Category(PerformanceTest::class)
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_05C() {
         assertMuteOK("MUTE10_05C", withOutput = emptyList())
     }
 
-    @Test
-    @Category(PerformanceTest::class)
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_06A() {
         assertMuteOK("MUTE10_06A")
     }
 
-    @Test
-    @Category(PerformanceTest::class)
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_06B() {
         assertMuteOK("MUTE10_06B")
     }
 
-    @Test
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_07A_Zoned() {
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_07A() {
         assertMuteOK("MUTE10_07A", withOutput = emptyList())
     }
 
-    @Test
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_07B_Packed() {
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_07B() {
         assertMuteOK("MUTE10_07B", withOutput = emptyList())
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_08A() {
+        assertMuteOK("MUTE10_08A", withOutput = emptyList())
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_08B() {
+        assertMuteOK("MUTE10_08B", withOutput = emptyList())
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_08C() {
+        assertMuteOK("MUTE10_08C", withOutput = emptyList())
     }
 
     private fun siWithProgramFinderInPerformanceFolder(): ExtendedCollectorSystemInterface {
