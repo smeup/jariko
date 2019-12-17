@@ -8,7 +8,7 @@ import java.math.RoundingMode
 private fun coerceBlanks(type: Type): Value {
     return when (type) {
         is StringType -> {
-            blankValue(type.length.toInt())
+            blankString(type.length.toInt())
         }
         is ArrayType -> {
             createArrayValue(type.element, type.nElements) {
@@ -32,11 +32,11 @@ private fun coerceBlanks(type: Type): Value {
 private fun coerceString(value: StringValue, type: Type): Value {
     return when (type) {
         is StringType -> {
-            var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
+//            var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
             if (value.value.length > type.length) {
-                s = s.substring(0, type.length.toInt())
+                return StringValue(value.value.substring(0, type.length.toInt()))
             }
-            return StringValue(s)
+            return StringValue(value.value)
         }
         is ArrayType -> {
             if (type.element is StringType) {

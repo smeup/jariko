@@ -275,6 +275,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     require(value is BooleanValue) {
                         "Expected BooleanValue, but found $value"
                     }
+                    if (!value.value) {
+                        println(".")
+                    }
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
@@ -705,7 +708,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     throw IterException()
                 }
                 is CheckStmt -> {
-                    var baseString = interpret(statement.baseString).asString().value.removeNullChars()
+                    var baseString = interpret(statement.baseString).asString().value
                     if (statement.baseString is DataRefExpr) {
                         baseString = baseString.padEnd(statement.baseString.size().toInt())
                     }
@@ -893,19 +896,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
 
             value1 is StringValue && value2 is StringValue -> {
-                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
-                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                val v1 = value1.value.trimEnd()
+                val v2 = value2.value.trimEnd()
                 v1 == v2
             }
 
             value1 is DataStructValue && value2 is StringValue -> {
-                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
-                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                val v1 = value1.value.trimEnd()
+                val v2 = value2.value.trimEnd()
                 v1 == v2
             }
             value1 is StringValue && value2 is DataStructValue -> {
-                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
-                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                val v1 = value1.value.trimEnd()
+                val v2 = value2.value.trimEnd()
                 v1 == v2
             }
             else -> value1 == value2
@@ -923,12 +926,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun render(value: Value): String {
         return when (value) {
-            is StringValue -> value.valueWithoutPadding.trimEnd()
+            is StringValue -> value.value.trimEnd()
             is BooleanValue -> value.asString().value // TODO check if it's the best solution
             is NumberValue -> value.render()
             is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
             is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
-            is DataStructValue -> value.valueWithoutPadding.trimEnd()
+            is DataStructValue -> value.value.trimEnd()
             is ZeroValue -> "0"
             is AllValue -> value.charsToRepeat
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
@@ -1171,7 +1174,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is DecExpr -> {
                 val decDigits = interpret(expression.decDigits).asInt().value
-                val valueAsString = interpret(expression.value).asString().value.removeNullChars()
+                val valueAsString = interpret(expression.value).asString().value
                 val valueAsBigDecimal = valueAsString.asBigDecimal()
                 require(valueAsBigDecimal != null) {
                     "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
@@ -1187,7 +1190,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val right = interpret(expression.right)
                 when {
                     left is StringValue && right is StringValue -> {
-                        val s = left.valueWithoutPadding + right.valueWithoutPadding
+                        val s = left.value + right.value
                         StringValue(s)
                     }
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
@@ -1235,12 +1238,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is HiValExpr -> return HiValValue
             is LowValExpr -> return LowValValue
             is ZeroExpr -> return ZeroValue
-            is AllExpr -> return AllValue(eval(expression.charsToRepeat).asString().valueWithoutPadding)
+            is AllExpr -> return AllValue(eval(expression.charsToRepeat).asString().value)
             is TranslateExpr -> {
-                val originalChars = eval(expression.from).asString().valueWithoutPadding
-                val newChars = eval(expression.to).asString().valueWithoutPadding
+                val originalChars = eval(expression.from).asString().value
+                val newChars = eval(expression.to).asString().value
                 val start = eval(expression.startPos).asInt().value.toInt()
-                val s = eval(expression.string).asString().valueWithoutPadding
+                val s = eval(expression.string).asString().value
                 val pair = s.divideAtIndex(start - 1)
                 var right = pair.second
                 val substitutionMap = mutableMapOf<Char, Char>()
@@ -1292,19 +1295,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 if (expression.start != null) {
                     startIndex = eval(expression.start).asInt().value.toInt()
                 }
-                val value = eval(expression.value).asString().valueWithoutPadding
-                val source = eval(expression.source).asString().valueWithoutPadding
+                val value = eval(expression.value).asString().value
+                val source = eval(expression.source).asString().value
                 val result = source.indexOf(value, startIndex)
                 return IntValue(if (result == -1) 0 else result.toLong() + 1)
             }
             is SubstExpr -> {
-                val length = if (expression.length != null) eval(expression.length).asInt().value.toInt() else null
+                val length = if (expression.length != null) eval(expression.length).asInt().value.toInt() else 0
                 val start = eval(expression.start).asInt().value.toInt() - 1
                 val originalString = eval(expression.string).asString().value
-                return if (length == null) {
-                    StringValue(originalString.substring(start))
+                return if (length == 0) {
+                    StringValue(originalString.padEnd(start + 1).substring(start))
                 } else {
-                    StringValue(originalString.substring(start, start + length))
+                    StringValue(originalString.padEnd(start + length + 1).substring(start, start + length))
                 }
             }
             is LenExpr -> {
@@ -1403,10 +1406,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is TrimrExpr -> {
                 return if (expression.charactersToTrim == null) {
-                    StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
+                    StringValue(eval(expression.value).asString().value.trimEnd())
                 } else {
                     val suffix = eval(expression.charactersToTrim).asString().value
-                    var result = eval(expression.value).asString().value.removeNullChars()
+                    var result = eval(expression.value).asString().value
                     while (result.endsWith(suffix)) {
                         result = result.substringBefore(suffix)
                     }
@@ -1415,10 +1418,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is TrimlExpr -> {
                 if (expression.charactersToTrim == null) {
-                    return StringValue(eval(expression.value).asString().value.removeNullChars().trimStart())
+                    return StringValue(eval(expression.value).asString().value.trimStart())
                 } else {
                     val prefix = eval(expression.charactersToTrim).asString().value
-                    var result = eval(expression.value).asString().value.removeNullChars()
+                    var result = eval(expression.value).asString().value
                     while (result.startsWith(prefix)) {
                         result = result.substringAfter(prefix)
                     }
@@ -1426,7 +1429,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
             }
             is TrimExpr -> {
-                return StringValue(eval(expression.value).asString().value.removeNullChars().trim())
+                return StringValue(eval(expression.value).asString().value.trim())
             }
             is FoundExpr -> {
                 // TODO fix this bad implementation
@@ -1522,12 +1525,10 @@ class ReturnException(val returnValue: Value?) : RuntimeException()
 class GotoException(val tag: String) : RuntimeException()
 
 private fun cleanNumericString(s: String): String {
-    val result = s.removeNullChars().moveEndingString("-")
+    val result = s.moveEndingString("-")
     return when {
         result.contains(".") -> result.substringBefore(".")
         result.contains(",") -> result.substringBefore(",")
         else -> result
     }
 }
-
-fun blankValue(size: Int) = StringValue(" ".repeat(size))

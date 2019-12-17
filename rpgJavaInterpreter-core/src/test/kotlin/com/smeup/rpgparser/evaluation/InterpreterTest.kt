@@ -127,7 +127,7 @@ class InterpreterTest {
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                val n = params["ppdat"]!!.asString().valueWithoutPadding.asInt()
+                val n = params["ppdat"]!!.asString().value.asInt()
                 var t1 = 0
                 var t2 = 1
 

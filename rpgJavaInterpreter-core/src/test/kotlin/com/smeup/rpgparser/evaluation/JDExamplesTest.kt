@@ -121,7 +121,7 @@ class JDExamplesTest {
         assertEquals(StringValue("Foo"), interpreter["U\$FUNZ"])
         assertEquals(StringValue("Bar"), interpreter["U\$METO"])
         assertEquals(createArrayValue(StringType(1050), 200) { blankString(1050) }, interpreter["U\$SVARSK"])
-        assertEquals(StringValue(PAD_STRING), interpreter["U\$IN35"])
+        assertEquals(StringValue(" "), interpreter["U\$IN35"])
     }
 
     @Test
@@ -190,9 +190,9 @@ class JDExamplesTest {
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
-                        0 -> "Url".padEnd(50, PAD_CHAR) + "https://xxx.myurl.com".padEnd(1000, PAD_CHAR)
-                        1 -> "x".padEnd(50, PAD_CHAR) + "w".padEnd(1000, PAD_CHAR)
-                        else -> "".padEnd(1050, PAD_CHAR)
+                        0 -> "Url".padEnd(50, ' ') + "https://xxx.myurl.com".padEnd(1000, ' ')
+                        1 -> "x".padEnd(50, ' ') + "w".padEnd(1000, ' ')
+                        else -> "".padEnd(1050, ' ')
                     }.asValue()
                 }), systemInterface = si)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
@@ -273,10 +273,10 @@ class JDExamplesTest {
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
-                        0 -> "Folder".padEnd(50, PAD_CHAR) + "my/path/to/folder".padEnd(1000, PAD_CHAR)
-                        1 -> "Mode".padEnd(50, PAD_CHAR) + "ADD".padEnd(1000, PAD_CHAR)
-                        2 -> "Filter".padEnd(50, PAD_CHAR) + "*.png".padEnd(1000, PAD_CHAR)
-                        else -> "".padEnd(1050, PAD_CHAR)
+                        0 -> "Folder".padEnd(50, ' ') + "my/path/to/folder".padEnd(1000, ' ')
+                        1 -> "Mode".padEnd(50, ' ') + "ADD".padEnd(1000, ' ')
+                        2 -> "Filter".padEnd(50, ' ') + "*.png".padEnd(1000, ' ')
+                        else -> "".padEnd(1050, ' ')
                     }.asValue()
                 }), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
@@ -328,10 +328,10 @@ class JDExamplesTest {
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
-                        0 -> "Folder".padEnd(50, PAD_CHAR) + "my/path/to/folder".padEnd(1000, PAD_CHAR)
-                        1 -> "Mode".padEnd(50, PAD_CHAR) + "ADD".padEnd(1000, PAD_CHAR)
-                        2 -> "Filter".padEnd(50, PAD_CHAR) + "*.png".padEnd(1000, PAD_CHAR)
-                        else -> "".padEnd(1050, PAD_CHAR)
+                        0 -> "Folder".padEnd(50, ' ') + "my/path/to/folder".padEnd(1000, ' ')
+                        1 -> "Mode".padEnd(50, ' ') + "ADD".padEnd(1000, ' ')
+                        2 -> "Filter".padEnd(50, ' ') + "*.png".padEnd(1000, ' ')
+                        else -> "".padEnd(1050, ' ')
                     }.asValue()
                 }), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
@@ -404,10 +404,10 @@ class JDExamplesTest {
                 FunctionParam("index", NumberType(2, 0)),
                 FunctionParam("xml", StringType(5000)))) {
             override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
-                assertEquals("Auto", params[0].asString().valueWithoutPadding)
-                assertEquals("POS", params[1].asString().valueWithoutPadding)
+                assertEquals("Auto", params[0].asString().value)
+                assertEquals("POS", params[1].asString().value)
                 assertEquals(1, params[2].asInt().value)
-                assertEquals("<myxml></myxml>", params[3].asString().valueWithoutPadding)
+                assertEquals("<myxml></myxml>", params[3].asString().value)
                 return StringValue("<riga Targa=\"ZZ000AA\"/>")
             }
         }
@@ -415,8 +415,8 @@ class JDExamplesTest {
                 FunctionParam("Element", StringType(500)),
                 FunctionParam("AttributeName", StringType(50)))) {
             override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
-                assertEquals("<riga Targa=\"ZZ000AA\"/>", params[0].asString().valueWithoutPadding)
-                assertEquals("Targa", params[1].asString().valueWithoutPadding)
+                assertEquals("<riga Targa=\"ZZ000AA\"/>", params[0].asString().value)
+                assertEquals("Targa", params[1].asString().value)
                 return StringValue("ZZ000AA")
             }
         }
@@ -434,8 +434,8 @@ class JDExamplesTest {
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {
-                        0 -> "SOCKET".padEnd(50, PAD_CHAR) + "addressToListenTo".padEnd(1000, PAD_CHAR)
-                        else -> "".padEnd(1050, PAD_CHAR)
+                        0 -> "SOCKET".padEnd(50, ' ') + "addressToListenTo".padEnd(1000, ' ')
+                        else -> "".padEnd(1050, ' ')
                     }.asValue()
                 }),
                 systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))

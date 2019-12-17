@@ -19,7 +19,7 @@ fun typeFor(sqlType: String, columnSize: Int, decimalDigits: Int): Type =
 
 fun Value.toDBValue(): Any =
     when (this) {
-        is StringValue -> this.valueWithoutPadding
+        is StringValue -> this.value
         is IntValue -> this.value
         is DecimalValue -> this.value
         else -> TODO("Conversion to DB Obejct not yet implemented: $this")

@@ -11,11 +11,16 @@ private fun assignStringToString(operationExtender: String?, target: DataRefExpr
     if (factor2 is AllExpr) {
         return interpreterCoreHelper.assign(target, newValue)
     }
+    if (newValue is NumberValue) {
+        newValue = newValue.numberToString()
+    }
     if (factor2.type().size > target.size()) {
         newValue = newValue.takeFirst(target.size().toInt())
     } else if (factor2.type().size < target.size()) {
         val append = if (operationExtender == null) {
-            interpreterCoreHelper.get(target.variable.referred!!).takeLast(target.size().toInt() - factor2.type().size.toInt())
+            val value = interpreterCoreHelper.get(target.variable.referred!!)
+            require(value is StringValue)
+            StringValue.padded(value.value, target.size().toInt()).takeLast(target.size().toInt() - factor2.type().size.toInt())
         } else {
             StringValue.blank(target.size().toInt() - factor2.type().size.toInt())
         }
@@ -39,25 +44,11 @@ private fun NumberValue.numberToString(): Value {
     return StringValue(value)
 }
 
-private fun assignNumberToString(target: DataRefExpr, factor2: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
-    var newValue = (interpreterCoreHelper.interpret(factor2) as NumberValue).numberToString()
-    if (factor2.type().size > target.size()) {
-        newValue = newValue.takeFirst(target.size().toInt())
-    } else if (factor2.type().size < target.size()) {
-        newValue = newValue.concatenate(interpreterCoreHelper.get(target.variable.referred!!).takeLast(target.size().toInt() - factor2.type().size.toInt()))
-    }
-    return interpreterCoreHelper.assign(target, newValue)
-}
-
 fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     require(target is DataRefExpr)
     val valueType = value.type()
-    return if ((valueType is StringType || valueType is FigurativeType) && target.type() is StringType) {
-        assignStringToString(operationExtender, target, value, interpreterCoreHelper)
-    } else if (valueType is NumberType && target.type() is StringType) {
-        assignNumberToString(target, value, interpreterCoreHelper)
-    } else {
-        throw IllegalArgumentException(
-                "Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}")
+    require(target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
+        "Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}"
     }
+    return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
 }

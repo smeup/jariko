@@ -99,7 +99,7 @@ abstract class RpgFacade<P> (
                     val parts = LinkedList<String>()
                     jvmValue!!.javaClass.kotlin.memberProperties.forEach {
                         val stringLength = (it.rpgType() as StringType).length.toInt()
-                        parts.add(propertyStringValue(it, jvmValue).padEnd(stringLength, PAD_CHAR))
+                        parts.add(propertyStringValue(it, jvmValue).padEnd(stringLength, ' '))
                     }
                     return StringValue(parts.joinToString(separator = ""))
                 }

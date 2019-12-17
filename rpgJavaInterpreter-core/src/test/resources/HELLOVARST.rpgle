@@ -15,9 +15,9 @@
      C                   Eval      StrArray(11)= ' l '
      C                   Eval      StrArray(12)= ' d '
      ********
-     C                   For       I = 1 TO 12
-     C                   Eval      StdStr = %TrimR(StdStr) + %Trim(StrArray(I))
-     C                   EndFor
+     C*                  For       I = 1 TO 12
+     C*                  Eval      StdStr = %TrimR(StdStr) + %Trim(StrArray(I))
+     C*                  EndFor
      ********
      C                   For       I = 1 TO 12
      C                   Eval      VarStr = VarStr + %Trim(StrArray(I))
