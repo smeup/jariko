@@ -16,17 +16,17 @@ import kotlin.test.fail
 class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_01_perf_calls() {
+    fun executeMUTE10_01() {
         assertMuteOK("MUTE10_01", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_04_perf_strings() {
+    fun executeMUTE10_04() {
         assertMuteOK("MUTE10_04", withOutput = listOf("Loop 1", "Loop 2", "Loop 3", "Loop 4", "Loop 5", "Loop 6"))
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_04A_perf_strings() {
+    fun executeMUTE10_04A() {
         assertMuteOK("MUTE10_04A", withOutput = listOf("001.1_d01.1_A01.1_c01.1_B01.1_b01.1_C01.1_901.1_101."))
     }
 
@@ -71,12 +71,12 @@ class MUTEExamplesTest {
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_07A_Zoned() {
+    fun executeMUTE10_07A() {
         assertMuteOK("MUTE10_07A", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_07B_Packed() {
+    fun executeMUTE10_07B() {
         assertMuteOK("MUTE10_07B", withOutput = emptyList())
     }
 
