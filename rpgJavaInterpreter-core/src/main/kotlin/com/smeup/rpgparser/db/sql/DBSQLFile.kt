@@ -73,6 +73,18 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         return filterRecord(result)
     }
 
+    override fun readPrevious(): Record {
+        TODO("not implemented")
+    }
+
+    override fun readPrevious(key: Value): Record {
+        TODO("not implemented")
+    }
+
+    override fun readPrevious(keys: List<RecordField>): Record {
+        TODO("not implemented")
+    }
+
     override fun eof(): Boolean = resultSet?.isAfterLast ?: true
 
     override fun chain(key: Value): Record = chain(toFields(key))
