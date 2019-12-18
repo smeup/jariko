@@ -4,6 +4,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.math.BigDecimal
+import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.streams.toList
@@ -23,6 +24,7 @@ abstract class Value {
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
+    open fun compare(other: Value, charset: Charset? = null, descend: Boolean = false): Int = 0
     abstract fun copy(): Value
     fun toArray(nElements: Int, elementType: Type): Value {
         val elements = LinkedList<Value>()
@@ -38,7 +40,16 @@ interface NumberValue {
     val bigDecimal: BigDecimal
 }
 
+//
+class RoundTripCharset {
+    companion object {
+        val charset: Charset = Charset.forName("ISO-8859-1")
+    }
+
+}
+
 data class StringValue(val value: String, val varying: Boolean = false) : Value() {
+
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
@@ -111,6 +122,52 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
             return len
         }
         return value.length
+    }
+
+    override fun compare(other: Value, charset: Charset?, descend: Boolean): Int {
+        require(charset != null)
+        val bs1 = this.value.toByteArray(charset)
+        val bs2 = other.asString().value.toByteArray(charset)
+
+        // It is possible to translate the character codes from the CP 037
+        // charset to ISO 8859-1 character codes, so that translation
+        // back to the CP 037 charset is an exact value-preserving round-trip conversion.
+        val s1 = String(bs1, RoundTripCharset.charset)
+        val s2 = String(bs2, RoundTripCharset.charset)
+
+
+        if(descend) {
+            return s2.compareTo(s1)
+        }
+        return s1.compareTo(s2)
+    }
+}
+
+/**
+ * The charset should be sort of system setting
+ * Cp037    EBCDIC US
+ * Cp0280   EBCDIC ITALIAN
+ * See: https://www.ibm.com/support/knowledgecenter/SSLTBW_2.1.0/com.ibm.zos.v2r1.idad400/ccsids.htm
+ */
+fun sortA(value: Value,charset: Charset) {
+
+    when(value) {
+        is ProjectedArrayValue -> {
+            require(value.field.type is ArrayType)
+            val n = value.arrayLength
+            // the good old Bubble Sort
+            for (i in 1..(value.arrayLength-1)) {
+                for (j in 1..(n-i-1)) {
+                    if (value.getElement(j).compare(value.getElement(j + 1), charset,value.field.descend) > 0) {
+                        // Swap
+                        var tmp = value.getElement(j + 1)
+                        value.setElement(j + 1, value.getElement(j))
+                        value.setElement(j, tmp)
+                    }
+
+                }
+            }
+        }
     }
 }
 
@@ -450,6 +507,9 @@ class ProjectedArrayValue(
 
     override fun getElement(index: Int): Value {
         require(index >= 1) { "Indexes should be >=1. Index asked: $index" }
+        if( index > arrayLength() ) {
+            println()
+        }
         require(index <= arrayLength())
 
         val startIndex = (this.startOffset + this.step * (index - 1)).toInt()
@@ -536,7 +596,7 @@ fun Type.blank(): Value {
  * StringValue wrapper
  */
 
-data class DataStructValue(var value: String) : Value() {
+data class DataStructValue(var value: String,val  len : Int = value.length) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             // Check if the size of the value mathches the expected size within the DS
@@ -601,10 +661,16 @@ data class DataStructValue(var value: String) : Value() {
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
+        // Not clear this requirement
+        if(startOffset >= value.length) {
+            println()
+        }
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
+        //require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
+        // changed to >= a small value fits in a bigger one
+        require(endOffset - startOffset >= substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
         val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
         value = newValue // .replace('\u0000', ' ')
     }
