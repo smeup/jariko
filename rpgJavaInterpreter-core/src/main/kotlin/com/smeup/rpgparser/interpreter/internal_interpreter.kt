@@ -13,6 +13,7 @@ import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
+import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeoutException
@@ -77,6 +78,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private val predefinedIndicators = HashMap<Int, Value>()
     // TODO default value DECEDIT can be changed
     var decedit: String = "."
+    // TODO default value CHARSET can be changed
+    val charset = Charset.forName("Cp037")
 
     var interpretationContext: InterpretationContext = DummyInterpretationContext
     private val klists = HashMap<String, List<String>>()
@@ -120,11 +123,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     var startOffset = data.startOffset
                     var size = data.endOffset - data.startOffset
 
-                    // It should copy the number of elements in the value
-                    // for (i in 1..data.declaredArrayInLine!!) {
-
-                    for (i in 1..Math.min(value.asArray().arrayLength(),data.declaredArrayInLine!!) ) {
-                        val valueToAssign = value.asArray().getElement(i)
+                    //for (i in 1..data.declaredArrayInLine!!) {
+                    // If the size of the arrays are different
+                    val maxElements = Math.min(value.asArray().arrayLength(),data.declaredArrayInLine!!)
+                    for (i in 1..maxElements) {
+                        // Added coerce
+                        val valueToAssign = coerce(value.asArray().getElement(i),data.type.asArray().element)
                         dataStructValue.setSubstring(startOffset, startOffset + size,
                                 data.type.asArray().element.toDataStructureValue(valueToAssign))
                         startOffset += data.stepSize.toInt()
@@ -206,14 +210,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         else -> null
                     }
                 }
-//              Attempt to fix issue on CTDATA
-//                val ctdata = compilationUnit.compileTimeArray(it.name);
-//                if(ctdata.name == it.name) {
-//                    val xx = toArrayValue(
-//                            compilationUnit.compileTimeArray(it.name),
-//                            (it.type as ArrayType))
-//                    set(it,xx)
-//                }
+              // Attempt to fix issue on CTDATA
+                val ctdata = compilationUnit.compileTimeArray(it.name);
+                if(ctdata.name == it.name) {
+                    val xx = toArrayValue(
+                            compilationUnit.compileTimeArray(it.name),
+                            (it.type as ArrayType))
+                    set(it,xx)
+                }
 
                 if (value != null) {
                     set(it, coerce(value, it.type))
@@ -229,8 +233,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
+        // It is not clear why the compileTimeRecordsPerLine on the array type is null
+        // probably it is an error during the ast processing.
+        // as workaround, if null assumes the number of lines in the compile compileTimeArray
+        // as value for compileTimeRecordsPerLine
+        var lines = if(arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
         val l: MutableList<Value> =
-            compileTimeArray.lines.chunkAs(arrayType.compileTimeRecordsPerLine!!, arrayType.element.size.toInt())
+            compileTimeArray.lines.chunkAs(lines, arrayType.element.size.toInt())
                 .map {
                     coerce(StringValue(it), arrayType.element)
                 }
@@ -843,6 +852,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is GotoStmt -> {
                     throw GotoException(statement.tag)
                 }
+                is SortAStmt -> {
+                    sortA( interpret(statement.target),charset)
+                }
                 else -> TODO(statement.toString())
             }
         } catch (e: ReturnException) {
@@ -1118,7 +1130,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is QualifiedAccessExpr -> {
                 val container = eval(target.container) as DataStructValue
                 container[target.field.referred!!]
-                container.set(target.field.referred!!,value)
+                container.set(target.field.referred!!, coerce(value,target.field.referred!!.type))
                 return value
             }
             is PredefinedIndicatorExpr -> {
@@ -1641,6 +1653,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             else -> dataDefinition.type.blank()
         }
     }
+
 }
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
