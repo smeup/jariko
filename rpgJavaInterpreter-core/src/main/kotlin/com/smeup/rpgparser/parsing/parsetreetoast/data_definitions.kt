@@ -112,6 +112,7 @@ internal fun RpgParser.DspecContext.toAst(
     var elementsPerLineExpression: Expression? = null
     var compileTimeArray = false
 
+
     this.keyword().forEach {
         it.keyword_like()?.let {
             like = it.simpleExpression().toAst(conf) as AssignableExpression
@@ -286,6 +287,7 @@ data class FieldInfo(
     // D AR01                                DIM(100) ASCEND
     var explicitElementType: Type? = null,
     val initializationValue: Expression? = null,
+    val descend : Boolean = false,
     val position: Position?
 ) {
 
@@ -337,6 +339,7 @@ data class FieldInfo(
                 calculatedStartOffset = if (this.explicitStartOffset != null) null else this.startOffset,
                 calculatedEndOffset = if (this.explicitEndOffset != null) null else this.endOffset,
                 initializationValue = this.initializationValue,
+                descend = this.descend,
                 position = if (conf.considerPosition) this.position else null,
                 declaredArrayInLineOnThisField = arraySizeDeclaredOnThisField)
     }
@@ -471,6 +474,9 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
 
         var overlayInfo: FieldInfo.OverlayInfo? = null
         val overlay = this.keyword().find { it.keyword_overlay() != null }
+        // Set the SORTA order
+        val descend  = this.keyword().find { it.keyword_descend() != null } != null
+
         if (overlay != null) {
             val fieldName = this.name
             val pos = overlay.keyword_overlay().pos
@@ -495,6 +501,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                 arraySizeDeclared = this.arraySizeDeclared(),
                 arraySizeDeclaredOnThisField = this.arraySizeDeclared(),
                 initializationValue = initializationValue,
+                descend = descend,
                 position = this.toPosition(conf.considerPosition))
     } catch (e: Exception) {
         throw RuntimeException("Problem arose converting to AST field ${this.name}", e)
@@ -669,6 +676,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     val fieldsList = calculateFieldInfos()
     val type: Type = this.type(size, fieldsList, conf)
     val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
+
     val dataDefinition = DataDefinition(
             this.name,
             type,

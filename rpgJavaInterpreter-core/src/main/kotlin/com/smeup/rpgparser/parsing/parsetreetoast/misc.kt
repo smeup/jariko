@@ -698,7 +698,8 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 
 
 internal fun CsSORTAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SortAStmt {
-    return SortAStmt(this.fixedexpression.expression().text,toPosition(conf.considerPosition))
+    val expr  = this.fixedexpression.expression().toAst(conf);
+    return SortAStmt(expr,toPosition(conf.considerPosition))
 }
 internal fun ResultIndicatorContext.asIndex(): Int? {
     // TODO: verify if we should cover other cases (e.g. external indicators)
