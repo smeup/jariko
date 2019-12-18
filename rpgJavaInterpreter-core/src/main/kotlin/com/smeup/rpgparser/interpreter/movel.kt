@@ -20,7 +20,7 @@ private fun assignStringToString(operationExtender: String?, target: DataRefExpr
         val append = if (operationExtender == null) {
             val value = interpreterCoreHelper.get(target.variable.referred!!)
             require(value is StringValue)
-            StringValue.padded(value.value, target.size()).takeLast(target.size() - factor2.type().size.toInt())
+            StringValue.padded(value.value, target.size()).takeLast(target.size() - factor2.type().size)
         } else {
             StringValue.blank(target.size() - factor2.type().size)
         }

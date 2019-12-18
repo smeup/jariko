@@ -511,7 +511,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                     }
                     // TODO this toAst causes issues in case of overlays
                     val elementSize = currFieldInfo.toAst(0, this).type.elementSize()
-                    sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) + elementSize.toInt()
+                    sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) + elementSize
                 }
             }
         }
