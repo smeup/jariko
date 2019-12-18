@@ -169,10 +169,10 @@ fun Type.toDataStructureValue(value: Value): StringValue {
             }
             return StringValue(sb.toString())
         }
-        is BooleanType ->  {
-            if((value as BooleanValue).value)
+        is BooleanType -> {
+            if ((value as BooleanValue).value)
                 return StringValue("1")
-            return  StringValue("0")
+            return StringValue("0")
         }
         else -> TODO("Conversion to data struct value not implemented for $this")
     }
@@ -190,7 +190,7 @@ data class FieldDefinition(
     @property:Link
     var overriddenContainer: DataDefinition? = null,
     val initializationValue: Expression? = null,
-    val descend : Boolean = false,
+    val descend: Boolean = false,
     override val position: Position? = null,
 
     // true when the FieldDefinition contains a DIM keyword on its line

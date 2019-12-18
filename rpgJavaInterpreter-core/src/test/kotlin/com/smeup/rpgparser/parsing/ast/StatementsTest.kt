@@ -9,7 +9,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.collectByType
-import org.junit.Ignore
 import kotlin.test.assertEquals
 import org.junit.Test as test
 

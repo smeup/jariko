@@ -123,12 +123,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     var startOffset = data.startOffset
                     var size = data.endOffset - data.startOffset
 
-                    //for (i in 1..data.declaredArrayInLine!!) {
+                    // for (i in 1..data.declaredArrayInLine!!) {
                     // If the size of the arrays are different
-                    val maxElements = Math.min(value.asArray().arrayLength(),data.declaredArrayInLine!!)
+                    val maxElements = Math.min(value.asArray().arrayLength(), data.declaredArrayInLine!!)
                     for (i in 1..maxElements) {
                         // Added coerce
-                        val valueToAssign = coerce(value.asArray().getElement(i),data.type.asArray().element)
+                        val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
                         dataStructValue.setSubstring(startOffset, startOffset + size,
                                 data.type.asArray().element.toDataStructureValue(valueToAssign))
                         startOffset += data.stepSize.toInt()
@@ -198,7 +198,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         blankValue(it)
                         it.fields.forEach { field ->
                             if (field.initializationValue != null) {
-                                val fieldValue = coerce( interpret(field.initializationValue) , field.type)
+                                val fieldValue = coerce(interpret(field.initializationValue), field.type)
                                 (value as DataStructValue).set(field, fieldValue)
                             }
                         }
@@ -210,13 +210,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         else -> null
                     }
                 }
-              // Attempt to fix issue on CTDATA
-                val ctdata = compilationUnit.compileTimeArray(it.name);
-                if(ctdata.name == it.name) {
+                // Fix issue on CTDATA
+                val ctdata = compilationUnit.compileTimeArray(it.name)
+                if (ctdata.name == it.name) {
                     val xx = toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
                             (it.type as ArrayType))
-                    set(it,xx)
+                    set(it, xx)
                 }
 
                 if (value != null) {
@@ -237,7 +237,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         // probably it is an error during the ast processing.
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
-        var lines = if(arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
+        var lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
         val l: MutableList<Value> =
             compileTimeArray.lines.chunkAs(lines, arrayType.element.size.toInt())
                 .map {
@@ -435,7 +435,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         when (it) {
                             is DataWrapUpIndicatorExpr -> interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
                             is PredefinedIndicatorExpr -> {
-                                if( statement.valueSet.name == "ON" ) {
+                                if (statement.valueSet.name == "ON") {
                                     predefinedIndicators[it.index] = BooleanValue.TRUE
                                 } else {
                                     predefinedIndicators[it.index] = BooleanValue.FALSE
@@ -853,7 +853,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     throw GotoException(statement.tag)
                 }
                 is SortAStmt -> {
-                    sortA( interpret(statement.target),charset)
+                    sortA(interpret(statement.target), charset)
                 }
                 else -> TODO(statement.toString())
             }
@@ -1130,7 +1130,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is QualifiedAccessExpr -> {
                 val container = eval(target.container) as DataStructValue
                 container[target.field.referred!!]
-                container.set(target.field.referred!!, coerce(value,target.field.referred!!.type))
+                container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
                 return value
             }
             is PredefinedIndicatorExpr -> {
@@ -1653,7 +1653,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             else -> dataDefinition.type.blank()
         }
     }
-
 }
 
 private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {

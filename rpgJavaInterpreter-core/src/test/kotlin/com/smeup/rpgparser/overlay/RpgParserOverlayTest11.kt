@@ -14,7 +14,6 @@ import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 
-
 class RpgParserOverlayTest11 {
 
     @Test
@@ -74,7 +73,6 @@ class RpgParserOverlayTest11 {
         }
     }
 
-
     @Test
     fun parseMUTE11_16_syntax() {
         assertCanBeParsed("overlay/MUTE11O16", withMuteSupport = true)
@@ -84,7 +82,6 @@ class RpgParserOverlayTest11 {
     fun parseMUTE11_16_ast() {
         assertASTCanBeProduced("overlay/MUTE11O16", considerPosition = true, withMuteSupport = true)
     }
-
 
     @Test
     fun parseMUTE11_16_runtime() {

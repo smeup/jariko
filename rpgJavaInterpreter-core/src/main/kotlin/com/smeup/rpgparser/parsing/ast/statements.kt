@@ -416,6 +416,4 @@ data class ForStmt(
  * For an array data structure, the keyed-ds-array operand is a qualified name consisting
  * of the array to be sorted followed by the subfield to be used as a key for the sort.
  */
-data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
-
-}
+data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position)

@@ -112,7 +112,6 @@ internal fun RpgParser.DspecContext.toAst(
     var elementsPerLineExpression: Expression? = null
     var compileTimeArray = false
 
-
     this.keyword().forEach {
         it.keyword_like()?.let {
             like = it.simpleExpression().toAst(conf) as AssignableExpression
@@ -287,7 +286,7 @@ data class FieldInfo(
     // D AR01                                DIM(100) ASCEND
     var explicitElementType: Type? = null,
     val initializationValue: Expression? = null,
-    val descend : Boolean = false,
+    val descend: Boolean = false,
     val position: Position?
 ) {
 
@@ -300,7 +299,7 @@ data class FieldInfo(
     // of the array
     val endOffsetIncludingAllElement: Int?
         get() = if (endOffset == null) null else if (this.arraySizeDeclared == null) endOffset!! else {
-            (startOffset!! + (elementSize!! *arraySizeDeclared!!)).toInt()
+            (startOffset!! + (elementSize!! * arraySizeDeclared!!)).toInt()
         }
 
     var calculatedElementSize: Long? = null
@@ -475,7 +474,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
         var overlayInfo: FieldInfo.OverlayInfo? = null
         val overlay = this.keyword().find { it.keyword_overlay() != null }
         // Set the SORTA order
-        val descend  = this.keyword().find { it.keyword_descend() != null } != null
+        val descend = this.keyword().find { it.keyword_descend() != null } != null
 
         if (overlay != null) {
             val fieldName = this.name

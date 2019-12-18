@@ -45,7 +45,6 @@ class RoundTripCharset {
     companion object {
         val charset: Charset = Charset.forName("ISO-8859-1")
     }
-
 }
 
 data class StringValue(val value: String, val varying: Boolean = false) : Value() {
@@ -92,7 +91,7 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
     }
 
     override fun asBoolean(): BooleanValue {
-        if(value == "1") {
+        if (value == "1") {
             return BooleanValue(true)
         }
         return BooleanValue(false)
@@ -135,8 +134,7 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
         val s1 = String(bs1, RoundTripCharset.charset)
         val s2 = String(bs2, RoundTripCharset.charset)
 
-
-        if(descend) {
+        if (descend) {
             return s2.compareTo(s1)
         }
         return s1.compareTo(s2)
@@ -149,22 +147,21 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
  * Cp0280   EBCDIC ITALIAN
  * See: https://www.ibm.com/support/knowledgecenter/SSLTBW_2.1.0/com.ibm.zos.v2r1.idad400/ccsids.htm
  */
-fun sortA(value: Value,charset: Charset) {
+fun sortA(value: Value, charset: Charset) {
 
-    when(value) {
+    when (value) {
         is ProjectedArrayValue -> {
             require(value.field.type is ArrayType)
             val n = value.arrayLength
             // the good old Bubble Sort
-            for (i in 1..(value.arrayLength-1)) {
-                for (j in 1..(n-i-1)) {
-                    if (value.getElement(j).compare(value.getElement(j + 1), charset,value.field.descend) > 0) {
+            for (i in 1..(value.arrayLength - 1)) {
+                for (j in 1..(n - i - 1)) {
+                    if (value.getElement(j).compare(value.getElement(j + 1), charset, value.field.descend) > 0) {
                         // Swap
                         var tmp = value.getElement(j + 1)
                         value.setElement(j + 1, value.getElement(j))
                         value.setElement(j, tmp)
                     }
-
                 }
             }
         }
@@ -507,7 +504,7 @@ class ProjectedArrayValue(
 
     override fun getElement(index: Int): Value {
         require(index >= 1) { "Indexes should be >=1. Index asked: $index" }
-        if( index > arrayLength() ) {
+        if (index > arrayLength()) {
             println()
         }
         require(index <= arrayLength())
@@ -596,7 +593,7 @@ fun Type.blank(): Value {
  * StringValue wrapper
  */
 
-data class DataStructValue(var value: String,val  len : Int = value.length) : Value() {
+data class DataStructValue(var value: String, val len: Int = value.length) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             // Check if the size of the value mathches the expected size within the DS
@@ -662,13 +659,13 @@ data class DataStructValue(var value: String,val  len : Int = value.length) : Va
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
         // Not clear this requirement
-        if(startOffset >= value.length) {
+        if (startOffset >= value.length) {
             println()
         }
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        //require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
+        // require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
         // changed to >= a small value fits in a bigger one
         require(endOffset - startOffset >= substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
         val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)

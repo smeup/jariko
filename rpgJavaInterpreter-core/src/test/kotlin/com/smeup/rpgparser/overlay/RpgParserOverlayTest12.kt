@@ -15,7 +15,6 @@ import com.smeup.rpgparser.parsing.ast.FunctionCall
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.strumenta.kolasu.model.collectByType
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -128,8 +127,6 @@ class RpgParserOverlayTest12 {
         assertEquals(206, ds.type.elementSize())
         assertEquals(206, ds.elementSize())
 
-
-
         // Data structure £40FDS
         val fds = ast.getDataDefinition("£40FDS")
         assertEquals(7095, fds.type.elementSize())
@@ -164,8 +161,6 @@ class RpgParserOverlayTest12 {
 
         val fto = fds.getFieldByName("£40FTO")
         assertEquals(ArrayType(StringType(12), 500), fto.type)
-
-
     }
 
     @Test
@@ -295,6 +290,5 @@ class RpgParserOverlayTest12 {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
-
     }
 }

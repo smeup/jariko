@@ -12,7 +12,6 @@ import com.smeup.rpgparser.rgpinterop.RpgSystem
 import org.junit.Test
 import java.io.File
 
-
 public class RpgParserOverlayTest03 {
 
     @Test
