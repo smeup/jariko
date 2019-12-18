@@ -99,7 +99,7 @@ abstract class RpgFacade<P> (
                     val parts = LinkedList<String>()
                     jvmValue!!.javaClass.kotlin.memberProperties.forEach {
                         val stringLength = (it.rpgType() as StringType).length.toInt()
-                        parts.add(propertyStringValue(it, jvmValue).padEnd(stringLength, PAD_CHAR))
+                        parts.add(propertyStringValue(it, jvmValue).padEnd(stringLength, ' '))
                     }
                     return StringValue(parts.joinToString(separator = ""))
                 }
@@ -139,11 +139,11 @@ abstract class RpgFacade<P> (
 private fun KType.toRpgType(size: Size? = null): Type {
     return when {
         this.classifier == String::class -> {
-            StringType(size!!.size.toLong())
+            StringType(size!!.size.toLong(), false)
         }
         this.classifier is KClass<*> -> {
             val length = (this.classifier as KClass<*>).memberProperties.map { it.rpgLength() }.foldRight(0L) { it, acc -> it + acc }
-            StringType(length)
+            StringType(length, false)
         }
         else -> TODO("$this")
     }

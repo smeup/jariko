@@ -3,10 +3,6 @@ package com.smeup.rpgparser.interpreter
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.streams.toList
-
-const val PAD_CHAR = '\u0000'
-const val PAD_STRING = PAD_CHAR.toString()
 
 abstract class Value {
     open fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
@@ -51,27 +47,32 @@ data class StringValue(var value: String) : Value() {
         require(other is StringValue) {
             "Cannot concatenate $value to $other"
         }
-        return StringValue(value.removeNullChars() + other.value)
+        return StringValue(value + other.value)
     }
 
-    val valueWithoutPadding: String
-        get() = value.removeNullChars()
-
     companion object {
-        fun blank(length: Int) = StringValue(PAD_STRING.repeat(length))
-        fun padded(value: String, size: Int) = StringValue(value.padEnd(size, PAD_CHAR))
+        fun blank(length: Int) = StringValue(" ".repeat(length))
+        fun padded(value: String, size: Int) = StringValue(value.padEnd(size, ' '))
     }
 
     override fun equals(other: Any?): Boolean {
         return if (other is StringValue) {
-            this.valueWithoutPadding == other.valueWithoutPadding
+            this.value == other.value
         } else {
             false
         }
     }
 
+    fun pad(size: Int) {
+        value += " ".repeat(size - value.length)
+    }
+
+    fun trimEnd() {
+        value = value.trimEnd()
+    }
+
     override fun hashCode(): Int {
-        return valueWithoutPadding.hashCode()
+        return value.hashCode()
     }
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
@@ -79,9 +80,8 @@ data class StringValue(var value: String) : Value() {
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        require(endOffset - startOffset == substringValue.value.length)
-        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue.replace('\u0000', ' ')
+        substringValue.pad(endOffset - startOffset)
+        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
@@ -94,25 +94,17 @@ data class StringValue(var value: String) : Value() {
     }
 
     override fun toString(): String {
-        return "StringValue[${value.length}]($valueWithoutPadding)"
+        return "StringValue[${value.length}]($value)"
     }
 
     override fun asString() = this
+
     fun isBlank(): Boolean {
-        return this.valueWithoutPadding.isBlank()
+        return this.value.isBlank()
     }
 
     override fun render(): String {
-        return valueWithoutPadding
-    }
-}
-
-fun String.removeNullChars(): String {
-    val firstNullChar = this.chars().toList().indexOfFirst { it == 0 }
-    return if (firstNullChar == -1) {
-        this
-    } else {
-        this.substring(0, firstNullChar)
+        return value
     }
 }
 
@@ -427,7 +419,7 @@ class ProjectedArrayValue(val container: ArrayValue, val field: FieldDefinition)
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
 
-fun blankString(length: Int) = StringValue(PAD_STRING.repeat(length))
+fun blankString(length: Int) = StringValue(" ".repeat(length))
 
 fun Long.asValue() = IntValue(this)
 
@@ -528,17 +520,13 @@ data class DataStructValue(var value: String) : Value() {
         return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type.element)
     }
 
-    val valueWithoutPadding: String
-        get() = value.removeNullChars()
-
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
         require(startOffset <= value.length)
         require(endOffset >= startOffset)
         require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
-        require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
-        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue.replace('\u0000', ' ')
+        substringValue.pad(endOffset - startOffset)
+        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
@@ -551,15 +539,16 @@ data class DataStructValue(var value: String) : Value() {
     }
 
     companion object {
-        fun blank(length: Int) = DataStructValue(PAD_STRING.repeat(length))
+        fun blank(length: Int) = DataStructValue(" ".repeat(length))
     }
 
     override fun toString(): String {
-        return "DataStructureValue[${value.length}]($valueWithoutPadding)"
+        return "DataStructureValue[${value.length}]($value)"
     }
 
     override fun asString() = StringValue(this.value)
+
     fun isBlank(): Boolean {
-        return this.valueWithoutPadding.isBlank()
+        return this.value.isBlank()
     }
 }

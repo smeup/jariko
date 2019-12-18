@@ -80,7 +80,7 @@ fun String?.asDouble(): Double {
 
 fun String.asBigDecimal(): BigDecimal? =
     try {
-        BigDecimal(this)
+        BigDecimal(this.trim())
     } catch (e: Exception) {
         null
     }
@@ -91,7 +91,7 @@ fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this)
 fun Any?.asNonNullString(): String = this?.toString() ?: ""
 
 fun String.moveEndingString(s: String): String =
-        if (this.endsWith(s)) {
+        if (this.trimEnd().endsWith(s)) {
             s + this.substringBefore(s)
         } else {
             this

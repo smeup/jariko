@@ -105,6 +105,7 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
     var initializationValue: Expression? = null
     var elementsPerLineExpression: Expression? = null
     var compileTimeArray = false
+    var varying = false
 
     this.keyword().forEach {
         it.keyword_like()?.let {
@@ -122,6 +123,9 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
         it.keyword_ctdata()?.let {
             compileTimeArray = true
         }
+        it.keyword_varying()?.let {
+            varying = true
+        }
     }
     val elementSize = when {
         like != null -> conf.compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!)
@@ -134,9 +138,9 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
             /* TODO should be packed? */
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
-            StringType(elementSize!!.toLong())
+            StringType(elementSize!!.toLong(), varying)
         }
-        "A" -> StringType(elementSize!!.toLong())
+        "A" -> StringType(elementSize!!.toLong(), varying)
         "N" -> BooleanType
         "Z" -> TimeStampType
         /* TODO should be zoned? */
@@ -349,6 +353,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
     val precision = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
     val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
     val isPackEven = keyword().any { it.keyword_packeven() != null }
+    val isVarying = keyword().any { it.keyword_varying() != null }
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
     val explicitElementSize = when {
@@ -362,7 +367,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
-                StringType((explicitElementSize ?: precision)!!.toLong())
+                StringType((explicitElementSize ?: precision)!!.toLong(), isVarying)
             } else {
                 val es = explicitElementSize ?: precision!!
                 NumberType(es - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
@@ -556,7 +561,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                 it.calculatedElementSize = lastOffset
 
                 if (it.explicitElementType == null) {
-                    it.calculatedElementType = StringType(it.calculatedElementSize!!)
+                    it.calculatedElementType = StringType(it.calculatedElementSize!!, false)
                 }
                 if (it.endOffset == null) {
                     it.endOffset = (it.startOffset!! + it.elementType.size).toInt()

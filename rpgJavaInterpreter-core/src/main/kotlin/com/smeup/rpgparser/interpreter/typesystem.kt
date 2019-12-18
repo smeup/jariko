@@ -55,7 +55,7 @@ data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) 
         get() = elementSize.toLong()
 }
 
-data class StringType(val length: Long) : Type() {
+data class StringType(val length: Long, val varying: Boolean = false) : Type() {
     override val size: Long
         get() = length
 }
@@ -158,7 +158,7 @@ fun Expression.type(): Type {
             this.variable.referred!!.type
         }
         is StringLiteral -> {
-            StringType(this.value.length.toLong())
+            StringType(this.value.length.toLong(), true) // TODO verify if varying has to be true or false here
         }
         is IntLiteral -> {
             NumberType(BigDecimal.valueOf(this.value).precision(), decimalDigits = 0)
