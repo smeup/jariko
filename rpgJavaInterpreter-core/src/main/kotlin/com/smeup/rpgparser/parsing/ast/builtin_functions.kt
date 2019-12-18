@@ -82,7 +82,7 @@ data class SubstExpr(
         val len = if (length != null) ": ${length.render()}" else ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
     }
-    override fun size(): Long {
+    override fun size(): Int {
         TODO("size")
     }
 }

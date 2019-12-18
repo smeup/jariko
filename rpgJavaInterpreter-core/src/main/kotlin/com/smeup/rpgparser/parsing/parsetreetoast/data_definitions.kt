@@ -138,9 +138,9 @@ internal fun RpgParser.DspecContext.toAst(conf: ToAstConfiguration = ToAstConfig
             /* TODO should be packed? */
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
-            StringType(elementSize!!.toLong(), varying)
+            StringType(elementSize!!, varying)
         }
-        "A" -> StringType(elementSize!!.toLong(), varying)
+        "A" -> StringType(elementSize!!, varying)
         "N" -> BooleanType
         "Z" -> TimeStampType
         /* TODO should be zoned? */
@@ -273,13 +273,13 @@ data class FieldInfo(
     var startOffset: Int? = explicitStartOffset // these are mutable as they can be calculated using next
     var endOffset: Int? = explicitEndOffset // these are mutable as they can be calculated using next
 
-    var calculatedElementSize: Long? = null
+    var calculatedElementSize: Int? = null
     var calculatedElementType: Type? = null
 
-    val elementSize: Long?
+    val elementSize: Int?
         get() = explicitElementSize ?: calculatedElementSize
 
-    val explicitElementSize: Long?
+    val explicitElementSize: Int?
         get() = explicitElementType?.size
 
     val elementType: Type
@@ -367,7 +367,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(): Type? {
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
-                StringType((explicitElementSize ?: precision)!!.toLong(), isVarying)
+                StringType((explicitElementSize ?: precision)!!, isVarying)
             } else {
                 val es = explicitElementSize ?: precision!!
                 NumberType(es - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
@@ -557,7 +557,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                 check(overlayingFields.isNotEmpty()) { "I cannot calculate the size of ${it.name} from the overlaying fields as there are none" }
                 val overlayingFieldsWithoutEndOffset = overlayingFields.filter { it.endOffset == null }
                 check(overlayingFieldsWithoutEndOffset.isEmpty()) { "I cannot calculate the size of ${it.name} because it should be determined by the fields overlaying on it, but for some I do not know the end offset. They are: ${overlayingFieldsWithoutEndOffset.joinToString(separator = ", ") { it.name }}" }
-                val lastOffset = overlayingFields.map { it.endOffset!! }.max()!!.toLong()
+                val lastOffset = overlayingFields.map { it.endOffset!! }.max()!!
                 it.calculatedElementSize = lastOffset
 
                 if (it.explicitElementType == null) {
@@ -592,7 +592,7 @@ class FieldsList(val fields: List<FieldInfo>) {
             if (field.endOffset == null) {
                 if (field.overlayInfo == null) {
                     if (field.startOffset != null && field.elementSize != null) {
-                        field.endOffset = (field.startOffset!! + field.elementSize!!).toInt()
+                        field.endOffset = (field.startOffset!! + field.elementSize!!)
                     }
                 }
             }

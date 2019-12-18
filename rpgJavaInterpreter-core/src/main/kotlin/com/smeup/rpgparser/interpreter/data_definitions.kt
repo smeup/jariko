@@ -80,14 +80,14 @@ data class DataDefinition(
                 require(start >= 0)
                 return start
             }
-            start += f.elementSize().toInt()
+            start += f.elementSize()
         }
         throw IllegalArgumentException("Unknown field $fieldDefinition")
     }
 
     @Deprecated("The end offset should be calculated before defining the FieldDefinition")
     fun endOffset(fieldDefinition: FieldDefinition): Int {
-        return (startOffset(fieldDefinition) + fieldDefinition.elementSize()).toInt()
+        return (startOffset(fieldDefinition) + fieldDefinition.elementSize())
     }
 
     fun getFieldByName(fieldName: String): FieldDefinition {
@@ -110,26 +110,26 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                     // Transform the numeric to an encoded string
                     val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, this.decimalDigits)
                     // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size.toInt())
+                    val fitted = encoded.padEnd(this.size)
                     StringValue(fitted)
                 } else {
                     // Transform the numeric to an encoded string
                     val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, 0)
                     // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size.toInt())
+                    val fitted = encoded.padEnd(this.size)
                     StringValue(fitted)
                 }
             }
             if (this.rpgType == RpgType.INTEGER.rpgType) {
                 // Transform the integer to an encoded string
-                val encoded = encodeInteger(value.asDecimal().value, this.size.toInt())
-                val fitted = encoded.padEnd(this.size.toInt())
+                val encoded = encodeInteger(value.asDecimal().value, this.size)
+                val fitted = encoded.padEnd(this.size)
                 return StringValue(fitted)
             }
             if (this.rpgType == RpgType.UNSIGNED.rpgType) {
                 // Transform the unsigned to an encoded string
-                val encoded = encodeUnsigned(value.asDecimal().value, this.size.toInt())
-                val fitted = encoded.padEnd(this.size.toInt())
+                val encoded = encodeUnsigned(value.asDecimal().value, this.size)
+                val fitted = encoded.padEnd(this.size)
                 return StringValue(fitted)
             }
             // To date only 2 and 4 bytes are supported
@@ -142,7 +142,7 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                 }
                 val encoded = encodeBinary(value.asDecimal().value, len)
                 // adjust the size to fit the target field
-                val fitted = encoded.padEnd(this.size.toInt())
+                val fitted = encoded.padEnd(this.size)
                 return StringValue(fitted)
             }
             TODO("Not implemented $this")
@@ -179,7 +179,7 @@ data class FieldDefinition(
         }
     }
 
-    val size: Long = type.size
+    val size: Int = type.size
 
     fun toDataStructureValue(value: Value) = type.toDataStructureValue(value)
 
