@@ -190,6 +190,7 @@ data class FieldDefinition(
     @property:Link
     var overriddenContainer: DataDefinition? = null,
     val initializationValue: Expression? = null,
+    val descend : Boolean = false,
     override val position: Position? = null,
 
     // true when the FieldDefinition contains a DIM keyword on its line
