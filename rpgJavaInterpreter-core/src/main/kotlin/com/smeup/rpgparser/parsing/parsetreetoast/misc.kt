@@ -442,7 +442,10 @@ internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
 internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     // TODO implement indicators handling
-    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("SETLL operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: this.factor1Context()?.constant?.toAst(conf)
+    require(factor1 != null) {
+        "SETLL operation requires factor 1: ${this.text} - ${position.atLine()}"
+    }
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
     return SetllStmt(factor1, factor2, position)
 }
