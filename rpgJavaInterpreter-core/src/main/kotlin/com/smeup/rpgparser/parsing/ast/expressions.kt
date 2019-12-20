@@ -138,7 +138,7 @@ data class ExpExpr(var left: Expression, var right: Expression, override val pos
 // /
 
 abstract class AssignableExpression(override val position: Position? = null) : Expression(position) {
-    abstract fun size(): Long
+    abstract fun size(): Int
 }
 
 data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) :
@@ -159,7 +159,7 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
         }
     }
 
-    override fun size(): Long {
+    override fun size(): Int {
         return variable.referred!!.type.size
     }
 
@@ -176,7 +176,7 @@ data class QualifiedAccessExpr(val container: Expression, val field: ReferenceBy
         }
     }
 
-    override fun size(): Long {
+    override fun size(): Int {
         TODO()
     }
 
@@ -188,7 +188,7 @@ data class ArrayAccessExpr(val array: Expression, val index: Expression, overrid
     override fun render(): String {
         return "${this.array.render()}(${index.render()}))"
     }
-    override fun size(): Long {
+    override fun size(): Int {
         TODO("size")
     }
 }

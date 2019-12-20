@@ -12,8 +12,8 @@ fun DBField.sqlType(): String =
 
 fun typeFor(sqlType: String, columnSize: Int, decimalDigits: Int): Type =
     when (sqlType) {
-        "VARCHAR" -> StringType(columnSize.toLong(), true)
-        "CHARACTER" -> StringType(columnSize.toLong(), false)
+        "VARCHAR" -> StringType(columnSize, true)
+        "CHARACTER" -> StringType(columnSize, false)
         "DECIMAL", "INTEGER" -> NumberType(columnSize - decimalDigits, decimalDigits)
         else -> TODO("Conversion from SQL Type not yet implemented: $sqlType")
     }

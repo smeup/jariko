@@ -61,7 +61,7 @@ private fun Value.forType(type: Type): Value {
         if (type.varying) {
             this.trimEnd()
         } else {
-            if (this.value.length < type.length.toInt()) this.pad(type.length.toInt())
+            if (this.value.length < type.length) this.pad(type.length)
         }
     }
     return this
