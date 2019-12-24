@@ -3,13 +3,13 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import java.lang.Exception
 import java.lang.RuntimeException
+import java.lang.StringBuilder
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.streams.toList
 
-const val PAD_CHAR = '\u0000'
+const val PAD_CHAR = ' '
 const val PAD_STRING = PAD_CHAR.toString()
 
 abstract class Value {
@@ -35,19 +35,14 @@ abstract class Value {
     }
 }
 
-interface NumberValue {
-    fun negate(): Value
-    val bigDecimal: BigDecimal
+abstract class NumberValue : Value() {
+    fun isNegative(): Boolean = bigDecimal < BigDecimal.ZERO
+    fun abs(): NumberValue = if (isNegative()) negate() else this
+    abstract fun negate(): NumberValue
+    abstract val bigDecimal: BigDecimal
 }
 
-//
-class RoundTripCharset {
-    companion object {
-        val charset: Charset = Charset.forName("ISO-8859-1")
-    }
-}
-
-data class StringValue(val value: String, val varying: Boolean = false) : Value() {
+data class StringValue(var value: String, val varying: Boolean = false) : Value() {
 
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
@@ -66,28 +61,35 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
     }
 
     override fun concatenate(other: Value): Value {
-        require(other is StringValue)
+        require(other is StringValue) {
+            "Cannot concatenate $value to $other"
+        }
         return StringValue(value + other.value)
     }
 
-    val valueWithoutPadding: String
-        get() = value.removeNullChars()
-
     companion object {
-        fun blank(length: Int) = StringValue(PAD_STRING.repeat(length))
-        fun padded(value: String, size: Int) = StringValue(value.padEnd(size, PAD_CHAR))
+        fun blank(length: Int) = StringValue(" ".repeat(length))
+        fun padded(value: String, size: Int) = StringValue(value.padEnd(size, ' '))
     }
 
     override fun equals(other: Any?): Boolean {
         return if (other is StringValue) {
-            this.valueWithoutPadding == other.valueWithoutPadding
+            this.value == other.value
         } else {
             false
         }
     }
 
+    fun pad(size: Int) {
+        value += " ".repeat(size - value.length)
+    }
+
+    fun trimEnd() {
+        value = value.trimEnd()
+    }
+
     override fun hashCode(): Int {
-        return valueWithoutPadding.hashCode()
+        return value.hashCode()
     }
 
     override fun asBoolean(): BooleanValue {
@@ -96,29 +98,44 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
         }
         return BooleanValue(false)
     }
+
+    fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
+        require(startOffset >= 0)
+        require(startOffset <= value.length)
+        require(endOffset >= startOffset)
+        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
+        substringValue.pad(endOffset - startOffset)
+        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
+    }
+
+    fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
+        require(startOffset >= 0)
+        require(startOffset <= value.length)
+        require(endOffset >= startOffset)
+        require(endOffset <= value.length) { "Asked startOffset=$startOffset, endOffset=$endOffset on string of length ${value.length}" }
+        val s = value.substring(startOffset, endOffset)
+        return StringValue(s)
+    }
     override fun toString(): String {
-        return "StringValue[${value.length}]($valueWithoutPadding)"
+        return "StringValue[${value.length}]($value)"
     }
 
     override fun asString() = this
+
     fun isBlank(): Boolean {
-        return this.valueWithoutPadding.isBlank()
+        return this.value.isBlank()
     }
 
     override fun render(): String {
-        return valueWithoutPadding
+        return value
     }
 
     override fun copy(): StringValue = this
 
     fun length(varying: Boolean = this.varying): Int {
         if (varying) {
-            var len = 0
-            value.forEach {
-                if (it != PAD_CHAR)
-                    len++
-            }
-            return len
+            if (value.isBlank())
+                return 0
         }
         return value.length
     }
@@ -128,11 +145,11 @@ data class StringValue(val value: String, val varying: Boolean = false) : Value(
         val bs1 = this.value.toByteArray(charset)
         val bs2 = other.asString().value.toByteArray(charset)
 
-        // It is possible to translate the character codes from the CP 037
-        // charset to ISO 8859-1 character codes, so that translation
-        // back to the CP 037 charset is an exact value-preserving round-trip conversion.
-        val s1 = String(bs1, RoundTripCharset.charset)
-        val s2 = String(bs2, RoundTripCharset.charset)
+        // It is possible to translate the character codes from the CP 037 charset to ISO 8859-1
+        // character codes, so that translation  back to the CP 037 charset is an
+        // exact value-preserving round-trip conversion.
+        val s1 = String(bs1, Charsets.ISO_8859_1)
+        val s2 = String(bs2, Charsets.ISO_8859_1)
 
         if (descend) {
             return s2.compareTo(s1)
@@ -157,6 +174,10 @@ fun sortA(value: Value, charset: Charset) {
             for (i in 1..(value.arrayLength - 1)) {
                 for (j in 1..(n - i - 1)) {
                     if (value.getElement(j).compare(value.getElement(j + 1), charset, value.field.descend) > 0) {
+                        // TODO support data structure swap
+                        // For an array data structure, the keyed-ds-array operand is a qualified name
+                        // consisting of the array to be sorted followed by the subfield to be used as
+                        // a key for the sort.
                         // Swap
                         var tmp = value.getElement(j + 1)
                         value.setElement(j + 1, value.getElement(j))
@@ -168,28 +189,19 @@ fun sortA(value: Value, charset: Charset) {
     }
 }
 
-fun String.removeNullChars(): String {
-    val firstNullChar = this.chars().toList().indexOfFirst { it == 0 }
-    return if (firstNullChar == -1) {
-        this
-    } else {
-        this.substring(0, firstNullChar)
-    }
-}
-
-data class IntValue(val value: Long) : NumberValue, Value() {
+data class IntValue(val value: Long) : NumberValue() {
 
     private val internalValue = BigDecimal(value)
 
     override val bigDecimal: BigDecimal
         get() = BigDecimal(value)
 
-    override fun negate(): Value = IntValue(-value)
+    override fun negate(): NumberValue = IntValue(-value)
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
         when (expectedType) {
-            is NumberType -> return expectedType is NumberType
+            is NumberType -> return true
             is ArrayType -> {
                 return expectedType.element is NumberType
             }
@@ -228,7 +240,9 @@ data class IntValue(val value: Long) : NumberValue, Value() {
     }
 
     override fun concatenate(other: Value): Value {
-        require(other is IntValue)
+        require(other is IntValue) {
+            "Cannot concatenate $value to $other"
+        }
         return IntValue((value.toString() + other.value.toString()).toLong())
     }
 
@@ -249,17 +263,14 @@ data class IntValue(val value: Long) : NumberValue, Value() {
     override fun copy(): IntValue = this
 }
 
-data class DecimalValue(val value: BigDecimal) : NumberValue, Value() {
+data class DecimalValue(val value: BigDecimal) : NumberValue() {
 
     override val bigDecimal: BigDecimal
         get() = value
 
-    override fun negate(): Value = DecimalValue(-value)
+    override fun negate(): NumberValue = DecimalValue(-value)
 
-    override fun asInt(): IntValue {
-
-        return IntValue(value.toLong())
-    }
+    override fun asInt(): IntValue = IntValue(value.toLong())
 
     override fun asDecimal(): DecimalValue = this
 
@@ -398,7 +409,7 @@ abstract class ArrayValue : Value() {
 }
 
 data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
-    override fun elementSize() = elementType.size.toInt()
+    override fun elementSize() = elementType.size
 
     override fun arrayLength() = elements.size
 
@@ -454,6 +465,10 @@ object HiValValue : Value() {
     override fun copy(): HiValValue = this
 }
 object LowValValue : Value() {
+    override fun copy(): Value {
+        TODO("not implemented")
+    }
+
     override fun toString(): String {
         return "LowValValue"
     }
@@ -462,8 +477,30 @@ object LowValValue : Value() {
         // FIXME
         return true
     }
+}
 
-    override fun copy(): LowValValue = this
+object ZeroValue : Value() {
+    override fun copy(): Value {
+        TODO("not implemented")
+    }
+
+    override fun toString(): String {
+        return "ZeroValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+}
+
+class AllValue(val charsToRepeat: String) : Value() {
+    override fun assignableTo(expectedType: Type): Boolean {
+        // FIXME
+        return true
+    }
+
+    override fun copy(): AllValue = this
 }
 
 /**
@@ -473,7 +510,7 @@ class ProjectedArrayValue(
     val container: DataStructValue,
     val field: FieldDefinition,
     val startOffset: Int,
-    val step: Long,
+    val step: Int,
     val arrayLength: Int
 ) : ArrayValue() {
     override val elementType: Type
@@ -527,7 +564,7 @@ class ProjectedArrayValue(
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
 
-fun blankString(length: Int) = StringValue(PAD_STRING.repeat(length))
+fun blankString(length: Int) = StringValue(" ".repeat(length))
 
 fun Long.asValue() = IntValue(this)
 
@@ -550,16 +587,20 @@ fun Type.blank(dataDefinition: DataDefinition): Value {
                 when (it.type) {
                     is NumberType -> when {
                         it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
-                            var rnd = if (dataDefinition.inz) BigDecimal.ZERO else BigDecimal.ONE.unaryMinus()
-                            ds.set(it, DecimalValue(rnd))
+                            if (dataDefinition.inz) {
+                                ds.set(it, DecimalValue(BigDecimal.ZERO))
+                            } else {
+                                ds.set(it, DecimalValue(BigDecimal.ONE))
+                            }
                         }
                         it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                            var rnd = if (dataDefinition.inz) 0 else (1..9).random()
+                            var rnd = if (dataDefinition.inz) 0 else 1
                             ds.set(it, IntValue(rnd.toLong()))
                         }
                     }
                 }
             }
+
             ds
         }
         is StringType -> StringValue.blank(this.size.toInt())
@@ -568,6 +609,7 @@ fun Type.blank(dataDefinition: DataDefinition): Value {
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
+        is FigurativeType -> BlanksValue
         is LowValType, is HiValType -> TODO()
     }
 }
@@ -578,13 +620,14 @@ fun Type.blank(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) {
             this.element.blank()
         }
-        is DataStructureType -> DataStructValue.blank(this.size.toInt())
-        is StringType -> StringValue.blank(this.size.toInt())
+        is DataStructureType -> DataStructValue.blank(this.size)
+        is StringType -> StringValue.blank(this.size)
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
+        is FigurativeType -> BlanksValue
         is LowValType, is HiValType -> TODO()
     }
 }
@@ -599,7 +642,7 @@ data class DataStructValue(var value: String, val len: Int = value.length) : Val
             // Check if the size of the value mathches the expected size within the DS
             // TO REVIEW
             is DataStructureType -> expectedType.elementSize >= value.length
-            is StringType -> expectedType.size >= this.value.length.toLong()
+            is StringType -> expectedType.size >= this.value.length
             else -> false
         }
     }
@@ -615,7 +658,7 @@ data class DataStructValue(var value: String, val len: Int = value.length) : Val
         try {
             val v = (field.type as ArrayType).element.toDataStructureValue(value)
             val startIndex = field.startOffset
-            val endIndex = field.startOffset + field.elementSize().toInt()
+            val endIndex = field.startOffset + field.elementSize()
             try {
                 this.setSubstring(startIndex, endIndex, v)
             } catch (e: Exception) {
@@ -629,7 +672,7 @@ data class DataStructValue(var value: String, val len: Int = value.length) : Val
     fun set(field: FieldDefinition, value: Value) {
         val v = field.toDataStructureValue(value)
         val startIndex = field.startOffset
-        val endIndex = field.startOffset + field.size.toInt()
+        val endIndex = field.startOffset + field.size
         try {
             this.setSubstring(startIndex, endIndex, v)
         } catch (e: Exception) {
@@ -653,9 +696,6 @@ data class DataStructValue(var value: String, val len: Int = value.length) : Val
         return coerce(this.getSubstring(data.startOffset, data.endOffset), data.type.element)
     }
 
-    val valueWithoutPadding: String
-        get() = value.removeNullChars()
-
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
         // Not clear this requirement
@@ -668,8 +708,8 @@ data class DataStructValue(var value: String, val len: Int = value.length) : Val
         // require(endOffset - startOffset == substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
         // changed to >= a small value fits in a bigger one
         require(endOffset - startOffset >= substringValue.value.length) { "Setting value $substringValue, with length ${substringValue.value.length}, into field of length ${endOffset - startOffset}" }
-        val newValue = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
-        value = newValue // .replace('\u0000', ' ')
+        substringValue.pad(endOffset - startOffset)
+        value = value.substring(0, startOffset) + substringValue.value + value.substring(endOffset)
     }
 
     fun getSubstring(startOffset: Int, endOffset: Int): StringValue {
@@ -682,16 +722,28 @@ data class DataStructValue(var value: String, val len: Int = value.length) : Val
     }
 
     companion object {
-        fun blank(length: Int) = DataStructValue(PAD_STRING.repeat(length))
+        fun blank(length: Int) = DataStructValue(" ".repeat(length))
     }
 
     override fun toString(): String {
-        return "DataStructureValue[${value.length}]($valueWithoutPadding)"
+        return "DataStructureValue[${value.length}]($value)"
     }
 
     override fun asString() = StringValue(this.value)
 
+    // Use this method when need to compare to StringValue
+    fun asStringValue(): String {
+        val builder = StringBuilder()
+        value.forEach {
+            if (it.toInt() < 32 || it.toInt() > 128 || it in '0'..'9')
+                builder.append(' ')
+            else
+                builder.append(it)
+        }
+        return builder.toString()
+    }
+
     fun isBlank(): Boolean {
-        return this.valueWithoutPadding.isBlank()
+        return this.value.isBlank()
     }
 }

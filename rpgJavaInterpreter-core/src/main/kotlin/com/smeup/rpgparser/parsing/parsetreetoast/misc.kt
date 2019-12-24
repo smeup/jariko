@@ -202,10 +202,16 @@ fun literalToNumber(
 }
 
 internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+    val position = toPosition(conf.considerPosition)
     return when {
-        this.SPLAT_HIVAL() != null -> HiValExpr(toPosition(conf.considerPosition))
-        this.SPLAT_LOVAL() != null -> LowValExpr(toPosition(conf.considerPosition))
-        else -> TODO()
+        this.SPLAT_HIVAL() != null -> HiValExpr(position)
+        this.SPLAT_LOVAL() != null -> LowValExpr(position)
+        this.SPLAT_BLANKS() != null -> BlanksRefExpr(position)
+        this.SPLAT_ALL() != null -> {
+            val content: LiteralContext = this.parent.getChild(1) as LiteralContext
+            AllExpr(content.toAst(conf), position)
+        }
+        else -> TODO("$this - ${position?.line()}")
     }
 }
 
@@ -365,30 +371,42 @@ internal fun CsTIMEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
-    return this.factor2?.content?.toAst(conf)
+    if (factor2?.symbolicConstants() != null) {
+        return factor2.symbolicConstants().toAst()
+    }
+    return factor2?.content?.toAst(conf)
 }
 
 internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, position: Position?, conf: ToAstConfiguration): InStatementDataDefinition? {
-    val len = this.len.asLong()
+    val len = this.len.asInt()
     if (len == null) {
         return null
     }
-    val decimals = this.decimalPositions.asLong()
+    val decimals = this.decimalPositions.asInt()
     val initialValue = this.factor2Expression(conf)
     return InStatementDataDefinition(name, dataType(len, decimals), position, initializationValue = initialValue)
 }
 
-private fun dataType(len: Long, decimals: Long?): Type =
+private fun dataType(len: Int, decimals: Int?): Type =
     if (decimals == null) {
-        StringType(len)
+        StringType(len, false)
     } else {
-        NumberType(len.toInt() - decimals.toInt(), decimals.toInt())
+        NumberType(len - decimals, decimals)
     }
 
 internal fun Token.asLong(): Long? {
     val tokenString = this.text.trim()
     return if (tokenString.isNotBlank()) {
         tokenString.toLongOrNull()
+    } else {
+        null
+    }
+}
+
+internal fun Token.asInt(): Int? {
+    val tokenString = this.text.trim()
+    return if (tokenString.isNotBlank()) {
+        tokenString.toIntOrNull()
     } else {
         null
     }
@@ -457,31 +475,27 @@ internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubDurStmt {
+    val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUBDUR operation requires factor 2: ${this.text}")
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUBDUR operation requires factor 2: ${this.text} - ${position.atLine()}")
     // TODO handle duration code after the :
     val target = this.cspec_fixed_standard_parts().result.text.split(":")
-    val position = toPosition(conf.considerPosition)
     return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, position)
 }
 
 internal fun CsCHAINContext.toAst(conf: ToAstConfiguration): Statement {
-    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHAIN operation requires factor 1: ${this.text}")
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("CHAIN operation requires factor 2: ${this.text}")
-    return ChainStmt(
-            factor1,
-            factor2,
-            toPosition(conf.considerPosition))
+    val position = toPosition(conf.considerPosition)
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHAIN operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("CHAIN operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return ChainStmt(factor1, factor2, position)
 }
 
 internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
     val factor1 = this.factor1Context()?.content?.toAst(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
-    return ReadEqualStmt(
-        factor1,
-        factor2,
-        toPosition(conf.considerPosition))
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return ReadEqualStmt(factor1, factor2, position)
 }
 
 internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
@@ -493,18 +507,16 @@ internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
 }
 
 internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
     // TODO implement indicators handling
-    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("SETLL operation requires factor 1: ${this.text}")
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
-    return SetllStmt(
-        factor1,
-        factor2,
-        toPosition(conf.considerPosition))
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("SETLL operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return SetllStmt(factor1, factor2, position)
 }
 
 internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
-    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text}")
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
     val baseStringTokens = this.cspec_fixed_standard_parts().factor2.text.split(":")
     val startPosition =
         when (baseStringTokens.size) {
@@ -522,42 +534,42 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
 }
 
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text}")
-    val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val name = this.cspec_fixed_standard_parts().result.text
     return MoveStmt(DataRefExpr(ReferenceByName(name), position), expression, position)
 }
 
 internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveLStmt {
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text}")
-    val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val name = this.cspec_fixed_standard_parts().result.text
     return MoveLStmt(this.operationExtender?.text, DataRefExpr(ReferenceByName(name), position), expression, position)
 }
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-ADD operation requires factor 2: ${this.text}")
-    val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-ADD operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val name = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZAddStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
 }
 
 internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MultStmt {
+    val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
-    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     return MultStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
 }
 
 internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DivStmt {
+    val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
-    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
@@ -583,27 +595,27 @@ internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
+    val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val left = leftExpr(conf)
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("ADD operation requires factor 2: ${this.text}")
-    val position = toPosition(conf.considerPosition)
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("ADD operation requires factor 2: ${this.text} - ${position.atLine()}")
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return AddStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
 }
 
 internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZSubStmt {
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-SUB operation requires factor 2: ${this.text}")
-    val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val name = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZSubStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
 }
 
 internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubStmt {
+    val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val left = leftExpr(conf)
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text}")
-    val position = toPosition(conf.considerPosition)
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return SubStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
 }
@@ -611,9 +623,9 @@ internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
 internal fun ResultIndicatorContext?.asIntOrNull(): Int? = this?.text?.asIntOrNull()
 
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
-    val left = leftExpr(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 1: ${this.text}")
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text}")
     val position = toPosition(conf.considerPosition)
+    val left = leftExpr(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 1: ${this.text}")
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
     return CompStmt(
         left,
         right,

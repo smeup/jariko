@@ -17,7 +17,7 @@ class DBOrientTest {
         val tableName = "TSTTAB01"
         val formatName = "TSTRECF"
         val fields = listOf(
-            "TSTFLDCHR" withType StringType(5),
+            "TSTFLDCHR" withType StringType(5, false),
             "TSTFLDNBR" withType NumberType(5, 2))
         val fileMetadata = FileMetadata(tableName, formatName, fields)
         val db = connectionForTest(listOf(fileMetadata))

@@ -37,7 +37,7 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
         if (params.parmsList.isEmpty()) {
             return params
         }
-        return CommandLineParms(resultValues.values.map { it.asString().valueWithoutPadding })
+        return CommandLineParms(resultValues.values.map { it.asString().value })
     }
 
     fun singleCall(parms: List<String>) = singleCall(CommandLineParms(parms))

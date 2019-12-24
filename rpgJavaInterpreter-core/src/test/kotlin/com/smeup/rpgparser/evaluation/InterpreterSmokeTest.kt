@@ -34,7 +34,7 @@ class InterpreterSmokeTest {
     fun executeCHAINHOSTS() {
         val cu = assertASTCanBeProduced("db/CHAINHOSTS")
 
-        val hostField = DBField("HOSTNME1", StringType(255))
+        val hostField = DBField("HOSTNME1", StringType(255, false))
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, "qhosts", listOf(hostField))
             override fun open(name: String): DBFile? = object : MockDBFile() {
@@ -58,7 +58,7 @@ class InterpreterSmokeTest {
     fun executeCHAIN2FILE() {
         val cu = assertASTCanBeProduced("db/CHAIN2FILE")
 
-        val hostField = DBField("DESTST", StringType(40))
+        val hostField = DBField("DESTST", StringType(40, false))
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(hostField))
             override fun open(name: String): DBFile? = object : MockDBFile() {

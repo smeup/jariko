@@ -111,6 +111,7 @@ internal fun RpgParser.DspecContext.toAst(
     var initializationValue: Expression? = null
     var elementsPerLineExpression: Expression? = null
     var compileTimeArray = false
+    var varying = false
 
     this.keyword().forEach {
         it.keyword_like()?.let {
@@ -128,6 +129,9 @@ internal fun RpgParser.DspecContext.toAst(
         it.keyword_ctdata()?.let {
             compileTimeArray = true
         }
+        it.keyword_varying()?.let {
+            varying = true
+        }
     }
     val elementSize = when {
         like != null -> {
@@ -142,10 +146,9 @@ internal fun RpgParser.DspecContext.toAst(
             /* TODO should be packed? */
             NumberType(elementSize!! - decimalPositions, decimalPositions)
         } else {
-            val varying = this.keyword().any { it.keyword_varying() != null }
-            StringType(elementSize!!.toLong(), varying)
+            StringType(elementSize!!, varying)
         }
-        "A" -> StringType(elementSize!!.toLong())
+        "A" -> StringType(elementSize!!, varying)
         "N" -> BooleanType
         "Z" -> TimeStampType
         /* TODO should be zoned? */
@@ -302,13 +305,13 @@ data class FieldInfo(
             (startOffset!! + (elementSize!! * arraySizeDeclared!!)).toInt()
         }
 
-    var calculatedElementSize: Long? = null
+    var calculatedElementSize: Int? = null
     var calculatedElementType: Type? = null
 
-    val elementSize: Long?
+    val elementSize: Int?
         get() = explicitElementSize ?: calculatedElementSize
 
-    val explicitElementSize: Long?
+    val explicitElementSize: Int?
         get() = explicitElementType?.size
 
     val elementType: Type
@@ -377,6 +380,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     val precision = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
     val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
     val isPackEven = keyword().any { it.keyword_packeven() != null }
+    val isVarying = keyword().any { it.keyword_varying() != null }
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
     val totalSize = when {
@@ -397,7 +401,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
-                StringType((explicitElementSize ?: precision)!!.toLong())
+                StringType((explicitElementSize ?: precision)!!, isVarying)
             } else {
                 val es = explicitElementSize ?: precision!!
                 NumberType(es - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
@@ -620,11 +624,11 @@ class FieldsList(val fields: List<FieldInfo>) {
                 check(overlayingFields.isNotEmpty()) { "I cannot calculate the size of ${it.name} from the overlaying fields as there are none" }
                 val overlayingFieldsWithoutEndOffset = overlayingFields.filter { it.endOffset == null }
                 check(overlayingFieldsWithoutEndOffset.isEmpty()) { "I cannot calculate the size of ${it.name} because it should be determined by the fields overlaying on it, but for some I do not know the end offset. They are: ${overlayingFieldsWithoutEndOffset.joinToString(separator = ", ") { it.name }}" }
-                val lastOffset = overlayingFields.map { it.endOffset!! }.max()!!.toLong()
+                val lastOffset = overlayingFields.map { it.endOffset!! }.max()!!
                 it.calculatedElementSize = lastOffset
 
                 if (it.explicitElementType == null) {
-                    it.calculatedElementType = StringType(it.calculatedElementSize!!)
+                    it.calculatedElementType = StringType(it.calculatedElementSize!!, false)
                 }
                 if (it.endOffset == null) {
                     it.endOffset = (it.startOffset!! + it.elementType.size).toInt()
@@ -655,7 +659,7 @@ class FieldsList(val fields: List<FieldInfo>) {
             if (field.endOffset == null) {
                 if (field.overlayInfo == null) {
                     if (field.startOffset != null && field.elementSize != null) {
-                        field.endOffset = (field.startOffset!! + field.elementSize!!).toInt()
+                        field.endOffset = (field.startOffset!! + field.elementSize!!)
                     }
                 }
             }

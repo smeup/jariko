@@ -211,8 +211,8 @@ class DataDefinitionTest {
         assertEquals(1, FI08.elementSize())
         assertEquals(1, FI09.elementSize())
 
-        assertEquals(122L, FI07.stepSize)
-        assertEquals(122L, FI07A.stepSize)
+        assertEquals(122, FI07.stepSize)
+        assertEquals(122, FI07A.stepSize)
 
         // Number of digits for FI10 = 15 (12 integers, 3 decimals)
         // For packed: Number of digits = 2n - 1

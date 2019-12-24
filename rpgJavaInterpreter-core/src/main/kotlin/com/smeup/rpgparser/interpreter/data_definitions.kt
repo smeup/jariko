@@ -85,14 +85,14 @@ data class DataDefinition(
                 require(start >= 0)
                 return start
             }
-            start += f.elementSize().toInt()
+            start += f.elementSize()
         }
         throw IllegalArgumentException("Unknown field $fieldDefinition")
     }
 
     @Deprecated("The end offset should be calculated before defining the FieldDefinition")
     fun endOffset(fieldDefinition: FieldDefinition): Int {
-        return (startOffset(fieldDefinition) + fieldDefinition.elementSize()).toInt()
+        return (startOffset(fieldDefinition) + fieldDefinition.elementSize())
     }
 
     fun getFieldByName(fieldName: String): FieldDefinition {
@@ -115,26 +115,26 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                     // Transform the numeric to an encoded string
                     val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, this.decimalDigits)
                     // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size.toInt())
+                    val fitted = encoded.padEnd(this.size)
                     StringValue(fitted)
                 } else {
                     // Transform the numeric to an encoded string
                     val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, 0)
                     // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size.toInt())
+                    val fitted = encoded.padEnd(this.size)
                     StringValue(fitted)
                 }
             }
             if (this.rpgType == RpgType.INTEGER.rpgType) {
                 // Transform the integer to an encoded string
-                val encoded = encodeInteger(value.asDecimal().value, this.size.toInt())
-                val fitted = encoded.padEnd(this.size.toInt())
+                val encoded = encodeInteger(value.asDecimal().value, this.size)
+                val fitted = encoded.padEnd(this.size)
                 return StringValue(fitted)
             }
             if (this.rpgType == RpgType.UNSIGNED.rpgType) {
                 // Transform the unsigned to an encoded string
-                val encoded = encodeUnsigned(value.asDecimal().value, this.size.toInt())
-                val fitted = encoded.padEnd(this.size.toInt())
+                val encoded = encodeUnsigned(value.asDecimal().value, this.size)
+                val fitted = encoded.padEnd(this.size)
                 return StringValue(fitted)
             }
             // To date only 2 and 4 bytes are supported
@@ -147,8 +147,8 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                 }
                 val encoded = encodeBinary(value.asDecimal().value, len)
                 // adjust the size to fit the target field
-                // val fitted = encoded.padEnd(this.size.toInt())
-                return StringValue(encoded)
+                val fitted = encoded.padEnd(this.size)
+                return StringValue(fitted)
             }
             TODO("Not implemented $this")
         }
@@ -212,7 +212,7 @@ data class FieldDefinition(
     val declaredArrayInLine: Int?
         get() = declaredArrayInLineOnThisField ?: (overlayingOn as? FieldDefinition)?.declaredArrayInLine
 
-    val size: Long = type.size
+    val size: Int = type.size
 
     @property:Link
     var overlayingOn: AbstractDataDefinition? = null
@@ -221,7 +221,7 @@ data class FieldDefinition(
     // normally it would be the same size as an element of the DS, however if they are declared
     // as on overlay of a field with a DIM keyword, then we should use the size of an element
     // of such field
-    val stepSize: Long
+    val stepSize: Int
         get() {
             return if (declaredArrayInLineOnThisField != null) {
                 elementSize()
@@ -230,7 +230,7 @@ data class FieldDefinition(
             }
         }
 
-    override fun elementSize(): Long {
+    override fun elementSize(): Int {
         return if (container.type is ArrayType) {
             super.elementSize()
         } else if (this.declaredArrayInLine != null) {
@@ -376,7 +376,6 @@ fun encodeUnsigned(inValue: BigDecimal, size: Int): String {
 }
 
 fun decodeBinary(value: String, size: Int): BigDecimal {
-
     if (size == 1) {
         var number: Long = 0x0000000
         if (value[0].toInt() and 0x0010 != 0) {
@@ -601,7 +600,6 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
 
     var sign: String = ""
     var number: String = ""
-
     var nibble = ((buffer[buffer.size - 1]).toInt() and 0x0F)
     if (nibble == 0x0B || nibble == 0x0D) {
         sign = "-"

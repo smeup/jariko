@@ -1,13 +1,14 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.utils.repeatWithMaxSize
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 private fun coerceBlanks(type: Type): Value {
     return when (type) {
         is StringType -> {
-            blankValue(type.length.toInt())
+            blankString(type.length)
         }
         is ArrayType -> {
             createArrayValue(type.element, type.nElements) {
@@ -34,11 +35,10 @@ private fun coerceBlanks(type: Type): Value {
 private fun coerceString(value: StringValue, type: Type): Value {
     return when (type) {
         is StringType -> {
-            var s = value.value.padEnd(type.length.toInt(), PAD_CHAR)
             if (value.value.length > type.length) {
-                s = s.substring(0, type.length.toInt())
+                return StringValue(value.value.substring(0, type.length))
             }
-            return StringValue(s, type.varying)
+            return StringValue(value.value, type.varying)
         }
         is ArrayType -> {
             if (type.element is StringType) {
@@ -46,8 +46,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 // We split the string in substrings and copy each piece into
                 // an element of the array
 
-                val elementSize = type.element.size.toInt()
                 var i = 0
+                val elementSize = type.element.size
+                val valueForArray = value.value.padEnd(elementSize).take(elementSize)
                 createArrayValue(type.element, type.nElements) {
                     val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length)).padEnd(elementSize)
                     val res = StringValue(valueForArray)
@@ -79,8 +80,12 @@ private fun coerceString(value: StringValue, type: Type): Value {
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.ZONED.rpgType -> {
+                        if (!value.isBlank()) {
                             val intValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
                             IntValue(intValue.longValueExact())
+                        } else {
+                            DecimalValue(BigDecimal.ZERO)
+                        }
                     }
                     else -> {
                         if (!value.isBlank()) {
@@ -181,6 +186,17 @@ fun coerce(value: Value, type: Type): Value {
                     return createArrayValue(type.element, type.nElements) { coerce(LowValValue, type.element) }
                 }
                 else -> TODO("Converting LowValValue to $type")
+            }
+        }
+        is AllValue -> {
+            when (type) {
+                is NumberType -> {
+                    return coerce(StringValue(value.charsToRepeat.repeatWithMaxSize(type.size)), type)
+                }
+                is StringType -> {
+                    return StringValue(value.charsToRepeat.repeatWithMaxSize(type.length))
+                }
+                else -> TODO("Converting $value to $type")
             }
         }
         else -> value

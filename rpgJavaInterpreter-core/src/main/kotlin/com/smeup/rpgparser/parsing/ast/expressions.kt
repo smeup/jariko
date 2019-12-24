@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
+import com.smeup.rpgparser.interpreter.atLine
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
@@ -43,6 +44,10 @@ data class OffRefExpr(override val position: Position? = null) : FigurativeConst
 data class HiValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
 
 data class LowValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+
+data class ZeroExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+
+data class AllExpr(val charsToRepeat: StringLiteral, override val position: Position? = null) : FigurativeConstantRef(position)
 
 // /
 // / Comparisons
@@ -133,7 +138,7 @@ data class ExpExpr(var left: Expression, var right: Expression, override val pos
 // /
 
 abstract class AssignableExpression(override val position: Position? = null) : Expression(position) {
-    abstract fun size(): Long
+    abstract fun size(): Int
 }
 
 data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) :
@@ -141,15 +146,21 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
 
     init {
         require(!variable.name.startsWith("*")) { "This is not a valid variable name: '${variable.name}'" }
-        require(variable.name.isNotBlank()) { "The variable name should not blank" }
-        require(variable.name.trim() == variable.name) {
-            "The variable name should not starts or ends with whitespace"
+        require(variable.name.isNotBlank()) {
+            "The variable name should not blank - ${position.atLine()}"
         }
-        require(!variable.name.contains(".")) { "The variable name should not contain any dot: <${variable.name}>" }
-        require(!variable.name.contains("(") && !variable.name.contains(")")) { "The variable name should not contain any parenthesis" }
+        require(variable.name.trim() == variable.name) {
+            "The variable name should not starts or ends with whitespace: $variable.name - ${position.atLine()}"
+        }
+        require(!variable.name.contains(".")) {
+            "The variable name should not contain any dot: <${variable.name}> - ${position.atLine()}"
+        }
+        require(!variable.name.contains("(") && !variable.name.contains(")")) {
+            "The variable name should not contain any parenthesis: $variable.name - ${position.atLine()}"
+        }
     }
 
-    override fun size(): Long {
+    override fun size(): Int {
         return variable.referred!!.type.size
     }
 
@@ -166,7 +177,7 @@ data class QualifiedAccessExpr(val container: Expression, val field: ReferenceBy
         }
     }
 
-    override fun size(): Long {
+    override fun size(): Int {
         TODO()
     }
 
@@ -178,7 +189,7 @@ data class ArrayAccessExpr(val array: Expression, val index: Expression, overrid
     override fun render(): String {
         return "${this.array.render()}(${index.render()}))"
     }
-    override fun size(): Long {
+    override fun size(): Int {
         TODO("size")
     }
 }
