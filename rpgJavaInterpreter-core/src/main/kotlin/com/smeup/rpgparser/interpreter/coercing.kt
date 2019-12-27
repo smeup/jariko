@@ -8,7 +8,7 @@ import java.math.RoundingMode
 private fun coerceBlanks(type: Type): Value {
     return when (type) {
         is StringType -> {
-            blankString(type.length.toInt())
+            blankString(type.length)
         }
         is ArrayType -> {
             createArrayValue(type.element, type.nElements) {
@@ -33,13 +33,13 @@ private fun coerceString(value: StringValue, type: Type): Value {
     return when (type) {
         is StringType -> {
             if (value.value.length > type.length) {
-                return StringValue(value.value.substring(0, type.length.toInt()))
+                return StringValue(value.value.substring(0, type.length))
             }
             return StringValue(value.value)
         }
         is ArrayType -> {
             if (type.element is StringType) {
-                val elementSize = type.element.size.toInt()
+                val elementSize = type.element.size
                 val valueForArray = value.value.padEnd(elementSize).take(elementSize)
                 createArrayValue(type.element, type.nElements) {
                     // TODO Since value property of StringValue is a var, we cannot share instances of StringValue
@@ -152,10 +152,10 @@ fun coerce(value: Value, type: Type): Value {
         is AllValue -> {
             when (type) {
                 is NumberType -> {
-                    return coerce(StringValue(value.charsToRepeat.repeatWithMaxSize(type.size.toInt())), type)
+                    return coerce(StringValue(value.charsToRepeat.repeatWithMaxSize(type.size)), type)
                 }
                 is StringType -> {
-                    return StringValue(value.charsToRepeat.repeatWithMaxSize(type.length.toInt()))
+                    return StringValue(value.charsToRepeat.repeatWithMaxSize(type.length))
                 }
                 else -> TODO("Converting $value to $type")
             }

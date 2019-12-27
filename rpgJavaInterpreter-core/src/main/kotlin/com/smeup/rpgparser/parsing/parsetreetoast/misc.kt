@@ -340,26 +340,35 @@ fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration
 }
 
 internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, position: Position?, conf: ToAstConfiguration): InStatementDataDefinition? {
-    val len = this.len.asLong()
+    val len = this.len.asInt()
     if (len == null) {
         return null
     }
-    val decimals = this.decimalPositions.asLong()
+    val decimals = this.decimalPositions.asInt()
     val initialValue = this.factor2Expression(conf)
     return InStatementDataDefinition(name, dataType(len, decimals), position, initializationValue = initialValue)
 }
 
-private fun dataType(len: Long, decimals: Long?): Type =
+private fun dataType(len: Int, decimals: Int?): Type =
     if (decimals == null) {
         StringType(len, false)
     } else {
-        NumberType(len.toInt() - decimals.toInt(), decimals.toInt())
+        NumberType(len - decimals, decimals)
     }
 
 internal fun Token.asLong(): Long? {
     val tokenString = this.text.trim()
     return if (tokenString.isNotBlank()) {
         tokenString.toLongOrNull()
+    } else {
+        null
+    }
+}
+
+internal fun Token.asInt(): Int? {
+    val tokenString = this.text.trim()
+    return if (tokenString.isNotBlank()) {
+        tokenString.toIntOrNull()
     } else {
         null
     }

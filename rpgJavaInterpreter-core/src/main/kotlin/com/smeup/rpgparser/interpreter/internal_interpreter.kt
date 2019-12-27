@@ -185,7 +185,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
         val l: MutableList<Value> =
-            compileTimeArray.lines.chunkAs(arrayType.compileTimeRecordsPerLine!!, arrayType.element.size.toInt())
+            compileTimeArray.lines.chunkAs(arrayType.compileTimeRecordsPerLine!!, arrayType.element.size)
                 .map {
                     coerce(StringValue(it), arrayType.element)
                 }
@@ -710,7 +710,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is CheckStmt -> {
                     var baseString = interpret(statement.baseString).asString().value
                     if (statement.baseString is DataRefExpr) {
-                        baseString = baseString.padEnd(statement.baseString.size().toInt())
+                        baseString = baseString.padEnd(statement.baseString.size())
                     }
                     val charSet = interpret(statement.comparatorString).asString().value
                     val wrongIndex = statement.wrongCharPosition
@@ -1072,10 +1072,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is DataRefExpr -> {
                 var newValue = interpret(value)
                 if (value !is FigurativeConstantRef) {
-                    newValue = newValue.takeLast(target.size().toInt())
+                    newValue = newValue.takeLast(target.size())
                     if (value.type().size < target.size()) {
                         newValue =
-                            get(target.variable.referred!!).takeFirst((target.size() - value.type().size).toInt())
+                            get(target.variable.referred!!).takeFirst((target.size() - value.type().size))
                                 .concatenate(newValue)
                     }
                 }

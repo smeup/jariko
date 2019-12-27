@@ -290,7 +290,7 @@ abstract class ArrayValue : Value() {
     override fun asArray() = this
 }
 data class ConcreteArrayValue(val elements: MutableList<Value>, val elementType: Type) : ArrayValue() {
-    override fun elementSize() = elementType.size.toInt()
+    override fun elementSize() = elementType.size
 
     override fun arrayLength() = elements.size
 
@@ -436,8 +436,8 @@ fun Type.blank(): Value {
         is ArrayType -> createArrayValue(this.element, this.nElements) {
             this.element.blank()
         }
-        is DataStructureType -> DataStructValue.blank(this.size.toInt())
-        is StringType -> StringValue.blank(this.size.toInt())
+        is DataStructureType -> DataStructValue.blank(this.size)
+        is StringType -> StringValue.blank(this.size)
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue(false)
         is TimeStampType -> TimeStampValue.LOVAL
@@ -456,7 +456,7 @@ data class DataStructValue(var value: String) : Value() {
         return when (expectedType) {
             // Check if the size of the value mathches the expected size within the DS
             is DataStructureType -> expectedType.elementSize == value.length
-            is StringType -> expectedType.size == this.value.length.toLong()
+            is StringType -> expectedType.size == this.value.length
             else -> false
         }
     }
@@ -470,7 +470,7 @@ data class DataStructValue(var value: String) : Value() {
         try {
             val v = (field.type as ArrayType).element.toDataStructureValue(value)
             val startIndex = field.startOffset
-            val endIndex = field.startOffset + field.elementSize().toInt()
+            val endIndex = field.startOffset + field.elementSize()
             try {
                 this.setSubstring(startIndex, endIndex, v)
             } catch (e: Exception) {
@@ -484,7 +484,7 @@ data class DataStructValue(var value: String) : Value() {
     fun set(field: FieldDefinition, value: Value) {
         val v = field.toDataStructureValue(value)
         val startIndex = field.startOffset
-        val endIndex = field.startOffset + field.size.toInt()
+        val endIndex = field.startOffset + field.size
         try {
             this.setSubstring(startIndex, endIndex, v)
         } catch (e: Exception) {
@@ -494,11 +494,11 @@ data class DataStructValue(var value: String) : Value() {
 
     operator fun get(data: FieldDefinition): Value {
         if (data.type is ArrayType) {
-            val value = this.getSubstring(data.startOffset, data.size.toInt())
+            val value = this.getSubstring(data.startOffset, data.size)
 
             if (data.type.element is StringType) {
                 val arraySize = data.type.nElements
-                val elementSize = data.type.element.size.toInt()
+                val elementSize = data.type.element.size
                 // # extract the entire value of
                 val valueForArray = value.value.padEnd(elementSize * arraySize)
                 return createArrayValue(data.type.element, data.type.nElements) {

@@ -15,14 +15,14 @@ private fun assignStringToString(operationExtender: String?, target: DataRefExpr
         newValue = newValue.numberToString()
     }
     if (factor2.type().size > target.size()) {
-        newValue = newValue.takeFirst(target.size().toInt())
+        newValue = newValue.takeFirst(target.size())
     } else if (factor2.type().size < target.size()) {
         val append = if (operationExtender == null) {
             val value = interpreterCoreHelper.get(target.variable.referred!!)
             require(value is StringValue)
-            StringValue.padded(value.value, target.size().toInt()).takeLast(target.size().toInt() - factor2.type().size.toInt())
+            StringValue.padded(value.value, target.size()).takeLast(target.size() - factor2.type().size)
         } else {
-            StringValue.blank(target.size().toInt() - factor2.type().size.toInt())
+            StringValue.blank(target.size() - factor2.type().size)
         }
         newValue = newValue.concatenate(append)
     }

@@ -84,7 +84,7 @@ private fun KParameter.toProgramParam(): ProgramParam {
 private fun KParameter.toRpgType(): Type {
     return when (this.type) {
         String::class.createType() -> {
-            StringType(this.findAnnotation<Size>()?.size?.toLong()
+            StringType(this.findAnnotation<Size>()?.size
                     ?: throw RuntimeException("Size annotation required for string param ${this.name}"), true)
         }
         Int::class.createType() -> {
