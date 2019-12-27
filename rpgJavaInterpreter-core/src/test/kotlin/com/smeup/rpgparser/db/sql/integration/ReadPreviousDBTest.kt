@@ -19,4 +19,14 @@ class ReadPreviousDBTest {
         assertEquals("200330", actualOutput[1])
         assertEquals("000010", actualOutput[41])
     }
+
+    @Test @Ignore
+    fun readingPreviousFromTopDoesntFindAnything() {
+        val actualOutput = outputOfDBPgm(
+            "db/READPLOVAL",
+            listOf(createEMPLOYEE(), createXEMP2(), createXEMP2Index(), insertRecords()),
+            emptyMap()
+        )
+        assertEquals(emptyList(), actualOutput)
+    }
 }
