@@ -23,10 +23,9 @@ fun PreparedStatement.bind(values: List<Value>) {
     values.forEachIndexed { i, value ->
         val jdbcIndex = i + 1
         val type =
-            typeFor(
-                parameterMetaData.getParameterTypeName(jdbcIndex),
-                parameterMetaData.getScale(jdbcIndex),
-                parameterMetaData.getPrecision(jdbcIndex)
+            typeFor(parameterMetaData.getParameterTypeName(jdbcIndex),
+                parameterMetaData.getPrecision(jdbcIndex),
+                parameterMetaData.getScale(jdbcIndex)
             )
         this.setObject(jdbcIndex, value.toDBValue(type))
     }
