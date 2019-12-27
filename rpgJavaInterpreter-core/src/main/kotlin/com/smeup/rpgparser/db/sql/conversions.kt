@@ -18,11 +18,13 @@ fun typeFor(sqlType: String, columnSize: Int, decimalDigits: Int): Type =
         else -> TODO("Conversion from SQL Type not yet implemented: $sqlType")
     }
 
-fun Value.toDBValue(): Any =
+fun Value.toDBValue(type: Type): Any =
     when (this) {
         is StringValue -> this.value
         is IntValue -> this.value
         is DecimalValue -> this.value
+        is LowValValue -> type.lowValue()
+        is HiValValue -> type.hiValue()
         else -> TODO("Conversion to DB Obejct not yet implemented: $this")
     }
 

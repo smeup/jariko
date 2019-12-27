@@ -144,26 +144,10 @@ fun coerce(value: Value, type: Type): Value {
         }
 
         is HiValValue -> {
-            when (type) {
-                is NumberType -> {
-                    return computeHiValue(type)
-                }
-                is ArrayType -> {
-                    return createArrayValue(type.element, type.nElements) { coerce(HiValValue, type.element) }
-                }
-                else -> TODO("Converting HiValValue to $type")
-            }
+            return type.hiValue()
         }
         is LowValValue -> {
-            when (type) {
-                is NumberType -> {
-                    return computeLowValue(type)
-                }
-                is ArrayType -> {
-                    return createArrayValue(type.element, type.nElements) { coerce(LowValValue, type.element) }
-                }
-                else -> TODO("Converting LowValValue to $type")
-            }
+            return type.lowValue()
         }
         is AllValue -> {
             when (type) {
@@ -177,6 +161,30 @@ fun coerce(value: Value, type: Type): Value {
             }
         }
         else -> value
+    }
+}
+
+fun Type.lowValue(): Value {
+    when (this) {
+        is NumberType -> {
+            return computeLowValue(this)
+        }
+        is ArrayType -> {
+            return createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
+        }
+        else -> TODO("Converting LowValValue to $this")
+    }
+}
+
+fun Type.hiValue(): Value {
+    when (this) {
+        is NumberType -> {
+            return computeHiValue(this)
+        }
+        is ArrayType -> {
+            return createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
+        }
+        else -> TODO("Converting HiValValue to $this")
     }
 }
 
