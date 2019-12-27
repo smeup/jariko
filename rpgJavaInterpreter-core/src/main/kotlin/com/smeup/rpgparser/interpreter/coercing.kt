@@ -184,6 +184,9 @@ fun Type.hiValue(): Value {
         is NumberType -> {
             return computeHiValue(this)
         }
+        is StringType -> {
+            return computeHiValue(this)
+        }
         is ArrayType -> {
             return createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
         }
@@ -234,7 +237,13 @@ private fun computeHiValue(type: NumberType): Value {
 
 private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type))
 
+private fun computeHiValue(type: StringType): Value = StringValue(hiValueString(type))
+
+// TODO
 fun lowValueString(type: StringType) = " ".repeat(type.size)
+
+// TODO
+fun hiValueString(type: StringType) = "\uFFFF".repeat(type.size)
 
 private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone
