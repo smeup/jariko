@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 
 class ReadPreviousDBTest {
 
-    @Test @Ignore
+    @Test
     fun readsTheWholeFileBackwards() {
         val actualOutput = outputOfDBPgm(
             "db/READP",
@@ -20,7 +20,7 @@ class ReadPreviousDBTest {
         assertEquals("000010", actualOutput[41])
     }
 
-    @Test
+    @Test @Ignore
     fun readingPreviousFromTopDoesntFindAnything() {
         val actualOutput = outputOfDBPgm(
             "db/READPLOVAL",

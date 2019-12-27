@@ -1,8 +1,8 @@
 package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.DBFile
-import com.smeup.rpgparser.interpreter.RecordField
 import com.smeup.rpgparser.interpreter.Record
+import com.smeup.rpgparser.interpreter.RecordField
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.utils.Comparison
 import java.sql.Connection
@@ -79,18 +79,20 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readPrevious(): Record {
-        movingForward = false
+        if (movingForward) {
+            movingForward = false
+            if (!setll(lastKey)) {
+                signalEOF()
+                return Record()
+            }
+        }
         if (resultSet == null) {
             setll(emptyList())
         }
         require(resultSet != null) {
             "Read with empty result set"
         }
-        if (resultSet!!.previous()) {
-            return readFromPositionedResultSet()
-        } else {
-            return Record()
-        }
+        return readFromPositionedResultSet()
     }
 
     override fun readPrevious(key: Value): Record {
@@ -103,14 +105,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
         TODO("not implemented")
     }
 
-    override fun eof(): Boolean {
-        if (resultSet == null) return true
-        if (movingForward) {
-            return resultSet!!.isAfterLast
-        } else {
-            return resultSet!!.isBeforeFirst
-        }
-    }
+    override fun eof(): Boolean = resultSet?.isAfterLast ?: true
 
     override fun chain(key: Value): Record = chain(toFields(key))
 
@@ -133,8 +128,9 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     override fun setll(keys: List<RecordField>): Boolean {
         val keyNames = keys.map { it.name }
         // TODO Using thisFileKeys: TESTS NEEDED!!!
-        val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
-        lastSllSql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.EQ)} ${thisFileKeys.orderBySQL()}"
+        val comparision = if (movingForward) Comparison.GE else Comparison.LE
+        val sql = "SELECT * FROM $name ${keyNames.whereSQL(comparision)} ${thisFileKeys.orderBySQL(reverse = !movingForward)}"
+        lastSllSql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.EQ)}"
         val values = keys.map { it.value }
         lastKey = keys
         executeQuery(sql, values)
