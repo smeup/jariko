@@ -1,6 +1,9 @@
 package com.smeup.rpgparser.db.sql
 
-import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.DBField
+import com.smeup.rpgparser.interpreter.FileMetadata
+import com.smeup.rpgparser.interpreter.Type
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.utils.Comparison
 
 fun FileMetadata.toSQL(): List<String> =
@@ -34,7 +37,7 @@ fun List<String>.orderBySQL(reverse: Boolean = false): String =
         ""
     } else {
         if (reverse) {
-            "ORDER BY " + this.joinToString (separator = " DESC, ", postfix = " DESC")
+            "ORDER BY " + this.joinToString(separator = " DESC, ", postfix = " DESC")
         } else {
             "ORDER BY " + this.joinToString()
         }
