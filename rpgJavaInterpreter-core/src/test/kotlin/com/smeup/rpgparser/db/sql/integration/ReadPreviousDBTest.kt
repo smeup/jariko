@@ -20,7 +20,7 @@ class ReadPreviousDBTest {
         assertEquals("000010", actualOutput[41])
     }
 
-    @Test @Ignore
+    @Test
     fun readingPreviousFromTopDoesntFindAnything() {
         val actualOutput = outputOfDBPgm(
             "db/READPLOVAL",
