@@ -169,6 +169,9 @@ fun Type.lowValue(): Value {
         is NumberType -> {
             return computeLowValue(this)
         }
+        is StringType -> {
+            return computeLowValue(this)
+        }
         is ArrayType -> {
             return createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
         }
@@ -228,6 +231,10 @@ private fun computeHiValue(type: NumberType): Value {
     }
     TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }
+
+private fun computeLowValue(type: StringType): Value = StringValue(lowValueString(type))
+
+fun lowValueString(type: StringType) = " ".repeat(type.size)
 
 private fun computeLowValue(type: NumberType): Value {
     // Packed and Zone

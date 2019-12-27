@@ -21,13 +21,14 @@ fun ResultSet.joinToString(separator: String = " - "): String {
 
 fun PreparedStatement.bind(values: List<Value>) {
     values.forEachIndexed { i, value ->
+        val jdbcIndex = i + 1
         val type =
             typeFor(
-                parameterMetaData.getParameterTypeName(i + 1),
-                parameterMetaData.getScale(i + 1),
-                parameterMetaData.getPrecision(i + 1)
+                parameterMetaData.getParameterTypeName(jdbcIndex),
+                parameterMetaData.getScale(jdbcIndex),
+                parameterMetaData.getPrecision(jdbcIndex)
             )
-        this.setObject(i + 1, value.toDBValue(type))
+        this.setObject(jdbcIndex, value.toDBValue(type))
     }
 }
 
