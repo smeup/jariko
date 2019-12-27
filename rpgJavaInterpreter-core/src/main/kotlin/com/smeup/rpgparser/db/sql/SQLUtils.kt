@@ -29,9 +29,13 @@ fun List<String>.whereSQL(comparation: Comparison = Comparison.EQ): String =
         "WHERE " + this.joinToString(" AND ") { "$it ${comparation.symbol} ?" }
     }
 
-fun List<String>.orderBySQL(): String =
+fun List<String>.orderBySQL(reverse: Boolean = false): String =
     if (this.isEmpty()) {
         ""
     } else {
-        "ORDER BY " + this.joinToString()
+        if (reverse) {
+            "ORDER BY " + this.joinToString (separator = " DESC, ", postfix = " DESC")
+        } else {
+            "ORDER BY " + this.joinToString()
+        }
     }
