@@ -8,11 +8,82 @@
 [![jitpack](https://jitpack.io/v/smeup/jariko.svg)](https://jitpack.io/#smeup/jariko)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/smeup/jariko)
 
-This project contains an interpreter for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). This interpreter runs on the JVM since it's written in Kotlin.
+
+# ⚡️ Cross-platform RPG Code in a polyglot environment ⚡️
+
+## Introduction
+
+JaRIKo is an [interpreter](https://en.wikipedia.org/wiki/Interpreter_(computing)) for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). It interpreter runs on the JVM since it's written in Kotlin.
+
+It is part of a bigger project named **Sme.UP Open Architecture**, by the italian software company **Sme.UP**. 
+
+Sme.UP Open Architecture aims to build a **software platform for business applications** (also mistakenly known as ERP systems) and it is the core of ****Sme.UP Data Platform**.  
+
+
+### How might this work in the real world 
+
+JaRIKo can definitely be used as a library: you push RPG code in, you have it executed, you get results out. And it works, as you can see in this animated gif of a simple on-the-fly online rpg running application.
+
+![rpgweb](/images/rpgweb.gif)  
+
+
+But, for an enterprise-grade application, there'll be a runtime environment running RPG and JVM code altogether, and it will likely work as in the following picture
+
+![smeup_data_platform](/images/architecture.png)  
+
+Once a request comes into the system, it's recognized as a "program" (a unit of execution) and redirected towards the right program handler: RPG is handled by JaRIKo (interpreter), the others by different executors.
+**So JaRIKo is one (important) part of the whole architecture**
+
+
+### Why are we doing that?
+*Why building something that runs RPG, a such old and niche programming language?* 
+RPG is widely common in the business and financial industry. There are tons of super-stable, higly-tested, mission-critical lines of RPG code running a big amount of businesses since tens of years. Big companies still rely on this programming language. 
+
+This is for at least a couple of reasons. 
+
+First, RPG was designed for business, it is very simple, powerful for data manipulation, but extremely inadequate for solving technology issue (like threads, async, http calls, cryptography, and so forth), doesn't need to be aware of the technical details. The system provides all this technology, making code run on top of a platform that solves those issues.
+
+This helped to create a **generation of RPG programmers** that are closer to **business consultants** than to developers, and this is very good for business application development.
+
+The second is that RPG only runs on [IBMi](https://en.wikipedia.org/wiki/IBM_i) best known as AS/400, that was also designed for business, is very reliable, fast, well-supported, and stable. **RPG leverage AS/400 architecture**, they are the perfect couple. 
+
+### Focus on: 
+#### 1- Doping your code
+
+One of the core features of Jariko is the doping mechanism: ones the code is taken over by the interpreter, every single program can be replaced at runtime. This allows to write a very flexible and polyglot software, choosing the right tool for the right job and having all the java (and jvm) power and ecosystem available.
+
+![doping](/images/doping.png)  
+
+Through doping it's also much simpler to make the architectural design needed to deal with things like SPOOLS, DATAQUEUES, JOBS, DATAAREA, etc, typical to the OS/400 operating system where the RPG code used to run.
+
+
+#### 2- DSL
+If you know how programming languages work, you also know that once you have a syntax three in your hands, you can can do almost whatever you want. So, since RPG is best used for business applications, why don't add new high-level features to make the life of the RPG programmer easier? This is a step towards a Domain Specific Language
+
+     C                   PARM                    §§METO
+     C                   PARM                    §§SVAR
+     C                   EVAL      PRICE=§§SVAR
+     C                   CAL_VAT(PRICE)    
+     
+     
+In this example CAL_VAT does not exist in RPG.    
+
+### Some questions
+
+#### 1.So it sounds like you are developing an interpreter to run an application on multiple other platforms.
+ Right
+#### 2.What language is the interpreter being developed in?
+ Mostly Kotlin, but the overall resulting system will be µ-service-based and we're going to use jvm languages.
+#### 3.How do you transfer the database to another platform? SQL scripts?
+ We have ETLs. We've already been doing that since years. SQL must not have dialect-specific statements, or it has to be re-arranged, but we're thinking about that.
+#### 4.Do you handle multiple member files, DDM files, multiple physical logical files
+ No. We're also not implementing DDS, SUBFILE, CLP. And absolutely none of the os/400 system apis.
+#### 5.Data areas and user spaces? 
+ Yes. Also QTEMP, RLA (read, write, chain, setll, etc...), SQLRPGLE (maybe...), /COPY
 
 ## Development
 
-All information for developers is contained in the [Development guide](docs/development.md).
+All information for developers is to be found in the [Development guide](docs/development.md).
 
 ## Logging
 
