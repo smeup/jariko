@@ -13,11 +13,11 @@
 
 ## Introduction
 
-JaRIKo is an [interpreter](https://en.wikipedia.org/wiki/Interpreter_(computing)) for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). It interpreter runs on the JVM since it's written in Kotlin.
+JaRIKo is an [interpreter](https://en.wikipedia.org/wiki/Interpreter_(computing)) for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). It runs on the JVM since it's written in Kotlin.
 
 It is part of a bigger project named **Sme.UP Open Architecture**, by the italian software company **Sme.UP**. 
 
-Sme.UP Open Architecture aims to build a **software platform for business applications** (also mistakenly known as ERP systems) and it is the core of ****Sme.UP Data Platform**.  
+Sme.UP Open Architecture aims to build a **software platform for business applications** (also mistakenly known as ERP systems) and it is the core of **Sme.UP Data Platform**.  
 
 
 ### How might this work in the real world 
@@ -41,20 +41,20 @@ RPG is widely common in the business and financial industry. There are tons of s
 
 This is for at least a couple of reasons. 
 
-First, RPG was designed for business, it is very simple, powerful for data manipulation, but extremely inadequate for solving technology issue (like threads, async, http calls, cryptography, and so forth), doesn't need to be aware of the technical details. The system provides all this technology, making code run on top of a platform that solves those issues.
+First, RPG was designed for business, it is very simple, powerful for data manipulation, but extremely inadequate for solving technology issue (like threads, async, http calls, cryptography, and so forth). The developer doesn't need to be aware of the technical details. The system provides all this technology, making code run on top of a platform that solves those issues.
 
 This helped to create a **generation of RPG programmers** that are closer to **business consultants** than to developers, and this is very good for business application development.
 
-The second is that RPG only runs on [IBMi](https://en.wikipedia.org/wiki/IBM_i) best known as AS/400, that was also designed for business, is very reliable, fast, well-supported, and stable. **RPG leverage AS/400 architecture**, they are the perfect couple. 
+The second is that RPG only runs on [IBMi](https://en.wikipedia.org/wiki/IBM_i) best known as AS/400, that was also designed for business, is very reliable, fast, well-supported, and stable. **RPG leverages AS/400 architecture**, they are the perfect couple. 
 
 ### Focus on: 
 #### 1- Doping your code
 
-One of the core features of Jariko is the doping mechanism: ones the code is taken over by the interpreter, every single program can be replaced at runtime. This allows to write a very flexible and polyglot software, choosing the right tool for the right job and having all the java (and jvm) power and ecosystem available.
+One of the core features of Jariko is the doping mechanism: once the code is taken over by the interpreter, every single program can be replaced at runtime. This allows to write a very flexible and polyglot software, choosing the right tool for the right job and having all the java (and jvm) power and ecosystem available.
 
 ![doping](/images/doping.png)  
 
-Through doping it's also much simpler to make the architectural design needed to deal with things like SPOOLS, DATAQUEUES, JOBS, DATAAREA, etc, typical to the OS/400 operating system where the RPG code used to run.
+Through doping, it's also much simpler to make the architectural design needed to deal with things like SPOOLS, DATAQUEUES, JOBS, DATAAREA, etc, typical of the OS/400 operating system, where the RPG code used to run.
 
 
 #### 2- DSL
@@ -63,10 +63,10 @@ If you know how programming languages work, you also know that once you have a s
      C                   PARM                    §§METO
      C                   PARM                    §§SVAR
      C                   EVAL      PRICE=§§SVAR
-     C                   CAL_VAT(PRICE)    
+     C                   CALC_VAT(PRICE)    
      
      
-In this example CAL_VAT does not exist in RPG.    
+In this example CALC_VAT, standing for "calculate vat" does not exist in RPG, but the interpreter can handle it as a language keyword, with type check, syntax highlighting, code suggenstions, intellisense, errors an so on.
 
 ### Some questions
 
