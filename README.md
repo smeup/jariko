@@ -41,16 +41,16 @@ RPG is widely common in the business and financial industry. There are tons of s
 
 This is for at least a couple of reasons. 
 
-First, RPG was designed for business, it is very simple, powerful for data manipulation, but extremely inadequate for solving technology issue (like threads, async, http calls, cryptography, and so forth). The developer doesn't need to be aware of the technical details. The system provides all this technology, making code run on top of a platform that solves those issues.
+First, RPG was designed for business, it is very simple, powerful for data manipulation, but extremely inadequate to solving technology issue (like threads, async, http calls, cryptography, and so forth). The developer doesn't need to be aware of the technical details. The system provides all this technology, making code run on top of a platform that solves those issues.
 
-This helped to create a **generation of RPG programmers** that are closer to **business consultants** than to developers, and this is very good for business application development.
+This helped to create a **generation of RPG programmers** that are closer to **business consultants** than to developers, and this is very good for business applications development.
 
-The second is that RPG only runs on [IBMi](https://en.wikipedia.org/wiki/IBM_i) best known as AS/400, that was also designed for business, is very reliable, fast, well-supported, and stable. **RPG leverages AS/400 architecture**, they are the perfect couple. 
+The second is that RPG only runs on [IBMi](https://en.wikipedia.org/wiki/IBM_i), best known as AS/400, that was also designed for business, is very reliable, fast, well-supported, and stable. **RPG leverages AS/400 architecture**, they are the perfect couple. 
 
 ### Focus on: 
 #### 1- Doping your code
 
-One of the core features of Jariko is the doping mechanism: once the code is taken over by the interpreter, every single program can be replaced at runtime. This allows to write a very flexible and polyglot software, choosing the right tool for the right job and having all the java (and jvm) power and ecosystem available.
+One of the core features of Jariko is the **doping mechanism**: once the code is taken over by the interpreter, every single program can be replaced at runtime. This allows to write a very flexible and polyglot software, choosing the right tool for the right job and having all the java (and jvm) power and ecosystem available.
 
 ![doping](/images/doping.png)  
 
