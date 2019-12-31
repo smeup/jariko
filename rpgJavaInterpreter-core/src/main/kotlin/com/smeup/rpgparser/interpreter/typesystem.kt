@@ -45,12 +45,6 @@ sealed class Type {
     open fun hasVariableSize() = false
 }
 
-object FigurativeType : Type() {
-    override val size: Int
-        get() = 0
-
-    override fun canBeAssigned(value: Value): Boolean = true
-}
 
 object FigurativeType : Type() {
     override val size: Int

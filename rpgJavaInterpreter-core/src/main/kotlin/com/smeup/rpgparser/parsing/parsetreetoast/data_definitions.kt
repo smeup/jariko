@@ -577,7 +577,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                     if (currFieldInfo.endOffset == null && currFieldInfo.elementSize != null) {
                         currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()
                     }
-                    val elementSize = currFieldInfo.toAst(0, this).type.elementSize()
+                    val elementSize = currFieldInfo.toAst().type.elementSize()
                     sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) + elementSize
                 }
             }
