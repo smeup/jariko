@@ -38,7 +38,6 @@ class JDExamplesTest {
         val svarcdDef = cu.allDataDefinitions.find { it.name == "\$\$SVARCD" }!! as FieldDefinition
         val svarvaDef = cu.allDataDefinitions.find { it.name == "\$\$SVARVA" }!! as FieldDefinition
 
-
         assertEquals(1050, svarskDef.elementSize())
         assertEquals(50, svarcdDef.elementSize())
         assertEquals(1000, svarvaDef.elementSize())

@@ -97,7 +97,6 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
             return BooleanValue(true)
         }
         return BooleanValue(false)
-
     }
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
@@ -189,7 +188,6 @@ fun sortA(value: Value, charset: Charset) {
         }
     }
 }
-
 
 data class IntValue(val value: Long) : NumberValue() {
 
@@ -487,7 +485,6 @@ object ZeroValue : Value() {
     override fun copy(): Value {
         TODO("not implemented")
     }
-
 
     override fun toString(): String {
         return "ZeroValue"

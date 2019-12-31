@@ -34,7 +34,7 @@ sealed class Type {
     open fun canBeAssigned(type: Type): Boolean {
         return this == type
     }
-  
+
     abstract val size: Int
 
     fun toArray(nElements: Int) = ArrayType(this, nElements)
@@ -44,7 +44,6 @@ sealed class Type {
     }
     open fun hasVariableSize() = false
 }
-
 
 object FigurativeType : Type() {
     override val size: Int

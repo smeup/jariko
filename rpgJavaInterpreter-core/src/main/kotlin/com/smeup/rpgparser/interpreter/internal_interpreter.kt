@@ -1341,7 +1341,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             val s = left.value + right.value
                             StringValue(s)
                         }
-
                     }
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
                     left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal + right.bigDecimal)

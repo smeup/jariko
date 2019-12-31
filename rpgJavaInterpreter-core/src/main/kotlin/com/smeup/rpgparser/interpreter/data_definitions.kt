@@ -206,7 +206,6 @@ data class FieldDefinition(
             "Field $name should have either an explicit end offset ($explicitEndOffset) or a calculated one ($calculatedEndOffset)"
         }
     }
-              
     // true when the FieldDefinition contains a DIM keyword on its line
     // or when the field is overlaying on an a field which has the DIM keyword
     val declaredArrayInLine: Int?
@@ -239,7 +238,6 @@ data class FieldDefinition(
             size
         }
     }
-
 
     fun toDataStructureValue(value: Value) = type.toDataStructureValue(value)
 
