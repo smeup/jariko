@@ -855,6 +855,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is SortAStmt -> {
                     sortA(interpret(statement.target), charset)
                 }
+
                 else -> TODO(statement.toString())
             }
         } catch (e: ReturnException) {
@@ -998,12 +999,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
             value1 is DataStructValue && value2 is StringValue -> {
                 val v1 = value1.asStringValue().trimEnd()
+
                 val v2 = value2.value.trimEnd()
                 v1 == v2
             }
             value1 is StringValue && value2 is DataStructValue -> {
                 val v1 = value1.value.trimEnd()
                 val v2 = value2.asStringValue().trimEnd()
+
                 v1 == v2
             }
             // To be review
@@ -1338,6 +1341,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             val s = left.value + right.value
                             StringValue(s)
                         }
+
                     }
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
                     left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal + right.bigDecimal)

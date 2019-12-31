@@ -60,8 +60,6 @@ class SymbolTable {
         }
         require(data.type.canBeAssigned(value))
         values[data] = value.forType(data.type)
-        // Review required
-        // values[data] =
     }
 }
 
@@ -77,3 +75,4 @@ private fun Value.forType(type: Type): Value {
     }
     return this
 }
+

@@ -222,6 +222,8 @@ data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpres
 
 data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position)
 
+data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position)
+
 // A Plist is a list of parameters
 data class PlistStmt(
     val params: List<PlistParam>,

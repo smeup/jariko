@@ -143,7 +143,7 @@ abstract class AssignableExpression(override val position: Position? = null) : E
 
 data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, override val position: Position? = null) :
     AssignableExpression(position) {
-
+      
     init {
         require(!variable.name.startsWith("*")) { "This is not a valid variable name: '${variable.name}'" }
         require(variable.name.isNotBlank()) {

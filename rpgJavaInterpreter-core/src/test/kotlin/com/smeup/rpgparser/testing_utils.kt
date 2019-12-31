@@ -327,6 +327,7 @@ class DummyProgramFinder(private val path: String) : RpgProgramFinder {
 }
 
 open class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
+
     val programFinders = mutableListOf<RpgProgramFinder>(DummyProgramFinder("/"))
     private val rpgPrograms = HashMap<String, RpgProgram>()
 

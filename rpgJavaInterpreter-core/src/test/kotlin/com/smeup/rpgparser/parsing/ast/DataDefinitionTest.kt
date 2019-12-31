@@ -269,7 +269,7 @@ class DataDefinitionTest {
     }
 
     @Test
-    fun initializationValue() {
+ fun initializationValue() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
         cu.resolve(DummyDBInterface)
         val unnamedDs = cu.getDataDefinition("@UNNAMED_DS_48")

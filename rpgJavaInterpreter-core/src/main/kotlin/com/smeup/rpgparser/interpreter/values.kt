@@ -97,6 +97,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
             return BooleanValue(true)
         }
         return BooleanValue(false)
+
     }
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
@@ -188,6 +189,7 @@ fun sortA(value: Value, charset: Charset) {
         }
     }
 }
+
 
 data class IntValue(val value: Long) : NumberValue() {
 
@@ -409,6 +411,7 @@ abstract class ArrayValue : Value() {
 }
 
 data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
+
     override fun elementSize() = elementType.size
 
     override fun arrayLength() = elements.size
@@ -480,9 +483,11 @@ object LowValValue : Value() {
 }
 
 object ZeroValue : Value() {
+
     override fun copy(): Value {
         TODO("not implemented")
     }
+
 
     override fun toString(): String {
         return "ZeroValue"

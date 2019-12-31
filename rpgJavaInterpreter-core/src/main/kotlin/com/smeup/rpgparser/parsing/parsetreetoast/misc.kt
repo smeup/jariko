@@ -256,7 +256,6 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csTAG() != null -> this.csTAG().toAst(conf)
         this.csGOTO() != null -> this.csGOTO().toAst(conf)
         this.csSORTA() != null -> this.csSORTA().toAst(conf)
-
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }

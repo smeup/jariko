@@ -38,6 +38,7 @@ class JDExamplesTest {
         val svarcdDef = cu.allDataDefinitions.find { it.name == "\$\$SVARCD" }!! as FieldDefinition
         val svarvaDef = cu.allDataDefinitions.find { it.name == "\$\$SVARVA" }!! as FieldDefinition
 
+
         assertEquals(1050, svarskDef.elementSize())
         assertEquals(50, svarcdDef.elementSize())
         assertEquals(1000, svarvaDef.elementSize())
@@ -131,6 +132,7 @@ class JDExamplesTest {
         assertEquals(ArrayType(StringType(1050), 200), svarskDef.type)
 
         cu.resolve(DummyDBInterface)
+
         execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
 
 //        We have a problem when assigning the Url value. We assign it on a ConcreateArrayValue of SVARSK, and that is not
