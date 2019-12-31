@@ -24,7 +24,7 @@ Sme.UP Open Architecture aims to build a **software platform for business applic
 
 JaRIKo can definitely be used as a library: you push RPG code in, you have it executed, you get results out. And it works, as you can see in this animated gif of a simple on-the-fly online rpg running application.
 
-![rpgweb](/images/rpgweb.gif)  
+![rpgweb](/images/rpgwebdark.gif)  
 
 
 But, for an enterprise-grade application, there'll be a runtime environment running RPG and JVM code altogether, and it will likely work as in the following picture
