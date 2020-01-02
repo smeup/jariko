@@ -31,9 +31,18 @@ sealed class Type {
         return value.assignableTo(this)
     }
 
+    open fun canBeAssigned(type: Type): Boolean {
+        return this == type
+    }
+
     abstract val size: Int
 
     fun toArray(nElements: Int) = ArrayType(this, nElements)
+    fun isArray() = this is ArrayType
+    open fun asArray(): ArrayType {
+        throw IllegalStateException("Not an ArrayType")
+    }
+    open fun hasVariableSize() = false
 }
 
 object FigurativeType : Type() {
@@ -63,6 +72,22 @@ data class StringType(val length: Int, val varying: Boolean = false) : Type() {
 object BooleanType : Type() {
     override val size: Int
         get() = 1
+
+    override fun toString() = this.javaClass.simpleName
+}
+
+object HiValType : Type() {
+    override val size: Int
+        get() = throw IllegalStateException("Has variable size")
+
+    override fun hasVariableSize() = true
+}
+
+object LowValType : Type() {
+    override val size: Int
+        get() = throw IllegalStateException("Has variable size")
+
+    override fun hasVariableSize() = true
 }
 
 object TimeStampType : Type() {
@@ -147,6 +172,10 @@ data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecor
         return element.size
     }
 
+    override fun asArray(): ArrayType {
+        return this
+    }
+
     fun compileTimeArray(): Boolean = compileTimeRecordsPerLine != null
 }
 
@@ -166,6 +195,29 @@ fun Expression.type(): Type {
         is RealLiteral -> {
             NumberType(this.value.precision() - this.value.scale(), this.value.scale())
         }
+        is ArrayAccessExpr -> {
+            val type = this.array.type().asArray()
+            return type.element
+        }
+        is PredefinedIndicatorExpr -> {
+            return BooleanType
+        }
+        is PredefinedGlobalIndicatorExpr -> {
+            return ArrayType(BooleanType, 99)
+        }
+        is HiValExpr -> {
+            return HiValType
+        }
+        is LowValExpr -> {
+            return LowValType
+        }
+        is SubstExpr -> {
+            return this.string.type()
+        }
+        is QualifiedAccessExpr -> {
+            return this.field.referred!!.type
+        }
+        is OnRefExpr, is OffRefExpr -> return BooleanType
         is FigurativeConstantRef -> {
             FigurativeType
         }

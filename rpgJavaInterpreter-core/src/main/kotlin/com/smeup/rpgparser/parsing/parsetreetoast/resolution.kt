@@ -22,13 +22,7 @@ private fun CompilationUnit.allStatements(): List<Statement> {
     return result
 }
 
-fun CompilationUnit.resolve(databaseInterface: DBInterface) {
-    this.assignParents()
-
-    this.findInStatementDataDefinitions()
-
-    this.databaseInterface = databaseInterface
-
+private fun Node.resolveDataRefs(cu: CompilationUnit) {
     this.specificProcess(DataRefExpr::class.java) { dre ->
         if (!dre.variable.resolved) {
 
@@ -37,15 +31,48 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface) {
 
                 val fieldName = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
 
-                val resField = this.allDataDefinitions.find { it.name.equals(fieldName, true) }
+                val resField = cu.allDataDefinitions.find { it.name.equals(fieldName, true) }
                 dre.variable.referred = resField
             } else {
-                require(dre.variable.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
+                require(dre.variable.tryToResolve(cu.allDataDefinitions, caseInsensitive = true)) {
                     "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
                 }
             }
         }
     }
+}
+
+private fun Node.resolveFunctionCalls(cu: CompilationUnit) {
+    // replace FunctionCall with ArrayAccessExpr where it makes sense
+    this.specificProcess(FunctionCall::class.java) { fc ->
+        if (fc.args.size == 1) {
+            val data = cu.allDataDefinitions.firstOrNull { it.name == fc.function.name }
+            if (data != null) {
+                enrichPossibleExceptionWith(fc.position) {
+                    fc.replace(ArrayAccessExpr(
+                            array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
+                            index = fc.args[0],
+                            position = fc.position))
+                }
+            }
+        }
+    }
+}
+
+fun MuteAnnotation.resolve(cu: CompilationUnit) {
+    this.resolveDataRefs(cu)
+    this.resolveFunctionCalls(cu)
+}
+
+fun CompilationUnit.resolve(databaseInterface: DBInterface) {
+    this.assignParents()
+
+    this.findInStatementDataDefinitions()
+
+    this.databaseInterface = databaseInterface
+
+    this.resolveDataRefs(this)
+
     this.specificProcess(ExecuteSubroutine::class.java) { esr ->
         if (!esr.subroutine.resolved) {
             require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
@@ -66,20 +93,7 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface) {
             }
         }
     }
-    // replace FunctionCall with ArrayAccessExpr where it makes sense
-    this.specificProcess(FunctionCall::class.java) { fc ->
-        if (fc.args.size == 1) {
-            val data = this.allDataDefinitions.firstOrNull { it.name == fc.function.name }
-            if (data != null) {
-                enrichPossibleExceptionWith(fc.position) {
-                    fc.replace(ArrayAccessExpr(
-                            array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
-                            index = fc.args[0],
-                            position = fc.position))
-                }
-            }
-        }
-    }
+    this.resolveFunctionCalls(this)
 
     // replace equality expr in For init with Assignments
     this.specificProcess(ForStmt::class.java) { fs ->
@@ -91,7 +105,8 @@ fun CompilationUnit.resolve(databaseInterface: DBInterface) {
 
     this.specificProcess(EvalStmt::class.java) { s ->
         if (s.expression is EqualityExpr) {
-            s.expression.replace((s.expression as EqualityExpr).toAssignment())
+            // See issue %57 during the code review
+            // s.expression.replace((s.expression as EqualityExpr).toAssignment())
         }
     }
 

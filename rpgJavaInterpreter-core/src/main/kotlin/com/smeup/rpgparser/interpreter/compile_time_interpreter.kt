@@ -4,6 +4,7 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
+import java.lang.RuntimeException
 
 /**
  * This is a very limited interpreter used at compile time, mainly
@@ -14,11 +15,15 @@ import com.smeup.rpgparser.utils.asInt
 interface CompileTimeInterpreter {
     fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value
     fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression): Int
+    fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int
 }
 
-object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter()
+object CommonCompileTimeInterpreter : BaseCompileTimeInterpreter(emptyList())
 
-class InjectableCompileTimeInterpreter : BaseCompileTimeInterpreter() {
+class InjectableCompileTimeInterpreter(
+    knownDataDefinitions: List<DataDefinition> = emptyList(),
+    delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
+) : BaseCompileTimeInterpreter(knownDataDefinitions, delegatedCompileTimeInterpreter) {
     override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
         return mockedDecls[declName]?.numberOfElements() ?: super.evaluateNumberOfElementsOf(rContext, declName)
     }
@@ -34,7 +39,12 @@ class InjectableCompileTimeInterpreter : BaseCompileTimeInterpreter() {
     }
 }
 
-open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
+class NotFoundAtCompileTimeException(val declName: String) : RuntimeException("Unable to calculate element size of $declName")
+
+open class BaseCompileTimeInterpreter(
+    val knownDataDefinitions: List<DataDefinition>,
+    val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
+) : CompileTimeInterpreter {
     override fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value {
         return when (expression) {
             is NumberOfElementsExpr -> IntValue(evaluateNumberOfElementsOf(rContext, expression.value).toLong())
@@ -43,14 +53,34 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
             else -> TODO(expression.toString())
         }
     }
+
     private fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, expression: Expression): Int {
         return when (expression) {
-            is DataRefExpr -> evaluateNumberOfElementsOf(rContext, expression.variable.name)
+            is DataRefExpr -> {
+                try {
+                    evaluateNumberOfElementsOf(rContext, expression.variable.name)
+                } catch (e: NotFoundAtCompileTimeException) {
+                    if (delegatedCompileTimeInterpreter != null) {
+                        return delegatedCompileTimeInterpreter!!.evaluateNumberOfElementsOf(rContext, expression.variable.name)
+                    } else {
+                        throw RuntimeException(e)
+                    }
+                }
+            }
             else -> TODO(expression.toString())
         }
     }
 
-    protected open fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
+    override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
+        knownDataDefinitions.forEach {
+            if (it.name == declName) {
+                return it.numberOfElements()
+            }
+            val field = it.fields.find { it.name == declName }
+            if (field != null) {
+                return field.numberOfElements()
+            }
+        }
         rContext.statement()
                 .forEach {
                     when {
@@ -71,10 +101,23 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                         }
                     }
                 }
-        TODO("Not found: $declName")
+        throw NotFoundAtCompileTimeException(declName)
     }
 
     open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String): Int {
+        knownDataDefinitions.forEach {
+            if (it.name == declName) {
+                return it.elementSize().toInt()
+            }
+            val field = it.fields.find { it.name == declName }
+            if (field != null) {
+                if (field.declaredArrayInLine != null) {
+                    return (field.elementSize() /*/ field.declaredArrayInLine!!*/).toInt()
+                }
+                return field.elementSize().toInt()
+            }
+        }
+
         rContext.statement()
                 .forEach {
                     when {
@@ -93,12 +136,22 @@ open class BaseCompileTimeInterpreter : CompileTimeInterpreter {
                         }
                     }
                 }
-        TODO("Not found: $declName")
+        throw NotFoundAtCompileTimeException(declName)
     }
 
     override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression): Int {
         return when (expression) {
-            is DataRefExpr -> evaluateElementSizeOf(rContext, expression.variable.name)
+            is DataRefExpr -> {
+                try {
+                    evaluateElementSizeOf(rContext, expression.variable.name)
+                } catch (e: NotFoundAtCompileTimeException) {
+                    if (delegatedCompileTimeInterpreter != null) {
+                        return delegatedCompileTimeInterpreter!!.evaluateElementSizeOf(rContext, expression)
+                    } else {
+                        throw RuntimeException(e)
+                    }
+                }
+            }
             else -> TODO(expression.toString())
         }
     }

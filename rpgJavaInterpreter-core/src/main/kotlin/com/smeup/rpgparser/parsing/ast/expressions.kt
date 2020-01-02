@@ -145,6 +145,7 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     AssignableExpression(position) {
 
     init {
+        require(!variable.name.startsWith("*")) { "This is not a valid variable name: '${variable.name}'" }
         require(variable.name.isNotBlank()) {
             "The variable name should not blank - ${position.atLine()}"
         }

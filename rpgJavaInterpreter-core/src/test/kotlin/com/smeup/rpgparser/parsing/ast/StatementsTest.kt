@@ -9,7 +9,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.collectByType
-import org.junit.Ignore
 import kotlin.test.assertEquals
 import org.junit.Test as test
 
@@ -159,13 +158,13 @@ class StatementsTest {
     // TODO select with other
 
     @test fun setOnParsing() {
-        assertEquals(SetOnStmt(listOf(LR)), statement("SETON                                        LR"))
-        assertEquals(SetOnStmt(listOf(RT)), statement("SETON                                        RT"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(LR))), statement("SETON                                        LR"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(RT))), statement("SETON                                        RT"))
     }
 
     @test fun setOnParsingSecondPlace() {
-        assertEquals(SetOnStmt(listOf(LR)), statement("SETON                                          LR"))
-        assertEquals(SetOnStmt(listOf(RT)), statement("SETON                                          RT"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(LR))), statement("SETON                                          LR"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(RT))), statement("SETON                                          RT"))
     }
 
     @test fun clearParsing() {
@@ -259,7 +258,6 @@ class StatementsTest {
         assertEquals(true, evalStmt.flags.resultDecimalPositionRule)
     }
 
-    @Ignore // working on qualified access
     @test fun parseEvalWithQualifiedDsAccess() {
         assertStatementCanBeParsed("EVAL      DS1.AR2=*ON", addPrefix = true)
     }

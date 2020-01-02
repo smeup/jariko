@@ -45,15 +45,39 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
-    var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList<DataDefinitionProvider>()
+    var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
+    val knownDataDefinitions = LinkedList<DataDefinition>()
+
+    // First pass ignore exception and all the know definitions
+    dataDefinitionProviders.addAll(this.statement()
+        .mapNotNull {
+        when {
+            it.dcl_ds() != null -> {
+                try {
+                    val dataDefinition = it.dcl_ds().toAst(conf)
+                    knownDataDefinitions.add(dataDefinition)
+                    DataDefinitionHolder(dataDefinition)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            else -> null
+        }
+    })
+
+    // Second pass, everything, I mean everything
     dataDefinitionProviders.addAll(this.statement()
             .mapNotNull {
                 when {
-                    it.dspec() != null -> DataDefinitionHolder(it.dspec().toAst(conf))
+                    it.dspec() != null -> {
+                        val dataDefinition = it.dspec().toAst(conf, knownDataDefinitions)
+                        knownDataDefinitions.add(dataDefinition)
+                        DataDefinitionHolder(dataDefinition)
+                    }
                     it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
                     } else {
-                        DataDefinitionHolder(it.dcl_ds().toAst(conf))
+                        null
                     }
                     else -> null
                 }
@@ -182,6 +206,7 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
     return when {
         this.SPLAT_HIVAL() != null -> HiValExpr(position)
         this.SPLAT_LOVAL() != null -> LowValExpr(position)
+        this.SPLAT_BLANKS() != null -> BlanksRefExpr(position)
         this.SPLAT_ALL() != null -> {
             val content: LiteralContext = this.parent.getChild(1) as LiteralContext
             AllExpr(content.toAst(conf), position)
@@ -203,6 +228,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
         this.csCALL() != null -> this.csCALL().toAst(conf)
         this.csSETON() != null -> this.csSETON().toAst(conf)
+        this.csSETOFF() != null -> this.csSETOFF().toAst(conf)
         this.csPLIST() != null -> this.csPLIST().toAst(conf)
         this.csCLEAR() != null -> this.csCLEAR().toAst(conf)
         this.csLEAVE() != null -> LeaveStmt(toPosition(conf.considerPosition))
@@ -229,6 +255,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csRETURN() != null -> this.csRETURN().toAst(conf)
         this.csTAG() != null -> this.csTAG().toAst(conf)
         this.csGOTO() != null -> this.csGOTO().toAst(conf)
+        this.csSORTA() != null -> this.csSORTA().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -236,6 +263,17 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
 // FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
 //        in the grammar
 internal fun referenceToExpression(text: String, position: Position?): Expression {
+    if (text.toUpperCase() == "*IN") {
+        return PredefinedGlobalIndicatorExpr(position)
+    }
+    if (text.toUpperCase().startsWith("*IN(") && text.endsWith(")")) {
+        val index = text.toUpperCase().removePrefix("*IN(").removeSuffix(")").toInt()
+        return PredefinedIndicatorExpr(index, position)
+    }
+    if (text.toUpperCase().startsWith("*IN")) {
+        val index = text.toUpperCase().removePrefix("*IN").toInt()
+        return PredefinedIndicatorExpr(index, position)
+    }
     var expr: Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
         DataRefExpr(ReferenceByName(varName), position)
@@ -373,17 +411,35 @@ internal fun Token.asInt(): Int? {
     }
 }
 
-internal fun CsSETONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SetOnStmt {
-    return SetOnStmt(indicators(this.cspec_fixed_standard_parts()), toPosition(conf.considerPosition))
+internal fun CsSETONContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SetStmt {
+    try {
+        return SetStmt(SetStmt.ValueSet.ON, indicators(this.cspec_fixed_standard_parts(), conf.considerPosition), toPosition(conf.considerPosition))
+    } catch (e: Exception) {
+        throw RuntimeException("Problem translating ${this.text} at ${this.toPosition(true)}", e)
+    }
 }
 
-internal fun indicators(cspecs: Cspec_fixed_standard_partsContext): List<DataWrapUpChoice> {
+internal fun CsSETOFFContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SetStmt {
+    try {
+        return SetStmt(SetStmt.ValueSet.OFF, indicators(this.cspec_fixed_standard_parts(), conf.considerPosition), toPosition(conf.considerPosition))
+    } catch (e: Exception) {
+        throw RuntimeException("Problem translating ${this.text} at ${this.toPosition(true)}", e)
+    }
+}
+
+internal fun indicators(cspecs: Cspec_fixed_standard_partsContext, considerPosition: Boolean = true): List<AssignableExpression> {
     return listOf(cspecs.hi, cspecs.lo, cspecs.eq)
             .asSequence()
             .map { it.text }
             .filter { !it.isNullOrBlank() }
             .map(String::toUpperCase)
-            .map(DataWrapUpChoice::valueOf)
+            .map {
+                if (it.isInt()) {
+                    PredefinedIndicatorExpr(it.toInt(), cspecs.toPosition(considerPosition))
+                } else {
+                    DataWrapUpIndicatorExpr(DataWrapUpChoice.valueOf(it.toUpperCase()), cspecs.toPosition(considerPosition))
+                }
+            }
             .toList()
 }
 
@@ -442,10 +498,11 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
 }
 
 internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
-    val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
-    return ReadStmt(factor2, position)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
+    return ReadStmt(
+        factor2,
+        toPosition(conf.considerPosition))
 }
 
 internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
@@ -650,6 +707,10 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
             toPosition(conf.considerPosition))
 }
 
+internal fun CsSORTAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SortAStmt {
+    val expr = this.fixedexpression.expression().toAst(conf)
+    return SortAStmt(expr, toPosition(conf.considerPosition))
+}
 internal fun ResultIndicatorContext.asIndex(): Int? {
     // TODO: verify if we should cover other cases (e.g. external indicators)
     return this.GeneralIndicator()?.text?.toIntOrNull()

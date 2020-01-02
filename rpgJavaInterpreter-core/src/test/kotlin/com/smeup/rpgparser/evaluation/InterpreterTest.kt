@@ -365,7 +365,6 @@ class InterpreterTest {
     }
 
     @Test
-    @Ignore // we are working on DECEDIT
     fun executeBIFEDITC_J() {
         assertEquals(listOf("x   123,456   123,456-  1,234.56X",
                             "x  1,234.56-       .00X",

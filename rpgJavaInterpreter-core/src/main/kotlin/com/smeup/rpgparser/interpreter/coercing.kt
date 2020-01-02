@@ -25,6 +25,9 @@ private fun coerceBlanks(type: Type): Value {
         is DataStructureType -> {
             type.blank()
         }
+        is BooleanType -> {
+            BooleanValue.FALSE
+        }
         else -> TODO("Converting BlanksValue to $type")
     }
 }
@@ -35,15 +38,22 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.value.length > type.length) {
                 return StringValue(value.value.substring(0, type.length))
             }
-            return StringValue(value.value)
+            return StringValue(value.value, type.varying)
         }
         is ArrayType -> {
             if (type.element is StringType) {
+                // We are coercing a String into an array of Strings
+                // We split the string in substrings and copy each piece into
+                // an element of the array
+
+                var i = 0
                 val elementSize = type.element.size
                 val valueForArray = value.value.padEnd(elementSize).take(elementSize)
                 createArrayValue(type.element, type.nElements) {
-                    // TODO Since value property of StringValue is a var, we cannot share instances of StringValue
-                    StringValue(valueForArray)
+                    val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length)).padEnd(elementSize)
+                    val res = StringValue(valueForArray)
+                    i += elementSize
+                    res
                 }
             } else {
                 createArrayValue(type.element, type.nElements) {
@@ -55,22 +65,35 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is NumberType -> {
             if (type.integer) {
                 when {
-                    value.isBlank() -> IntValue.ZERO
+                    // TODO commented out see #45
+                    // value.isBlank() -> IntValue.ZERO
                     type.rpgType == RpgType.BINARY.rpgType -> {
-                        val intValue = decodeBinary(value.value, type.entireDigits)
+                        val intValue = decodeBinary(value.value, type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.INTEGER.rpgType -> {
-                        val intValue = decodeInteger(value.value, type.entireDigits)
+                        val intValue = decodeInteger(value.value, type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                        val intValue = decodeUnsigned(value.value, type.entireDigits)
+                        val intValue = decodeUnsigned(value.value, type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
+                    type.rpgType == RpgType.ZONED.rpgType -> {
+                        if (!value.isBlank()) {
+                            val intValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            IntValue(intValue.longValueExact())
+                        } else {
+                            DecimalValue(BigDecimal.ZERO)
+                        }
+                    }
                     else -> {
-                        val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
-                        IntValue(intValue.longValueExact())
+                        if (!value.isBlank()) {
+                            val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
+                            IntValue(intValue.longValueExact())
+                        } else {
+                            IntValue(0)
+                        }
                     }
                 }
             } else {
@@ -119,12 +142,12 @@ fun coerce(value: Value, type: Type): Value {
             coerceString(value, type)
         }
         is ArrayValue -> {
-            when (type) {
+            return when (type) {
                 is StringType -> {
-                    return value.asString()
+                    value.asString()
                 }
                 is ArrayType -> {
-                    return value
+                    value
                 }
                 else -> TODO("Converting ArrayValue to $type")
             }
