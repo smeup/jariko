@@ -36,7 +36,7 @@ Once a request comes into the system, it's recognized as a "program" (a unit of 
 
 
 ### Why are we doing that?
-*Why building something that runs RPG, a such old and niche programming language?* 
+*Why building something that runs RPG, such an old and niche programming language?* 
 RPG is widely common in the business and financial industry. There are tons of super-stable, higly-tested, mission-critical lines of RPG code running a big amount of businesses since tens of years. Big companies still rely on this programming language. 
 
 This is for at least a couple of reasons. 
@@ -58,7 +58,7 @@ Through doping, it's also much simpler to make the architectural design needed t
 
 
 #### 2- DSL
-If you know how programming languages work, you also know that once you have a syntax three in your hands, you can can do almost whatever you want. So, since RPG is best used for business applications, why don't add new high-level features to make the life of the RPG programmer easier? This is a step towards a Domain Specific Language
+If you know how programming languages work, you also know that once you have a syntax three in your hands, you can do almost whatever you want. So, since RPG is best used for business applications, why don't add new high-level features to make the life of the RPG programmer easier? This is a step towards a Domain Specific Language
 
      C                   PARM                    §§METO
      C                   PARM                    §§SVAR
