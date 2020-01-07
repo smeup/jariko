@@ -110,7 +110,7 @@ You can run MUTE tests in Visual Studio Code: see the [documentation](docs/visua
 
 ## How to use this code in your project
 
-At the moment, we use [Jitpack](https://jitpack.io/) to publish the [project](https://jitpack.io/#smeup/smeup-rpg).
+At the moment, we use [Jitpack](https://jitpack.io/) to publish the [project](https://jitpack.io/#smeup/jariko).
 
 If you use Maven, add these lines to your pom.xml in order to add the repository
 
