@@ -22,12 +22,20 @@ Sme.UP Open Architecture aims to build a **software platform for business applic
 
 ### How might this work in the real world 
 
-JaRIKo can definitely be used as a library: you push RPG code in, you have it executed, you get results out. And it works, as you can see in this animated gif of a simple on-the-fly online rpg running application.
+JaRIKo can definitely be used as a library: you push RPG code in, you have it executed, you get results out. And it works, as you can see in this animated gif of a simple on-the-fly online rpg-running application.
 
 ![rpgweb](/images/rpgwebdark.gif)  
 
+This application is running **completely on Linux**
+* recieves the RPG code via HTTP
+* uses Jariko as a jar
+* overwrites the DSPLY opcode, redirecting the output to the http-response. 
+Pretty slick!
 
-But, for an enterprise-grade application, there'll be a runtime environment running RPG and JVM code altogether, and it will likely work as in the following picture
+![rpgweb](/images/RPG_WEB@2x.png)
+
+
+But, **for an enterprise-grade application**, there'll be a runtime environment running RPG and JVM code altogether, and it will likely work as in the following picture
 
 ![smeup_data_platform](/images/architecture.png)  
 
