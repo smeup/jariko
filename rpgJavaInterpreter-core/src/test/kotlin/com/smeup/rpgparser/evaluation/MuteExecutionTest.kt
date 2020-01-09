@@ -132,7 +132,7 @@ class MuteExecutionTest {
         assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
     }
 
-    // The parser can't understand an array's element in the result of MOVEL (it's ok in factor2)
+    // FIXME: We need to implement MOVEA
     @Test @kotlin.test.Ignore
     // this program test operations on arrays of unequal size
     fun executeMUTE09_04() {
