@@ -271,12 +271,12 @@ class StatementsTest {
         assertStatementCanBeParsed("EVAL      *IN=*ON", addPrefix = true)
     }
 
-    @test fun parseArrayAccessFactor2() {
+    @test fun parseArrayAccessInFactor2() {
         assertStatementCanBeParsed("MOVE      TXT(1)        X", addPrefix = true)
     }
 
     @test @Ignore
-    fun parseArrayAccessResult() {
+    fun parseArrayAccessInResult() {
         assertStatementCanBeParsed("MOVE      X             TXT(1)", addPrefix = true)
     }
 
