@@ -116,6 +116,9 @@ You can run MUTE tests in Visual Studio Code: see the [documentation](docs/visua
 * _misc/docker_: support for [Docker, see instructions](misc/docker/docker.md)
 * _docs_ contains documentation
 
+## Are there any presentation about your work?
+Yes, of course: see the [presentation list](docs/presentations.md)
+
 ## How to use this code in your project
 
 At the moment, we use [Jitpack](https://jitpack.io/) to publish the [project](https://jitpack.io/#smeup/jariko).
