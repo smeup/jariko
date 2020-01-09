@@ -2,7 +2,7 @@ package com.github.rpgjavainterpreter.gatecontroller
 
 import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.rgpinterop.RpgSystem
+import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals

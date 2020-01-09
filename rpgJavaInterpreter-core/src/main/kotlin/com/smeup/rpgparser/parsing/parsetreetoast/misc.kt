@@ -274,6 +274,13 @@ internal fun referenceToExpression(text: String, position: Position?): Expressio
         val index = text.toUpperCase().removePrefix("*IN").toInt()
         return PredefinedIndicatorExpr(index, position)
     }
+    return annidatedReferenceExpression(text, position)
+}
+
+private fun annidatedReferenceExpression(
+    text: String,
+    position: Position?
+): AssignableExpression {
     var expr: Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
         DataRefExpr(ReferenceByName(varName), position)
@@ -286,14 +293,14 @@ internal fun referenceToExpression(text: String, position: Position?): Expressio
         val indexText = text.substring(text.indexOf("(") + 1, text.lastIndexOf(")"))
         val indexValue = indexText.toLongOrNull()
         val indexExpression =
-                if (indexValue == null) {
-                    DataRefExpr(ReferenceByName(indexText), computeNewPosition(position, text))
-                } else {
-                    IntLiteral(indexValue, computeNewPosition(position, text))
-                }
+            if (indexValue == null) {
+                DataRefExpr(ReferenceByName(indexText), computeNewPosition(position, text))
+            } else {
+                IntLiteral(indexValue, computeNewPosition(position, text))
+            }
         expr = ArrayAccessExpr(expr, indexExpression)
     }
-    return expr
+    return expr as AssignableExpression
 }
 
 private fun computeNewPosition(position: Position?, text: String) =
@@ -329,8 +336,13 @@ internal fun CsDSPLYContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 internal fun ResultTypeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
     // this should have been parsed differently because here we have to figure out
     // what kind of expression is this
+    val position = toPosition(conf.considerPosition)
 
-    return handleParsingOfTargets(this.text, toPosition(conf.considerPosition))
+    if (text.contains('.')) {
+        return handleParsingOfTargets(text, position)
+    } else {
+        return annidatedReferenceExpression(text, position)
+    }
 }
 
 private fun handleParsingOfTargets(code: String, position: Position?): AssignableExpression {
@@ -374,6 +386,13 @@ fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration
         return factor2.symbolicConstants().toAst()
     }
     return factor2?.content?.toAst(conf)
+}
+
+fun Cspec_fixed_standard_partsContext.resultExpression(conf: ToAstConfiguration): Expression? {
+    if (result?.symbolicConstants() != null) {
+        return result.symbolicConstants().toAst()
+    }
+    return result.toAst()
 }
 
 internal fun Cspec_fixed_standard_partsContext.toDataDefinition(name: String, position: Position?, conf: ToAstConfiguration): InStatementDataDefinition? {
@@ -535,8 +554,8 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
     val position = toPosition(conf.considerPosition)
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
-    val name = this.cspec_fixed_standard_parts().result.text
-    return MoveStmt(DataRefExpr(ReferenceByName(name), position), expression, position)
+    val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    return MoveStmt(resultExpression, expression, position)
 }
 
 internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveLStmt {

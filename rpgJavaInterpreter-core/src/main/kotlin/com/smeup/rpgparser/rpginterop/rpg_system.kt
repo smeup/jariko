@@ -1,4 +1,4 @@
-package com.smeup.rpgparser.rgpinterop
+package com.smeup.rpgparser.rpginterop
 
 import com.smeup.rpgparser.interpreter.DBInterface
 import com.smeup.rpgparser.interpreter.DummyDBInterface
