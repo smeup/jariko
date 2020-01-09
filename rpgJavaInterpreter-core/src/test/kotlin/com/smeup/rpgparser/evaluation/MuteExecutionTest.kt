@@ -9,6 +9,7 @@ import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import org.junit.Test
 import java.util.concurrent.TimeoutException
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -119,5 +120,19 @@ class MuteExecutionTest {
         cu.resolve(DummyDBInterface)
         val interpreter = execute(cu, emptyMap())
         assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
+    }
+
+    // The parser can't understand an array's element in the result of MOVEL (it's ok in factor2)
+    @Test @kotlin.test.Ignore
+    // this program test operations on arrays of unequal size
+    fun executeMUTE09_04() {
+        val cu = assertASTCanBeProduced("mute/MUTE09_04", true, withMuteSupport = true)
+        cu.resolve(DummyDBInterface)
+        assertEquals(115, cu.main.stmts[0].muteAnnotations.size)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(115, interpreter.systemInterface.getExecutedAnnotation().size)
+        interpreter.systemInterface.getExecutedAnnotation().forEach {
+            assertEquals(BooleanValue(true), it.value.result)
+        }
     }
 }
