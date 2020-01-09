@@ -12,7 +12,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.strumenta.kolasu.model.ReferenceByName
 import junit.framework.Assert
 import org.antlr.v4.runtime.Lexer

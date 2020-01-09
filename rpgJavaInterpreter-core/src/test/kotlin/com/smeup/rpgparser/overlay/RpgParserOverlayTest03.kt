@@ -7,8 +7,8 @@ import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rgpinterop.RpgSystem
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 import java.io.File
 

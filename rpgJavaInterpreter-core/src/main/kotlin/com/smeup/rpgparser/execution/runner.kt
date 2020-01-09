@@ -10,7 +10,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
-import com.smeup.rpgparser.rgpinterop.*
+import com.smeup.rpgparser.rpginterop.*
 import java.io.File
 import org.apache.commons.io.input.BOMInputStream
 

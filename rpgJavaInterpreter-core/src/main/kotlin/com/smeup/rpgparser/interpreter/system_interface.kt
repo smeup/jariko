@@ -4,7 +4,7 @@ import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
-import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 import java.io.PrintStream
 import java.util.*

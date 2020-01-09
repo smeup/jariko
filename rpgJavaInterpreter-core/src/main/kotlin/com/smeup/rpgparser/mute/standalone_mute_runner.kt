@@ -2,8 +2,8 @@
 
 package com.smeup.rpgparser.mute
 
-import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 
 fun main(args: Array<String>) {
