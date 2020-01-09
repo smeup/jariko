@@ -3,6 +3,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.ExtendedCollectorSystemInterface
 import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.assertNrOfMutesAre
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
@@ -27,6 +28,15 @@ class MuteExecutionTest {
         interpreter.systemInterface.getExecutedAnnotation().forEach {
             assertEquals(BooleanValue(true), it.value.result)
         }
+    }
+
+    @Test
+    fun executeMuteWithScope() {
+        val cu = assertASTCanBeProduced("mute/MUTE01_SCOPE", true, withMuteSupport = true)
+        cu.resolve(DummyDBInterface)
+        cu.assertNrOfMutesAre(5)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(5, interpreter.systemInterface.getExecutedAnnotation().size)
     }
 
     @Test
