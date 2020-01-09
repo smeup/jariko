@@ -43,7 +43,7 @@ class MuteExecutionTest {
     fun parsingSimpleMuteTimeout() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT", true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
-        cu.assertNrOfMutesAre(3)
+        cu.assertNrOfMutesAre(4)
         assertEquals(2, cu.timeouts.size)
         assertEquals(123, cu.timeouts[0].timeout)
         assertEquals(456, cu.timeouts[1].timeout)
