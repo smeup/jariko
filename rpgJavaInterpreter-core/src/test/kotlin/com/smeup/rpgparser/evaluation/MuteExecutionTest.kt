@@ -22,7 +22,7 @@ class MuteExecutionTest {
     fun executeSimpleMute() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE", true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
-        assertEquals(3, cu.main.stmts[0].muteAnnotations.size)
+        cu.assertNrOfMutesAre(3)
         val interpreter = execute(cu, emptyMap())
         assertEquals(3, interpreter.systemInterface.getExecutedAnnotation().size)
         interpreter.systemInterface.getExecutedAnnotation().forEach {
@@ -43,7 +43,7 @@ class MuteExecutionTest {
     fun parsingSimpleMuteTimeout() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_TIMEOUT", true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
-        assertEquals(3, cu.main.stmts[0].muteAnnotations.size)
+        cu.assertNrOfMutesAre(3)
         assertEquals(2, cu.timeouts.size)
         assertEquals(123, cu.timeouts[0].timeout)
         assertEquals(456, cu.timeouts[1].timeout)
@@ -86,7 +86,7 @@ class MuteExecutionTest {
     fun executeSIMPLE_MUTE_FAIL_STATIC_MESSAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_STATIC_MESSAGE", true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
-        assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
+        cu.assertNrOfMutesAre(1)
         val interpreter = execute(cu, emptyMap())
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
         val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
@@ -98,7 +98,7 @@ class MuteExecutionTest {
     fun executeSIMPLE_MUTE_FAIL_EVALUATED_MESSAGE() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_EVALUATED_MESSAGE", true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
-        assertEquals(1, cu.main.stmts[0].muteAnnotations.size)
+        cu.assertNrOfMutesAre(1)
         val interpreter = execute(cu, emptyMap())
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
         val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
@@ -138,7 +138,7 @@ class MuteExecutionTest {
     fun executeMUTE09_04() {
         val cu = assertASTCanBeProduced("mute/MUTE09_04", true, withMuteSupport = true)
         cu.resolve(DummyDBInterface)
-        assertEquals(115, cu.main.stmts[0].muteAnnotations.size)
+        cu.assertNrOfMutesAre(115)
         val interpreter = execute(cu, emptyMap())
         assertEquals(115, interpreter.systemInterface.getExecutedAnnotation().size)
         interpreter.systemInterface.getExecutedAnnotation().forEach {
