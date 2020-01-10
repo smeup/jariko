@@ -7,13 +7,11 @@ import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
-import com.smeup.rpgparser.rgpinterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rgpinterop.RpgSystem
-import org.junit.Ignore
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 import java.io.File
 
-@Ignore
 public class RpgParserOverlayTest03 {
 
     @Test
@@ -24,6 +22,11 @@ public class RpgParserOverlayTest03 {
     @Test
     fun parseMUTE03_09_ast() {
         assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
+    }
+
+    @Test
+    fun parseMUTE03_09B_ast() {
+        assertASTCanBeProduced("overlay/MUTE03_09B", considerPosition = true, withMuteSupport = true)
     }
 
     @Test

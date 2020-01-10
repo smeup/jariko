@@ -225,7 +225,8 @@ class RpgParserDataStruct {
                 calculatedStartOffset = 6,
                 calculatedEndOffset = 8,
                 overriddenContainer = null,
-                position = null)
+                position = null,
+                declaredArrayInLineOnThisField = null)
         val encodedValue = PAC030.toDataStructureValue(IntValue(999))
         assertEquals(2, encodedValue.value.length)
     }

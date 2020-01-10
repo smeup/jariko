@@ -84,6 +84,10 @@ data class CompilationUnit(
     fun getDataDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
             ?: throw IllegalArgumentException("Data definition $name was not found")
 
+    fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
+            ?: dataDefinitions.mapNotNull { it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
+            ?: throw IllegalArgumentException("Data or field definition $name was not found")
+
     fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }

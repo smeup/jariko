@@ -20,7 +20,7 @@ import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
 import com.strumenta.kolasu.validation.Error
 import java.io.*

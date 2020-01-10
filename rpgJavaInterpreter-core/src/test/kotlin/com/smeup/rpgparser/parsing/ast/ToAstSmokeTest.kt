@@ -42,7 +42,7 @@ class ToAstSmokeTest {
     fun buildAstForJD_001_dataDefinitions() {
         val root = assertASTCanBeProduced("JD_001")
         assertEquals(10, root.dataDefinitions.size)
-        assertEquals("\$\$SVAR", root.dataDefinitions[0].name)
+        assertEquals("@UNNAMED_DS_16", root.dataDefinitions[0].name)
         assertEquals("U\$FUNZ", root.dataDefinitions[1].name)
         assertEquals("U\$METO", root.dataDefinitions[2].name)
         assertEquals("U\$SVARSK", root.dataDefinitions[3].name)

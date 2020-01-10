@@ -220,7 +220,12 @@ data class ElseClause(val body: List<Statement>, override val position: Position
 
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
+data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
+    enum class ValueSet {
+        ON,
+        OFF
+    }
+}
 
 data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position)
 
@@ -413,3 +418,9 @@ data class ForStmt(
         return acceptBody(body, mutes, start, end)
     }
 }
+
+/*
+ * For an array data structure, the keyed-ds-array operand is a qualified name consisting
+ * of the array to be sorted followed by the subfield to be used as a key for the sort.
+ */
+data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position)

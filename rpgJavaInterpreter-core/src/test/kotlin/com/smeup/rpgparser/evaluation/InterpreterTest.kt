@@ -365,7 +365,6 @@ class InterpreterTest {
     }
 
     @Test
-    @Ignore // we are working on DECEDIT
     fun executeBIFEDITC_J() {
         assertEquals(listOf("x   123,456   123,456-  1,234.56X",
                             "x  1,234.56-       .00X",
@@ -541,14 +540,12 @@ class InterpreterTest {
         assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
     }
 
-    // TODO implement comparison between types: see InternalInterpreter::areEquals
-    @Test @Ignore
+    @Test
     fun executeBOOLSTRING_conversion() {
         assertEquals(listOf("B<>1", "B=0", "0"), outputOf("BOOLSTRING"))
     }
 
-    // TODO implement DataStructureType coercion
-    @Test @Ignore
+    @Test
     fun executeDSNUMERIC() {
         assertEquals(listOf("Result is: 3"), outputOf("DSNUMERIC"))
     }
@@ -728,7 +725,7 @@ class InterpreterTest {
         assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeSUMDIVMULT() {
         assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
     }

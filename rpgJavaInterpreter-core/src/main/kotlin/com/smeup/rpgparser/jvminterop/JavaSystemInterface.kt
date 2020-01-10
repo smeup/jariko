@@ -3,7 +3,7 @@ package com.smeup.rpgparser.jvminterop
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
-import com.smeup.rpgparser.rgpinterop.RpgSystem
+import com.smeup.rpgparser.rpginterop.RpgSystem
 import java.io.PrintStream
 import java.util.*
 import kotlin.reflect.KFunction1

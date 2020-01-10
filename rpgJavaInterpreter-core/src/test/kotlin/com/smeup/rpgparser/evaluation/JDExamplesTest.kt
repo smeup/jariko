@@ -18,17 +18,45 @@ import java.io.PrintStream
 class JDExamplesTest {
 
     @Test
-    fun executeJD_000_datainit() {
+    fun executeJD_000_datadefinitions() {
         val cu = assertASTCanBeProduced("JD_000_datainit", true)
         cu.resolve(DummyDBInterface)
 
-        assertEquals("U\$SVARSK", cu.allDataDefinitions[0].name)
-        assertEquals("\$\$SVARCD", cu.allDataDefinitions[1].name)
-        assertEquals("\$\$SVARVA", cu.allDataDefinitions[2].name)
-        assertEquals(0, (cu.allDataDefinitions[1] as FieldDefinition).startOffset)
-        assertEquals(50, (cu.allDataDefinitions[1] as FieldDefinition).endOffset)
-        assertEquals(50, (cu.allDataDefinitions[2] as FieldDefinition).startOffset)
-        assertEquals(1050, (cu.allDataDefinitions[2] as FieldDefinition).endOffset)
+        val allDefinitions = cu.allDataDefinitions
+
+        val unnamedDs = allDefinitions.find { it.name == "@UNNAMED_DS_12" } as DataDefinition
+        assertEquals(3, unnamedDs.fields.size)
+        assertTrue(unnamedDs.type is DataStructureType)
+        val dst = unnamedDs.type as DataStructureType
+        assertEquals(210000, dst.elementSize)
+        assertEquals(210000, unnamedDs.type.elementSize())
+        assertEquals("U\$SVARSK", unnamedDs.fields[0].name)
+        assertEquals("\$\$SVARCD", unnamedDs.fields[1].name)
+        assertEquals("\$\$SVARVA", unnamedDs.fields[2].name)
+
+        val svarskDef = cu.allDataDefinitions.find { it.name == "U\$SVARSK" }!! as FieldDefinition
+        val svarcdDef = cu.allDataDefinitions.find { it.name == "\$\$SVARCD" }!! as FieldDefinition
+        val svarvaDef = cu.allDataDefinitions.find { it.name == "\$\$SVARVA" }!! as FieldDefinition
+
+        assertEquals(1050, svarskDef.elementSize())
+        assertEquals(50, svarcdDef.elementSize())
+        assertEquals(1000, svarvaDef.elementSize())
+
+        assertEquals(0, svarskDef.startOffset)
+        assertEquals(1050, svarskDef.endOffset)
+        assertEquals(null, svarskDef.overlayingOn)
+        assertEquals(0, svarcdDef.startOffset)
+        assertEquals(50, svarcdDef.endOffset)
+        assertEquals(svarskDef, svarcdDef.overlayingOn)
+        assertEquals(50, svarvaDef.startOffset)
+        assertEquals(1050, svarvaDef.endOffset)
+        assertEquals(svarskDef, svarvaDef.overlayingOn)
+    }
+
+    @Test
+    fun executeJD_000_datainit() {
+        val cu = assertASTCanBeProduced("JD_000_datainit", true)
+        cu.resolve(DummyDBInterface)
 
         val interpreter = execute(cu, mapOf())
 
@@ -36,7 +64,7 @@ class JDExamplesTest {
         assertTrue(svarsk is ArrayValue)
         assertEquals(200, svarsk.arrayLength())
         val svarskElement = svarsk.getElement(1)
-        assertEquals(DataStructValue(blankString(1050).value), svarskElement)
+        assertEquals(blankString(1050), svarskElement)
 
         val svarcd = interpreter["\$\$SVARCD"]
         assertTrue(svarcd is ArrayValue)
@@ -59,8 +87,27 @@ class JDExamplesTest {
     }
 
     @Test
+    fun executeJD_001_datadefinitions() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve(DummyDBInterface)
+
+        val svarDef = cu.getDataOrFieldDefinition("\$\$SVAR") as FieldDefinition
+        assertEquals(ArrayType(StringType(1050), 200), svarDef.type)
+
+        val svarskDef = cu.getDataOrFieldDefinition("U\$SVARSK") as DataDefinition
+        assertEquals(ArrayType(StringType(1050), 200), svarskDef.type)
+    }
+
+    @Test
     fun executeJD_000_countsNrOfCalls() {
-        val si = ExtendedCollectorSystemInterface()
+        data class ProgramExecution(val program: Program, val params: Map<String, Value>)
+        val programExecutions = LinkedList<ProgramExecution>()
+
+        val si = object : ExtendedCollectorSystemInterface() {
+            override fun registerProgramExecutionStart(program: Program, params: Map<String, Value>) {
+                programExecutions.add(ProgramExecution(program, params))
+            }
+        }
         val callsToJDURL = LinkedList<Map<String, Value>>()
         si.programs["JD_URL"] = object : JvmProgramRaw("JD_URL", listOf(
                 ProgramParam("funz", StringType(10)),
@@ -73,9 +120,55 @@ class JDExamplesTest {
         }
         val cu = assertASTCanBeProduced("JD_000", true)
         cu.resolve(DummyDBInterface)
+
+        val jd001program = si.findProgram("JD_001")!!
+        val jd001params = jd001program.params()
+
+        val paraSVARSK = jd001params.find { it.name == "U\$SVARSK" }!!
+        assertEquals(ArrayType(StringType(1050), 200), paraSVARSK.type)
+
+        val svarskDef = cu.allDataDefinitions.find { it.name == "U\$SVARSK" }!! as FieldDefinition
+        assertEquals(ArrayType(StringType(1050), 200), svarskDef.type)
+
+        cu.resolve(DummyDBInterface)
+
         execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
+
+//        We have a problem when assigning the Url value. We assign it on a ConcreateArrayValue of SVARSK, and that is not
+//        reflected on the containing data structure.
+//        The setElement with index 1 modifies an array, and the original value is not modified.
+//      maybe it is better to not use the field overlaying as a container, but specify values in terms of the original
+//      data structure
+
+        assertEquals(4, programExecutions.size)
+
+        // call to JD_001
+        assertEquals(StringValue("INZ       "), programExecutions[0].params["U\$FUNZ"])
+
+        // call to JD_001
+        assertEquals(StringValue("ESE       "), programExecutions[1].params["U\$FUNZ"])
+        val SVARSK_forEse = programExecutions[1].params["U\$SVARSK"] as ArrayValue
+        assertEquals(200, SVARSK_forEse.arrayLength())
+
+        val SVARSK_forEse_firstRow = SVARSK_forEse.getElement(1) as StringValue
+        assertEquals("Url", SVARSK_forEse_firstRow.value.substring(0, 3))
+        assertEquals("http://xxx.smeup.com", SVARSK_forEse_firstRow.value.substring(50, 70))
+
+        val SVARSK_forEse_secondRow = SVARSK_forEse.getElement(2) as StringValue
+        assertEquals("Key", SVARSK_forEse_secondRow.value.substring(0, 3))
+        assertEquals("Value", SVARSK_forEse_secondRow.value.substring(50, 55))
+
+        val SVARSK_forEse_thirdRow = SVARSK_forEse.getElement(3) as StringValue
+        assertEquals("Key2", SVARSK_forEse_thirdRow.value.substring(0, 4))
+        assertEquals("Value2", SVARSK_forEse_thirdRow.value.substring(50, 56))
+
+        // call to JD_URL
+
+        // call to JD_001
+        assertEquals(StringValue("CLO       "), programExecutions[3].params["U\$FUNZ"])
+
         assertEquals(1, callsToJDURL.size)
-        val urlCalled = callsToJDURL[0].get("URL")
+        val urlCalled = callsToJDURL[0]["URL"]
         assertNotNull(urlCalled)
         assert(urlCalled is ArrayValue)
     }
@@ -161,6 +254,33 @@ class JDExamplesTest {
     }
 
     @Test
+    fun executeJD_001_recognizeDataDefinitions() {
+        val cu = assertASTCanBeProduced("JD_001", true)
+        cu.resolve(DummyDBInterface)
+
+        val unnamedDS = cu.getDataDefinition("@UNNAMED_DS_16")
+        assertEquals(false, unnamedDS.type is ArrayType)
+        assertEquals(210000, unnamedDS.type.size)
+
+        val SVAR = cu.getDataOrFieldDefinition("\$\$SVAR") as FieldDefinition
+        assertEquals(ArrayType(StringType(1050), 200), SVAR.type)
+        assertEquals(0, SVAR.startOffset)
+        assertEquals(1050, SVAR.endOffset)
+        assertEquals(200, SVAR.declaredArrayInLine)
+
+        val SVARCD = cu.getDataOrFieldDefinition("\$\$SVARCD") as FieldDefinition
+        assertEquals(ArrayType(StringType(50), 200), SVARCD.type)
+        assertEquals(200, SVARCD.declaredArrayInLine)
+
+        val SVARVA = cu.getDataOrFieldDefinition("\$\$SVARVA") as FieldDefinition
+        assertEquals(ArrayType(StringType(1000), 200), SVARVA.type)
+        assertEquals(200, SVARVA.declaredArrayInLine)
+
+        val USVARSK = cu.getDataOrFieldDefinition("U\$SVARSK") as DataDefinition
+        assertEquals(ArrayType(StringType(1050), 200), USVARSK.type)
+    }
+
+    @Test
     fun executeJD_001_complete_url_not_found() {
         val cu = assertASTCanBeProduced("JD_001", true)
         cu.resolve(DummyDBInterface)
@@ -180,7 +300,7 @@ class JDExamplesTest {
                 ProgramParam("method", StringType(10)),
                 ProgramParam("URL", ArrayType(StringType(1050), 200)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToJDURL.add(params)
+                callsToJDURL.add(params.mapValues { it.value.copy() })
                 return emptyList()
             }
         }
@@ -195,16 +315,49 @@ class JDExamplesTest {
                         else -> "".padEnd(1050, ' ')
                     }.asValue()
                 }), systemInterface = si)
+
+        // Something does not work as expected in the assigned of U$SVARSK to $$SVAR
+        val usvarskValue = interpreter["U\$SVARSK"] as ArrayValue
+        val svarValue = interpreter["\$\$SVAR"] as ArrayValue
+
+        assertEquals(200, usvarskValue.arrayLength())
+
+        val usvarskEl1 = usvarskValue.getElement(1) as StringValue
+        val usvarskEl2 = usvarskValue.getElement(2) as StringValue
+        val usvarskEl3 = usvarskValue.getElement(3) as StringValue
+        assertEquals(StringValue("Url".padEnd(50, PAD_CHAR) + "https://xxx.myurl.com".padEnd(1000, PAD_CHAR)), usvarskEl1)
+        assertEquals(StringValue("x".padEnd(50, PAD_CHAR) + "w".padEnd(1000, PAD_CHAR)), usvarskEl2)
+        assertEquals(StringValue("".padEnd(1050, PAD_CHAR)), usvarskEl3)
+
+        val svarEl1 = svarValue.getElement(1) as StringValue
+        val svarEl2 = svarValue.getElement(2) as StringValue
+        val svarEl3 = svarValue.getElement(3) as StringValue
+        assertEquals(StringValue("Url".padEnd(50, PAD_CHAR) + "https://xxx.myurl.com".padEnd(1000, PAD_CHAR)), svarEl1)
+        assertEquals(StringValue("x".padEnd(50, PAD_CHAR) + "w".padEnd(1000, PAD_CHAR)), svarEl2)
+        assertEquals(StringValue("".padEnd(1050, PAD_CHAR)), svarEl3)
+
+        assertEquals(usvarskValue, svarValue)
+
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
         assertEquals(callsToJDURL.size, 1)
         val a = callsToJDURL[0]["URL"]
-        if (a !is ConcreteArrayValue) {
+        if (a !is ArrayValue) {
             fail("Expected array, found $a")
         }
-        assertEquals(a.getElement(1).asString(),
-            StringValue("Url".padEnd(50) +
-                "https://www.myurl.com".padEnd(1000)))
+        val elementValue = a.getElement(1)
+        assertEquals("Url", elementValue.asString().value.substring(0, 3))
+        for (i in 4 until 50) {
+            assertEquals(32.toByte(), elementValue.asString().value.toCharArray()[i].toByte(), "I expected 0 at $i")
+        }
+        assertEquals("https://www.myurl.com", elementValue.asString().value.substring(50, 71))
+        for (i in 71 until 1050) {
+            assertEquals(32.toByte(), elementValue.asString().value.toCharArray()[i].toByte(), "I expected 0 at $i")
+        }
+        assertEquals(
+            StringValue("Url".padEnd(50, ' ') +
+                "https://www.myurl.com".padEnd(1000, ' ')),
+                elementValue.asString())
     }
 
     @Test
@@ -303,7 +456,7 @@ class JDExamplesTest {
                 ProgramParam("tip", StringType(10)),
                 ProgramParam("ope", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToListFld.add(params)
+                callsToListFld.add(params.mapValues { it.value.copy() }.toMutableMap())
                 if (callsToListFld.size >= 5) {
                     throw InterruptForDebuggingPurposes()
                 }
@@ -318,7 +471,7 @@ class JDExamplesTest {
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToNfyeve.add(params)
+                callsToNfyeve.add(params.mapValues { it.value.copy() }.toMutableMap())
                 throw InterruptForDebuggingPurposes()
             }
         }
@@ -346,14 +499,14 @@ class JDExamplesTest {
                 ), callsToListFld[0])
         assertEquals(1, callsToNfyeve.size)
         val v = callsToNfyeve[0]["var"] as ArrayValue
-        assertEquals(StringValue("Object name".padEnd(50) +
-                "myFile.png".padEnd(1000)),
+        assertEquals(StringValue("Object name".padEnd(50, PAD_CHAR) +
+                "myFile.png".padEnd(1000, PAD_CHAR)),
                 v.getElement(1))
-        assertEquals(StringValue("Object type".padEnd(50) +
-                "FILE".padEnd(1000)),
+        assertEquals(StringValue("Object type".padEnd(50, PAD_CHAR) +
+                "FILE".padEnd(1000, PAD_CHAR)),
                 v.getElement(2))
-        assertEquals(StringValue("Operation type".padEnd(50) +
-                "ADD".padEnd(1000)),
+        assertEquals(StringValue("Operation type".padEnd(50, PAD_CHAR) +
+                "ADD".padEnd(1000, PAD_CHAR)),
                 v.getElement(3))
     }
 
@@ -391,7 +544,7 @@ class JDExamplesTest {
                 ProgramParam("buffer", StringType(10)),
                 ProgramParam("bufferLen", NumberType(2, 0)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToRcvsck.add(params)
+                callsToRcvsck.add(params.mapValues { it.value.copy() }.toMutableMap())
                 if (callsToRcvsck.size >= 5) {
                     throw InterruptForDebuggingPurposes()
                 }
@@ -425,7 +578,7 @@ class JDExamplesTest {
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToNfyeve.add(params)
+                callsToNfyeve.add(params.mapValues { it.value.copy() }.toMutableMap())
                 throw InterruptForDebuggingPurposes()
             }
         }
@@ -444,7 +597,7 @@ class JDExamplesTest {
         assertEquals(1, callsToRcvsck.size)
         assertEquals("addressToListen", callsToRcvsck[0]["addr"]!!.asString().value)
         assertEquals(1, callsToNfyeve.size)
-        assertEquals("Targa".padEnd(50) + "ZZ000AA".padEnd(1000), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
+        assertEquals("Targa".padEnd(50, PAD_CHAR) + "ZZ000AA".padEnd(1000, PAD_CHAR), callsToNfyeve[0]["var"]!!.asArray().getElement(2).asString().value)
     }
 
     @Test
@@ -453,8 +606,8 @@ class JDExamplesTest {
         val returnStatus = "U\$IN35"
         val parms = mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
-                "U\$METO" to StringValue(""),
-                "U\$SVARSK" to StringValue(""),
+                "U\$METO" to StringValue("".padEnd(10, PAD_CHAR)),
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { StringValue("".padEnd(1050, PAD_CHAR)) },
                 returnStatus to StringValue(" ")
         )
         val si = CollectorSystemInterface()
@@ -488,12 +641,12 @@ class JDExamplesTest {
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToNfyeve.add(params)
+                callsToNfyeve.add(params.mapValues { it.value.copy() }.toMutableMap())
                 throw InterruptForDebuggingPurposes()
             }
         }
         execute("JD_003", parms, si)
-        assertEquals(" ", parms[returnStatus]!!.value)
+        assertEquals(" ", (parms[returnStatus]!! as StringValue).value)
     }
 
     @Test
@@ -501,8 +654,8 @@ class JDExamplesTest {
         val returnStatus = "U\$IN35"
         val parms = mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
-                "U\$METO" to StringValue(""),
-                "U\$SVARSK" to StringValue(""),
+                "U\$METO" to StringValue("".padEnd(10, PAD_CHAR)),
+                "U\$SVARSK" to createArrayValue(StringType(1050), 200) { StringValue("".padEnd(1050, PAD_CHAR)) },
                 returnStatus to StringValue(" ")
         )
         val si = CollectorSystemInterface()
@@ -548,7 +701,7 @@ class JDExamplesTest {
                 ProgramParam("meto", StringType(10)),
                 ProgramParam("var", StringType(10)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                callsToNfyeve.add(params)
+                callsToNfyeve.add(params.mapValues { it.value.copy() }.toMutableMap())
                 throw InterruptForDebuggingPurposes()
             }
         }

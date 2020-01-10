@@ -5,12 +5,15 @@ import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.utils.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.*
+import com.strumenta.kolasu.model.ancestor
 import java.lang.IllegalArgumentException
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
+import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeoutException
@@ -67,11 +70,15 @@ class DBFileMap(private val dbInterface: DBInterface) {
     operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
+val ALL_PREDEFINED_INDEXES = 1..99
+
 class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
     // TODO default value DECEDIT can be changed
     var decedit: String = "."
+    // TODO default value CHARSET can be changed
+    val charset = Charset.forName("Cp037")
 
     var interpretationContext: InterpretationContext = DummyInterpretationContext
     private val klists = HashMap<String, List<String>>()
@@ -110,21 +117,38 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
-                when (val containerValue = get(ds.name)) {
-                    is ArrayValue -> {
-                        val valuesToAssign = value as ArrayValue
-                        require(containerValue.arrayLength() == valuesToAssign.arrayLength())
-                        // The container value is an array of datastructurevalues
-                        // we assign to each data structure the corresponding field value
-                        for (i in 1..containerValue.arrayLength()) {
-                            val dataStructValue = containerValue.getElement(i) as DataStructValue
-                            dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                if (data.declaredArrayInLine != null) {
+                    val dataStructValue = get(ds.name) as DataStructValue
+                    var startOffset = data.startOffset
+                    var size = data.endOffset - data.startOffset
+
+                    // for (i in 1..data.declaredArrayInLine!!) {
+                    // If the size of the arrays are different
+                    val maxElements = Math.min(value.asArray().arrayLength(), data.declaredArrayInLine!!)
+                    for (i in 1..maxElements) {
+                        // Added coerce
+                        val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
+                        dataStructValue.setSubstring(startOffset, startOffset + size,
+                                data.type.asArray().element.toDataStructureValue(valueToAssign))
+                        startOffset += data.stepSize.toInt()
+                    }
+                } else {
+                    when (val containerValue = get(ds.name)) {
+                        is ArrayValue -> {
+                            val valuesToAssign = value as ArrayValue
+                            require(containerValue.arrayLength() == valuesToAssign.arrayLength())
+                            // The container value is an array of datastructurevalues
+                            // we assign to each data structure the corresponding field value
+                            for (i in 1..containerValue.arrayLength()) {
+                                val dataStructValue = containerValue.getElement(i) as DataStructValue
+                                dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                            }
                         }
+                        is DataStructValue -> {
+                            containerValue.set(data, value)
+                        }
+                        else -> TODO()
                     }
-                    is DataStructValue -> {
-                        containerValue.set(data, value)
-                    }
-                    else -> TODO()
                 }
             }
             else -> {
@@ -154,14 +178,29 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 var value: Value? = null
                 if (it is DataDefinition) {
                     value = when {
-                        it.name in initialValues -> initialValues[it.name]
-                            ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        it.name in initialValues -> {
+                            val initialValue = initialValues[it.name]
+                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
+                            require(initialValue.assignableTo(it.type)) {
+                                "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                            }
+                            initialValue
+                        }
                         it.initializationValue != null -> interpret(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
                             (it.type as ArrayType)
                         )
                         else -> blankValue(it)
+                    }
+                    if (it.name !in initialValues) {
+                        blankValue(it)
+                        it.fields.forEach { field ->
+                            if (field.initializationValue != null) {
+                                val fieldValue = coerce(interpret(field.initializationValue), field.type)
+                                (value as DataStructValue).set(field, fieldValue)
+                            }
+                        }
                     }
                 } else if (it is InStatementDataDefinition && it.parent is PlistParam) {
                     value = when {
@@ -170,9 +209,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         else -> null
                     }
                 }
+                // Fix issue on CTDATA
+                val ctdata = compilationUnit.compileTimeArray(it.name)
+                if (ctdata.name == it.name) {
+                    val xx = toArrayValue(
+                            compilationUnit.compileTimeArray(it.name),
+                            (it.type as ArrayType))
+                    set(it, xx)
+                }
+
                 if (value != null) {
                     set(it, coerce(value, it.type))
-                    executeMutes(it.muteAnnotations)
+                    executeMutes(it.muteAnnotations, compilationUnit)
                 }
             }
         } else {
@@ -184,8 +232,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
+        // It is not clear why the compileTimeRecordsPerLine on the array type is null
+        // probably it is an error during the ast processing.
+        // as workaround, if null assumes the number of lines in the compile compileTimeArray
+        // as value for compileTimeRecordsPerLine
+        var lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
         val l: MutableList<Value> =
-            compileTimeArray.lines.chunkAs(arrayType.compileTimeRecordsPerLine!!, arrayType.element.size)
+            compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
                 .map {
                     coerce(StringValue(it), arrayType.element)
                 }
@@ -253,11 +306,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun executeWithMute(statement: Statement) {
         log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
         execute(statement)
-        executeMutes(statement.muteAnnotations)
+        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!)
     }
 
-    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>) {
+    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit) {
         muteAnnotations.forEach {
+            it.resolve(compilationUnit)
             when (it) {
                 is MuteComparisonAnnotation -> {
                     val exp: Expression = when (it.comparison) {
@@ -275,9 +329,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     require(value is BooleanValue) {
                         "Expected BooleanValue, but found $value"
                     }
-                    if (!value.value) {
-                        println(".")
-                    }
+
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
@@ -337,8 +389,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     )
                 }
                 is EvalStmt -> {
-                    val result = assign(statement.target, statement.expression, statement.operator)
-                    log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
+                    try {
+                        // Should I assign it one by one?
+                        val result = if (statement.target.type().isArray() &&
+                                statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
+                            assignEachElement(statement.target, statement.expression, statement.operator)
+                        } else {
+                            assign(statement.target, statement.expression, statement.operator)
+                        }
+                        log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
+                    } catch (e: Exception) {
+                        throw java.lang.RuntimeException("Issue executing statement $statement at line ${statement.startLine()}", e)
+                    }
                 }
                 is MoveStmt -> {
                     val value = move(statement.target, statement.expression)
@@ -368,9 +430,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         execute(statement.other!!.body)
                     }
                 }
-                is SetOnStmt -> {
-                    statement.choices.forEach {
-                        interpretationContext.setDataWrapUpPolicy(it)
+                is SetStmt -> {
+                    statement.indicators.forEach {
+                        when (it) {
+                            is DataWrapUpIndicatorExpr -> interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
+                            is PredefinedIndicatorExpr -> {
+                                if (statement.valueSet.name == "ON") {
+                                    predefinedIndicators[it.index] = BooleanValue.TRUE
+                                } else {
+                                    predefinedIndicators[it.index] = BooleanValue.FALSE
+                                }
+                            }
+                            else -> TODO()
+                        }
                     }
                 }
                 is PlistStmt -> {
@@ -404,6 +476,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                                 )
                             )
                             Unit
+                        }
+                        is PredefinedIndicatorExpr -> {
+                            val value = assign(statement.value, BlanksRefExpr())
+                            log(
+                                    ClearStatemenExecutionLog(
+                                            this.interpretationContext.currentProgramName,
+                                            statement,
+                                            value
+                                    )
+                            )
                         }
                         else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
                     }
@@ -505,6 +587,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val startTime = currentTimeMillis()
                     val paramValuesAtTheEnd =
                         try {
+                            systemInterface.registerProgramExecutionStart(program, params)
                             program.execute(systemInterface, params).apply {
                                 log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             }
@@ -778,6 +861,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is GotoStmt -> {
                     throw GotoException(statement.tag)
                 }
+                is SortAStmt -> {
+                    sortA(interpret(statement.target), charset)
+                }
+
                 else -> TODO(statement.toString())
             }
         } catch (e: ReturnException) {
@@ -896,6 +983,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             value1 is IntValue && value2 is DecimalValue -> {
                 value1.asInt() == value2.asInt()
             }
+
+            value1 is StringValue && value2 is BooleanValue -> {
+                value1.asBoolean().value == value2.value
+            }
+
+            value1 is BooleanValue && value2 is StringValue -> {
+                value2.asBoolean().value == value1.value
+            }
+
             value1 is DecimalValue && value2 is DecimalValue -> {
                 // Convert everything to Decimal then compare
                 value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
@@ -911,14 +1007,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
 
             value1 is DataStructValue && value2 is StringValue -> {
-                val v1 = value1.value.trimEnd()
+                val v1 = value1.asStringValue().trimEnd()
+
                 val v2 = value2.value.trimEnd()
                 v1 == v2
             }
             value1 is StringValue && value2 is DataStructValue -> {
                 val v1 = value1.value.trimEnd()
-                val v2 = value2.value.trimEnd()
+                val v2 = value2.asStringValue().trimEnd()
+
                 v1 == v2
+            }
+            // To be review
+            value1 is ProjectedArrayValue && value2 is StringValue -> {
+                value1.asArray().getElement(1) == value2
             }
             else -> value1 == value2
         }
@@ -1001,6 +1103,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         return coercedValue
     }
 
+    fun assignEachElement(target: AssignableExpression, value: Value): Value {
+        val arrayType = target.type().asArray()
+        return assign(target, value.toArray(arrayType.nElements, arrayType.element))
+    }
+
     override fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
@@ -1046,7 +1153,29 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is QualifiedAccessExpr -> {
                 val container = eval(target.container) as DataStructValue
-                return container[target.field.referred!!]
+                container[target.field.referred!!]
+                container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
+                return value
+            }
+            is PredefinedIndicatorExpr -> {
+                val coercedValue = coerce(value, BooleanType)
+                predefinedIndicators[target.index] = coercedValue
+                return coercedValue
+            }
+            is PredefinedGlobalIndicatorExpr -> {
+                if (value.assignableTo(BooleanType)) {
+                    val coercedValue = coerce(value, BooleanType)
+                    for (index in ALL_PREDEFINED_INDEXES) {
+                        predefinedIndicators[index] = coercedValue
+                    }
+                    return coercedValue
+                } else {
+                    val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
+                    for (index in ALL_PREDEFINED_INDEXES) {
+                        predefinedIndicators[index] = coercedValue.getElement(index)
+                    }
+                    return coercedValue
+                }
             }
             else -> TODO(target.toString())
         }
@@ -1064,6 +1193,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
             EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
+        }
+    }
+
+    private fun assignEachElement(
+        target: AssignableExpression,
+        value: Expression,
+        operator: AssignmentOperator = NORMAL_ASSIGNMENT
+    ): Value {
+        return when (operator) {
+            NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
+            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
+            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
+            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
+            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
+            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
         }
     }
 
@@ -1199,8 +1343,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val right = interpret(expression.right)
                 when {
                     left is StringValue && right is StringValue -> {
-                        val s = left.value + right.value
-                        StringValue(s)
+                        if (left.varying) {
+                            val s = left.value.trimEnd() + right.value
+                            StringValue(s)
+                        } else {
+                            val s = left.value + right.value
+                            StringValue(s)
+                        }
                     }
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
                     left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal + right.bigDecimal)
@@ -1322,8 +1471,30 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is LenExpr -> {
                 val value = eval(expression.value)
                 return when (value) {
-                    is StringValue -> value.value.length.asValue()
-                    is DataStructValue -> value.value.length.asValue()
+                    is StringValue -> {
+                        when (expression.value) {
+                            is DataRefExpr -> {
+                                val type = expression.value.type()
+                                when (type) {
+                                    is StringType -> {
+                                        value.length(type.varying).asValue()
+                                    }
+                                    else -> {
+                                        value.value.length.asValue()
+                                    }
+                                }
+                            }
+                            is ArrayAccessExpr -> {
+                                value.value.length.asValue()
+                                // value.elementSize().asValue()
+                            }
+                            else -> {
+                                return value.length().asValue()
+                            }
+                        }
+                    }
+                    is DataStructValue -> {
+                        value.value.length.asValue() }
                     is ArrayValue -> {
                         // Incorrect data structure size calculation #28
                         when (expression.value) {
@@ -1515,7 +1686,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
-        return dataDefinition.type.blank()
+        return when (dataDefinition.type) {
+            is DataStructureType -> dataDefinition.type.blank(dataDefinition)
+            else -> dataDefinition.type.blank()
+        }
     }
 }
 
