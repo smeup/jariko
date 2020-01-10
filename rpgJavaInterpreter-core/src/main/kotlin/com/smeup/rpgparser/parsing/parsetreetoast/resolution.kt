@@ -2,9 +2,14 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.interpreter.DBInterface
 import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.model.*
+import com.strumenta.kolasu.validation.Error
+import com.strumenta.kolasu.validation.ErrorType
+import java.lang.RuntimeException
+import java.util.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
     // TODO could they be also annidated?
@@ -59,12 +64,37 @@ private fun Node.resolveFunctionCalls(cu: CompilationUnit) {
     }
 }
 
-fun MuteAnnotation.resolve(cu: CompilationUnit) {
+fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
     this.resolveDataRefs(cu)
     this.resolveFunctionCalls(cu)
 }
 
-fun CompilationUnit.resolve(databaseInterface: DBInterface) {
+fun CompilationUnit.resolveAndValidate(databaseInterface: DBInterface): List<Error> {
+    this.resolve(databaseInterface)
+    return this.validate()
+}
+
+class SemanticErrorsException(val errors: List<Error>) : RuntimeException("Semantic errors found: $errors")
+
+private fun CompilationUnit.validate(raiseException: Boolean = true): List<Error> {
+    val errors = LinkedList<Error>()
+    // TODO validate SubstExpr for assignability
+    // TODO check initial value in DoStmt
+    // No need to check Eval directly, we check the AssignmentExpr instead
+    this.specificProcess(AssignmentExpr::class.java) {
+        val targetType = it.target.type()
+        val valueType = it.value.type()
+        if (!targetType.canBeAssigned(valueType)) {
+            errors.add(Error(ErrorType.SEMANTIC, "Invalid assignement: cannot assign ${it.target} having type $targetType to ${it.value} having type $valueType", it.position))
+        }
+    }
+    if (errors.isNotEmpty()) {
+        throw SemanticErrorsException(errors)
+    }
+    return errors
+}
+
+private fun CompilationUnit.resolve(databaseInterface: DBInterface) {
     this.assignParents()
 
     this.findInStatementDataDefinitions()

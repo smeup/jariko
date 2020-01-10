@@ -5,7 +5,7 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.StringValue
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.util.concurrent.ThreadLocalRandom
 
 // Using random DB name in order to have different dbs for each test
@@ -24,7 +24,7 @@ fun outputOfDBPgm(programName: String, initialSQL: List<String>, inputParms: Map
     val cu = assertASTCanBeProduced(programName, printTree = printTree)
     val dbInterface = connectionForTest()
     dbInterface.execute(initialSQL)
-    cu.resolve(dbInterface)
+    cu.resolveAndValidate(dbInterface)
     val si = CollectorSystemInterface()
     si.databaseInterface = dbInterface
     execute(cu, inputParms, si)

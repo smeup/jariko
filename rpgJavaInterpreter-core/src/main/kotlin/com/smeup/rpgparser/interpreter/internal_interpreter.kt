@@ -5,7 +5,7 @@ import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.utils.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.ancestor
 import java.lang.IllegalArgumentException
@@ -23,6 +23,10 @@ import kotlin.system.measureTimeMillis
 
 class LeaveException : Exception()
 class IterException : Exception()
+
+object InterpreterConfiguration {
+    var disableDynamicChecksOnAssignement = false
+}
 
 interface InterpretationContext {
     val currentProgramName: String
@@ -181,8 +185,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         it.name in initialValues -> {
                             val initialValue = initialValues[it.name]
                                     ?: throw RuntimeException("Initial values for ${it.name} not found")
-                            require(initialValue.assignableTo(it.type)) {
-                                "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                            if (!InterpreterConfiguration.disableDynamicChecksOnAssignement) {
+                                require(initialValue.assignableTo(it.type)) {
+                                    "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                                }
                             }
                             initialValue
                         }
@@ -311,7 +317,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit) {
         muteAnnotations.forEach {
-            it.resolve(compilationUnit)
+            it.resolveAndValidate(compilationUnit)
             when (it) {
                 is MuteComparisonAnnotation -> {
                     val exp: Expression = when (it.comparison) {
@@ -1110,8 +1116,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 // Before assigning the single element we do a sanity check:
                 // is the value we have for the array compatible with the type
                 // we expect for such array?
-                require(arrayValue.assignableTo(targetType)) {
-                    "The value $arrayValue is not assignable to $targetType"
+                if (!InterpreterConfiguration.disableDynamicChecksOnAssignement) {
+                    require(arrayValue.assignableTo(targetType)) {
+                        "The value $arrayValue is not assignable to $targetType"
+                    }
                 }
                 val indexValue = interpret(target.index)
                 val elementType = (targetType as ArrayType).element
