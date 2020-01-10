@@ -116,13 +116,14 @@ You can run MUTE tests in Visual Studio Code: see the [documentation](docs/visua
 * _misc/docker_: support for [Docker, see instructions](misc/docker/docker.md)
 * _docs_ contains documentation
 
-## Are there any presentation about your work?
+## Are there any presentations about your work?
 Yes, of course: see the [presentation list](docs/presentations.md)
 
 ## How to use this code in your project
 
 At the moment, we use [Jitpack](https://jitpack.io/) to publish the [project](https://jitpack.io/#smeup/jariko).
 
+### Maven
 If you use Maven, add these lines to your pom.xml in order to add the repository
 
     <repositories>
@@ -148,14 +149,29 @@ And this if you want to include the examples too:
         <version>-SNAPSHOT</version>
     </dependency>
 
-Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient), and here is [another one](https://github.com/smeup/rpgweb).
-
 _Side note for maven users who use mirrors: remember to change your .m2/settings.xml with settings like this:_
 
     <mirrors>
         <mirror>
             <id>myNexus</id>
             <mirrorOf>!jitpack.io,*</mirrorOf>
+
+### Gradle
+Here are the configurationd to add to your build.gradle:
+```
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+dependencies {
+    ...
+    implementation 'com.github.smeup:jariko:-SNAPSHOT'
+}
+```
+### Samples
+Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient), and here is [another one](https://github.com/smeup/rpgweb).
 
 ## Contributing
 
