@@ -98,6 +98,191 @@ class MUTEExamplesTest {
         return si
     }
 
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_09() {
+        assertMuteOK("MUTE10_09")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_10() {
+        assertMuteOK("MUTE10_10")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_11() {
+        assertMuteOK("MUTE10_11")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_12() {
+        assertMuteOK("MUTE10_12")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_13() {
+        assertMuteOK("MUTE10_13")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_14() {
+        assertMuteOK("MUTE10_14")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_15() {
+        assertMuteOK("MUTE10_15")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_16() {
+        assertMuteOK("MUTE10_16")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_17() {
+        assertMuteOK("MUTE10_17")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_18() {
+        assertMuteOK("MUTE10_18")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_19() {
+        assertMuteOK("MUTE10_19")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_20() {
+        assertMuteOK("MUTE10_20")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_21() {
+        assertMuteOK("MUTE10_21")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_22() {
+        assertMuteOK("MUTE10_22")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_23() {
+        assertMuteOK("MUTE10_23")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_24() {
+        assertMuteOK("MUTE10_24")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_25() {
+        assertMuteOK("MUTE10_25")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_26() {
+        assertMuteOK("MUTE10_26")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_27() {
+        assertMuteOK("MUTE10_27")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_28() {
+        assertMuteOK("MUTE10_28")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_29() {
+        assertMuteOK("MUTE10_29")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_30() {
+        assertMuteOK("MUTE10_30")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_31() {
+        assertMuteOK("MUTE10_31")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_32() {
+        assertMuteOK("MUTE10_32")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_33() {
+        assertMuteOK("MUTE10_33")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_34() {
+        assertMuteOK("MUTE10_34")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_35() {
+        assertMuteOK("MUTE10_35")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_36() {
+        assertMuteOK("MUTE10_36")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_37() {
+        assertMuteOK("MUTE10_37")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_38() {
+        assertMuteOK("MUTE10_38")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_39() {
+        assertMuteOK("MUTE10_39")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_40() {
+        assertMuteOK("MUTE10_40")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_41() {
+        assertMuteOK("MUTE10_41")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_42() {
+        assertMuteOK("MUTE10_42")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_43() {
+        assertMuteOK("MUTE10_43")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_44() {
+        assertMuteOK("MUTE10_44")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_45() {
+        assertMuteOK("MUTE10_45")
+    }
+
     private fun dummyProgramFinder() = DummyProgramFinder("/performance/")
 
     private fun assertMuteOK(programName: String, withOutput: List<String>? = null) {
