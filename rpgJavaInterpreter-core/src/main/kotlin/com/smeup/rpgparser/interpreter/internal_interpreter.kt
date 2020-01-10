@@ -1154,18 +1154,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return coercedValue
             }
             is PredefinedGlobalIndicatorExpr -> {
-                if (value.assignableTo(BooleanType)) {
+                return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
                     for (index in ALL_PREDEFINED_INDEXES) {
                         predefinedIndicators[index] = coercedValue
                     }
-                    return coercedValue
+                    coercedValue
                 } else {
                     val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
                     for (index in ALL_PREDEFINED_INDEXES) {
                         predefinedIndicators[index] = coercedValue.getElement(index)
                     }
-                    return coercedValue
+                    coercedValue
                 }
             }
             else -> TODO(target.toString())
