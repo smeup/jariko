@@ -236,6 +236,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
         this.csMOVE() != null -> this.csMOVE().toAst(conf)
+        this.csMOVEA() != null -> this.csMOVEA().toAst(conf)
         this.csMOVEL() != null -> this.csMOVEL().toAst(conf)
         this.csTIME() != null -> this.csTIME().toAst(conf)
         this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
@@ -549,6 +550,13 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
             startPosition,
             this.cspec_fixed_standard_parts()?.result?.toAst(conf),
             position)
+}
+
+internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveAStmt {
+    val position = toPosition(conf.considerPosition)
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVEA operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    return MoveAStmt(resultExpression, expression, position)
 }
 
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
