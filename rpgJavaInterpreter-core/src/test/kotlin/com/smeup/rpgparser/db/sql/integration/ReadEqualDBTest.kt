@@ -73,7 +73,7 @@ class ReadEqualDBTest {
     }
 
     @Test
-    fun setllSetdFoundFlag() {
+    fun setllSetFoundFlag() {
         assertEquals(
             listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS", "KIM NATZ"),
             outputOfDBPgm(

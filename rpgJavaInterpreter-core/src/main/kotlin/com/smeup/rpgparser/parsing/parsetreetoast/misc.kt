@@ -249,6 +249,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csKLIST() != null -> this.csKLIST().toAst(conf)
         this.csSETLL() != null -> this.csSETLL().toAst(conf)
         this.csREADE() != null -> this.csREADE().toAst(conf)
+        this.csREADP() != null -> this.csREADP().toAst(conf)
         this.csREAD() != null -> this.csREAD().toAst(conf)
         this.csCOMP() != null -> this.csCOMP().toAst(conf)
         this.csMULT() != null -> this.csMULT().toAst(conf)
@@ -517,6 +518,14 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
     return ReadEqualStmt(factor1, factor2, position)
 }
 
+internal fun CsREADPContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    // TODO implement DS in result field
+    val factor1 = this.factor1Context()?.content?.toAst(conf)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return ReadPreviousStmt(factor1, factor2, position)
+}
+
 internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
     // TODO implement DS in result field
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text}")
@@ -528,7 +537,10 @@ internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {
 internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     // TODO implement indicators handling
-    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("SETLL operation requires factor 1: ${this.text} - ${position.atLine()}")
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: this.factor1Context()?.constant?.toAst(conf)
+    require(factor1 != null) {
+        "SETLL operation requires factor 1: ${this.text} - ${position.atLine()}"
+    }
     val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
     return SetllStmt(factor1, factor2, position)
 }

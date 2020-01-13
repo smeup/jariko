@@ -1,8 +1,8 @@
 package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.DBFile
-import com.smeup.rpgparser.interpreter.RecordField
 import com.smeup.rpgparser.interpreter.Record
+import com.smeup.rpgparser.interpreter.RecordField
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.utils.Comparison
 import java.sql.Connection
@@ -12,6 +12,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     private var lastSllSql: String? = null
     private var resultSet: ResultSet? = null
     private var lastKey: List<RecordField> = emptyList()
+    private var movingForward = true
 
     private val thisFileKeys: List<String> by lazy {
         val indexes = connection.primaryKeys(name)
@@ -19,6 +20,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun read(): Record {
+        movingForward = true
         if (resultSet == null) {
             setll(emptyList())
         }
@@ -29,6 +31,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readEqual(): Record {
+        movingForward = true
         require(resultSet != null) {
             "ReadEqual with no previous search"
         }
@@ -44,6 +47,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readEqual(key: Value): Record {
+        movingForward = true
         return readEqual(toFields(key))
     }
 
@@ -62,6 +66,7 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     }
 
     override fun readEqual(keys: List<RecordField>): Record {
+        movingForward = true
         val result = if (resultSet == null) {
             chain(emptyList())
         } else {
@@ -71,6 +76,33 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
             lastKey = keys
         }
         return filterRecord(result)
+    }
+
+    override fun readPrevious(): Record {
+        if (movingForward) {
+            movingForward = false
+            if (!setll(lastKey)) {
+                signalEOF()
+                return Record()
+            }
+        }
+        if (resultSet == null) {
+            setll(emptyList())
+        }
+        require(resultSet != null) {
+            "Read with empty result set"
+        }
+        return readFromPositionedResultSet()
+    }
+
+    override fun readPrevious(key: Value): Record {
+        movingForward = false
+        TODO("not implemented")
+    }
+
+    override fun readPrevious(keys: List<RecordField>): Record {
+        movingForward = false
+        TODO("not implemented")
     }
 
     override fun eof(): Boolean = resultSet?.isAfterLast ?: true
@@ -96,8 +128,9 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     override fun setll(keys: List<RecordField>): Boolean {
         val keyNames = keys.map { it.name }
         // TODO Using thisFileKeys: TESTS NEEDED!!!
-        val sql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.GE)} ${thisFileKeys.orderBySQL()}"
-        lastSllSql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.EQ)} ${thisFileKeys.orderBySQL()}"
+        val comparision = if (movingForward) Comparison.GE else Comparison.LE
+        val sql = "SELECT * FROM $name ${keyNames.whereSQL(comparision)} ${thisFileKeys.orderBySQL(reverse = !movingForward)}"
+        lastSllSql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.EQ)}"
         val values = keys.map { it.value }
         lastKey = keys
         executeQuery(sql, values)

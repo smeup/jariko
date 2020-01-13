@@ -2,10 +2,7 @@
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
-     V* 07/01/20  001432  BERNI  Creato
-     V* 08/01/20  001432  BMA    Ricompilato
-     V* 09/01/20  V5R1    BMA    Check-out 001432 in SMEDEV
-     V* 13/01/20  001443  BERNI  Correzione esempi
+     V* 13/01/20  001443  BERNI  Creato
      V* 13/01/20  V5R1    BMA    Check-out 001443 in SMEDEV
      V*=====================================================================
      D*  Pgm testing performance with array
@@ -70,7 +67,7 @@
      C                   EVAL      $MSG=%TRIMR(ARRA1(3))
      C     $MSG          DSPLY     £PDSSU
       * Use of 'MOVEL'
-    MU* VAL1(ARRA1(1)) VAL2('MNOPQRSTOVMNOPQRSTOV') COMP(EQ)
+    MU* VAL1(ARRA1(3)) VAL2('MNOPQRSTOVMNOPQRSTOV') COMP(EQ)
      C                   MOVEL     YYSTR         ARRA1(3)
      C                   EVAL      $MSG=%TRIMR(ARRA1(3))
      C     $MSG          DSPLY     £PDSSU
@@ -87,40 +84,6 @@
      C                   EVAL      ARRA1=ZZSTR
      C                   EVAL      $MSG=%TRIMR(ARRA1(10))
      C     $MSG          DSPLY     £PDSSU
-      * Use of 'MOVEA'
-    MU* VAL1(ARRA1(01)) VAL2('MNOPQRSTOVMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(02)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(03)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(04)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(05)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(06)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(07)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(08)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(09)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA1(10)) VAL2('ABCDEFGHILMNOPQRSTOV') COMP(EQ)
-     C                   MOVEA     YYSTR         ARRA1
-     C                   EVAL      $MSG=%TRIMR(ARRA1(1))+' '
-     C                                 +%TRIMR(ARRA1(2))+' '
-     C                                 +%TRIMR(ARRA1(3))+' '
-     C                                 +%TRIMR(ARRA1(4))+' '
-     C     $MSG          DSPLY     £PDSSU
-      * Use of 'MOVEA(P)
-    MU* VAL1(ARRA1(01)) VAL2('ABCDEFGHIL          ') COMP(EQ)
-    MU* VAL1(ARRA1(02)) VAL2('                    ') COMP(EQ)
-    MU* VAL1(ARRA1(03)) VAL2('                    ') COMP(EQ)
-    MU* VAL1(ARRA1(04)) VAL2('                    ') COMP(EQ)
-    MU* VAL1(ARRA1(05)) VAL2('                    ') COMP(EQ)
-    MU* VAL1(ARRA1(06)) VAL2('                    ') COMP(EQ)
-    MU* VAL1(ARRA1(07)) VAL2('                    ') COMP(EQ)
-    MU* VAL1(ARRA1(08)) VAL2('                    ') COMP(EQ)
-    MU* VAL1(ARRA1(09)) VAL2('                    ') COMP(EQ)
-    MU* VAL1(ARRA1(10)) VAL2('                    ') COMP(EQ)
-     C                   MOVEA(P)  XXSTR         ARRA1
-     C                   EVAL      $MSG=%TRIMR(ARRA1(1))+' '
-     C                                 +%TRIMR(ARRA1(2))+' '
-     C                                 +%TRIMR(ARRA1(3))+' '
-     C                                 +%TRIMR(ARRA1(4))+' '
-     C     $MSG          DSPLY     £PDSSU
     MU* VAL1(ARRA2(01)) VAL2('ABCDEFGHIL') COMP(EQ)
     MU* VAL1(ARRA2(02)) VAL2('ABCDEFGHIL') COMP(EQ)
     MU* VAL1(ARRA2(03)) VAL2('ABCDEFGHIL') COMP(EQ)
@@ -133,40 +96,6 @@
     MU* VAL1(ARRA2(10)) VAL2('ABCDEFGHIL') COMP(EQ)
      C                   EVAL      ARRA2=ZZSTR
      C                   EVAL      $MSG=%TRIMR(ARRA2(10))
-     C     $MSG          DSPLY     £PDSSU
-      * Use of 'MOVEA'
-    MU* VAL1(ARRA2(1)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(2)) VAL2('MNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA2(3)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(4)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(5)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(6)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(7)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(8)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(9)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(10)) VAL2('ABCDEFGHIL') COMP(EQ)
-     C                   MOVEA     ZZSTR         ARRA2
-     C                   EVAL      $MSG=%TRIMR(ARRA2(1))+' '
-     C                                 +%TRIMR(ARRA2(2))+' '
-     C                                 +%TRIMR(ARRA2(3))+' '
-     C                                 +%TRIMR(ARRA2(4))+' '
-     C     $MSG          DSPLY     £PDSSU
-      * Use of 'MOVEA(P)'
-    MU* VAL1(ARRA2(1)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(2)) VAL2('MNOPQRSTOV') COMP(EQ)
-    MU* VAL1(ARRA2(3)) VAL2('          ') COMP(EQ)
-    MU* VAL1(ARRA2(4)) VAL2('          ') COMP(EQ)
-    MU* VAL1(ARRA2(5)) VAL2('          ') COMP(EQ)
-    MU* VAL1(ARRA2(6)) VAL2('          ') COMP(EQ)
-    MU* VAL1(ARRA2(7)) VAL2('          ') COMP(EQ)
-    MU* VAL1(ARRA2(8)) VAL2('          ') COMP(EQ)
-    MU* VAL1(ARRA2(9)) VAL2('          ') COMP(EQ)
-    MU* VAL1(ARRA2(10)) VAL2('          ') COMP(EQ)
-     C                   MOVEA(P)  ZZSTR         ARRA2
-     C                   EVAL      $MSG=%TRIMR(ARRA2(1))+' '
-     C                                 +%TRIMR(ARRA2(2))+' '
-     C                                 +%TRIMR(ARRA2(3))+' '
-     C                                 +%TRIMR(ARRA2(4))+' '
      C     $MSG          DSPLY     £PDSSU
       * Loop
      C                   EVAL      $N=3
@@ -212,7 +141,7 @@
      C                   EVAL      ARRA2=*ALL'X'
      C                   EVAL      ARRA2(3)=*ALL'C'
       * Use of 'MOVEL'
-    MU* VAL1(ZZSTR) VAL2('CCCCCCCCCC          ') COMP(EQ)
+    MU* VAL1(ZZSTR) VAL2('CCCCCCCCCC') COMP(EQ)
      C                   MOVEL(P)  ARRA2(3)      ZZSTR
      C                   EVAL      $MSG=%TRIMR(ZZSTR)
      C     $MSG          DSPLY     £PDSSU
@@ -229,24 +158,6 @@
      C                   MOVEL     ARRA2(2)      ZZSTR
      C                   EVAL      $MSG=%TRIMR(ZZSTR)
      C     $MSG          DSPLY     £PDSSU
-     C                   EVAL      ARRA1(2)=*ALL'B'
-      * Use of MOVEA
-    MU* VAL1(ARRA2(1)) VAL2('ABCDEFGHIL') COMP(EQ)
-    MU* VAL1(ARRA2(2)) VAL2('          ') COMP(EQ)
-    MU* VAL1(ARRA2(3)) VAL2('BBBBBBBBBB') COMP(EQ)
-    MU* VAL1(ARRA2(4)) VAL2('BBBBBBBBBB') COMP(EQ)
-    MU* VAL1(ARRA2(5)) VAL2('AAAAAAAAAA') COMP(EQ)
-    MU* VAL1(ARRA2(6)) VAL2('AAAAAAAAAA') COMP(EQ)
-    MU* VAL1(ARRA2(7)) VAL2('  ABCDEFGH') COMP(EQ)
-    MU* VAL1(ARRA2(8)) VAL2('ILMNOPQRST') COMP(EQ)
-    MU* VAL1(ARRA2(9)) VAL2('  ABCDEFGH') COMP(EQ)
-    MU* VAL1(ARRA2(10)) VAL2('ILMNOPQRST') COMP(EQ)
-     C                   MOVEA     ARRA1         ARRA2
-     C                   EVAL      $MSG=%TRIMR(ARRA2(1))+' '
-     C                                 +%TRIMR(ARRA2(2))+' '
-     C                                 +%TRIMR(ARRA2(3))+' '
-     C                                 +%TRIMR(ARRA2(4))+' '
-     C     $MSG          DSPLY     £PDSSU
     MU* VAL1(ARRA1(1)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
     MU* VAL1(ARRA1(2)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
     MU* VAL1(ARRA1(3)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
@@ -258,36 +169,6 @@
     MU* VAL1(ARRA1(9)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
     MU* VAL1(ARRA1(10)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
      C                   EVAL      ARRA1=*ALL'X'
-      * Use of MOVEA
-    MU* VAL1(ARRA1(1)) VAL2('ABCDEFGHIL          ')        COMP(EQ)
-    MU* VAL1(ARRA1(2)) VAL2('BBBBBBBBBBBBBBBBBBBB')        COMP(EQ)
-    MU* VAL1(ARRA1(3)) VAL2('AAAAAAAAAAAAAAAAAAAA')        COMP(EQ)
-    MU* VAL1(ARRA1(4)) VAL2('  ABCDEFGHILMNOPQRST')        COMP(EQ)
-    MU* VAL1(ARRA1(5)) VAL2('  ABCDEFGHILMNOPQRST')        COMP(EQ)
-    MU* VAL1(ARRA1(6)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
-    MU* VAL1(ARRA1(7)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
-    MU* VAL1(ARRA1(8)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
-    MU* VAL1(ARRA1(9)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
-    MU* VAL1(ARRA1(10)) VAL2('XXXXXXXXXXXXXXXXXXXX')        COMP(EQ)
-     C                   MOVEA     ARRA2         ARRA1
-     C                   EVAL      $MSG=%TRIMR(ARRA1(1))+' '
-     C                                 +%TRIMR(ARRA1(2))+' '
-     C                                 +%TRIMR(ARRA1(3))+' '
-     C                                 +%TRIMR(ARRA1(4))+' '
-     C     $MSG          DSPLY     £PDSSU
-     C                   EVAL      ARRA1=*ALL'Y'
-      * Use of MOVEA(P)
-    MU* VAL1(ARRA1(1)) VAL2('ABCDEFGHIL          ')        COMP(EQ)
-    MU* VAL1(ARRA1(2)) VAL2('BBBBBBBBBBBBBBBBBBBB')        COMP(EQ)
-    MU* VAL1(ARRA1(3)) VAL2('AAAAAAAAAAAAAAAAAAAA')        COMP(EQ)
-    MU* VAL1(ARRA1(4)) VAL2('  ABCDEFGHILMNOPQRST')        COMP(EQ)
-    MU* VAL1(ARRA1(5)) VAL2('  ABCDEFGHILMNOPQRST')        COMP(EQ)
-    MU* VAL1(ARRA1(6)) VAL2('                    ')        COMP(EQ)
-    MU* VAL1(ARRA1(7)) VAL2('                    ')        COMP(EQ)
-    MU* VAL1(ARRA1(8)) VAL2('                    ')        COMP(EQ)
-    MU* VAL1(ARRA1(9)) VAL2('                    ')        COMP(EQ)
-    MU* VAL1(ARRA1(10)) VAL2('                    ')        COMP(EQ)
-     C                   MOVEA(P)  ARRA2         ARRA1
      C                   EVAL      $MSG=%TRIMR(ARRA1(1))+' '
      C                                 +%TRIMR(ARRA1(2))+' '
      C                                 +%TRIMR(ARRA1(3))+' '
