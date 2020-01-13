@@ -7,6 +7,7 @@ import java.lang.IllegalStateException
 import kotlin.math.ceil
 import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
+import kotlin.math.max
 
 // Supported data types:
 // * Character Format
@@ -228,6 +229,15 @@ fun Expression.type(): Type {
         is OnRefExpr, is OffRefExpr -> return BooleanType
         is FigurativeConstantRef -> {
             FigurativeType
+        }
+        is PlusExpr -> {
+            val leftType = this.left.type()
+            val rightType = this.right.type()
+            if (leftType is NumberType && rightType is NumberType) {
+                return NumberType(max(leftType.entireDigits, rightType.entireDigits), max(leftType.decimalDigits, rightType.decimalDigits))
+            } else {
+                TODO("We do not know the type of a sum of types $leftType and $rightType")
+            }
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
