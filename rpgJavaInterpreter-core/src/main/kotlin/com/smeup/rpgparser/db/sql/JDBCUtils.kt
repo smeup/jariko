@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.db.sql
 
 import com.smeup.rpgparser.interpreter.*
-import java.lang.StringBuilder
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -21,8 +20,14 @@ fun ResultSet.joinToString(separator: String = " - "): String {
 }
 
 fun PreparedStatement.bind(values: List<Value>) {
-    values.forEachIndexed {
-        i, value -> this.setObject(i + 1, value.toDBValue())
+    values.forEachIndexed { i, value ->
+        val jdbcIndex = i + 1
+        val type =
+            typeFor(parameterMetaData.getParameterTypeName(jdbcIndex),
+                parameterMetaData.getPrecision(jdbcIndex),
+                parameterMetaData.getScale(jdbcIndex)
+            )
+        this.setObject(jdbcIndex, value.toDBValue(type))
     }
 }
 
@@ -47,10 +52,10 @@ fun Connection.fields(name: String): List<DBField> {
     return result
 }
 
-private fun typeFor(metadataReultSet: ResultSet): Type {
-    val sqlType = metadataReultSet.getString("TYPE_NAME")
-    val columnSize = metadataReultSet.getInt("COLUMN_SIZE")
-    val decimalDigits = metadataReultSet.getInt("DECIMAL_DIGITS")
+fun typeFor(metadataResultSet: ResultSet): Type {
+    val sqlType = metadataResultSet.getString("TYPE_NAME")
+    val columnSize = metadataResultSet.getInt("COLUMN_SIZE")
+    val decimalDigits = metadataResultSet.getInt("DECIMAL_DIGITS")
     return typeFor(sqlType, columnSize, decimalDigits)
 }
 

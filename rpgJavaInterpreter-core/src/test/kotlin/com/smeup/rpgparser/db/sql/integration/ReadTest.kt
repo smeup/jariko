@@ -2,11 +2,12 @@ package com.smeup.rpgparser.db.sql.integration
 
 import com.smeup.rpgparser.db.sql.outputOfDBPgm
 import org.junit.Test
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
-class ReadpDBTest {
+class ReadTest {
 
-    @Test
+    @Test @Ignore
     fun findsExistingRecords() {
         val outputLines = outputOfDBPgm(
             "db/READ01",
