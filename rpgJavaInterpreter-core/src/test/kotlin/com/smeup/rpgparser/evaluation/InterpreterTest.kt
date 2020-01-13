@@ -250,6 +250,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeMOVEA02() {
+        assertEquals(listOf("1234", "5678", "90CD"), outputOf("MOVEA02"))
+    }
+
+    @Test @Ignore
     fun executeSCANARRAY() {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }
