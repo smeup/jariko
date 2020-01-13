@@ -10,7 +10,7 @@
      C                   EVAL      ZZSTR=XXSTR+YYSTR
      C                   EVAL      ARRA1=ZZSTR
      C                   MOVEA     YYSTR         ARRA1
-     C                   FOR       i = 1 TO 3                                   NBR
+     C                   FOR       i = 1 TO 3
      C                   DSPLY                   ARRA1(i)
      C                   ENDFOR
      **-------------------------------------------------------------------

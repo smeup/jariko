@@ -6,7 +6,7 @@
      C                   EVAL      ARRA1(2) = 'ABCD'
      C                   EVAL      ARRA1(3) = 'ABCD'
      C                   MOVEA     NEWVAL        ARRA1
-     C                   FOR       i = 1 TO 3                                   NBR
+     C                   FOR       i = 1 TO 3
      C                   DSPLY                   ARRA1(i)
      C                   ENDFOR
      **-------------------------------------------------------------------
