@@ -145,4 +145,16 @@ class MuteExecutionTest {
             assertEquals(BooleanValue(true), it.value.result)
         }
     }
+    @Test @kotlin.test.Ignore
+    // this program test operations on arrays of unequal size (simplified version of MUTE09_04 without MOVEA)
+    fun executeMUTE09_05() {
+        val cu = assertASTCanBeProduced("mute/MUTE09_05", true, withMuteSupport = true)
+        cu.resolve(DummyDBInterface)
+        cu.assertNrOfMutesAre(115)
+        val interpreter = execute(cu, emptyMap())
+        assertEquals(115, interpreter.systemInterface.getExecutedAnnotation().size)
+        interpreter.systemInterface.getExecutedAnnotation().forEach {
+            assertEquals(BooleanValue(true), it.value.result)
+        }
+    }
 }
