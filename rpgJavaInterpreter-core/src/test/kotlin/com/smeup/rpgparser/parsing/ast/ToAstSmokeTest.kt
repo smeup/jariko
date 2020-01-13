@@ -137,4 +137,9 @@ class ToAstSmokeTest {
         assertASTCanBeProduced("performance/MUTE10_01B")
         assertASTCanBeProduced("performance/MUTE10_01C")
     }
+
+    @Test
+    fun buildAstForREADP() {
+        assertASTCanBeProduced("db/READP")
+    }
 }

@@ -843,6 +843,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     }
                     fillDataFrom(record)
                 }
+                is ReadPreviousStmt -> {
+                    val dbFile = dbFile(statement.name, statement)
+                    val record = when {
+                        statement.searchArg == null -> dbFile.readPrevious()
+                        statement.searchArg.type() is KListType -> dbFile.readPrevious(toSearchValues(statement.searchArg))
+                        else -> dbFile.readPrevious(eval(statement.searchArg))
+                    }
+                    fillDataFrom(record)
+                }
                 is ReadStmt -> {
                     val dbFile = dbFile(statement.name, statement)
                     val record = dbFile.read()
