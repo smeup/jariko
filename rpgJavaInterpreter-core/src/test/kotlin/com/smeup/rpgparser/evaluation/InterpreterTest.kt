@@ -266,7 +266,7 @@ class InterpreterTest {
 
     @Test @Ignore
     fun executeARRAY10() {
-        assertEquals(listOf("AB  CD EF"), outputOf("ARRAY10"))
+        assertEquals(listOf("AB  CD  EF"), outputOf("ARRAY10"))
     }
 
     @Test @Ignore
