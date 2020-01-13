@@ -1216,8 +1216,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun movea(target: AssignableExpression, value: Expression): Value {
-        // TODO
         var newValue = interpret(value)
+        if (target is DataRefExpr) {
+            require(target.type() is ArrayType) {
+                "Result must be an Array"
+            }
+        } else {
+            require(target is ArrayAccessExpr) {
+                "Result must be an Array element"
+            }
+        }
+
         return assign(target, newValue)
     }
 
