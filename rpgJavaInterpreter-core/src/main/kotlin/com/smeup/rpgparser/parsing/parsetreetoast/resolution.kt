@@ -69,13 +69,19 @@ fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
     this.resolveFunctionCalls(cu)
 }
 
-fun CompilationUnit.resolveAndValidate(databaseInterface: DBInterface): List<Error> {
+/**
+ * In case of semantic errors we could either raise exceptions or return a list of errors.
+ */
+fun CompilationUnit.resolveAndValidate(databaseInterface: DBInterface, raiseException: Boolean = true): List<Error> {
     this.resolve(databaseInterface)
-    return this.validate()
+    return this.validate(raiseException)
 }
 
 class SemanticErrorsException(val errors: List<Error>) : RuntimeException("Semantic errors found: $errors")
 
+/**
+ * In case of semantic errors we could either raise exceptions or return a list of errors.
+ */
 private fun CompilationUnit.validate(raiseException: Boolean = true): List<Error> {
     val errors = LinkedList<Error>()
     // TODO validate SubstExpr for assignability
@@ -85,7 +91,7 @@ private fun CompilationUnit.validate(raiseException: Boolean = true): List<Error
         val targetType = it.target.type()
         val valueType = it.value.type()
         if (!targetType.canBeAssigned(valueType)) {
-            errors.add(Error(ErrorType.SEMANTIC, "Invalid assignement: cannot assign ${it.target} having type $targetType to ${it.value} having type $valueType", it.position))
+            errors.add(Error(ErrorType.SEMANTIC, "Invalid assignement: cannot assign ${it.value} having type $valueType to ${it.target} having type $targetType", it.position))
         }
     }
     if (errors.isNotEmpty()) {

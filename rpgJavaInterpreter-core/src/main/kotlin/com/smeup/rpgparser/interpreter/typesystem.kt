@@ -158,6 +158,14 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         get() = !integer
     val numberOfDigits: Int
         get() = entireDigits + decimalDigits
+
+    override fun canBeAssigned(valueType: Type): Boolean {
+        if (valueType is NumberType) {
+            return valueType.entireDigits <= this.entireDigits && valueType.decimalDigits <= this.decimalDigits
+        } else {
+            return false
+        }
+    }
 }
 
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
