@@ -269,6 +269,11 @@ class InterpreterTest {
         assertEquals(listOf("AB  CD  EF"), outputOf("ARRAY10"))
     }
 
+    @Test
+    fun executeARRAY11() {
+        assertEquals(listOf("ABCDEF", "ABCDEF"), outputOf("ARRAY11"))
+    }
+
     @Test @Ignore
     fun executeSCANARRAY() {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
