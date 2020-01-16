@@ -96,6 +96,28 @@ class RunnerTest {
     }
 
     @Test
+    fun commandLineProgramsCanRunMutes() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     D Msg             S             12
+|    MU* VAL1(Msg) VAL2('This should fail') COMP(EQ)
+|    MU* VAL1(Msg) VAL2('') COMP(EQ)
+|     C     'Hello World' DSPLY
+|     C                   SETON                                          LR
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+
+        program.singleCall(listOf())
+        assertEquals(systemInterface.consoleOutput, listOf("Hello World"))
+        val executedAnnotations = systemInterface.getExecutedAnnotation()
+        assertEquals(2, executedAnnotations.size)
+        assertEquals(1, executedAnnotations.values.count { it.failed() })
+        assertEquals(1, executedAnnotations.values.count { it.succeeded() })
+    }
+
+    @Test
     fun commandLineProgramCanBeInstrumentedWithAssignmentsLogHandler() {
         val systemInterface = JavaSystemInterface()
         val source = """
