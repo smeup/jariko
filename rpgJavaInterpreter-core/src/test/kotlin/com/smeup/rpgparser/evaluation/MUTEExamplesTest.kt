@@ -9,7 +9,6 @@ import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.mute.executeMuteAnnotations
 import org.junit.Test
 import org.junit.experimental.categories.Category
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
@@ -34,7 +33,7 @@ class MUTEExamplesTest {
     fun executeMUTE10_02() {
         assertMuteOK("MUTE10_02", withOutput = emptyList())
     }
-    
+
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_03() {
         assertMuteOK("MUTE10_03", withOutput = emptyList())
