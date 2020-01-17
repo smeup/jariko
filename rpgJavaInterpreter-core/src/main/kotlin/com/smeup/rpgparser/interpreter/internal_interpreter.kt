@@ -25,7 +25,10 @@ class LeaveException : Exception()
 class IterException : Exception()
 
 object InterpreterConfiguration {
-    var disableDynamicChecksOnAssignement = false
+    /**
+     * Enable runtime checks during assignments
+     */
+    var enableRuntimeChecksOnAssignement = false
 }
 
 interface InterpretationContext {
@@ -185,7 +188,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         it.name in initialValues -> {
                             val initialValue = initialValues[it.name]
                                     ?: throw RuntimeException("Initial values for ${it.name} not found")
-                            if (!InterpreterConfiguration.disableDynamicChecksOnAssignement) {
+                            if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
                                 require(initialValue.assignableTo(it.type)) {
                                     "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
                                 }
@@ -1125,7 +1128,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 // Before assigning the single element we do a sanity check:
                 // is the value we have for the array compatible with the type
                 // we expect for such array?
-                if (!InterpreterConfiguration.disableDynamicChecksOnAssignement) {
+                if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
                     require(arrayValue.assignableTo(targetType)) {
                         "The value $arrayValue is not assignable to $targetType"
                     }
