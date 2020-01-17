@@ -7,7 +7,7 @@ import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.NumberType
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
@@ -30,7 +30,7 @@ class RpgParserOverlayTest11 {
     fun parseMUTE11_11C_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -49,7 +49,7 @@ class RpgParserOverlayTest11 {
     @Test
     fun parseMUTE11_15_ast() {
         val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val FUND1 = cu.getDataDefinition("£FUND1")
         val FUNQT = FUND1.getFieldByName("£FUNQT")
@@ -62,7 +62,7 @@ class RpgParserOverlayTest11 {
     fun parseMUTE11_15_runtime() {
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -86,7 +86,7 @@ class RpgParserOverlayTest11 {
     @Test
     fun parseMUTE11_16_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE11O16", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
 
         val interpreter = InternalInterpreter(JavaSystemInterface())

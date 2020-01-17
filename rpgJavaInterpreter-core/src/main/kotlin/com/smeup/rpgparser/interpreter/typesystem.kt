@@ -7,6 +7,7 @@ import java.lang.IllegalStateException
 import kotlin.math.ceil
 import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
+import kotlin.math.max
 
 // Supported data types:
 // * Character Format
@@ -158,6 +159,14 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         get() = !integer
     val numberOfDigits: Int
         get() = entireDigits + decimalDigits
+
+    override fun canBeAssigned(valueType: Type): Boolean {
+        if (valueType is NumberType) {
+            return valueType.entireDigits <= this.entireDigits && valueType.decimalDigits <= this.decimalDigits
+        } else {
+            return false
+        }
+    }
 }
 
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
@@ -220,6 +229,15 @@ fun Expression.type(): Type {
         is OnRefExpr, is OffRefExpr -> return BooleanType
         is FigurativeConstantRef -> {
             FigurativeType
+        }
+        is PlusExpr -> {
+            val leftType = this.left.type()
+            val rightType = this.right.type()
+            if (leftType is NumberType && rightType is NumberType) {
+                return NumberType(max(leftType.entireDigits, rightType.entireDigits), max(leftType.decimalDigits, rightType.decimalDigits))
+            } else {
+                TODO("We do not know the type of a sum of types $leftType and $rightType")
+            }
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }

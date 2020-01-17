@@ -4,7 +4,7 @@ import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.logging.*
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -20,7 +20,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_000_datadefinitions() {
         val cu = assertASTCanBeProduced("JD_000_datainit", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val allDefinitions = cu.allDataDefinitions
 
@@ -56,7 +56,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_000_datainit() {
         val cu = assertASTCanBeProduced("JD_000_datainit", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = execute(cu, mapOf())
 
@@ -82,14 +82,14 @@ class JDExamplesTest {
     @Test
     fun executeJD_000_base() {
         val cu = assertASTCanBeProduced("JD_000_base", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         execute(cu, mapOf())
     }
 
     @Test
     fun executeJD_001_datadefinitions() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val svarDef = cu.getDataOrFieldDefinition("\$\$SVAR") as FieldDefinition
         assertEquals(ArrayType(StringType(1050), 200), svarDef.type)
@@ -119,7 +119,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_000", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val jd001program = si.findProgram("JD_001")!!
         val jd001params = jd001program.params()
@@ -130,7 +130,7 @@ class JDExamplesTest {
         val svarskDef = cu.allDataDefinitions.find { it.name == "U\$SVARSK" }!! as FieldDefinition
         assertEquals(ArrayType(StringType(1050), 200), svarskDef.type)
 
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         execute(cu, mapOf(), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(false))
 
@@ -181,7 +181,7 @@ class JDExamplesTest {
     @Test
     fun paramsTypesOfJD_001() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val programJD_001 = RpgProgram(cu, DummyDBInterface, "JD_001")
         val params = programJD_001.params()
         assertEquals(4, params.size)
@@ -202,7 +202,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_plist() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
@@ -220,7 +220,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_settingVars() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("Foo"),
@@ -236,7 +236,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_inzFunz() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to StringValue("INZ"),
@@ -256,7 +256,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_recognizeDataDefinitions() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val unnamedDS = cu.getDataDefinition("@UNNAMED_DS_16")
         assertEquals(false, unnamedDS.type is ArrayType)
@@ -283,7 +283,7 @@ class JDExamplesTest {
     @Test
     fun executeJD_001_complete_url_not_found() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
@@ -305,7 +305,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
@@ -385,7 +385,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_002", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()), systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "ESE".asValue()), reinitialization = false)
         interpreter.execute(cu, mapOf("U\$FUNZ" to "CLO".asValue()), reinitialization = false)
@@ -421,7 +421,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_002", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
@@ -476,7 +476,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_002", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf(
                 "U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
@@ -527,7 +527,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_003", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue()),
                 systemInterface = si, logHandlers = SimpleLogHandler.fromFlag(true))
         interpreter.execute(cu, mapOf("U\$FUNZ" to "EXE".asValue()), reinitialization = false)
@@ -583,7 +583,7 @@ class JDExamplesTest {
             }
         }
         val cu = assertASTCanBeProduced("JD_003", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf("U\$FUNZ" to "INZ".asValue(),
                 "U\$SVARSK" to createArrayValue(StringType(1050), 200) { i ->
                     when (i) {

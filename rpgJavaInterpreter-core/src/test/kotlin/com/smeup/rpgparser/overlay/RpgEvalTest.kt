@@ -5,7 +5,7 @@ import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 
@@ -15,7 +15,7 @@ class RpgEvalTest {
     fun EVAL_runtime() {
         RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
         val cu = com.smeup.rpgparser.assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

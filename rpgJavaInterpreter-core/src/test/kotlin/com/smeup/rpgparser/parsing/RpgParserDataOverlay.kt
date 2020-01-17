@@ -4,7 +4,7 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.DummyDBInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -18,7 +18,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_01", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_01", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -30,7 +30,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_02", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_02", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -39,7 +39,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_03", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val dataDefinition = cu.dataDefinitions[0]
         assertEquals(1, cu.dataDefinitions.size)
 
@@ -71,7 +71,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_04", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_04", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         execute(cu, mapOf())
     }
 
@@ -80,7 +80,7 @@ class RpgParserDataOverlay {
         assertCanBeParsed("struct/OVERLAY_05", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/OVERLAY_05", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         execute(cu, mapOf())
     }
 }

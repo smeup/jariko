@@ -10,7 +10,7 @@ import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.strumenta.kolasu.model.ReferenceByName
@@ -301,7 +301,7 @@ private const val TRACE = false
 
 fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE), printTree: Boolean = false): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
-    cu.resolve(si.db)
+    cu.resolveAndValidate(si.db)
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
 }

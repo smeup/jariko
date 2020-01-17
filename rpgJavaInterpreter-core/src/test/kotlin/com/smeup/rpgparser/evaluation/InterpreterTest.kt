@@ -7,7 +7,7 @@ import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.logging.EXPRESSION_LOGGER
 import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
@@ -20,7 +20,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_initialDeclarations_dec() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
         assertIsIntValue(interpreter["NBR"], 3)
     }
@@ -28,7 +28,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_initialDeclarations_inz() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         assertTrue(cu.getDataDefinition("ppdat").initializationValue == null)
         assertTrue(cu.getDataDefinition("NBR").initializationValue == null)
@@ -46,7 +46,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_otherClauseOfSelect() {
         val cu = assertASTCanBeProduced("CALCFIB_2", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
@@ -58,7 +58,7 @@ class InterpreterTest {
 
     private fun assertFibonacci(input: String, output: String) {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
@@ -99,7 +99,7 @@ class InterpreterTest {
     @Test
     fun executeHELLO() {
         val cu = assertASTCanBeProduced("HELLO", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf(), si, listOf(logHandler))
@@ -110,7 +110,7 @@ class InterpreterTest {
     @Test
     fun executeCallToFibonacciWrittenInRpg() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
@@ -122,7 +122,7 @@ class InterpreterTest {
     @Test
     fun executeCallToFibonacciWrittenOnTheJvm() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8, false)))) {
@@ -148,7 +148,7 @@ class InterpreterTest {
     @Test
     fun executeFibonacciWrittenInRpgAsProgram() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val rpgProgram = RpgProgram(cu, DummyDBInterface)
         rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
@@ -792,7 +792,7 @@ class InterpreterTest {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
         }
 
-        cu.resolve(mockDBInterface)
+        cu.resolveAndValidate(mockDBInterface)
 
         val si = CollectorSystemInterface()
         si.databaseInterface = mockDBInterface
@@ -822,7 +822,7 @@ class InterpreterTest {
             }
         }
 
-        cu.resolve(mockDBInterface)
+        cu.resolveAndValidate(mockDBInterface)
         val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
         si.databaseInterface = mockDBInterface
 
