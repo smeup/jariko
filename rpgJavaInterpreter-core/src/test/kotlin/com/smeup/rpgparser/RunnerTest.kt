@@ -140,4 +140,42 @@ class RunnerTest {
 
         println(logOutputStream)
     }
+
+    @Test
+    fun executeHELLO() {
+        // Classic Hello World
+        val systemInterface = JavaSystemInterface()
+        val program = getProgram("HELLO", systemInterface)
+        val logOutputStream = StringOutputStream()
+        val printStream = PrintStream(logOutputStream)
+        val assignmentsLogHandler = AssignmentsLogHandler(printStream)
+        val evalLogHandler = EvalLogHandler(printStream)
+
+        systemInterface.addExtraLogHandlers(listOf(evalLogHandler, assignmentsLogHandler))
+
+        program.singleCall(listOf())
+
+        assertTrue(logOutputStream.written)
+
+        println(logOutputStream)
+    }
+
+    @Test
+    fun executeHELLO2() {
+        // Hello World multilanguage
+        val systemInterface = JavaSystemInterface()
+        val program = getProgram("HELLO2", systemInterface)
+        val logOutputStream = StringOutputStream()
+        val printStream = PrintStream(logOutputStream)
+        val assignmentsLogHandler = AssignmentsLogHandler(printStream)
+        val evalLogHandler = EvalLogHandler(printStream)
+
+        systemInterface.addExtraLogHandlers(listOf(evalLogHandler, assignmentsLogHandler))
+
+        program.singleCall(listOf())
+
+        assertTrue(logOutputStream.written)
+
+        println(logOutputStream)
+    }
 }
