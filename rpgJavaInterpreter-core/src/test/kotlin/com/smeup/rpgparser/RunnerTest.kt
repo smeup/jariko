@@ -2,10 +2,8 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.AssignmentsLogHandler
-import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.EvalLogHandler
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.StringOutputStream
 import java.io.PrintStream
 import kotlin.test.assertEquals
