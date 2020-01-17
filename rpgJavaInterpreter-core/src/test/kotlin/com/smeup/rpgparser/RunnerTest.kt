@@ -2,8 +2,10 @@ package com.smeup.rpgparser
 
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.AssignmentsLogHandler
+import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.EvalLogHandler
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.parsing.parsetreetoast.resolve
 import com.smeup.rpgparser.utils.StringOutputStream
 import java.io.PrintStream
 import kotlin.test.assertEquals
@@ -127,6 +129,43 @@ class RunnerTest {
 |     C                   SETON                                          LR
         """.trimMargin()
         val program = getProgram(source, systemInterface)
+        val logOutputStream = StringOutputStream()
+        val printStream = PrintStream(logOutputStream)
+        val assignmentsLogHandler = AssignmentsLogHandler(printStream)
+        val evalLogHandler = EvalLogHandler(printStream)
+
+        systemInterface.addExtraLogHandlers(listOf(evalLogHandler, assignmentsLogHandler))
+
+        program.singleCall(listOf())
+
+        assertTrue(logOutputStream.written)
+
+        println(logOutputStream)
+    }
+    @Test
+    fun executeHELLO() {
+        // Classic Hello World
+        val systemInterface = JavaSystemInterface()
+        val program = getProgram("HELLO", systemInterface)
+        val logOutputStream = StringOutputStream()
+        val printStream = PrintStream(logOutputStream)
+        val assignmentsLogHandler = AssignmentsLogHandler(printStream)
+        val evalLogHandler = EvalLogHandler(printStream)
+
+        systemInterface.addExtraLogHandlers(listOf(evalLogHandler, assignmentsLogHandler))
+
+        program.singleCall(listOf())
+
+        assertTrue(logOutputStream.written)
+
+        println(logOutputStream)
+    }
+
+    @Test
+    fun executeHELLO2() {
+        // Hello World multilanguage
+        val systemInterface = JavaSystemInterface()
+        val program = getProgram("HELLO2", systemInterface)
         val logOutputStream = StringOutputStream()
         val printStream = PrintStream(logOutputStream)
         val assignmentsLogHandler = AssignmentsLogHandler(printStream)
