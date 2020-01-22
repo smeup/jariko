@@ -83,7 +83,7 @@ The execution of the program continues even after the failing of the assertion, 
 
 ## Command line utility
 
-The Mute annotations can be verified using a utility contained in the class `com.smeup.rpgparser.mute.MuterunnerKt`.
+The Mute annotations can be verified using an utility contained in the class `com.smeup.rpgparser.mute.MuterunnerKt`.
 
 For your convenience you can produce a JAR with all the dependencies by running:
 

@@ -251,6 +251,36 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeMOVEA01() {
+        assertEquals(listOf("CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEA02() {
+        assertEquals(listOf("1234", "5678", "90CD"), outputOf("MOVEA02"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEA03() {
+        assertEquals(listOf("ABCD", "1234", "5678"), outputOf("MOVEA03"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEA04() {
+        assertEquals(listOf("ABCD", "1234", "56CD"), outputOf("MOVEA04"))
+    }
+
+    @Test @Ignore
+    fun executeARRAY10() {
+        assertEquals(listOf("AB  CD  EF"), outputOf("ARRAY10"))
+    }
+
+    @Test
+    fun executeARRAY11() {
+        assertEquals(listOf("ABCDEF", "ABCDEF"), outputOf("ARRAY11"))
+    }
+
+    @Test @Ignore
     fun executeSCANARRAY() {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }

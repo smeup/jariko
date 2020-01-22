@@ -31,6 +31,13 @@ class InterpreterSmokeTest {
     }
 
     @Test
+    fun executeMOVEA01() {
+        val cu = assertASTCanBeProduced("MOVEA01")
+        cu.resolveAndValidate(DummyDBInterface)
+        execute(cu, mapOf())
+    }
+
+    @Test
     fun executeCHAINHOSTS() {
         val cu = assertASTCanBeProduced("db/CHAINHOSTS")
 

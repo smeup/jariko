@@ -417,6 +417,17 @@ class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val
     }
 }
 
+class MoveAStatemenExecutionLog(programName: String, val statement: MoveAStmt, val result: Value) : LogEntry(programName) {
+    override fun toString(): String {
+        return "MOVEA"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "MOVEA${sep}${statement.expression.render()} TO ${statement.target.render()}${sep}${result.render()}"
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
 class ParamListStatemenExecutionLog(programName: String, val statement: PlistStmt, val name: String, val value: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "PLIST"

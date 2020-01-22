@@ -415,6 +415,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val value = move(statement.target, statement.expression)
                     log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
+                is MoveAStmt -> {
+                    val value = movea(statement.target, statement.expression)
+                    log(MoveAStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
+                }
                 is MoveLStmt -> {
                     val value = movel(statement.operationExtender, statement.target, statement.expression, this)
                     log(MoveLStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
@@ -1220,6 +1224,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
             EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
         }
+    }
+
+    private fun movea(target: AssignableExpression, value: Expression): Value {
+        var newValue = interpret(value)
+        if (target is DataRefExpr) {
+            require(target.type() is ArrayType) {
+                "Result must be an Array"
+            }
+        } else {
+            require(target is ArrayAccessExpr) {
+                "Result must be an Array element"
+            }
+        }
+
+        return assign(target, newValue)
     }
 
     private fun move(target: AssignableExpression, value: Expression): Value {
