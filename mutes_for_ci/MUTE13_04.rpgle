@@ -21,6 +21,11 @@
      D  N1             S              9  0
      D  N2             S             21  6
       *
+    MU* VAL1(AAA010) VAL2('       AAA') COMP(EQ)
+     C                   MOVE      'AAA'         AAA010
+     C                   MOVE      AAA005        AAA010
+     C                   EVAL      DSP=AAA010
+     C                   DSPLY                   DSP
      C                   EVAL      AAA003='AAA'
     MU* VAL1(AAA010) VAL2('AAA       ') COMP(EQ)
      C                   MOVEL     AAA003        AAA010

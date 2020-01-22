@@ -9,7 +9,6 @@ import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.mute.executeMuteAnnotations
 import org.junit.Test
 import org.junit.experimental.categories.Category
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
@@ -30,14 +29,12 @@ class MUTEExamplesTest {
         assertMuteOK("MUTE10_04A", withOutput = listOf("001.1_d01.1_A01.1_c01.1_B01.1_b01.1_C01.1_901.1_101."))
     }
 
-    // We need to implement SORTA
-    @Test @Category(PerformanceTest::class) @Ignore
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_02() {
         assertMuteOK("MUTE10_02", withOutput = emptyList())
     }
 
-    // We need to implement SORTA
-    @Test @Category(PerformanceTest::class) @Ignore
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_03() {
         assertMuteOK("MUTE10_03", withOutput = emptyList())
     }

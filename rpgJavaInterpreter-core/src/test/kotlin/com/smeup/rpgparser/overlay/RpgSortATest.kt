@@ -3,7 +3,7 @@ package com.smeup.rpgparser.overlay
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 import java.nio.charset.Charset
 import kotlin.test.assertEquals
@@ -37,7 +37,7 @@ class RpgSortATest {
     @Test
     fun executeSORTA() {
         val cu = assertASTCanBeProduced("overlay/SORTATEST", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

@@ -18,7 +18,7 @@ import com.smeup.rpgparser.parsing.ast.MuteComparisonAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
@@ -156,7 +156,7 @@ fun RpgParserResult.executeMuteAnnotations(
             }
         }
     }
-    cu.resolve(systemInterface.db)
+    cu.resolveAndValidate(systemInterface.db)
     val interpreter = InternalInterpreter(systemInterface)
     interpreter.execute(cu, parameters)
     return interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
