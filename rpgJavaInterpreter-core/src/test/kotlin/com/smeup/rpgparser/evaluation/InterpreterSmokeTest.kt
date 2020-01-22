@@ -33,7 +33,7 @@ class InterpreterSmokeTest {
     @Test
     fun executeMOVEA01() {
         val cu = assertASTCanBeProduced("MOVEA01")
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         execute(cu, mapOf())
     }
 
