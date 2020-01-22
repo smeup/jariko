@@ -235,6 +235,12 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCAL03_recursive() {
+        val parms = mapOf("P1" to StringValue(" "))
+        assertEquals(listOf("", "HELLO"), outputOf("CAL03", parms))
+    }
+
+    @Test
     fun executeZERO() {
         assertEquals(listOf("0", "69", "0"), outputOf("ZERO"))
     }
