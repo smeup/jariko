@@ -2,7 +2,9 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.logging.EXPRESSION_LOGGER
 import com.smeup.rpgparser.logging.STATEMENT_LOGGER
@@ -559,6 +561,22 @@ class InterpreterTest {
     @Test
     fun executeSTARALL_EVAL() {
         assertEquals(listOf("11111"), outputOf("STARALL_EVAL"))
+    }
+
+    @Test
+    fun EVALwithTypeError() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     D n               S              1  0 inz(00)
+|     C                   Eval      n = 'Hello World!'
+|     C                   SETON                                          LR
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+        assertFailsWith(IllegalArgumentException::class) {
+            program.singleCall(listOf())
+        }
     }
 
     @Test
