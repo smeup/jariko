@@ -398,18 +398,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     )
                 }
                 is EvalStmt -> {
-                    try {
-                        // Should I assign it one by one?
-                        val result = if (statement.target.type().isArray() &&
-                                statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
-                            assignEachElement(statement.target, statement.expression, statement.operator)
-                        } else {
-                            assign(statement.target, statement.expression, statement.operator)
-                        }
-                        log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
-                    } catch (e: Exception) {
-                        throw java.lang.RuntimeException("Issue executing statement $statement at line ${statement.startLine()}", e)
+                    // Should I assign it one by one?
+                    val result = if (statement.target.type().isArray() &&
+                            statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
+                        assignEachElement(statement.target, statement.expression, statement.operator)
+                    } else {
+                        assign(statement.target, statement.expression, statement.operator)
                     }
+                    log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
                 }
                 is MoveStmt -> {
                     val value = move(statement.target, statement.expression)
@@ -889,13 +885,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         } catch (e: IllegalArgumentException) {
             val message = e.toString()
             if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException("Issue executing statement $statement -> $e at line ${statement.position.line()}", e)
+                throw IllegalArgumentException(errorDescription(statement), e)
             }
             throw e
         } catch (e: RuntimeException) {
-            throw RuntimeException("Issue executing statement $statement -> $e at line ${statement.position.line()}", e)
+            throw RuntimeException(errorDescription(statement), e)
         }
     }
+
+    private fun errorDescription(statement: Statement) =
+        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()}"
 
     private fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {

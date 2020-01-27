@@ -58,10 +58,7 @@ fun configureLog(configFile: File): List<InterpreterLogHandler> {
     return configureLog(loadLogConfiguration(configFile))
 }
 
-fun defaultLoggingConfiguration(): LoggingConfiguration {
-    val props = Properties()
-    return props
-}
+fun defaultLoggingConfiguration(): LoggingConfiguration = LoggingConfiguration()
 
 enum class LogLevel {
     OFF,
