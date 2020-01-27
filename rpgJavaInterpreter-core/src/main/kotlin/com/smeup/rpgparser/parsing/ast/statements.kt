@@ -4,6 +4,7 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.KListType
+import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
@@ -45,6 +46,7 @@ abstract class Statement(
 
         return mutesAttached
     }
+    open fun simpleDescription() = "Issue executing statement ${javaClass.simpleName} at line ${startLine()}."
 }
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)

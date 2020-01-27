@@ -9,10 +9,8 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.types.file
-import com.smeup.rpgparser.interpreter.InternalInterpreter
-import com.smeup.rpgparser.interpreter.SimpleSystemInterface
-import com.smeup.rpgparser.interpreter.SystemInterface
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.ast.MuteComparisonAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
@@ -45,28 +43,31 @@ data class ExecutionResult(
             val message =
                 "$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}"
             appendln(message.color(success()))
-            val sw = StringWriter()
-            val printWriter = PrintWriter(sw)
             exceptions.forEach {
-                it.printStackTrace(printWriter)
+                appendln(it.toExecutionMessage())
             }
-            sw.flush()
-            append(sw)
             syntaxErrors.forEach {
                 appendln(it)
             }
-            addFileLink(this)
-        }
+        }.addFileLink()
     }
 
-    private fun addFileLink(sb: StringBuilder): String {
-        var result = sb.toString()
-        val lineNumber = result.substringAfter("Position(start=Line ").substringBefore(",").asDouble().toInt()
+    private fun String.addFileLink(): String {
+        var lineNumber = substringAfter(" at line ").substringBefore(".").asDouble().toInt()
+        if (lineNumber == 0) lineNumber = substringAfter("Position(start=Line ").substringBefore(",").asDouble().toInt()
         if (lineNumber > 0) {
-            result += System.lineSeparator() + "${file.linkTo(lineNumber)}"
+            return this + System.lineSeparator() + "See ${file.linkTo(lineNumber)}"
         }
-        return result
+        return this
     }
+}
+
+fun Throwable.toExecutionMessage(): String {
+    val sw = StringWriter()
+    val printWriter = PrintWriter(sw)
+    printStackTrace(printWriter)
+    sw.flush()
+    return sw.toString()
 }
 
 fun String.color(success: Boolean) = if (success) this.green() else this.red()
@@ -103,7 +104,7 @@ fun executeWithMutes(
                 SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(
                     logConfigurationFile
                 )
-            parserResult.executeMuteAnnotations(verbose, systemInterface).forEach { (line, annotation) ->
+            parserResult.executeMuteAnnotations(verbose, systemInterface, programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
                 if (verbose || annotation.failed()) {
                     println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
                     if (annotation.failed()) {
@@ -142,7 +143,8 @@ fun executeMuteAnnotations(
 fun RpgParserResult.executeMuteAnnotations(
     verbose: Boolean,
     systemInterface: SystemInterface,
-    parameters: Map<String, Value> = mapOf()
+    parameters: Map<String, Value> = mapOf(),
+    programName: String = "<UNKONWN>"
 ): SortedMap<Int, MuteAnnotationExecuted> {
     val root = this.root!!
     val cu = root.rContext.toAst().apply {
@@ -156,7 +158,17 @@ fun RpgParserResult.executeMuteAnnotations(
         }
     }
     cu.resolveAndValidate(systemInterface.db)
-    val interpreter = InternalInterpreter(systemInterface)
+    val interpreter = InternalInterpreter(systemInterface).apply {
+        interpretationContext = object : InterpretationContext {
+            override val currentProgramName: String
+                get() = programName
+            override fun shouldReinitialize() = false
+
+            override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
+                // nothing to do
+            }
+        }
+    }
     interpreter.execute(cu, parameters)
     return interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
 }
