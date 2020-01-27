@@ -91,7 +91,10 @@ fun executePgmWithStringArgs(
     programFinders: List<RpgProgramFinder> = defaultProgramFinders
 ) {
     val systemInterface = JavaSystemInterface()
-    systemInterface.loggingConfiguration = logConfigurationFile?.let { loadLogConfiguration(logConfigurationFile) } ?: defaultLoggingConfiguration()
+    systemInterface.loggingConfiguration =
+        logConfigurationFile
+            ?.let(::loadLogConfiguration)
+            ?: defaultLoggingConfiguration()
     val commandLineProgram = getProgram(programName, systemInterface, programFinders)
     commandLineProgram.singleCall(programArgs)
 }
