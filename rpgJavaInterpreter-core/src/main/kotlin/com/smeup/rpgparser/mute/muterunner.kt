@@ -39,26 +39,25 @@ data class ExecutionResult(
 ) {
     fun success(): Boolean = failed == 0 && exceptions.isEmpty() && syntaxErrors.isEmpty()
 
-    // codebeat:disable[ABC]
     override fun toString(): String {
-        val sb = StringBuilder()
-        sb.appendln("------------")
-        val message =
-            "$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}"
-        sb.appendln(message.color(success()))
-        val sw = StringWriter()
-        val printWriter = PrintWriter(sw)
-        exceptions.forEach {
-            it.printStackTrace(printWriter)
+        return buildString {
+            appendln("------------")
+            val message =
+                "$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}"
+            appendln(message.color(success()))
+            val sw = StringWriter()
+            val printWriter = PrintWriter(sw)
+            exceptions.forEach {
+                it.printStackTrace(printWriter)
+            }
+            sw.flush()
+            append(sw)
+            syntaxErrors.forEach {
+                appendln(it)
+            }
+            addFileLink(this)
         }
-        sw.flush()
-        sb.append(sw)
-        syntaxErrors.forEach {
-            sb.appendln(it)
-        }
-        return addFileLink(sb)
     }
-    // codebeat:enable[ABC]
 
     private fun addFileLink(sb: StringBuilder): String {
         var result = sb.toString()
