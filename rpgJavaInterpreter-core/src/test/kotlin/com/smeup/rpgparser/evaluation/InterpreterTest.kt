@@ -278,6 +278,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeSTRNOTVA() {
+        assertEquals(listOf("AB  CD  EF"), outputOf("STRNOTVA"))
+    }
+
+    @Test
     fun executeARRAY11() {
         assertEquals(listOf("ABCDEF", "ABCDEF"), outputOf("ARRAY11"))
     }
