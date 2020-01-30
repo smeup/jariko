@@ -247,6 +247,11 @@ class InterpreterTest {
         assertEquals(listOf("0", "69", "0"), outputOf("ZERO"))
     }
 
+    @Test
+    fun executeZEROS1() {
+        assertEquals(listOf("33"), outputOf("ZEROS1"))
+    }
+
     @Test @Ignore
     fun executeMOVEL01() {
         assertEquals(listOf("1111.1"), outputOf("MOVEL01"))
