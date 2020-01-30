@@ -10,7 +10,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
-import com.smeup.rpgparser.rgpinterop.*
+import com.smeup.rpgparser.rpginterop.*
 import java.io.File
 import org.apache.commons.io.input.BOMInputStream
 
@@ -37,7 +37,7 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
         if (params.parmsList.isEmpty()) {
             return params
         }
-        return CommandLineParms(resultValues.values.map { it.asString().valueWithoutPadding })
+        return CommandLineParms(resultValues.values.map { it.asString().value })
     }
 
     fun singleCall(parms: List<String>) = singleCall(CommandLineParms(parms))
@@ -91,7 +91,10 @@ fun executePgmWithStringArgs(
     programFinders: List<RpgProgramFinder> = defaultProgramFinders
 ) {
     val systemInterface = JavaSystemInterface()
-    systemInterface.loggingConfiguration = logConfigurationFile?.let { loadLogConfiguration(logConfigurationFile) } ?: defaultLoggingConfiguration()
+    systemInterface.loggingConfiguration =
+        logConfigurationFile
+            ?.let(::loadLogConfiguration)
+            ?: defaultLoggingConfiguration()
     val commandLineProgram = getProgram(programName, systemInterface, programFinders)
     commandLineProgram.singleCall(programArgs)
 }

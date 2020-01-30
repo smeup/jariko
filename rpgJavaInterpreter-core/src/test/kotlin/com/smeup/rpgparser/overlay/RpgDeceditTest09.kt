@@ -5,7 +5,7 @@ import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
 class RpgDeceditTest09 {
@@ -13,7 +13,7 @@ class RpgDeceditTest09 {
     @Test
     fun parseMUTE09_02() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
@@ -28,7 +28,7 @@ class RpgDeceditTest09 {
     @Test
     fun parseMUTE09_02_comma() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02_COMMA", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         // Changes the default decedit
@@ -44,7 +44,7 @@ class RpgDeceditTest09 {
     @Test
     fun parseMUTE09_02A() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02A", considerPosition = true, withMuteSupport = true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.decedit = "0,"

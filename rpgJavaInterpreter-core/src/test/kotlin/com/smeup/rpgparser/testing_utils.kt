@@ -4,18 +4,15 @@ package com.smeup.rpgparser
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.DataRefExpr
-import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.strumenta.kolasu.model.ReferenceByName
 import junit.framework.Assert
 import org.antlr.v4.runtime.Lexer
@@ -186,6 +183,16 @@ fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): Statem
     return result.root!!
 }
 
+fun CompilationUnit.assertNrOfMutesAre(expected: Int) {
+    val actual =
+        this.allDataDefinitions.map { it.muteAnnotations.size }.sum() +
+        this.main.stmts.nrOfMutes() +
+        this.subroutines.map { it.stmts.nrOfMutes() }.sum()
+    assertEquals(expected, actual, "Expected $expected mutes, but were $actual")
+}
+
+fun List<Statement>.nrOfMutes() = this.map { it.muteAnnotations.size }.sum()
+
 fun CompilationUnit.assertDataDefinitionIsPresent(
     name: String,
     dataType: Type,
@@ -285,9 +292,8 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false): List<String> {
-    val interpreter = execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree)
-    val si = interpreter.systemInterface as CollectorSystemInterface
+fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): List<String> {
+    execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si)
     return si.displayed.map(String::trimEnd)
 }
 
@@ -295,7 +301,7 @@ private const val TRACE = false
 
 fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE), printTree: Boolean = false): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
-    cu.resolve(si.db)
+    cu.resolveAndValidate(si.db)
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
 }
@@ -317,14 +323,18 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
     return failed
 }
 
-class DummyProgramFinder(val path: String) : RpgProgramFinder {
+class DummyProgramFinder(private val path: String) : RpgProgramFinder {
+    fun rpgSourceInputStream(nameOrSource: String): InputStream? = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
+
     override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
-        val inputStream = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle") ?: return null
-        return RpgProgram.fromInputStream(inputStream, dbInterface, nameOrSource)
+        return rpgSourceInputStream(nameOrSource)?.let {
+            RpgProgram.fromInputStream(it, dbInterface, nameOrSource)
+        }
     }
 }
 
-class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
+open class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
+
     val programFinders = mutableListOf<RpgProgramFinder>(DummyProgramFinder("/"))
     private val rpgPrograms = HashMap<String, RpgProgram>()
 
@@ -355,6 +365,11 @@ open class MockDBFile : DBFile {
     override fun readEqual(): Record = TODO()
     override fun readEqual(key: Value): Record = TODO()
     override fun readEqual(keys: List<RecordField>): Record = TODO()
+    override fun readPrevious(): Record = TODO()
+    override fun readPrevious(key: Value): Record = TODO()
+    override fun readPrevious(keys: List<RecordField>): Record = TODO()
+
     override fun eof(): Boolean = TODO()
+    override fun equal(): Boolean = TODO()
     override fun read(): Record = TODO()
 }

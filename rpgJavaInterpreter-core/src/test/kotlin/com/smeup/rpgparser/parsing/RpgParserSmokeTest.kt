@@ -131,6 +131,11 @@ class RpgParserSmokeTest {
     }
 
     @Test
+    fun parseREADP() {
+        assertCanBeParsed("db/READP")
+    }
+
+    @Test
     fun parseTIMESTDIFF() {
         assertCanBeParsed("TIMESTDIFF")
     }

@@ -3,7 +3,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.InputStream
 
 data class ProgramParam(val name: String, val type: Type)
@@ -27,7 +27,7 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
     }
 
     init {
-        cu.resolve(dbInterface)
+        cu.resolveAndValidate(dbInterface)
     }
 
     companion object {

@@ -9,14 +9,14 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 import java.math.BigDecimal
 
-open class AbstractDataDefinition(
+abstract class AbstractDataDefinition(
     override val name: String,
     open val type: Type,
     override val position: Position? = null,
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
-    fun elementSize() = type.elementSize()
+    open fun elementSize() = type.elementSize()
 
     fun accept(mutes: MutesMap, start: Int, end: Int):
             MutableList<MuteAnnotationResolved> {
@@ -45,6 +45,10 @@ open class AbstractDataDefinition(
 
         return mutesAttached
     }
+
+    open fun isArray(): Boolean {
+        return type is ArrayType
+    }
 }
 
 data class FileDefinition private constructor(override val name: String, override val position: Position?) : Node(position), Named {
@@ -65,11 +69,12 @@ data class DataDefinition(
     override val type: Type,
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
+    val inz: Boolean = false,
     override val position: Position? = null
 ) :
             AbstractDataDefinition(name, type, position) {
 
-    fun isArray() = type is ArrayType
+    override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
 
     @Deprecated("The start offset should be calculated before defining the FieldDefinition")
@@ -80,14 +85,14 @@ data class DataDefinition(
                 require(start >= 0)
                 return start
             }
-            start += f.elementSize().toInt()
+            start += f.elementSize()
         }
         throw IllegalArgumentException("Unknown field $fieldDefinition")
     }
 
     @Deprecated("The end offset should be calculated before defining the FieldDefinition")
     fun endOffset(fieldDefinition: FieldDefinition): Int {
-        return (startOffset(fieldDefinition) + fieldDefinition.elementSize()).toInt()
+        return (startOffset(fieldDefinition) + fieldDefinition.elementSize())
     }
 
     fun getFieldByName(fieldName: String): FieldDefinition {
@@ -110,26 +115,26 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                     // Transform the numeric to an encoded string
                     val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, this.decimalDigits)
                     // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size.toInt())
+                    val fitted = encoded.padEnd(this.size)
                     StringValue(fitted)
                 } else {
                     // Transform the numeric to an encoded string
                     val encoded = encodeToDS(value.asDecimal().value, this.entireDigits, 0)
                     // adjust the size to fit the target field
-                    val fitted = encoded.padEnd(this.size.toInt())
+                    val fitted = encoded.padEnd(this.size)
                     StringValue(fitted)
                 }
             }
             if (this.rpgType == RpgType.INTEGER.rpgType) {
                 // Transform the integer to an encoded string
-                val encoded = encodeInteger(value.asDecimal().value, this.size.toInt())
-                val fitted = encoded.padEnd(this.size.toInt())
+                val encoded = encodeInteger(value.asDecimal().value, this.size)
+                val fitted = encoded.padEnd(this.size)
                 return StringValue(fitted)
             }
             if (this.rpgType == RpgType.UNSIGNED.rpgType) {
                 // Transform the unsigned to an encoded string
-                val encoded = encodeUnsigned(value.asDecimal().value, this.size.toInt())
-                val fitted = encoded.padEnd(this.size.toInt())
+                val encoded = encodeUnsigned(value.asDecimal().value, this.size)
+                val fitted = encoded.padEnd(this.size)
                 return StringValue(fitted)
             }
             // To date only 2 and 4 bytes are supported
@@ -142,13 +147,32 @@ fun Type.toDataStructureValue(value: Value): StringValue {
                 }
                 val encoded = encodeBinary(value.asDecimal().value, len)
                 // adjust the size to fit the target field
-                val fitted = encoded.padEnd(this.size.toInt())
+                val fitted = encoded.padEnd(this.size)
                 return StringValue(fitted)
             }
             TODO("Not implemented $this")
         }
         is StringType -> {
             return StringValue(value.asString().value)
+        }
+        is ArrayType -> {
+            val sb = StringBuilder()
+            (value as ArrayValue).elements().forEach {
+                sb.append(this.element.toDataStructureValue(it).value)
+            }
+            return StringValue(sb.toString())
+        }
+        is CharacterType -> {
+            val sb = StringBuilder()
+            (value as StringValue).value.forEach {
+                sb.append(it)
+            }
+            return StringValue(sb.toString())
+        }
+        is BooleanType -> {
+            if ((value as BooleanValue).value)
+                return StringValue("1")
+            return StringValue("0")
         }
         else -> TODO("Conversion to data struct value not implemented for $this")
     }
@@ -166,7 +190,11 @@ data class FieldDefinition(
     @property:Link
     var overriddenContainer: DataDefinition? = null,
     val initializationValue: Expression? = null,
-    override val position: Position? = null
+    val descend: Boolean = false,
+    override val position: Position? = null,
+
+    // true when the FieldDefinition contains a DIM keyword on its line
+    val declaredArrayInLineOnThisField: Int? = null
 ) :
             AbstractDataDefinition(name, type, position) {
 
@@ -178,8 +206,38 @@ data class FieldDefinition(
             "Field $name should have either an explicit end offset ($explicitEndOffset) or a calculated one ($calculatedEndOffset)"
         }
     }
+    // true when the FieldDefinition contains a DIM keyword on its line
+    // or when the field is overlaying on an a field which has the DIM keyword
+    val declaredArrayInLine: Int?
+        get() = declaredArrayInLineOnThisField ?: (overlayingOn as? FieldDefinition)?.declaredArrayInLine
 
-    val size: Long = type.size
+    val size: Int = type.size
+
+    @property:Link
+    var overlayingOn: AbstractDataDefinition? = null
+
+    // when they are arrays, how many bytes should we skip into the DS to find the next element?
+    // normally it would be the same size as an element of the DS, however if they are declared
+    // as on overlay of a field with a DIM keyword, then we should use the size of an element
+    // of such field
+    val stepSize: Int
+        get() {
+            return if (declaredArrayInLineOnThisField != null) {
+                elementSize()
+            } else {
+                (overlayingOn as? FieldDefinition)?.stepSize ?: elementSize()
+            }
+        }
+
+    override fun elementSize(): Int {
+        return if (container.type is ArrayType) {
+            super.elementSize()
+        } else if (this.declaredArrayInLine != null) {
+            super.elementSize()
+        } else {
+            size
+        }
+    }
 
     fun toDataStructureValue(value: Value) = type.toDataStructureValue(value)
 
@@ -190,7 +248,9 @@ data class FieldDefinition(
 
     @Derived
     val container
-        get() = overriddenContainer ?: this.parent as DataDefinition
+        get() = overriddenContainer
+                ?: this.parent as? DataDefinition
+                ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
 
     /**
      * The start offset is zero based, while in RPG code you could find explicit one-based offsets.
@@ -202,7 +262,15 @@ data class FieldDefinition(
      * In this case CURTIMDATE will have startOffset 0.
      */
     val startOffset: Int
-        get() = explicitStartOffset ?: calculatedStartOffset ?: container.startOffset(this)
+        get() {
+            if (explicitStartOffset != null) {
+                return explicitStartOffset
+            }
+            if (calculatedStartOffset != null) {
+                return calculatedStartOffset
+            }
+            return container.startOffset(this)
+        }
 
     /**
      * The end offset is non-inclusive if considered zero based, or inclusive if considered one based.
@@ -212,9 +280,19 @@ data class FieldDefinition(
      * 0003.00 DCURTIMDATE               1      8S 0
      *
      * In this case CURTIMDATE will have endOffset 8.
+     *
+     * In the case of an array endOffset indicates the end of the first element.
      */
     val endOffset: Int
-        get() = explicitEndOffset ?: calculatedEndOffset ?: container.endOffset(this)
+        get() {
+            if (explicitEndOffset != null) {
+                return explicitEndOffset
+            }
+            if (calculatedEndOffset != null) {
+                return calculatedEndOffset
+            }
+            return (container as DataDefinition).endOffset(this)
+        }
 
     val offsets: Pair<Int, Int>
         get() = Pair(startOffset, endOffset)
@@ -257,8 +335,8 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
 
     if (size == 2) {
 
-        buffer[0] = ((lsb shr 8) and 0x0000FFFF).toByte()
-        buffer[1] = (lsb and 0x0000FFFF).toByte()
+        buffer[0] = ((lsb shr 8) and 0x000000FF).toByte()
+        buffer[1] = (lsb and 0x000000FF).toByte()
 
         return buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
@@ -308,12 +386,13 @@ fun decodeBinary(value: String, size: Int): BigDecimal {
 
     if (size == 2) {
         var number: Long = 0x0000000
-        if (value[1].toInt() and 0x1000 != 0) {
+        if (value[1].toInt() and 0x8000 != 0) {
             number = 0xFFFF0000
         }
         number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
         return BigDecimal(number.toInt().toString())
     }
+
     if (size == 4) {
         val number = (value[0].toLong() and 0x00FF) +
                 ((value[1].toLong() and 0x00FF) shl 8) +
@@ -346,7 +425,7 @@ fun decodeInteger(value: String, size: Int): BigDecimal {
 
     if (size == 2) {
         var number: Long = 0x0000000
-        if (value[1].toInt() and 0x1000 != 0) {
+        if (value[1].toInt() and 0x8000 != 0) {
             number = 0xFFFF0000
         }
         number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
@@ -376,7 +455,47 @@ fun decodeInteger(value: String, size: Int): BigDecimal {
 }
 
 fun decodeUnsigned(value: String, size: Int): BigDecimal {
-    return decodeBinary(value, size)
+
+    if (size == 1) {
+        var number: Long = 0x0000000
+        if (value[0].toInt() and 0x0010 != 0) {
+            number = 0x00000000
+        }
+        number += (value[0].toInt() and 0x00FF)
+        return BigDecimal(number.toInt().toString())
+    }
+
+    if (size == 2) {
+        var number: Long = 0x0000000
+        if (value[1].toInt() and 0x1000 != 0) {
+            number = 0xFFFF0000
+        }
+        number += (value[0].toInt() and 0x00FF) + ((value[1].toInt() and 0x00FF) shl 8)
+        // make sure you count onlu 16 bits
+        number = number and 0x0000FFFF
+        return BigDecimal(number.toString())
+    }
+    if (size == 4) {
+        val number = (value[0].toLong() and 0x00FF) +
+                ((value[1].toLong() and 0x00FF) shl 8) +
+                ((value[2].toLong() and 0x00FF) shl 16) +
+                ((value[3].toLong() and 0x00FF) shl 24)
+
+        return BigDecimal(number.toString())
+    }
+    if (size == 8) {
+        val number = (value[0].toLong() and 0x00FF) +
+                ((value[1].toLong() and 0x00FF) shl 8) +
+                ((value[2].toLong() and 0x00FF) shl 16) +
+                ((value[3].toLong() and 0x00FF) shl 24) +
+                ((value[4].toLong() and 0x00FF) shl 32) +
+                ((value[5].toLong() and 0x00FF) shl 40) +
+                ((value[6].toLong() and 0x00FF) shl 48) +
+                ((value[7].toLong() and 0x00FF) shl 56)
+
+        return BigDecimal(number.toInt().toString())
+    }
+    TODO("decode binary for $size not implemented")
 }
 
 /**
@@ -414,8 +533,12 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
         when {
             it.isDigit() -> builder.append(it)
             else -> {
-                builder.insert(0, '-')
-                builder.append((it.toInt() - 0x0049 + 0x0030).toChar())
+                if (it.toInt() == 0) {
+                    builder.append('0')
+                } else {
+                    builder.insert(0, '-')
+                    builder.append((it.toInt() - 0x0049 + 0x0030).toChar())
+                }
             }
         }
     }
@@ -497,7 +620,7 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
         number += Character.toString((nibble or 0x30).toChar())
     }
     // adjust the scale
-    if (scale > 0) {
+    if (scale > 0 && number != "0") {
         val len = number.length
         number = number.substring(0, len - scale) + "." + number.substring(len - scale, len)
     }

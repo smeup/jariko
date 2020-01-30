@@ -4,6 +4,7 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.interpreter.KListType
+import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
@@ -45,6 +46,7 @@ abstract class Statement(
 
         return mutesAttached
     }
+    open fun simpleDescription() = "Issue executing statement ${javaClass.simpleName} at line ${startLine()}."
 }
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
@@ -108,6 +110,13 @@ data class MoveStmt(
 ) :
     Statement(position)
 
+data class MoveAStmt(
+    val target: AssignableExpression,
+    var expression: Expression,
+    override val position: Position? = null
+) :
+    Statement(position)
+
 data class MoveLStmt(
     val operationExtender: String?,
     val target: AssignableExpression,
@@ -124,6 +133,13 @@ data class ChainStmt(
     Statement(position)
 
 data class ReadEqualStmt(
+    val searchArg: Expression?, // Factor1
+    val name: String, // Factor 2
+    override val position: Position? = null
+) :
+    Statement(position)
+
+data class ReadPreviousStmt(
     val searchArg: Expression?, // Factor1
     val name: String, // Factor 2
     override val position: Position? = null
@@ -213,7 +229,14 @@ data class ElseClause(val body: List<Statement>, override val position: Position
 
 data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-data class SetOnStmt(val choices: List<DataWrapUpChoice>, override val position: Position? = null) : Statement(position)
+data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
+    enum class ValueSet {
+        ON,
+        OFF
+    }
+}
+
+data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position)
 
 // A Plist is a list of parameters
 data class PlistStmt(
@@ -253,8 +276,7 @@ data class ClearStmt(
     }
 }
 
-// TODO add real implementation
-data class CompStmt(override val position: Position? = null) : Statement(position)
+data class CompStmt(val left: Expression, val right: Expression, val hi: Int?, val lo: Int?, val eq: Int?, override val position: Position? = null) : Statement(position)
 
 data class ZAddStmt(
     val target: AssignableExpression,
@@ -377,6 +399,10 @@ data class IterStmt(override val position: Position? = null) : Statement(positio
 
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 
+data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
+
+data class GotoStmt(val tag: String, val indicator: Int?, val offFlag: Boolean, override val position: Position? = null) : Statement(position)
+
 data class ForStmt(
     var init: Expression,
     val endValue: Expression,
@@ -401,3 +427,9 @@ data class ForStmt(
         return acceptBody(body, mutes, start, end)
     }
 }
+
+/*
+ * For an array data structure, the keyed-ds-array operand is a qualified name consisting
+ * of the array to be sorted followed by the subfield to be used as a key for the sort.
+ */
+data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position)

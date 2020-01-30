@@ -12,17 +12,28 @@ fun DBField.sqlType(): String =
 
 fun typeFor(sqlType: String, columnSize: Int, decimalDigits: Int): Type =
     when (sqlType) {
-        "CHARACTER" -> StringType(columnSize.toLong())
+        "VARCHAR" -> StringType(columnSize, true)
+        "CHARACTER" -> StringType(columnSize, false)
         "DECIMAL", "INTEGER" -> NumberType(columnSize - decimalDigits, decimalDigits)
         else -> TODO("Conversion from SQL Type not yet implemented: $sqlType")
     }
 
-fun Value.toDBValue(): Any =
+fun Value.toDBValue(type: Type): Any =
     when (this) {
-        is StringValue -> this.valueWithoutPadding
+        is StringValue -> this.value
         is IntValue -> this.value
         is DecimalValue -> this.value
+        is LowValValue -> type.lowValue().primitiveValue()
+        is HiValValue -> type.hiValue().primitiveValue()
         else -> TODO("Conversion to DB Obejct not yet implemented: $this")
+    }
+
+private fun Value.primitiveValue(): Any =
+    when (this) {
+        is StringValue -> this.value
+        is IntValue -> this.value
+        is DecimalValue -> this.value
+        else -> TODO("primitiveValue not yet implemented: $this")
     }
 
 fun Type.toValue(rs: ResultSet, fieldIndex: Int): Value =

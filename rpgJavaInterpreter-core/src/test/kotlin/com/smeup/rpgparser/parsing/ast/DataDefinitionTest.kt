@@ -2,11 +2,12 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertDataDefinitionIsPresent
+import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -62,19 +63,28 @@ class DataDefinitionTest {
                 "D \$\$SVAR                      1050    DIM(200)",
                 "D  \$\$SVARCD                     50    OVERLAY(\$\$SVAR:1)                    Name",
                 "D  \$\$SVARVA                   1000    OVERLAY(\$\$SVAR:*NEXT)                Value"))
-        cu.assertDataDefinitionIsPresent("\$\$SVAR", ArrayType(DataStructureType(
+        cu.assertDataDefinitionIsPresent("@UNNAMED_DS_5", DataStructureType(
                 listOf(
-                        FieldType("\$\$SVARCD", StringType(50)),
-                        FieldType("\$\$SVARVA", StringType(1000))),
-                1050), 200),
+                        FieldType("\$\$SVAR", ArrayType(StringType(1050), 200)),
+                        FieldType("\$\$SVARCD", ArrayType(StringType(50), 200)),
+                        FieldType("\$\$SVARVA", ArrayType(StringType(1000), 200))),
+                210000),
                 fields = listOf(
+                        FieldDefinition("\$\$SVAR", ArrayType(StringType(1050), 200),
+                                explicitStartOffset = null,
+                                calculatedStartOffset = 0,
+                                calculatedEndOffset = 1050,
+                                declaredArrayInLineOnThisField = 200),
                         FieldDefinition("\$\$SVARCD", ArrayType(StringType(50), 200),
                                 explicitStartOffset = null,
                                 calculatedStartOffset = 0,
-                                calculatedEndOffset = 50),
-                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200), explicitStartOffset = null,
+                                calculatedEndOffset = 50,
+                                declaredArrayInLineOnThisField = null),
+                        FieldDefinition("\$\$SVARVA", ArrayType(StringType(1000), 200),
+                                explicitStartOffset = null,
                                 calculatedStartOffset = 50,
-                                calculatedEndOffset = 1050)
+                                calculatedEndOffset = 1050,
+                                declaredArrayInLineOnThisField = null)
                 ))
     }
 
@@ -90,14 +100,14 @@ class DataDefinitionTest {
 
     @test fun inStatementDataDefinitionInClearIsProcessed() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         assertTrue(cu.hasAnyDataDefinition("dsp"))
         assertEquals(StringType(50), cu.getAnyDataDefinition("dsp").type)
     }
 
     @test fun executeJD_useOfLike() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = InternalInterpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
@@ -106,7 +116,7 @@ class DataDefinitionTest {
 
     @test fun executeJD_useOfDim() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = InternalInterpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
@@ -161,7 +171,7 @@ class DataDefinitionTest {
     @Test
     fun deriveLengthOfFieldFromOverrideClause() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val AR01 = cu.getDataDefinition("ARDS").getFieldByName("AR01")
         val FI01 = cu.getDataDefinition("ARDS").getFieldByName("FI01")
         val FI02 = cu.getDataDefinition("ARDS").getFieldByName("FI02")
@@ -200,6 +210,9 @@ class DataDefinitionTest {
         assertEquals(15, FI07A.elementSize())
         assertEquals(1, FI08.elementSize())
         assertEquals(1, FI09.elementSize())
+
+        assertEquals(122, FI07.stepSize)
+        assertEquals(122, FI07A.stepSize)
 
         // Number of digits for FI10 = 15 (12 integers, 3 decimals)
         // For packed: Number of digits = 2n - 1
@@ -248,14 +261,65 @@ class DataDefinitionTest {
 
         // The actual size is 12200
         // assertEquals(12400, AR01.elementSize())
-        assertEquals(12200, AR01.elementSize())
+        assertEquals(122, AR01.elementSize())
+
+        assertEquals(15, FI01.endOffset)
+        assertEquals(25, FI02.endOffset)
+        assertEquals(122, FI20.endOffset)
     }
 
     @Test
-    fun initializatonValue() {
+    fun initializationValue() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
-        cu.resolve(DummyDBInterface)
-        val LOG1 = cu.getDataDefinition("LOG1")
+        cu.resolveAndValidate(DummyDBInterface)
+        val unnamedDs = cu.getDataDefinition("@UNNAMED_DS_48")
+        assertEquals(DataStructureType(listOf(
+                FieldType("LOG1", StringType(14)),
+                FieldType("LOG", ArrayType(StringType(2), 7))), 14), unnamedDs.type)
+
+        val LOG1 = unnamedDs.getFieldByName("LOG1")
+        assertEquals(StringType(14), LOG1.type)
         assertEquals((LOG1.initializationValue as StringLiteral).value, "0F0L1L2L3L4L5L")
+
+        val LOG = unnamedDs.getFieldByName("LOG")
+        assertEquals(ArrayType(StringType(2), 7), LOG.type)
+        assertEquals(LOG.initializationValue, null)
+        assertEquals(2, LOG.elementSize())
+        assertEquals(LOG.startOffset, 0)
+        assertEquals(LOG.explicitEndOffset, null)
+        assertEquals(LOG.calculatedEndOffset, 2)
+        assertEquals(LOG.endOffset, 2)
+        assertEquals(LOG.size, 14)
+    }
+
+    @Test
+    fun initializationValueOnOverlay() {
+        val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
+        cu.resolveAndValidate(DummyDBInterface)
+
+        val AR01 = cu.getDataOrFieldDefinition("AR01") as FieldDefinition
+        assertEquals(122, AR01.elementSize())
+        assertEquals(ArrayType(StringType(122), 100), AR01.type)
+
+        val LOG = cu.getDataOrFieldDefinition("LOG") as FieldDefinition
+        assertEquals(0, LOG.startOffset)
+        assertEquals(2, LOG.endOffset)
+
+        val result = execute(cu, emptyMap())
+        val unnamedDsValue = result["@UNNAMED_DS_48"]
+        assertEquals(DataStructValue("0F0L1L2L3L4L5L"), unnamedDsValue)
+        val log1Value = result["LOG1"]
+        assertEquals(StringValue("0F0L1L2L3L4L5L"), log1Value)
+        val logValue = result["LOG"] as ProjectedArrayValue
+        assertEquals(0, logValue.startOffset)
+        assertEquals(2, logValue.step)
+        assertEquals(7, logValue.arrayLength)
+        assertEquals(ConcreteArrayValue(mutableListOf(StringValue("0F"),
+                StringValue("0L"),
+                StringValue("1L"),
+                StringValue("2L"),
+                StringValue("3L"),
+                StringValue("4L"),
+                StringValue("5L")), StringType(2)) as ArrayValue, logValue)
     }
 }

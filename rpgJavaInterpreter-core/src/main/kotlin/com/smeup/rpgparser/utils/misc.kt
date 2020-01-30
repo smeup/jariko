@@ -60,6 +60,12 @@ fun String.divideAtIndex(i: Int): Pair<String, String> {
 
 fun String.asLong(): Long = this.trim().toLong()
 fun String.asInt(): Int = this.trim().toInt()
+fun String?.asIntOrNull(): Int? =
+    try {
+        this?.trim()?.toInt()
+    } catch (e: Exception) {
+        null
+    }
 
 fun String?.asDouble(): Double {
     if (this == null) {
@@ -74,7 +80,7 @@ fun String?.asDouble(): Double {
 
 fun String.asBigDecimal(): BigDecimal? =
     try {
-        BigDecimal(this)
+        BigDecimal(this.trim())
     } catch (e: Exception) {
         null
     }
@@ -85,8 +91,13 @@ fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this)
 fun Any?.asNonNullString(): String = this?.toString() ?: ""
 
 fun String.moveEndingString(s: String): String =
-        if (this.endsWith(s)) {
+        if (this.trimEnd().endsWith(s)) {
             s + this.substringBefore(s)
         } else {
             this
         }
+
+fun String.repeatWithMaxSize(l: Int): String {
+    val repetitions = (l / this.length) + 1
+    return this.repeat(repetitions).take(l)
+}

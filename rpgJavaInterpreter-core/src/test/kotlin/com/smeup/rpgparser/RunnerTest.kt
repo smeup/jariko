@@ -96,6 +96,28 @@ class RunnerTest {
     }
 
     @Test
+    fun commandLineProgramsCanRunMutes() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     D Msg             S             12
+|    MU* VAL1(Msg) VAL2('This should fail') COMP(EQ)
+|    MU* VAL1(Msg) VAL2('') COMP(EQ)
+|     C     'Hello World' DSPLY
+|     C                   SETON                                          LR
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+
+        program.singleCall(listOf())
+        assertEquals(systemInterface.consoleOutput, listOf("Hello World"))
+        val executedAnnotations = systemInterface.getExecutedAnnotation()
+        assertEquals(2, executedAnnotations.size)
+        assertEquals(1, executedAnnotations.values.count { it.failed() })
+        assertEquals(1, executedAnnotations.values.count { it.succeeded() })
+    }
+
+    @Test
     fun commandLineProgramCanBeInstrumentedWithAssignmentsLogHandler() {
         val systemInterface = JavaSystemInterface()
         val source = """
@@ -105,6 +127,44 @@ class RunnerTest {
 |     C                   SETON                                          LR
         """.trimMargin()
         val program = getProgram(source, systemInterface)
+        val logOutputStream = StringOutputStream()
+        val printStream = PrintStream(logOutputStream)
+        val assignmentsLogHandler = AssignmentsLogHandler(printStream)
+        val evalLogHandler = EvalLogHandler(printStream)
+
+        systemInterface.addExtraLogHandlers(listOf(evalLogHandler, assignmentsLogHandler))
+
+        program.singleCall(listOf())
+
+        assertTrue(logOutputStream.written)
+
+        println(logOutputStream)
+    }
+
+    @Test
+    fun executeHELLO() {
+        // Classic Hello World
+        val systemInterface = JavaSystemInterface()
+        val program = getProgram("HELLO", systemInterface)
+        val logOutputStream = StringOutputStream()
+        val printStream = PrintStream(logOutputStream)
+        val assignmentsLogHandler = AssignmentsLogHandler(printStream)
+        val evalLogHandler = EvalLogHandler(printStream)
+
+        systemInterface.addExtraLogHandlers(listOf(evalLogHandler, assignmentsLogHandler))
+
+        program.singleCall(listOf())
+
+        assertTrue(logOutputStream.written)
+
+        println(logOutputStream)
+    }
+
+    @Test
+    fun executeHELLO2() {
+        // Hello World multilanguage
+        val systemInterface = JavaSystemInterface()
+        val program = getProgram("HELLO2", systemInterface)
         val logOutputStream = StringOutputStream()
         val printStream = PrintStream(logOutputStream)
         val assignmentsLogHandler = AssignmentsLogHandler(printStream)

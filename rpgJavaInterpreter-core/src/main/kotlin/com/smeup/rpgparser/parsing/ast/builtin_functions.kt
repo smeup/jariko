@@ -82,7 +82,7 @@ data class SubstExpr(
         val len = if (length != null) ": ${length.render()}" else ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
     }
-    override fun size(): Long {
+    override fun size(): Int {
         TODO("size")
     }
 }
@@ -154,6 +154,13 @@ data class FoundExpr(
 
 // %EOF
 data class EofExpr(
+    var name: String? = null,
+    override val position: Position? = null
+) :
+        Expression(position)
+
+// %EQUAL
+data class EqualExpr(
     var name: String? = null,
     override val position: Position? = null
 ) :

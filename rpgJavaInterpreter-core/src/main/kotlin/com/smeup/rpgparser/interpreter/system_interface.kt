@@ -4,7 +4,7 @@ import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
-import com.smeup.rpgparser.rgpinterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 import java.io.PrintStream
 import java.util.*
@@ -44,19 +44,23 @@ interface SystemInterface {
     fun display(value: String)
     fun findProgram(name: String): Program?
     fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
+
+    val db: DBInterface
+
     fun loggingConfiguration(): LoggingConfiguration?
     fun addExtraLogHandlers(logHandlers: List<InterpreterLogHandler>): SystemInterface {
         extraLogHandlers.addAll(logHandlers)
         return this
     }
-
     val extraLogHandlers: MutableList<InterpreterLogHandler>
-    val executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted>
-    val db: DBInterface
-
     fun getAllLogHandlers() = (configureLog(this.loggingConfiguration() ?: defaultLoggingConfiguration()) + this.extraLogHandlers).toMutableList()
+
+    val executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted>
     fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted>
     fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted)
+    fun registerProgramExecutionStart(program: Program, params: Map<String, Value>) {
+        // do nothing by default
+    }
 }
 
 interface DBInterface {
@@ -88,7 +92,11 @@ interface DBFile {
     fun readEqual(): Record
     fun readEqual(key: Value): Record
     fun readEqual(keys: List<RecordField>): Record
+    fun readPrevious(): Record
+    fun readPrevious(key: Value): Record
+    fun readPrevious(keys: List<RecordField>): Record
     fun eof(): Boolean
+    fun equal(): Boolean
     fun read(): Record
 }
 

@@ -59,6 +59,9 @@
      D KEVORD                        15    OVERLAY(KEV:1)
       *
      D N1              S              7  0
+     D DSP             S             50A
+     D I               S              7  0
+
       *--------------------------------------------
     MU* VAL1(N1) VAL2(122) COMP(EQ)
      C                   EVAL      N1=%LEN(AR01(01))
@@ -67,9 +70,17 @@
       * Utilizzo *HIVAL e *LOVAL insieme alle annotazioni per testare il range di valori validi
     MU* VAL1(FI07(001)) VAL2(999999999999,999) COMP(EQ)
     MU* VAL1(FI07A(001)) VAL2('999999999999999') COMP(EQ)
+    MU* VAL1(FI07(80)) VAL2(999999999999,999) COMP(EQ)
+    MU* VAL1(FI07A(80)) VAL2('999999999999999') COMP(EQ)
+    MU* VAL1(FI07(99)) VAL2(999999999999,999) COMP(EQ)
+    MU* VAL1(FI07A(99)) VAL2('999999999999999') COMP(EQ)
     MU* VAL1(FI07(100)) VAL2(999999999999,999) COMP(EQ)
     MU* VAL1(FI07A(100)) VAL2('999999999999999') COMP(EQ)
      C                   EVAL      FI07=*HIVAL
+     C                   FOR I = 1 TO 100
+     C                   EVAL      DSP = %CHAR(I) + '-' + %CHAR(FI07(I))
+     C                   DSPLY                     DSP
+     C                   ENDFOR
       *
     MU* VAL1(FI07(001)) VAL2(-999999999999,999) COMP(EQ)
       * In rappresentazione stringa di uno zoned negativo l'ultima cifra diventa una lettera :

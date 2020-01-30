@@ -72,7 +72,7 @@ fun injectMuteAnnotationToStatements(
     val mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext> = filtered.toSortedMap()
     val mutesResolved: MutableList<MuteAnnotationResolved> = mutableListOf()
 
-    // Vist each statment
+    // Visit each statment
     statements.forEach {
 
         val resolved = it.accept(mutesToProcess, start, end)
@@ -95,7 +95,7 @@ fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>, map
 
     val mutesResolved: MutableList<MuteAnnotationResolved> = mutableListOf()
 
-    if (definitions.size > 0) {
+    if (definitions.isNotEmpty()) {
         val start: Int = definitions.first().position!!.start.line
         val end: Int = definitions.last().position!!.end.line + 1
 

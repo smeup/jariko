@@ -5,11 +5,10 @@ import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.LR
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice.RT
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.collectByType
-import org.junit.Ignore
 import kotlin.test.assertEquals
 import org.junit.Test as test
 
@@ -23,6 +22,34 @@ class StatementsTest {
     private fun multiLineStatement(code: String): Statement {
         val stmtContext = assertStatementCanBeParsed(code)
         return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
+    }
+
+    @test fun gotoParsingWithIndicator() {
+        val stmt: GotoStmt = multiLineStatement("""
+     C  N50              GOTO      START            
+                    """) as GotoStmt
+        assertEquals("START", stmt.tag)
+        assertEquals(50, stmt.indicator)
+        assertEquals(true, stmt.offFlag)
+    }
+
+    @test fun gotoParsingWithoutIndicator() {
+        val stmt: GotoStmt = multiLineStatement("""
+     C                   GOTO      START            
+                    """) as GotoStmt
+        assertEquals("START", stmt.tag)
+        assertEquals(null, stmt.indicator)
+    }
+
+    @test fun compParsing() {
+        val stmt: CompStmt = multiLineStatement("""
+     C     A2            COMP      '01'                               50  51                    """)
+            as CompStmt
+        assertEquals("A2", (stmt.left as DataRefExpr).variable.name)
+        assertEquals("01", (stmt.right as StringLiteral).value)
+        assertEquals(50, stmt.hi)
+        assertEquals(null, stmt.lo)
+        assertEquals(51, stmt.eq)
     }
 
     @test fun kListParsing() {
@@ -131,13 +158,13 @@ class StatementsTest {
     // TODO select with other
 
     @test fun setOnParsing() {
-        assertEquals(SetOnStmt(listOf(LR)), statement("SETON                                        LR"))
-        assertEquals(SetOnStmt(listOf(RT)), statement("SETON                                        RT"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(LR))), statement("SETON                                        LR"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(RT))), statement("SETON                                        RT"))
     }
 
     @test fun setOnParsingSecondPlace() {
-        assertEquals(SetOnStmt(listOf(LR)), statement("SETON                                          LR"))
-        assertEquals(SetOnStmt(listOf(RT)), statement("SETON                                          RT"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(LR))), statement("SETON                                          LR"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(RT))), statement("SETON                                          RT"))
     }
 
     @test fun clearParsing() {
@@ -231,7 +258,6 @@ class StatementsTest {
         assertEquals(true, evalStmt.flags.resultDecimalPositionRule)
     }
 
-    @Ignore // working on qualified access
     @test fun parseEvalWithQualifiedDsAccess() {
         assertStatementCanBeParsed("EVAL      DS1.AR2=*ON", addPrefix = true)
     }
@@ -244,9 +270,18 @@ class StatementsTest {
         assertStatementCanBeParsed("EVAL      *IN=*ON", addPrefix = true)
     }
 
+    @test fun parseArrayAccessInFactor2() {
+        assertStatementCanBeParsed("MOVE      TXT(1)        X", addPrefix = true)
+    }
+
+    @test
+    fun parseArrayAccessInResult() {
+        assertStatementCanBeParsed("MOVE      X             TXT(1)", addPrefix = true)
+    }
+
     @test fun plistDeclareVariable() {
         val cu = assertASTCanBeProduced("ECHO")
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val plists = cu.collectByType(PlistStmt::class.java).distinct()
         assertEquals(1, plists.size)
         assertEquals(1, plists.first().dataDefinition().size)
@@ -254,7 +289,7 @@ class StatementsTest {
 
     @test fun plistDoesNotDeclareVariable() {
         val cu = assertASTCanBeProduced("ECHO2")
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val plists = cu.collectByType(PlistStmt::class.java).distinct()
         assertEquals(1, plists.size)
         assertEquals(0, plists.first().dataDefinition().size)

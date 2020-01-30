@@ -2,12 +2,14 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.logging.EXPRESSION_LOGGER
 import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
-import com.smeup.rpgparser.parsing.parsetreetoast.resolve
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
@@ -20,7 +22,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_initialDeclarations_dec() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
         assertIsIntValue(interpreter["NBR"], 3)
     }
@@ -28,7 +30,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_initialDeclarations_inz() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
 
         assertTrue(cu.getDataDefinition("ppdat").initializationValue == null)
         assertTrue(cu.getDataDefinition("NBR").initializationValue == null)
@@ -46,7 +48,7 @@ class InterpreterTest {
     @Test
     fun executeCALCFIB_otherClauseOfSelect() {
         val cu = assertASTCanBeProduced("CALCFIB_2", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
@@ -58,11 +60,11 @@ class InterpreterTest {
 
     private fun assertFibonacci(input: String, output: String) {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
-        assertEquals(listOf("FIBONACCI OF: $input IS: $output"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: ${input.padEnd(8)} IS: $output"), si.displayed)
         assertEquals(logHandler.getExecutedSubroutineNames()[0], "FIB")
     }
 
@@ -99,7 +101,7 @@ class InterpreterTest {
     @Test
     fun executeHELLO() {
         val cu = assertASTCanBeProduced("HELLO", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf(), si, listOf(logHandler))
@@ -110,24 +112,24 @@ class InterpreterTest {
     @Test
     fun executeCallToFibonacciWrittenInRpg() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
         execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
-        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed)
         assertEquals(1, logHandler.getExecutedSubroutines().size)
     }
 
     @Test
     fun executeCallToFibonacciWrittenOnTheJvm() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
-        si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8)))) {
+        si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8, false)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
-                val n = params["ppdat"]!!.asString().valueWithoutPadding.asInt()
+                val n = params["ppdat"]!!.asString().value.asInt()
                 var t1 = 0
                 var t2 = 1
 
@@ -148,13 +150,13 @@ class InterpreterTest {
     @Test
     fun executeFibonacciWrittenInRpgAsProgram() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolve(DummyDBInterface)
+        cu.resolveAndValidate(DummyDBInterface)
         val si = CollectorSystemInterface()
         val rpgProgram = RpgProgram(cu, DummyDBInterface)
         rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
         assertEquals(1, rpgProgram.params().size)
-        assertEquals(ProgramParam("ppdat", StringType(8)), rpgProgram.params()[0])
-        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
+        assertEquals(ProgramParam("ppdat", StringType(8, false)), rpgProgram.params()[0])
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed)
     }
 
     @Test
@@ -205,6 +207,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeVARST1() {
+        assertEquals(listOf("A", "A", "A", "AA", "A"), outputOf("VARST1"))
+    }
+
+    @Test
     fun executeCLEARDEC() {
         assertStartsWith(outputOf("CLEARDEC"), "Counter:")
     }
@@ -221,7 +228,7 @@ class InterpreterTest {
 
     @Test
     fun executeCALCFIBCA5() {
-        assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), outputOf("CALCFIBCA5"))
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), outputOf("CALCFIBCA5"))
     }
 
     @Test
@@ -229,9 +236,55 @@ class InterpreterTest {
         assertEquals(listOf("1"), outputOf("CAL01"))
     }
 
+    @Test
+    fun executeCAL03_recursive() {
+        val parms = mapOf("P1" to StringValue(" "))
+        assertEquals(listOf("", "HELLO"), outputOf("CAL03", parms))
+    }
+
+    @Test
+    fun executeZERO() {
+        assertEquals(listOf("0", "69", "0"), outputOf("ZERO"))
+    }
+
     @Test @Ignore
     fun executeMOVEL01() {
         assertEquals(listOf("1111.1"), outputOf("MOVEL01"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEA01() {
+        assertEquals(listOf("CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEA02() {
+        assertEquals(listOf("1234", "5678", "90CD"), outputOf("MOVEA02"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEA03() {
+        assertEquals(listOf("ABCD", "1234", "5678"), outputOf("MOVEA03"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEA04() {
+        assertEquals(listOf("ABCD", "1234", "56CD"), outputOf("MOVEA04"))
+    }
+
+    @Test @Ignore
+    fun executeARRAY10() {
+        assertEquals(listOf("AB  CD  EF"), outputOf("ARRAY10"))
+    }
+
+    @Test
+    fun executeARRAY11() {
+        assertEquals(listOf("ABCDEF", "ABCDEF"), outputOf("ARRAY11"))
+    }
+
+    @Test @Ignore
+    fun executeSCANARRAY() {
+        assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }
 
     @Test
@@ -287,12 +340,12 @@ class InterpreterTest {
 
     @Test
     fun executeASSIGN() {
-        assertEquals(outputOf("ASSIGN"), listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"))
+        assertEquals(listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"), outputOf("ASSIGN"))
     }
 
     @Test
     fun executePOWER() {
-        assertEquals(outputOf("POWER"), listOf("i is now 8"))
+        assertEquals(listOf("i is now 8"), outputOf("POWER"))
     }
 
     @Test
@@ -350,7 +403,6 @@ class InterpreterTest {
     }
 
     @Test
-    @Ignore // we are working on DECEDIT
     fun executeBIFEDITC_J() {
         assertEquals(listOf("x   123,456   123,456-  1,234.56X",
                             "x  1,234.56-       .00X",
@@ -497,6 +549,42 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeSTARALL_ZADD() {
+        assertEquals(listOf("51515"), outputOf("STARALL_ZADD"))
+    }
+
+    @Test
+    fun executeSTARALL_MOVE() {
+        assertEquals(listOf("WWWWWWWWWW"), outputOf("STARALL_MOVE"))
+    }
+
+    @Test
+    fun executeSTARALL_EVAL() {
+        assertEquals(listOf("11111"), outputOf("STARALL_EVAL"))
+    }
+
+    @Test
+    fun EVALwithTypeError() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     D n               S              1  0 inz(00)
+|     C                   Eval      n = 'Hello World!'
+|     C                   SETON                                          LR
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+        assertFailsWith(IllegalArgumentException::class) {
+            program.singleCall(listOf())
+        }
+    }
+
+    @Test
+    fun executeMOVELOVAL() {
+        assertEquals(listOf("99-"), outputOf("MOVELOVAL"))
+    }
+
+    @Test
     fun executeCHECK() {
         assertEquals(listOf("Wrong char at 6", "Wrong char at 7", "No wrong chars 0"), outputOf("CHECK"))
     }
@@ -506,14 +594,12 @@ class InterpreterTest {
         assertEquals(listOf("A<=B", "OK"), outputOf("LOGICAL"))
     }
 
-    // TODO implement comparison between types: see InternalInterpreter::areEquals
-    @Test @Ignore
+    @Test
     fun executeBOOLSTRING_conversion() {
         assertEquals(listOf("B<>1", "B=0", "0"), outputOf("BOOLSTRING"))
     }
 
-    // TODO implement DataStructureType coercion
-    @Test @Ignore
+    @Test
     fun executeDSNUMERIC() {
         assertEquals(listOf("Result is: 3"), outputOf("DSNUMERIC"))
     }
@@ -571,6 +657,22 @@ class InterpreterTest {
             "CHKDIG" to BooleanValue(false)
             )
         assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
+    }
+
+    @Test
+    fun executeReturn01() {
+        assertEquals(listOf("Starting"), outputOf("RETURN01"))
+    }
+
+    @Test
+    fun executeGoto01() {
+        assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO01"))
+    }
+
+    @Test @Ignore
+    // TODO This test fails because we cannot handle indicators at the moment
+    fun executeGoto02() {
+        assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO02"))
     }
 
     @Test
@@ -677,6 +779,11 @@ class InterpreterTest {
         assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
     }
 
+    @Test
+    fun executeSUMDIVMULT() {
+        assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
+    }
+
     @Test @Ignore
     fun executeCLEARDS() {
         assertEquals(listOf("0000"), outputOf("CLEARDS"))
@@ -725,9 +832,9 @@ class InterpreterTest {
 
         val cu = assertASTCanBeProduced("db/CHAIN2KEYS")
 
-        val f1 = DBField("KY1TST", StringType(5))
+        val f1 = DBField("KY1TST", StringType(5, false))
         val f2 = DBField("KY2TST", NumberType(2, 0))
-        val f3 = DBField("DESTST", StringType(40))
+        val f3 = DBField("DESTST", StringType(40, false))
 
         val mockDBInterface: DBInterface = object : DBInterface {
             override fun open(name: String): DBFile? = object : MockDBFile() {
@@ -739,7 +846,7 @@ class InterpreterTest {
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(f1, f2, f3))
         }
 
-        cu.resolve(mockDBInterface)
+        cu.resolveAndValidate(mockDBInterface)
 
         val si = CollectorSystemInterface()
         si.databaseInterface = mockDBInterface
@@ -752,8 +859,8 @@ class InterpreterTest {
     fun executeCHAINREADE() {
         val cu = assertASTCanBeProduced("db/CHAINREADE")
 
-        val first = DBField("FIRSTNME", StringType(40))
-        val last = DBField("LASTNAME", StringType(40))
+        val first = DBField("FIRSTNME", StringType(40, false))
+        val last = DBField("LASTNAME", StringType(40, false))
         val mockDBInterface: DBInterface = object : DBInterface {
             var nrOfCallToEoF = 0
             override fun metadataOf(name: String): FileMetadata? = FileMetadata(name, name, listOf(first, last))
@@ -769,7 +876,7 @@ class InterpreterTest {
             }
         }
 
-        cu.resolve(mockDBInterface)
+        cu.resolveAndValidate(mockDBInterface)
         val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
         si.databaseInterface = mockDBInterface
 

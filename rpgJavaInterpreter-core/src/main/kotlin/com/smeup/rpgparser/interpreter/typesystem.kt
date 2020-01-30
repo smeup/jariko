@@ -7,6 +7,7 @@ import java.lang.IllegalStateException
 import kotlin.math.ceil
 import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
+import kotlin.math.max
 
 // Supported data types:
 // * Character Format
@@ -23,7 +24,7 @@ sealed class Type {
     open fun numberOfElements(): Int {
         return 1
     }
-    open fun elementSize(): Long {
+    open fun elementSize(): Int {
         return size
     }
 
@@ -31,35 +32,67 @@ sealed class Type {
         return value.assignableTo(this)
     }
 
-    abstract val size: Long
+    open fun canBeAssigned(type: Type): Boolean {
+        return this == type
+    }
+
+    abstract val size: Int
 
     fun toArray(nElements: Int) = ArrayType(this, nElements)
+    fun isArray() = this is ArrayType
+    open fun asArray(): ArrayType {
+        throw IllegalStateException("Not an ArrayType")
+    }
+    open fun hasVariableSize() = false
+}
+
+object FigurativeType : Type() {
+    override val size: Int
+        get() = 0
+
+    override fun canBeAssigned(value: Value): Boolean = true
 }
 
 object KListType : Type() {
-    override val size: Long
+    override val size: Int
         get() = 0
 
     override fun canBeAssigned(value: Value): Boolean = false
 }
 
 data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
-    override val size: Long
-        get() = elementSize.toLong()
+    override val size: Int
+        get() = elementSize
 }
 
-data class StringType(val length: Long) : Type() {
-    override val size: Long
+data class StringType(val length: Int, val varying: Boolean = false) : Type() {
+    override val size: Int
         get() = length
 }
 
 object BooleanType : Type() {
-    override val size: Long
+    override val size: Int
         get() = 1
+
+    override fun toString() = this.javaClass.simpleName
+}
+
+object HiValType : Type() {
+    override val size: Int
+        get() = throw IllegalStateException("Has variable size")
+
+    override fun hasVariableSize() = true
+}
+
+object LowValType : Type() {
+    override val size: Int
+        get() = throw IllegalStateException("Has variable size")
+
+    override fun hasVariableSize() = true
 }
 
 object TimeStampType : Type() {
-    override val size: Long
+    override val size: Int
         get() = 26
 }
 
@@ -68,8 +101,8 @@ object TimeStampType : Type() {
  * and very similar to a string.
  */
 data class CharacterType(val nChars: Int) : Type() {
-    override val size: Long
-        get() = nChars.toLong()
+    override val size: Int
+        get() = nChars
 }
 
 infix fun Int.pow(exponent: Int): Long {
@@ -96,7 +129,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         }
     }
 
-    override val size: Long
+    override val size: Int
         get() {
             return when (rpgType) {
                 RpgType.PACKED.rpgType -> ceil((numberOfDigits + 1).toDouble() / 2.toFloat()).toInt()
@@ -117,7 +150,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
                     }
                 }
                 else -> numberOfDigits
-            }.toLong()
+            }
         }
 
     val integer: Boolean
@@ -126,18 +159,30 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
         get() = !integer
     val numberOfDigits: Int
         get() = entireDigits + decimalDigits
+
+    override fun canBeAssigned(valueType: Type): Boolean {
+        if (valueType is NumberType) {
+            return valueType.entireDigits <= this.entireDigits && valueType.decimalDigits <= this.decimalDigits
+        } else {
+            return false
+        }
+    }
 }
 
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
-    override val size: Long
+    override val size: Int
         get() = element.size * nElements
 
     override fun numberOfElements(): Int {
         return nElements
     }
 
-    override fun elementSize(): Long {
+    override fun elementSize(): Int {
         return element.size
+    }
+
+    override fun asArray(): ArrayType {
+        return this
     }
 
     fun compileTimeArray(): Boolean = compileTimeRecordsPerLine != null
@@ -151,13 +196,48 @@ fun Expression.type(): Type {
             this.variable.referred!!.type
         }
         is StringLiteral -> {
-            StringType(this.value.length.toLong())
+            StringType(this.value.length, true) // TODO verify if varying has to be true or false here
         }
         is IntLiteral -> {
             NumberType(BigDecimal.valueOf(this.value).precision(), decimalDigits = 0)
         }
         is RealLiteral -> {
             NumberType(this.value.precision() - this.value.scale(), this.value.scale())
+        }
+        is ArrayAccessExpr -> {
+            val type = this.array.type().asArray()
+            return type.element
+        }
+        is PredefinedIndicatorExpr -> {
+            return BooleanType
+        }
+        is PredefinedGlobalIndicatorExpr -> {
+            return ArrayType(BooleanType, 99)
+        }
+        is HiValExpr -> {
+            return HiValType
+        }
+        is LowValExpr -> {
+            return LowValType
+        }
+        is SubstExpr -> {
+            return this.string.type()
+        }
+        is QualifiedAccessExpr -> {
+            return this.field.referred!!.type
+        }
+        is OnRefExpr, is OffRefExpr -> return BooleanType
+        is FigurativeConstantRef -> {
+            FigurativeType
+        }
+        is PlusExpr -> {
+            val leftType = this.left.type()
+            val rightType = this.right.type()
+            if (leftType is NumberType && rightType is NumberType) {
+                return NumberType(max(leftType.entireDigits, rightType.entireDigits), max(leftType.decimalDigits, rightType.decimalDigits))
+            } else {
+                TODO("We do not know the type of a sum of types $leftType and $rightType")
+            }
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }

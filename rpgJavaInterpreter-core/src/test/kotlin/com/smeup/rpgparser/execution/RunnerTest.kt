@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.execution
 
-import com.smeup.rpgparser.rgpinterop.RpgSystem
+import com.smeup.rpgparser.rpginterop.RpgSystem
 
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils

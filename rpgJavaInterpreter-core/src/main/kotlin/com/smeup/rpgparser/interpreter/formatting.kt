@@ -26,27 +26,27 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         return when (decedit) {
             "," -> {
                 val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
-                s.padStart(type.size.toInt() + nrOfPunctuationsIn(type), padChar)
+                s.padStart(type.size + nrOfPunctuationsIn(type), padChar)
             }
             "0," -> {
                 if (this.value.abs() < BigDecimal.ONE) {
                     val s = "0" + DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
-                    s.padStart(type.size.toInt() + nrOfPunctuationsIn(type), padChar)
+                    s.padStart(type.size + nrOfPunctuationsIn(type), padChar)
                 } else {
                     val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
-                    s.padStart(type.size.toInt() + nrOfPunctuationsIn(type), padChar)
+                    s.padStart(type.size + nrOfPunctuationsIn(type), padChar)
                 }
             }
             else -> {
                 val s = DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
-                s.padStart(type.size.toInt() + nrOfPunctuationsIn(type), padChar)
+                s.padStart(type.size + nrOfPunctuationsIn(type), padChar)
             }
         }
     }
 
     fun f2(decedit: String): String {
         if (this.value.isZero()) {
-            return "".padStart(type.size.toInt() + nrOfPunctuationsIn(type as NumberType))
+            return "".padStart(type.size + nrOfPunctuationsIn(type as NumberType))
         } else {
             return f1(decedit)
         }
@@ -57,27 +57,27 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         return when (decedit) {
             "," -> {
                 val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
-                s.padStart(type.size.toInt() + points(type), padChar)
+                s.padStart(type.size + points(type), padChar)
             }
             "0," -> {
                 if (this.value.abs() < BigDecimal.ONE) {
                     val s = "0" + DecimalFormat("#,###" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
-                    s.padStart(type.size.toInt() + points(type), padChar)
+                    s.padStart(type.size + points(type), padChar)
                 } else {
                     val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
-                    s.padStart(type.size.toInt() + points(type), padChar)
+                    s.padStart(type.size + points(type), padChar)
                 }
             }
             else -> {
                 val s = DecimalFormat("#" + decimalsFormatString(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
-                s.padStart(type.size.toInt() + points(type), padChar)
+                s.padStart(type.size + points(type), padChar)
             }
         }
     }
 
     fun f4(decedit: String): String {
         if (this.value.isZero()) {
-            return "".padStart(type.size.toInt() + points(type as NumberType))
+            return "".padStart(type.size + points(type as NumberType))
         } else
             return f3(decedit)
     }
@@ -130,10 +130,10 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         var stringN = this.value.abs().unscaledValue().toString().trim()
         return if (type.elementSize() <= 6) {
             stringN = stringN.padStart(6, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size.toInt() + 2)
+            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size + 2)
         } else {
             stringN = stringN.padStart(8, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size.toInt() + 2)
+            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size + 2)
         }
     }
 
@@ -145,9 +145,9 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         }
     }
 
-    fun fX(decedit: String) = handleInitialZero(decedit).padStart(type.size.toInt(), '0')
+    fun fX(decedit: String) = handleInitialZero(decedit).padStart(type.size, '0')
 
-    fun fZ(decedit: String) = handleInitialZero(decedit).padStart(type.size.toInt())
+    fun fZ(decedit: String) = handleInitialZero(decedit).padStart(type.size)
 
     return when (format) {
         "1" -> StringValue(f1(decedit))

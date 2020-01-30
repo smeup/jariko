@@ -5,12 +5,15 @@ import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.utils.Comparison.*
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.*
+import com.strumenta.kolasu.model.ancestor
 import java.lang.IllegalArgumentException
 import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
+import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeoutException
@@ -20,6 +23,13 @@ import kotlin.system.measureTimeMillis
 
 class LeaveException : Exception()
 class IterException : Exception()
+
+object InterpreterConfiguration {
+    /**
+     * Enable runtime checks during assignments
+     */
+    var enableRuntimeChecksOnAssignement = false
+}
 
 interface InterpretationContext {
     val currentProgramName: String
@@ -31,7 +41,6 @@ interface InterpretationContext {
  * Expose interpreter core method could be useful in statements logic implementation
  **/
 interface InterpreterCoreHelper {
-
     fun log(logEntry: LogEntry)
     fun assign(target: AssignableExpression, value: Value): Value
     fun interpret(expression: Expression): Value
@@ -68,11 +77,15 @@ class DBFileMap(private val dbInterface: DBInterface) {
     operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
 }
 
+val ALL_PREDEFINED_INDEXES = 1..99
+
 class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<Int, Value>()
     // TODO default value DECEDIT can be changed
     var decedit: String = "."
+    // TODO default value CHARSET can be changed
+    val charset = Charset.forName("Cp037")
 
     var interpretationContext: InterpretationContext = DummyInterpretationContext
     private val klists = HashMap<String, List<String>>()
@@ -111,21 +124,38 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             // Field are stored within the Data Structure definition
             is FieldDefinition -> {
                 val ds = data.parent as DataDefinition
-                when (val containerValue = get(ds.name)) {
-                    is ArrayValue -> {
-                        val valuesToAssign = value as ArrayValue
-                        require(containerValue.arrayLength() == valuesToAssign.arrayLength())
-                        // The container value is an array of datastructurevalues
-                        // we assign to each data structure the corresponding field value
-                        for (i in 1..containerValue.arrayLength()) {
-                            val dataStructValue = containerValue.getElement(i) as DataStructValue
-                            dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                if (data.declaredArrayInLine != null) {
+                    val dataStructValue = get(ds.name) as DataStructValue
+                    var startOffset = data.startOffset
+                    var size = data.endOffset - data.startOffset
+
+                    // for (i in 1..data.declaredArrayInLine!!) {
+                    // If the size of the arrays are different
+                    val maxElements = Math.min(value.asArray().arrayLength(), data.declaredArrayInLine!!)
+                    for (i in 1..maxElements) {
+                        // Added coerce
+                        val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
+                        dataStructValue.setSubstring(startOffset, startOffset + size,
+                                data.type.asArray().element.toDataStructureValue(valueToAssign))
+                        startOffset += data.stepSize.toInt()
+                    }
+                } else {
+                    when (val containerValue = get(ds.name)) {
+                        is ArrayValue -> {
+                            val valuesToAssign = value as ArrayValue
+                            require(containerValue.arrayLength() == valuesToAssign.arrayLength())
+                            // The container value is an array of datastructurevalues
+                            // we assign to each data structure the corresponding field value
+                            for (i in 1..containerValue.arrayLength()) {
+                                val dataStructValue = containerValue.getElement(i) as DataStructValue
+                                dataStructValue.setSingleField(data, valuesToAssign.getElement(i))
+                            }
                         }
+                        is DataStructValue -> {
+                            containerValue.set(data, value)
+                        }
+                        else -> TODO()
                     }
-                    is DataStructValue -> {
-                        containerValue.set(data, value)
-                    }
-                    else -> TODO()
                 }
             }
             else -> {
@@ -155,14 +185,31 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 var value: Value? = null
                 if (it is DataDefinition) {
                     value = when {
-                        it.name in initialValues -> initialValues[it.name]
-                            ?: throw RuntimeException("Initial values for ${it.name} not found")
+                        it.name in initialValues -> {
+                            val initialValue = initialValues[it.name]
+                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
+                            if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
+                                require(initialValue.assignableTo(it.type)) {
+                                    "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
+                                }
+                            }
+                            initialValue
+                        }
                         it.initializationValue != null -> interpret(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
                             (it.type as ArrayType)
                         )
                         else -> blankValue(it)
+                    }
+                    if (it.name !in initialValues) {
+                        blankValue(it)
+                        it.fields.forEach { field ->
+                            if (field.initializationValue != null) {
+                                val fieldValue = coerce(interpret(field.initializationValue), field.type)
+                                (value as DataStructValue).set(field, fieldValue)
+                            }
+                        }
                     }
                 } else if (it is InStatementDataDefinition && it.parent is PlistParam) {
                     value = when {
@@ -171,9 +218,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         else -> null
                     }
                 }
+                // Fix issue on CTDATA
+                val ctdata = compilationUnit.compileTimeArray(it.name)
+                if (ctdata.name == it.name) {
+                    val xx = toArrayValue(
+                            compilationUnit.compileTimeArray(it.name),
+                            (it.type as ArrayType))
+                    set(it, xx)
+                }
+
                 if (value != null) {
                     set(it, coerce(value, it.type))
-                    executeMutes(it.muteAnnotations)
+                    executeMutes(it.muteAnnotations, compilationUnit)
                 }
             }
         } else {
@@ -185,8 +241,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
+        // It is not clear why the compileTimeRecordsPerLine on the array type is null
+        // probably it is an error during the ast processing.
+        // as workaround, if null assumes the number of lines in the compile compileTimeArray
+        // as value for compileTimeRecordsPerLine
+        var lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
         val l: MutableList<Value> =
-            compileTimeArray.lines.chunkAs(arrayType.compileTimeRecordsPerLine!!, arrayType.element.size.toInt())
+            compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
                 .map {
                     coerce(StringValue(it), arrayType.element)
                 }
@@ -224,8 +285,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun executeEachStatement(compilationUnit: CompilationUnit) {
-        compilationUnit.main.stmts.forEach {
-            executeWithMute(it)
+        try {
+            val statements = compilationUnit.main.stmts
+            var i = 0
+            while (i < statements.size) {
+                try {
+                    executeWithMute(statements[i++])
+                } catch (e: GotoException) {
+                    i = statements.indexOfFirst {
+                        it is TagStmt && it.tag == e.tag
+                    }
+                }
+            }
+        } catch (e: ReturnException) {
+            // TODO use return value
         }
     }
 
@@ -242,11 +315,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun executeWithMute(statement: Statement) {
         log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
         execute(statement)
-        executeMutes(statement.muteAnnotations)
+        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!)
     }
 
-    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>) {
+    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit) {
         muteAnnotations.forEach {
+            it.resolveAndValidate(compilationUnit)
             when (it) {
                 is MuteComparisonAnnotation -> {
                     val exp: Expression = when (it.comparison) {
@@ -264,6 +338,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     require(value is BooleanValue) {
                         "Expected BooleanValue, but found $value"
                     }
+
                     log(MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, value))
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
@@ -323,12 +398,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     )
                 }
                 is EvalStmt -> {
-                    val result = assign(statement.target, statement.expression, statement.operator)
+                    // Should I assign it one by one?
+                    val result = if (statement.target.type().isArray() &&
+                            statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
+                        assignEachElement(statement.target, statement.expression, statement.operator)
+                    } else {
+                        assign(statement.target, statement.expression, statement.operator)
+                    }
                     log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
                 }
                 is MoveStmt -> {
                     val value = move(statement.target, statement.expression)
                     log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
+                }
+                is MoveAStmt -> {
+                    val value = movea(statement.target, statement.expression)
+                    log(MoveAStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is MoveLStmt -> {
                     val value = movel(statement.operationExtender, statement.target, statement.expression, this)
@@ -354,9 +439,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         execute(statement.other!!.body)
                     }
                 }
-                is SetOnStmt -> {
-                    statement.choices.forEach {
-                        interpretationContext.setDataWrapUpPolicy(it)
+                is SetStmt -> {
+                    statement.indicators.forEach {
+                        when (it) {
+                            is DataWrapUpIndicatorExpr -> interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
+                            is PredefinedIndicatorExpr -> {
+                                if (statement.valueSet.name == "ON") {
+                                    predefinedIndicators[it.index] = BooleanValue.TRUE
+                                } else {
+                                    predefinedIndicators[it.index] = BooleanValue.FALSE
+                                }
+                            }
+                            else -> TODO()
+                        }
                     }
                 }
                 is PlistStmt -> {
@@ -390,6 +485,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                                 )
                             )
                             Unit
+                        }
+                        is PredefinedIndicatorExpr -> {
+                            val value = assign(statement.value, BlanksRefExpr())
+                            log(
+                                    ClearStatemenExecutionLog(
+                                            this.interpretationContext.currentProgramName,
+                                            statement,
+                                            value
+                                    )
+                            )
                         }
                         else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
                     }
@@ -429,7 +534,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     statement.factor1?.let { values.add(interpret(it)) }
                     statement.response?.let { values.add(interpret(it)) }
                     // TODO: receive input from systemInterface and assign value to response
-                    systemInterface.display(render(values))
+                    systemInterface.display(rawRender(values))
                 }
                 is IfStmt -> {
                     val condition = eval(statement.condition)
@@ -491,6 +596,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val startTime = currentTimeMillis()
                     val paramValuesAtTheEnd =
                         try {
+                            systemInterface.registerProgramExecutionStart(program, params)
                             program.execute(systemInterface, params).apply {
                                 log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
                             }
@@ -694,9 +800,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     throw IterException()
                 }
                 is CheckStmt -> {
-                    var baseString = interpret(statement.baseString).asString().value.removeNullChars()
+                    var baseString = interpret(statement.baseString).asString().value
                     if (statement.baseString is DataRefExpr) {
-                        baseString = baseString.padEnd(statement.baseString.size().toInt())
+                        baseString = baseString.padEnd(statement.baseString.size())
                     }
                     val charSet = interpret(statement.comparatorString).asString().value
                     val wrongIndex = statement.wrongCharPosition
@@ -740,21 +846,55 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     }
                     fillDataFrom(record)
                 }
+                is ReadPreviousStmt -> {
+                    val dbFile = dbFile(statement.name, statement)
+                    val record = when {
+                        statement.searchArg == null -> dbFile.readPrevious()
+                        statement.searchArg.type() is KListType -> dbFile.readPrevious(toSearchValues(statement.searchArg))
+                        else -> dbFile.readPrevious(eval(statement.searchArg))
+                    }
+                    fillDataFrom(record)
+                }
                 is ReadStmt -> {
                     val dbFile = dbFile(statement.name, statement)
                     val record = dbFile.read()
                     fillDataFrom(record)
                 }
+                is ReturnStmt -> {
+                    val returnValue = statement.expression?.let { eval(statement.expression) }
+                    throw ReturnException(returnValue)
+                }
+                is TagStmt -> {
+                    // Nothing to do here
+                }
+                is GotoStmt -> {
+                    throw GotoException(statement.tag)
+                }
+                is SortAStmt -> {
+                    sortA(interpret(statement.target), charset)
+                }
+
                 else -> TODO(statement.toString())
             }
+        } catch (e: ReturnException) {
+            throw e
+        } catch (e: GotoException) {
+            throw e
         } catch (e: InterruptForDebuggingPurposes) {
             throw e
         } catch (e: IllegalArgumentException) {
+            val message = e.toString()
+            if (!message.contains(statement.position.line())) {
+                throw IllegalArgumentException(errorDescription(statement), e)
+            }
             throw e
         } catch (e: RuntimeException) {
-            throw RuntimeException("Issue executing statement $statement -> $e", e)
+            throw RuntimeException(errorDescription(statement), e)
         }
     }
+
+    private fun errorDescription(statement: Statement) =
+        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()}"
 
     private fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
@@ -855,6 +995,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             value1 is IntValue && value2 is DecimalValue -> {
                 value1.asInt() == value2.asInt()
             }
+
+            value1 is StringValue && value2 is BooleanValue -> {
+                value1.asBoolean().value == value2.value
+            }
+
+            value1 is BooleanValue && value2 is StringValue -> {
+                value2.asBoolean().value == value1.value
+            }
+
             value1 is DecimalValue && value2 is DecimalValue -> {
                 // Convert everything to Decimal then compare
                 value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
@@ -864,36 +1013,50 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
 
             value1 is StringValue && value2 is StringValue -> {
-                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
-                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                val v1 = value1.value.trimEnd()
+                val v2 = value2.value.trimEnd()
                 v1 == v2
             }
 
             value1 is DataStructValue && value2 is StringValue -> {
-                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
-                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                val v1 = value1.asStringValue().trimEnd()
+
+                val v2 = value2.value.trimEnd()
                 v1 == v2
             }
             value1 is StringValue && value2 is DataStructValue -> {
-                val v1 = value1.value.trimEnd().removeNullChars().trimEnd()
-                val v2 = value2.value.trimEnd().removeNullChars().trimEnd()
+                val v1 = value1.value.trimEnd()
+                val v2 = value2.asStringValue().trimEnd()
+
                 v1 == v2
+            }
+            // To be review
+            value1 is ProjectedArrayValue && value2 is StringValue -> {
+                value1.asArray().getElement(1) == value2
             }
             else -> value1 == value2
         }
     }
 
-    private fun render(values: List<Value>) = values.map { render(it) }.joinToString("")
+    private fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")
+
+    private fun rawRender(value: Value): String {
+        return when (value) {
+            is NumberValue -> if (value.isNegative()) "${value.abs().render()}-" else value.render()
+            else -> render(value)
+        }
+    }
 
     private fun render(value: Value): String {
         return when (value) {
-            is StringValue -> value.valueWithoutPadding.trimEnd()
+            is StringValue -> value.value.trimEnd()
             is BooleanValue -> value.asString().value // TODO check if it's the best solution
-            is IntValue -> value.value.toString()
-            is DecimalValue -> value.value.toString() // TODO: formatting rules
+            is NumberValue -> value.render()
             is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
             is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
-            is DataStructValue -> value.valueWithoutPadding.trimEnd()
+            is DataStructValue -> value.value.trimEnd()
+            is ZeroValue -> "0"
+            is AllValue -> value.charsToRepeat
             else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
         }
     }
@@ -952,6 +1115,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         return coercedValue
     }
 
+    fun assignEachElement(target: AssignableExpression, value: Value): Value {
+        val arrayType = target.type().asArray()
+        return assign(target, value.toArray(arrayType.nElements, arrayType.element))
+    }
+
     override fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
@@ -963,8 +1131,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 // Before assigning the single element we do a sanity check:
                 // is the value we have for the array compatible with the type
                 // we expect for such array?
-                require(arrayValue.assignableTo(targetType)) {
-                    "The value $arrayValue is not assignable to $targetType"
+                if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
+                    require(arrayValue.assignableTo(targetType)) {
+                        "The value $arrayValue is not assignable to $targetType"
+                    }
                 }
                 val indexValue = interpret(target.index)
                 val elementType = (targetType as ArrayType).element
@@ -997,7 +1167,29 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is QualifiedAccessExpr -> {
                 val container = eval(target.container) as DataStructValue
-                return container[target.field.referred!!]
+                container[target.field.referred!!]
+                container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
+                return value
+            }
+            is PredefinedIndicatorExpr -> {
+                val coercedValue = coerce(value, BooleanType)
+                predefinedIndicators[target.index] = coercedValue
+                return coercedValue
+            }
+            is PredefinedGlobalIndicatorExpr -> {
+                return if (value.assignableTo(BooleanType)) {
+                    val coercedValue = coerce(value, BooleanType)
+                    for (index in ALL_PREDEFINED_INDEXES) {
+                        predefinedIndicators[index] = coercedValue
+                    }
+                    coercedValue
+                } else {
+                    val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
+                    for (index in ALL_PREDEFINED_INDEXES) {
+                        predefinedIndicators[index] = coercedValue.getElement(index)
+                    }
+                    coercedValue
+                }
             }
             else -> TODO(target.toString())
         }
@@ -1018,13 +1210,47 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
+    private fun assignEachElement(
+        target: AssignableExpression,
+        value: Expression,
+        operator: AssignmentOperator = NORMAL_ASSIGNMENT
+    ): Value {
+        return when (operator) {
+            NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
+            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
+            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
+            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
+            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
+            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
+        }
+    }
+
+    private fun movea(target: AssignableExpression, value: Expression): Value {
+        var newValue = interpret(value)
+        if (target is DataRefExpr) {
+            require(target.type() is ArrayType) {
+                "Result must be an Array"
+            }
+        } else {
+            require(target is ArrayAccessExpr) {
+                "Result must be an Array element"
+            }
+        }
+
+        return assign(target, newValue)
+    }
+
     private fun move(target: AssignableExpression, value: Expression): Value {
         when (target) {
             is DataRefExpr -> {
-                var newValue = interpret(value).takeLast(target.size().toInt())
-                if (value.type().size < target.size()) {
-                    newValue = get(target.variable.referred!!).takeFirst((target.size() - value.type().size).toInt())
-                        .concatenate(newValue)
+                var newValue = interpret(value)
+                if (value !is FigurativeConstantRef) {
+                    newValue = newValue.takeLast(target.size())
+                    if (value.type().size < target.size()) {
+                        newValue =
+                            get(target.variable.referred!!).takeFirst((target.size() - value.type().size))
+                                .concatenate(newValue)
+                    }
                 }
                 return assign(target, newValue)
             }
@@ -1130,7 +1356,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is DecExpr -> {
                 val decDigits = interpret(expression.decDigits).asInt().value
-                val valueAsString = interpret(expression.value).asString().value.removeNullChars()
+                val valueAsString = interpret(expression.value).asString().value
                 val valueAsBigDecimal = valueAsString.asBigDecimal()
                 require(valueAsBigDecimal != null) {
                     "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
@@ -1146,10 +1372,16 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val right = interpret(expression.right)
                 when {
                     left is StringValue && right is StringValue -> {
-                        val s = left.valueWithoutPadding + right.valueWithoutPadding
-                        StringValue(s)
+                        if (left.varying) {
+                            val s = left.value.trimEnd() + right.value
+                            StringValue(s)
+                        } else {
+                            val s = left.value + right.value
+                            StringValue(s)
+                        }
                     }
                     left is IntValue && right is IntValue -> IntValue(left.value + right.value)
+                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal + right.bigDecimal)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
             }
@@ -1158,6 +1390,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val right = interpret(expression.right)
                 when {
                     left is IntValue && right is IntValue -> IntValue(left.value - right.value)
+                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal - right.bigDecimal)
                     else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
                 }
             }
@@ -1166,6 +1399,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val right = interpret(expression.right)
                 when {
                     left is IntValue && right is IntValue -> IntValue(left.value * right.value)
+                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal * right.bigDecimal)
                     else -> throw UnsupportedOperationException("I do not know how to multiply $left and $right at ${expression.position}")
                 }
             }
@@ -1190,11 +1424,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is HiValExpr -> return HiValValue
             is LowValExpr -> return LowValValue
+            is ZeroExpr -> return ZeroValue
+            is AllExpr -> return AllValue(eval(expression.charsToRepeat).asString().value)
             is TranslateExpr -> {
-                val originalChars = eval(expression.from).asString().valueWithoutPadding
-                val newChars = eval(expression.to).asString().valueWithoutPadding
+                val originalChars = eval(expression.from).asString().value
+                val newChars = eval(expression.to).asString().value
                 val start = eval(expression.startPos).asInt().value.toInt()
-                val s = eval(expression.string).asString().valueWithoutPadding
+                val s = eval(expression.string).asString().value
                 val pair = s.divideAtIndex(start - 1)
                 var right = pair.second
                 val substitutionMap = mutableMapOf<Char, Char>()
@@ -1246,26 +1482,48 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 if (expression.start != null) {
                     startIndex = eval(expression.start).asInt().value.toInt()
                 }
-                val value = eval(expression.value).asString().valueWithoutPadding
-                val source = eval(expression.source).asString().valueWithoutPadding
+                val value = eval(expression.value).asString().value
+                val source = eval(expression.source).asString().value
                 val result = source.indexOf(value, startIndex)
                 return IntValue(if (result == -1) 0 else result.toLong() + 1)
             }
             is SubstExpr -> {
-                val length = if (expression.length != null) eval(expression.length).asInt().value.toInt() else null
+                val length = if (expression.length != null) eval(expression.length).asInt().value.toInt() else 0
                 val start = eval(expression.start).asInt().value.toInt() - 1
                 val originalString = eval(expression.string).asString().value
-                return if (length == null) {
-                    StringValue(originalString.substring(start))
+                return if (length == 0) {
+                    StringValue(originalString.padEnd(start + 1).substring(start))
                 } else {
-                    StringValue(originalString.substring(start, start + length))
+                    StringValue(originalString.padEnd(start + length + 1).substring(start, start + length))
                 }
             }
             is LenExpr -> {
                 val value = eval(expression.value)
                 return when (value) {
-                    is StringValue -> value.value.length.asValue()
-                    is DataStructValue -> value.value.length.asValue()
+                    is StringValue -> {
+                        when (expression.value) {
+                            is DataRefExpr -> {
+                                val type = expression.value.type()
+                                when (type) {
+                                    is StringType -> {
+                                        value.length(type.varying).asValue()
+                                    }
+                                    else -> {
+                                        value.value.length.asValue()
+                                    }
+                                }
+                            }
+                            is ArrayAccessExpr -> {
+                                value.value.length.asValue()
+                                // value.elementSize().asValue()
+                            }
+                            else -> {
+                                return value.length().asValue()
+                            }
+                        }
+                    }
+                    is DataStructValue -> {
+                        value.value.length.asValue() }
                     is ArrayValue -> {
                         // Incorrect data structure size calculation #28
                         when (expression.value) {
@@ -1322,33 +1580,33 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val v1 = eval(expression.left)
                 val v2 = eval(expression.right)
                 // Check the type and select the correct operation
-                if (v1 is DecimalValue && v2 is DecimalValue) {
-
+                if (v1 is IntValue && v2 is IntValue) {
+                    return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
+                }
+                require(v1 is NumberValue && v2 is NumberValue)
+                val res = v1.bigDecimal.toDouble() / v2.bigDecimal.toDouble()
+                // Detects what kind of eval must be evaluated
+                if (expression.parent is EvalStmt) {
                     val parent = expression.parent as EvalStmt
                     val targetType = parent.target.type() as NumberType
-                    // Detects what kind of eval must be evaluated
-                    if (expression.parent is EvalStmt) {
-                        // EVAL(H)
-                        if (parent.flags.halfAdjust) {
-                            // perform the calculation, adjust the operand scale to the target
-                            val res = v1.value.setScale(targetType.decimalDigits).divide(v2.value.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
-                            return DecimalValue(res)
-                        }
-                        // Eval(M)
-                        if (parent.flags.maximumNumberOfDigitsRule) {
-                            TODO("EVAL(M) not supported yet")
-                        }
-                        // Eval(R)
-                        if (parent.flags.resultDecimalPositionRule) {
-                            TODO("EVAL(R) not supported yet")
-                        }
+                    // EVAL(H)
+                    if (parent.flags.halfAdjust) {
+                        // perform the calculation, adjust the operand scale to the target
+                        val res = v1.bigDecimal.setScale(targetType.decimalDigits).divide(v2.bigDecimal.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
+                        return DecimalValue(res)
                     }
-                    // As per documentation should use RoundingMode.DOWN
-                    val res = v1.value.toDouble() / v2.value.toDouble()
+                    // Eval(M)
+                    if (parent.flags.maximumNumberOfDigitsRule) {
+                        TODO("EVAL(M) not supported yet")
+                    }
+                    // Eval(R)
+                    if (parent.flags.resultDecimalPositionRule) {
+                        TODO("EVAL(R) not supported yet")
+                    }
                     return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits, RoundingMode.DOWN))
                 }
-
-                return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
+                // TODO rounding and scale???
+                return DecimalValue(BigDecimal(res))
             }
             is ExpExpr -> {
                 val v1 = eval(expression.left)
@@ -1357,10 +1615,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is TrimrExpr -> {
                 return if (expression.charactersToTrim == null) {
-                    StringValue(eval(expression.value).asString().value.removeNullChars().trimEnd())
+                    StringValue(eval(expression.value).asString().value.trimEnd())
                 } else {
                     val suffix = eval(expression.charactersToTrim).asString().value
-                    var result = eval(expression.value).asString().value.removeNullChars()
+                    var result = eval(expression.value).asString().value
                     while (result.endsWith(suffix)) {
                         result = result.substringBefore(suffix)
                     }
@@ -1369,10 +1627,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is TrimlExpr -> {
                 if (expression.charactersToTrim == null) {
-                    return StringValue(eval(expression.value).asString().value.removeNullChars().trimStart())
+                    return StringValue(eval(expression.value).asString().value.trimStart())
                 } else {
                     val prefix = eval(expression.charactersToTrim).asString().value
-                    var result = eval(expression.value).asString().value.removeNullChars()
+                    var result = eval(expression.value).asString().value
                     while (result.startsWith(prefix)) {
                         result = result.substringAfter(prefix)
                     }
@@ -1380,7 +1638,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
             }
             is TrimExpr -> {
-                return StringValue(eval(expression.value).asString().value.removeNullChars().trim())
+                return StringValue(eval(expression.value).asString().value.trim())
             }
             is FoundExpr -> {
                 // TODO fix this bad implementation
@@ -1395,6 +1653,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     return BooleanValue(lastDBFile?.eof() ?: false)
                 }
                 TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
+            }
+            is EqualExpr -> {
+                // TODO fix this bad implementation
+                if (expression.name == null) {
+                    return BooleanValue(lastDBFile?.equal() ?: false)
+                }
+                TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
             }
             is AbsExpr -> {
                 val value = interpret(expression.value)
@@ -1450,7 +1715,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
-        return dataDefinition.type.blank()
+        return when (dataDefinition.type) {
+            is DataStructureType -> dataDefinition.type.blank(dataDefinition)
+            else -> dataDefinition.type.blank()
+        }
     }
 }
 
@@ -1464,13 +1732,15 @@ private fun Boolean.asValue() = BooleanValue(this)
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : RuntimeException()
 
+class ReturnException(val returnValue: Value?) : RuntimeException()
+
+class GotoException(val tag: String) : RuntimeException()
+
 private fun cleanNumericString(s: String): String {
-    val result = s.removeNullChars().moveEndingString("-")
+    val result = s.moveEndingString("-")
     return when {
         result.contains(".") -> result.substringBefore(".")
         result.contains(",") -> result.substringBefore(",")
         else -> result
     }
 }
-
-fun blankValue(size: Int) = StringValue(" ".repeat(size))
