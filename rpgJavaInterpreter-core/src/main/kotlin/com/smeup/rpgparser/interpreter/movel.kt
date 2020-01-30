@@ -1,9 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.parsing.ast.AllExpr
-import com.smeup.rpgparser.parsing.ast.AssignableExpression
-import com.smeup.rpgparser.parsing.ast.DataRefExpr
-import com.smeup.rpgparser.parsing.ast.Expression
+import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
 
 private fun assignStringToString(operationExtender: String?, target: DataRefExpr, factor2: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
@@ -45,10 +42,15 @@ private fun NumberValue.numberToString(): Value {
 }
 
 fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
-    require(target is DataRefExpr)
     val valueType = value.type()
-    require(target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
-        "Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}"
+    if (target is DataRefExpr) {
+        require(target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
+            "Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}"
+        }
+        return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
     }
-    return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
+    if (target is ArrayAccessExpr) {
+        // TODO
+    }
+    TODO("We cannot handle $target yet")
 }
