@@ -247,6 +247,11 @@ class InterpreterTest {
         assertEquals(listOf("0", "69", "0"), outputOf("ZERO"))
     }
 
+    @Test
+    fun executeZEROS1() {
+        assertEquals(listOf("33"), outputOf("ZEROS1"))
+    }
+
     @Test @Ignore
     fun executeMOVEL01() {
         assertEquals(listOf("1111.1"), outputOf("MOVEL01"))
@@ -290,6 +295,39 @@ class InterpreterTest {
     @Test @Ignore
     fun executeSCANARRAY() {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
+    }
+
+    @Test @Ignore
+    fun executePROCEDURE1() {
+        assertEquals(listOf("33"), outputOf("PROCEDURE1"))
+    }
+
+    @Test @Ignore
+    fun executePROCEDURE2_callAsFunction() {
+        assertEquals(listOf("33"), outputOf("PROCEDURE2"))
+    }
+
+    @Test @Ignore
+    fun executePROCEDURE3_constExpressionWithTypeCast() {
+        assertEquals(listOf("33"), outputOf("PROCEDURE3"))
+    }
+
+    @Test @Ignore
+    fun executePROCEDURE4_errorModifyingConstParameter() {
+        // TODO Define a better exception
+        assertFailsWith(Throwable::class) {
+            outputOf("PROCEDURE4")
+        }
+    }
+
+    @Test @Ignore
+    fun executePROCEDURE5_localVarNames() {
+        assertEquals(listOf("33"), outputOf("PROCEDURE5"))
+    }
+
+    @Test @Ignore
+    fun executePROCEDURE6_shadowingOfVars() {
+        assertEquals(listOf("25"), outputOf("PROCEDURE6"))
     }
 
     @Test

@@ -14,19 +14,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.fail
+import kotlin.test.Ignore
 
 class MuteExecutionTest {
 
     @Test
     fun executeSimpleMute() {
-        val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE", true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
-        cu.assertNrOfMutesAre(3)
-        val interpreter = execute(cu, emptyMap())
-        assertEquals(3, interpreter.systemInterface.getExecutedAnnotation().size)
-        interpreter.systemInterface.getExecutedAnnotation().forEach {
-            assertEquals(BooleanValue(true), it.value.result)
-        }
+        assertMuteExecutionSucceded("mute/SIMPLE_MUTE", 3)
     }
 
     @Test
@@ -132,27 +126,34 @@ class MuteExecutionTest {
     }
 
     // FIXME: We need to implement MOVEA
-    @Test @kotlin.test.Ignore
-    // this program test operations on arrays of unequal size
+    @Test @Ignore
+    // this program tests operations on arrays of unequal size
     fun executeMUTE09_04() {
-        val cu = assertASTCanBeProduced("mute/MUTE09_04", true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
-        cu.assertNrOfMutesAre(115)
-        val interpreter = execute(cu, emptyMap())
-        assertEquals(115, interpreter.systemInterface.getExecutedAnnotation().size)
-        interpreter.systemInterface.getExecutedAnnotation().forEach {
-            assertEquals(BooleanValue(true), it.value.result)
-        }
+        assertMuteExecutionSucceded("mute/MUTE09_04", 115)
     }
 
-    @Test @kotlin.test.Ignore
-    // this program test operations on arrays of unequal size (simplified version of MUTE09_04 without MOVEA)
+    @Test @Ignore
+    // this program tests operations on arrays of unequal size (simplified version of MUTE09_04 without MOVEA)
     fun executeMUTE09_05() {
-        val cu = assertASTCanBeProduced("mute/MUTE09_05", true, withMuteSupport = true)
+        assertMuteExecutionSucceded("mute/MUTE09_05", 45)
+    }
+
+    @Test @Ignore
+    // this program tests procedures
+    fun executeMUTE15_01() {
+        assertMuteExecutionSucceded("mute/MUTE15_01", 14)
+    }
+
+    private fun assertMuteExecutionSucceded(
+        exampleName: String,
+        nrOfMuteAssertions: Int,
+        parameters: Map<String, Value> = emptyMap()
+    ) {
+        val cu = assertASTCanBeProduced(exampleName, true, withMuteSupport = true)
         cu.resolveAndValidate(DummyDBInterface)
-        cu.assertNrOfMutesAre(45)
-        val interpreter = execute(cu, emptyMap())
-        assertEquals(45, interpreter.systemInterface.getExecutedAnnotation().size)
+        cu.assertNrOfMutesAre(nrOfMuteAssertions)
+        val interpreter = execute(cu, parameters)
+        assertEquals(nrOfMuteAssertions, interpreter.systemInterface.getExecutedAnnotation().size)
         interpreter.systemInterface.getExecutedAnnotation().forEach {
             assertEquals(BooleanValue(true), it.value.result)
         }
