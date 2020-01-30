@@ -3,27 +3,36 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
 
-private fun assignStringToString(operationExtender: String?, target: DataRefExpr, factor2: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
-    var newValue = interpreterCoreHelper.interpret(factor2)
-    if (factor2 is AllExpr) {
+private fun assignStringToString(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+    var newValue = interpreterCoreHelper.interpret(valueExpression)
+    if (valueExpression is AllExpr) {
         return interpreterCoreHelper.assign(target, newValue)
     }
     if (newValue is NumberValue) {
         newValue = newValue.numberToString()
     }
-    if (factor2.type().size > target.size()) {
+    val valueSize = size(valueExpression)
+    val targetSize = size(target)
+    if (valueSize > targetSize) {
         newValue = newValue.takeFirst(target.size())
-    } else if (factor2.type().size < target.size()) {
+    } else if (valueSize < targetSize) {
         val append = if (operationExtender == null) {
-            val value = interpreterCoreHelper.get(target.variable.referred!!)
+            val value = interpreterCoreHelper.interpret(target)
             require(value is StringValue)
-            StringValue.padded(value.value, target.size()).takeLast(target.size() - factor2.type().size)
+            StringValue.padded(value.value, targetSize).takeLast(targetSize - valueSize)
         } else {
-            StringValue.blank(target.size() - factor2.type().size)
+            StringValue.blank(targetSize - valueSize)
         }
         newValue = newValue.concatenate(append)
     }
     return interpreterCoreHelper.assign(target, newValue)
+}
+
+fun size(valueExpression: Expression): Int {
+    if (valueExpression is ArrayAccessExpr) {
+        return valueExpression.array.type().elementSize()
+    }
+    return valueExpression.type().size
 }
 
 // for future use
@@ -43,14 +52,8 @@ private fun NumberValue.numberToString(): Value {
 
 fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     val valueType = value.type()
-    if (target is DataRefExpr) {
-        require(target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
-            "Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}"
-        }
-        return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
+    require(target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
+        "Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}"
     }
-    if (target is ArrayAccessExpr) {
-        // TODO
-    }
-    TODO("We cannot handle $target yet")
+    return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
 }

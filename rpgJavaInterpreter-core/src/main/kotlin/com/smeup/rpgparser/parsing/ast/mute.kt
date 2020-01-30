@@ -66,7 +66,8 @@ data class MuteComparisonAnnotationExecuted(
     val value1Result: Value,
     val value2Result: Value
 ) : MuteAnnotationExecuted() {
-    override fun headerDescription(): String = expression.render()
+    override fun headerDescription(): String =
+        "${expression.render()} - Left value ${value1Result.render()}  - right value ${value2Result.render()}"
 }
 
 /**

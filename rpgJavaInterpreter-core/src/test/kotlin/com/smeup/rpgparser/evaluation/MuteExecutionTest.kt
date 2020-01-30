@@ -132,10 +132,15 @@ class MuteExecutionTest {
         assertMuteExecutionSucceded("mute/MUTE09_04", 115)
     }
 
-    @Test @Ignore
+    @Test
     // this program tests operations on arrays of unequal size (simplified version of MUTE09_04 without MOVEA)
     fun executeMUTE09_05() {
-        assertMuteExecutionSucceded("mute/MUTE09_05", 45)
+        assertMuteExecutionSucceded("mute/MUTE09_05", 46)
+    }
+
+    @Test
+    fun executeMUTE09_05_SIMPLE() {
+        assertMuteExecutionSucceded("mute/MUTE09_05_SIMPLE", 2)
     }
 
     @Test @Ignore
@@ -155,7 +160,7 @@ class MuteExecutionTest {
         val interpreter = execute(cu, parameters)
         assertEquals(nrOfMuteAssertions, interpreter.systemInterface.getExecutedAnnotation().size)
         interpreter.systemInterface.getExecutedAnnotation().forEach {
-            assertEquals(BooleanValue(true), it.value.result)
+            assertTrue(it.value.succeeded(), "Mute assertion failed: ${it.value.headerDescription()}")
         }
     }
 }
