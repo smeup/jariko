@@ -315,6 +315,12 @@ class InterpreterTest {
         }
     }
 
+    @Test @Ignore
+    fun executePROCEDURE5_localVarNames() {
+        assertEquals(listOf("33"), outputOf("PROCEDURE5"))
+    }
+
+
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
