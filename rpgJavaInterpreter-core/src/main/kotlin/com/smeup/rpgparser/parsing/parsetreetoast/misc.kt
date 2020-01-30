@@ -211,7 +211,7 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
             val content: LiteralContext = this.parent.getChild(1) as LiteralContext
             AllExpr(content.toAst(conf), position)
         }
-        else -> TODO("$this - ${position?.line()}")
+        else -> TODO("${this.text} - Line ${position?.line()}")
     }
 }
 
