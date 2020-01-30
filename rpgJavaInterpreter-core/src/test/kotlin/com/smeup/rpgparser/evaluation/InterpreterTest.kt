@@ -287,6 +287,11 @@ class InterpreterTest {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }
 
+    @Test @Ignore
+    fun executePROCEDURE1() {
+        assertEquals(listOf("33"), outputOf("PROCEDURE1"))
+    }
+
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
