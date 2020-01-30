@@ -320,6 +320,10 @@ class InterpreterTest {
         assertEquals(listOf("33"), outputOf("PROCEDURE5"))
     }
 
+    @Test @Ignore
+    fun executePROCEDURE6_shadowingOfVars() {
+        assertEquals(listOf("25"), outputOf("PROCEDURE6"))
+    }
 
     @Test
     fun executeCAL01_callingJavaPgm() {
