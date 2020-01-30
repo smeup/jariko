@@ -302,6 +302,11 @@ class InterpreterTest {
         assertEquals(listOf("33"), outputOf("PROCEDURE2"))
     }
 
+    @Test @Ignore
+    fun executePROCEDURE3_constExpressionWithTypeCast() {
+        assertEquals(listOf("33"), outputOf("PROCEDURE3"))
+    }
+
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
