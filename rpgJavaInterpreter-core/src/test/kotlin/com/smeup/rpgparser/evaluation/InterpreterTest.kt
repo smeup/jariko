@@ -307,6 +307,14 @@ class InterpreterTest {
         assertEquals(listOf("33"), outputOf("PROCEDURE3"))
     }
 
+    @Test @Ignore
+    fun executePROCEDURE4_errorModifyingConstParameter() {
+        // TODO Define a better exception
+        assertFailsWith(Throwable::class) {
+            outputOf("PROCEDURE4")
+        }
+    }
+
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
