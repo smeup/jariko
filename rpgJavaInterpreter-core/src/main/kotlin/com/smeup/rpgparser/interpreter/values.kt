@@ -418,7 +418,13 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
         require(index >= 1)
         require(index <= arrayLength())
         require(value.assignableTo(elementType))
-        elements[index - 1] = value
+        if (elementType is StringType && !elementType.varying) {
+            val v = (value as StringValue).copy()
+            v.pad(elementType.length)
+            elements[index - 1] = v
+        } else {
+            elements[index - 1] = value
+        }
     }
 
     override fun getElement(index: Int): Value {
