@@ -152,6 +152,7 @@
      C                   EVAL      $MSG=%TRIMR(ZZSTR)
      C     $MSG          DSPLY     £PDSSU
      C                   EVAL      ARRA2=*ALL'X'
+    MU* VAL1(ZZSTR) VAL2('YYYYYYYYYYYYYYYYYYYY') COMP(EQ)
      C                   EVAL      ZZSTR=*ALL'Y'
       * Use of 'MOVEL'
     MU* VAL1(ZZSTR) VAL2('XXXXXXXXXXYYYYYYYYYY') COMP(EQ)

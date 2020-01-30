@@ -48,6 +48,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
             is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
+            is ArrayType -> expectedType.size == value.length // Check for >= ???
             else -> false
         }
     }

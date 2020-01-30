@@ -888,6 +888,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 throw IllegalArgumentException(errorDescription(statement), e)
             }
             throw e
+        } catch (e: NotImplementedError) {
+            throw RuntimeException(errorDescription(statement), e)
         } catch (e: RuntimeException) {
             throw RuntimeException(errorDescription(statement), e)
         }

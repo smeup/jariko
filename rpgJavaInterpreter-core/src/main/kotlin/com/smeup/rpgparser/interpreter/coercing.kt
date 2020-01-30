@@ -180,6 +180,9 @@ fun coerce(value: Value, type: Type): Value {
                 is StringType -> {
                     return StringValue(value.charsToRepeat.repeatWithMaxSize(type.length))
                 }
+                is ArrayType -> {
+                    return StringValue(value.charsToRepeat.repeatWithMaxSize(type.size))
+                }
                 else -> TODO("Converting $value to $type")
             }
         }
