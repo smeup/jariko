@@ -28,6 +28,13 @@ private fun assignStringToString(operationExtender: String?, target: AssignableE
     return interpreterCoreHelper.assign(target, newValue)
 }
 
+private fun assignNumberToNumber(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+    val newValue = interpreterCoreHelper.interpret(valueExpression) as NumberValue
+    val targetType = target.type() as NumberType
+    val newDecimalValue = DecimalValue(BigDecimal(newValue.bigDecimal.unscaledValue(), targetType.decimalDigits))
+    return interpreterCoreHelper.assign(target, newDecimalValue)
+}
+
 fun size(valueExpression: Expression): Int {
     if (valueExpression is ArrayAccessExpr) {
         return valueExpression.array.type().elementSize()
@@ -52,8 +59,11 @@ private fun NumberValue.numberToString(): Value {
 
 fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     val valueType = value.type()
-    require(target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
-        "Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}"
+    if (target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
+        return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
     }
-    return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
+    if (target.type() is NumberType && valueType is NumberType) {
+        return assignNumberToNumber(operationExtender, target, value, interpreterCoreHelper)
+    }
+    throw IllegalArgumentException("Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}")
 }
