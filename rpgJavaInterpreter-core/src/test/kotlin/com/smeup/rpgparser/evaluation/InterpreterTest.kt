@@ -260,6 +260,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeMOVEL03() {
+        assertEquals(listOf("0"), outputOf("MOVEL03"))
+    }
+
+    @Test @Ignore
     fun executeMOVEA01() {
         assertEquals(listOf("CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
     }
