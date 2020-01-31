@@ -260,8 +260,13 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeMOVEL03() {
+    fun executeMOVEL03_zeros() {
         assertEquals(listOf("0"), outputOf("MOVEL03"))
+    }
+
+    @Test
+    fun executeMOVEL04_all1() {
+        assertEquals(listOf("11111"), outputOf("MOVEL04"))
     }
 
     @Test @Ignore

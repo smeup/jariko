@@ -29,7 +29,7 @@ private fun assignStringToString(operationExtender: String?, target: AssignableE
 }
 
 private fun assignNumberToNumber(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
-    if (valueExpression is ZeroExpr) {
+    if (valueExpression is FigurativeConstantRef) {
         return interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
     }
     val newValue = interpreterCoreHelper.interpret(valueExpression) as NumberValue
