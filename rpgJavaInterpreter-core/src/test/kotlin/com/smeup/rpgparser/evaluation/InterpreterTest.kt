@@ -259,7 +259,7 @@ class InterpreterTest {
         assertEquals(listOf("78425"), outputOf("MOVEL02"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVEL03() {
         assertEquals(listOf("0"), outputOf("MOVEL03"))
     }

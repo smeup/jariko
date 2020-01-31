@@ -29,6 +29,9 @@ private fun assignStringToString(operationExtender: String?, target: AssignableE
 }
 
 private fun assignNumberToNumber(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+    if (valueExpression is ZeroExpr) {
+        return interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
+    }
     val newValue = interpreterCoreHelper.interpret(valueExpression) as NumberValue
     val targetType = target.type() as NumberType
     val newDecimalValue = DecimalValue(BigDecimal(newValue.bigDecimal.unscaledValue(), targetType.decimalDigits))
@@ -62,7 +65,7 @@ fun movel(operationExtender: String?, target: AssignableExpression, value: Expre
     if (target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
         return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
     }
-    if (target.type() is NumberType && valueType is NumberType) {
+    if (target.type() is NumberType && (valueType is NumberType || valueType is FigurativeType)) {
         return assignNumberToNumber(operationExtender, target, value, interpreterCoreHelper)
     }
     throw IllegalArgumentException("Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}")
