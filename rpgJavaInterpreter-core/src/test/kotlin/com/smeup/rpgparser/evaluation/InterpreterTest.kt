@@ -257,6 +257,11 @@ class InterpreterTest {
         assertEquals(listOf("1111.1"), outputOf("MOVEL01"))
     }
 
+    @Test
+    fun executeMOVEL02() {
+        assertEquals(listOf("78425"), outputOf("MOVEL02"))
+    }
+
     @Test @Ignore
     fun executeMOVEA01() {
         assertEquals(listOf("CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
