@@ -1,8 +1,10 @@
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.*
+import com.smeup.rpgparser.CollectorSystemInterface
+import com.smeup.rpgparser.MockDBFile
+import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
@@ -56,7 +58,7 @@ class InterpreterSmokeTest {
         }
 
         cu.resolveAndValidate(mockDBInterface)
-        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
+        val si = CollectorSystemInterface()
         si.databaseInterface = mockDBInterface
         execute(cu, mapOf("ipToFind" to StringValue("127.0.0.1")), si)
     }
@@ -74,7 +76,7 @@ class InterpreterSmokeTest {
         }
 
         cu.resolveAndValidate(mockDBInterface)
-        val si = CollectorSystemInterface(consoleLoggingConfiguration(STATEMENT_LOGGER, EXPRESSION_LOGGER))
+        val si = CollectorSystemInterface()
         si.databaseInterface = mockDBInterface
         execute(cu, mapOf(), si)
     }
