@@ -163,3 +163,5 @@ With this technique, you can have a (sort of) debug view of the execution of you
 ## MUTEs and Visual Studio Code
 
 You can run MUTE tests in Visual Studio Code: see the [documentation](visual_studio_code.md)
+
+Here you can also see how to execute the [FizzBuzz TDD Kata in RPGLE with MUTEs](https://www.youtube.com/watch?v=AvFv2CMFzbs&feature=youtu.be). 
