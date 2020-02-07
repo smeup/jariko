@@ -1,15 +1,16 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.execution.CommandLineProgram
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.AssignmentsLogHandler
 import com.smeup.rpgparser.interpreter.EvalLogHandler
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.utils.StringOutputStream
+import org.junit.Test
 import java.io.PrintStream
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
-import org.junit.Test
 
 class RunnerTest {
 
@@ -31,18 +32,9 @@ class RunnerTest {
 
         val program = getProgram("COUNTRT", systemInterface)
 
-        systemInterface.clearConsole()
-        program.singleCall(listOf())
-        assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
-
-        systemInterface.clearConsole()
-        program.singleCall(listOf())
-        assertEquals(systemInterface.consoleOutput, listOf("Counter: 2"))
-
-        systemInterface.clearConsole()
-
-        program.singleCall(listOf())
-        assertEquals(systemInterface.consoleOutput, listOf("Counter: 3"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 2"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 3"))
     }
 
     @Test
@@ -50,17 +42,21 @@ class RunnerTest {
         val systemInterface = JavaSystemInterface()
         val program = getProgram("COUNTLR", systemInterface)
 
-        systemInterface.clearConsole()
-        program.singleCall(listOf())
-        assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 1"))
+    }
 
-        systemInterface.clearConsole()
-        program.singleCall(listOf())
-        assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
+    @Test
+    fun exitingWithLRCleansStatus() {
+        val systemInterface = JavaSystemInterface()
+        val program = getProgram("COUNTLRRT", systemInterface)
 
-        systemInterface.clearConsole()
-        program.singleCall(listOf())
-        assertEquals(systemInterface.consoleOutput, listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program, listOf("RT")), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program, listOf("LR")), listOf("Counter: 2"))
+        assertEquals(systemInterface.outputOfSingleCall(program, listOf("RT")), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program, listOf("RT")), listOf("Counter: 2"))
+        assertEquals(systemInterface.outputOfSingleCall(program, listOf("RT")), listOf("Counter: 3"))
     }
 
     @Test
@@ -74,8 +70,7 @@ class RunnerTest {
 
         val program = getProgram(source, systemInterface)
 
-        program.singleCall(listOf())
-        assertEquals(systemInterface.consoleOutput, listOf("Hello World"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Hello World"))
     }
 
     @Test
@@ -91,8 +86,7 @@ class RunnerTest {
 
         val program = getProgram(source, systemInterface)
 
-        program.singleCall(listOf())
-        assertEquals(systemInterface.consoleOutput, listOf("Hello World!"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Hello World!"))
     }
 
     @Test
@@ -177,5 +171,11 @@ class RunnerTest {
         assertTrue(logOutputStream.written)
 
         println(logOutputStream)
+    }
+
+    fun JavaSystemInterface.outputOfSingleCall(program: CommandLineProgram, parameters: List<String> = emptyList()): List<String> {
+        clearConsole()
+        program.singleCall(parameters)
+        return consoleOutput
     }
 }
