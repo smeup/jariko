@@ -6,11 +6,11 @@ import com.smeup.rpgparser.interpreter.AssignmentsLogHandler
 import com.smeup.rpgparser.interpreter.EvalLogHandler
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.utils.StringOutputStream
+import org.junit.Test
 import java.io.PrintStream
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
-import org.junit.Test
 
 class RunnerTest {
 
@@ -32,9 +32,9 @@ class RunnerTest {
 
         val program = getProgram("COUNTRT", systemInterface)
 
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf()), listOf("Counter: 1"))
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf()), listOf("Counter: 2"))
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf()), listOf("Counter: 3"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 2"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 3"))
     }
 
     @Test
@@ -42,9 +42,9 @@ class RunnerTest {
         val systemInterface = JavaSystemInterface()
         val program = getProgram("COUNTLR", systemInterface)
 
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf()), listOf("Counter: 1"))
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf()), listOf("Counter: 1"))
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf()), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 1"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Counter: 1"))
     }
 
     @Test
@@ -70,7 +70,7 @@ class RunnerTest {
 
         val program = getProgram(source, systemInterface)
 
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf()), listOf("Hello World"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Hello World"))
     }
 
     @Test
@@ -86,7 +86,7 @@ class RunnerTest {
 
         val program = getProgram(source, systemInterface)
 
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf()), listOf("Hello World"))
+        assertEquals(systemInterface.outputOfSingleCall(program), listOf("Hello World!"))
     }
 
     @Test
@@ -173,7 +173,7 @@ class RunnerTest {
         println(logOutputStream)
     }
 
-    fun JavaSystemInterface.outputOfSingleCall(program: CommandLineProgram, parameters: List<String>): List<String> {
+    fun JavaSystemInterface.outputOfSingleCall(program: CommandLineProgram, parameters: List<String> = emptyList()): List<String> {
         clearConsole()
         program.singleCall(parameters)
         return consoleOutput
