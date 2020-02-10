@@ -58,5 +58,7 @@ Here is a screenshot on how the Visual Studio Code environment could work this w
         "editor.rulers": [5]
     },
 `
-    
+----
+At the end of this configuration, you should be able to execute the [FizzBuzz TDD Kata in RPGLE with MUTEs](https://www.youtube.com/watch?v=AvFv2CMFzbs&feature=youtu.be).     
+
     
