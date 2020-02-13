@@ -46,13 +46,11 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 // We split the string in substrings and copy each piece into
                 // an element of the array
 
-                var i = 0
                 val elementSize = type.element.size
                 createArrayValue(type.element, type.nElements) {
                     val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length))
                         .padEnd(elementSize)
                     val res = StringValue(valueForArray)
-                    i += elementSize
                     res
                 }
             } else {

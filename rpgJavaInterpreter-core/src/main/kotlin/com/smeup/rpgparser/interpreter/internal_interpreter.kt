@@ -1113,7 +1113,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
-
         return coercedValue
     }
 
@@ -1238,7 +1237,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 "Result must be an Array element"
             }
         }
-
         return assign(target, newValue)
     }
 
