@@ -48,9 +48,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
 
                 var i = 0
                 val elementSize = type.element.size
-                val valueForArray = value.value.padEnd(elementSize).take(elementSize)
                 createArrayValue(type.element, type.nElements) {
-                    val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length)).padEnd(elementSize)
+                    val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length))
+                        .padEnd(elementSize)
                     val res = StringValue(valueForArray)
                     i += elementSize
                     res
