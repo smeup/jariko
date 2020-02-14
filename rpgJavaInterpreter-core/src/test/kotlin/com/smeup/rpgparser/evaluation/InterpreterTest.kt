@@ -294,6 +294,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeMOVEA05() {
+        assertEquals(listOf("ABCD", "ABCD", "ABCD", "", "", ""), outputOf("MOVEA05"))
+    }
+
+    @Test
     fun executeARRAY10() {
         assertEquals(listOf("AB  CD  EF"), outputOf("ARRAY10"))
     }
