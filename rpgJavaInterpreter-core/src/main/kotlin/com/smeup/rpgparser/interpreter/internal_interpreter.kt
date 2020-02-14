@@ -1227,17 +1227,32 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun movea(target: AssignableExpression, value: Expression): Value {
-        var newValue = interpret(value)
-        if (target is DataRefExpr) {
+        return if (target is DataRefExpr) {
             require(target.type() is ArrayType) {
                 "Result must be an Array"
+            }
+            var newValue = interpret(value)
+            if (value !is FigurativeConstantRef) {
+                newValue = newValue.takeLast(target.size())
+                if (value.type().size < target.size()) {
+                    newValue = newValue.concatenate(
+                        get(target.variable.referred!!).takeLast((target.size() - value.type().size))
+                    )
+                }
+                val arrayValue = createArrayValue(target.type(), target.type().numberOfElements()) {
+                    val index = (it * target.type().elementSize()) + 1
+                    newValue.take(index, index + target.type().elementSize() - 1)
+                }
+                assign(target, arrayValue)
+            } else {
+                assign(target, newValue)
             }
         } else {
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
+            assign(target, interpret(value))
         }
-        return assign(target, newValue)
     }
 
     private fun move(target: AssignableExpression, value: Expression): Value {

@@ -21,6 +21,7 @@ abstract class Value {
     abstract fun assignableTo(expectedType: Type): Boolean
     open fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
     open fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
+    open fun take(from: Int, to: Int): Value = TODO("take not yet implemented for ${this.javaClass.simpleName}")
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
@@ -117,6 +118,11 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
         val s = value.substring(startOffset, endOffset)
         return StringValue(s)
     }
+
+    override fun take(from: Int, to: Int): Value {
+        return getSubstring(from - 1, to)
+    }
+
     override fun toString(): String {
         return "StringValue[${value.length}]($value)"
     }
@@ -442,9 +448,17 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
         }
     }
 
-    override fun hashCode(): Int {
-        return super.hashCode()
+    fun takeAll(): Value {
+        var result = elements[0]
+        for (i in 1 until elements.size) {
+            result = result.concatenate(elements[i])
+        }
+        return result
     }
+
+    override fun takeLast(n: Int): Value = takeAll().takeLast(n)
+
+    override fun takeFirst(n: Int): Value = takeAll().takeFirst(n)
 }
 
 object BlanksValue : Value() {

@@ -50,8 +50,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 createArrayValue(type.element, type.nElements) {
                     val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length))
                         .padEnd(elementSize)
-                    val res = StringValue(valueForArray)
-                    res
+                    StringValue(valueForArray)
                 }
             } else {
                 createArrayValue(type.element, type.nElements) {
