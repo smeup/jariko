@@ -1228,30 +1228,36 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun movea(target: AssignableExpression, value: Expression): Value {
         return if (target is DataRefExpr) {
-            moveaFullArray(target, value)
+            moveaFullArray(target, value, 1)
         } else {
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
-            assign(target, interpret(value))
+            moveaFullArray(target.array as DataRefExpr, value, (interpret(target.index) as IntValue).value.toInt())
         }
     }
 
-    private fun moveaFullArray(target: DataRefExpr, value: Expression): Value {
+    private fun moveaFullArray(target: DataRefExpr, value: Expression, startIndex: Int): Value {
         require(target.type() is ArrayType) {
             "Result must be an Array"
         }
         var newValue = interpret(value)
         return if (value !is FigurativeConstantRef) {
-            newValue = newValue.takeFirst(target.size())
-            if (value.type().size < target.size()) {
+            val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
+            newValue = newValue.takeFirst(realSize)
+            if (value.type().size < realSize) {
                 newValue = newValue.concatenate(
-                    get(target.variable.referred!!).takeLast((target.size() - value.type().size))
+                    get(target.variable.referred!!).takeLast((realSize - value.type().size))
                 )
             }
             val arrayValue = createArrayValue(target.type(), target.type().numberOfElements()) {
-                val index = (it * target.type().elementSize()) + 1
-                newValue.take(index, index + target.type().elementSize() - 1)
+                if (it < (startIndex - 1)) {
+                    get(target.variable.referred!!).asArray().getElement(it + 1)
+                } else {
+                    val index = it - startIndex + 1
+                    val startValue = (index * target.type().elementSize()) + 1
+                    newValue.take(startValue, startValue + target.type().elementSize() - 1)
+                }
             }
             assign(target, arrayValue)
         } else {

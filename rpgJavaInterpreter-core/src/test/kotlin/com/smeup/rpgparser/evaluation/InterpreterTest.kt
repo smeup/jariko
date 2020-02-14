@@ -288,12 +288,12 @@ class InterpreterTest {
         assertEquals(listOf("1234", "5678", "90CD"), outputOf("MOVEA02"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVEA03() {
         assertEquals(listOf("ABCD", "1234", "5678"), outputOf("MOVEA03"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVEA04() {
         assertEquals(listOf("ABCD", "1234", "56CD"), outputOf("MOVEA04"))
     }
