@@ -222,6 +222,10 @@ data class IntValue(val value: Long) : NumberValue() {
 
     fun increment() = IntValue(value + 1)
 
+    override fun takeFirst(n: Int): Value {
+        return IntValue(firstDigits(value, n))
+    }
+
     override fun takeLast(n: Int): Value {
         return IntValue(lastDigits(value, n))
     }
@@ -240,10 +244,6 @@ data class IntValue(val value: Long) : NumberValue() {
             localNr /= 10
         }
         return localNr * java.lang.Long.signum(n)
-    }
-
-    override fun takeFirst(n: Int): Value {
-        return IntValue(firstDigits(value, n))
     }
 
     override fun concatenate(other: Value): Value {
