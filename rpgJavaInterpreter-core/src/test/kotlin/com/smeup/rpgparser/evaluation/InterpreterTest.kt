@@ -199,6 +199,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeSQRT() {
+        assertEquals(listOf("489.76933346"), outputOf("SQRT"))
+    }
+
+    @Test
     fun executeHELLOVARST() {
         assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
     }
