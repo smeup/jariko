@@ -885,18 +885,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         } catch (e: IllegalArgumentException) {
             val message = e.toString()
             if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException(errorDescription(statement), e)
+                throw IllegalArgumentException(errorDescription(statement, e), e)
             }
             throw e
         } catch (e: NotImplementedError) {
-            throw RuntimeException(errorDescription(statement), e)
+            throw RuntimeException(errorDescription(statement, e), e)
         } catch (e: RuntimeException) {
-            throw RuntimeException(errorDescription(statement), e)
+            throw RuntimeException(errorDescription(statement, e), e)
         }
     }
 
-    private fun errorDescription(statement: Statement) =
-        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()}"
+    private fun errorDescription(statement: Statement, throwable: Throwable) =
+        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} - ${throwable.message}"
 
     private fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
