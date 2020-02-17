@@ -1242,7 +1242,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             "Result must be an Array"
         }
         var newValue = interpret(value)
-        return if (value !is FigurativeConstantRef) {
+        return if (value is FigurativeConstantRef) {
+            assign(target, newValue)
+        } else {
             val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
             newValue = newValue.takeFirst(realSize)
             if (value.type().size < realSize) {
@@ -1260,8 +1262,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
             }
             assign(target, arrayValue)
-        } else {
-            assign(target, newValue)
         }
     }
 
