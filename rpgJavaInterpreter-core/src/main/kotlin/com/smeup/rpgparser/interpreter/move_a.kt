@@ -2,6 +2,24 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
+fun move(target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+    when (target) {
+        is DataRefExpr -> {
+            var newValue = interpreterCoreHelper.interpret(value)
+            if (value !is FigurativeConstantRef) {
+                newValue = newValue.takeLast(target.size())
+                if (value.type().size < target.size()) {
+                    newValue =
+                        interpreterCoreHelper.get(target.variable.referred!!).takeFirst((target.size() - value.type().size))
+                            .concatenate(newValue)
+                }
+            }
+            return interpreterCoreHelper.assign(target, newValue)
+        }
+        else -> TODO()
+    }
+}
+
 fun movea(target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     return if (target is DataRefExpr) {
         moveaFullArray(target, value, 1, interpreterCoreHelper)

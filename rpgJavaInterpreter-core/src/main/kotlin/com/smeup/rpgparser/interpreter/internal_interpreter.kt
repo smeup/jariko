@@ -408,7 +408,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
                 }
                 is MoveStmt -> {
-                    val value = move(statement.target, statement.expression)
+                    val value = move(statement.target, statement.expression, this)
                     log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is MoveAStmt -> {
@@ -1223,24 +1223,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
             EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
-        }
-    }
-
-    private fun move(target: AssignableExpression, value: Expression): Value {
-        when (target) {
-            is DataRefExpr -> {
-                var newValue = interpret(value)
-                if (value !is FigurativeConstantRef) {
-                    newValue = newValue.takeLast(target.size())
-                    if (value.type().size < target.size()) {
-                        newValue =
-                            get(target.variable.referred!!).takeFirst((target.size() - value.type().size))
-                                .concatenate(newValue)
-                    }
-                }
-                return assign(target, newValue)
-            }
-            else -> TODO()
         }
     }
 
