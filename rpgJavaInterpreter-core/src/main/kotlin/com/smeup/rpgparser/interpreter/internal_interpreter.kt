@@ -1711,6 +1711,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     return StringValue(sourceString.replaceRange(startNr, (startNr + nrOfCharsToReplace), replString))
                 }
             }
+            is SqrtExpr -> {
+                val value = interpret(expression.value)
+                return DecimalValue(BigDecimal.valueOf(Math.sqrt(value.asDecimal().value.toDouble())))
+            }
             else -> TODO(expression.toString())
         }
     }
