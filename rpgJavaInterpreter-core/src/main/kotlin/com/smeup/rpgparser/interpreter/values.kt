@@ -246,6 +246,11 @@ data class IntValue(val value: Long) : NumberValue() {
         return localNr * java.lang.Long.signum(n)
     }
 
+    override fun take(from: Int, to: Int): Value =
+        firstDigits(value, to)
+            .let { lastDigits(it, (to - from) + 1) }
+            .let(::IntValue)
+
     override fun concatenate(other: Value): Value {
         require(other is IntValue) {
             "Cannot concatenate $value to $other"
