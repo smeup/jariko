@@ -32,29 +32,42 @@ fun movea(target: AssignableExpression, value: Expression, interpreterCoreHelper
 }
 
 private fun moveaFullArray(target: DataRefExpr, value: Expression, startIndex: Int, interpreterCoreHelper: InterpreterCoreHelper): Value {
-    require(target.type() is ArrayType) {
+    val targetType = target.type()
+    require(targetType is ArrayType) {
         "Result must be an Array"
     }
-    var newValue = interpreterCoreHelper.interpret(value)
     return if (value is FigurativeConstantRef) {
-        interpreterCoreHelper.assign(target, newValue)
+        interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(value))
     } else {
-        val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
-        newValue = newValue.takeFirst(realSize)
-        if (value.type().size < realSize) {
-            newValue = newValue.concatenate(
-                interpreterCoreHelper.get(target.variable.referred!!).takeLast((realSize - value.type().size))
-            )
-        }
-        val arrayValue = createArrayValue(target.type(), target.type().numberOfElements()) {
-            if (it < (startIndex - 1)) {
-                interpreterCoreHelper.get(target.variable.referred!!).asArray().getElement(it + 1)
-            } else {
-                val index = it - startIndex + 1
-                val startValue = (index * target.type().elementSize()) + 1
-                newValue.take(startValue, startValue + target.type().elementSize() - 1)
-            }
+        val arrayValue = when (targetType.element) {
+            is StringType -> moveaString(target, startIndex, interpreterCoreHelper, value)
+            else -> TODO()
         }
         interpreterCoreHelper.assign(target, arrayValue)
     }
+}
+
+private fun moveaString(
+    target: DataRefExpr,
+    startIndex: Int,
+    interpreterCoreHelper: InterpreterCoreHelper,
+    value: Expression
+): ConcreteArrayValue {
+    val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
+    var newValue = interpreterCoreHelper.interpret(value).takeFirst(realSize)
+    if (value.type().size < realSize) {
+        newValue = newValue.concatenate(
+            interpreterCoreHelper.get(target.variable.referred!!).takeLast((realSize - value.type().size))
+        )
+    }
+    val arrayValue = createArrayValue(target.type(), target.type().numberOfElements()) {
+        if (it < (startIndex - 1)) {
+            interpreterCoreHelper.get(target.variable.referred!!).asArray().getElement(it + 1)
+        } else {
+            val index = it - startIndex + 1
+            val startValue = (index * target.type().elementSize()) + 1
+            newValue.take(startValue, startValue + target.type().elementSize() - 1)
+        }
+    }
+    return arrayValue
 }
