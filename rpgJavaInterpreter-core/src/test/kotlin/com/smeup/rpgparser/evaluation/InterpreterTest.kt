@@ -289,8 +289,13 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeMOVEAC1() {
+    fun executeMOVEAC1_arrayToArrayOfChars() {
         assertEquals(listOf("123", "456", "789", "0DD"), outputOf("MOVEAC1"))
+    }
+
+    @Test
+    fun executeMOVEAC1_arrayToSubArrayOfChars() {
+        assertEquals(listOf("AAA", "123", "456", "789", "0EE"), outputOf("MOVEAC2"))
     }
 
     @Test
