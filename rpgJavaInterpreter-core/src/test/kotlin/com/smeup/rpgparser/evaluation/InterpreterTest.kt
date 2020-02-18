@@ -303,6 +303,11 @@ class InterpreterTest {
         assertEquals(listOf("345", "678", "90C", "DDD", "EEE"), outputOf("MOVEAC4"))
     }
 
+    @Test @Ignore
+    fun executeMOVEAC5_subArrayToSubArrayOfChars() {
+        assertEquals(listOf("AAA", "345", "678", "90D", "EEE"), outputOf("MOVEAC5"))
+    }
+
     @Test
     fun executeMOVEA01B() {
         assertEquals(listOf("ABCD", "ABCD", "1234", "5678"), outputOf("MOVEA01B"))
