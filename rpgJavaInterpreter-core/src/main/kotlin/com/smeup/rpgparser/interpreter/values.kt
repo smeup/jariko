@@ -592,6 +592,10 @@ class ProjectedArrayValue(
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
 
+fun List<Value>.asConcreteArrayValue(elementType: Type) = createArrayValue(elementType, size) {
+    this[it + 1]
+}
+
 fun blankString(length: Int) = StringValue(" ".repeat(length))
 
 fun Long.asValue() = IntValue(this)

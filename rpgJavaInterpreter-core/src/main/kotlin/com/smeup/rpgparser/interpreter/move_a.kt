@@ -41,11 +41,57 @@ private fun moveaFullArray(target: DataRefExpr, value: Expression, startIndex: I
     } else {
         val arrayValue = when (targetType.element) {
             is StringType -> moveaString(target, startIndex, interpreterCoreHelper, value)
+            is NumberType -> moveaNumber(target, startIndex, interpreterCoreHelper, value)
             else -> TODO()
         }
         interpreterCoreHelper.assign(target, arrayValue)
     }
 }
+
+private fun moveaNumber(
+    target: DataRefExpr,
+    startIndex: Int,
+    interpreterCoreHelper: InterpreterCoreHelper,
+    value: Expression
+): ConcreteArrayValue {
+    var newValue = interpreterCoreHelper.toArray(value)
+    val targetArray = interpreterCoreHelper.get(target.variable.referred!!).asArray()
+    val arrayValue = createArrayValue(target.type(), target.type().numberOfElements()) {
+        if (it < (startIndex - 1)) {
+            targetArray.getElement(it + 1)
+        } else {
+            val newValueIndex = it - startIndex + 1
+            if (newValueIndex < newValue.elements.size) {
+                newValue.elements[newValueIndex]
+            } else {
+                targetArray.getElement(it + 1)
+            }
+        }
+    }
+    return arrayValue
+}
+
+private fun InterpreterCoreHelper.toArray(expression: Expression): ConcreteArrayValue =
+    when (expression) {
+        is ArrayAccessExpr -> {
+            val arrayValueRaw = interpret(expression.array)
+            val arrayValue = arrayValueRaw as? ArrayValue
+                ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
+            val indexValue = interpret(expression.index).asInt().value.toInt()
+            arrayValue
+                .elements()
+                .slice((indexValue - 1)..arrayValue.arrayLength())
+                .asConcreteArrayValue(arrayValue.elementType)
+        }
+        is DataRefExpr -> {
+            if (expression.type() is ArrayType) {
+                interpret(expression) as ConcreteArrayValue
+            } else {
+                ConcreteArrayValue(mutableListOf(interpret(expression)), expression.type())
+            }
+        }
+        else -> ConcreteArrayValue(mutableListOf(interpret(expression)), expression.type())
+    }
 
 private fun moveaString(
     target: DataRefExpr,

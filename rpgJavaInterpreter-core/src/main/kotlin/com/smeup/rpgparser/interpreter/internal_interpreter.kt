@@ -1265,9 +1265,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     override fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
         if (expression !is StringLiteral && expression !is IntLiteral &&
-            expression !is DataRefExpr && expression !is BlanksRefExpr
-        )
+            expression !is DataRefExpr && expression !is BlanksRefExpr) {
             log(ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value))
+        }
         return value
     }
 
