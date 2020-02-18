@@ -22,10 +22,17 @@
      C                   ENDDO
     MU* VAL1(AAA010) VAL2('DONE!') COMP(EQ)
      C                   DSPLY                   AAA010
-     C  N50              DO        2
+     C   52
+     CANN50              DO        2
      C                   EVAL      AAA010='OK!'
      C                   ENDDO
     MU* VAL1(AAA010) VAL2('DONE!') COMP(EQ)
+     C                   DSPLY                   AAA010
+     C   52
+     CORN50              DO        2
+     C                   EVAL      AAA010='YES'
+     C                   ENDDO
+    MU* VAL1(AAA010) VAL2('YES') COMP(EQ)
      C                   DSPLY                   AAA010
       *
      C                   SETON                                        LR
