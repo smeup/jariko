@@ -8,8 +8,22 @@
       *---------------------------------------------------------------
      D* M A I N
       *---------------------------------------------------------------
-     D AAA010          S             10     INZ('TEST')
-     C                   SETOFF                                       50
-     C   50              DSPLY                   AAA010
+      * Set off indicators 01-99
+    MU* VAL1(*IN01) VAL2('0') COMP(EQ)
+    MU* VAL1(*IN99) VAL2('0') COMP(EQ)
+     C                   MOVEA     *ALL'0'       *IN(01)
+      * Set on indicators 01-99
+    MU* VAL1(*IN01) VAL2('1') COMP(EQ)
+    MU* VAL1(*IN99) VAL2('1') COMP(EQ)
+     C                   MOVEA     *ALL'1'       *IN(01)
+      * Set off indicators 01-99
+    MU* VAL1(*IN01) VAL2('0') COMP(EQ)
+    MU* VAL1(*IN99) VAL2('0') COMP(EQ)
+     C                   MOVEA     *ALL'0'       *IN
+      * Set on indicators 20-99
+    MU* VAL1(*IN01) VAL2('0') COMP(EQ)
+    MU* VAL1(*IN20) VAL2('1') COMP(EQ)
+    MU* VAL1(*IN99) VAL2('1') COMP(EQ)
+     C                   MOVEA     *ALL'1'       *IN(20)
      C                   SETON                                        LR
       *---------------------------------------------------------------
