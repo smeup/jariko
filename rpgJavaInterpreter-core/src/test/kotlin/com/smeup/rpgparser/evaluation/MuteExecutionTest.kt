@@ -132,6 +132,11 @@ class MuteExecutionTest {
         assertMuteExecutionSucceded("mute/MUTE09_04", 115)
     }
 
+    @Test @Ignore
+    fun executeMUTE13_13() {
+        assertMuteExecutionSucceded("mute/MUTE13_13", 115)
+    }
+
     @Test
     // this program tests operations on arrays of unequal size (simplified version of MUTE09_04 without MOVEA)
     fun executeMUTE09_05() {
