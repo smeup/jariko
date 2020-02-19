@@ -84,7 +84,7 @@ class MuteExecutionTest {
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
         val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
-        assertEquals("This code should not be executed", muteAnnotationExecuted.headerDescription())
+        assertTrue(muteAnnotationExecuted.headerDescription().startsWith("This code should not be executed"))
     }
 
     @Test
@@ -96,7 +96,7 @@ class MuteExecutionTest {
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
         val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
-        assertEquals("Failure message", muteAnnotationExecuted.headerDescription())
+        assertTrue(muteAnnotationExecuted.headerDescription().startsWith("Failure message"))
     }
 
     @Test
