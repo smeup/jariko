@@ -229,7 +229,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
                 if (value != null) {
                     set(it, coerce(value, it.type))
-                    executeMutes(it.muteAnnotations, compilationUnit)
+                    executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
                 }
             }
         } else {
@@ -315,10 +315,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun executeWithMute(statement: Statement) {
         log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
         execute(statement)
-        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!)
+        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!, statement.position.line())
     }
 
-    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit) {
+    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit, line: String) {
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
@@ -349,7 +349,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             it.val2,
                             value,
                             value1,
-                            value2
+                            value2,
+                            line
                         )
                     )
                 }
@@ -366,7 +367,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         it.position!!.start.line,
                         MuteFailAnnotationExecuted(
                             this.interpretationContext.currentProgramName,
-                            message
+                            message,
+                            line
                         )
                     )
                 }
