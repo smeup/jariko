@@ -298,6 +298,16 @@ class InterpreterTest {
         assertEquals(listOf("ABCD", "1234", "56CD"), outputOf("MOVEA04"))
     }
 
+    @Test @Ignore
+    fun executeXFOOT1() {
+        assertEquals(listOf("15.3"), outputOf("XFOOT1"))
+    }
+
+    @Test @Ignore
+    fun executeXFOOT2DEF_creatingVariable() {
+        assertEquals(listOf("15.3"), outputOf("XFOOT2DEF"))
+    }
+
     @Test
     fun executeARRAY10() {
         assertEquals(listOf("AB  CD  EF"), outputOf("ARRAY10"))
