@@ -59,7 +59,7 @@ fileList.each do |file|
     name = file.split('.')
     localName = name.last
     ftp.gettextfile(file, localName)
-    (system("iconv -f WINDOWS-1252 -t UTF-8 #{localName} >> #{localName}.rpgle") and File.delete(localName)) or
+    (system("iconv -f WINDOWS-1252 -t UTF-8 #{localName} > #{localName}.rpgle") and File.delete(localName)) or
     puts "iconv failed for file #{localName}: #{$?}"
 end
 ftp.close
