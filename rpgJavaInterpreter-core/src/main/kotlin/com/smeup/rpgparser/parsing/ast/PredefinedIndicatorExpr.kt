@@ -6,7 +6,7 @@ import com.strumenta.kolasu.model.Position
 data class PredefinedIndicatorExpr(val index: Int, override val position: Position? = null) :
     AssignableExpression(position) {
     init {
-        require(index in 1..99) { "Index value not in range 1 to 99 at $position" }
+        require(index in 1..99) { "Indicator not in range 01 to 99 at $position" }
     }
     override fun size(): Int = 1
 }
