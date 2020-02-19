@@ -896,7 +896,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun errorDescription(statement: Statement, throwable: Throwable) =
-        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} - ${throwable.message}"
+        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
     private fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {

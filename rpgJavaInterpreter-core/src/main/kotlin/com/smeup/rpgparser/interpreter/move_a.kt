@@ -56,7 +56,7 @@ private fun moveaNumber(
 ): ConcreteArrayValue {
     var newValue = interpreterCoreHelper.toArray(value)
     val targetArray = interpreterCoreHelper.get(target.variable.referred!!).asArray()
-    val arrayValue = createArrayValue(target.type(), target.type().numberOfElements()) {
+    val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
         if (it < (startIndex - 1)) {
             targetArray.getElement(it + 1)
         } else {
@@ -106,7 +106,7 @@ private fun moveaString(
             interpreterCoreHelper.get(target.variable.referred!!).takeLast((realSize - value.type().size))
         )
     }
-    val arrayValue = createArrayValue(target.type(), target.type().numberOfElements()) {
+    val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
         if (it < (startIndex - 1)) {
             interpreterCoreHelper.get(target.variable.referred!!).asArray().getElement(it + 1)
         } else {

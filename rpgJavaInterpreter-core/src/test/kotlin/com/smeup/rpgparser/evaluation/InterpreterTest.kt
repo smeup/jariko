@@ -339,6 +339,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeEVALARRAY1() {
+        assertEquals(listOf("ABCDEFGHIL", "ABCDEFGHIL", "ABCDEFGHIL", "  XXXXXXXXXXXXXXXXXX"), outputOf("EVALARRAY1"))
+    }
+
+    @Test
     fun executeSTRNOTVA() {
         assertEquals(listOf("AB  CD  EF"), outputOf("STRNOTVA"))
     }

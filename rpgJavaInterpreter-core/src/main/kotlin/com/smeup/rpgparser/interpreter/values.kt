@@ -421,6 +421,11 @@ abstract class ArrayValue : Value() {
 }
 
 data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
+    init {
+        require(elementType !is ArrayType) {
+            "An array can't contain another array"
+        }
+    }
 
     override fun elementSize() = elementType.size
 
@@ -429,7 +434,12 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
-        require(value.assignableTo(elementType))
+        if (!value.assignableTo(elementType)) {
+            println("boom")
+        }
+        require(value.assignableTo(elementType)) {
+            "Cannot assign ${value::class.qualifiedName} to ${elementType::class.qualifiedName}"
+        }
         if (elementType is StringType && !elementType.varying) {
             val v = (value as StringValue).copy()
             v.pad(elementType.length)
