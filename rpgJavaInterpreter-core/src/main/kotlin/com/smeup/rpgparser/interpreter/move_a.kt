@@ -21,24 +21,26 @@ fun move(target: AssignableExpression, value: Expression, interpreterCoreHelper:
 }
 
 fun movea(target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
-    if (target.position?.start?.line == 244) {
-        println("xx")
-    }
-    return if (target is DataRefExpr) {
-        moveaFullArray(target, valueExpression, 1, interpreterCoreHelper)
-    } else if (target is PredefinedGlobalIndicatorExpr) {
-        interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
-    } else if (target is PredefinedIndicatorExpr) {
-        val value = interpreterCoreHelper.interpret(valueExpression)
-        for (index in target.index..ALL_PREDEFINED_INDEXES.last) {
-            interpreterCoreHelper.assign(PredefinedIndicatorExpr(index), value)
+    return when (target) {
+        is DataRefExpr -> {
+            moveaFullArray(target, valueExpression, 1, interpreterCoreHelper)
         }
-        value
-    } else {
-        require(target is ArrayAccessExpr) {
-            "Result must be an Array element"
+        is PredefinedGlobalIndicatorExpr -> {
+            interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
         }
-        moveaFullArray(target.array as DataRefExpr, valueExpression, (interpreterCoreHelper.interpret(target.index) as IntValue).value.toInt(), interpreterCoreHelper)
+        is PredefinedIndicatorExpr -> {
+            val value = interpreterCoreHelper.interpret(valueExpression)
+            for (index in target.index..ALL_PREDEFINED_INDEXES.last) {
+                interpreterCoreHelper.assign(PredefinedIndicatorExpr(index), value)
+            }
+            value
+        }
+        else -> {
+            require(target is ArrayAccessExpr) {
+                "Result must be an Array element"
+            }
+            moveaFullArray(target.array as DataRefExpr, valueExpression, (interpreterCoreHelper.interpret(target.index) as IntValue).value.toInt(), interpreterCoreHelper)
+        }
     }
 }
 
