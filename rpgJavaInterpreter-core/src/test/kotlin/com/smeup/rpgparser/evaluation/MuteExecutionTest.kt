@@ -128,7 +128,7 @@ class MuteExecutionTest {
     // FIXME: We need to implement MOVEA
     @Test @Ignore
     fun executeMUTE09_04_operations_on_arrays_of_unequal_size_with_MOVEA() {
-        assertMuteExecutionSucceded("mute/MUTE09_04", 115)
+        assertMuteExecutionSucceded("mute/MUTE09_04", 116)
     }
 
     @Test
