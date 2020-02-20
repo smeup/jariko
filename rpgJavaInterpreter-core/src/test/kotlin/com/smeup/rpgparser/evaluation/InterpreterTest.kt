@@ -279,6 +279,21 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeMOVEAMUT13() {
+        assertEquals(listOf("ABCDEFGHIL         1",
+                            "BBBBBBBBBBBBBBBBBBBB",
+                            "AAAAAAAAAAAAAAAAAAAA",
+                            "  ABCDEFGHILMNOPQRST",
+                            "  ABCDEFGHILMNOPQRST",
+                            "XXXXXXXXXXXXXXXXXXXX",
+                            "XXXXXXXXXXXXXXXXXXXX",
+                            "XXXXXXXXXXXXXXXXXXXX",
+                            "XXXXXXXXXXXXXXXXXXXX",
+                            "XXXXXXXXXXXXXXXXXXXX"),
+            outputOf("MOVEAMUT13"))
+    }
+
+    @Test
     fun executeMOVEA01() {
         assertEquals(listOf("ABCD", "ABCD", "ABCD", "CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
     }
