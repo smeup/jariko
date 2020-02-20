@@ -293,7 +293,7 @@ class InterpreterTest {
             outputOf("MOVEAMUT13"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVEAP0904_p_with_chars() {
         assertEquals(listOf("ABCDEFGHIL",
             "",

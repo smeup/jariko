@@ -111,6 +111,7 @@ data class MoveStmt(
     Statement(position)
 
 data class MoveAStmt(
+    val operationExtender: String?,
     val target: AssignableExpression,
     var expression: Expression,
     override val position: Position? = null

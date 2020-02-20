@@ -20,10 +20,10 @@ fun move(target: AssignableExpression, value: Expression, interpreterCoreHelper:
     }
 }
 
-fun movea(target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     return when (target) {
         is DataRefExpr -> {
-            moveaFullArray(target, valueExpression, 1, interpreterCoreHelper)
+            moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCoreHelper)
         }
         is PredefinedGlobalIndicatorExpr -> {
             interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
@@ -39,12 +39,12 @@ fun movea(target: AssignableExpression, valueExpression: Expression, interpreter
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
-            moveaFullArray(target.array as DataRefExpr, valueExpression, (interpreterCoreHelper.interpret(target.index) as IntValue).value.toInt(), interpreterCoreHelper)
+            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCoreHelper.interpret(target.index) as IntValue).value.toInt(), interpreterCoreHelper)
         }
     }
 }
 
-private fun moveaFullArray(target: DataRefExpr, value: Expression, startIndex: Int, interpreterCoreHelper: InterpreterCoreHelper): Value {
+private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCoreHelper: InterpreterCoreHelper): Value {
     val targetType = target.type()
     require(targetType is ArrayType) {
         "Result must be an Array"
@@ -53,7 +53,7 @@ private fun moveaFullArray(target: DataRefExpr, value: Expression, startIndex: I
         interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(value))
     } else {
         val arrayValue = when (targetType.element) {
-            is StringType -> moveaString(target, startIndex, interpreterCoreHelper, value)
+            is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCoreHelper, value)
             is NumberType -> moveaNumber(target, startIndex, interpreterCoreHelper, value)
             else -> TODO()
         }
@@ -107,6 +107,7 @@ private fun InterpreterCoreHelper.toArray(expression: Expression): ConcreteArray
     }
 
 private fun moveaString(
+    operationExtenter: String?,
     target: DataRefExpr,
     startIndex: Int,
     interpreterCoreHelper: InterpreterCoreHelper,
@@ -115,9 +116,13 @@ private fun moveaString(
     val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
     var newValue = interpreterCoreHelper.interpret(value).takeFirst(realSize)
     if (value.type().size < realSize) {
-        newValue = newValue.concatenate(
-            interpreterCoreHelper.get(target.variable.referred!!).takeLast((realSize - value.type().size))
-        )
+        val other =
+            if (operationExtenter == null) {
+                interpreterCoreHelper.get(target.variable.referred!!).takeLast((realSize - value.type().size))
+            } else {
+                StringValue(" ".repeat((realSize - value.type().size)))
+            }
+        newValue = newValue.concatenate(other)
     }
     val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
         if (it < (startIndex - 1)) {

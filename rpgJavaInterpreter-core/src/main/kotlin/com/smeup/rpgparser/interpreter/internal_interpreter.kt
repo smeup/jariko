@@ -414,7 +414,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is MoveAStmt -> {
-                    val value = movea(statement.target, statement.expression, this)
+                    val value = movea(statement.operationExtender, statement.target, statement.expression, this)
                     log(MoveAStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is MoveLStmt -> {
