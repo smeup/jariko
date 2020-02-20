@@ -293,6 +293,21 @@ class InterpreterTest {
             outputOf("MOVEAMUT13"))
     }
 
+    @Test @Ignore
+    fun executeMOVEAP0904_p_with_chars() {
+        assertEquals(listOf("ABCDEFGHIL",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""),
+            outputOf("MOVEAP0904"))
+    }
+
     @Test
     fun executeMOVEA01() {
         assertEquals(listOf("ABCD", "ABCD", "ABCD", "CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
