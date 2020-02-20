@@ -84,7 +84,7 @@ class MuteExecutionTest {
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
         val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
-        assertEquals("This code should not be executed", muteAnnotationExecuted.headerDescription())
+        assertTrue(muteAnnotationExecuted.headerDescription().startsWith("This code should not be executed"))
     }
 
     @Test
@@ -96,7 +96,7 @@ class MuteExecutionTest {
         assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
         val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
-        assertEquals("Failure message", muteAnnotationExecuted.headerDescription())
+        assertTrue(muteAnnotationExecuted.headerDescription().startsWith("Failure message"))
     }
 
     @Test
@@ -125,16 +125,19 @@ class MuteExecutionTest {
         assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
     }
 
-    // FIXME: We need to implement MOVEA
-    @Test @Ignore
-    // this program tests operations on arrays of unequal size
-    fun executeMUTE09_04() {
-        assertMuteExecutionSucceded("mute/MUTE09_04", 115)
+    @Test
+    fun executeMUTE09_04_operations_on_arrays_of_unequal_size_with_MOVEA() {
+        assertMuteExecutionSucceded("mute/MUTE09_04", 116)
     }
 
     @Test
-    // this program tests operations on arrays of unequal size (simplified version of MUTE09_04 without MOVEA)
-    fun executeMUTE09_05() {
+    fun executeMUTE13_13() {
+        assertMuteExecutionSucceded("mute/MUTE13_13", 9)
+    }
+
+    @Test
+    // Simplified version of MUTE09_04 without MOVEA
+    fun executeMUTE09_05_operations_on_arrays_of_unequal_size() {
         assertMuteExecutionSucceded("mute/MUTE09_05", 46)
     }
 
@@ -144,8 +147,7 @@ class MuteExecutionTest {
     }
 
     @Test @Ignore
-    // this program tests procedures
-    fun executeMUTE15_01() {
+    fun executeMUTE15_01_procedures() {
         assertMuteExecutionSucceded("mute/MUTE15_01", 14)
     }
 

@@ -62,10 +62,10 @@ private fun NumberValue.numberToString(): Value {
 
 fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     val valueType = value.type()
-    if (target.type() is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
+    if (baseType(target.type()) is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
         return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
     }
-    if (target.type() is NumberType && (valueType is NumberType || valueType is FigurativeType)) {
+    if (baseType(target.type()) is NumberType && (valueType is NumberType || valueType is FigurativeType)) {
         return assignNumberToNumber(operationExtender, target, value, interpreterCoreHelper)
     }
     throw IllegalArgumentException("Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}")
