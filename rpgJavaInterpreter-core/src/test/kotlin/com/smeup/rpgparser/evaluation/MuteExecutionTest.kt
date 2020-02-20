@@ -137,7 +137,7 @@ class MuteExecutionTest {
     }
 
     @Test
-    //e (simplified version of MUTE09_04 without MOVEA)
+    // Simplified version of MUTE09_04 without MOVEA
     fun executeMUTE09_05_operations_on_arrays_of_unequal_size() {
         assertMuteExecutionSucceded("mute/MUTE09_05", 46)
     }

@@ -229,7 +229,7 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
 open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
-    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -256,7 +256,7 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
         if (printOutput) println(value)
     }
 
-    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
         return this.executedAnnotationInternal
     }
 

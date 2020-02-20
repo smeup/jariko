@@ -21,6 +21,9 @@ fun move(target: AssignableExpression, value: Expression, interpreterCoreHelper:
 }
 
 fun movea(target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+    if (target.position?.start?.line == 244) {
+        println("xx")
+    }
     return if (target is DataRefExpr) {
         moveaFullArray(target, valueExpression, 1, interpreterCoreHelper)
     } else if (target is PredefinedGlobalIndicatorExpr) {
