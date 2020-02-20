@@ -2,7 +2,6 @@ package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
-import org.junit.Ignore
 import org.junit.Test
 
 class RpgParserSmokeTest {
@@ -197,7 +196,7 @@ class RpgParserSmokeTest {
         assertCanBeParsed("MOVELSTR")
     }
 
-    @Test @Ignore
+    @Test
     fun parseMUTE13_13_indicatorsWithParenthesis() {
         assertCanBeParsed("mute/MUTE13_13")
         assertASTCanBeProduced("mute/MUTE13_13", true)

@@ -172,7 +172,7 @@ internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
     } else if (text.startsWith("\'")) {
         StringLiteral(text, position)
     } else {
-        referenceToExpression(text, position)
+        annidatedReferenceExpression(text, position)
     }
 }
 
@@ -263,9 +263,12 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
     }
 }
 
-// FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
-//        in the grammar
-internal fun referenceToExpression(text: String, position: Position?): Expression {
+private fun annidatedReferenceExpression(
+    text: String,
+    position: Position?
+): AssignableExpression {
+    // FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
+    //        in the grammar
     if (text.toUpperCase() == "*IN") {
         return PredefinedGlobalIndicatorExpr(position)
     }
@@ -277,13 +280,6 @@ internal fun referenceToExpression(text: String, position: Position?): Expressio
         val index = text.toUpperCase().removePrefix("*IN").toInt()
         return PredefinedIndicatorExpr(index, position)
     }
-    return annidatedReferenceExpression(text, position)
-}
-
-private fun annidatedReferenceExpression(
-    text: String,
-    position: Position?
-): AssignableExpression {
     var expr: Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
         DataRefExpr(ReferenceByName(varName), position)
@@ -381,7 +377,7 @@ internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 internal fun CsTIMEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TimeStmt {
     val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
-    return TimeStmt(referenceToExpression(name, toPosition(conf.considerPosition)), position)
+    return TimeStmt(annidatedReferenceExpression(name, toPosition(conf.considerPosition)), position)
 }
 
 fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
@@ -678,7 +674,7 @@ internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val name = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
     return ClearStmt(
-            referenceToExpression(name, toPosition(conf.considerPosition)),
+            annidatedReferenceExpression(name, toPosition(conf.considerPosition)),
             this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf),
             position)
 }
