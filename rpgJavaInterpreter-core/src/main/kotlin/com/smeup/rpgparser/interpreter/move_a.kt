@@ -20,14 +20,22 @@ fun move(target: AssignableExpression, value: Expression, interpreterCoreHelper:
     }
 }
 
-fun movea(target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+fun movea(target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
     return if (target is DataRefExpr) {
-        moveaFullArray(target, value, 1, interpreterCoreHelper)
+        moveaFullArray(target, valueExpression, 1, interpreterCoreHelper)
+    } else if (target is PredefinedGlobalIndicatorExpr) {
+        interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
+    } else if (target is PredefinedIndicatorExpr) {
+        val value = interpreterCoreHelper.interpret(valueExpression)
+        for (index in target.index..ALL_PREDEFINED_INDEXES.last) {
+            interpreterCoreHelper.assign(PredefinedIndicatorExpr(index), value)
+        }
+        value
     } else {
         require(target is ArrayAccessExpr) {
             "Result must be an Array element"
         }
-        moveaFullArray(target.array as DataRefExpr, value, (interpreterCoreHelper.interpret(target.index) as IntValue).value.toInt(), interpreterCoreHelper)
+        moveaFullArray(target.array as DataRefExpr, valueExpression, (interpreterCoreHelper.interpret(target.index) as IntValue).value.toInt(), interpreterCoreHelper)
     }
 }
 
