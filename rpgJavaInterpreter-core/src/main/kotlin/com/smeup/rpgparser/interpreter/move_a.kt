@@ -54,7 +54,7 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
     } else {
         val arrayValue = when (targetType.element) {
             is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCoreHelper, value)
-            is NumberType -> moveaNumber(target, startIndex, interpreterCoreHelper, value)
+            is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCoreHelper, value)
             else -> TODO()
         }
         interpreterCoreHelper.assign(target, arrayValue)
@@ -62,6 +62,7 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
 }
 
 private fun moveaNumber(
+    operationExtenter: String?,
     target: DataRefExpr,
     startIndex: Int,
     interpreterCoreHelper: InterpreterCoreHelper,
@@ -77,7 +78,11 @@ private fun moveaNumber(
             if (newValueIndex < newValue.elements.size) {
                 newValue.elements[newValueIndex]
             } else {
-                targetArray.getElement(it + 1)
+                if (operationExtenter == null) {
+                    targetArray.getElement(it + 1)
+                } else {
+                    IntValue.ZERO
+                }
             }
         }
     }

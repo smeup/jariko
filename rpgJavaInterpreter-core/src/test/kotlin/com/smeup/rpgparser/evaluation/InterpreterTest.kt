@@ -309,6 +309,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeMOVEAPNBR_p_with_Numbers() {
+        assertEquals(listOf("10", "11", "12", "10", "0"), outputOf("MOVEAPNBR"))
+    }
+
+    @Test
     fun executeMOVEA01() {
         assertEquals(listOf("ABCD", "ABCD", "ABCD", "CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
     }
