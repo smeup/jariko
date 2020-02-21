@@ -229,7 +229,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
                 if (value != null) {
                     set(it, coerce(value, it.type))
-                    executeMutes(it.muteAnnotations, compilationUnit)
+                    executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
                 }
             }
         } else {
@@ -315,10 +315,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun executeWithMute(statement: Statement) {
         log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
         execute(statement)
-        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!)
+        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!, statement.position.line())
     }
 
-    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit) {
+    private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit, line: String) {
         muteAnnotations.forEach {
             it.resolveAndValidate(compilationUnit)
             when (it) {
@@ -349,7 +349,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             it.val2,
                             value,
                             value1,
-                            value2
+                            value2,
+                            line
                         )
                     )
                 }
@@ -366,7 +367,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         it.position!!.start.line,
                         MuteFailAnnotationExecuted(
                             this.interpretationContext.currentProgramName,
-                            message
+                            message,
+                            line
                         )
                     )
                 }
@@ -408,11 +410,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log(EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result))
                 }
                 is MoveStmt -> {
-                    val value = move(statement.target, statement.expression)
+                    val value = move(statement.target, statement.expression, this)
                     log(MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is MoveAStmt -> {
-                    val value = movea(statement.target, statement.expression)
+                    val value = movea(statement.operationExtender, statement.target, statement.expression, this)
                     log(MoveAStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value))
                 }
                 is MoveLStmt -> {
@@ -885,18 +887,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         } catch (e: IllegalArgumentException) {
             val message = e.toString()
             if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException(errorDescription(statement), e)
+                throw IllegalArgumentException(errorDescription(statement, e), e)
             }
             throw e
         } catch (e: NotImplementedError) {
-            throw RuntimeException(errorDescription(statement), e)
+            throw RuntimeException(errorDescription(statement, e), e)
         } catch (e: RuntimeException) {
-            throw RuntimeException(errorDescription(statement), e)
+            throw RuntimeException(errorDescription(statement, e), e)
         }
     }
 
-    private fun errorDescription(statement: Statement) =
-        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()}"
+    private fun errorDescription(statement: Statement, throwable: Throwable) =
+        "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
     private fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
@@ -1113,7 +1115,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
-
         return coercedValue
     }
 
@@ -1227,39 +1228,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun movea(target: AssignableExpression, value: Expression): Value {
-        var newValue = interpret(value)
-        if (target is DataRefExpr) {
-            require(target.type() is ArrayType) {
-                "Result must be an Array"
-            }
-        } else {
-            require(target is ArrayAccessExpr) {
-                "Result must be an Array element"
-            }
-        }
-
-        return assign(target, newValue)
-    }
-
-    private fun move(target: AssignableExpression, value: Expression): Value {
-        when (target) {
-            is DataRefExpr -> {
-                var newValue = interpret(value)
-                if (value !is FigurativeConstantRef) {
-                    newValue = newValue.takeLast(target.size())
-                    if (value.type().size < target.size()) {
-                        newValue =
-                            get(target.variable.referred!!).takeFirst((target.size() - value.type().size))
-                                .concatenate(newValue)
-                    }
-                }
-                return assign(target, newValue)
-            }
-            else -> TODO()
-        }
-    }
-
     private fun add(statement: AddStmt): Value {
         val addend1 = interpret(statement.addend1)
         require(addend1 is NumberValue) {
@@ -1299,9 +1267,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     override fun interpret(expression: Expression): Value {
         val value = interpretConcrete(expression)
         if (expression !is StringLiteral && expression !is IntLiteral &&
-            expression !is DataRefExpr && expression !is BlanksRefExpr
-        )
+            expression !is DataRefExpr && expression !is BlanksRefExpr) {
             log(ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value))
+        }
         return value
     }
 

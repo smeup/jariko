@@ -140,4 +140,8 @@ class ExpressionsTest {
     @test fun parseQualifiedDsAccessAsAssignmentTarget() {
         assertExpressionCanBeParsed("DS1.AR2=*ON")
     }
+
+    @test fun parseIndicatorsInParenthesis() {
+        assertExpressionCanBeParsed("X=*IN(01)")
+    }
 }

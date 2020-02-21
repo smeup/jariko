@@ -278,22 +278,87 @@ class InterpreterTest {
         assertEquals(listOf("aaaaa"), outputOf("MOVEL05"))
     }
 
-    @Test @Ignore
+    @Test
+    fun executeMOVEAMUT13() {
+        assertEquals(listOf("ABCDEFGHIL         1",
+                            "BBBBBBBBBBBBBBBBBBBB",
+                            "AAAAAAAAAAAAAAAAAAAA",
+                            "  ABCDEFGHILMNOPQRST",
+                            "  ABCDEFGHILMNOPQRST",
+                            "XXXXXXXXXXXXXXXXXXXX",
+                            "XXXXXXXXXXXXXXXXXXXX",
+                            "XXXXXXXXXXXXXXXXXXXX",
+                            "XXXXXXXXXXXXXXXXXXXX",
+                            "XXXXXXXXXXXXXXXXXXXX"),
+            outputOf("MOVEAMUT13"))
+    }
+
+    @Test
+    fun executeMOVEAP0904_p_with_chars() {
+        assertEquals(listOf("ABCDEFGHIL",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""),
+            outputOf("MOVEAP0904"))
+    }
+
+    @Test
+    fun executeMOVEAPNBR_p_with_Numbers() {
+        assertEquals(listOf("10", "11", "12", "10", "0"), outputOf("MOVEAPNBR"))
+    }
+
+    @Test
     fun executeMOVEA01() {
-        assertEquals(listOf("CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
+        assertEquals(listOf("ABCD", "ABCD", "ABCD", "CDCD", "ABCD", "ABCD"), outputOf("MOVEA01"))
+    }
+
+    @Test
+    fun executeMOVEA01NBR() {
+        assertEquals(listOf("1234", "1234", "56", "1234"), outputOf("MOVEA01NBR"))
+    }
+
+    @Test
+    fun executeMOVEAC1_arrayToArrayOfChars() {
+        assertEquals(listOf("123", "456", "789", "0DD"), outputOf("MOVEAC1"))
+    }
+
+    @Test
+    fun executeMOVEAC2_arrayToSubArrayOfChars() {
+        assertEquals(listOf("AAA", "123", "456", "789", "0EE"), outputOf("MOVEAC2"))
     }
 
     @Test @Ignore
+    fun executeMOVEAC4_subArrayToArrayOfChars() {
+        assertEquals(listOf("345", "678", "90C", "DDD", "EEE"), outputOf("MOVEAC4"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEAC5_subArrayToSubArrayOfChars() {
+        assertEquals(listOf("AAA", "345", "678", "90D", "EEE"), outputOf("MOVEAC5"))
+    }
+
+    @Test
+    fun executeMOVEA01B() {
+        assertEquals(listOf("ABCD", "ABCD", "1234", "5678"), outputOf("MOVEA01B"))
+    }
+
+    @Test
     fun executeMOVEA02() {
         assertEquals(listOf("1234", "5678", "90CD"), outputOf("MOVEA02"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVEA03() {
         assertEquals(listOf("ABCD", "1234", "5678"), outputOf("MOVEA03"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVEA04() {
         assertEquals(listOf("ABCD", "1234", "56CD"), outputOf("MOVEA04"))
     }
@@ -314,8 +379,18 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeMOVEA05() {
+        assertEquals(listOf("ABCD", "ABCD", "ABCD", "", "", ""), outputOf("MOVEA05"))
+    }
+
+    @Test
     fun executeARRAY10() {
         assertEquals(listOf("AB  CD  EF"), outputOf("ARRAY10"))
+    }
+
+    @Test
+    fun executeEVALARRAY1() {
+        assertEquals(listOf("ABCDEFGHIL", "ABCDEFGHIL", "ABCDEFGHIL", "  XXXXXXXXXXXXXXXXXX"), outputOf("EVALARRAY1"))
     }
 
     @Test

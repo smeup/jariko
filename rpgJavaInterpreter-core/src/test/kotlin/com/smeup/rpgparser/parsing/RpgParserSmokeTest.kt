@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.parsing
 
+import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.assertCanBeParsed
 import org.junit.Test
 
@@ -166,32 +167,38 @@ class RpgParserSmokeTest {
     }
 
     @Test
-    fun executeASSIGNSUBS() {
+    fun parseASSIGNSUBS() {
         assertCanBeParsed("ASSIGNSUBS")
     }
 
     @Test
-    fun executeABSTEST() {
+    fun parseABSTEST() {
         assertCanBeParsed("ABSTEST")
     }
 
     @Test
-    fun executeCHAIN2KEYS() {
+    fun parseCHAIN2KEYS() {
         assertCanBeParsed("db/CHAIN2KEYS")
     }
 
     @Test
-    fun executeCHAINREADE() {
+    fun parseCHAINREADE() {
         assertCanBeParsed("db/CHAINREADE")
     }
 
     @Test
-    fun executeCHAINREDE0() {
+    fun parseCHAINREDE0() {
         assertCanBeParsed("db/CHAINREDE0")
     }
 
     @Test
-    fun executeMOVELSTR() {
+    fun parseMOVELSTR() {
         assertCanBeParsed("MOVELSTR")
+    }
+
+    @Test
+    fun parseMUTE13_13_indicatorsWithParenthesis() {
+        assertCanBeParsed("mute/MUTE13_13")
+        assertASTCanBeProduced("mute/MUTE13_13", true)
     }
 }

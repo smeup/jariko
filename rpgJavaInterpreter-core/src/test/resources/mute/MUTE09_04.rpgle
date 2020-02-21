@@ -70,7 +70,8 @@
      C                   EVAL      $MSG=%TRIMR(ARRA1(3))
      C     $MSG          DSPLY     £PDSSU
       * Use of 'MOVEL'
-    MU* VAL1(ARRA1(1)) VAL2('MNOPQRSTOVMNOPQRSTOV') COMP(EQ)
+    MU* VAL1(ARRA1(1)) VAL2('ABCDEFGHIL          ') COMP(EQ)
+    MU* VAL1(ARRA1(3)) VAL2('MNOPQRSTOVMNOPQRSTOV') COMP(EQ)
      C                   MOVEL     YYSTR         ARRA1(3)
      C                   EVAL      $MSG=%TRIMR(ARRA1(3))
      C     $MSG          DSPLY     £PDSSU

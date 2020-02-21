@@ -64,10 +64,11 @@ data class MuteComparisonAnnotationExecuted(
     val value2Expression: Expression,
     override val result: BooleanValue,
     val value1Result: Value,
-    val value2Result: Value
+    val value2Result: Value,
+    val line: String
 ) : MuteAnnotationExecuted() {
     override fun headerDescription(): String =
-        "${expression.render()} - Left value ${value1Result.render()}  - right value ${value2Result.render()}"
+        "${expression.render()} - Left value ${value1Result.render()}  - right value ${value2Result.render()} - Line $line"
 }
 
 /**
@@ -75,9 +76,10 @@ data class MuteComparisonAnnotationExecuted(
  */
 data class MuteFailAnnotationExecuted(
     override val programName: String,
-    val message: Value
+    val message: Value,
+    val line: String
 ) : MuteAnnotationExecuted() {
-    override fun headerDescription(): String = message.render()
+    override fun headerDescription(): String = message.render() + " - Line $line"
     override val result = BooleanValue.FALSE
 }
 
