@@ -277,6 +277,19 @@ data class ClearStmt(
     }
 }
 
+data class DefineStmt(
+    val value: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
+
 data class CompStmt(val left: Expression, val right: Expression, val hi: Int?, val lo: Int?, val eq: Int?, override val position: Position? = null) : Statement(position)
 
 data class ZAddStmt(
