@@ -46,14 +46,11 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 // We split the string in substrings and copy each piece into
                 // an element of the array
 
-                var i = 0
                 val elementSize = type.element.size
-                val valueForArray = value.value.padEnd(elementSize).take(elementSize)
                 createArrayValue(type.element, type.nElements) {
-                    val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length)).padEnd(elementSize)
-                    val res = StringValue(valueForArray)
-                    i += elementSize
-                    res
+                    val valueForArray = value.value.substring(0, Math.min(elementSize, value.value.length))
+                        .padEnd(elementSize)
+                    StringValue(valueForArray)
                 }
             } else {
                 createArrayValue(type.element, type.nElements) {
@@ -182,6 +179,9 @@ fun coerce(value: Value, type: Type): Value {
                 }
                 is ArrayType -> {
                     return StringValue(value.charsToRepeat.repeatWithMaxSize(type.size))
+                }
+                is BooleanType -> {
+                    if (value.charsToRepeat == "1") BooleanValue.TRUE else BooleanValue.FALSE
                 }
                 else -> TODO("Converting $value to $type")
             }
