@@ -203,7 +203,7 @@ class InterpreterTest {
         assertEquals(listOf("489.76933346"), outputOf("SQRT"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeSETONSETOF() {
         assertEquals(listOf("Before",
                 "56=off57=off",
