@@ -204,6 +204,16 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeSETONSETOF() {
+        assertEquals(listOf("Before",
+                "56=off57=off",
+                "After set",
+                "56=on",
+                "After off",
+                "56=off57=off"), outputOf("SETONOF01"))
+    }
+
+    @Test
     fun executeHELLOVARST() {
         assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
     }

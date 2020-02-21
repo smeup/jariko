@@ -95,13 +95,15 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
         "*LOVAL" -> LowValExpr(toPosition(conf.considerPosition))
         "*ON" -> OnRefExpr(toPosition(conf.considerPosition))
         "*OFF" -> OffRefExpr(toPosition(conf.considerPosition))
-        else -> when {
-            this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(
-                    this.text.indicatorIndex()!!,
-                    toPosition(conf.considerPosition))
-            this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
-            else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
-        }
+        else -> variableExpression(conf)
+    }
+}
+
+private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfiguration): Expression {
+    return when {
+        this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
+        this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
+        else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
     }
 }
 
@@ -149,7 +151,9 @@ internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConf
 }
 
 internal fun String.indicatorIndex(): Int? {
-    return if (this.startsWith("*IN")) {
+    return if (this.toUpperCase().startsWith("*IN(") && this.endsWith(")")) {
+        this.toUpperCase().removePrefix("*IN(").removeSuffix(")").toIntOrNull()
+    } else if (this.toUpperCase().startsWith("*IN")) {
         this.substring("*IN".length).toIntOrNull()
     } else {
         null
