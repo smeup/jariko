@@ -426,6 +426,24 @@ class InterpreterTest {
         assertEquals(listOf("25"), outputOf("PROCEDURE6"))
     }
 
+    @Test @Ignore
+    fun executeCALLER_CALLED_pgm_with_RT() {
+        assertEquals(listOf(
+            "Executing CALLER",
+            "x initialized at: 18",
+            "x is now: 6",
+            "Calling CALLED",
+            "Executing CALLED",
+            "x initialized at: 9",
+            "x is now: 3",
+            "Calling CALLED",
+            "Executing CALLED",
+            "x initialized at: 3",
+            "x is now: 1"
+            ),
+            outputOf("CALLER"))
+    }
+
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
