@@ -204,6 +204,16 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeSETONSETOF() {
+        assertEquals(listOf("Before",
+                "56=off57=off",
+                "After set",
+                "56=on",
+                "After off",
+                "56=off57=off"), outputOf("SETONOF01"))
+    }
+
+    @Test
     fun executeHELLOVARST() {
         assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
     }
@@ -439,6 +449,24 @@ class InterpreterTest {
     @Test @Ignore
     fun executePROCEDURE6_shadowingOfVars() {
         assertEquals(listOf("25"), outputOf("PROCEDURE6"))
+    }
+
+    @Test @Ignore
+    fun executeCALLER_CALLED_pgm_with_RT() {
+        assertEquals(listOf(
+            "Executing CALLER",
+            "x initialized at: 18",
+            "x is now: 6",
+            "Calling CALLED",
+            "Executing CALLED",
+            "x initialized at: 9",
+            "x is now: 3",
+            "Calling CALLED",
+            "Executing CALLED",
+            "x initialized at: 3",
+            "x is now: 1"
+            ),
+            outputOf("CALLER"))
     }
 
     @Test
