@@ -55,8 +55,8 @@ interface SystemInterface {
     val extraLogHandlers: MutableList<InterpreterLogHandler>
     fun getAllLogHandlers() = (configureLog(this.loggingConfiguration() ?: defaultLoggingConfiguration()) + this.extraLogHandlers).toMutableList()
 
-    val executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted>
-    fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted>
+    val executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted>
+    fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted>
     fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted)
     fun registerProgramExecutionStart(program: Program, params: Map<String, Value>) {
         // do nothing by default
@@ -112,7 +112,7 @@ object DummyDBInterface : DBInterface {
 }
 
 object DummySystemInterface : SystemInterface {
-    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = null
@@ -135,13 +135,13 @@ object DummySystemInterface : SystemInterface {
         executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
         return executedAnnotationInternal
     }
 }
 
 class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = null, val programFinders: List<RpgProgramFinder> = emptyList(), val output: PrintStream? = null) : SystemInterface {
-    override var executedAnnotationInternal: HashMap<Int, MuteAnnotationExecuted> = HashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
@@ -181,7 +181,7 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
         executedAnnotationInternal[line] = annotation
     }
 
-    override fun getExecutedAnnotation(): HashMap<Int, MuteAnnotationExecuted> {
+    override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
         return executedAnnotationInternal
     }
 }

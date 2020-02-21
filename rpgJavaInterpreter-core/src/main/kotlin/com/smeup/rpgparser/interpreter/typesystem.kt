@@ -242,3 +242,5 @@ fun Expression.type(): Type {
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
 }
+
+fun baseType(type: Type): Type = if (type is ArrayType) type.element else type

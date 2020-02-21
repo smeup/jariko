@@ -21,6 +21,7 @@ abstract class Value {
     abstract fun assignableTo(expectedType: Type): Boolean
     open fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
     open fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
+    open fun take(from: Int, to: Int): Value = TODO("take not yet implemented for ${this.javaClass.simpleName}")
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
@@ -117,6 +118,11 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
         val s = value.substring(startOffset, endOffset)
         return StringValue(s)
     }
+
+    override fun take(from: Int, to: Int): Value {
+        return getSubstring(from - 1, to)
+    }
+
     override fun toString(): String {
         return "StringValue[${value.length}]($value)"
     }
@@ -216,6 +222,10 @@ data class IntValue(val value: Long) : NumberValue() {
 
     fun increment() = IntValue(value + 1)
 
+    override fun takeFirst(n: Int): Value {
+        return IntValue(firstDigits(value, n))
+    }
+
     override fun takeLast(n: Int): Value {
         return IntValue(lastDigits(value, n))
     }
@@ -236,9 +246,10 @@ data class IntValue(val value: Long) : NumberValue() {
         return localNr * java.lang.Long.signum(n)
     }
 
-    override fun takeFirst(n: Int): Value {
-        return IntValue(firstDigits(value, n))
-    }
+    override fun take(from: Int, to: Int): Value =
+        firstDigits(value, to)
+            .let { lastDigits(it, (to - from) + 1) }
+            .let(::IntValue)
 
     override fun concatenate(other: Value): Value {
         require(other is IntValue) {
@@ -410,6 +421,11 @@ abstract class ArrayValue : Value() {
 }
 
 data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
+    init {
+        require(elementType !is ArrayType) {
+            "An array can't contain another array"
+        }
+    }
 
     override fun elementSize() = elementType.size
 
@@ -418,7 +434,12 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun setElement(index: Int, value: Value) {
         require(index >= 1)
         require(index <= arrayLength())
-        require(value.assignableTo(elementType))
+        if (!value.assignableTo(elementType)) {
+            println("boom")
+        }
+        require(value.assignableTo(elementType)) {
+            "Cannot assign ${value::class.qualifiedName} to ${elementType::class.qualifiedName}"
+        }
         if (elementType is StringType && !elementType.varying) {
             val v = (value as StringValue).copy()
             v.pad(elementType.length)
@@ -442,9 +463,17 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
         }
     }
 
-    override fun hashCode(): Int {
-        return super.hashCode()
+    fun takeAll(): Value {
+        var result = elements[0]
+        for (i in 1 until elements.size) {
+            result = result.concatenate(elements[i])
+        }
+        return result
     }
+
+    override fun takeLast(n: Int): Value = takeAll().takeLast(n)
+
+    override fun takeFirst(n: Int): Value = takeAll().takeFirst(n)
 }
 
 object BlanksValue : Value() {
@@ -572,6 +601,10 @@ class ProjectedArrayValue(
 }
 
 fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
+
+fun List<Value>.asConcreteArrayValue(elementType: Type) = createArrayValue(elementType, size) {
+    this[it + 1]
+}
 
 fun blankString(length: Int) = StringValue(" ".repeat(length))
 

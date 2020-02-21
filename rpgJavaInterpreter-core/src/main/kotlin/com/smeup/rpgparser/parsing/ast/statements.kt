@@ -46,7 +46,7 @@ abstract class Statement(
 
         return mutesAttached
     }
-    open fun simpleDescription() = "Issue executing statement ${javaClass.simpleName} at line ${startLine()}."
+    open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
 }
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
@@ -111,6 +111,7 @@ data class MoveStmt(
     Statement(position)
 
 data class MoveAStmt(
+    val operationExtender: String?,
     val target: AssignableExpression,
     var expression: Expression,
     override val position: Position? = null
