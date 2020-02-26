@@ -874,7 +874,48 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SortAStmt -> {
                     sortA(interpret(statement.target), charset)
+                }                is CatStmt -> {
+                val blanksInBetween = statement.blanksInBetween
+                val blanks = StringValue.blank(blanksInBetween)
+                val factor2 = interpret(statement.right)
+                val factor2Len = factor2.asString().length()
+                var result = interpret(statement.target)
+                val resultLen = result.asString().length()
+                var concatenatedFactors: Value
+
+                if(null != statement.left){
+                    val factor1 = interpret(statement.left)
+                    val factor1Len = factor1.asString().length()
+                    val f1Trimmed = (factor1 as StringValue).value.trim()
+                    val factor1Trimmed = StringValue(f1Trimmed)
+                    concatenatedFactors = if (blanksInBetween > 0) {
+                        factor1Trimmed.concatenate(blanks).concatenate(factor2)
+                    } else {
+                        factor1.concatenate(factor2)
+                    }
+                }else{
+                    concatenatedFactors = if(!result.asString().isBlank()){
+                        result
+                    }else if (blanksInBetween > 0) {
+                        if(blanksInBetween >= resultLen){
+                            result
+                        }else{
+                            blanks.concatenate(factor2)
+                        }
+                    } else {
+                        result
+                    }
                 }
+                val concatenatedFactorsLen = concatenatedFactors.asString().length()
+                result = if(concatenatedFactorsLen >= resultLen){
+                    concatenatedFactors.asString().getSubstring(0, resultLen)
+                }else{
+                    concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
+                }
+
+                assign(statement.target, result)
+                log(CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)))
+            }
 
                 else -> TODO(statement.toString())
             }

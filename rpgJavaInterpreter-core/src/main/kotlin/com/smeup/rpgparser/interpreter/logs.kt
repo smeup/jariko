@@ -564,3 +564,17 @@ fun Position?.line() = this?.start?.line.asNonNullString()
 fun Position?.atLine() = this?.start?.line?.let { "line $it " } ?: ""
 fun Node?.startLine() = this?.position?.start?.line.asNonNullString()
 fun Node?.endLine() = this?.position?.end?.line.asNonNullString()
+
+class CatStatementExecutionLog(programName: String, val statement: CatStmt, val result: Value) : LogEntry(programName) {
+    override fun toString(): String {
+        return "CAT"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        var data = "CAT${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
+        if(null != statement.left){
+            data = "CAT${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
+        }
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
