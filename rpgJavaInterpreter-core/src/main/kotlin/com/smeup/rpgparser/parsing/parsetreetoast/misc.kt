@@ -260,6 +260,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csGOTO() != null -> this.csGOTO().toAst(conf)
         this.csSORTA() != null -> this.csSORTA().toAst(conf)
         this.csDEFINE() != null -> this.csDEFINE().toAst(conf)
+        this.csCAT() != null -> this.csCAT().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -759,4 +760,23 @@ internal fun CsSORTAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 internal fun ResultIndicatorContext.asIndex(): Int? {
     // TODO: verify if we should cover other cases (e.g. external indicators)
     return this.GeneralIndicator()?.text?.toIntOrNull()
+}
+
+internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CatStmt {
+    val position = toPosition(conf.considerPosition)
+    val left = leftExpr(conf)
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    var blanksInBetween = 0
+
+    if (null != this.cspec_fixed_standard_parts().factor2.content2 &&
+            this.cspec_fixed_standard_parts().factor2.content2.children.size > 0) {
+        blanksInBetween = this.cspec_fixed_standard_parts().factor2.content2.children[0].toString().toInt()
+    }
+    val target = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    return CatStmt(
+            left,
+            right,
+            target,
+            blanksInBetween,
+            position)
 }

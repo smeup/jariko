@@ -447,3 +447,5 @@ data class ForStmt(
  * of the array to be sorted followed by the subfield to be used as a key for the sort.
  */
 data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position)
+
+data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position)
