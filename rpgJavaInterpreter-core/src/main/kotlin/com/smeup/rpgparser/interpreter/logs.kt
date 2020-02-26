@@ -572,7 +572,7 @@ class CatStatementExecutionLog(programName: String, val statement: CatStmt, val 
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         var data = "CAT${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
-        if(null != statement.left){
+        if (null != statement.left) {
             data = "CAT${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
         }
         return renderHeader(channel, filename, statement.startLine(), sep) + data

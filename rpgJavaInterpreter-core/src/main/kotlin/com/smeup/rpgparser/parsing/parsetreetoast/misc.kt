@@ -759,8 +759,8 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
     var blanksInBetween = 0
 
-    if(null != this.cspec_fixed_standard_parts().factor2.content2 &&
-            this.cspec_fixed_standard_parts().factor2.content2.children.size > 0){
+    if (null != this.cspec_fixed_standard_parts().factor2.content2 &&
+            this.cspec_fixed_standard_parts().factor2.content2.children.size > 0) {
         blanksInBetween = this.cspec_fixed_standard_parts().factor2.content2.children[0].toString().toInt()
     }
     val target = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression

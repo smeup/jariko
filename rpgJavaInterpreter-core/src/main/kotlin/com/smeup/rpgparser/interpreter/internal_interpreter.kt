@@ -874,7 +874,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SortAStmt -> {
                     sortA(interpret(statement.target), charset)
-                }                is CatStmt -> {
+                }
+                is CatStmt -> {
                 val blanksInBetween = statement.blanksInBetween
                 val blanks = StringValue.blank(blanksInBetween)
                 val factor2 = interpret(statement.right)
@@ -883,7 +884,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val resultLen = result.asString().length()
                 var concatenatedFactors: Value
 
-                if(null != statement.left){
+                if (null != statement.left) {
                     val factor1 = interpret(statement.left)
                     val factor1Len = factor1.asString().length()
                     val f1Trimmed = (factor1 as StringValue).value.trim()
@@ -893,13 +894,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     } else {
                         factor1.concatenate(factor2)
                     }
-                }else{
-                    concatenatedFactors = if(!result.asString().isBlank()){
+                } else {
+                    concatenatedFactors = if (!result.asString().isBlank()) {
                         result
-                    }else if (blanksInBetween > 0) {
-                        if(blanksInBetween >= resultLen){
+                    } else if (blanksInBetween > 0) {
+                        if (blanksInBetween >= resultLen) {
                             result
-                        }else{
+                        } else {
                             blanks.concatenate(factor2)
                         }
                     } else {
@@ -907,9 +908,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     }
                 }
                 val concatenatedFactorsLen = concatenatedFactors.asString().length()
-                result = if(concatenatedFactorsLen >= resultLen){
+                result = if (concatenatedFactorsLen >= resultLen) {
                     concatenatedFactors.asString().getSubstring(0, resultLen)
-                }else{
+                } else {
                     concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
                 }
 
