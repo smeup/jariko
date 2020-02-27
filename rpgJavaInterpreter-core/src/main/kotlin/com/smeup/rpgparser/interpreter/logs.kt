@@ -578,3 +578,14 @@ class CatStatementExecutionLog(programName: String, val statement: CatStmt, val 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
+
+class CompStatementExecutionLog(programName: String, val statement: CompStmt, val result: Value) : LogEntry(programName) {
+    override fun toString(): String {
+        return "COMP"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        var data = "COMP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}${statement.hi}${sep}LO${sep}${statement.lo}${sep}EQ${sep}${statement.eq}"
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}

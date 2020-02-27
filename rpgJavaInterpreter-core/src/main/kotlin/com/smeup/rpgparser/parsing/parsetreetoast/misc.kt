@@ -662,6 +662,7 @@ internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 1: ${this.text}")
     val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
+
     return CompStmt(
         left,
         right,

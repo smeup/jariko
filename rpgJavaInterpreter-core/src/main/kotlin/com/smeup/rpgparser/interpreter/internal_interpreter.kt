@@ -2,10 +2,9 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
+import com.smeup.rpgparser.parsing.parsetreetoast.*
+import com.smeup.rpgparser.parsing.parsetreetoast.indicators
 import com.smeup.rpgparser.utils.Comparison.*
-import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
-import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
-import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.ancestor
 import java.lang.IllegalArgumentException
@@ -382,21 +381,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
-                        SubroutineExecutionLogStart(
-                            this.interpretationContext.currentProgramName,
-                            statement.subroutine.referred!!
-                        )
+                            SubroutineExecutionLogStart(
+                                    this.interpretationContext.currentProgramName,
+                                    statement.subroutine.referred!!
+                            )
                     )
 
                     val elapsed = measureTimeMillis {
                         execute(statement.subroutine.referred!!.stmts)
                     }
                     log(
-                        SubroutineExecutionLogEnd(
-                            this.interpretationContext.currentProgramName,
-                            statement.subroutine.referred!!,
-                            elapsed
-                        )
+                            SubroutineExecutionLogEnd(
+                                    this.interpretationContext.currentProgramName,
+                                    statement.subroutine.referred!!,
+                                    elapsed
+                            )
                     )
                 }
                 is EvalStmt -> {
@@ -433,10 +432,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     }
                     if (statement.other != null) {
                         log(
-                            SelectOtherExecutionLogEntry(
-                                this.interpretationContext.currentProgramName,
-                                statement.other!!
-                            )
+                                SelectOtherExecutionLogEntry(
+                                        this.interpretationContext.currentProgramName,
+                                        statement.other!!
+                                )
                         )
                         execute(statement.other!!.body)
                     }
@@ -461,12 +460,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         if (globalSymbolTable.contains(it.param.name)) {
                             val value = globalSymbolTable[it.param.name]
                             log(
-                                ParamListStatemenExecutionLog(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    it.param.name,
-                                    value
-                                )
+                                    ParamListStatemenExecutionLog(
+                                            this.interpretationContext.currentProgramName,
+                                            statement,
+                                            it.param.name,
+                                            value
+                                    )
                             )
                         }
                     }
@@ -480,11 +479,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         is DataRefExpr -> {
                             val value = assign(statement.value, BlanksRefExpr())
                             log(
-                                ClearStatemenExecutionLog(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    value
-                                )
+                                    ClearStatemenExecutionLog(
+                                            this.interpretationContext.currentProgramName,
+                                            statement,
+                                            value
+                                    )
                             )
                             Unit
                         }
@@ -554,11 +553,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         }
                         if (statement.elseClause != null) {
                             log(
-                                ElseExecutionLogEntry(
-                                    this.interpretationContext.currentProgramName,
-                                    statement.elseClause,
-                                    condition
-                                )
+                                    ElseExecutionLogEntry(
+                                            this.interpretationContext.currentProgramName,
+                                            statement.elseClause,
+                                            condition
+                                    )
                             )
                             execute(statement.elseClause.body)
                         }
@@ -579,8 +578,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                                     assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
                                 } else {
                                     assign(
-                                        dataDefinitionByName(it.param.name)!!,
-                                        eval(it.dataDefinition.initializationValue)
+                                            dataDefinitionByName(it.param.name)!!,
+                                            eval(it.dataDefinition.initializationValue)
                                     )
                                 }
                             } else {
@@ -597,19 +596,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
                     val startTime = currentTimeMillis()
                     val paramValuesAtTheEnd =
-                        try {
-                            systemInterface.registerProgramExecutionStart(program, params)
-                            program.execute(systemInterface, params).apply {
+                            try {
+                                systemInterface.registerProgramExecutionStart(program, params)
+                                program.execute(systemInterface, params).apply {
+                                    log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
+                                }
+                            } catch (e: Exception) { // TODO Catch a more specific exception?
                                 log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
+                                if (statement.errorIndicator == null) {
+                                    throw e
+                                }
+                                predefinedIndicators[statement.errorIndicator] = BooleanValue.TRUE
+                                null
                             }
-                        } catch (e: Exception) { // TODO Catch a more specific exception?
-                            log(CallEndLogEntry("", statement, currentTimeMillis() - startTime))
-                            if (statement.errorIndicator == null) {
-                                throw e
-                            }
-                            predefinedIndicators[statement.errorIndicator] = BooleanValue.TRUE
-                            null
-                        }
                     paramValuesAtTheEnd?.forEachIndexed { index, value ->
                         assign(statement.params[index].param.referred!!, value)
                     }
@@ -623,10 +622,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     try {
                         log(ForStatementExecutionLogStart(this.interpretationContext.currentProgramName, statement))
                         while (enterCondition(
-                                this[statement.iterDataDefinition()],
-                                eval(statement.endValue),
-                                statement.downward
-                            )
+                                        this[statement.iterDataDefinition()],
+                                        eval(statement.endValue),
+                                        statement.downward
+                                )
                         ) {
                             try {
                                 execute(statement.body)
@@ -639,23 +638,23 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         }
                         val elapsed = currentTimeMillis() - startTime
                         log(
-                            ForStatementExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
+                                ForStatementExecutionLogEnd(
+                                        this.interpretationContext.currentProgramName,
+                                        statement,
+                                        elapsed,
+                                        loopCounter
+                                )
                         )
                     } catch (e: LeaveException) {
                         // leaving
                         val elapsed = currentTimeMillis() - startTime
                         log(
-                            ForStatementExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
+                                ForStatementExecutionLogEnd(
+                                        this.interpretationContext.currentProgramName,
+                                        statement,
+                                        elapsed,
+                                        loopCounter
+                                )
                         )
                     }
                 }
@@ -667,7 +666,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         try {
                             log(DoStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement))
                             while ((cycleLimit == null || (cycleLimit as Int) >= myIterValue.value) &&
-                                isEqualOrSmaller(myIterValue, eval(statement.endLimit))
+                                    isEqualOrSmaller(myIterValue, eval(statement.endLimit))
                             ) {
                                 try {
                                     execute(statement.body)
@@ -679,30 +678,30 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             }
                             val elapsed = currentTimeMillis() - startTime
                             log(
-                                DoStatemenExecutionLogEnd(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    elapsed,
-                                    loopCounter
-                                )
+                                    DoStatemenExecutionLogEnd(
+                                            this.interpretationContext.currentProgramName,
+                                            statement,
+                                            elapsed,
+                                            loopCounter
+                                    )
                             )
                         } catch (e: LeaveException) {
                             // nothing to do here
                             val elapsed = currentTimeMillis() - startTime
                             log(
-                                DoStatemenExecutionLogEnd(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    elapsed,
-                                    loopCounter
-                                )
+                                    DoStatemenExecutionLogEnd(
+                                            this.interpretationContext.currentProgramName,
+                                            statement,
+                                            elapsed,
+                                            loopCounter
+                                    )
                             )
                         }
                     } else {
                         assign(statement.index, statement.startLimit)
                         try {
                             while ((cycleLimit == null || (cycleLimit as Int) >= eval(statement.index).asInt().value) &&
-                                isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))
+                                    isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))
                             ) {
                                 try {
                                     execute(statement.body)
@@ -727,22 +726,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         }
                         val elapsed = currentTimeMillis() - startTime
                         log(
-                            DowStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
+                                DowStatemenExecutionLogEnd(
+                                        this.interpretationContext.currentProgramName,
+                                        statement,
+                                        elapsed,
+                                        loopCounter
+                                )
                         )
                     } catch (e: LeaveException) {
                         val elapsed = currentTimeMillis() - startTime
                         log(
-                            DowStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
+                                DowStatemenExecutionLogEnd(
+                                        this.interpretationContext.currentProgramName,
+                                        statement,
+                                        elapsed,
+                                        loopCounter
+                                )
                         )
                     }
                 }
@@ -757,22 +756,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         } while (!eval(statement.endExpression).asBoolean().value)
                         val elapsed = currentTimeMillis() - startTime
                         log(
-                            DouStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
+                                DouStatemenExecutionLogEnd(
+                                        this.interpretationContext.currentProgramName,
+                                        statement,
+                                        elapsed,
+                                        loopCounter
+                                )
                         )
                     } catch (e: LeaveException) {
                         val elapsed = currentTimeMillis() - startTime
                         log(
-                            DouStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
+                                DouStatemenExecutionLogEnd(
+                                        this.interpretationContext.currentProgramName,
+                                        statement,
+                                        elapsed,
+                                        loopCounter
+                                )
                         )
                     }
                 }
@@ -787,7 +786,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             }
                             val subtrahend = interpret(statement.factor2)
                             val newValue =
-                                (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
+                                    (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
                             assign(statement.target, IntValue(newValue))
                         }
                         else -> throw UnsupportedOperationException("Data reference required: " + statement)
@@ -876,45 +875,57 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     sortA(interpret(statement.target), charset)
                 }
                 is CatStmt -> {
-                val blanksInBetween = statement.blanksInBetween
-                val blanks = StringValue.blank(blanksInBetween)
-                val factor2 = interpret(statement.right)
-                var result = interpret(statement.target)
-                val resultLen = result.asString().length()
-                var concatenatedFactors: Value
+                    val blanksInBetween = statement.blanksInBetween
+                    val blanks = StringValue.blank(blanksInBetween)
+                    val factor2 = interpret(statement.right)
+                    var result = interpret(statement.target)
+                    val resultLen = result.asString().length()
+                    var concatenatedFactors: Value
 
-                if (null != statement.left) {
-                    val factor1 = interpret(statement.left)
-                    val f1Trimmed = (factor1 as StringValue).value.trim()
-                    val factor1Trimmed = StringValue(f1Trimmed)
-                    concatenatedFactors = if (blanksInBetween > 0) {
-                        factor1Trimmed.concatenate(blanks).concatenate(factor2)
-                    } else {
-                        factor1.concatenate(factor2)
-                    }
-                } else {
-                    concatenatedFactors = if (!result.asString().isBlank()) {
-                        result
-                    } else if (blanksInBetween > 0) {
-                        if (blanksInBetween >= resultLen) {
-                            result
+                    if (null != statement.left) {
+                        val factor1 = interpret(statement.left)
+                        val f1Trimmed = (factor1 as StringValue).value.trim()
+                        val factor1Trimmed = StringValue(f1Trimmed)
+                        concatenatedFactors = if (blanksInBetween > 0) {
+                            factor1Trimmed.concatenate(blanks).concatenate(factor2)
                         } else {
-                            blanks.concatenate(factor2)
+                            factor1.concatenate(factor2)
                         }
                     } else {
-                        result
+                        concatenatedFactors = if (!result.asString().isBlank()) {
+                            result
+                        } else if (blanksInBetween > 0) {
+                            if (blanksInBetween >= resultLen) {
+                                result
+                            } else {
+                                blanks.concatenate(factor2)
+                            }
+                        } else {
+                            result
+                        }
                     }
-                }
-                val concatenatedFactorsLen = concatenatedFactors.asString().length()
-                result = if (concatenatedFactorsLen >= resultLen) {
-                    concatenatedFactors.asString().getSubstring(0, resultLen)
-                } else {
-                    concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
-                }
+                    val concatenatedFactorsLen = concatenatedFactors.asString().length()
+                    result = if (concatenatedFactorsLen >= resultLen) {
+                        concatenatedFactors.asString().getSubstring(0, resultLen)
+                    } else {
+                        concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
+                    }
 
-                assign(statement.target, result)
-                log(CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)))
-            }
+                    assign(statement.target, result)
+                    log(CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)))
+                }
+                is CompStmt -> {
+                    val factor1 = interpret(statement.left)
+                    if (factor1 !is NumberValue && factor1 !is StringValue) {
+                        throw UnsupportedOperationException("Unable to compare: Factor1 datatype ($factor1) is not yet supported.")
+                    }
+                    val factor2 = interpret(statement.left)
+                    if (factor2 !is NumberValue && factor2 !is StringValue) {
+                        throw UnsupportedOperationException("Unable to compare: Factor2 datatype ($factor2) is not yet supported.")
+                    }
+
+                    compare(interpret(statement.left), interpret(statement.right))
+                }
 
                 else -> TODO(statement.toString())
             }
@@ -1020,8 +1031,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 value1.bigDecimal < value2.bigDecimal -> Comparison.SMALLER
                 else -> Comparison.GREATER
             }
+            value1 is StringValue && value2 is StringValue -> {
+                stringComparison(value1.asString().value, value2.asString().value)
+            }
             else -> TODO("Unable to compare: value 1 is $value1, Value 2 is $value2")
         }
+    }
+
+    private fun stringComparison(value1: String, value2: String): Comparison {
+        if (value1 == value2) {
+            return Comparison.EQUAL
+        }
+        if (value1.compareTo(value2, false) < 0) {
+            return Comparison.SMALLER
+        }
+        return Comparison.GREATER
     }
 
     private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
@@ -1756,5 +1780,29 @@ private fun cleanNumericString(s: String): String {
         result.contains(".") -> result.substringBefore(".")
         result.contains(",") -> result.substringBefore(",")
         else -> result
+    }
+}
+
+private fun isSupportedDataType(dataRefExpr: DataRefExpr): Boolean {
+    return isNumber(dataRefExpr) || isString(dataRefExpr)
+}
+
+private fun isNumber(dataRefExpr: DataRefExpr): Boolean {
+    var type = dataRefExpr.variable.referred?.type
+    return when (type) {
+        is NumberType -> true
+        else -> {
+            false
+        }
+    }
+}
+
+private fun isString(dataRefExpr: DataRefExpr): Boolean {
+    var type = dataRefExpr.variable.referred?.type
+    return when (type) {
+        is StringType -> true
+        else -> {
+            false
+        }
     }
 }
