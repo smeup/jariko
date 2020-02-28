@@ -8,6 +8,7 @@
      D  NUM_FACTOR2    S              2  0
      D  STR_FACTOR1    S              2
      D  STR_FACTOR2    S              2
+     D  STR_FACTOR1_V  S             10    VARYING
       *---------------------------------------------------------------
      D* M A I N
       *---------------------------------------------------------------
@@ -112,6 +113,16 @@
      C     STR_FACTOR1   COMP      STR_FACTOR2                        202122
     MU* VAL1(*IN22) VAL2('FALSE') COMP(EQ)
      C     STR_FACTOR1   COMP      STR_FACTOR2                        202122
+      *
+     C                   SETOFF                                       202122
+     C                   EVAL      STR_FACTOR1_V='0'
+     C                   MOVEL(P)  '9'           STR_FACTOR2
+    MU* VAL1(*IN20) VAL2('FALSE') COMP(EQ)
+     C     STR_FACTOR1_V COMP      STR_FACTOR2                        202122
+    MU* VAL1(*IN21) VAL2('TRUE') COMP(EQ)
+     C     STR_FACTOR1_V COMP      STR_FACTOR2                        202122
+    MU* VAL1(*IN22) VAL2('FALSE') COMP(EQ)
+     C     STR_FACTOR1_V COMP      STR_FACTOR2                        202122
       *
      C                   SETON                                        LR
       *---------------------------------------------------------------
