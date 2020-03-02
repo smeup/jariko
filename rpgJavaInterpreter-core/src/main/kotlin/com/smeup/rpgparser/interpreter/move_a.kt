@@ -46,18 +46,23 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
 
 private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCoreHelper: InterpreterCoreHelper): Value {
     val targetType = target.type()
-    require(targetType is ArrayType) {
-        "Result must be an Array"
+    require(targetType is ArrayType || targetType is StringType) {
+        "Result must be an Array or a String"
     }
     return if (value is FigurativeConstantRef) {
         interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(value))
     } else {
-        val arrayValue = when (targetType.element) {
+        val type = if (targetType is ArrayType) {
+            targetType.element
+        } else {
+            targetType
+        }
+        val value = when (type) {
             is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCoreHelper, value)
             is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCoreHelper, value)
             else -> TODO()
         }
-        interpreterCoreHelper.assign(target, arrayValue)
+        interpreterCoreHelper.assign(target, value)
     }
 }
 
@@ -117,26 +122,39 @@ private fun moveaString(
     startIndex: Int,
     interpreterCoreHelper: InterpreterCoreHelper,
     value: Expression
-): ConcreteArrayValue {
+): Value {
     val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
-    var newValue = interpreterCoreHelper.interpret(value).takeFirst(realSize)
-    if (value.type().size < realSize) {
+    var newValue = valueFromSourceExpression(interpreterCoreHelper, value).takeFirst(realSize).asString()
+    if (newValue.value.length < realSize) {
         val other =
             if (operationExtenter == null) {
-                interpreterCoreHelper.get(target.variable.referred!!).takeLast((realSize - value.type().size))
+                interpreterCoreHelper.get(target.variable.referred!!).takeLast((realSize - newValue.value.length))
             } else {
                 StringValue(" ".repeat((realSize - value.type().size)))
             }
-        newValue = newValue.concatenate(other)
+        newValue = newValue.concatenate(other).asString()
     }
-    val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
-        if (it < (startIndex - 1)) {
-            interpreterCoreHelper.get(target.variable.referred!!).asArray().getElement(it + 1)
-        } else {
-            val index = it - startIndex + 1
-            val startValue = (index * target.type().elementSize()) + 1
-            newValue.take(startValue, startValue + target.type().elementSize() - 1)
+    if (target.type() is ArrayType) {
+        return createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
+            if (it < (startIndex - 1)) {
+                interpreterCoreHelper.get(target.variable.referred!!).asArray().getElement(it + 1)
+            } else {
+                val index = it - startIndex + 1
+                val startValue = (index * target.type().elementSize()) + 1
+                newValue.take(startValue, startValue + target.type().elementSize() - 1)
+            }
         }
+    } else {
+        return newValue
     }
-    return arrayValue
+}
+
+private fun valueFromSourceExpression(interpreterCoreHelper: InterpreterCoreHelper, valueExpression: Expression): Value {
+    return if (valueExpression is ArrayAccessExpr) {
+        val arrayValueRaw = interpreterCoreHelper.interpret(valueExpression.array) as ArrayValue
+        val index = (interpreterCoreHelper.interpret(valueExpression.index) as NumberValue).bigDecimal.toInt()
+        arrayValueRaw.concatenateElementsFrom(index)
+    } else {
+        interpreterCoreHelper.interpret(valueExpression)
+    }
 }

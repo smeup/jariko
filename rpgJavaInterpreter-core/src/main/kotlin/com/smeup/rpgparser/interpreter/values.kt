@@ -418,6 +418,14 @@ abstract class ArrayValue : Value() {
     override fun copy(): ArrayValue {
         return ConcreteArrayValue(this.elements().map { it.copy() }.toMutableList(), this.elementType)
     }
+
+    fun concatenateElementsFrom(index: Int): Value {
+        var result: Value = getElement(index)
+        for (i in (index + 1) until (arrayLength() + 1)) {
+            result = result.concatenate(getElement(i))
+        }
+        return result
+    }
 }
 
 data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
