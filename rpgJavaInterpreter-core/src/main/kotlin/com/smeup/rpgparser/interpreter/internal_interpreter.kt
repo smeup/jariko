@@ -919,12 +919,132 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     if (factor1 !is NumberValue && factor1 !is StringValue) {
                         throw UnsupportedOperationException("Unable to compare: Factor1 datatype ($factor1) is not yet supported.")
                     }
-                    val factor2 = interpret(statement.left)
+
+                    val factor2 = interpret(statement.right)
                     if (factor2 !is NumberValue && factor2 !is StringValue) {
                         throw UnsupportedOperationException("Unable to compare: Factor2 datatype ($factor2) is not yet supported.")
                     }
 
-                    compare(interpret(statement.left), interpret(statement.right))
+                    val result = compare(interpret(statement.left), interpret(statement.right))
+                    if (result == Comparison.GREATER) {
+                        setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                    }
+                    if (result == Comparison.SMALLER) {
+                        setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                    }
+                    if (result == Comparison.EQUAL) {
+                        setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                    }
+                }
+                is LookupStmt -> {
+                    // TODO
+                    // - set var argument (if present) of factor2 with index of found element (ie. FACTOR1  LOOKUP  FACTOR2(var)  )
+                    // - check/handle searches due to to ascend/descend array declaration
+                    val factor1 = interpret(statement.left)
+
+                    // If ArrayValue or ArrayExpression (ie. factor2(index) )
+                    var factor2 = if (statement.right is DataRefExpr) {
+                        interpret(statement.right).asArray()
+                    } else {
+                        interpret((statement.right as ArrayAccessExpr).array) as ArrayValue
+                    }
+
+                    // If index as ArrayExpression argument (ie. factor2(index) )
+                    var index = if (statement.right is DataRefExpr) {
+                        IntValue.ZERO.value
+                    } else {
+                        eval((statement.right as ArrayAccessExpr).index).asInt().value
+                    }
+
+                    // execute search
+                    val found = lookup(factor1, factor2)
+
+                    // factor1 not found into factor2 array.
+                    if (found.asInt().value == 0L) {
+                        // if no index (as array argument) specified
+                        if (index <= 0L) {
+                            setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                        } else {
+                            // Search for an element into factor2 GREATER (cause of statement.hi) than factor1,
+                            // starting from index given as factor2 argument.
+                            // ATTENTION: can't 'statement.hi' and 'statement.lo' be declared both
+                            var foundWalkingDown = false
+                            var foundWalkingUp = false
+                            val idx = index.toInt()
+
+                            if (null != statement.hi) {
+                                // search direction: DOWN
+                                for (x in (idx - 1) downTo 1) {
+                                    val comparison = factor2.getElement(x).compare(factor1, charset)
+                                    if (comparison > 0) {
+                                        setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                                        foundWalkingDown = true
+                                        break
+                                    }
+                                }
+                                // search direction: UP
+                                if (!foundWalkingDown) {
+                                    val nrElements = factor2.asArray().elements().size
+                                    for (x in (idx + 1)..nrElements) {
+                                        val comparison = factor2.getElement(x).compare(factor1, charset)
+                                        if (comparison > 0) {
+                                            setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                                            foundWalkingUp = true
+                                            break
+                                        }
+                                    }
+                                }
+                            } else if (null != statement.lo) {
+                                // Search for an element into factor2 LOWER (cause of statement.lo) than factor1,
+                                // starting from index given as factor2 argument.
+                                if (null != statement.lo) {
+                                    // search direction: DOWN
+                                    for (x in (idx - 1) downTo 1) {
+                                        val comparison = factor2.getElement(x).compare(factor1, charset)
+                                        if (comparison < 0) {
+                                            setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                                            foundWalkingDown = true
+                                            break
+                                        }
+                                    }
+                                    // search direction: UP
+                                    if (!foundWalkingDown) {
+                                        val nrElements = factor2.asArray().elements().size
+                                        for (x in (idx + 1)..nrElements) {
+                                            val comparison = factor2.getElement(x).compare(factor1, charset)
+                                            if (comparison < 0) {
+                                                setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                                                foundWalkingUp = true
+                                                break
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Not smaller and not greater element found
+                            if (!foundWalkingDown && !foundWalkingUp) {
+                                setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                            }
+                        }
+                    } else {
+                        // Factor1 found
+                        // Indicators: HI=*OFF, LO=*OFF, EQ=*ON
+                        if ((index > 0L && found.asInt().value == index) ||
+                                (found.asInt().value > 0 && index == 0L)) {
+                            setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                        }
+
+                        // Indicators: HI=*OFF, LO=*ON, EQ=*OFF
+                        if (found.asInt().value < index) {
+                            setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                        }
+
+                        // Indicators: HI=*ON, LO=*OFF, EQ=*OFF
+                        if (found.asInt().value > index && index > 0L) {
+                            setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                        }
+                    }
                 }
 
                 else -> TODO(statement.toString())
@@ -945,6 +1065,35 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             throw RuntimeException(errorDescription(statement, e), e)
         } catch (e: RuntimeException) {
             throw RuntimeException(errorDescription(statement, e), e)
+        }
+    }
+
+    private fun setPredefinedIndicators(statement: Statement, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, Value>) {
+
+        when (statement) {
+            is LookupStmt -> {
+                if (null != (statement as LookupStmt).hi) {
+                    predefinedIndicators[(statement as LookupStmt).hi!!.toInt()] = hi
+                }
+                if (null != (statement as LookupStmt).lo) {
+                    predefinedIndicators[(statement as LookupStmt).lo!!.toInt()] = lo
+                }
+                if (null != (statement as LookupStmt).eq) {
+                    predefinedIndicators[(statement as LookupStmt).eq!!.toInt()] = eq
+                }
+            }
+            is CompStmt -> {
+                if (null != (statement as CompStmt).hi) {
+                    predefinedIndicators[(statement as CompStmt).hi!!.toInt()] = hi
+                }
+                if (null != (statement as CompStmt).lo) {
+                    predefinedIndicators[(statement as CompStmt).lo!!.toInt()] = lo
+                }
+                if (null != (statement as CompStmt).eq) {
+                    predefinedIndicators[(statement as CompStmt).eq!!.toInt()] = eq
+                }
+            }
+            else -> throw RuntimeException("Statement predefined indicators not implemented yet.")
         }
     }
 
@@ -1032,17 +1181,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 else -> Comparison.GREATER
             }
             value1 is StringValue && value2 is StringValue -> {
-                stringComparison(value1.asString().value, value2.asString().value)
+                stringComparison(value1, value2)
             }
             else -> TODO("Unable to compare: value 1 is $value1, Value 2 is $value2")
         }
     }
 
-    private fun stringComparison(value1: String, value2: String): Comparison {
+    private fun stringComparison(value1: Value, value2: Value): Comparison {
         if (value1 == value2) {
             return Comparison.EQUAL
         }
-        if (value1.compareTo(value2, false) < 0) {
+        if (value1.compare(value2, charset) < 0) {
             return Comparison.SMALLER
         }
         return Comparison.GREATER
@@ -1757,6 +1906,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is DataStructureType -> dataDefinition.type.blank(dataDefinition)
             else -> dataDefinition.type.blank()
         }
+    }
+
+    private fun lookup(factor1: Value, factor2: ArrayValue): Value {
+        val found = factor2.elements().indexOfFirst {
+            areEquals(it, factor1)
+        }
+        return if (found == -1) 0.asValue() else (found + 1).asValue()
     }
 }
 

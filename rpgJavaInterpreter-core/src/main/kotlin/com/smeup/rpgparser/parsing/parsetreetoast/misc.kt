@@ -260,6 +260,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csGOTO() != null -> this.csGOTO().toAst(conf)
         this.csSORTA() != null -> this.csSORTA().toAst(conf)
         this.csCAT() != null -> this.csCAT().toAst(conf)
+        this.csLOOKUP() != null -> this.csLOOKUP().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -770,5 +771,19 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
             right,
             target,
             blanksInBetween,
+            position)
+}
+
+internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupStmt {
+    val position = toPosition(conf.considerPosition)
+    val left = leftExpr(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 1: ${this.text}")
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 2: ${this.text} - ${position.atLine()}")
+
+    return LookupStmt(
+            left,
+            right,
+            this.cspec_fixed_standard_parts().hi.asIntOrNull(),
+            this.cspec_fixed_standard_parts().lo.asIntOrNull(),
+            this.cspec_fixed_standard_parts().eq.asIntOrNull(),
             position)
 }

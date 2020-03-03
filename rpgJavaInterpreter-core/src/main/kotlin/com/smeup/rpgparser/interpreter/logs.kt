@@ -589,3 +589,14 @@ class CompStatementExecutionLog(programName: String, val statement: CompStmt, va
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
+
+class LookupStatementExecutionLog(programName: String, val statement: LookupStmt, val hi: Int?, val lo: Int?, val eq: Int?) : LogEntry(programName) {
+    override fun toString(): String {
+        return "LOOKUP"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        var data = "LOOKUP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
