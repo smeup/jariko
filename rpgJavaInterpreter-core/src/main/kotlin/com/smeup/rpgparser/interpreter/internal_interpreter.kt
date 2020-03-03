@@ -938,8 +938,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is LookupStmt -> {
                     // TODO
-                    // - set var argument (if present) of factor2 with index of found element (ie. FACTOR1  LOOKUP  FACTOR2(var)  )
-                    // - check/handle searches due to to ascend/descend array declaration
+                    // - add more MUTE tests;
+                    // - set var argument (if present) of factor2 with index of found element (ie. FACTOR1  LOOKUP  FACTOR2(var) );
+                    // - check/handle searches due to to ascend/descend array declaration;
+                    // - test performance
                     val factor1 = interpret(statement.left)
 
                     // If ArrayValue or ArrayExpression (ie. factor2(index) )
