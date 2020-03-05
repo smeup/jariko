@@ -449,3 +449,5 @@ data class ForStmt(
 data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position)
 
 data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position)
+
+data class LookupStmt(val left: Expression, val right: Expression, val hi: Int?, val lo: Int?, val eq: Int?, override val position: Position? = null) : Statement(position)
