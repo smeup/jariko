@@ -293,7 +293,18 @@ data class DefineStmt(
     override fun dataDefinition(): List<InStatementDataDefinition> {
         val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
         val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
-        return listOf(InStatementDataDefinition(newVarName, originalDataDefinition!!.type, position))
+        if (originalDataDefinition != null) {
+            return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
+        } else {
+            val inStatementDataDefinition =
+                containingCU.main.stmts
+                    .filterIsInstance(StatementThatCanDefineData::class.java)
+                    .asSequence()
+                    .map(StatementThatCanDefineData::dataDefinition)
+                    .flatten()
+                    .find { it.name == originalName }
+            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition!!.type, position))
+        }
     }
 }
 

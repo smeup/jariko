@@ -18,7 +18,7 @@ private fun CompilationUnit.findInStatementDataDefinitions() {
     }
 }
 
-private fun CompilationUnit.allStatements(): List<Statement> {
+fun CompilationUnit.allStatements(): List<Statement> {
     val result = mutableListOf<Statement>()
     result.addAll(this.main.stmts)
     this.subroutines.forEach {
