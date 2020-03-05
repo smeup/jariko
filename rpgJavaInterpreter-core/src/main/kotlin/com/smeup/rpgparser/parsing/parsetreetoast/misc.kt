@@ -259,6 +259,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csTAG() != null -> this.csTAG().toAst(conf)
         this.csGOTO() != null -> this.csGOTO().toAst(conf)
         this.csSORTA() != null -> this.csSORTA().toAst(conf)
+        this.csDEFINE() != null -> this.csDEFINE().toAst(conf)
         this.csCAT() != null -> this.csCAT().toAst(conf)
         this.csLOOKUP() != null -> this.csLOOKUP().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
@@ -581,7 +582,9 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val position = toPosition(conf.considerPosition)
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
-    return MoveLStmt(this.operationExtender?.text, resultExpression, expression, position)
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return MoveLStmt(this.operationExtender?.text, resultExpression, dataDefinition, expression, position)
 }
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {
@@ -680,6 +683,13 @@ internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
             annidatedReferenceExpression(name, toPosition(conf.considerPosition)),
             this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf),
             position)
+}
+
+internal fun CsDEFINEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DefineStmt {
+    val originalVarName = this.cspec_fixed_standard_parts().factor2.text
+    val newVarName = this.cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    return DefineStmt(originalVarName, newVarName, position)
 }
 
 private fun QualifiedTargetContext.getFieldName(): String {

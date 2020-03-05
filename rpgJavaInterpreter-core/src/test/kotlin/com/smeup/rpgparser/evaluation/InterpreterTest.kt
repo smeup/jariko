@@ -384,6 +384,26 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeMOVELDECLA_declaringVarsWithMOVEL() {
+        assertEquals(listOf("XXXXX", "YYYYY"), outputOf("MOVELDECLA"))
+    }
+
+    @Test @Ignore
+    fun executeXFOOT1() {
+        assertEquals(listOf("15.3"), outputOf("XFOOT1"))
+    }
+
+    @Test @Ignore
+    fun executeXFOOT2DEF_creatingVariable() {
+        assertEquals(listOf("15.3"), outputOf("XFOOT2DEF"))
+    }
+
+    @Test
+    fun executeDEFINE01() {
+        assertEquals(listOf("Hello"), outputOf("DEFINE01"))
+    }
+
+    @Test
     fun executeMOVEA05() {
         assertEquals(listOf("ABCD", "ABCD", "ABCD", "", "", ""), outputOf("MOVEA05"))
     }

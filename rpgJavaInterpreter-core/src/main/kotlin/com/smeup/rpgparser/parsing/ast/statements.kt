@@ -121,9 +121,17 @@ data class MoveAStmt(
 data class MoveLStmt(
     val operationExtender: String?,
     val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     var expression: Expression,
     override val position: Position? = null
-) : Statement(position)
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
 
 // TODO add other parameters
 data class ChainStmt(
@@ -274,6 +282,18 @@ data class ClearStmt(
             return listOf(dataDefinition)
         }
         return emptyList()
+    }
+}
+
+data class DefineStmt(
+    val originalName: String,
+    val newVarName: String,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
+        val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+        return listOf(InStatementDataDefinition(newVarName, originalDataDefinition!!.type, position))
     }
 }
 
