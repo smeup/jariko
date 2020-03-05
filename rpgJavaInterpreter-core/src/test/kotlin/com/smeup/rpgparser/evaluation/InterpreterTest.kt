@@ -383,7 +383,7 @@ class InterpreterTest {
         assertEquals(listOf("ABCD", "1234", "56CD"), outputOf("MOVEA04"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVELDECLA_declaringVarsWithMOVEL() {
         assertEquals(listOf("XXXXX", "YYYYY"), outputOf("MOVELDECLA"))
     }

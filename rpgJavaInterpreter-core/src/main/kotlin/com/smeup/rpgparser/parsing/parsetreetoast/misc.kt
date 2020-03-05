@@ -582,7 +582,9 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val position = toPosition(conf.considerPosition)
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
-    return MoveLStmt(this.operationExtender?.text, resultExpression, expression, position)
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return MoveLStmt(this.operationExtender?.text, resultExpression, dataDefinition, expression, position)
 }
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {

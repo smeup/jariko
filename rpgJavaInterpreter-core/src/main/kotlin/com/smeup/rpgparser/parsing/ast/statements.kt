@@ -121,9 +121,17 @@ data class MoveAStmt(
 data class MoveLStmt(
     val operationExtender: String?,
     val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     var expression: Expression,
     override val position: Position? = null
-) : Statement(position)
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
 
 // TODO add other parameters
 data class ChainStmt(
