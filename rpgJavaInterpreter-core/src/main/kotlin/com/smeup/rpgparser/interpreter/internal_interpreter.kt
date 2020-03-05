@@ -865,6 +865,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val returnValue = statement.expression?.let { eval(statement.expression) }
                     throw ReturnException(returnValue)
                 }
+                is DefineStmt -> {
+                    // Nothing to do here
+                }
                 is TagStmt -> {
                     // Nothing to do here
                 }

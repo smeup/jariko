@@ -286,15 +286,14 @@ data class ClearStmt(
 }
 
 data class DefineStmt(
-    val value: Expression,
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val originalName: String,
+    val newVarName: String,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
-        }
-        return emptyList()
+        val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
+        val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+        return listOf(InStatementDataDefinition(newVarName, originalDataDefinition!!.type, position))
     }
 }
 

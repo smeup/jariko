@@ -398,7 +398,7 @@ class InterpreterTest {
         assertEquals(listOf("15.3"), outputOf("XFOOT2DEF"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeDEFINE01() {
         assertEquals(listOf("Hello"), outputOf("DEFINE01"))
     }

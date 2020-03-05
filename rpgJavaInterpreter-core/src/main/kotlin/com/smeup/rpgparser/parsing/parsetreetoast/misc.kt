@@ -686,13 +686,12 @@ internal fun CsCLEARContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 internal fun CsDEFINEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DefineStmt {
-    val name = this.cspec_fixed_standard_parts().result.text
+    val originalVarName = this.cspec_fixed_standard_parts().factor2.text
+    val newVarName = this.cspec_fixed_standard_parts().result.text
     val position = toPosition(conf.considerPosition)
-    return DefineStmt(
-            annidatedReferenceExpression(name, toPosition(conf.considerPosition)),
-            this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf),
-            position)
+    return DefineStmt(originalVarName, newVarName, position)
 }
+
 private fun QualifiedTargetContext.getFieldName(): String {
     return if (this.fieldName != null) {
         this.fieldName.text
