@@ -291,7 +291,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     executeWithMute(statements[i++])
                 } catch (e: GotoException) {
                     i = statements.indexOfFirst {
-                        it is TagStmt && it.tag == e.tag
+                        it is TaggedStatement && it.tag.equals(e.tag, true)
                     }
                 }
             }
