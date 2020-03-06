@@ -23,6 +23,9 @@ enum class AssignmentOperator(val text: String) {
     EXP_ASSIGNMENT("**=");
 }
 
+typealias IndicatorKey = Int
+data class IndicatorCondition(val key: IndicatorKey, val negate: Boolean)
+
 abstract class Statement(
     override val position: Position? = null,
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
@@ -47,6 +50,8 @@ abstract class Statement(
         return mutesAttached
     }
     open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
+
+    var indicatorCondition: IndicatorCondition? = null
 }
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)

@@ -7,6 +7,7 @@ import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
+import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import org.antlr.v4.runtime.ParserRuleContext
@@ -218,10 +219,25 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
 
 internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
-        this.cspec_fixed_standard() != null -> this.cspec_fixed_standard().toAst(conf)
+        this.cspec_fixed_standard() != null ->
+            this.cspec_fixed_standard().toAst(conf)
+                .also {
+                    it.indicatorCondition = this.toIndicatorCondition(conf)
+                }
         else -> TODO(this.text.toString())
     }
 }
+
+internal fun Cspec_fixedContext.toIndicatorCondition(conf: ToAstConfiguration): IndicatorCondition? =
+    if (this.indicators.text.isEmptyTrim()) {
+        null
+    } else {
+        try {
+            IndicatorCondition(this.indicators.text.asInt(), " " != this.indicatorsOff.text)
+        } catch (e: NumberFormatException) {
+            TODO("Non numeric indicators: ${this.indicators.text} - ${toPosition(conf.considerPosition).atLine()}")
+        }
+    }
 
 internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {

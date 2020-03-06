@@ -80,7 +80,7 @@ val ALL_PREDEFINED_INDEXES = 1..99
 
 class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper {
     private val globalSymbolTable = SymbolTable()
-    private val predefinedIndicators = HashMap<Int, Value>()
+    private val predefinedIndicators = HashMap<IndicatorKey, Value>()
     // TODO default value DECEDIT can be changed
     var decedit: String = "."
     // TODO default value CHARSET can be changed
