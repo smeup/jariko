@@ -3,7 +3,6 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
-import com.smeup.rpgparser.parsing.parsetreetoast.indicators
 import com.smeup.rpgparser.utils.Comparison.*
 import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.ancestor
@@ -376,13 +375,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
+    private fun shouldExecuteStatement(indicatorCondition: IndicatorCondition): Boolean {
+        val indicator = indicator(indicatorCondition.key).value
+        return if (indicatorCondition.negate) !indicator else indicator
+    }
+
+    private fun Statement.shoudlBeExecuted(): Boolean =
+            if (this.indicatorCondition == null) {
+                true
+            } else {
+                shouldExecuteStatement(this.indicatorCondition!!)
+            }
+
     private fun execute(statement: Statement) {
         try {
-            if (statement.indicatorCondition != null) {
-                val indicator = indicator(statement.indicatorCondition!!.key).value
-                val executeStatement = if (statement.indicatorCondition!!.negate) !indicator else indicator
-                if (!executeStatement) return
-            }
+            if (!statement.shoudlBeExecuted()) return
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
