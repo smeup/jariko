@@ -3,7 +3,6 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
-import com.smeup.rpgparser.parsing.parsetreetoast.indicators
 import com.smeup.rpgparser.utils.Comparison.*
 import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.ancestor
@@ -80,7 +79,7 @@ val ALL_PREDEFINED_INDEXES = 1..99
 
 class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper {
     private val globalSymbolTable = SymbolTable()
-    private val predefinedIndicators = HashMap<Int, Value>()
+    private val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
     // TODO default value DECEDIT can be changed
     var decedit: String = "."
     // TODO default value CHARSET can be changed
@@ -292,7 +291,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     executeWithMute(statements[i++])
                 } catch (e: GotoException) {
                     i = statements.indexOfFirst {
-                        it is TagStmt && it.tag == e.tag
+                        it is TaggedStatement && it.tag.equals(e.tag, true)
                     }
                 }
             }
@@ -376,8 +375,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
+    private fun IndicatorCondition?.shouldExecuteStatement(): Boolean {
+        if (this == null) return true
+        val indicator = indicator(key).value
+        return if (negate) !indicator else indicator
+    }
+
+    private fun Statement.shouldBeExecuted(): Boolean = this.indicatorCondition.shouldExecuteStatement()
+
     private fun execute(statement: Statement) {
         try {
+            if (!statement.shouldBeExecuted()) return
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
@@ -1073,7 +1081,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun setPredefinedIndicators(statement: Statement, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, Value>) {
+    private fun setPredefinedIndicators(statement: Statement, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
 
         when (statement) {
             is LookupStmt -> {
@@ -1394,20 +1402,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is PredefinedIndicatorExpr -> {
                 val coercedValue = coerce(value, BooleanType)
-                predefinedIndicators[target.index] = coercedValue
+                predefinedIndicators[target.index] = coercedValue.asBoolean()
                 return coercedValue
             }
             is PredefinedGlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        predefinedIndicators[index] = coercedValue
+                        predefinedIndicators[index] = coercedValue.asBoolean()
                     }
                     coercedValue
                 } else {
                     val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        predefinedIndicators[index] = coercedValue.getElement(index)
+                        predefinedIndicators[index] = coercedValue.getElement(index).asBoolean()
                     }
                     coercedValue
                 }
@@ -1731,7 +1739,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return BooleanValue(false)
             }
             is PredefinedIndicatorExpr -> {
-                return predefinedIndicators[expression.index] ?: BooleanValue.FALSE
+                return indicator(expression.index)
             }
             is FunctionCall -> {
                 val functionToCall = expression.function.name
@@ -1904,6 +1912,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             else -> TODO(expression.toString())
         }
     }
+
+    private fun indicator(key: IndicatorKey) = predefinedIndicators[key] ?: BooleanValue.FALSE
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()

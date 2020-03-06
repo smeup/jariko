@@ -8,7 +8,6 @@ import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
-import java.lang.IllegalStateException
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -22,6 +21,9 @@ enum class AssignmentOperator(val text: String) {
     DIVIDE_ASSIGNMENT("/="),
     EXP_ASSIGNMENT("**=");
 }
+
+typealias IndicatorKey = Int
+data class IndicatorCondition(val key: IndicatorKey, val negate: Boolean)
 
 abstract class Statement(
     override val position: Position? = null,
@@ -47,6 +49,8 @@ abstract class Statement(
         return mutesAttached
     }
     open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
+
+    var indicatorCondition: IndicatorCondition? = null
 }
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
@@ -431,9 +435,13 @@ data class IterStmt(override val position: Position? = null) : Statement(positio
 
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 
-data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
+interface TaggedStatement {
+    val tag: String
+}
 
-data class GotoStmt(val tag: String, val indicator: Int?, val offFlag: Boolean, override val position: Position? = null) : Statement(position)
+data class TagStmt(override val tag: String, override val position: Position? = null) : Statement(position), TaggedStatement
+
+data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
 data class ForStmt(
     var init: Expression,

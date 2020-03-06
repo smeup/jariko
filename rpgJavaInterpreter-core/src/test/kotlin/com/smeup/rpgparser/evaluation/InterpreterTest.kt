@@ -871,10 +871,19 @@ class InterpreterTest {
         assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO01"))
     }
 
-    @Test @Ignore
-    // TODO This test fails because we cannot handle indicators at the moment
+    @Test
     fun executeGoto02() {
         assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO02"))
+    }
+
+    @Test
+    fun executeGoto02N() {
+        assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO02N"))
+    }
+
+    @Test @Ignore
+    fun executeGotoENDSR() {
+        assertEquals(listOf("1", "2", "3"), outputOf("GOTOENDSR"))
     }
 
     @Test

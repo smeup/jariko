@@ -7,6 +7,7 @@ import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
+import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import org.antlr.v4.runtime.ParserRuleContext
@@ -218,10 +219,25 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
 
 internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
-        this.cspec_fixed_standard() != null -> this.cspec_fixed_standard().toAst(conf)
+        this.cspec_fixed_standard() != null ->
+            this.cspec_fixed_standard().toAst(conf)
+                .also {
+                    it.indicatorCondition = this.toIndicatorCondition(conf)
+                }
         else -> TODO(this.text.toString())
     }
 }
+
+internal fun Cspec_fixedContext.toIndicatorCondition(conf: ToAstConfiguration): IndicatorCondition? =
+    if (this.indicators.text.isEmptyTrim()) {
+        null
+    } else {
+        try {
+            IndicatorCondition(this.indicators.text.asInt(), " " != this.indicatorsOff.text)
+        } catch (e: NumberFormatException) {
+            TODO("Non numeric indicators: ${this.indicators.text} - ${toPosition(conf.considerPosition).atLine()}")
+        }
+    }
 
 internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
@@ -628,10 +644,7 @@ private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
 }
 
 internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt {
-    var cspec_context = this.parent.parent as Cspec_fixedContext
-    var offFlag = cspec_context.onOffIndicatorsFlag().NoFlag() != null
-    var indicator = cspec_context.indicators.GeneralIndicator()?.text?.asInt()
-    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, indicator, offFlag, toPosition(conf.considerPosition))
+    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
 }
 
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
