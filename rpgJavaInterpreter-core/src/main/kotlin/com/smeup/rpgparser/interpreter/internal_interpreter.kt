@@ -375,21 +375,17 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun shouldExecuteStatement(indicatorCondition: IndicatorCondition): Boolean {
-        val indicator = indicator(indicatorCondition.key).value
-        return if (indicatorCondition.negate) !indicator else indicator
+    private fun IndicatorCondition?.shouldExecuteStatement(): Boolean {
+        if (this == null) return true
+        val indicator = indicator(key).value
+        return if (negate) !indicator else indicator
     }
 
-    private fun Statement.shoudlBeExecuted(): Boolean =
-            if (this.indicatorCondition == null) {
-                true
-            } else {
-                shouldExecuteStatement(this.indicatorCondition!!)
-            }
+    private fun Statement.shouldBeExecuted(): Boolean = this.indicatorCondition.shouldExecuteStatement()
 
     private fun execute(statement: Statement) {
         try {
-            if (!statement.shoudlBeExecuted()) return
+            if (!statement.shouldBeExecuted()) return
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
