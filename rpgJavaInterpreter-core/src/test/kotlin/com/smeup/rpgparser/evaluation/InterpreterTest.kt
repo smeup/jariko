@@ -404,6 +404,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeDEFINE02_defineOfVarCreatedByAnotherDefine() {
+        assertEquals(listOf("Hello"), outputOf("DEFINE02"))
+    }
+
+    @Test
     fun executeMOVEA05() {
         assertEquals(listOf("ABCD", "ABCD", "ABCD", "", "", ""), outputOf("MOVEA05"))
     }
