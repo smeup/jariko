@@ -58,6 +58,7 @@ fun String.divideAtIndex(i: Int): Pair<String, String> {
     return Pair(this.take(i), this.slice(intRange))
 }
 
+fun String?.isEmptyTrim() = this == null || this.trim().isEmpty()
 fun String.asLong(): Long = this.trim().toLong()
 fun String.asInt(): Int = this.trim().toInt()
 fun String?.asIntOrNull(): Int? =
