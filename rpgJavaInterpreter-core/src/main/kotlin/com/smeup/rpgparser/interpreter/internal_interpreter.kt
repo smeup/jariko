@@ -378,6 +378,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun execute(statement: Statement) {
         try {
+            if (statement.indicatorCondition != null) {
+                val indicator = indicator(statement.indicatorCondition!!.key).value
+                val executeStatement = if (statement.indicatorCondition!!.negate) !indicator else indicator
+                if (!executeStatement) return
+            }
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
@@ -1731,7 +1736,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return BooleanValue(false)
             }
             is PredefinedIndicatorExpr -> {
-                return predefinedIndicators[expression.index] ?: BooleanValue.FALSE
+                return indicator(expression.index)
             }
             is FunctionCall -> {
                 val functionToCall = expression.function.name
@@ -1904,6 +1909,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             else -> TODO(expression.toString())
         }
     }
+
+    private fun indicator(key: IndicatorKey) = (predefinedIndicators[key] ?: BooleanValue.FALSE) as BooleanValue
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()

@@ -8,7 +8,6 @@ import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
-import java.lang.IllegalStateException
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -438,7 +437,7 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
 
 data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
-data class GotoStmt(val tag: String, val indicator: Int?, val offFlag: Boolean, override val position: Position? = null) : Statement(position)
+data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
 data class ForStmt(
     var init: Expression,

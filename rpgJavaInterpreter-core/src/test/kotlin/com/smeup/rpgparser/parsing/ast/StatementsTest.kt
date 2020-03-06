@@ -29,8 +29,8 @@ class StatementsTest {
      C  N50              GOTO      START            
                     """) as GotoStmt
         assertEquals("START", stmt.tag)
-        assertEquals(50, stmt.indicator)
-        assertEquals(true, stmt.offFlag)
+        assertEquals(50, stmt.indicatorCondition?.key)
+        assertEquals(true, stmt.indicatorCondition?.negate)
     }
 
     @test fun gotoParsingWithoutIndicator() {
@@ -38,7 +38,7 @@ class StatementsTest {
      C                   GOTO      START            
                     """) as GotoStmt
         assertEquals("START", stmt.tag)
-        assertEquals(null, stmt.indicator)
+        assertEquals(null, stmt.indicatorCondition?.key)
     }
 
     @test fun compParsing() {

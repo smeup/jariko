@@ -644,10 +644,7 @@ private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
 }
 
 internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt {
-    var cspec_context = this.parent.parent as Cspec_fixedContext
-    var offFlag = cspec_context.onOffIndicatorsFlag().NoFlag() != null
-    var indicator = cspec_context.indicators.GeneralIndicator()?.text?.asInt()
-    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, indicator, offFlag, toPosition(conf.considerPosition))
+    return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
 }
 
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
