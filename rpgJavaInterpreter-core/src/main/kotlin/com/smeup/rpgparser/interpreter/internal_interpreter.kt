@@ -80,7 +80,7 @@ val ALL_PREDEFINED_INDEXES = 1..99
 
 class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper {
     private val globalSymbolTable = SymbolTable()
-    private val predefinedIndicators = HashMap<IndicatorKey, Value>()
+    private val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
     // TODO default value DECEDIT can be changed
     var decedit: String = "."
     // TODO default value CHARSET can be changed
@@ -1078,7 +1078,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun setPredefinedIndicators(statement: Statement, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, Value>) {
+    private fun setPredefinedIndicators(statement: Statement, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
 
         when (statement) {
             is LookupStmt -> {
@@ -1399,20 +1399,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             }
             is PredefinedIndicatorExpr -> {
                 val coercedValue = coerce(value, BooleanType)
-                predefinedIndicators[target.index] = coercedValue
+                predefinedIndicators[target.index] = coercedValue.asBoolean()
                 return coercedValue
             }
             is PredefinedGlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        predefinedIndicators[index] = coercedValue
+                        predefinedIndicators[index] = coercedValue.asBoolean()
                     }
                     coercedValue
                 } else {
                     val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        predefinedIndicators[index] = coercedValue.getElement(index)
+                        predefinedIndicators[index] = coercedValue.getElement(index).asBoolean()
                     }
                     coercedValue
                 }
@@ -1910,7 +1910,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun indicator(key: IndicatorKey) = (predefinedIndicators[key] ?: BooleanValue.FALSE) as BooleanValue
+    private fun indicator(key: IndicatorKey) = predefinedIndicators[key] ?: BooleanValue.FALSE
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
