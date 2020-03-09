@@ -250,6 +250,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csPLIST() != null -> this.csPLIST().toAst(conf)
         this.csCLEAR() != null -> this.csCLEAR().toAst(conf)
         this.csLEAVE() != null -> LeaveStmt(toPosition(conf.considerPosition))
+        this.csLEAVESR() != null -> LeaveSrStmt(toPosition(conf.considerPosition))
         this.csITER() != null -> IterStmt(toPosition(conf.considerPosition))
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)

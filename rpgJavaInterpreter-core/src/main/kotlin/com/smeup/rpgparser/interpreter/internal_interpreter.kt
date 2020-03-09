@@ -19,6 +19,7 @@ import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
 
+class LeaveSrException : Exception()
 class LeaveException : Exception()
 class IterException : Exception()
 
@@ -396,6 +397,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     val elapsed = measureTimeMillis {
                         try {
                             execute(statement.subroutine.referred!!.stmts)
+                        } catch (e: LeaveSrException) {
+                            // Nothing to do here
                         } catch (e: GotoException) {
                             if (!e.tag.equals(statement.subroutine.referred!!.tag, true)) throw e
                         }
@@ -805,6 +808,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is LeaveStmt -> {
                     log(LeaveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement))
                     throw LeaveException()
+                }
+                is LeaveSrStmt -> {
+                    log(LeaveSrStatemenExecutionLog(this.interpretationContext.currentProgramName, statement))
+                    throw LeaveSrException()
                 }
                 is IterStmt -> {
                     log(IterStatemenExecutionLog(this.interpretationContext.currentProgramName, statement))

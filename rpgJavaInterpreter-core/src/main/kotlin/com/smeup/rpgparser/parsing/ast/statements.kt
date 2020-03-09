@@ -429,6 +429,8 @@ data class DouStmt(
     override val position: Position? = null
 ) : Statement(position)
 
+data class LeaveSrStmt(override val position: Position? = null) : Statement(position)
+
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 
 data class IterStmt(override val position: Position? = null) : Statement(position)
