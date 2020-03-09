@@ -881,9 +881,14 @@ class InterpreterTest {
         assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO02N"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeGotoENDSR() {
         assertEquals(listOf("1", "2", "3"), outputOf("GOTOENDSR"))
+    }
+
+    @Test
+    fun executeLEAVESR() {
+        assertEquals(listOf("1", "2", "3"), outputOf("LEAVESR"))
     }
 
     @Test

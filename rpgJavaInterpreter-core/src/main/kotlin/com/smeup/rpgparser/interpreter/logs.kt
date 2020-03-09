@@ -461,6 +461,16 @@ class LeaveStatemenExecutionLog(programName: String, val statement: LeaveStmt) :
     }
 }
 
+class LeaveSrStatemenExecutionLog(programName: String, val statement: LeaveSrStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "LEAVESR"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.startLine(), sep) + "LEAVESR"
+    }
+}
+
 class IterStatemenExecutionLog(programName: String, val statement: IterStmt) : LogEntry(programName) {
     override fun toString(): String {
         return "ITER"

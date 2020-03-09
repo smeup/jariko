@@ -132,9 +132,12 @@ internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 }
 
 internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Subroutine {
-    return Subroutine(this.begsr().csBEGSR().factor1.content.text,
-            this.statement().map { it.toAst(conf) },
-            toPosition(conf.considerPosition))
+    return Subroutine(
+        this.begsr().csBEGSR().factor1.text,
+        this.statement().map { it.toAst(conf) },
+        this.endsr().csENDSR().factor1.text,
+        toPosition(conf.considerPosition)
+    )
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -249,6 +252,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csPLIST() != null -> this.csPLIST().toAst(conf)
         this.csCLEAR() != null -> this.csCLEAR().toAst(conf)
         this.csLEAVE() != null -> LeaveStmt(toPosition(conf.considerPosition))
+        this.csLEAVESR() != null -> LeaveSrStmt(toPosition(conf.considerPosition))
         this.csITER() != null -> IterStmt(toPosition(conf.considerPosition))
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
