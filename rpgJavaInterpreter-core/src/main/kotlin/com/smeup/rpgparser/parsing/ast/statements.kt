@@ -7,6 +7,7 @@ import com.smeup.rpgparser.interpreter.KListType
 import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.utils.Comparison
 import com.strumenta.kolasu.model.*
 
 interface StatementThatCanDefineData {
@@ -440,6 +441,8 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
 data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
 data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
+
+data class CabStmt(val factor1: Expression, val factor2: Expression, val comparison: Comparison?, val tag: String, override val position: Position? = null) : Statement(position)
 
 data class ForStmt(
     var init: Expression,

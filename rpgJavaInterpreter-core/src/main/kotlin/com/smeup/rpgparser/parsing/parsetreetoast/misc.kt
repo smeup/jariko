@@ -5,6 +5,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
+import com.smeup.rpgparser.utils.Comparison
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
@@ -282,6 +283,12 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csDEFINE() != null -> this.csDEFINE().toAst(conf)
         this.csCAT() != null -> this.csCAT().toAst(conf)
         this.csLOOKUP() != null -> this.csLOOKUP().toAst(conf)
+        this.csCABxx() != null -> this.csCABxx().toAst(conf)
+        this.csCABLE() != null -> this.csCABLE().toAst(conf)
+        this.csCABLT() != null -> this.csCABLT().toAst(conf)
+        this.csCABEQ() != null -> this.csCABEQ().toAst(conf)
+        this.csCABGE() != null -> this.csCABGE().toAst(conf)
+        this.csCABGT() != null -> this.csCABGT().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -649,6 +656,38 @@ private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
 
 internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): GotoStmt {
     return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
+}
+
+internal fun CsCABxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    // TODO Comparison xx = ???
+    return cabStatement(null, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABLEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(Comparison.LE, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABLTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(Comparison.LT, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABEQContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(Comparison.EQ, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABGTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(Comparison.GT, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABGEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(Comparison.GE, this.cspec_fixed_standard_parts(), conf)
+}
+
+fun ParserRuleContext.cabStatement(comparison: Comparison?, cspecFixedStandardParts: Cspec_fixed_standard_partsContext, conf: ToAstConfiguration): CabStmt {
+    val position = toPosition(conf.considerPosition)
+    val left = leftExpr(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 1 - $text")
+    val right = cspecFixedStandardParts.factor2Expression(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 2 - $text - ${position.atLine()}")
+    return CabStmt(left, right, comparison, cspecFixedStandardParts.result.text, position)
 }
 
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
