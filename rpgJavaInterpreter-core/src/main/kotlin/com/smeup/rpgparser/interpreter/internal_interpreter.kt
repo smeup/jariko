@@ -3,7 +3,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
-import com.smeup.rpgparser.utils.Comparison.*
+import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.ancestor
 import java.lang.IllegalArgumentException
@@ -890,6 +890,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is GotoStmt -> {
                     throw GotoException(statement.tag)
+                }
+                is CabStmt -> {
+                    when (compareExpressions(statement.factor1, statement.factor2)) {
+                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                    }
                 }
                 is SortAStmt -> {
                     sortA(interpret(statement.target), charset)

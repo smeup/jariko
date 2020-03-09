@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.utils
 
-enum class Comparison(val symbol: String) {
+enum class ComparisonOperator(val symbol: String) {
     EQ("="),
     NE("<>"),
     GT(">"),

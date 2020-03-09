@@ -5,7 +5,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
-import com.smeup.rpgparser.utils.Comparison
+import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
@@ -664,26 +664,26 @@ internal fun CsCABxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 internal fun CsCABLEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(Comparison.LE, this.cspec_fixed_standard_parts(), conf)
+    return cabStatement(ComparisonOperator.LE, this.cspec_fixed_standard_parts(), conf)
 }
 
 internal fun CsCABLTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(Comparison.LT, this.cspec_fixed_standard_parts(), conf)
+    return cabStatement(ComparisonOperator.LT, this.cspec_fixed_standard_parts(), conf)
 }
 
 internal fun CsCABEQContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(Comparison.EQ, this.cspec_fixed_standard_parts(), conf)
+    return cabStatement(ComparisonOperator.EQ, this.cspec_fixed_standard_parts(), conf)
 }
 
 internal fun CsCABGTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(Comparison.GT, this.cspec_fixed_standard_parts(), conf)
+    return cabStatement(ComparisonOperator.GT, this.cspec_fixed_standard_parts(), conf)
 }
 
 internal fun CsCABGEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    return cabStatement(Comparison.GE, this.cspec_fixed_standard_parts(), conf)
+    return cabStatement(ComparisonOperator.GE, this.cspec_fixed_standard_parts(), conf)
 }
 
-fun ParserRuleContext.cabStatement(comparison: Comparison?, cspecFixedStandardParts: Cspec_fixed_standard_partsContext, conf: ToAstConfiguration): CabStmt {
+fun ParserRuleContext.cabStatement(comparison: ComparisonOperator?, cspecFixedStandardParts: Cspec_fixed_standard_partsContext, conf: ToAstConfiguration): CabStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 1 - $text")
     val right = cspecFixedStandardParts.factor2Expression(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 2 - $text - ${position.atLine()}")
