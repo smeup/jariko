@@ -891,6 +891,16 @@ class InterpreterTest {
         assertEquals(listOf("1", "2", "3"), outputOf("LEAVESR"))
     }
 
+    @Test @Ignore
+    fun executeCABLEOK() {
+        assertEquals(listOf("Test OK"), outputOf("CABLEOK"))
+    }
+
+    @Test @Ignore
+    fun executeCABLEKO() {
+        assertEquals(listOf("Test KO"), outputOf("CABLEKO"))
+    }
+
     @Test
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
