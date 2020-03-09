@@ -134,6 +134,7 @@ internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Subroutine {
     return Subroutine(this.begsr().csBEGSR().factor1.content.text,
             this.statement().map { it.toAst(conf) },
+            this.endsr().csENDSR().factor1.text,
             toPosition(conf.considerPosition))
 }
 

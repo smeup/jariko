@@ -273,32 +273,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
 
         if (compilationUnit.minTimeOut == null) {
-            executeEachStatement(compilationUnit)
+            execute(compilationUnit.main.stmts)
         } else {
             val elapsedTime = measureTimeMillis {
-                executeEachStatement(compilationUnit)
+                execute(compilationUnit.main.stmts)
             }
             if (elapsedTime > compilationUnit.minTimeOut!!) throw TimeoutException("Execution took $elapsedTime millis, but there was a ${compilationUnit.minTimeOut} millis timeout")
         }
     }
 
-    private fun executeEachStatement(compilationUnit: CompilationUnit) {
-        try {
-            val statements = compilationUnit.main.stmts
-            var i = 0
-            while (i < statements.size) {
-                try {
-                    executeWithMute(statements[i++])
-                } catch (e: GotoException) {
-                    i = statements.indexOfFirst {
-                        it is TaggedStatement && it.tag.equals(e.tag, true)
-                    }
-                }
-            }
-        } catch (e: ReturnException) {
-            // TODO use return value
+    private fun GotoException.indexOfTaggedStatement(statements: List<Statement>): Int =
+        statements.indexOfFirst {
+            it is TaggedStatement && it.tag.equals(tag, true)
         }
-    }
 
     private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
         val result = TreeMap<String, Value>(String.CASE_INSENSITIVE_ORDER)
@@ -307,7 +294,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun execute(statements: List<Statement>) {
-        statements.forEach { executeWithMute(it) }
+        try {
+            var i = 0
+            while (i < statements.size) {
+                try {
+                    executeWithMute(statements[i++])
+                } catch (e: GotoException) {
+                    i = e.indexOfTaggedStatement(statements)
+                    if (i < 0 || i >= statements.size) throw e
+                }
+            }
+        } catch (e: ReturnException) {
+            // TODO use return value
+        }
     }
 
     private fun executeWithMute(statement: Statement) {
@@ -389,21 +388,24 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
-                            SubroutineExecutionLogStart(
-                                    this.interpretationContext.currentProgramName,
-                                    statement.subroutine.referred!!
-                            )
+                        SubroutineExecutionLogStart(
+                            this.interpretationContext.currentProgramName,
+                            statement.subroutine.referred!!
+                        )
                     )
-
                     val elapsed = measureTimeMillis {
-                        execute(statement.subroutine.referred!!.stmts)
+                        try {
+                            execute(statement.subroutine.referred!!.stmts)
+                        } catch (e: GotoException) {
+                            if (!e.tag.equals(statement.subroutine.referred!!.tag, true)) throw e
+                        }
                     }
                     log(
-                            SubroutineExecutionLogEnd(
-                                    this.interpretationContext.currentProgramName,
-                                    statement.subroutine.referred!!,
-                                    elapsed
-                            )
+                        SubroutineExecutionLogEnd(
+                            this.interpretationContext.currentProgramName,
+                            statement.subroutine.referred!!,
+                            elapsed
+                        )
                     )
                 }
                 is EvalStmt -> {
