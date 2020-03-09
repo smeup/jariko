@@ -935,25 +935,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log(CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)))
                 }
                 is CompStmt -> {
-                    val factor1 = interpret(statement.left)
-                    if (factor1 !is NumberValue && factor1 !is StringValue) {
-                        throw UnsupportedOperationException("Unable to compare: Factor1 datatype ($factor1) is not yet supported.")
-                    }
-
-                    val factor2 = interpret(statement.right)
-                    if (factor2 !is NumberValue && factor2 !is StringValue) {
-                        throw UnsupportedOperationException("Unable to compare: Factor2 datatype ($factor2) is not yet supported.")
-                    }
-
-                    val result = compare(interpret(statement.left), interpret(statement.right))
-                    if (result == Comparison.GREATER) {
-                        setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
-                    }
-                    if (result == Comparison.SMALLER) {
-                        setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
-                    }
-                    if (result == Comparison.EQUAL) {
-                        setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                    when (compareExpressions(statement.left, statement.right)) {
+                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
                     }
                 }
                 is LookupStmt -> {
@@ -1088,6 +1073,20 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         } catch (e: RuntimeException) {
             throw RuntimeException(errorDescription(statement, e), e)
         }
+    }
+
+    private fun compareExpressions(left: Expression, right: Expression): Comparison {
+        val factor1 = interpret(left)
+        if (factor1 !is NumberValue && factor1 !is StringValue) {
+            throw UnsupportedOperationException("Unable to compare: Factor1 datatype ($factor1) is not yet supported.")
+        }
+
+        val factor2 = interpret(right)
+        if (factor2 !is NumberValue && factor2 !is StringValue) {
+            throw UnsupportedOperationException("Unable to compare: Factor2 datatype ($factor2) is not yet supported.")
+        }
+
+        return compare(factor1, factor2)
     }
 
     private fun setPredefinedIndicators(statement: Statement, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
