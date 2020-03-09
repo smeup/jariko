@@ -902,6 +902,16 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCABEQOK() {
+        assertEquals(listOf("Test OK"), outputOf("CABEQOK"))
+    }
+
+    @Test
+    fun executeCABEQKO() {
+        assertEquals(listOf("Test KO"), outputOf("CABEQKO"))
+    }
+
+    @Test
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }
