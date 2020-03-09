@@ -891,12 +891,12 @@ class InterpreterTest {
         assertEquals(listOf("1", "2", "3"), outputOf("LEAVESR"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeCABLEOK() {
         assertEquals(listOf("Test OK"), outputOf("CABLEOK"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeCABLEKO() {
         assertEquals(listOf("Test KO"), outputOf("CABLEKO"))
     }

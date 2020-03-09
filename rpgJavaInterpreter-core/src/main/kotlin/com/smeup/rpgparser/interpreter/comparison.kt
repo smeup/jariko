@@ -63,8 +63,11 @@ fun stringComparison(value1: Value, value2: Value, charset: Charset): Comparison
 
 fun ComparisonOperator?.isVerifiedFor(factor1: Expression, factor2: Expression, interpreter: InterpreterCoreHelper, charset: Charset): Boolean {
     if (this == null) return true
-    interpreter.compareExpressions(factor1, factor2, charset)
-    TODO()
+    return when (interpreter.compareExpressions(factor1, factor2, charset)) {
+        Comparison.EQUAL -> this == ComparisonOperator.EQ || this == ComparisonOperator.GE || this == ComparisonOperator.LE
+        Comparison.SMALLER -> this == ComparisonOperator.LE || this == ComparisonOperator.LT
+        Comparison.GREATER -> this == ComparisonOperator.GE || this == ComparisonOperator.GT
+    }
 }
 
 fun InterpreterCoreHelper.compareExpressions(left: Expression, right: Expression, charset: Charset): Comparison {
