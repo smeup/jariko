@@ -437,11 +437,7 @@ data class IterStmt(override val position: Position? = null) : Statement(positio
 
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 
-interface TaggedStatement {
-    val tag: String
-}
-
-data class TagStmt(override val tag: String, override val position: Position? = null) : Statement(position), TaggedStatement
+data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
 data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
