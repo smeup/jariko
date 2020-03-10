@@ -937,6 +937,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCAB_OKINDI() {
+        assertEquals(listOf("Test OK", "42ON"), outputOf("CAB_OKINDI"))
+    }
+
+    @Test
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }

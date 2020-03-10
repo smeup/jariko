@@ -61,12 +61,14 @@ fun stringComparison(value1: Value, value2: Value, charset: Charset): Comparison
     return Comparison.GREATER
 }
 
-fun ComparisonOperator?.isVerifiedFor(factor1: Expression, factor2: Expression, interpreter: InterpreterCoreHelper, charset: Charset): Boolean {
-    if (this == null) return true
-    return when (interpreter.compareExpressions(factor1, factor2, charset)) {
-        Comparison.EQUAL -> this == ComparisonOperator.EQ || this == ComparisonOperator.GE || this == ComparisonOperator.LE
-        Comparison.SMALLER -> this == ComparisonOperator.LE || this == ComparisonOperator.LT
-        Comparison.GREATER -> this == ComparisonOperator.GE || this == ComparisonOperator.GT
+data class ComparisonResult(val isVerified: Boolean, val comparison: Comparison)
+
+fun ComparisonOperator?.verify(factor1: Expression, factor2: Expression, interpreter: InterpreterCoreHelper, charset: Charset): ComparisonResult {
+    val comparison = interpreter.compareExpressions(factor1, factor2, charset)
+    return when (comparison) {
+        Comparison.EQUAL -> ComparisonResult(this == null || this == ComparisonOperator.EQ || this == ComparisonOperator.GE || this == ComparisonOperator.LE, comparison)
+        Comparison.SMALLER -> ComparisonResult(this == null || this == ComparisonOperator.LE || this == ComparisonOperator.LT, comparison)
+        Comparison.GREATER -> ComparisonResult(this == null || this == ComparisonOperator.GE || this == ComparisonOperator.GT, comparison)
     }
 }
 

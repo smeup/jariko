@@ -686,7 +686,17 @@ fun ParserRuleContext.cabStatement(comparison: ComparisonOperator?, cspecFixedSt
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 1 - $text")
     val right = cspecFixedStandardParts.factor2Expression(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 2 - $text - ${position.atLine()}")
-    return CabStmt(left, right, comparison, cspecFixedStandardParts.result.text, position)
+    val indicators = indicators(cspecFixedStandardParts, conf.considerPosition)
+    return CabStmt(
+        left,
+        right,
+        comparison,
+        cspecFixedStandardParts.result.text,
+        cspecFixedStandardParts.hi.asIntOrNull(),
+        cspecFixedStandardParts.lo.asIntOrNull(),
+        cspecFixedStandardParts.eq.asIntOrNull(),
+        position
+    )
 }
 
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {

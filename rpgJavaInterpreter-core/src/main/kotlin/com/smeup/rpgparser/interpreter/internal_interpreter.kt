@@ -892,7 +892,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     throw GotoException(statement.tag)
                 }
                 is CabStmt -> {
-                    if (statement.comparison.isVerifiedFor(statement.factor1, statement.factor2, this, charset)) throw GotoException(statement.tag)
+                    val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, charset)
+                    when(comparisonResult.comparison) {
+                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                    }
+                    if (comparisonResult.isVerified) throw GotoException(statement.tag)
                 }
                 is SortAStmt -> {
                     sortA(interpret(statement.target), charset)
@@ -1094,32 +1100,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun setPredefinedIndicators(statement: Statement, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
-
-        when (statement) {
-            is LookupStmt -> {
-                if (null != statement.hi) {
-                    predefinedIndicators[statement.hi!!.toInt()] = hi
-                }
-                if (null != statement.lo) {
-                    predefinedIndicators[statement.lo!!.toInt()] = lo
-                }
-                if (null != statement.eq) {
-                    predefinedIndicators[statement.eq!!.toInt()] = eq
-                }
-            }
-            is CompStmt -> {
-                if (null != statement.hi) {
-                    predefinedIndicators[statement.hi!!.toInt()] = hi
-                }
-                if (null != statement.lo) {
-                    predefinedIndicators[statement.lo!!.toInt()] = lo
-                }
-                if (null != statement.eq) {
-                    predefinedIndicators[statement.eq!!.toInt()] = eq
-                }
-            }
-            else -> throw RuntimeException("Statement predefined indicators not implemented yet.")
+    private fun setPredefinedIndicators(statement: RightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
+        if (null != statement.hi) {
+            predefinedIndicators[statement.hi!!.toInt()] = hi
+        }
+        if (null != statement.lo) {
+            predefinedIndicators[statement.lo!!.toInt()] = lo
+        }
+        if (null != statement.eq) {
+            predefinedIndicators[statement.eq!!.toInt()] = eq
         }
     }
 

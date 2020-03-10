@@ -313,7 +313,20 @@ data class DefineStmt(
     }
 }
 
-data class CompStmt(val left: Expression, val right: Expression, val hi: Int?, val lo: Int?, val eq: Int?, override val position: Position? = null) : Statement(position)
+interface RightIndicators{
+    val hi: Int?
+    val lo: Int?
+    val eq: Int?
+}
+
+data class CompStmt(
+    val left: Expression,
+    val right: Expression,
+    override val hi: Int?,
+    override val lo: Int?,
+    override val eq: Int?,
+    override val position: Position? = null
+) : Statement(position), RightIndicators
 
 data class ZAddStmt(
     val target: AssignableExpression,
@@ -442,7 +455,14 @@ data class TagStmt(val tag: String, override val position: Position? = null) : S
 
 data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
-data class CabStmt(val factor1: Expression, val factor2: Expression, val comparison: ComparisonOperator?, val tag: String, override val position: Position? = null) : Statement(position)
+data class CabStmt(
+    val factor1: Expression,
+    val factor2: Expression,
+    val comparison: ComparisonOperator?,
+    val tag: String,
+    override val hi: Int?, override val lo: Int?, override val eq: Int?,
+    override val position: Position? = null
+) : Statement(position), RightIndicators
 
 data class ForStmt(
     var init: Expression,
@@ -477,4 +497,11 @@ data class SortAStmt(val target: Expression, override val position: Position? = 
 
 data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position)
 
-data class LookupStmt(val left: Expression, val right: Expression, val hi: Int?, val lo: Int?, val eq: Int?, override val position: Position? = null) : Statement(position)
+data class LookupStmt(
+    val left: Expression,
+    val right: Expression,
+    override val hi: Int?,
+    override val lo: Int?,
+    override val eq: Int?,
+    override val position: Position? = null
+) : Statement(position), RightIndicators
