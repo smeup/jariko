@@ -314,17 +314,17 @@ data class DefineStmt(
 }
 
 interface RightIndicators {
-    val hi: Int?
-    val lo: Int?
-    val eq: Int?
+    val hi: IndicatorKey?
+    val lo: IndicatorKey?
+    val eq: IndicatorKey?
 }
 
 data class CompStmt(
     val left: Expression,
     val right: Expression,
-    override val hi: Int?,
-    override val lo: Int?,
-    override val eq: Int?,
+    override val hi: IndicatorKey?,
+    override val lo: IndicatorKey?,
+    override val eq: IndicatorKey?,
     override val position: Position? = null
 ) : Statement(position), RightIndicators
 
@@ -460,9 +460,9 @@ data class CabStmt(
     val factor2: Expression,
     val comparison: ComparisonOperator?,
     val tag: String,
-    override val hi: Int?,
-    override val lo: Int?,
-    override val eq: Int?,
+    override val hi: IndicatorKey?,
+    override val lo: IndicatorKey?,
+    override val eq: IndicatorKey?,
     override val position: Position? = null
 ) : Statement(position), RightIndicators
 
@@ -502,8 +502,8 @@ data class CatStmt(val left: Expression?, val right: Expression, val target: Ass
 data class LookupStmt(
     val left: Expression,
     val right: Expression,
-    override val hi: Int?,
-    override val lo: Int?,
-    override val eq: Int?,
+    override val hi: IndicatorKey?,
+    override val lo: IndicatorKey?,
+    override val eq: IndicatorKey?,
     override val position: Position? = null
 ) : Statement(position), RightIndicators

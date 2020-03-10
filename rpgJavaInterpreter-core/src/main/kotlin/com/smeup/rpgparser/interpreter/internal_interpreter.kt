@@ -1101,14 +1101,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun setPredefinedIndicators(statement: RightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
-        if (null != statement.hi) {
-            predefinedIndicators[statement.hi!!.toInt()] = hi
+        statement.hi?.let {
+            predefinedIndicators[it] = hi
         }
-        if (null != statement.lo) {
-            predefinedIndicators[statement.lo!!.toInt()] = lo
+        statement.lo?.let {
+            predefinedIndicators[it] = lo
         }
-        if (null != statement.eq) {
-            predefinedIndicators[statement.eq!!.toInt()] = eq
+        statement.eq?.let {
+            predefinedIndicators[it] = eq
         }
     }
 
