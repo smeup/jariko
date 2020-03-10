@@ -937,8 +937,18 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeCAB_OKINDI() {
-        assertEquals(listOf("Test OK", "42ON"), outputOf("CAB_OKINDI"))
+    fun executeCAB_OKINDLower() {
+        assertEquals(listOf("Test OK", "42ON"), outputOf("CAB_OKINDL"))
+    }
+
+    @Test
+    fun executeCAB_OKINDGreater() {
+        assertEquals(listOf("Test OK", "41ON"), outputOf("CAB_OKINDG"))
+    }
+
+    @Test
+    fun executeCAB_OKINDEqual() {
+        assertEquals(listOf("Test OK", "43ON"), outputOf("CAB_OKINDE"))
     }
 
     @Test

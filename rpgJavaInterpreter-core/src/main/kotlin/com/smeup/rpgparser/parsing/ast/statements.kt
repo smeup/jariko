@@ -313,7 +313,7 @@ data class DefineStmt(
     }
 }
 
-interface RightIndicators{
+interface RightIndicators {
     val hi: Int?
     val lo: Int?
     val eq: Int?
@@ -460,7 +460,9 @@ data class CabStmt(
     val factor2: Expression,
     val comparison: ComparisonOperator?,
     val tag: String,
-    override val hi: Int?, override val lo: Int?, override val eq: Int?,
+    override val hi: Int?,
+    override val lo: Int?,
+    override val eq: Int?,
     override val position: Position? = null
 ) : Statement(position), RightIndicators
 

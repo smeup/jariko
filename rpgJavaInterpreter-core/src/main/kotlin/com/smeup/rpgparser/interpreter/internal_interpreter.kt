@@ -893,7 +893,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is CabStmt -> {
                     val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, charset)
-                    when(comparisonResult.comparison) {
+                    when (comparisonResult.comparison) {
                         Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
                         Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
                         Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
