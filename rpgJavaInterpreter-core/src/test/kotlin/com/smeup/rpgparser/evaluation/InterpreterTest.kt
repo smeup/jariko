@@ -931,7 +931,7 @@ class InterpreterTest {
         assertEquals(listOf("Test KO"), outputOf("CABEQKO"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeCAB_OK() {
         assertEquals(listOf("Test OK"), outputOf("CAB_OK"))
     }

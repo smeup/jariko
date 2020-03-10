@@ -283,7 +283,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csDEFINE() != null -> this.csDEFINE().toAst(conf)
         this.csCAT() != null -> this.csCAT().toAst(conf)
         this.csLOOKUP() != null -> this.csLOOKUP().toAst(conf)
-        this.csCABxx() != null -> this.csCABxx().toAst(conf)
+        this.csCAB() != null -> this.csCAB().toAst(conf)
         this.csCABLE() != null -> this.csCABLE().toAst(conf)
         this.csCABLT() != null -> this.csCABLT().toAst(conf)
         this.csCABEQ() != null -> this.csCABEQ().toAst(conf)
@@ -658,8 +658,7 @@ internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
 }
 
-internal fun CsCABxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
-    // TODO Comparison xx = ???
+internal fun CsCABContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
     return cabStatement(null, this.cspec_fixed_standard_parts(), conf)
 }
 
