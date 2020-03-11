@@ -283,9 +283,15 @@ class InterpreterTest {
     fun executeMOVEL04_all1() {
         assertEquals(listOf("11111"), outputOf("MOVEL04"))
     }
+
     @Test
     fun executeMOVEL05_allChar() {
         assertEquals(listOf("aaaaa"), outputOf("MOVEL05"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEL06_blanks() {
+        assertEquals(listOf(""), outputOf("MOVEL06"))
     }
 
     @Test
