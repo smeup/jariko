@@ -32,24 +32,28 @@ fun isSmallerThan(value1: Value, value2: Value, charset: Charset): Boolean {
 
 fun compare(value1: Value, value2: Value, charset: Charset): Comparison {
     return when {
-        value1 is IntValue && value2 is IntValue -> when {
-            value1.value == value2.value -> Comparison.EQUAL
-            value1.value < value2.value -> Comparison.SMALLER
-            else -> Comparison.GREATER
-        }
+        value1 is IntValue && value2 is IntValue -> intComparison(value1, value2)
         value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
         value2 is HiValValue -> Comparison.SMALLER
-        value1 is NumberValue && value2 is NumberValue -> when {
-            value1.bigDecimal == value2.bigDecimal -> Comparison.EQUAL
-            value1.bigDecimal < value2.bigDecimal -> Comparison.SMALLER
-            else -> Comparison.GREATER
-        }
-        value1 is StringValue && value2 is StringValue -> {
-            stringComparison(value1, value2, charset)
-        }
+        value1 is NumberValue && value2 is NumberValue -> numberComparison(value1, value2)
+        value1 is StringValue && value2 is StringValue -> stringComparison(value1, value2, charset)
         else -> TODO("Unable to compare: value 1 is $value1, Value 2 is $value2")
     }
 }
+
+private fun numberComparison(value1: NumberValue, value2: NumberValue): Comparison =
+    when {
+        value1.bigDecimal == value2.bigDecimal -> Comparison.EQUAL
+        value1.bigDecimal < value2.bigDecimal -> Comparison.SMALLER
+        else -> Comparison.GREATER
+    }
+
+private fun intComparison(value1: IntValue, value2: IntValue): Comparison =
+    when {
+        value1.value == value2.value -> Comparison.EQUAL
+        value1.value < value2.value -> Comparison.SMALLER
+        else -> Comparison.GREATER
+    }
 
 fun stringComparison(value1: Value, value2: Value, charset: Charset): Comparison {
     if (value1 == value2) {

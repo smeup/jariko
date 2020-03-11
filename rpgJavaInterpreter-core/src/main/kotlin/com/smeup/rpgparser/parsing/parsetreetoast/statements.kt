@@ -153,15 +153,18 @@ internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfi
     return result
 }
 
-internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression =
-    when (this) {
-        ComparisonOperator.EQ -> EqualityExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        ComparisonOperator.NE -> DifferentThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        ComparisonOperator.GE -> GreaterEqualThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        ComparisonOperator.GT -> GreaterThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        ComparisonOperator.LE -> LessEqualThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        ComparisonOperator.LT -> LessThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
+internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression {
+    val left = factor1.content.toAst(conf)
+    val right = factor2.content.toAst(conf)
+    return when (this) {
+        ComparisonOperator.EQ -> EqualityExpr(left, right)
+        ComparisonOperator.NE -> DifferentThanExpr(left, right)
+        ComparisonOperator.GE -> GreaterEqualThanExpr(left, right)
+        ComparisonOperator.GT -> GreaterThanExpr(left, right)
+        ComparisonOperator.LE -> LessEqualThanExpr(left, right)
+        ComparisonOperator.LT -> LessThanExpr(left, right)
     }
+}
 
 internal fun RpgParser.CsORxxContext.getCondition() =
     when {
