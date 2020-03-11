@@ -32,7 +32,7 @@ abstract class Statement(
 ) : Node(position) {
     open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int): MutableList<MuteAnnotationResolved> {
 
-        // List of mutes successully attached to the statements
+        // List of mutes successfully attached to the statements
         val mutesAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
         // Extracts the annotation declared before the statement
