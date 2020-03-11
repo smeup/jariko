@@ -411,8 +411,8 @@ internal fun CsTIMEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
-    if (factor2?.symbolicConstants() != null) {
-        return factor2.symbolicConstants().toAst()
+    factor2?.symbolicConstants()?.let {
+        return it.toAst()
     }
     return factor2?.content?.toAst(conf)
 }

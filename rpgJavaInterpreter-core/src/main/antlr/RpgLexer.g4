@@ -1055,7 +1055,7 @@ CS_Factor2_SPLAT_TOTL : SPLAT_TOTL {35+5<= getCharPositionInLine() && getCharPos
 CS_Factor2_SPLAT_USER : SPLAT_USER {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_USER);
 CS_Factor2_SPLAT_VAR : SPLAT_VAR {35+4<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_VAR);
 CS_Factor2_SPLAT_YEAR : SPLAT_YEAR {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_YEAR);
-CS_Factor2_SPLAT_ZEROS : SPLAT_ZEROS {35+6<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_ZEROS);
+CS_Factor2_SPLAT_ZEROS : SPLAT_ZEROS {(35+6<= getCharPositionInLine() && getCharPositionInLine()<=48) || (35+5<= getCharPositionInLine() && getCharPositionInLine()<=48)}? -> type(SPLAT_ZEROS);
 CS_Factor2_SPLAT_HMS : SPLAT_HMS {35+4<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_HMS);
 CS_Factor2_SPLAT_INLR : SPLAT_INLR {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_INLR);
 CS_Factor2_SPLAT_INOF : SPLAT_INOF {35+5<= getCharPositionInLine() && getCharPositionInLine()<=48}? -> type(SPLAT_INOF);
