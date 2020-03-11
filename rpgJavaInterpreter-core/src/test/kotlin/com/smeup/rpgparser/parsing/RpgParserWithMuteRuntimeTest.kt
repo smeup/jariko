@@ -150,4 +150,16 @@ class RpgParserWithMuteRuntimeTest {
         assertEquals(executedAnnotation.size, 4)
         assertTrue(executedAnnotation.all { it.value.succeeded() })
     }
+
+    @Test
+    fun executingGOTOexecutesMutesToo() {
+        val cu = assertASTCanBeProduced("mute/MUTEGOTO", true)
+        cu.resolveAndValidate(DummyDBInterface)
+
+        val interpreter = execute(cu, mapOf())
+
+        val executedAnnotation = interpreter.systemInterface.getExecutedAnnotation()
+        assertEquals(executedAnnotation.size, 2)
+        assertTrue(executedAnnotation.all { it.value.succeeded() })
+    }
 }

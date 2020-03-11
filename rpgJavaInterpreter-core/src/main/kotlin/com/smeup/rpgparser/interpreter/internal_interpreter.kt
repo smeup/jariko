@@ -312,8 +312,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun executeWithMute(statement: Statement) {
         log(LineLogEntry(this.interpretationContext.currentProgramName, statement))
-        execute(statement)
-        executeMutes(statement.muteAnnotations, statement.ancestor(CompilationUnit::class.java)!!, statement.position.line())
+        try {
+            execute(statement)
+        } finally {
+            executeMutes(
+                statement.muteAnnotations,
+                statement.ancestor(CompilationUnit::class.java)!!,
+                statement.position.line()
+            )
+        }
     }
 
     private fun executeMutes(muteAnnotations: MutableList<MuteAnnotation>, compilationUnit: CompilationUnit, line: String) {
