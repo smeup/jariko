@@ -184,7 +184,7 @@ data class CheckStmt(
 data class CallStmt(
     val expression: Expression,
     val params: List<PlistParam>,
-    val errorIndicator: Int? = null,
+    val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
