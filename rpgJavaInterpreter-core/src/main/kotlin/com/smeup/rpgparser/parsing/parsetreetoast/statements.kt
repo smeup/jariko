@@ -2,7 +2,7 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
-import com.smeup.rpgparser.utils.Comparison
+import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
@@ -153,57 +153,60 @@ internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfi
     return result
 }
 
-internal fun Comparison.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression =
-    when (this) {
-        Comparison.EQ -> EqualityExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        Comparison.NE -> DifferentThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        Comparison.GE -> GreaterEqualThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        Comparison.GT -> GreaterThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        Comparison.LE -> LessEqualThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
-        Comparison.LT -> LessThanExpr(factor1.content.toAst(conf), factor2.content.toAst(conf))
+internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression {
+    val left = factor1.content.toAst(conf)
+    val right = factor2.content.toAst(conf)
+    return when (this) {
+        ComparisonOperator.EQ -> EqualityExpr(left, right)
+        ComparisonOperator.NE -> DifferentThanExpr(left, right)
+        ComparisonOperator.GE -> GreaterEqualThanExpr(left, right)
+        ComparisonOperator.GT -> GreaterThanExpr(left, right)
+        ComparisonOperator.LE -> LessEqualThanExpr(left, right)
+        ComparisonOperator.LT -> LessThanExpr(left, right)
     }
+}
 
 internal fun RpgParser.CsORxxContext.getCondition() =
     when {
-        this.csOREQ() != null -> Comparison.EQ to this.csOREQ().cspec_fixed_standard_parts().factor2
-        this.csORNE() != null -> Comparison.NE to this.csORNE().cspec_fixed_standard_parts().factor2
-        this.csORGE() != null -> Comparison.GE to this.csORGE().cspec_fixed_standard_parts().factor2
-        this.csORGT() != null -> Comparison.GT to this.csORGT().cspec_fixed_standard_parts().factor2
-        this.csORLE() != null -> Comparison.LE to this.csORLE().cspec_fixed_standard_parts().factor2
-        this.csORLT() != null -> Comparison.LT to this.csORLT().cspec_fixed_standard_parts().factor2
+        this.csOREQ() != null -> ComparisonOperator.EQ to this.csOREQ().cspec_fixed_standard_parts().factor2
+        this.csORNE() != null -> ComparisonOperator.NE to this.csORNE().cspec_fixed_standard_parts().factor2
+        this.csORGE() != null -> ComparisonOperator.GE to this.csORGE().cspec_fixed_standard_parts().factor2
+        this.csORGT() != null -> ComparisonOperator.GT to this.csORGT().cspec_fixed_standard_parts().factor2
+        this.csORLE() != null -> ComparisonOperator.LE to this.csORLE().cspec_fixed_standard_parts().factor2
+        this.csORLT() != null -> ComparisonOperator.LT to this.csORLT().cspec_fixed_standard_parts().factor2
         else -> throw RuntimeException("No valid ORXX condition")
     }
 
 internal fun RpgParser.CsANDxxContext.getCondition() =
     when {
-        this.csANDEQ() != null -> Comparison.EQ to this.csANDEQ().cspec_fixed_standard_parts().factor2
-        this.csANDNE() != null -> Comparison.NE to this.csANDNE().cspec_fixed_standard_parts().factor2
-        this.csANDGE() != null -> Comparison.GE to this.csANDGE().cspec_fixed_standard_parts().factor2
-        this.csANDGT() != null -> Comparison.GT to this.csANDGT().cspec_fixed_standard_parts().factor2
-        this.csANDLE() != null -> Comparison.LE to this.csANDLE().cspec_fixed_standard_parts().factor2
-        this.csANDLT() != null -> Comparison.LT to this.csANDLT().cspec_fixed_standard_parts().factor2
+        this.csANDEQ() != null -> ComparisonOperator.EQ to this.csANDEQ().cspec_fixed_standard_parts().factor2
+        this.csANDNE() != null -> ComparisonOperator.NE to this.csANDNE().cspec_fixed_standard_parts().factor2
+        this.csANDGE() != null -> ComparisonOperator.GE to this.csANDGE().cspec_fixed_standard_parts().factor2
+        this.csANDGT() != null -> ComparisonOperator.GT to this.csANDGT().cspec_fixed_standard_parts().factor2
+        this.csANDLE() != null -> ComparisonOperator.LE to this.csANDLE().cspec_fixed_standard_parts().factor2
+        this.csANDLT() != null -> ComparisonOperator.LT to this.csANDLT().cspec_fixed_standard_parts().factor2
         else -> throw RuntimeException("No valid ANDXX condition")
     }
 
 internal fun RpgParser.CsWHENxxContext.getCondition() =
     when {
-        this.csWHENEQ() != null -> Comparison.EQ to this.csWHENEQ().cspec_fixed_standard_parts().factor2
-        this.csWHENNE() != null -> Comparison.NE to this.csWHENNE().cspec_fixed_standard_parts().factor2
-        this.csWHENGE() != null -> Comparison.GE to this.csWHENGE().cspec_fixed_standard_parts().factor2
-        this.csWHENGT() != null -> Comparison.GT to this.csWHENGT().cspec_fixed_standard_parts().factor2
-        this.csWHENLE() != null -> Comparison.LE to this.csWHENLE().cspec_fixed_standard_parts().factor2
-        this.csWHENLT() != null -> Comparison.LT to this.csWHENLT().cspec_fixed_standard_parts().factor2
+        this.csWHENEQ() != null -> ComparisonOperator.EQ to this.csWHENEQ().cspec_fixed_standard_parts().factor2
+        this.csWHENNE() != null -> ComparisonOperator.NE to this.csWHENNE().cspec_fixed_standard_parts().factor2
+        this.csWHENGE() != null -> ComparisonOperator.GE to this.csWHENGE().cspec_fixed_standard_parts().factor2
+        this.csWHENGT() != null -> ComparisonOperator.GT to this.csWHENGT().cspec_fixed_standard_parts().factor2
+        this.csWHENLE() != null -> ComparisonOperator.LE to this.csWHENLE().cspec_fixed_standard_parts().factor2
+        this.csWHENLT() != null -> ComparisonOperator.LT to this.csWHENLT().cspec_fixed_standard_parts().factor2
         else -> throw RuntimeException("No valid WhenXX condition")
     }
 
 internal fun RpgParser.CsIFxxContext.getCondition() =
     when {
-        this.csIFEQ() != null -> Comparison.EQ to this.csIFEQ().cspec_fixed_standard_parts().factor2
-        this.csIFNE() != null -> Comparison.NE to this.csIFNE().cspec_fixed_standard_parts().factor2
-        this.csIFGE() != null -> Comparison.GE to this.csIFGE().cspec_fixed_standard_parts().factor2
-        this.csIFGT() != null -> Comparison.GT to this.csIFGT().cspec_fixed_standard_parts().factor2
-        this.csIFLE() != null -> Comparison.LE to this.csIFLE().cspec_fixed_standard_parts().factor2
-        this.csIFLT() != null -> Comparison.LT to this.csIFLT().cspec_fixed_standard_parts().factor2
+        this.csIFEQ() != null -> ComparisonOperator.EQ to this.csIFEQ().cspec_fixed_standard_parts().factor2
+        this.csIFNE() != null -> ComparisonOperator.NE to this.csIFNE().cspec_fixed_standard_parts().factor2
+        this.csIFGE() != null -> ComparisonOperator.GE to this.csIFGE().cspec_fixed_standard_parts().factor2
+        this.csIFGT() != null -> ComparisonOperator.GT to this.csIFGT().cspec_fixed_standard_parts().factor2
+        this.csIFLE() != null -> ComparisonOperator.LE to this.csIFLE().cspec_fixed_standard_parts().factor2
+        this.csIFLT() != null -> ComparisonOperator.LT to this.csIFLT().cspec_fixed_standard_parts().factor2
         else -> throw RuntimeException("No valid WhenXX condition")
     }
 

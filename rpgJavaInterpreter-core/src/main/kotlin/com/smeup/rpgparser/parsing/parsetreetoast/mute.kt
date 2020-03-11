@@ -7,7 +7,7 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.MutesImmutableMap
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import com.smeup.rpgparser.utils.Comparison
+import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asLong
 import com.strumenta.kolasu.model.Position
 import org.antlr.v4.runtime.Token
@@ -40,7 +40,7 @@ fun MuteParser.MuteLineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
             val val1 = extractExpressionFrom(annotation.val1)
             val val2 = extractExpressionFrom(annotation.val2)
 
-            MuteComparisonAnnotation(val1, val2, Comparison.valueOf(annotation.cp.text.substring(1, annotation.cp.text.lastIndex)), position = position)
+            MuteComparisonAnnotation(val1, val2, ComparisonOperator.valueOf(annotation.cp.text.substring(1, annotation.cp.text.lastIndex)), position = position)
         }
         is MuteParser.MuteTypeAnnotationContext -> {
             // Type="NOXMI" annotation are not supported

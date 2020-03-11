@@ -2,7 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.BooleanValue
 import com.smeup.rpgparser.interpreter.Value
-import com.smeup.rpgparser.utils.Comparison
+import com.smeup.rpgparser.utils.ComparisonOperator
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 
@@ -11,7 +11,7 @@ abstract class MuteAnnotation(override val position: Position? = null) : Node(po
 data class MuteComparisonAnnotation(
     var val1: Expression,
     var val2: Expression,
-    val comparison: Comparison,
+    val comparison: ComparisonOperator,
     override val position: Position? = null
 ) : MuteAnnotation(position)
 
