@@ -952,6 +952,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeERRCALLER_errorIndicatorOnCall() {
+        assertEquals(listOf("10", "No Error", "Got Error"), outputOf("ERRCALLER"))
+    }
+
+    @Test
     fun executeProgramWithAVarNamedLen() {
         assertEquals(listOf("10"), outputOf("VARNAMEDLEN"))
     }
