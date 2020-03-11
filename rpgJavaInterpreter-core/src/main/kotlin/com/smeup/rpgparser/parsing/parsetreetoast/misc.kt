@@ -682,19 +682,22 @@ internal fun CsCABGEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return cabStatement(ComparisonOperator.GE, this.cspec_fixed_standard_parts(), conf)
 }
 
+fun Cspec_fixed_standard_partsContext.rightIndicators() =
+    RightIndicators(
+        hi.asIntOrNull(),
+        lo.asIntOrNull(),
+        eq.asIntOrNull())
+
 fun ParserRuleContext.cabStatement(comparison: ComparisonOperator?, cspecFixedStandardParts: Cspec_fixed_standard_partsContext, conf: ToAstConfiguration): CabStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 1 - $text")
     val right = cspecFixedStandardParts.factor2Expression(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 2 - $text - ${position.atLine()}")
-    val indicators = indicators(cspecFixedStandardParts, conf.considerPosition)
     return CabStmt(
         left,
         right,
         comparison,
         cspecFixedStandardParts.result.text,
-        cspecFixedStandardParts.hi.asIntOrNull(),
-        cspecFixedStandardParts.lo.asIntOrNull(),
-        cspecFixedStandardParts.eq.asIntOrNull(),
+        cspecFixedStandardParts.rightIndicators(),
         position
     )
 }
@@ -730,14 +733,12 @@ internal fun ResultIndicatorContext?.asIntOrNull(): Int? = this?.text?.asIntOrNu
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 1: ${this.text}")
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right = cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     return CompStmt(
         left,
         right,
-        this.cspec_fixed_standard_parts().hi.asIntOrNull(),
-        this.cspec_fixed_standard_parts().lo.asIntOrNull(),
-        this.cspec_fixed_standard_parts().eq.asIntOrNull(),
+        cspec_fixed_standard_parts().rightIndicators(),
         position)
 }
 
@@ -852,13 +853,11 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
 internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 1: ${this.text}")
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right = cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     return LookupStmt(
             left,
             right,
-            this.cspec_fixed_standard_parts().hi.asIntOrNull(),
-            this.cspec_fixed_standard_parts().lo.asIntOrNull(),
-            this.cspec_fixed_standard_parts().eq.asIntOrNull(),
+            cspec_fixed_standard_parts().rightIndicators(),
             position)
 }

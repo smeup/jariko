@@ -313,20 +313,24 @@ data class DefineStmt(
     }
 }
 
-interface RightIndicators {
+interface WithRightIndicators {
     val hi: IndicatorKey?
     val lo: IndicatorKey?
     val eq: IndicatorKey?
 }
 
+data class RightIndicators(
+    override val hi: IndicatorKey?,
+    override val lo: IndicatorKey?,
+    override val eq: IndicatorKey?
+) : WithRightIndicators
+
 data class CompStmt(
     val left: Expression,
     val right: Expression,
-    override val hi: IndicatorKey?,
-    override val lo: IndicatorKey?,
-    override val eq: IndicatorKey?,
+    val rightIndicators: WithRightIndicators,
     override val position: Position? = null
-) : Statement(position), RightIndicators
+) : Statement(position), WithRightIndicators by rightIndicators
 
 data class ZAddStmt(
     val target: AssignableExpression,
@@ -460,11 +464,9 @@ data class CabStmt(
     val factor2: Expression,
     val comparison: ComparisonOperator?,
     val tag: String,
-    override val hi: IndicatorKey?,
-    override val lo: IndicatorKey?,
-    override val eq: IndicatorKey?,
+    val rightIndicators: WithRightIndicators,
     override val position: Position? = null
-) : Statement(position), RightIndicators
+) : Statement(position), WithRightIndicators by rightIndicators
 
 data class ForStmt(
     var init: Expression,
@@ -502,8 +504,6 @@ data class CatStmt(val left: Expression?, val right: Expression, val target: Ass
 data class LookupStmt(
     val left: Expression,
     val right: Expression,
-    override val hi: IndicatorKey?,
-    override val lo: IndicatorKey?,
-    override val eq: IndicatorKey?,
+    val rightIndicators: WithRightIndicators,
     override val position: Position? = null
-) : Statement(position), RightIndicators
+) : Statement(position), WithRightIndicators by rightIndicators
