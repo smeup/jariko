@@ -948,7 +948,7 @@ cspec_fixed_standard:
 	//| csBEGSR
 	| csBITOFF
 	| csBITON
-	| csCABxx
+	| csCAB
 	| csCABEQ
 	| csCABNE
 	| csCABLE
@@ -1154,8 +1154,8 @@ csBITOFF:
 csBITON:
 	operation=OP_BITON
 	cspec_fixed_standard_parts;
-csCABxx:
-	operation=OP_CABxx
+csCAB:
+	operation=OP_CAB
 	cspec_fixed_standard_parts;
 csCABEQ:
 	operation=OP_CABEQ

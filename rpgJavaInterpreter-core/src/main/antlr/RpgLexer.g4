@@ -596,7 +596,7 @@ OP_ANDGE: [aA][nN][dD][gG][eE];
 OP_ANDGT: [aA][nN][dD][gG][tT];
 OP_BITOFF: [bB][iI][tT][oO][fF][fF];
 OP_BITON: [bB][iI][tT][oO][nN];
-OP_CABxx: [cC][aA][bB][0-9][0-9];
+OP_CAB: [cC][aA][bB];
 OP_CABEQ: [cC][aA][bB][eE][qQ];
 OP_CABNE: [cC][aA][bB][nN][eE];
 OP_CABLE: [cC][aA][bB][lL][eE];
@@ -1186,7 +1186,7 @@ CS_Operation_ANDxx: OP_ANDxx {getCharPositionInLine()>=30 && getCharPositionInLi
 CS_Operation_BEGSR: OP_BEGSR {getCharPositionInLine()>=30 && getCharPositionInLine()<36}? -> type(OP_BEGSR);
 CS_Operation_BITOFF: OP_BITOFF {getCharPositionInLine()>=28 && getCharPositionInLine()<36}? -> type(OP_BITOFF);
 CS_Operation_BITON: OP_BITON {getCharPositionInLine()>=30 && getCharPositionInLine()<36}? -> type(OP_BITON);
-CS_Operation_CABxx: OP_CABxx {getCharPositionInLine()>=30 && getCharPositionInLine()<36}? -> type(OP_CABxx);
+CS_Operation_CAB: OP_CAB {getCharPositionInLine()>=28 && getCharPositionInLine()<36}? -> type(OP_CAB);
 CS_Operation_CABEQ: OP_CABEQ {getCharPositionInLine()>=30 && getCharPositionInLine()<36}? -> type(OP_CABEQ);
 CS_Operation_CABNE: OP_CABNE {getCharPositionInLine()>=30 && getCharPositionInLine()<36}? -> type(OP_CABNE);
 CS_Operation_CABLE: OP_CABLE {getCharPositionInLine()>=30 && getCharPositionInLine()<36}? -> type(OP_CABLE);

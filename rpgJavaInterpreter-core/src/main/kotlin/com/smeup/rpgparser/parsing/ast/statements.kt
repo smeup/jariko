@@ -7,6 +7,7 @@ import com.smeup.rpgparser.interpreter.KListType
 import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.utils.ComparisonOperator
 import com.strumenta.kolasu.model.*
 
 interface StatementThatCanDefineData {
@@ -31,7 +32,7 @@ abstract class Statement(
 ) : Node(position) {
     open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int): MutableList<MuteAnnotationResolved> {
 
-        // List of mutes successully attached to the statements
+        // List of mutes successfully attached to the statements
         val mutesAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
         // Extracts the annotation declared before the statement
@@ -312,7 +313,24 @@ data class DefineStmt(
     }
 }
 
-data class CompStmt(val left: Expression, val right: Expression, val hi: Int?, val lo: Int?, val eq: Int?, override val position: Position? = null) : Statement(position)
+interface WithRightIndicators {
+    val hi: IndicatorKey?
+    val lo: IndicatorKey?
+    val eq: IndicatorKey?
+}
+
+data class RightIndicators(
+    override val hi: IndicatorKey?,
+    override val lo: IndicatorKey?,
+    override val eq: IndicatorKey?
+) : WithRightIndicators
+
+data class CompStmt(
+    val left: Expression,
+    val right: Expression,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators
 
 data class ZAddStmt(
     val target: AssignableExpression,
@@ -429,19 +447,26 @@ data class DouStmt(
     override val position: Position? = null
 ) : Statement(position)
 
+data class LeaveSrStmt(override val position: Position? = null) : Statement(position)
+
 data class LeaveStmt(override val position: Position? = null) : Statement(position)
 
 data class IterStmt(override val position: Position? = null) : Statement(position)
 
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 
-interface TaggedStatement {
-    val tag: String
-}
-
-data class TagStmt(override val tag: String, override val position: Position? = null) : Statement(position), TaggedStatement
+data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
 
 data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
+
+data class CabStmt(
+    val factor1: Expression,
+    val factor2: Expression,
+    val comparison: ComparisonOperator?,
+    val tag: String,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators
 
 data class ForStmt(
     var init: Expression,
@@ -476,4 +501,9 @@ data class SortAStmt(val target: Expression, override val position: Position? = 
 
 data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position)
 
-data class LookupStmt(val left: Expression, val right: Expression, val hi: Int?, val lo: Int?, val eq: Int?, override val position: Position? = null) : Statement(position)
+data class LookupStmt(
+    val left: Expression,
+    val right: Expression,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators

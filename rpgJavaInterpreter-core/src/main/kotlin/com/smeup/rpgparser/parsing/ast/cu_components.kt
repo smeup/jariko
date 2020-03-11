@@ -108,7 +108,8 @@ data class CompilationUnit(
 
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
 
-class Subroutine(override val name: String, val stmts: List<Statement>, override val position: Position? = null) : Named, Node(position)
+class Subroutine(override val name: String, val stmts: List<Statement>, val tag: String? = null, override val position: Position? = null) : Named, Node(position)
+
 class Function(override val name: String, override val position: Position? = null) : Named, Node(position)
 
 class CompileTimeArray(override val name: String, val lines: List<String>, override val position: Position? = null) : Named, Node(position)

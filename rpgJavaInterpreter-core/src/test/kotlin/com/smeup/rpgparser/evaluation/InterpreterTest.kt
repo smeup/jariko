@@ -881,9 +881,74 @@ class InterpreterTest {
         assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO02N"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeGotoENDSR() {
         assertEquals(listOf("1", "2", "3"), outputOf("GOTOENDSR"))
+    }
+
+    @Test
+    fun executeLEAVESR() {
+        assertEquals(listOf("1", "2", "3"), outputOf("LEAVESR"))
+    }
+
+    @Test
+    fun executeCABLEOK() {
+        assertEquals(listOf("Test OK"), outputOf("CABLEOK"))
+    }
+
+    @Test
+    fun executeCABLEOK2() {
+        assertEquals(listOf("Test OK"), outputOf("CABLEOK2"))
+    }
+
+    @Test
+    fun executeCABLEKO() {
+        assertEquals(listOf("Test KO"), outputOf("CABLEKO"))
+    }
+
+    @Test
+    fun executeCABGEOK() {
+        assertEquals(listOf("Test OK"), outputOf("CABGEOK"))
+    }
+
+    @Test
+    fun executeCABGEOK2() {
+        assertEquals(listOf("Test OK"), outputOf("CABGEOK2"))
+    }
+
+    @Test
+    fun executeCABGEKO() {
+        assertEquals(listOf("Test KO"), outputOf("CABGEKO"))
+    }
+
+    @Test
+    fun executeCABEQOK() {
+        assertEquals(listOf("Test OK"), outputOf("CABEQOK"))
+    }
+
+    @Test
+    fun executeCABEQKO() {
+        assertEquals(listOf("Test KO"), outputOf("CABEQKO"))
+    }
+
+    @Test
+    fun executeCAB_OK() {
+        assertEquals(listOf("Test OK"), outputOf("CAB_OK"))
+    }
+
+    @Test
+    fun executeCAB_OKINDLower() {
+        assertEquals(listOf("Test OK", "42ON"), outputOf("CAB_OKINDL"))
+    }
+
+    @Test
+    fun executeCAB_OKINDGreater() {
+        assertEquals(listOf("Test OK", "41ON"), outputOf("CAB_OKINDG"))
+    }
+
+    @Test
+    fun executeCAB_OKINDEqual() {
+        assertEquals(listOf("Test OK", "43ON"), outputOf("CAB_OKINDE"))
     }
 
     @Test

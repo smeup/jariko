@@ -3,7 +3,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
-import com.smeup.rpgparser.utils.Comparison.*
+import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.*
 import com.strumenta.kolasu.model.ancestor
 import java.lang.IllegalArgumentException
@@ -19,6 +19,7 @@ import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
 
+class LeaveSrException : Exception()
 class LeaveException : Exception()
 class IterException : Exception()
 
@@ -273,32 +274,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
 
         if (compilationUnit.minTimeOut == null) {
-            executeEachStatement(compilationUnit)
+            execute(compilationUnit.main.stmts)
         } else {
             val elapsedTime = measureTimeMillis {
-                executeEachStatement(compilationUnit)
+                execute(compilationUnit.main.stmts)
             }
             if (elapsedTime > compilationUnit.minTimeOut!!) throw TimeoutException("Execution took $elapsedTime millis, but there was a ${compilationUnit.minTimeOut} millis timeout")
         }
     }
 
-    private fun executeEachStatement(compilationUnit: CompilationUnit) {
-        try {
-            val statements = compilationUnit.main.stmts
-            var i = 0
-            while (i < statements.size) {
-                try {
-                    executeWithMute(statements[i++])
-                } catch (e: GotoException) {
-                    i = statements.indexOfFirst {
-                        it is TaggedStatement && it.tag.equals(e.tag, true)
-                    }
-                }
-            }
-        } catch (e: ReturnException) {
-            // TODO use return value
+    private fun GotoException.indexOfTaggedStatement(statements: List<Statement>): Int =
+        statements.indexOfFirst {
+            it is TagStmt && it.tag.equals(tag, true)
         }
-    }
 
     private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
         val result = TreeMap<String, Value>(String.CASE_INSENSITIVE_ORDER)
@@ -307,7 +295,19 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun execute(statements: List<Statement>) {
-        statements.forEach { executeWithMute(it) }
+        try {
+            var i = 0
+            while (i < statements.size) {
+                try {
+                    executeWithMute(statements[i++])
+                } catch (e: GotoException) {
+                    i = e.indexOfTaggedStatement(statements)
+                    if (i < 0 || i >= statements.size) throw e
+                }
+            }
+        } catch (e: ReturnException) {
+            // TODO use return value
+        }
     }
 
     private fun executeWithMute(statement: Statement) {
@@ -389,21 +389,26 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
-                            SubroutineExecutionLogStart(
-                                    this.interpretationContext.currentProgramName,
-                                    statement.subroutine.referred!!
-                            )
+                        SubroutineExecutionLogStart(
+                            this.interpretationContext.currentProgramName,
+                            statement.subroutine.referred!!
+                        )
                     )
-
                     val elapsed = measureTimeMillis {
-                        execute(statement.subroutine.referred!!.stmts)
+                        try {
+                            execute(statement.subroutine.referred!!.stmts)
+                        } catch (e: LeaveSrException) {
+                            // Nothing to do here
+                        } catch (e: GotoException) {
+                            if (!e.tag.equals(statement.subroutine.referred!!.tag, true)) throw e
+                        }
                     }
                     log(
-                            SubroutineExecutionLogEnd(
-                                    this.interpretationContext.currentProgramName,
-                                    statement.subroutine.referred!!,
-                                    elapsed
-                            )
+                        SubroutineExecutionLogEnd(
+                            this.interpretationContext.currentProgramName,
+                            statement.subroutine.referred!!,
+                            elapsed
+                        )
                     )
                 }
                 is EvalStmt -> {
@@ -674,7 +679,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         try {
                             log(DoStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement))
                             while ((cycleLimit == null || (cycleLimit as Int) >= myIterValue.value) &&
-                                    isEqualOrSmaller(myIterValue, eval(statement.endLimit))
+                                    isEqualOrSmaller(myIterValue, eval(statement.endLimit), charset)
                             ) {
                                 try {
                                     execute(statement.body)
@@ -709,7 +714,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         assign(statement.index, statement.startLimit)
                         try {
                             while ((cycleLimit == null || (cycleLimit as Int) >= eval(statement.index).asInt().value) &&
-                                    isEqualOrSmaller(eval(statement.index), eval(statement.endLimit))
+                                    isEqualOrSmaller(eval(statement.index), eval(statement.endLimit), charset)
                             ) {
                                 try {
                                     execute(statement.body)
@@ -804,6 +809,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log(LeaveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement))
                     throw LeaveException()
                 }
+                is LeaveSrStmt -> {
+                    log(LeaveSrStatemenExecutionLog(this.interpretationContext.currentProgramName, statement))
+                    throw LeaveSrException()
+                }
                 is IterStmt -> {
                     log(IterStatemenExecutionLog(this.interpretationContext.currentProgramName, statement))
                     throw IterException()
@@ -882,6 +891,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is GotoStmt -> {
                     throw GotoException(statement.tag)
                 }
+                is CabStmt -> {
+                    val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, charset)
+                    when (comparisonResult.comparison) {
+                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                    }
+                    if (comparisonResult.isVerified) throw GotoException(statement.tag)
+                }
                 is SortAStmt -> {
                     sortA(interpret(statement.target), charset)
                 }
@@ -926,25 +944,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log(CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)))
                 }
                 is CompStmt -> {
-                    val factor1 = interpret(statement.left)
-                    if (factor1 !is NumberValue && factor1 !is StringValue) {
-                        throw UnsupportedOperationException("Unable to compare: Factor1 datatype ($factor1) is not yet supported.")
-                    }
-
-                    val factor2 = interpret(statement.right)
-                    if (factor2 !is NumberValue && factor2 !is StringValue) {
-                        throw UnsupportedOperationException("Unable to compare: Factor2 datatype ($factor2) is not yet supported.")
-                    }
-
-                    val result = compare(interpret(statement.left), interpret(statement.right))
-                    if (result == Comparison.GREATER) {
-                        setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
-                    }
-                    if (result == Comparison.SMALLER) {
-                        setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
-                    }
-                    if (result == Comparison.EQUAL) {
-                        setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                    when (this.compareExpressions(statement.left, statement.right, charset)) {
+                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
+                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
                     }
                 }
                 is LookupStmt -> {
@@ -1010,26 +1013,36 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             } else if (null != statement.lo) {
                                 // Search for an element into factor2 LOWER (cause of statement.lo) than factor1,
                                 // starting from index given as factor2 argument.
-                                if (null != statement.lo) {
-                                    // search direction: DOWN
-                                    for (x in (idx - 1) downTo 1) {
+                                // search direction: DOWN
+                                for (x in (idx - 1) downTo 1) {
+                                    val comparison = factor2.getElement(x).compare(factor1, charset)
+                                    if (comparison < 0) {
+                                        setPredefinedIndicators(
+                                            statement,
+                                            BooleanValue.FALSE,
+                                            BooleanValue.TRUE,
+                                            BooleanValue.FALSE,
+                                            predefinedIndicators
+                                        )
+                                        foundWalkingDown = true
+                                        break
+                                    }
+                                }
+                                // search direction: UP
+                                if (!foundWalkingDown) {
+                                    val nrElements = factor2.asArray().elements().size
+                                    for (x in (idx + 1)..nrElements) {
                                         val comparison = factor2.getElement(x).compare(factor1, charset)
                                         if (comparison < 0) {
-                                            setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
-                                            foundWalkingDown = true
+                                            setPredefinedIndicators(
+                                                statement,
+                                                BooleanValue.FALSE,
+                                                BooleanValue.TRUE,
+                                                BooleanValue.FALSE,
+                                                predefinedIndicators
+                                            )
+                                            foundWalkingUp = true
                                             break
-                                        }
-                                    }
-                                    // search direction: UP
-                                    if (!foundWalkingDown) {
-                                        val nrElements = factor2.asArray().elements().size
-                                        for (x in (idx + 1)..nrElements) {
-                                            val comparison = factor2.getElement(x).compare(factor1, charset)
-                                            if (comparison < 0) {
-                                                setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
-                                                foundWalkingUp = true
-                                                break
-                                            }
                                         }
                                     }
                                 }
@@ -1037,7 +1050,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
                             // Not smaller and not greater element found
                             if (!foundWalkingDown && !foundWalkingUp) {
-                                setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
+                                setPredefinedIndicators(
+                                    statement,
+                                    BooleanValue.FALSE,
+                                    BooleanValue.FALSE,
+                                    BooleanValue.FALSE,
+                                    predefinedIndicators
+                                )
                             }
                         }
                     } else {
@@ -1081,32 +1100,15 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun setPredefinedIndicators(statement: Statement, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
-
-        when (statement) {
-            is LookupStmt -> {
-                if (null != (statement as LookupStmt).hi) {
-                    predefinedIndicators[(statement as LookupStmt).hi!!.toInt()] = hi
-                }
-                if (null != (statement as LookupStmt).lo) {
-                    predefinedIndicators[(statement as LookupStmt).lo!!.toInt()] = lo
-                }
-                if (null != (statement as LookupStmt).eq) {
-                    predefinedIndicators[(statement as LookupStmt).eq!!.toInt()] = eq
-                }
-            }
-            is CompStmt -> {
-                if (null != (statement as CompStmt).hi) {
-                    predefinedIndicators[(statement as CompStmt).hi!!.toInt()] = hi
-                }
-                if (null != (statement as CompStmt).lo) {
-                    predefinedIndicators[(statement as CompStmt).lo!!.toInt()] = lo
-                }
-                if (null != (statement as CompStmt).eq) {
-                    predefinedIndicators[(statement as CompStmt).eq!!.toInt()] = eq
-                }
-            }
-            else -> throw RuntimeException("Statement predefined indicators not implemented yet.")
+    private fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
+        statement.hi?.let {
+            predefinedIndicators[it] = hi
+        }
+        statement.lo?.let {
+            predefinedIndicators[it] = lo
+        }
+        statement.eq?.let {
+            predefinedIndicators[it] = eq
         }
     }
 
@@ -1139,9 +1141,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
         if (downward) {
-            isEqualOrGreater(index, end)
+            isEqualOrGreater(index, end, charset)
         } else {
-            isEqualOrSmaller(index, end)
+            isEqualOrSmaller(index, end, charset)
         }
 
     private fun step(byValue: Expression, downward: Boolean): Long {
@@ -1151,63 +1153,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             1
         }
         return eval(byValue).asInt().value * sign
-    }
-
-    enum class Comparison {
-        SMALLER,
-        EQUAL,
-        GREATER
-    }
-
-    private fun isEqualOrSmaller(value1: Value, value2: Value): Boolean {
-        val cmp = compare(value1, value2)
-        return cmp == Comparison.SMALLER || cmp == Comparison.EQUAL
-    }
-
-    private fun isEqualOrGreater(value1: Value, value2: Value): Boolean {
-        val cmp = compare(value1, value2)
-        return cmp == Comparison.GREATER || cmp == Comparison.EQUAL
-    }
-
-    private fun isGreaterThan(value1: Value, value2: Value): Boolean {
-        val cmp = compare(value1, value2)
-        return cmp == Comparison.GREATER
-    }
-
-    private fun isSmallerThan(value1: Value, value2: Value): Boolean {
-        val cmp = compare(value1, value2)
-        return cmp == Comparison.SMALLER
-    }
-
-    private fun compare(value1: Value, value2: Value): Comparison {
-        return when {
-            value1 is IntValue && value2 is IntValue -> when {
-                value1.value == value2.value -> Comparison.EQUAL
-                value1.value < value2.value -> Comparison.SMALLER
-                else -> Comparison.GREATER
-            }
-            value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
-            value2 is HiValValue -> Comparison.SMALLER
-            value1 is NumberValue && value2 is NumberValue -> when {
-                value1.bigDecimal == value2.bigDecimal -> Comparison.EQUAL
-                value1.bigDecimal < value2.bigDecimal -> Comparison.SMALLER
-                else -> Comparison.GREATER
-            }
-            value1 is StringValue && value2 is StringValue -> {
-                stringComparison(value1, value2)
-            }
-            else -> TODO("Unable to compare: value 1 is $value1, Value 2 is $value2")
-        }
-    }
-
-    private fun stringComparison(value1: Value, value2: Value): Comparison {
-        if (value1 == value2) {
-            return Comparison.EQUAL
-        }
-        if (value1.compare(value2, charset) < 0) {
-            return Comparison.SMALLER
-        }
-        return Comparison.GREATER
     }
 
     private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
@@ -1530,22 +1475,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is GreaterThanExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
-                return isGreaterThan(left, right).asValue()
+                return isGreaterThan(left, right, charset).asValue()
             }
             is GreaterEqualThanExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
-                return (isGreaterThan(left, right) || areEquals(left, right)).asValue()
+                return (isGreaterThan(left, right, charset) || areEquals(left, right)).asValue()
             }
             is LessEqualThanExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
-                return (isEqualOrSmaller(left, right)).asValue()
+                return (isEqualOrSmaller(left, right, charset)).asValue()
             }
             is LessThanExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
-                return isSmallerThan(left, right).asValue()
+                return isSmallerThan(left, right, charset).asValue()
             }
             is BlanksRefExpr -> {
                 return BlanksValue

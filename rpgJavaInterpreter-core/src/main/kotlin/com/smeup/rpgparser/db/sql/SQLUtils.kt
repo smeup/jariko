@@ -4,7 +4,7 @@ import com.smeup.rpgparser.interpreter.DBField
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.Type
 import com.smeup.rpgparser.interpreter.Value
-import com.smeup.rpgparser.utils.Comparison
+import com.smeup.rpgparser.utils.ComparisonOperator
 
 fun FileMetadata.toSQL(): List<String> =
     listOf(
@@ -25,7 +25,7 @@ fun String.insertSQL(values: List<Pair<String, Value>>): String {
     return "INSERT INTO $this ($names) VALUES($questionMarks)"
 }
 
-fun List<String>.whereSQL(comparation: Comparison = Comparison.EQ): String =
+fun List<String>.whereSQL(comparation: ComparisonOperator = ComparisonOperator.EQ): String =
     if (this.isEmpty()) {
         ""
     } else {

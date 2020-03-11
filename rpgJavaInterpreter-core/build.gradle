@@ -9,7 +9,7 @@ buildscript {
         mavenCentral()
         maven {
             name 'JFrog OSS snapshot repo'
-            url  'https://oss.jfrog.org/oss-snapshot-local/'
+            url  'https://oss.jfrog.org/oss-snapshot-localrun/'
         }
         maven { url 'https://jitpack.io' }
         jcenter()
@@ -186,16 +186,18 @@ task fatMuteJar(type: Jar) {
     with jar
 }
 
+//gradlew runMutes -PmuteDir="/some/dir"
 task runMutes(type: JavaExec) {
     dependsOn compileKotlin
 
     def muteDir = '../mutes_for_ci'
     if (project.hasProperty("muteDir")){
         muteDir = project.getProperties().get("muteDir")
+        println 'Mute directory is ' + muteDir
     }
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.smeup.rpgparser.mute.MuterunnerKt'
-    args '../mutes_for_ci', "-v", "-lc", "../mutes_for_ci/mute_logging.config"
+    args muteDir, "-v", "-lc", "../mutes_for_ci/mute_logging.config"
 }
 
 check.dependsOn runMutes

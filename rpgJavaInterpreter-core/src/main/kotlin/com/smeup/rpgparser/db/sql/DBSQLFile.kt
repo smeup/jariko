@@ -4,7 +4,7 @@ import com.smeup.rpgparser.interpreter.DBFile
 import com.smeup.rpgparser.interpreter.Record
 import com.smeup.rpgparser.interpreter.RecordField
 import com.smeup.rpgparser.interpreter.Value
-import com.smeup.rpgparser.utils.Comparison
+import com.smeup.rpgparser.utils.ComparisonOperator
 import java.sql.Connection
 import java.sql.ResultSet
 
@@ -128,9 +128,9 @@ class DBSQLFile(private val name: String, private val connection: Connection) : 
     override fun setll(keys: List<RecordField>): Boolean {
         val keyNames = keys.map { it.name }
         // TODO Using thisFileKeys: TESTS NEEDED!!!
-        val comparision = if (movingForward) Comparison.GE else Comparison.LE
+        val comparision = if (movingForward) ComparisonOperator.GE else ComparisonOperator.LE
         val sql = "SELECT * FROM $name ${keyNames.whereSQL(comparision)} ${thisFileKeys.orderBySQL(reverse = !movingForward)}"
-        lastSllSql = "SELECT * FROM $name ${keyNames.whereSQL(Comparison.EQ)}"
+        lastSllSql = "SELECT * FROM $name ${keyNames.whereSQL(ComparisonOperator.EQ)}"
         val values = keys.map { it.value }
         lastKey = keys
         executeQuery(sql, values)

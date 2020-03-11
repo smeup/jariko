@@ -5,6 +5,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
+import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
@@ -132,9 +133,12 @@ internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 }
 
 internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Subroutine {
-    return Subroutine(this.begsr().csBEGSR().factor1.content.text,
-            this.statement().map { it.toAst(conf) },
-            toPosition(conf.considerPosition))
+    return Subroutine(
+        this.begsr().csBEGSR().factor1.text,
+        this.statement().map { it.toAst(conf) },
+        this.endsr().csENDSR().factor1.text,
+        toPosition(conf.considerPosition)
+    )
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -249,6 +253,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csPLIST() != null -> this.csPLIST().toAst(conf)
         this.csCLEAR() != null -> this.csCLEAR().toAst(conf)
         this.csLEAVE() != null -> LeaveStmt(toPosition(conf.considerPosition))
+        this.csLEAVESR() != null -> LeaveSrStmt(toPosition(conf.considerPosition))
         this.csITER() != null -> IterStmt(toPosition(conf.considerPosition))
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
         this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
@@ -278,6 +283,12 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csDEFINE() != null -> this.csDEFINE().toAst(conf)
         this.csCAT() != null -> this.csCAT().toAst(conf)
         this.csLOOKUP() != null -> this.csLOOKUP().toAst(conf)
+        this.csCAB() != null -> this.csCAB().toAst(conf)
+        this.csCABLE() != null -> this.csCABLE().toAst(conf)
+        this.csCABLT() != null -> this.csCABLT().toAst(conf)
+        this.csCABEQ() != null -> this.csCABEQ().toAst(conf)
+        this.csCABGE() != null -> this.csCABGE().toAst(conf)
+        this.csCABGT() != null -> this.csCABGT().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -647,6 +658,50 @@ internal fun CsGOTOContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     return GotoStmt(this.cspec_fixed_standard_parts().factor2.text, toPosition(conf.considerPosition))
 }
 
+internal fun CsCABContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(null, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABLEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(ComparisonOperator.LE, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABLTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(ComparisonOperator.LT, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABEQContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(ComparisonOperator.EQ, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABGTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(ComparisonOperator.GT, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABGEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(ComparisonOperator.GE, this.cspec_fixed_standard_parts(), conf)
+}
+
+fun Cspec_fixed_standard_partsContext.rightIndicators() =
+    RightIndicators(
+        hi.asIntOrNull(),
+        lo.asIntOrNull(),
+        eq.asIntOrNull())
+
+fun ParserRuleContext.cabStatement(comparison: ComparisonOperator?, cspecFixedStandardParts: Cspec_fixed_standard_partsContext, conf: ToAstConfiguration): CabStmt {
+    val position = toPosition(conf.considerPosition)
+    val left = leftExpr(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 1 - $text")
+    val right = cspecFixedStandardParts.factor2Expression(conf) ?: throw UnsupportedOperationException("CAB operation requires factor 2 - $text - ${position.atLine()}")
+    return CabStmt(
+        left,
+        right,
+        comparison,
+        cspecFixedStandardParts.result.text,
+        cspecFixedStandardParts.rightIndicators(),
+        position
+    )
+}
+
 internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AddStmt {
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
@@ -678,14 +733,12 @@ internal fun ResultIndicatorContext?.asIntOrNull(): Int? = this?.text?.asIntOrNu
 internal fun CsCOMPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 1: ${this.text}")
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right = cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     return CompStmt(
         left,
         right,
-        this.cspec_fixed_standard_parts().hi.asIntOrNull(),
-        this.cspec_fixed_standard_parts().lo.asIntOrNull(),
-        this.cspec_fixed_standard_parts().eq.asIntOrNull(),
+        cspec_fixed_standard_parts().rightIndicators(),
         position)
 }
 
@@ -800,13 +853,11 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
 internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupStmt {
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 1: ${this.text}")
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right = cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
     return LookupStmt(
             left,
             right,
-            this.cspec_fixed_standard_parts().hi.asIntOrNull(),
-            this.cspec_fixed_standard_parts().lo.asIntOrNull(),
-            this.cspec_fixed_standard_parts().eq.asIntOrNull(),
+            cspec_fixed_standard_parts().rightIndicators(),
             position)
 }
