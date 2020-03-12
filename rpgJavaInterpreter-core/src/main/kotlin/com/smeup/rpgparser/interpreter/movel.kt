@@ -4,6 +4,9 @@ import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
 
 private fun assignStringToString(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+    if (valueExpression is FigurativeConstantRef) {
+        return interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
+    }
     var newValue = interpreterCoreHelper.interpret(valueExpression)
     if (valueExpression is AllExpr) {
         return interpreterCoreHelper.assign(target, newValue)
