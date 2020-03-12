@@ -1043,7 +1043,7 @@ class InterpreterTest {
         assertEquals(listOf("Other", "First"), outputOf("WHEN01"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeARRAY_PARMS() {
         val parms = mapOf(
             "Arr" to StringValue("ABC".padEnd(40))
