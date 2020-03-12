@@ -3,7 +3,8 @@
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
-     V* 11/03/20          LOMFRA Created
+     V* 12/03/20  001676  LOMFRA Created
+     V* 12/03/20  V5R1    BMA Check-out 001676 in SMEDEV
      V*=====================================================================
      V* OBIETTIVO
      V*  Test program for CABxx
@@ -48,7 +49,7 @@
     MU* VAL1(*IN43) VAL2(*OFF) COMP(EQ)
      **********************************************************************
      C     'Fourth'      DSPLY
-     C     ZZZ           CABGT       AAA           CHECK4
+     C     ZZZ           CABGT     AAA           CHECK4
     MU* FAIL('This code should not be executed')
      C                   EVAL      Msg = 'ERROR'
      C     CHECK4        TAG
@@ -56,7 +57,7 @@
      C     Msg           DSPLY
      **********************************************************************
      C     'Fifth'       DSPLY
-     C     AAA           CABLT       ZZZ           CHECK5
+     C     AAA           CABLT     ZZZ           CHECK5
     MU* FAIL('This code should not be executed')
      C                   EVAL      Msg = 'ERROR'
      C     CHECK5        TAG
@@ -64,7 +65,7 @@
      C     Msg           DSPLY
      **********************************************************************
      C     'Sixth'       DSPLY
-     C     AAA           CABEQ       AAA           CHECK6
+     C     AAA           CABEQ     AAA           CHECK6
     MU* FAIL('This code should not be executed')
      C                   EVAL      Msg = 'ERROR'
      C     CHECK6        TAG
@@ -72,3 +73,4 @@
      C     Msg           DSPLY
      **********************************************************************
      C                   SETON                                        LR
+

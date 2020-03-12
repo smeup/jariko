@@ -3,7 +3,8 @@
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
-     V* 11/03/20          LOMFRA Created
+     V* 12/03/20  001676  LOMFRA Created
+     V* 12/03/20  V5R1    BMA Check-out 001676 in SMEDEV
      V*=====================================================================
      V* OBIETTIVO
      V*  Test program for GOTO to ENDSR tag
@@ -26,3 +27,4 @@
      C     N             DSPLY
      C                   goto      start
      C     ENDSR1        ENDSR
+
