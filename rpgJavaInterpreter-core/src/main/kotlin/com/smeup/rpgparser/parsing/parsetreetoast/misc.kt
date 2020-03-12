@@ -236,8 +236,8 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                                 onOff = true
                             }
                             val controlLevel = when (continuedIndicators[i].start.type) {
-                                701 -> "AND"
-                                702 -> "OR"
+                                AndIndicator -> "AND"
+                                OrIndicator -> "OR"
                                 else -> ""
                             }
                             val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
