@@ -385,25 +385,12 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun Statement.solveIndicatorValues(): MutableList<SolvedIndicatorCondition> {
         val indicatorValues: MutableList<SolvedIndicatorCondition> = mutableListOf()
-        var i = 0
         this.continuedIndicators.forEach { (indicatorKey, continuedIndicator) ->
-            var condition: Boolean = false
-
-            // continuedIndicator operator is N (negate) and predefinedIndicator is false, condition verified!
-            if (continuedIndicator.negate && !indicator(indicatorKey).value) condition = true
-
-            // continuedIndicator operator is " " (not negate) and predefinedIndicator is true, condition verified!
-            if (!continuedIndicator.negate && indicator(indicatorKey).value) condition = true
-
-            // continuedIndicator operator is N (negate) and predefinedIndicator is true, condition verified!
-            if (continuedIndicator.negate && indicator(indicatorKey).value) condition = false
-
-            // continuedIndicator operator is " " (not negate) and predefinedIndicator is false, condition verified!
-            if (!continuedIndicator.negate && indicator(indicatorKey).value) condition = false
+            val indicator = indicator(indicatorKey).value
+            var condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
 
             val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
-            indicatorValues.add(i, solvedIndicatorCondition)
-            i++
+            indicatorValues.add(solvedIndicatorCondition)
             println("Indicator:${continuedIndicator.key}(negate=${continuedIndicator.negate}, operator=${solvedIndicatorCondition.operator}) PredefinedValue(from Symboltable)=${indicator(indicatorKey)} --> Is condition verified: ${solvedIndicatorCondition.value}")
         }
         return indicatorValues
