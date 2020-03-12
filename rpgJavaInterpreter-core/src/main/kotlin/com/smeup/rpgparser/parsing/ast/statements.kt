@@ -8,6 +8,7 @@ import com.smeup.rpgparser.interpreter.startLine
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
+import java.util.HashMap
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -24,6 +25,7 @@ enum class AssignmentOperator(val text: String) {
 
 typealias IndicatorKey = Int
 data class IndicatorCondition(val key: IndicatorKey, val negate: Boolean)
+data class ContinuedIndicator(val key: IndicatorKey, val negate: Boolean, val level: String)
 
 abstract class Statement(
     override val position: Position? = null,
@@ -51,6 +53,7 @@ abstract class Statement(
     open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
 
     var indicatorCondition: IndicatorCondition? = null
+    var continuedIndicators: HashMap<Int, ContinuedIndicator> = HashMap<Int, ContinuedIndicator>()
 }
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)

@@ -381,11 +381,86 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         return if (negate) !indicator else indicator
     }
 
+    data class SolvedIndicatorCondition(val key: Int, val value: Boolean, val operator: String)
+
+    private fun Statement.solveIndicatorValues(): MutableList<SolvedIndicatorCondition> {
+        val indicatorValues: MutableList<SolvedIndicatorCondition> = mutableListOf()
+        var i = 0
+        this.continuedIndicators.forEach { (indicator, continuedIndicator) ->
+            var condition: Boolean = false
+
+            // continuedIndicator operator is N (negate) and predefinedIndicator is false, condition verified!
+            if (continuedIndicator.negate && !predefinedIndicators[indicator]!!.value) condition = true
+
+            // continuedIndicator operator is " " (not negate) and predefinedIndicator is true, condition verified!
+            if (!continuedIndicator.negate && predefinedIndicators[indicator]!!.value) condition = true
+
+            // continuedIndicator operator is N (negate) and predefinedIndicator is true, condition verified!
+            if (continuedIndicator.negate && predefinedIndicators[indicator]!!.value) condition = false
+
+            // continuedIndicator operator is " " (not negate) and predefinedIndicator is false, condition verified!
+            if (!continuedIndicator.negate && predefinedIndicators[indicator]!!.value) condition = false
+
+            val solvedIndicatorCondition = SolvedIndicatorCondition(indicator, condition, continuedIndicator.level)
+            indicatorValues.add(i, solvedIndicatorCondition)
+            i++
+            println("Indicator:${continuedIndicator.key}(negate=${continuedIndicator.negate}, operator=${solvedIndicatorCondition.operator}) PredefinedValue(from Symboltable)=${predefinedIndicators[indicator]} --> Is condition verified: ${solvedIndicatorCondition.value}")
+        }
+        return indicatorValues
+    }
+
+    private fun getMapOfORs(indicatorValues: MutableList<SolvedIndicatorCondition>): ArrayList<ArrayList<Boolean>>{
+        val mapOfORs = ArrayList<ArrayList<Boolean>>()
+        indicatorValues.reverse()
+        var previousOperator: String = ""
+        var loops = 0
+        var idxOfMapOfANDs = 0
+        indicatorValues.forEach { solvedIndicator ->
+            if (loops == 0) {
+                mapOfORs.add(ArrayList<Boolean>())
+                mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+            } else {
+                if (previousOperator == "AND") {
+                    mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                } else {
+                    mapOfORs.add(ArrayList<Boolean>())
+                    idxOfMapOfANDs++
+                    mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                }
+            }
+            previousOperator = solvedIndicator.operator
+            loops++
+        }
+        return mapOfORs
+    }
+
     private fun Statement.shouldBeExecuted(): Boolean = this.indicatorCondition.shouldExecuteStatement()
+
+    private fun Statement.isStatementExecutable(mapOfORs: ArrayList<ArrayList<Boolean>>): Boolean {
+        var isExecutable = false
+        //True if at least one of "mapOfANDs" relations contains only true values
+        //loop through "mapOfORs" relations
+        for (mapOfANDs in mapOfORs) {
+            //loop through map of "AND" relations
+            for (b in mapOfANDs) {
+                if (!b) {
+                    isExecutable = false
+                    break
+                }
+                isExecutable = true
+            }
+            if (isExecutable) break
+        }
+        // Empty mapOfORs means no leftIndicator
+        if (mapOfORs.isEmpty()){
+            isExecutable = this.shouldBeExecuted()
+        }
+        return isExecutable
+    }
 
     private fun execute(statement: Statement) {
         try {
-            if (!statement.shouldBeExecuted()) return
+            if (!statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) return
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
