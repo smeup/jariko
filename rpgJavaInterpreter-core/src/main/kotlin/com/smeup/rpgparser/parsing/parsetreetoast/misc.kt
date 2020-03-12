@@ -227,6 +227,37 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
             this.cspec_fixed_standard().toAst(conf)
                 .also {
                     it.indicatorCondition = this.toIndicatorCondition(conf)
+                    if (it.indicatorCondition != null) {
+                        val continuedIndicators = (this as Cspec_fixedContext).cspec_continuedIndicators()
+                        // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
+                        for (i in 0 until continuedIndicators.size) {
+                            val indicator = continuedIndicators[i].indicators.children[0].toString().toInt()
+                            var onOff = false
+                            if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
+                                onOff = true
+                            }
+                            val controlLevel = when (continuedIndicators[i].start.type) {
+                                AndIndicator -> "AND"
+                                OrIndicator -> "OR"
+                                else -> ""
+                            }
+                            val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
+                            it.continuedIndicators.put(indicator, continuedIndicator)
+                        }
+
+                        // Add indicatorCondition (inline indicator) also
+                        var controlLevel = ((this as Cspec_fixedContext).children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
+                        if (controlLevel == "AN") {
+                            controlLevel = "AND"
+                        }
+                        var onOff = false
+                        if (!((this as Cspec_fixedContext).children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
+                            onOff = true
+                        }
+                        val indicator = ((this as Cspec_fixedContext).children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toInt()
+                        val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
+                        it.continuedIndicators.put(indicator, continuedIndicator)
+                    }
                 }
         else -> TODO(this.text.toString())
     }
