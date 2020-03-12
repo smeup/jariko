@@ -383,26 +383,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     data class SolvedIndicatorCondition(val key: Int, val value: Boolean, val operator: String)
 
-    private fun Statement.solveIndicatorValues(): MutableList<SolvedIndicatorCondition> {
-        val indicatorValues: MutableList<SolvedIndicatorCondition> = mutableListOf()
-        this.continuedIndicators.forEach { (indicatorKey, continuedIndicator) ->
+    private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
+        this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
             val indicator = indicator(indicatorKey).value
             var condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
-
             val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
-            indicatorValues.add(solvedIndicatorCondition)
             println("Indicator:${continuedIndicator.key}(negate=${continuedIndicator.negate}, operator=${solvedIndicatorCondition.operator}) PredefinedValue(from Symboltable)=${indicator(indicatorKey)} --> Is condition verified: ${solvedIndicatorCondition.value}")
+            solvedIndicatorCondition
         }
-        return indicatorValues
-    }
 
-    private fun getMapOfORs(indicatorValues: MutableList<SolvedIndicatorCondition>): ArrayList<ArrayList<Boolean>> {
+    private fun getMapOfORs(indicatorValues: List<SolvedIndicatorCondition>): ArrayList<ArrayList<Boolean>> {
         val mapOfORs = ArrayList<ArrayList<Boolean>>()
-        indicatorValues.reverse()
+        val reversed = indicatorValues.reversed()
         var previousOperator: String = ""
         var loops = 0
         var idxOfMapOfANDs = 0
-        indicatorValues.forEach { solvedIndicator ->
+        reversed.forEach { solvedIndicator ->
             if (loops == 0) {
                 mapOfORs.add(ArrayList<Boolean>())
                 mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
