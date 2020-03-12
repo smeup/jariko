@@ -388,11 +388,69 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         return if (negate) !indicator else indicator
     }
 
+    data class SolvedIndicatorCondition(val key: Int, val value: Boolean, val operator: String)
+
+    private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
+        this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
+            val indicator = indicator(indicatorKey).value
+            var condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
+            val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
+            println("Indicator:${continuedIndicator.key}(negate=${continuedIndicator.negate}, operator=${solvedIndicatorCondition.operator}) PredefinedValue(from Symboltable)=${indicator(indicatorKey)} --> Is condition verified: ${solvedIndicatorCondition.value}")
+            solvedIndicatorCondition
+        }
+
+    private fun getMapOfORs(indicatorValues: List<SolvedIndicatorCondition>): ArrayList<ArrayList<Boolean>> {
+        val mapOfORs = ArrayList<ArrayList<Boolean>>()
+        val reversed = indicatorValues.reversed()
+        var previousOperator: String = ""
+        var loops = 0
+        var idxOfMapOfANDs = 0
+        reversed.forEach { solvedIndicator ->
+            if (loops == 0) {
+                mapOfORs.add(ArrayList<Boolean>())
+                mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+            } else {
+                if (previousOperator == "AND") {
+                    mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                } else {
+                    mapOfORs.add(ArrayList<Boolean>())
+                    idxOfMapOfANDs++
+                    mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                }
+            }
+            previousOperator = solvedIndicator.operator
+            loops++
+        }
+        return mapOfORs
+    }
+
     private fun Statement.shouldBeExecuted(): Boolean = this.indicatorCondition.shouldExecuteStatement()
+
+    private fun Statement.isStatementExecutable(mapOfORs: ArrayList<ArrayList<Boolean>>): Boolean {
+        var isExecutable = false
+        // True if at least one of "mapOfANDs" relations contains only true values
+        // loop through "mapOfORs" relations
+        for (mapOfANDs in mapOfORs) {
+            // loop through map of "AND" relations
+            for (b in mapOfANDs) {
+                if (!b) {
+                    isExecutable = false
+                    break
+                }
+                isExecutable = true
+            }
+            if (isExecutable) break
+        }
+        // Empty mapOfORs means no leftIndicator
+        if (mapOfORs.isEmpty()) {
+            isExecutable = this.shouldBeExecuted()
+        }
+        return isExecutable
+    }
 
     private fun execute(statement: Statement) {
         try {
-            if (!statement.shouldBeExecuted()) return
+            if (!statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) return
             when (statement) {
                 is ExecuteSubroutine -> {
                     log(
