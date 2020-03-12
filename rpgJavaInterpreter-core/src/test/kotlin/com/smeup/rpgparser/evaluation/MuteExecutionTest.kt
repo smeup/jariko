@@ -130,6 +130,16 @@ class MuteExecutionTest {
         assertMuteExecutionSucceded("mute/MUTE09_04", 116)
     }
 
+    @Test @Ignore
+    fun executeMUTE13_05_ZSUB() {
+        assertMuteExecutionSucceded("mute/MUTE13_05", 11)
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_06_ADD() {
+        assertMuteExecutionSucceded("mute/MUTE13_06", 12)
+    }
+
     @Test
     fun executeMUTE13_13() {
         assertMuteExecutionSucceded("mute/MUTE13_13", 9)
@@ -149,6 +159,11 @@ class MuteExecutionTest {
     @Test @Ignore
     fun executeMUTE15_01_procedures() {
         assertMuteExecutionSucceded("mute/MUTE15_01", 14)
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_17_SCAN_OpCode() {
+        assertMuteExecutionSucceded("mute/MUTE13_17", 4)
     }
 
     private fun assertMuteExecutionSucceded(
