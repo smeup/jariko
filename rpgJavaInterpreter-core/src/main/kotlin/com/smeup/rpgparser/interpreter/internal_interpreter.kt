@@ -409,7 +409,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         return indicatorValues
     }
 
-    private fun getMapOfORs(indicatorValues: MutableList<SolvedIndicatorCondition>): ArrayList<ArrayList<Boolean>>{
+    private fun getMapOfORs(indicatorValues: MutableList<SolvedIndicatorCondition>): ArrayList<ArrayList<Boolean>> {
         val mapOfORs = ArrayList<ArrayList<Boolean>>()
         indicatorValues.reverse()
         var previousOperator: String = ""
@@ -438,10 +438,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun Statement.isStatementExecutable(mapOfORs: ArrayList<ArrayList<Boolean>>): Boolean {
         var isExecutable = false
-        //True if at least one of "mapOfANDs" relations contains only true values
-        //loop through "mapOfORs" relations
+        // True if at least one of "mapOfANDs" relations contains only true values
+        // loop through "mapOfORs" relations
         for (mapOfANDs in mapOfORs) {
-            //loop through map of "AND" relations
+            // loop through map of "AND" relations
             for (b in mapOfANDs) {
                 if (!b) {
                     isExecutable = false
@@ -452,7 +452,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             if (isExecutable) break
         }
         // Empty mapOfORs means no leftIndicator
-        if (mapOfORs.isEmpty()){
+        if (mapOfORs.isEmpty()) {
             isExecutable = this.shouldBeExecuted()
         }
         return isExecutable

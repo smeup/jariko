@@ -228,7 +228,7 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                     it.indicatorCondition = this.toIndicatorCondition(conf)
                     if (it.indicatorCondition != null) {
                         val continuedIndicators = (this as Cspec_fixedContext).cspec_continuedIndicators()
-                        //loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
+                        // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
                         for (i in 0 until continuedIndicators.size) {
                             val indicator = continuedIndicators[i].indicators.children[0].toString().toInt()
                             var onOff = false
@@ -236,15 +236,15 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                                 onOff = true
                             }
                             val controlLevel = when (continuedIndicators[i].start.type) {
-                                 701 -> "AND"
-                                 702 -> "OR"
+                                701 -> "AND"
+                                702 -> "OR"
                                 else -> ""
                             }
                             val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
                             it.continuedIndicators.put(indicator, continuedIndicator)
                         }
 
-                        //Add indicatorCondition (inline indicator) also
+                        // Add indicatorCondition (inline indicator) also
                         var controlLevel = ((this as Cspec_fixedContext).children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
                         if (controlLevel == "AN") {
                             controlLevel = "AND"
