@@ -4,9 +4,6 @@ import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
 
 private fun assignStringToString(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
-    if (valueExpression is FigurativeConstantRef) {
-        return interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
-    }
     var newValue = interpreterCoreHelper.interpret(valueExpression)
     if (valueExpression is AllExpr) {
         return interpreterCoreHelper.assign(target, newValue)
@@ -32,9 +29,6 @@ private fun assignStringToString(operationExtender: String?, target: AssignableE
 }
 
 private fun assignNumberToNumber(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
-    if (valueExpression is FigurativeConstantRef) {
-        return interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
-    }
     val newValue = interpreterCoreHelper.interpret(valueExpression) as NumberValue
     val targetType = target.type() as NumberType
     val newDecimalValue = DecimalValue(BigDecimal(newValue.bigDecimal.unscaledValue(), targetType.decimalDigits))
@@ -64,6 +58,9 @@ private fun NumberValue.numberToString(): Value {
 }
 
 fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+    if (value is FigurativeConstantRef) {
+        return interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(value))
+    }
     val valueType = value.type()
     if (baseType(target.type()) is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
         return assignStringToString(operationExtender, target, value, interpreterCoreHelper)
