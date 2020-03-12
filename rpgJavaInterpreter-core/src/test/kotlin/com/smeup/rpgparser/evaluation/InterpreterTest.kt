@@ -395,6 +395,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeRESULTTARG_resultAsExpressionRefenecingArray() {
+        assertEquals(listOf("15.3"), outputOf("RESULTTARG"))
+    }
+
+    @Test @Ignore
     fun executeXFOOT1() {
         assertEquals(listOf("15.3"), outputOf("XFOOT1"))
     }
