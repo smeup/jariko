@@ -7,6 +7,7 @@
      V* 27/02/20  V5R1    BERNI Check-out 001615 in SMEDEV
      V* 12/03/20  001676  FP Modificate annotations + modifiche
      V* 12/03/20  V5R1    BMA Check-out 001676 in SMEDEV
+     V* 13/03/20  001689  BMA Renamed MUTE16_02 into MUTE13_18
      V*=====================================================================
      D  NUM_FACTOR1    S              2  0
      D  NUM_FACTOR2    S              2  0
