@@ -203,6 +203,11 @@ class InterpreterTest {
         assertEquals(listOf("489.76933346"), outputOf("SQRT"))
     }
 
+    @Test @Ignore
+    fun executeROUNDING01() {
+        assertEquals(listOf("34"), outputOf("ROUNDING01"))
+    }
+
     @Test
     fun executeSETONSETOF() {
         assertEquals(listOf("Before",

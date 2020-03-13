@@ -172,8 +172,8 @@ class MuteExecutionTest {
     }
 
     @Test @Ignore
-    fun executeMUTE16_04_LOOLUP_OpCode_Eq() {
-        assertMuteExecutionSucceded("mute/MUTE16_04", 8)
+    fun executeMUTE_TO_RENAME_IN_TESTS_TOO_Lookup_OpCode_Eq() {
+        assertMuteExecutionSucceded("mute/MUTE_TO_RENAME_IN_TESTS_TOO", 8)
     }
 
     private fun assertMuteExecutionSucceded(
