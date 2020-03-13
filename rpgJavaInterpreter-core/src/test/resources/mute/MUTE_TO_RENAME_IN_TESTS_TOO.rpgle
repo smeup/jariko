@@ -47,7 +47,7 @@
      C                   EVAL      N = 2
      C                   SETOFF                                           69
      C     'Q'           LOOKUP    ARRAY(N)                               69
-    MU* VAL1(N) VAL2(1) COMP(EQ)
+    MU* VAL1(N) VAL2(2) COMP(EQ)
     MU* VAL1(*IN69) VAL2(*OFF) COMP(EQ)
      C   69'69 On'       DSPLY
      C     N             DSPLY

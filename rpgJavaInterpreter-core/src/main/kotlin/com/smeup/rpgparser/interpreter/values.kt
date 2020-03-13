@@ -260,6 +260,7 @@ data class IntValue(val value: Long) : NumberValue() {
 
     companion object {
         val ZERO = IntValue(0)
+        val ONE = IntValue(1)
 
         fun sequenceOfNines(length: Int): IntValue {
             require(length >= 1)
