@@ -49,6 +49,10 @@ abstract class AbstractDataDefinition(
     open fun isArray(): Boolean {
         return type is ArrayType
     }
+
+    fun canBeAssigned(value: Value): Boolean {
+        return type.canBeAssigned(value)
+    }
 }
 
 data class FileDefinition private constructor(override val name: String, override val position: Position?) : Node(position), Named {

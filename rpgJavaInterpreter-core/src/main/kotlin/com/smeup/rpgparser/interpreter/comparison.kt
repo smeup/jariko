@@ -67,7 +67,7 @@ fun stringComparison(value1: Value, value2: Value, charset: Charset): Comparison
 
 data class ComparisonResult(val isVerified: Boolean, val comparison: Comparison)
 
-fun ComparisonOperator?.verify(factor1: Expression, factor2: Expression, interpreter: InterpreterCoreHelper, charset: Charset): ComparisonResult {
+fun ComparisonOperator?.verify(factor1: Expression, factor2: Expression, interpreter: InterpreterCore, charset: Charset): ComparisonResult {
     val comparison = interpreter.compareExpressions(factor1, factor2, charset)
     return when (comparison) {
         Comparison.EQUAL -> ComparisonResult(this == null || this == ComparisonOperator.EQ || this == ComparisonOperator.GE || this == ComparisonOperator.LE, comparison)
@@ -76,7 +76,7 @@ fun ComparisonOperator?.verify(factor1: Expression, factor2: Expression, interpr
     }
 }
 
-fun InterpreterCoreHelper.compareExpressions(left: Expression, right: Expression, charset: Charset): Comparison {
+fun InterpreterCore.compareExpressions(left: Expression, right: Expression, charset: Charset): Comparison {
     val factor1 = interpret(left)
     if (factor1 !is NumberValue && factor1 !is StringValue) {
         throw UnsupportedOperationException("Unable to compare: Factor1 datatype ($factor1) is not yet supported.")

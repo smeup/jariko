@@ -19,10 +19,6 @@ import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
 
-class LeaveSrException : Exception()
-class LeaveException : Exception()
-class IterException : Exception()
-
 object InterpreterConfiguration {
     /**
      * Enable runtime checks during assignments
@@ -36,16 +32,6 @@ interface InterpretationContext {
     fun shouldReinitialize(): Boolean
 }
 
-/**
- * Expose interpreter core method could be useful in statements logic implementation
- **/
-interface InterpreterCoreHelper {
-    fun log(logEntry: LogEntry)
-    fun assign(target: AssignableExpression, value: Value): Value
-    fun interpret(expression: Expression): Value
-    operator fun get(data: AbstractDataDefinition): Value
-}
-
 object DummyInterpretationContext : InterpretationContext {
     override val currentProgramName: String
         get() = "<UNSPECIFIED>"
@@ -57,28 +43,9 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
-class DBFileMap(private val dbInterface: DBInterface) {
-    private val byFileName = TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
-    private val byFormatName = TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
-
-    fun add(fileDefinition: FileDefinition) {
-        val dbFile = dbInterface.open(fileDefinition.name)
-        require(dbFile != null) {
-            "Cannot open ${fileDefinition.name}"
-        }
-        byFileName[fileDefinition.name] = dbFile
-        val formatName = fileDefinition.internalFormatName
-        if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
-            byFormatName[formatName] = dbFile
-        }
-    }
-
-    operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
-}
-
 val ALL_PREDEFINED_INDEXES = 1..99
 
-class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCoreHelper {
+class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCore {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
     // TODO default value DECEDIT can be changed
@@ -959,9 +926,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is CabStmt -> {
                     val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, charset)
                     when (comparisonResult.comparison) {
-                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
-                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
-                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
                     }
                     if (comparisonResult.isVerified) throw GotoException(statement.tag)
                 }
@@ -1010,138 +977,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is CompStmt -> {
                     when (this.compareExpressions(statement.left, statement.right, charset)) {
-                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
-                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
-                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
+                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
                     }
                 }
                 is LookupStmt -> {
-                    // TODO
-                    // - add more MUTE tests;
-                    // - set var argument (if present) of factor2 with index of found element (ie. FACTOR1  LOOKUP  FACTOR2(var) );
-                    // - check/handle searches due to to ascend/descend array declaration;
-                    // - test performance
-                    val factor1 = interpret(statement.left)
-
-                    // If ArrayValue or ArrayExpression (ie. factor2(index) )
-                    var factor2 = if (statement.right is DataRefExpr) {
-                        interpret(statement.right).asArray()
-                    } else {
-                        interpret((statement.right as ArrayAccessExpr).array) as ArrayValue
-                    }
-
-                    // If index as ArrayExpression argument (ie. factor2(index) )
-                    var index = if (statement.right is DataRefExpr) {
-                        IntValue.ZERO.value
-                    } else {
-                        eval((statement.right as ArrayAccessExpr).index).asInt().value
-                    }
-
-                    // execute search
-                    val found = lookup(factor1, factor2)
-
-                    // factor1 not found into factor2 array.
-                    if (found.asInt().value == 0L) {
-                        // if no index (as array argument) specified
-                        if (index <= 0L) {
-                            setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
-                        } else {
-                            // Search for an element into factor2 GREATER (cause of statement.hi) than factor1,
-                            // starting from index given as factor2 argument.
-                            // ATTENTION: can't 'statement.hi' and 'statement.lo' be declared both
-                            var foundWalkingDown = false
-                            var foundWalkingUp = false
-                            val idx = index.toInt()
-
-                            if (null != statement.hi) {
-                                // search direction: DOWN
-                                for (x in (idx - 1) downTo 1) {
-                                    val comparison = factor2.getElement(x).compare(factor1, charset)
-                                    if (comparison > 0) {
-                                        setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
-                                        foundWalkingDown = true
-                                        break
-                                    }
-                                }
-                                // search direction: UP
-                                if (!foundWalkingDown) {
-                                    val nrElements = factor2.asArray().elements().size
-                                    for (x in (idx + 1)..nrElements) {
-                                        val comparison = factor2.getElement(x).compare(factor1, charset)
-                                        if (comparison > 0) {
-                                            setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
-                                            foundWalkingUp = true
-                                            break
-                                        }
-                                    }
-                                }
-                            } else if (null != statement.lo) {
-                                // Search for an element into factor2 LOWER (cause of statement.lo) than factor1,
-                                // starting from index given as factor2 argument.
-                                // search direction: DOWN
-                                for (x in (idx - 1) downTo 1) {
-                                    val comparison = factor2.getElement(x).compare(factor1, charset)
-                                    if (comparison < 0) {
-                                        setPredefinedIndicators(
-                                            statement,
-                                            BooleanValue.FALSE,
-                                            BooleanValue.TRUE,
-                                            BooleanValue.FALSE,
-                                            predefinedIndicators
-                                        )
-                                        foundWalkingDown = true
-                                        break
-                                    }
-                                }
-                                // search direction: UP
-                                if (!foundWalkingDown) {
-                                    val nrElements = factor2.asArray().elements().size
-                                    for (x in (idx + 1)..nrElements) {
-                                        val comparison = factor2.getElement(x).compare(factor1, charset)
-                                        if (comparison < 0) {
-                                            setPredefinedIndicators(
-                                                statement,
-                                                BooleanValue.FALSE,
-                                                BooleanValue.TRUE,
-                                                BooleanValue.FALSE,
-                                                predefinedIndicators
-                                            )
-                                            foundWalkingUp = true
-                                            break
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Not smaller and not greater element found
-                            if (!foundWalkingDown && !foundWalkingUp) {
-                                setPredefinedIndicators(
-                                    statement,
-                                    BooleanValue.FALSE,
-                                    BooleanValue.FALSE,
-                                    BooleanValue.FALSE,
-                                    predefinedIndicators
-                                )
-                            }
-                        }
-                    } else {
-                        // Factor1 found
-                        // Indicators: HI=*OFF, LO=*OFF, EQ=*ON
-                        if ((index > 0L && found.asInt().value == index) ||
-                                (found.asInt().value > 0 && index == 0L)) {
-                            setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE, predefinedIndicators)
-                        }
-
-                        // Indicators: HI=*OFF, LO=*ON, EQ=*OFF
-                        if (found.asInt().value < index) {
-                            setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE, predefinedIndicators)
-                        }
-
-                        // Indicators: HI=*ON, LO=*OFF, EQ=*OFF
-                        if (found.asInt().value > index && index > 0L) {
-                            setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE, predefinedIndicators)
-                        }
-                    }
+                    lookUp(statement, this, charset)
                 }
 
                 else -> TODO(statement.toString())
@@ -1165,7 +1007,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue, predefinedIndicators: HashMap<Int, BooleanValue>) {
+    override fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue) {
         statement.hi?.let {
             predefinedIndicators[it] = hi
         }
@@ -1229,55 +1071,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun areEquals(value1: Value, value2: Value): Boolean {
-        return when {
-            value1 is DecimalValue && value2 is IntValue ||
-            value1 is IntValue && value2 is DecimalValue -> {
-                value1.asInt() == value2.asInt()
-            }
-
-            value1 is StringValue && value2 is BooleanValue -> {
-                value1.asBoolean().value == value2.value
-            }
-
-            value1 is BooleanValue && value2 is StringValue -> {
-                value2.asBoolean().value == value1.value
-            }
-
-            value1 is DecimalValue && value2 is DecimalValue -> {
-                // Convert everything to Decimal then compare
-                value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
-            }
-
-            value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
-            value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
-
-            value1 is StringValue && value2 is StringValue -> {
-                val v1 = value1.value.trimEnd()
-                val v2 = value2.value.trimEnd()
-                v1 == v2
-            }
-
-            value1 is DataStructValue && value2 is StringValue -> {
-                val v1 = value1.asStringValue().trimEnd()
-
-                val v2 = value2.value.trimEnd()
-                v1 == v2
-            }
-            value1 is StringValue && value2 is DataStructValue -> {
-                val v1 = value1.value.trimEnd()
-                val v2 = value2.asStringValue().trimEnd()
-
-                v1 == v2
-            }
-            // To be review
-            value1 is ProjectedArrayValue && value2 is StringValue -> {
-                value1.asArray().getElement(1) == value2
-            }
-            else -> value1 == value2
-        }
-    }
-
     private fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")
 
     private fun rawRender(value: Value): String {
@@ -1301,7 +1094,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    private fun eval(expression: Expression): Value {
+    override fun eval(expression: Expression): Value {
         return when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
@@ -1932,28 +1725,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             else -> dataDefinition.type.blank()
         }
     }
-
-    private fun lookup(factor1: Value, factor2: ArrayValue): Value {
-        val found = factor2.elements().indexOfFirst {
-            areEquals(it, factor1)
-        }
-        return if (found == -1) 0.asValue() else (found + 1).asValue()
-    }
 }
-
-private fun AbstractDataDefinition.canBeAssigned(value: Value): Boolean {
-    return type.canBeAssigned(value)
-}
-
-private fun Int.asValue() = IntValue(this.toLong())
-private fun Boolean.asValue() = BooleanValue(this)
-
-// Useful to interrupt infinite cycles in tests
-class InterruptForDebuggingPurposes : RuntimeException()
-
-class ReturnException(val returnValue: Value?) : RuntimeException()
-
-class GotoException(val tag: String) : RuntimeException()
 
 private fun cleanNumericString(s: String): String {
     val result = s.moveEndingString("-")
@@ -1961,29 +1733,5 @@ private fun cleanNumericString(s: String): String {
         result.contains(".") -> result.substringBefore(".")
         result.contains(",") -> result.substringBefore(",")
         else -> result
-    }
-}
-
-private fun isSupportedDataType(dataRefExpr: DataRefExpr): Boolean {
-    return isNumber(dataRefExpr) || isString(dataRefExpr)
-}
-
-private fun isNumber(dataRefExpr: DataRefExpr): Boolean {
-    var type = dataRefExpr.variable.referred?.type
-    return when (type) {
-        is NumberType -> true
-        else -> {
-            false
-        }
-    }
-}
-
-private fun isString(dataRefExpr: DataRefExpr): Boolean {
-    var type = dataRefExpr.variable.referred?.type
-    return when (type) {
-        is StringType -> true
-        else -> {
-            false
-        }
     }
 }
