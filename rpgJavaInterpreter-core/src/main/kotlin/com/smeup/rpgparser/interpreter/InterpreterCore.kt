@@ -5,7 +5,7 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.WithRightIndicators
 
 /**
- * Expose interpreter core method could be useful in statements logic implementation
+ * Expose interpreter core method that could be useful in statements logic implementation
  **/
 interface InterpreterCore {
     fun log(logEntry: LogEntry)
