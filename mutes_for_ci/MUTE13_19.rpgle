@@ -44,28 +44,24 @@
      C                   SETOFF                                         2122
       * Search from index 0
     MU* VAL1(*IN21) VAL2('1') COMP(EQ)
-     C     'J'           LOOKUP    ARRAY                                2122
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     'J'           LOOKUP    ARRAY                                2122
       *
      C                   SETOFF                                         2122
       * Search from index 8
     MU* VAL1(*IN21) VAL2('1') COMP(EQ)
-     C     'J'           LOOKUP    ARRAY(8)                             2122
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     'J'           LOOKUP    ARRAY(8)                             2122
       *
      C                   SETOFF                                         2122
       * Search from index 8
     MU* VAL1(*IN21) VAL2('1') COMP(EQ)
-     C     'I'           LOOKUP    ARRAY(8)                             2122
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     'I'           LOOKUP    ARRAY(8)                             2122
       *
      C                   SETOFF                                         2122
       * Search from index 6
     MU* VAL1(*IN21) VAL2('0') COMP(EQ)
-     C     'A'           LOOKUP    ARRAY(6)                             2122
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     'A'           LOOKUP    ARRAY(6)                             2122
       *
@@ -73,35 +69,30 @@
      C                   SETOFF                                       20  22
       * Search from index 0
     MU* VAL1(*IN20) VAL2('1') COMP(EQ)
-     C     'E'           LOOKUP    ARRAY                              20  22
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     'E'           LOOKUP    ARRAY                              20  22
       *
      C                   SETOFF                                       20  22
       * Search from index 8
     MU* VAL1(*IN20) VAL2('0') COMP(EQ)
-     C     'J'           LOOKUP    ARRAY(8)                           20  22
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     'J'           LOOKUP    ARRAY(8)                           20  22
       *
      C                   SETOFF                                       20  22
       * Search from index 3
     MU* VAL1(*IN20) VAL2('1') COMP(EQ)
-     C     'E'           LOOKUP    ARRAY(3)                           20  22
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     'E'           LOOKUP    ARRAY(3)                           20  22
       *
      C                   SETOFF                                       20  22
       * Search from index 9
     MU* VAL1(*IN20) VAL2('0') COMP(EQ)
-     C     'I'           LOOKUP    ARRAY(9)                           20  22
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     'I'           LOOKUP    ARRAY(9)                           20  22
       *
      C                   SETOFF                                       20  22
       * Search from index 7
     MU* VAL1(*IN20) VAL2('0') COMP(EQ)
-     C     'A'           LOOKUP    ARRAY(7)                           20  22
     MU* VAL1(*IN22) VAL2('1') COMP(EQ)
      C     'A'           LOOKUP    ARRAY(7)                           20  22
       *
