@@ -280,6 +280,41 @@ class MUTEExamplesTest {
         assertMuteOK("MUTE10_45")
     }
 
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_46() {
+        assertMuteOK("MUTE10_46")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_47() {
+        assertMuteOK("MUTE10_47")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_48() {
+        assertMuteOK("MUTE10_48")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_49() {
+        assertMuteOK("MUTE10_49")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_50() {
+        assertMuteOK("MUTE10_50")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_51() {
+        assertMuteOK("MUTE10_51")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_52() {
+        assertMuteOK("MUTE10_52")
+    }
+
     private fun dummyProgramFinder() = DummyProgramFinder("/performance/")
 
     private fun assertMuteOK(programName: String, withOutput: List<String>? = null) {
