@@ -166,6 +166,11 @@ class MuteExecutionTest {
         assertMuteExecutionSucceded("mute/MUTE13_17", 4)
     }
 
+    @Test @Ignore
+    fun executeMUTE16_04_LOOLUP_OpCode_Eq() {
+        assertMuteExecutionSucceded("mute/MUTE16_04", 8)
+    }
+
     private fun assertMuteExecutionSucceded(
         exampleName: String,
         nrOfMuteAssertions: Int,
