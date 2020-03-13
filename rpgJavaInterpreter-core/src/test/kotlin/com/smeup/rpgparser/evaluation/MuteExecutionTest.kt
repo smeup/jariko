@@ -130,17 +130,17 @@ class MuteExecutionTest {
         assertMuteExecutionSucceded("mute/MUTE09_04", 116)
     }
 
-    @Test @Ignore
+    @Test
     fun executeMUTE13_05_ZSUB() {
         assertMuteExecutionSucceded("mute/MUTE13_05", 11)
     }
 
-    @Test @Ignore
+    @Test
     fun executeMUTE13_09_ADD() {
         assertMuteExecutionSucceded("mute/MUTE13_09", 12)
     }
 
-    @Test @Ignore
+    @Test
     fun executeMUTE13_06_SUB() {
         assertMuteExecutionSucceded("mute/MUTE13_06", 12)
     }

@@ -20,7 +20,7 @@
       *
      C                   Z-SUB     5,923456      N1
      C                   EVAL      N1=34,78
-    MU* VAL1(N1) VAL2(-5) COMP(EQ)
+    MU* VAL1(N1) VAL2(10) COMP(EQ)
      C                   EVAL      N1=10
      C                   Z-SUB     5             N1
      C                   EVAL      DSP='Z-SUB     5             N1'

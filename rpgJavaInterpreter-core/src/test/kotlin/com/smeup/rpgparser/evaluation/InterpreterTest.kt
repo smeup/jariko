@@ -203,7 +203,7 @@ class InterpreterTest {
         assertEquals(listOf("489.76933346"), outputOf("SQRT"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeROUNDING01() {
         assertEquals(listOf("34"), outputOf("ROUNDING01"))
     }
