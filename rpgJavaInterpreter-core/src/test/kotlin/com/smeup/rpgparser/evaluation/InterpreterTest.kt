@@ -452,26 +452,30 @@ class InterpreterTest {
     @Test @Ignore
     fun executeLOOKUP_OPCODE() {
         assertEquals("""
-Test 1 
-69 On  
-68 Off 
-10     
-Test 2 
-69 On  
- 3     
-Test 3 
-69 On  
- 9     
-Test 4 
+Test 1
+68 OFF
+69 ON-
+10    
+Test 2
+68 OFF
+69 ON-
+ 3    
+Test 3
+68 OFF
+69 OFF
+ 1    
+Test 4
+68 OFF 
+69 OFF 
  1     
 Test 5 
-68 On 
-69 Off
- 9                
+68 ON- 
+69 OFF 
+ 9     
 Test 6 
-68 Off
-69 Off
- 1                
+68 OFF 
+69 ON- 
+ 7               
         """.trimIndent().lines().map(String::trim),
             outputOf("LOOKUP_OP1"))
     }

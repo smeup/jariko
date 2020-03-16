@@ -5,30 +5,23 @@ import com.smeup.rpgparser.parsing.ast.DataRefExpr
 import com.smeup.rpgparser.parsing.ast.LookupStmt
 import com.smeup.rpgparser.parsing.ast.WithRightIndicators
 import com.smeup.rpgparser.utils.fromIndex
+import com.smeup.rpgparser.utils.toIndex
 import java.nio.charset.Charset
 
 sealed class LookupSearchResult {
+    abstract val oneBasedIndex: Int
     abstract fun setIndicators(interpreterCore: InterpreterCore, statement: LookupStmt)
 }
 
 object NotFound : LookupSearchResult() {
+    override val oneBasedIndex = 1
     override fun setIndicators(interpreterCore: InterpreterCore, statement: LookupStmt) =
         interpreterCore.setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
 }
 
-class FoundAtIndex(val oneBasedIndex: Int) : LookupSearchResult() {
+class FoundAtIndex(override val oneBasedIndex: Int, val hi: BooleanValue, val lo: BooleanValue, val eq: BooleanValue) : LookupSearchResult() {
     override fun setIndicators(interpreterCore: InterpreterCore, statement: LookupStmt) =
-        interpreterCore.setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-}
-
-class LowerAtIndex(val oneBasedIndex: Int) : LookupSearchResult() {
-    override fun setIndicators(interpreterCore: InterpreterCore, statement: LookupStmt) =
-        interpreterCore.setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-}
-
-class HigherAtIndex(val oneBasedIndex: Int) : LookupSearchResult() {
-    override fun setIndicators(interpreterCore: InterpreterCore, statement: LookupStmt) =
-        interpreterCore.setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+        interpreterCore.setPredefinedIndicators(statement, hi, lo, eq)
 }
 
 class ArraySearchingParameters(
@@ -39,60 +32,36 @@ class ArraySearchingParameters(
     val indexVar: DataRefExpr?
 ) {
     fun lookup(valueToSearch: Value): LookupSearchResult {
-        val zeroBasedIndex = lookupZeroBased(valueToSearch, arrayValue, oneBasedIndex - 1)
-        if (zeroBasedIndex != null) {
-            return FoundAtIndex(zeroBasedIndex + 1)
-        }
+        val zeroBasedStartingIndex = oneBasedIndex - 1
+        val searchedArray = arrayValue.elements().fromIndex(zeroBasedStartingIndex)
+        val foundIndexes = FoundIndexes(-1, -1, -1)
 
-        withRightIndicators.lo?.let {
-            val zeroBasedIndex = lookupLowerZeroBased(valueToSearch, arrayValue, oneBasedIndex - 1)
-            if (zeroBasedIndex != null) {
-                return LowerAtIndex(zeroBasedIndex + 1)
+        val (indices, goingForward) = if (withRightIndicators.lo != null) Pair(searchedArray.indices.reversed(), false) else Pair(searchedArray.indices, true)
+//        val indices = searchedArray.indices
+        for (i in indices) {
+            val comparison = compare(searchedArray[i], valueToSearch, charset)
+            if (withRightIndicators.eq != null) {
+                if (comparison == Comparison.EQUAL) {
+                    foundIndexes.eq = i
+                    break
+                }
             }
-        }
-
-        withRightIndicators.hi?.let {
-            val zeroBasedIndex = lookupHigherZeroBased(valueToSearch, arrayValue, oneBasedIndex - 1)
-            if (zeroBasedIndex != null) {
-                return HigherAtIndex(zeroBasedIndex + 1)
+            if (withRightIndicators.lo != null) {
+                if (comparison == Comparison.SMALLER) {
+                    foundIndexes.lo = i
+                    break
+                }
             }
-        }
-
-        return NotFound
-    }
-
-    private fun lookupZeroBased(valueToSearch: Value, factor2: ArrayValue, zeroBasedStartingIndex: Int): Int? {
-        val searchedArray = factor2.elements().fromIndex(zeroBasedStartingIndex)
-        var found = -1
-        for (i in searchedArray.indices) {
-            if (compare(searchedArray[i], valueToSearch, charset) == Comparison.EQUAL) {
-                found = i
-                break
+            if (withRightIndicators.hi != null) {
+                if (comparison == Comparison.GREATER) {
+                    foundIndexes.hi = i
+                    break
+                }
             }
+//            if (goingForward && comparison == Comparison.GREATER) break
+//            if (!goingForward && comparison == Comparison.SMALLER) break
         }
-        return if (found == -1) null else found + zeroBasedStartingIndex
-    }
-
-    private fun lookupLowerZeroBased(valueToSearch: Value, factor2: ArrayValue, zeroBasedStartingIndex: Int): Int? {
-        val searchedArray = factor2.elements().fromIndex(zeroBasedStartingIndex)
-        var found = -1
-        for (i in searchedArray.indices) {
-            if (compare(searchedArray[i], valueToSearch, charset) == Comparison.SMALLER) {
-                found = i
-            }
-        }
-        return if (found == -1) null else found + zeroBasedStartingIndex
-    }
-
-    private fun lookupHigherZeroBased(valueToSearch: Value, factor2: ArrayValue, zeroBasedStartingIndex: Int): Int? {
-        val searchedArray = factor2.elements().fromIndex(zeroBasedStartingIndex)
-        var found = -1
-        for (i in searchedArray.indices.reversed()) {
-            if (compare(searchedArray[i], valueToSearch, charset) == Comparison.GREATER) {
-                found = i
-            }
-        }
-        return if (found == -1) null else found + zeroBasedStartingIndex
+        return if (!foundIndexes.found()) NotFound else FoundAtIndex(foundIndexes.foundIndex() + zeroBasedStartingIndex + 1, foundIndexes.hiBooleanValue(), foundIndexes.loBooleanValue(), foundIndexes.eqBooleanValue())
     }
 }
 
@@ -126,21 +95,19 @@ fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Cha
     val searchResult = arraySearchingParameters.lookup(factor1)
     searchResult.setIndicators(interpreterCore, statement)
     arraySearchingParameters.indexVar?.let {
-        interpreterCore.assign(it, IntValue.ONE)
-    }
-    if (searchResult is FoundAtIndex) {
-        arraySearchingParameters.indexVar?.let {
             interpreterCore.assign(it, searchResult.oneBasedIndex.asValue())
-        }
     }
-    if (searchResult is LowerAtIndex) {
-        arraySearchingParameters.indexVar?.let {
-            interpreterCore.assign(it, searchResult.oneBasedIndex.asValue())
-        }
-    }
-    if (searchResult is HigherAtIndex) {
-        arraySearchingParameters.indexVar?.let {
-            interpreterCore.assign(it, searchResult.oneBasedIndex.asValue())
-        }
+}
+
+class FoundIndexes(var hi: Int, var lo: Int, var eq: Int) {
+    fun found(): Boolean = hi >=0 || lo >=0 || eq >= 0
+    fun hiBooleanValue() = if (hi >=0) BooleanValue.TRUE else BooleanValue.FALSE
+    fun loBooleanValue() = if (lo >=0) BooleanValue.TRUE else BooleanValue.FALSE
+    fun eqBooleanValue() = if (eq >=0) BooleanValue.TRUE else BooleanValue.FALSE
+    fun foundIndex(): Int = when {
+        eq >=0 -> eq
+        hi >=0 -> hi
+        lo >=0 -> lo
+        else -> -1
     }
 }
