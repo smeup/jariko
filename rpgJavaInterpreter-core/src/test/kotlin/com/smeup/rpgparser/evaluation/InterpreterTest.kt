@@ -450,6 +450,33 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeLOOKUP_OPCODE() {
+        assertEquals("""
+Test 1 
+69 On  
+68 Off 
+10     
+Test 2 
+69 On  
+ 3     
+Test 3 
+69 On  
+ 9     
+Test 4 
+ 1     
+Test 5 
+68 On 
+69 Off
+ 9                
+Test 6 
+68 Off
+69 Off
+ 1                
+        """.trimIndent().lines().map(String::trim),
+            outputOf("LOOKUP_OP1"))
+    }
+
+    @Test @Ignore
     fun executeSCANARRAY() {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }

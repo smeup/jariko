@@ -62,8 +62,13 @@ class ArraySearchingParameters(
     }
 
     private fun lookupZeroBased(valueToSearch: Value, factor2: ArrayValue, zeroBasedStartingIndex: Int): Int? {
-        val found = factor2.elements().fromIndex(zeroBasedStartingIndex).indexOfFirst {
-            areEquals(it, valueToSearch)
+        val searchedArray = factor2.elements().fromIndex(zeroBasedStartingIndex)
+        var found = -1
+        for (i in searchedArray.indices) {
+            if (compare(searchedArray[i], valueToSearch, charset) == Comparison.EQUAL) {
+                found = i
+                break
+            }
         }
         return if (found == -1) null else found + zeroBasedStartingIndex
     }
@@ -72,17 +77,22 @@ class ArraySearchingParameters(
         val searchedArray = factor2.elements().fromIndex(zeroBasedStartingIndex)
         var found = -1
         for (i in searchedArray.indices) {
-            if (compare(valueToSearch, searchedArray[i], charset) == Comparison.SMALLER) {
+            if (compare(searchedArray[i], valueToSearch, charset) == Comparison.SMALLER) {
                 found = i
-            } else {
-                break
             }
         }
         return if (found == -1) null else found + zeroBasedStartingIndex
     }
 
     private fun lookupHigherZeroBased(valueToSearch: Value, factor2: ArrayValue, zeroBasedStartingIndex: Int): Int? {
-        TODO()
+        val searchedArray = factor2.elements().fromIndex(zeroBasedStartingIndex)
+        var found = -1
+        for (i in searchedArray.indices.reversed()) {
+            if (compare(searchedArray[i], valueToSearch, charset) == Comparison.GREATER) {
+                found = i
+            }
+        }
+        return if (found == -1) null else found + zeroBasedStartingIndex
     }
 }
 
@@ -108,7 +118,6 @@ fun LookupStmt.arraySearchingParameters(interpreterCore: InterpreterCore, charse
 fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Charset) {
     // TODO
     // - add more MUTE tests;
-    // - set var argument (if present) of factor2 with index of found element (ie. FACTOR1  LOOKUP  FACTOR2(var) );
     // - check/handle searches due to to ascend/descend array declaration;
     // - test performance
     val factor1 = interpreterCore.interpret(statement.left)
@@ -116,6 +125,9 @@ fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Cha
     val arraySearchingParameters = statement.arraySearchingParameters(interpreterCore, charset)
     val searchResult = arraySearchingParameters.lookup(factor1)
     searchResult.setIndicators(interpreterCore, statement)
+    arraySearchingParameters.indexVar?.let {
+        interpreterCore.assign(it, IntValue.ONE)
+    }
     if (searchResult is FoundAtIndex) {
         arraySearchingParameters.indexVar?.let {
             interpreterCore.assign(it, searchResult.oneBasedIndex.asValue())
