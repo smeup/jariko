@@ -112,8 +112,15 @@ internal fun RpgParser.DspecContext.toAst(
     var elementsPerLineExpression: Expression? = null
     var compileTimeArray = false
     var varying = false
+    var ascend: Boolean? = null
 
     this.keyword().forEach {
+        it.keyword_ascend()?.let {
+            ascend = true
+        }
+        it.keyword_descend()?.let {
+            ascend = false
+        }
         it.keyword_like()?.let {
             like = it.simpleExpression().toAst(conf) as AssignableExpression
         }
@@ -184,7 +191,9 @@ internal fun RpgParser.DspecContext.toAst(
             }
             require(compileTimeRecordsPerLine > 0)
         }
-        ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine)
+        ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
+            it.ascend = ascend
+        }
     } else {
         baseType
     }

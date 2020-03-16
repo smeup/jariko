@@ -170,6 +170,8 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
 }
 
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
+    var ascend: Boolean? = null
+
     override val size: Int
         get() = element.size * nElements
 
