@@ -4,8 +4,6 @@ import com.smeup.rpgparser.parsing.ast.ArrayAccessExpr
 import com.smeup.rpgparser.parsing.ast.DataRefExpr
 import com.smeup.rpgparser.parsing.ast.LookupStmt
 import com.smeup.rpgparser.parsing.ast.WithRightIndicators
-import com.smeup.rpgparser.utils.fromIndex
-import com.smeup.rpgparser.utils.toIndex
 import java.nio.charset.Charset
 
 sealed class LookupSearchResult {
@@ -19,7 +17,8 @@ object NotFound : LookupSearchResult() {
         interpreterCore.setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
 }
 
-class FoundAtIndex(override val oneBasedIndex: Int, val hi: BooleanValue, val lo: BooleanValue, val eq: BooleanValue) : LookupSearchResult() {
+class FoundAtIndex(override val oneBasedIndex: Int, val hi: BooleanValue, val lo: BooleanValue, val eq: BooleanValue) :
+    LookupSearchResult() {
     override fun setIndicators(interpreterCore: InterpreterCore, statement: LookupStmt) =
         interpreterCore.setPredefinedIndicators(statement, hi, lo, eq)
 }
@@ -33,11 +32,14 @@ class ArraySearchingParameters(
 ) {
     fun lookup(valueToSearch: Value): LookupSearchResult {
         val zeroBasedStartingIndex = oneBasedIndex - 1
-        val searchedArray = arrayValue.elements().fromIndex(zeroBasedStartingIndex)
+        val searchedArray = arrayValue.elements()
         val foundIndexes = FoundIndexes(-1, -1, -1)
 
-        val (indices, goingForward) = if (withRightIndicators.lo != null) Pair(searchedArray.indices.reversed(), false) else Pair(searchedArray.indices, true)
-//        val indices = searchedArray.indices
+        val (indices, goingForward) = if (withRightIndicators.lo != null) {
+            Pair(zeroBasedStartingIndex downTo 0, false)
+        } else {
+            Pair(zeroBasedStartingIndex..searchedArray.size - 1, true)
+        }
         for (i in indices) {
             val comparison = compare(searchedArray[i], valueToSearch, charset)
             if (withRightIndicators.eq != null) {
@@ -61,7 +63,12 @@ class ArraySearchingParameters(
 //            if (goingForward && comparison == Comparison.GREATER) break
 //            if (!goingForward && comparison == Comparison.SMALLER) break
         }
-        return if (!foundIndexes.found()) NotFound else FoundAtIndex(foundIndexes.foundIndex() + zeroBasedStartingIndex + 1, foundIndexes.hiBooleanValue(), foundIndexes.loBooleanValue(), foundIndexes.eqBooleanValue())
+        return if (!foundIndexes.found()) NotFound else FoundAtIndex(
+            foundIndexes.foundIndex() + 1,
+            foundIndexes.hiBooleanValue(),
+            foundIndexes.loBooleanValue(),
+            foundIndexes.eqBooleanValue()
+        )
     }
 }
 
@@ -95,19 +102,19 @@ fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Cha
     val searchResult = arraySearchingParameters.lookup(factor1)
     searchResult.setIndicators(interpreterCore, statement)
     arraySearchingParameters.indexVar?.let {
-            interpreterCore.assign(it, searchResult.oneBasedIndex.asValue())
+        interpreterCore.assign(it, searchResult.oneBasedIndex.asValue())
     }
 }
 
 class FoundIndexes(var hi: Int, var lo: Int, var eq: Int) {
-    fun found(): Boolean = hi >=0 || lo >=0 || eq >= 0
-    fun hiBooleanValue() = if (hi >=0) BooleanValue.TRUE else BooleanValue.FALSE
-    fun loBooleanValue() = if (lo >=0) BooleanValue.TRUE else BooleanValue.FALSE
-    fun eqBooleanValue() = if (eq >=0) BooleanValue.TRUE else BooleanValue.FALSE
+    fun found(): Boolean = hi >= 0 || lo >= 0 || eq >= 0
+    fun hiBooleanValue() = if (hi >= 0) BooleanValue.TRUE else BooleanValue.FALSE
+    fun loBooleanValue() = if (lo >= 0) BooleanValue.TRUE else BooleanValue.FALSE
+    fun eqBooleanValue() = if (eq >= 0) BooleanValue.TRUE else BooleanValue.FALSE
     fun foundIndex(): Int = when {
-        eq >=0 -> eq
-        hi >=0 -> hi
-        lo >=0 -> lo
+        eq >= 0 -> eq
+        hi >= 0 -> hi
+        lo >= 0 -> lo
         else -> -1
     }
 }

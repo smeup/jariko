@@ -480,6 +480,16 @@ Test 6
             outputOf("LOOKUP_OP1"))
     }
 
+    @Test
+    fun executeLOOKUP_OP2() {
+        assertEquals(listOf("68 OFF", "69 OFF"), outputOf("LOOKUP_OP2"))
+    }
+
+    @Test
+    fun executeLOOKUP_OP3() {
+        assertEquals(listOf("68 ON-", "69 OFF"), outputOf("LOOKUP_OP3"))
+    }
+
     @Test @Ignore
     fun executeSCANARRAY() {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))

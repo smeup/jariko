@@ -98,9 +98,6 @@ fun String.moveEndingString(s: String): String =
             this
         }
 
-fun <T> List<T>.toIndex(i: Int) = subList(0, i+1)
-fun <T> List<T>.fromIndex(i: Int) = subList(i, size)
-
 fun String.repeatWithMaxSize(l: Int): String {
     val repetitions = (l / this.length) + 1
     return this.repeat(repetitions).take(l)
