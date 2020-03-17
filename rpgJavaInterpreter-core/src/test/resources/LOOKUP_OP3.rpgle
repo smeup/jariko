@@ -26,7 +26,6 @@
       *
      C                   SETON                                        LR
       *---------------------------------------------------------------
-     C                   SETON                                        LR
      C     SHOWRESULTS   BEGSR
      C   68'68 ON-'      DSPLY
      C  N68'68 OFF'      DSPLY
