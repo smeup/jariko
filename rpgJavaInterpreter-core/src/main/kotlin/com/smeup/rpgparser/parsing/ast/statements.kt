@@ -317,6 +317,8 @@ data class DefineStmt(
 }
 
 interface WithRightIndicators {
+    fun allPresent(): Boolean = hi != null && lo != null && eq != null
+
     val hi: IndicatorKey?
     val lo: IndicatorKey?
     val eq: IndicatorKey?
