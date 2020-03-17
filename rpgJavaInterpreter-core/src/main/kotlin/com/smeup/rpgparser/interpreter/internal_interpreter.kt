@@ -395,7 +395,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             val indicator = indicator(indicatorKey).value
             var condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
             val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
-            println("Indicator:${continuedIndicator.key}(negate=${continuedIndicator.negate}, operator=${solvedIndicatorCondition.operator}) PredefinedValue(from Symboltable)=${indicator(indicatorKey)} --> Is condition verified: ${solvedIndicatorCondition.value}")
             solvedIndicatorCondition
         }
 
