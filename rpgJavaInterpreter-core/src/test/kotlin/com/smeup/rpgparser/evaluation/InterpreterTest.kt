@@ -204,6 +204,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeROUNDING01() {
+        assertEquals(listOf("34"), outputOf("ROUNDING01"))
+    }
+
+    @Test
     fun executeSETONSETOF() {
         assertEquals(listOf("Before",
                 "56=off57=off",
@@ -283,9 +288,15 @@ class InterpreterTest {
     fun executeMOVEL04_all1() {
         assertEquals(listOf("11111"), outputOf("MOVEL04"))
     }
+
     @Test
     fun executeMOVEL05_allChar() {
         assertEquals(listOf("aaaaa"), outputOf("MOVEL05"))
+    }
+
+    @Test @Ignore
+    fun executeMOVEL06_blanks() {
+        assertEquals(listOf(""), outputOf("MOVEL06"))
     }
 
     @Test
@@ -389,6 +400,11 @@ class InterpreterTest {
     }
 
     @Test @Ignore
+    fun executeRESULTTARG_resultAsExpressionRefenecingArray() {
+        assertEquals(listOf("15.3"), outputOf("RESULTTARG"))
+    }
+
+    @Test @Ignore
     fun executeXFOOT1() {
         assertEquals(listOf("15.3"), outputOf("XFOOT1"))
     }
@@ -431,6 +447,78 @@ class InterpreterTest {
     @Test
     fun executeARRAY11() {
         assertEquals(listOf("ABCDEF", "ABCDEF"), outputOf("ARRAY11"))
+    }
+
+    @Test @Ignore
+    fun executeLOOKUP_OPCODE() {
+        assertEquals("""
+Test 1
+68 OFF
+69 ON-
+10    
+Test 2
+68 OFF
+69 ON-
+ 3    
+Test 3
+68 OFF
+69 OFF
+ 1    
+Test 4
+68 OFF 
+69 OFF 
+ 1     
+Test 5 
+68 ON- 
+69 OFF 
+ 9     
+Test 6 
+68 OFF 
+69 ON- 
+ 7               
+        """.trimIndent().lines().map(String::trim),
+            outputOf("LOOKUP_OP1"))
+    }
+
+    @Test
+    fun executeLOOKUP_OP2() {
+        assertEquals(listOf("68 OFF", "69 OFF"), outputOf("LOOKUP_OP2"))
+    }
+
+    @Test
+    fun executeLOOKUP_OP3() {
+        assertEquals(listOf("68 ON-", "69 OFF"), outputOf("LOOKUP_OP3"))
+    }
+
+    @Test @Ignore
+    fun executeLOOKUP_OPCODE_GoodArray() {
+        assertEquals("""
+Test 1
+68 ON-
+69 OFF
+10    
+Test 2
+68 OFF
+69 ON-
+ 4    
+Test 3
+68 OFF
+69 ON-
+ 4    
+Test 4
+68 OFF
+69 OFF
+ 1    
+Test 5
+68 ON-
+69 OFF
+ 9    
+Test 6
+68 OFF
+69 OFF
+ 1    
+        """.trimIndent().lines().map(String::trim),
+            outputOf("LOOKUP_OP9"))
     }
 
     @Test @Ignore
@@ -1037,7 +1125,7 @@ class InterpreterTest {
         assertEquals(listOf("Other", "First"), outputOf("WHEN01"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeARRAY_PARMS() {
         val parms = mapOf(
             "Arr" to StringValue("ABC".padEnd(40))

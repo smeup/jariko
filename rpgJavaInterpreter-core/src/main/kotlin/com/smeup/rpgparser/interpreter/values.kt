@@ -260,6 +260,7 @@ data class IntValue(val value: Long) : NumberValue() {
 
     companion object {
         val ZERO = IntValue(0)
+        val ONE = IntValue(1)
 
         fun sequenceOfNines(length: Int): IntValue {
             require(length >= 1)
@@ -795,5 +796,57 @@ data class DataStructValue(var value: String, val len: Int = value.length) : Val
 
     fun isBlank(): Boolean {
         return this.value.isBlank()
+    }
+}
+
+fun Int.asValue() = IntValue(this.toLong())
+fun Boolean.asValue() = BooleanValue(this)
+
+fun areEquals(value1: Value, value2: Value): Boolean {
+    return when {
+        value1 is DecimalValue && value2 is IntValue ||
+            value1 is IntValue && value2 is DecimalValue -> {
+            value1.asInt() == value2.asInt()
+        }
+
+        value1 is StringValue && value2 is BooleanValue -> {
+            value1.asBoolean().value == value2.value
+        }
+
+        value1 is BooleanValue && value2 is StringValue -> {
+            value2.asBoolean().value == value1.value
+        }
+
+        value1 is DecimalValue && value2 is DecimalValue -> {
+            // Convert everything to Decimal then compare
+            value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
+        }
+
+        value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
+        value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
+
+        value1 is StringValue && value2 is StringValue -> {
+            val v1 = value1.value.trimEnd()
+            val v2 = value2.value.trimEnd()
+            v1 == v2
+        }
+
+        value1 is DataStructValue && value2 is StringValue -> {
+            val v1 = value1.asStringValue().trimEnd()
+
+            val v2 = value2.value.trimEnd()
+            v1 == v2
+        }
+        value1 is StringValue && value2 is DataStructValue -> {
+            val v1 = value1.value.trimEnd()
+            val v2 = value2.asStringValue().trimEnd()
+
+            v1 == v2
+        }
+        // To be review
+        value1 is ProjectedArrayValue && value2 is StringValue -> {
+            value1.asArray().getElement(1) == value2
+        }
+        else -> value1 == value2
     }
 }

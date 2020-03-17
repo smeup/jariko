@@ -2,36 +2,36 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
-fun move(target: AssignableExpression, value: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+fun move(target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
     when (target) {
         is DataRefExpr -> {
-            var newValue = interpreterCoreHelper.interpret(value)
+            var newValue = interpreterCore.interpret(value)
             if (value !is FigurativeConstantRef) {
                 newValue = newValue.takeLast(target.size())
                 if (value.type().size < target.size()) {
                     newValue =
-                        interpreterCoreHelper.get(target.variable.referred!!).takeFirst((target.size() - value.type().size))
+                        interpreterCore.get(target.variable.referred!!).takeFirst((target.size() - value.type().size))
                             .concatenate(newValue)
                 }
             }
-            return interpreterCoreHelper.assign(target, newValue)
+            return interpreterCore.assign(target, newValue)
         }
         else -> TODO()
     }
 }
 
-fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCoreHelper: InterpreterCoreHelper): Value {
+fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
     return when (target) {
         is DataRefExpr -> {
-            moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCoreHelper)
+            moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCore)
         }
         is PredefinedGlobalIndicatorExpr -> {
-            interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(valueExpression))
+            interpreterCore.assign(target, interpreterCore.interpret(valueExpression))
         }
         is PredefinedIndicatorExpr -> {
-            val value = interpreterCoreHelper.interpret(valueExpression)
+            val value = interpreterCore.interpret(valueExpression)
             for (index in target.index..ALL_PREDEFINED_INDEXES.last) {
-                interpreterCoreHelper.assign(PredefinedIndicatorExpr(index), value)
+                interpreterCore.assign(PredefinedIndicatorExpr(index), value)
             }
             value
         }
@@ -39,18 +39,18 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
-            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCoreHelper.interpret(target.index) as IntValue).value.toInt(), interpreterCoreHelper)
+            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCore.interpret(target.index) as IntValue).value.toInt(), interpreterCore)
         }
     }
 }
 
-private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCoreHelper: InterpreterCoreHelper): Value {
+private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCore: InterpreterCore): Value {
     val targetType = target.type()
     require(targetType is ArrayType || targetType is StringType) {
         "Result must be an Array or a String"
     }
     return if (value is FigurativeConstantRef) {
-        interpreterCoreHelper.assign(target, interpreterCoreHelper.interpret(value))
+        interpreterCore.assign(target, interpreterCore.interpret(value))
     } else {
         val type = if (targetType is ArrayType) {
             targetType.element
@@ -58,11 +58,11 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
             targetType
         }
         val value = when (type) {
-            is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCoreHelper, value)
-            is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCoreHelper, value)
+            is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
+            is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
             else -> TODO()
         }
-        interpreterCoreHelper.assign(target, value)
+        interpreterCore.assign(target, value)
     }
 }
 
@@ -70,11 +70,11 @@ private fun moveaNumber(
     operationExtenter: String?,
     target: DataRefExpr,
     startIndex: Int,
-    interpreterCoreHelper: InterpreterCoreHelper,
+    interpreterCore: InterpreterCore,
     value: Expression
 ): ConcreteArrayValue {
-    var newValue = interpreterCoreHelper.toArray(value)
-    val targetArray = interpreterCoreHelper.get(target.variable.referred!!).asArray()
+    var newValue = interpreterCore.toArray(value)
+    val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
     val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
         if (it < (startIndex - 1)) {
             targetArray.getElement(it + 1)
@@ -94,7 +94,7 @@ private fun moveaNumber(
     return arrayValue
 }
 
-private fun InterpreterCoreHelper.toArray(expression: Expression): ConcreteArrayValue =
+private fun InterpreterCore.toArray(expression: Expression): ConcreteArrayValue =
     when (expression) {
         is ArrayAccessExpr -> {
             val arrayValueRaw = interpret(expression.array)
@@ -120,15 +120,15 @@ private fun moveaString(
     operationExtenter: String?,
     target: DataRefExpr,
     startIndex: Int,
-    interpreterCoreHelper: InterpreterCoreHelper,
+    interpreterCore: InterpreterCore,
     value: Expression
 ): Value {
     val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
-    var newValue = valueFromSourceExpression(interpreterCoreHelper, value).takeFirst(realSize).asString()
+    var newValue = valueFromSourceExpression(interpreterCore, value).takeFirst(realSize).asString()
     if (newValue.value.length < realSize) {
         val other =
             if (operationExtenter == null) {
-                interpreterCoreHelper.get(target.variable.referred!!).takeLast((realSize - newValue.value.length))
+                interpreterCore.get(target.variable.referred!!).takeLast((realSize - newValue.value.length))
             } else {
                 StringValue(" ".repeat((realSize - value.type().size)))
             }
@@ -137,7 +137,7 @@ private fun moveaString(
     if (target.type() is ArrayType) {
         return createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
             if (it < (startIndex - 1)) {
-                interpreterCoreHelper.get(target.variable.referred!!).asArray().getElement(it + 1)
+                interpreterCore.get(target.variable.referred!!).asArray().getElement(it + 1)
             } else {
                 val index = it - startIndex + 1
                 val startValue = (index * target.type().elementSize()) + 1
@@ -149,12 +149,12 @@ private fun moveaString(
     }
 }
 
-private fun valueFromSourceExpression(interpreterCoreHelper: InterpreterCoreHelper, valueExpression: Expression): Value {
+private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExpression: Expression): Value {
     return if (valueExpression is ArrayAccessExpr) {
-        val arrayValueRaw = interpreterCoreHelper.interpret(valueExpression.array) as ArrayValue
-        val index = (interpreterCoreHelper.interpret(valueExpression.index) as NumberValue).bigDecimal.toInt()
+        val arrayValueRaw = interpreterCore.interpret(valueExpression.array) as ArrayValue
+        val index = (interpreterCore.interpret(valueExpression.index) as NumberValue).bigDecimal.toInt()
         arrayValueRaw.concatenateElementsFrom(index)
     } else {
-        interpreterCoreHelper.interpret(valueExpression)
+        interpreterCore.interpret(valueExpression)
     }
 }

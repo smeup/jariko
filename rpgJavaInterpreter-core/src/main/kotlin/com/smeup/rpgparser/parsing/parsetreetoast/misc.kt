@@ -442,8 +442,8 @@ internal fun CsTIMEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
-    if (factor2?.symbolicConstants() != null) {
-        return factor2.symbolicConstants().toAst()
+    factor2?.symbolicConstants()?.let {
+        return it.toAst()
     }
     return factor2?.content?.toAst(conf)
 }
@@ -886,9 +886,13 @@ internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     val left = leftExpr(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 1: ${this.text}")
     val right = cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("LOOKUP operation requires factor 2: ${this.text} - ${position.atLine()}")
 
+    val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
+    require(!rightIndicators.allPresent()) {
+        "You cant use all three indicators with Lookup Statement"
+    }
     return LookupStmt(
             left,
             right,
-            cspec_fixed_standard_parts().rightIndicators(),
+            rightIndicators,
             position)
 }

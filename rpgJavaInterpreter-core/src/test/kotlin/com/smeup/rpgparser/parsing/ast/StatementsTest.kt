@@ -10,6 +10,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.collectByType
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import org.junit.Test as test
 
 class StatementsTest {
@@ -22,6 +23,16 @@ class StatementsTest {
     private fun multiLineStatement(code: String): Statement {
         val stmtContext = assertStatementCanBeParsed(code)
         return stmtContext.toAst(ToAstConfiguration(considerPosition = false))
+    }
+
+    @test fun lookupParsingWith3RightIndicatorShouldNotBeAllowed() {
+        assertFailsWith(Throwable::class) {
+            multiLineStatement(
+                """
+     C     'Z'           LOOKUP    ARRAY(N)                           706869                 
+                    """
+            )
+        }
     }
 
     @test fun gotoParsingWithIndicator() {

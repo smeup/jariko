@@ -155,7 +155,8 @@ fun coerce(value: Value, type: Type): Value {
                 is NumberType -> {
                     // TODO verify the Rounding mode
                     if (type.decimalDigits < value.value.scale()) {
-                        return DecimalValue(value.value.setScale(type.decimalDigits, RoundingMode.HALF_EVEN))
+                        val roundingMode = if (value.isPositive()) RoundingMode.FLOOR else RoundingMode.CEILING
+                        return DecimalValue(value.value.setScale(type.decimalDigits, roundingMode))
                     }
                     return value
                 }
