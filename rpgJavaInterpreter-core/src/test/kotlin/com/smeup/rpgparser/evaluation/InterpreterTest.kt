@@ -491,6 +491,37 @@ Test 6
     }
 
     @Test @Ignore
+    fun executeLOOKUP_OPCODE_GoodArray() {
+        assertEquals("""
+Test 1
+68 ON-
+69 OFF
+10    
+Test 2
+68 OFF
+69 ON-
+ 4    
+Test 3
+68 OFF
+69 ON-
+ 4    
+Test 4
+68 OFF
+69 OFF
+ 1    
+Test 5
+68 ON-
+69 OFF
+ 9    
+Test 6
+68 OFF
+69 OFF
+ 1    
+        """.trimIndent().lines().map(String::trim),
+            outputOf("LOOKUP_OP9"))
+    }
+
+    @Test @Ignore
     fun executeSCANARRAY() {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }

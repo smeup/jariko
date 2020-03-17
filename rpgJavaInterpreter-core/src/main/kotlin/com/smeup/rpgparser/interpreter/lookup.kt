@@ -31,16 +31,35 @@ class ArraySearchingParameters(
     val indexVar: DataRefExpr?
 ) {
     fun lookup(valueToSearch: Value): LookupSearchResult {
-        val zeroBasedStartingIndex = oneBasedIndex - 1
         val searchedArray = arrayValue.elements()
+        val zeroBasedStartingIndex = oneBasedIndex - 1
+        val lastIndex = searchedArray.size - 1
         val foundIndexes = FoundIndexes(-1, -1, -1)
 
-        val (indices, goingForward) = if (withRightIndicators.lo != null) {
-            Pair(zeroBasedStartingIndex downTo 0, false)
+        val (indices, remainingIndices) = if (withRightIndicators.lo != null) {
+            Pair(zeroBasedStartingIndex downTo 0, lastIndex downTo zeroBasedStartingIndex + 1)
         } else {
-            Pair(zeroBasedStartingIndex..searchedArray.size - 1, true)
+            Pair(zeroBasedStartingIndex..lastIndex, 0..zeroBasedStartingIndex - 1)
         }
-        for (i in indices) {
+        searchIn(indices, searchedArray, valueToSearch, foundIndexes)
+        if (withRightIndicators.eq != null && foundIndexes.eq === -1 && (zeroBasedStartingIndex == 1 || zeroBasedStartingIndex == lastIndex)) {
+            searchIn(remainingIndices, searchedArray, valueToSearch, foundIndexes)
+        }
+        return if (!foundIndexes.found()) NotFound else FoundAtIndex(
+            foundIndexes.foundIndex() + 1,
+            foundIndexes.hiBooleanValue(),
+            foundIndexes.loBooleanValue(),
+            foundIndexes.eqBooleanValue()
+        )
+    }
+
+    private fun searchIn(
+        idx: IntProgression,
+        searchedArray: List<Value>,
+        valueToSearch: Value,
+        foundIndexes: FoundIndexes
+    ) {
+        for (i in idx) {
             val comparison = compare(searchedArray[i], valueToSearch, charset)
             if (withRightIndicators.eq != null) {
                 if (comparison == Comparison.EQUAL) {
@@ -60,15 +79,7 @@ class ArraySearchingParameters(
                     break
                 }
             }
-//            if (goingForward && comparison == Comparison.GREATER) break
-//            if (!goingForward && comparison == Comparison.SMALLER) break
         }
-        return if (!foundIndexes.found()) NotFound else FoundAtIndex(
-            foundIndexes.foundIndex() + 1,
-            foundIndexes.hiBooleanValue(),
-            foundIndexes.loBooleanValue(),
-            foundIndexes.eqBooleanValue()
-        )
     }
 }
 
