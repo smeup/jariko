@@ -10,6 +10,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -616,6 +617,11 @@ Test 6
     @Test
     fun executeDOWTEST() {
         assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeDOW_PERF() {
+        assertEquals(outputOf("DOW_PERF"), listOf("COUNTER IS NOW 100000001"))
     }
 
     @Test

@@ -167,13 +167,13 @@ class MuteExecutionTest {
     }
 
     @Test @Ignore
-    fun executeMUTE13_17_SCAN_OpCode() {
-        assertMuteExecutionSucceded("mute/MUTE13_17", 4)
+    fun executeMUTE13_22_SCAN_OpCode() {
+        assertMuteExecutionSucceded("mute/MUTE13_22", 4)
     }
 
     @Test @Ignore
-    fun executeMUTE_TO_RENAME_IN_TESTS_TOO_Lookup_OpCode_Eq() {
-        assertMuteExecutionSucceded("mute/MUTE_TO_RENAME_IN_TESTS_TOO", 8)
+    fun executeMUTE13_23_Lookup_OpCode_Eq() {
+        assertMuteExecutionSucceded("mute/MUTE13_23", 8)
     }
 
     private fun assertMuteExecutionSucceded(
