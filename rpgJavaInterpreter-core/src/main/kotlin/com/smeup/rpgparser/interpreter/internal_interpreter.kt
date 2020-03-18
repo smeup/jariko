@@ -656,7 +656,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is ForStmt -> {
                     var loopCounter: Long = 0
-                    var startTime = currentTimeMillis()
+                    val startTime = currentTimeMillis()
 
                     eval(statement.init)
 
@@ -701,19 +701,21 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is DoStmt -> {
                     var loopCounter: Long = 0
-                    var startTime = currentTimeMillis()
+                    val startTime = currentTimeMillis()
+                    val endLimitExpression = statement.endLimit
+                    val endLimit: () -> Long = optimizedIntExpression(endLimitExpression)
                     if (statement.index == null) {
-                        var myIterValue = eval(statement.startLimit).asInt()
+                        var myIterValue = eval(statement.startLimit).asInt().value
                         try {
                             log { DoStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                            while (isEqualOrSmaller(myIterValue, eval(statement.endLimit), charset)) {
+                            while (myIterValue <= endLimit()) {
                                 try {
                                     execute(statement.body)
                                 } catch (e: IterException) {
                                     // nothing to do here
                                 }
                                 loopCounter++
-                                myIterValue = myIterValue.increment()
+                                myIterValue++
                             }
                             val elapsed = currentTimeMillis() - startTime
                             log {
@@ -739,7 +741,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     } else {
                         assign(statement.index, statement.startLimit)
                         try {
-                            while (isEqualOrSmaller(eval(statement.index), eval(statement.endLimit), charset)) {
+                            val indexExpression = optimizedIntExpression(statement.index)
+                            while (indexExpression() <= endLimit()) {
                                 try {
                                     execute(statement.body)
                                 } catch (e: IterException) {
@@ -784,7 +787,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is DouStmt -> {
                     var loopCounter: Long = 0
-                    var startTime = currentTimeMillis()
+                    val startTime = currentTimeMillis()
                     try {
                         log { DouStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
                         do {
@@ -994,6 +997,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             throw RuntimeException(errorDescription(statement, e), e)
         }
     }
+
+    private fun optimizedIntExpression(expression: Expression): () -> Long =
+        if (expression is IntLiteral) {
+            val constValue = eval(expression).asInt().value
+            { constValue }
+        } else {
+            { eval(expression).asInt().value }
+        }
 
     override fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue) {
         statement.hi?.let {
