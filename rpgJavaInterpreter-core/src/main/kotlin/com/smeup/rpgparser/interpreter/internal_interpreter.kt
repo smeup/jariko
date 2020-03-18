@@ -56,10 +56,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     var interpretationContext: InterpretationContext = DummyInterpretationContext
     private val klists = HashMap<String, List<String>>()
 
-    /**
-     * This is useful for debugging, so we can avoid infinite loops
-     */
-    var cycleLimit: Int? = null
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     private var lastFound = false
@@ -709,9 +705,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         var myIterValue = eval(statement.startLimit).asInt()
                         try {
                             log(DoStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement))
-                            while ((cycleLimit == null || (cycleLimit as Int) >= myIterValue.value) &&
-                                    isEqualOrSmaller(myIterValue, eval(statement.endLimit), charset)
-                            ) {
+                            while (isEqualOrSmaller(myIterValue, eval(statement.endLimit), charset)) {
                                 try {
                                     execute(statement.body)
                                 } catch (e: IterException) {
@@ -744,9 +738,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     } else {
                         assign(statement.index, statement.startLimit)
                         try {
-                            while ((cycleLimit == null || (cycleLimit as Int) >= eval(statement.index).asInt().value) &&
-                                    isEqualOrSmaller(eval(statement.index), eval(statement.endLimit), charset)
-                            ) {
+                            while (isEqualOrSmaller(eval(statement.index), eval(statement.endLimit), charset)) {
                                 try {
                                     execute(statement.body)
                                 } catch (e: IterException) {
