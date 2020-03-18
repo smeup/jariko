@@ -754,7 +754,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is DowStmt -> {
                     var loopCounter: Long = 0
-                    var startTime = currentTimeMillis()
+                    val startTime = currentTimeMillis()
                     try {
                         log { DowStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
                         while (eval(statement.endExpression).asBoolean().value) {
@@ -980,11 +980,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
                 else -> TODO(statement.toString())
             }
-        } catch (e: ReturnException) {
-            throw e
-        } catch (e: GotoException) {
-            throw e
-        } catch (e: InterruptForDebuggingPurposes) {
+        } catch (e: ControlFlowException) {
             throw e
         } catch (e: IllegalArgumentException) {
             val message = e.toString()
