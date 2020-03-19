@@ -1,10 +1,14 @@
 package com.smeup.rpgparser.interpreter
 
-class LeaveSrException : Exception()
-class LeaveException : Exception()
-class IterException : Exception()
+open class ControlFlowException() : Exception() {
+    override fun fillInStackTrace(): Throwable = this
+}
+
+class LeaveSrException : ControlFlowException()
+class LeaveException : ControlFlowException()
+class IterException : ControlFlowException()
 
 // Useful to interrupt infinite cycles in tests
-class InterruptForDebuggingPurposes : RuntimeException()
-class ReturnException(val returnValue: Value?) : RuntimeException()
-class GotoException(val tag: String) : RuntimeException()
+class InterruptForDebuggingPurposes : ControlFlowException()
+class ReturnException(val returnValue: Value?) : ControlFlowException()
+class GotoException(val tag: String) : ControlFlowException()

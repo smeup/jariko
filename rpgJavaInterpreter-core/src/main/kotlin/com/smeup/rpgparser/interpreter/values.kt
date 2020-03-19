@@ -499,6 +499,10 @@ object BlanksValue : Value() {
 }
 
 object HiValValue : Value() {
+    private val MAX_INT = IntValue(Long.MAX_VALUE)
+
+    override fun asInt(): IntValue = MAX_INT
+
     override fun toString(): String {
         return "HiValValue"
     }

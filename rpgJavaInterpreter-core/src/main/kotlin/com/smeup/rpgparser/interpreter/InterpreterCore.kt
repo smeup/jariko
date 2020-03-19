@@ -8,7 +8,7 @@ import com.smeup.rpgparser.parsing.ast.WithRightIndicators
  * Expose interpreter core method that could be useful in statements logic implementation
  **/
 interface InterpreterCore {
-    fun log(logEntry: LogEntry)
+    fun log(logEntry: () -> LogEntry)
     fun assign(target: AssignableExpression, value: Value): Value
     fun interpret(expression: Expression): Value
     operator fun get(data: AbstractDataDefinition): Value
