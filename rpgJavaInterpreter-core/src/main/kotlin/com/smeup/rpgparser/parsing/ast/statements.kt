@@ -512,3 +512,11 @@ data class LookupStmt(
     val rightIndicators: WithRightIndicators,
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators
+
+
+data class XFootStmt(
+        val left: Expression,
+        val result: AssignableExpression,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators

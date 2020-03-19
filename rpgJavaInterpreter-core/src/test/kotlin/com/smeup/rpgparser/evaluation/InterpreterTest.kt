@@ -405,12 +405,12 @@ class InterpreterTest {
         assertEquals(listOf("15.3"), outputOf("RESULTTARG"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeXFOOT1() {
         assertEquals(listOf("15.3"), outputOf("XFOOT1"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeXFOOT2DEF_creatingVariable() {
         assertEquals(listOf("15.3"), outputOf("XFOOT2DEF"))
     }

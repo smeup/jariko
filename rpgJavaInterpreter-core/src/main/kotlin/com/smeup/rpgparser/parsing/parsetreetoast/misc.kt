@@ -320,6 +320,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCABEQ() != null -> this.csCABEQ().toAst(conf)
         this.csCABGE() != null -> this.csCABGE().toAst(conf)
         this.csCABGT() != null -> this.csCABGT().toAst(conf)
+        this.csXFOOT() != null -> this.csXFOOT().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -895,4 +896,35 @@ internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
             right,
             rightIndicators,
             position)
+}
+
+internal fun CsXFOOTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): XFootStmt {
+    val position = toPosition(conf.considerPosition)
+    val array2sumup = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("XFOOT operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    /**
+     *
+    XFOOT adds the elements of an array together and places the sum into the field
+    specified as the result field. Factor 2 contains the name of the array.
+    If half-adjust is specified, the rounding occurs after all elements are summed and
+    before the results are moved into the result field. If the result field is an element of
+    the array specified in factor 2, the value of the element before the XFOOT
+    operation is used to calculate the total of the array.
+    If the array is float, XFOOT will be performed as follows: When the array is in
+    descending sequence, the elements will be added together in reverse order.
+    Otherwise, the elements will be added together starting with the first elements of
+    the array.
+     *
+    https://docs.asna.com/documentation/Help120/AVR/_HTML/XFOOT.htm
+    0017.00      C                   xfoot     arr2          sum               4 0
+     *
+    Pos
+    Optional.  Turned on if the value of Result is a positive number.
+    Neg
+    Optional.  Turned on if the value of Result is a negative number.
+    Zero
+    Optional.  Turned on if the value of Result is zero.
+    */
+    val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
+    return XFootStmt(array2sumup, resultExpression, rightIndicators, position)
 }

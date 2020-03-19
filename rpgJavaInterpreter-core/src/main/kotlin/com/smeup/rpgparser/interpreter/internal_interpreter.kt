@@ -976,6 +976,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 is LookupStmt -> {
                     lookUp(statement, this, charset)
                 }
+                is XFootStmt -> {
+                    xfoot(statement, this, charset)
+                }
 
                 else -> TODO(statement.toString())
             }
