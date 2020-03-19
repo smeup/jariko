@@ -66,7 +66,9 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
         require(other is StringValue) {
             "Cannot concatenate $value to $other"
         }
-        return StringValue(value + other.value)
+        val stringBuilder = StringBuilder()
+        val stringValue = stringBuilder.append(value.toString()).append(other.value.toString()).toString()
+        return StringValue(stringValue)
     }
 
     companion object {
@@ -255,7 +257,9 @@ data class IntValue(val value: Long) : NumberValue() {
         require(other is IntValue) {
             "Cannot concatenate $value to $other"
         }
-        return IntValue((value.toString() + other.value.toString()).toLong())
+        val stringBuilder = StringBuilder()
+        val stringValue = stringBuilder.append(value.toString()).append(other.value.toString()).toString()
+        return IntValue((stringValue).toLong())
     }
 
     companion object {
