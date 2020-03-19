@@ -902,6 +902,7 @@ internal fun CsXFOOTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val position = toPosition(conf.considerPosition)
     val array2sumup = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("XFOOT operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    val name = this.cspec_fixed_standard_parts().result.text
     /**
      *
     XFOOT adds the elements of an array together and places the sum into the field
@@ -926,5 +927,5 @@ internal fun CsXFOOTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     Optional.  Turned on if the value of Result is zero.
     */
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
-    return XFootStmt(array2sumup, resultExpression, rightIndicators, position)
+    return XFootStmt(array2sumup, resultExpression, rightIndicators, this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf), position)
 }
