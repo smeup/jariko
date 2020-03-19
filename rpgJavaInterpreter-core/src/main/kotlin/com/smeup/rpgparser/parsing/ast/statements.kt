@@ -513,13 +513,12 @@ data class LookupStmt(
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators
 
-
 data class XFootStmt(
-        val left: Expression,
-        val result: AssignableExpression,
-        val rightIndicators: WithRightIndicators,
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        override val position: Position? = null
+    val left: Expression,
+    val result: AssignableExpression,
+    val rightIndicators: WithRightIndicators,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
