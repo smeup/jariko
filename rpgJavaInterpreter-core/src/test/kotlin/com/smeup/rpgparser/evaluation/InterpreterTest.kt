@@ -619,9 +619,20 @@ Test 6
         assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
     }
 
+    @Test
+    fun executeDO_TST01() {
+        val si = CollectorSystemInterface().apply { printOutput = true }
+        assertStartsWith(outputOf("DO_TST01", si = si), "DO_TST01(91ms) Spent")
+    }
+
     @Test @Category(PerformanceTest::class)
     fun executeDOW_PERF() {
         assertEquals(outputOf("DOW_PERF"), listOf("COUNTER IS NOW 100000001"))
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun executeDOW_LEAVE_PERF() {
+        assertEquals(outputOf("DOW_LEAVE_PERF"), listOf("COUNTER IS NOW 100000001"))
     }
 
     @Test
