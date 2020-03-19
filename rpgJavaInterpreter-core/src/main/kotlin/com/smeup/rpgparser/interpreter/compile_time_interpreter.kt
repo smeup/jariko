@@ -61,7 +61,7 @@ open class BaseCompileTimeInterpreter(
                     evaluateNumberOfElementsOf(rContext, expression.variable.name)
                 } catch (e: NotFoundAtCompileTimeException) {
                     if (delegatedCompileTimeInterpreter != null) {
-                        return delegatedCompileTimeInterpreter!!.evaluateNumberOfElementsOf(rContext, expression.variable.name)
+                        return delegatedCompileTimeInterpreter.evaluateNumberOfElementsOf(rContext, expression.variable.name)
                     } else {
                         throw RuntimeException(e)
                     }
