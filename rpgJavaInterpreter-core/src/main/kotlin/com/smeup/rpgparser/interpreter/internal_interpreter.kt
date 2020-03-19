@@ -1002,7 +1002,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun optimizedIntExpression(expression: Expression): () -> Long =
-        if (expression is IntLiteral) {
+        if (expression is IntLiteral || expression is FigurativeConstantRef) {
             val constValue = eval(expression).asInt().value
             { constValue }
         } else {

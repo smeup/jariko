@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
@@ -617,6 +616,11 @@ Test 6
     @Test
     fun executeDOWTEST() {
         assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
+    }
+
+    @Test
+    fun executeDOVAR01() {
+        assertEquals(outputOf("DOVAR01"), listOf("N =101", "I =96"))
     }
 
     @Test
