@@ -1593,8 +1593,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     // EVAL(H)
                     if (parent.flags.halfAdjust) {
                         // perform the calculation, adjust the operand scale to the target
-                        val res = v1.bigDecimal.setScale(targetType.decimalDigits).divide(v2.bigDecimal.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
-                        return DecimalValue(res)
+                        return DecimalValue(v1.bigDecimal.setScale(targetType.decimalDigits).divide(v2.bigDecimal.setScale(targetType.decimalDigits), RoundingMode.HALF_UP))
                     }
                     // Eval(M)
                     if (parent.flags.maximumNumberOfDigitsRule) {
