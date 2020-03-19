@@ -619,8 +619,13 @@ Test 6
     }
 
     @Test
-    fun executeDOVAR01() {
+    fun executeDOVAR01_ModifyingEndVarAffectsDO() {
         assertEquals(outputOf("DOVAR01"), listOf("N =101", "I =96"))
+    }
+
+    @Test
+    fun executeDOVAR02_ModifyingStartVarDoesntAffectDO() {
+        assertEquals(outputOf("DOVAR02"), listOf("N =11", "I =6"))
     }
 
     @Test
