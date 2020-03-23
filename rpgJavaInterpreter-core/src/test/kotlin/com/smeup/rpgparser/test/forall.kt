@@ -59,7 +59,7 @@ fun <A> listsOf(generator: (Random) -> A, maxLength: Int = 5) = { random: Random
 /*
 Example:
 forAll(pairsOf(integers, integers)) {
-   first <= second || first > second
+   assertTrue(first <= second || first > second)
 }
  */
 fun <A, B> pairsOf(generator1: (Random) -> A, generator2: (Random) -> B) = { random: Random -> Pair(generator1(random), generator2(random)) }
