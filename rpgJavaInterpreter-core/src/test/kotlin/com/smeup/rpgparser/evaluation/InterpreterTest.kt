@@ -1224,32 +1224,4 @@ Test 6
             execute("ERROR01", emptyMap())
         }
     }
-
-    @Test // empty DO loop
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_53() {
-        val si = CollectorSystemInterface().apply { printOutput = true }
-        assertStartsWith(outputOf("performance/MUTE10_53", si = si), "[Time spent 68ms]")
-    }
-
-    @Test // empty FOR loop
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_54() {
-        val si = CollectorSystemInterface().apply { printOutput = true }
-        assertStartsWith(outputOf("performance/MUTE10_54", si = si), "[Time spent 306ms]")
-    }
-
-    @Test // DOW loop with incremental variable
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_55() {
-        val si = CollectorSystemInterface().apply { printOutput = true }
-        assertStartsWith(outputOf("performance/MUTE10_55", si = si), "[Time spent 83ms]")
-    }
-
-    @Test // DOU loop with incremental variable
-    @Category(PerformanceTest::class)
-    fun executeMUTE10_56() {
-        val si = CollectorSystemInterface().apply { printOutput = true }
-        assertStartsWith(outputOf("performance/MUTE10_56", si = si), "[Time spent 81ms]")
-    }
 }
