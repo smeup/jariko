@@ -158,7 +158,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             }
                             initialValue
                         }
-                        it.initializationValue != null -> interpret(it.initializationValue)
+                        it.initializationValue != null -> eval(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
                             (it.type as ArrayType)
@@ -169,7 +169,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         blankValue(it)
                         it.fields.forEach { field ->
                             if (field.initializationValue != null) {
-                                val fieldValue = coerce(interpret(field.initializationValue), field.type)
+                                val fieldValue = coerce(eval(field.initializationValue), field.type)
                                 (value as DataStructValue).set(field, fieldValue)
                             }
                         }
@@ -463,7 +463,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SelectStmt -> {
                     for (case in statement.cases) {
-                        val result = interpret(case.condition)
+                        val result = eval(case.condition)
 
                         log { SelectCaseExecutionLogEntry(this.interpretationContext.currentProgramName, case, result) }
                         if (result.asBoolean().value) {
@@ -573,8 +573,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is DisplayStmt -> {
                     val values = mutableListOf<Value>()
-                    statement.factor1?.let { values.add(interpret(it)) }
-                    statement.response?.let { values.add(interpret(it)) }
+                    statement.factor1?.let { values.add(eval(it)) }
+                    statement.response?.let { values.add(eval(it)) }
                     // TODO: receive input from systemInterface and assign value to response
                     systemInterface.display(rawRender(values))
                 }
@@ -820,11 +820,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         is DataRefExpr -> {
                             // TODO: partial implementation just for *MS - Add more cases
                             val minuend = if (statement.factor1 == null) {
-                                interpret(statement.target)
+                                eval(statement.target)
                             } else {
-                                interpret(statement.factor1)
+                                eval(statement.factor1)
                             }
-                            val subtrahend = interpret(statement.factor2)
+                            val subtrahend = eval(statement.factor2)
                             val newValue =
                                     (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
                             assign(statement.target, IntValue(newValue))
@@ -845,11 +845,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     throw IterException()
                 }
                 is CheckStmt -> {
-                    var baseString = interpret(statement.baseString).asString().value
+                    var baseString = eval(statement.baseString).asString().value
                     if (statement.baseString is DataRefExpr) {
                         baseString = baseString.padEnd(statement.baseString.size())
                     }
-                    val charSet = interpret(statement.comparatorString).asString().value
+                    val charSet = eval(statement.comparatorString).asString().value
                     val wrongIndex = statement.wrongCharPosition
                     lastFound = false
                     if (wrongIndex != null) {
@@ -928,18 +928,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     if (comparisonResult.isVerified) throw GotoException(statement.tag)
                 }
                 is SortAStmt -> {
-                    sortA(interpret(statement.target), charset)
+                    sortA(eval(statement.target), charset)
                 }
                 is CatStmt -> {
                     val blanksInBetween = statement.blanksInBetween
                     val blanks = StringValue.blank(blanksInBetween)
-                    val factor2 = interpret(statement.right)
-                    var result = interpret(statement.target)
+                    val factor2 = eval(statement.right)
+                    var result = eval(statement.target)
                     val resultLen = result.asString().length()
                     var concatenatedFactors: Value
 
                     if (null != statement.left) {
-                        val factor1 = interpret(statement.left)
+                        val factor1 = eval(statement.left)
                         val f1Trimmed = (factor1 as StringValue).value.trim()
                         val factor1Trimmed = StringValue(f1Trimmed)
                         concatenatedFactors = if (blanksInBetween > 0) {
@@ -1097,23 +1097,28 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     override fun eval(expression: Expression): Value {
-        return when (expression) {
+        val value = when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
             }
-            else -> interpret(expression)
+            else -> interpretConcrete(expression)
         }
+        if (expression !is StringLiteral && expression !is IntLiteral &&
+            expression !is DataRefExpr && expression !is BlanksRefExpr) {
+            log { ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value) }
+        }
+        return value
     }
 
     private fun mult(statement: MultStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         require(statement.target is DataRefExpr)
         val rightValue: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(interpret(statement.factor1).render())
+            BigDecimal(eval(statement.factor1).render())
         } else {
             BigDecimal(get(statement.target.variable.referred!!).render())
         }
-        val leftValue = BigDecimal(interpret(statement.factor2).render())
+        val leftValue = BigDecimal(eval(statement.factor2).render())
         val result = rightValue.multiply(leftValue)
         val type = statement.target.variable.referred!!.type
         require(type is NumberType)
@@ -1128,11 +1133,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         require(statement.target is DataRefExpr)
         val dividend: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(interpret(statement.factor1).render())
+            BigDecimal(eval(statement.factor1).render())
         } else {
             BigDecimal(get(statement.target.variable.referred!!).render())
         }
-        val divisor = BigDecimal(interpret(statement.factor2).render())
+        val divisor = BigDecimal(eval(statement.factor2).render())
         val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
         val type = statement.target.variable.referred!!.type
         require(type is NumberType)
@@ -1160,7 +1165,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return assign(target.variable.referred!!, value)
             }
             is ArrayAccessExpr -> {
-                val arrayValue = interpret(target.array) as ArrayValue
+                val arrayValue = eval(target.array) as ArrayValue
                 val targetType = target.array.type()
                 // Before assigning the single element we do a sanity check:
                 // is the value we have for the array compatible with the type
@@ -1170,7 +1175,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         "The value $arrayValue is not assignable to $targetType"
                     }
                 }
-                val indexValue = interpret(target.index)
+                val indexValue = eval(target.index)
                 val elementType = (targetType as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
@@ -1260,11 +1265,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun add(statement: AddStmt): Value {
-        val addend1 = interpret(statement.addend1)
+        val addend1 = eval(statement.addend1)
         require(addend1 is NumberValue) {
             "$addend1 should be a number"
         }
-        val addend2 = interpret(statement.right)
+        val addend2 = eval(statement.right)
         require(addend2 is NumberValue) {
             "$addend2 should be a number"
         }
@@ -1278,11 +1283,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun sub(statement: SubStmt): Value {
-        val minuend = interpret(statement.minuend)
+        val minuend = eval(statement.minuend)
         require(minuend is NumberValue) {
             "$minuend should be a number"
         }
-        val subtrahend = interpret(statement.right)
+        val subtrahend = eval(statement.right)
         require(subtrahend is NumberValue) {
             "$subtrahend should be a number"
         }
@@ -1295,15 +1300,6 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    override fun interpret(expression: Expression): Value {
-        val value = interpretConcrete(expression)
-        if (expression !is StringLiteral && expression !is IntLiteral &&
-            expression !is DataRefExpr && expression !is BlanksRefExpr) {
-            log { ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value) }
-        }
-        return value
-    }
-
     private fun evalAsBoolean(expression: Expression): Boolean = eval(expression).asBoolean().value
 
     private fun interpretConcrete(expression: Expression): Value {
@@ -1312,7 +1308,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is IntLiteral -> IntValue(expression.value)
             is RealLiteral -> DecimalValue(expression.value)
             is NumberOfElementsExpr -> {
-                val value = interpret(expression.value)
+                val value = eval(expression.value)
                 when (value) {
                     is ArrayValue -> value.arrayLength().asValue()
                     else -> throw IllegalStateException("Cannot ask number of elements of $value")
@@ -1323,41 +1319,41 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     ?: throw IllegalStateException("[${interpretationContext.currentProgramName}] Unsolved reference ${expression.variable.name} at ${expression.position}")
             )
             is EqualityExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 return areEquals(left, right).asValue()
             }
             is DifferentThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 return (!areEquals(left, right)).asValue()
             }
             is GreaterThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 return isGreaterThan(left, right, charset).asValue()
             }
             is GreaterEqualThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 return (isGreaterThan(left, right, charset) || areEquals(left, right)).asValue()
             }
             is LessEqualThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 return (isEqualOrSmaller(left, right, charset)).asValue()
             }
             is LessThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 return isSmallerThan(left, right, charset).asValue()
             }
             is BlanksRefExpr -> {
                 return BlanksValue
             }
             is DecExpr -> {
-                val decDigits = interpret(expression.decDigits).asInt().value
-                val valueAsString = interpret(expression.value).asString().value
+                val decDigits = eval(expression.decDigits).asInt().value
+                val valueAsString = eval(expression.value).asString().value
                 val valueAsBigDecimal = valueAsString.asBigDecimal()
                 require(valueAsBigDecimal != null) {
                     "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
@@ -1369,8 +1365,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
             }
             is PlusExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 when {
                     left is StringValue && right is StringValue -> {
                         if (left.varying) {
@@ -1387,8 +1383,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
             }
             is MinusExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 when {
                     left is IntValue && right is IntValue -> IntValue(left.value - right.value)
                     left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal - right.bigDecimal)
@@ -1396,8 +1392,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
             }
             is MultExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
+                val left = eval(expression.left)
+                val right = eval(expression.right)
                 when {
                     left is IntValue && right is IntValue -> IntValue(left.value * right.value)
                     left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal * right.bigDecimal)
@@ -1405,22 +1401,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
             }
             is CharExpr -> {
-                val value = interpret(expression.value)
+                val value = eval(expression.value)
                 return StringValue(render(value).trim())
             }
             is LookupExpr -> {
-                val searchValued = interpret(expression.searchedValued)
-                val array = interpret(expression.array) as ArrayValue
+                val searchValued = eval(expression.searchedValued)
+                val array = eval(expression.array) as ArrayValue
                 val index = array.elements().indexOfFirst {
                     areEquals(it, searchValued)
                 }
                 return if (index == -1) 0.asValue() else (index + 1).asValue()
             }
             is ArrayAccessExpr -> {
-                val arrayValueRaw = interpret(expression.array)
+                val arrayValueRaw = eval(expression.array)
                 val arrayValue = arrayValueRaw as? ArrayValue
                         ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
-                val indexValue = interpret(expression.index)
+                val indexValue = eval(expression.index)
                 return arrayValue.getElement(indexValue.asInt().value.toInt())
             }
             is HiValExpr -> return HiValValue
@@ -1662,7 +1658,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
             }
             is AbsExpr -> {
-                val value = interpret(expression.value)
+                val value = eval(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
             }
             is EditwExpr -> {
@@ -1672,7 +1668,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return n.asDecimal().formatAsWord(format.value, expression.value.type())
             }
             is IntExpr -> {
-                return when (val value = interpret(expression.value)) {
+                return when (val value = eval(expression.value)) {
                     is StringValue ->
                         IntValue(cleanNumericString(value.value).asLong())
                     is DecimalValue ->
@@ -1710,7 +1706,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
             }
             is SqrtExpr -> {
-                val value = interpret(expression.value)
+                val value = eval(expression.value)
                 return DecimalValue(BigDecimal.valueOf(Math.sqrt(value.asDecimal().value.toDouble())))
             }
             else -> TODO(expression.toString())

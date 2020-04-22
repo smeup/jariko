@@ -86,7 +86,7 @@ class ArraySearchingParameters(
 fun LookupStmt.arraySearchingParameters(interpreterCore: InterpreterCore, charset: Charset) =
     // ArrayValue...
     if (right is DataRefExpr) {
-        ArraySearchingParameters(interpreterCore.interpret(right).asArray(), 1, rightIndicators, charset, null)
+        ArraySearchingParameters(interpreterCore.eval(right).asArray(), 1, rightIndicators, charset, null)
     } else {
         // ... or ArrayAccessExpr (ie. factor2(index) )
         val arrayAccessExpr = (right as ArrayAccessExpr)
@@ -94,7 +94,7 @@ fun LookupStmt.arraySearchingParameters(interpreterCore: InterpreterCore, charse
         val oneBasedIndex = interpreterCore.eval(indexExpression).asInt().value.toInt()
         val dataRef = if (indexExpression is DataRefExpr) indexExpression else null
         ArraySearchingParameters(
-            interpreterCore.interpret(right.array) as ArrayValue,
+            interpreterCore.eval(right.array) as ArrayValue,
             oneBasedIndex,
             rightIndicators,
             charset,
@@ -107,7 +107,7 @@ fun lookUp(statement: LookupStmt, interpreterCore: InterpreterCore, charset: Cha
     // - add more MUTE tests;
     // - check/handle searches due to to ascend/descend array declaration;
     // - test performance
-    val factor1 = interpreterCore.interpret(statement.left)
+    val factor1 = interpreterCore.eval(statement.left)
 
     val arraySearchingParameters = statement.arraySearchingParameters(interpreterCore, charset)
     val searchResult = arraySearchingParameters.lookup(factor1)
