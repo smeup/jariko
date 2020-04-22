@@ -48,7 +48,19 @@ val ALL_PREDEFINED_INDEXES = 1..99
 
 class LocalizationContext(val charset: Charset = Charset.forName("Cp037"), val decedit: String = ".")
 
-class InternalInterpreter(val systemInterface: SystemInterface, private val localizationContext: LocalizationContext = LocalizationContext()) : InterpreterCore {
+class InterpreterStatus(
+    val symbolTable: SymbolTable,
+    val predefinedIndicators: HashMap<IndicatorKey, BooleanValue>
+) {
+    var lastFound = false
+    var lastDBFile: DBFile? = null
+    fun indicator(key: IndicatorKey) = predefinedIndicators[key] ?: BooleanValue.FALSE
+}
+
+class InternalInterpreter(
+    val systemInterface: SystemInterface,
+    private val localizationContext: LocalizationContext = LocalizationContext()
+) : InterpreterCore {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
 
@@ -57,10 +69,11 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    private var lastFound = false
-    private var lastDBFile: DBFile? = null
+    private val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
 
     private val dbFileMap = DBFileMap(systemInterface.db)
+
+    private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
     override fun log(logEntry: () -> LogEntry) {
         if (!logHandlers.isEmpty()) logHandlers.log(logEntry())
@@ -346,7 +359,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
 
     private fun IndicatorCondition?.shouldExecuteStatement(): Boolean {
         if (this == null) return true
-        val indicator = indicator(key).value
+        val indicator = status.indicator(key).value
         return if (negate) !indicator else indicator
     }
 
@@ -354,7 +367,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
 
     private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
         this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
-            val indicator = indicator(indicatorKey).value
+            val indicator = status.indicator(indicatorKey).value
             var condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
             val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
             solvedIndicatorCondition
@@ -849,7 +862,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
                     }
                     val charSet = eval(statement.comparatorString).asString().value
                     val wrongIndex = statement.wrongCharPosition
-                    lastFound = false
+                    status.lastFound = false
                     if (wrongIndex != null) {
                         assign(wrongIndex, IntValue.ZERO)
                     }
@@ -858,7 +871,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
                             if (wrongIndex != null) {
                                 assign(wrongIndex, IntValue((i + statement.start).toLong()))
                             }
-                            lastFound = true
+                            status.lastFound = true
                             return
                         }
                     }
@@ -874,7 +887,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
                 }
                 is SetllStmt -> {
                     val dbFile = dbFile(statement.name, statement)
-                    lastFound = if (statement.searchArg.type() is KListType) {
+                    status.lastFound = if (statement.searchArg.type() is KListType) {
                         dbFile.setll(toSearchValues(statement.searchArg))
                     } else {
                         dbFile.setll(eval(statement.searchArg))
@@ -1024,10 +1037,10 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
 
     private fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
-            lastFound = true
+            status.lastFound = true
             record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
         } else {
-            lastFound = false
+            status.lastFound = false
         }
     }
 
@@ -1036,7 +1049,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
         }
-        lastDBFile = dbFile
+        status.lastDBFile = dbFile
         return dbFile
     }
 
@@ -1314,7 +1327,7 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
             }
             is DataRefExpr -> get(
                 expression.variable.referred
-                    ?: throw IllegalStateException("[${interpretationContext.currentProgramName}] Unsolved reference ${expression.variable.name} at ${expression.position}")
+                    ?: throw IllegalStateException("Unsolved reference ${expression.variable.name} at ${expression.position}")
             )
             is EqualityExpr -> {
                 val left = eval(expression.left)
@@ -1538,12 +1551,12 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
                 return BooleanValue(false)
             }
             is PredefinedIndicatorExpr -> {
-                return indicator(expression.index)
+                return status.indicator(expression.index)
             }
             is FunctionCall -> {
                 val functionToCall = expression.function.name
                 val function = systemInterface.findFunction(globalSymbolTable, functionToCall)
-                    ?: throw RuntimeException("Function $functionToCall cannot be found (${interpretationContext.currentProgramName}:${expression.position.line()})")
+                    ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
                 // TODO check number and types of params
                 val paramsValues = expression.args.map { eval(it) }
                 return function.execute(systemInterface, paramsValues, globalSymbolTable)
@@ -1637,21 +1650,21 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
             is FoundExpr -> {
                 // TODO fix this bad implementation
                 if (expression.name == null) {
-                    return BooleanValue(lastFound)
+                    return BooleanValue(status.lastFound)
                 }
                 TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
             }
             is EofExpr -> {
                 // TODO fix this bad implementation
                 if (expression.name == null) {
-                    return BooleanValue(lastDBFile?.eof() ?: false)
+                    return BooleanValue(status.lastDBFile?.eof() ?: false)
                 }
                 TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
             }
             is EqualExpr -> {
                 // TODO fix this bad implementation
                 if (expression.name == null) {
-                    return BooleanValue(lastDBFile?.equal() ?: false)
+                    return BooleanValue(status.lastDBFile?.equal() ?: false)
                 }
                 TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
             }
@@ -1710,8 +1723,6 @@ class InternalInterpreter(val systemInterface: SystemInterface, private val loca
             else -> TODO(expression.toString())
         }
     }
-
-    private fun indicator(key: IndicatorKey) = predefinedIndicators[key] ?: BooleanValue.FALSE
 
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
