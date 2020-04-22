@@ -2,7 +2,6 @@ import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.strumenta.kolasu.model.ReferenceByName
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -64,18 +63,14 @@ class Kute10_55 {
         }
     }
 
-    private fun assign(
-            target: AssignableExpression,
-            value: Expression,
-            operator: AssignmentOperator = NORMAL_ASSIGNMENT
-    ): Value {
+    private fun assign(target: AssignableExpression, value: Expression, operator: AssignmentOperator = NORMAL_ASSIGNMENT): Value {
         return when (operator) {
-            NORMAL_ASSIGNMENT -> assign(target, eval(value))
-            PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
-            MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
-            MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
-            DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
-            EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
+        NORMAL_ASSIGNMENT -> assign(target, eval(value))
+        PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
+        MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
+        MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
+        DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
+        EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
         }
     }
 
@@ -95,17 +90,17 @@ class Kute10_55 {
     }
 
     private fun assignEachElement(
-            target: AssignableExpression,
-            value: Expression,
-            operator: AssignmentOperator = NORMAL_ASSIGNMENT
+        target: AssignableExpression,
+        value: Expression,
+        operator: AssignmentOperator = NORMAL_ASSIGNMENT
     ): Value {
         return when (operator) {
-            NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
-            PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
-            MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
-            MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
-            DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
-            EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
+        NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
+        PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
+        MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
+        MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
+        DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
+        EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
         }
     }
 
