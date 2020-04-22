@@ -136,26 +136,6 @@ task testAll(type: Test) {
     }
 }
 
-jacoco {
-    toolVersion = "0.8.3"
-}
-
-jacocoTestReport {
-    reports {
-        xml.enabled false
-        csv.enabled false
-    }
-    afterEvaluate {
-        getClassDirectories().from = files(classDirectories.files.collect {
-            fileTree(dir: it,
-                    exclude: ['**/RpgLexer*',
-                              '**/RpgParser*',
-                              '**/RpgParser*',
-                              '**/RpgParser*'])
-        })
-    }
-}
-
 //gradlew runExample -Pargs="CALCFIB,9"
 task runExample (type: JavaExec) {
     if (project.hasProperty('programArgs')){
@@ -201,5 +181,3 @@ task runMutes(type: JavaExec) {
 }
 
 check.dependsOn runMutes
-//check.dependsOn jacocoTestReport
-
