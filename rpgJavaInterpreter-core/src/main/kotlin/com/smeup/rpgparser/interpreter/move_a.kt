@@ -57,12 +57,12 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
         } else {
             targetType
         }
-        val value = when (type) {
+        val computedValue = when (type) {
             is StringType -> moveaString(operationExtenter, target, startIndex, interpreterCore, value)
             is NumberType -> moveaNumber(operationExtenter, target, startIndex, interpreterCore, value)
             else -> TODO()
         }
-        interpreterCore.assign(target, value)
+        interpreterCore.assign(target, computedValue)
     }
 }
 

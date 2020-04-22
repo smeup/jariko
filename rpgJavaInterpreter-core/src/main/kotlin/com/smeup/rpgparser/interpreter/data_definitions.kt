@@ -295,7 +295,7 @@ data class FieldDefinition(
             if (calculatedEndOffset != null) {
                 return calculatedEndOffset
             }
-            return (container as DataDefinition).endOffset(this)
+            return container.endOffset(this)
         }
 
     val offsets: Pair<Int, Int>
