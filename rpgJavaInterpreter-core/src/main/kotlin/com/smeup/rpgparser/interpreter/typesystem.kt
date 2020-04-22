@@ -160,9 +160,9 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
     val numberOfDigits: Int
         get() = entireDigits + decimalDigits
 
-    override fun canBeAssigned(valueType: Type): Boolean {
-        if (valueType is NumberType) {
-            return valueType.entireDigits <= this.entireDigits && valueType.decimalDigits <= this.decimalDigits
+    override fun canBeAssigned(type: Type): Boolean {
+        if (type is NumberType) {
+            return type.entireDigits <= this.entireDigits && type.decimalDigits <= this.decimalDigits
         } else {
             return false
         }
