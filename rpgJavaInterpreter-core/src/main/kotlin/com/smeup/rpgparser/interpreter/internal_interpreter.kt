@@ -46,13 +46,11 @@ object DummyInterpretationContext : InterpretationContext {
 
 val ALL_PREDEFINED_INDEXES = 1..99
 
-class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCore {
+class LocalizationContext(val charset: Charset = Charset.forName("Cp037"), val decedit: String = ".")
+
+class InternalInterpreter(val systemInterface: SystemInterface, private val localizationContext: LocalizationContext = LocalizationContext()) : InterpreterCore {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
-    // TODO default value DECEDIT can be changed
-    var decedit: String = "."
-    // TODO default value CHARSET can be changed
-    val charset = Charset.forName("Cp037")
 
     var interpretationContext: InterpretationContext = DummyInterpretationContext
     private val klists = HashMap<String, List<String>>()
@@ -919,7 +917,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     throw GotoException(statement.tag)
                 }
                 is CabStmt -> {
-                    val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, charset)
+                    val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, localizationContext.charset)
                     when (comparisonResult.comparison) {
                         Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
                         Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
@@ -928,7 +926,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     if (comparisonResult.isVerified) throw GotoException(statement.tag)
                 }
                 is SortAStmt -> {
-                    sortA(eval(statement.target), charset)
+                    sortA(eval(statement.target), localizationContext.charset)
                 }
                 is CatStmt -> {
                     val blanksInBetween = statement.blanksInBetween
@@ -971,14 +969,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log { CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)) }
                 }
                 is CompStmt -> {
-                    when (this.compareExpressions(statement.left, statement.right, charset)) {
+                    when (this.compareExpressions(statement.left, statement.right, localizationContext.charset)) {
                         Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
                         Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
                         Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
                     }
                 }
                 is LookupStmt -> {
-                    lookUp(statement, this, charset)
+                    lookUp(statement, this, localizationContext.charset)
                 }
                 is XFootStmt -> {
                     xfoot(statement, this)
@@ -1050,9 +1048,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
         if (downward) {
-            isEqualOrGreater(index, end, charset)
+            isEqualOrGreater(index, end, localizationContext.charset)
         } else {
-            isEqualOrSmaller(index, end, charset)
+            isEqualOrSmaller(index, end, localizationContext.charset)
         }
 
     private fun step(byValue: Expression, downward: Boolean): Long {
@@ -1331,22 +1329,22 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             is GreaterThanExpr -> {
                 val left = eval(expression.left)
                 val right = eval(expression.right)
-                return isGreaterThan(left, right, charset).asValue()
+                return isGreaterThan(left, right, localizationContext.charset).asValue()
             }
             is GreaterEqualThanExpr -> {
                 val left = eval(expression.left)
                 val right = eval(expression.right)
-                return (isGreaterThan(left, right, charset) || areEquals(left, right)).asValue()
+                return (isGreaterThan(left, right, localizationContext.charset) || areEquals(left, right)).asValue()
             }
             is LessEqualThanExpr -> {
                 val left = eval(expression.left)
                 val right = eval(expression.right)
-                return (isEqualOrSmaller(left, right, charset)).asValue()
+                return (isEqualOrSmaller(left, right, localizationContext.charset)).asValue()
             }
             is LessThanExpr -> {
                 val left = eval(expression.left)
                 val right = eval(expression.right)
-                return isSmallerThan(left, right, charset).asValue()
+                return isSmallerThan(left, right, localizationContext.charset).asValue()
             }
             is BlanksRefExpr -> {
                 return BlanksValue
@@ -1565,7 +1563,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 val n = eval(expression.value)
                 val format = eval(expression.format)
                 if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
-                return n.asDecimal().formatAs(format.value, expression.value.type(), this.decedit)
+                return n.asDecimal().formatAs(format.value, expression.value.type(), localizationContext.decedit)
             }
             is DiffExpr -> {
                 // TODO expression.durationCode
