@@ -6,6 +6,8 @@ import com.strumenta.kolasu.model.ReferenceByName
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import java.nio.charset.Charset
+import kotlin.reflect.jvm.internal.impl.resolve.constants.LongValue
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class Kute10_55 {
@@ -17,14 +19,13 @@ class Kute10_55 {
     private var loopCounter = 0L
 
     @Test
-    @Category(PerformanceTest::class)
     public fun performanceComparing() {
 
         val name = "X"
         val type = NumberType(10, 0, "I")
-        val referred: DataDefinition = DataDefinition(name, type)
-        val variable: ReferenceByName<AbstractDataDefinition> = ReferenceByName("X", referred)
-        val dataRefExpr = DataRefExpr(variable)
+        var referred: DataDefinition = DataDefinition(name, type)
+        var variable: ReferenceByName<AbstractDataDefinition> = ReferenceByName("X", referred)
+        var dataRefExpr = DataRefExpr(variable)
         globalSymbolTable[referred] = IntValue.ZERO.asInt()
         val rightInt = IntLiteral(10000000)
         val lessThanExpr = LessThanExpr(dataRefExpr, rightInt)
@@ -38,8 +39,11 @@ class Kute10_55 {
             loopCounter++
         }
         actualElapsedTimeInMillisec = System.currentTimeMillis() - startTime
-        var message = "Expected execution takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
+
+        var message = "Expected execution of ${rightInt.value} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
         assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message)
+        message = "Expected execution of ${rightInt.value} iterations, actual is $loopCounter iterations."
+        assertEquals(rightInt.value, loopCounter, message)
     }
 
     private fun execute(statement: EvalStmt) {
