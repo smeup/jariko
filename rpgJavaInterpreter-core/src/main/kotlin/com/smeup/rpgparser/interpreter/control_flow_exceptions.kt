@@ -12,3 +12,10 @@ class IterException : ControlFlowException()
 class InterruptForDebuggingPurposes : ControlFlowException()
 class ReturnException(val returnValue: Value?) : ControlFlowException()
 class GotoException(val tag: String) : ControlFlowException()
+
+class InterpreterTimeoutException(val elapsed: Long, val expected: Long) : ControlFlowException() {
+    fun ratio(): Double = if (elapsed <= 0) 0.0 else expected.toDouble() / elapsed.toDouble()
+    override fun toString(): String {
+        return "TIMEOUT. Execution took $elapsed millis, but there was a $expected millis timeout. expected/elapsed ratio: ${ratio()}"
+    }
+}

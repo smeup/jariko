@@ -15,7 +15,6 @@ import java.math.RoundingMode
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.TimeoutException
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
@@ -243,7 +242,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             val elapsedTime = measureTimeMillis {
                 execute(compilationUnit.main.stmts)
             }
-            if (elapsedTime > compilationUnit.minTimeOut!!) throw TimeoutException("Execution took $elapsedTime millis, but there was a ${compilationUnit.minTimeOut} millis timeout")
+            if (elapsedTime > compilationUnit.minTimeOut!!) throw InterpreterTimeoutException(elapsedTime, compilationUnit.minTimeOut!!)
         }
     }
 
