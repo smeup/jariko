@@ -1,3 +1,5 @@
+import java.text.SimpleDateFormat
+
 //-----------------
 //interpreter-core build script
 //-----------------
@@ -181,6 +183,52 @@ task runMutes(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.smeup.rpgparser.mute.MuterunnerKt'
     args muteDir, "-v", "-lc", "../mutes_for_ci/mute_logging.config"
+}
+
+task profileRpgProgram(type: JavaExec) {
+    String usage = """Usage:
+>./gradlew $name -PrpgProgram=rpg_program_path
+rpg_program_path is RPG program relative or absoulte path.
+Relative path is \"relative\" to  ${rootDir.path} directory."""
+    classpath = sourceSets.main.runtimeClasspath
+    main = "com.smeup.rpgparser.mute.StandaloneMuteRunner"
+    description = """profileRpgProgram allows to understand how Jariko interprets any RPG Program.
+It creates a jfr file (java flight recorder) containing profiling informations. 
+After task execution, you can analize jfr file with JMC utility (Oralce Java Mission Control).
+
+$usage
+"""
+    ignoreExitValue = true
+    doFirst {
+        if (project.hasProperty("rpgProgram")) {
+            String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
+            File rpgProgramFile = new File(project.rpgProgram)
+            File jfrPath =  new File(buildDir.path, "jfr/$timestamp-${rpgProgramFile.name}.jfr")
+            if (!jfrPath.getParentFile().exists()) {
+                jfrPath.getParentFile().mkdirs()
+            }
+            boolean absolute = project.rpgProgram.matches("^\\w:.+|^/.+")
+            if (absolute) {
+                args $project.rpgProgram
+            }
+            else {
+                args "${rootDir.path}/$project.rpgProgram"
+            }
+            jvmArgs "-XX:+UnlockCommercialFeatures",
+                    "-XX:+FlightRecorder",
+                    "-XX:StartFlightRecording=duration=100s,filename=${jfrPath.path}",
+                    "-XX:FlightRecorderOptions=${project.FlightRecorderOptions}",
+                    "-XX:+UnlockDiagnosticVMOptions",
+                    "-XX:+DebugNonSafepoints"
+        }
+        else {
+            String messageError = """Missing parameter rpgProgram.
+${usage} 
+Type: ./gradlew help --task $name
+for further informations."""
+            throw new IllegalArgumentException(messageError)
+        }
+    }
 }
 
 check.dependsOn runMutes

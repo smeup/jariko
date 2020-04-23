@@ -4,7 +4,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
 
 private fun assignStringToString(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
-    var newValue = interpreterCore.interpret(valueExpression)
+    var newValue = interpreterCore.eval(valueExpression)
     if (valueExpression is AllExpr) {
         return interpreterCore.assign(target, newValue)
     }
@@ -17,7 +17,7 @@ private fun assignStringToString(operationExtender: String?, target: AssignableE
         newValue = newValue.takeFirst(target.size())
     } else if (valueSize < targetSize) {
         val append = if (operationExtender == null) {
-            val value = interpreterCore.interpret(target)
+            val value = interpreterCore.eval(target)
             require(value is StringValue)
             StringValue.padded(value.value, targetSize).takeLast(targetSize - valueSize)
         } else {
@@ -29,7 +29,7 @@ private fun assignStringToString(operationExtender: String?, target: AssignableE
 }
 
 private fun assignNumberToNumber(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
-    val newValue = interpreterCore.interpret(valueExpression) as NumberValue
+    val newValue = interpreterCore.eval(valueExpression) as NumberValue
     val targetType = target.type() as NumberType
     val newDecimalValue = DecimalValue(BigDecimal(newValue.bigDecimal.unscaledValue(), targetType.decimalDigits))
     return interpreterCore.assign(target, newDecimalValue)
@@ -59,7 +59,7 @@ private fun NumberValue.numberToString(): Value {
 
 fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
     if (value is FigurativeConstantRef) {
-        return interpreterCore.assign(target, interpreterCore.interpret(value))
+        return interpreterCore.assign(target, interpreterCore.eval(value))
     }
     val valueType = value.type()
     if (baseType(target.type()) is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
