@@ -222,7 +222,7 @@ $usage
             String messageError = """Missing parameter rpgProgram.
 ${usage} 
 Type: ./gradlew help --task $name
-for furthers informations."""
+for further informations."""
             throw new IllegalArgumentException(messageError)
         }
     }
