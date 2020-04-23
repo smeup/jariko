@@ -242,7 +242,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             val elapsedTime = measureTimeMillis {
                 execute(compilationUnit.main.stmts)
             }
-            if (elapsedTime > compilationUnit.minTimeOut!!) throw InterpreterTimeoutException(elapsedTime, compilationUnit.minTimeOut!!)
+            if (elapsedTime > compilationUnit.minTimeOut!!) {
+                throw InterpreterTimeoutException(interpretationContext.currentProgramName, elapsedTime, compilationUnit.minTimeOut!!)
+            }
         }
     }
 

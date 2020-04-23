@@ -5,10 +5,7 @@ import Kute10_54
 import Kute10_55
 import Kute10_56
 import com.andreapivetta.kolor.yellow
-import com.smeup.rpgparser.CollectorSystemInterface
-import com.smeup.rpgparser.DummyProgramFinder
-import com.smeup.rpgparser.ExtendedCollectorSystemInterface
-import com.smeup.rpgparser.PerformanceTest
+import com.smeup.rpgparser.*
 import com.smeup.rpgparser.execution.RunnerCLI.programName
 import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.mute.executeMuteAnnotations
@@ -381,7 +378,7 @@ class MUTEExamplesTest {
         require(rpgSourceInputStream != null) {
             "$programName cannot be found"
         }
-        executeMuteAnnotations(rpgSourceInputStream, si)
+        executeMuteAnnotations(rpgSourceInputStream, si, programName = programName)
 
         si.assertMutesSucceed(programName)
         withOutput?.let {

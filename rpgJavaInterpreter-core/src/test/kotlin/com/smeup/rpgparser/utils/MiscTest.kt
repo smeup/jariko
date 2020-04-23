@@ -2,6 +2,7 @@ package com.smeup.rpgparser.utils
 
 import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.fail
 
 class MiscTest {
 
@@ -38,5 +39,23 @@ class MiscTest {
         assertEquals("abcab", "abc".repeatWithMaxSize(5))
         assertEquals("aaaaa", "a".repeatWithMaxSize(5))
         assertEquals("ab", "abc".repeatWithMaxSize(2))
+    }
+
+    @Test
+    fun runIfNotEmptyTest() {
+        val nullSting: String? = null
+        nullSting.runIfNotEmpty {
+            fail("Should not be executed")
+        }
+
+        " ".runIfNotEmpty {
+            fail("Should not be executed")
+        }
+
+        var result = "Lambda not invoked"
+        "some string".runIfNotEmpty {
+            result = "OK"
+        }
+        assertEquals("OK", result)
     }
 }

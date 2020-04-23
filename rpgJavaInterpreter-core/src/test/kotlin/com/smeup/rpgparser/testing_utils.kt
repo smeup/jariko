@@ -33,6 +33,8 @@ class Dummy
 
 interface PerformanceTest
 
+interface PerformanceTest2
+
 fun parseFragmentToCompilationUnit(
     code: String,
     toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
