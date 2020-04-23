@@ -98,9 +98,9 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
 
     override fun asBoolean(): BooleanValue {
         if (value == "1") {
-            return BooleanValue(true)
+            return BooleanValue.TRUE
         }
-        return BooleanValue(false)
+        return BooleanValue.FALSE
     }
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
@@ -664,7 +664,7 @@ fun Type.blank(dataDefinition: DataDefinition): Value {
         }
         is StringType -> StringValue.blank(this.size.toInt())
         is NumberType -> IntValue(0)
-        is BooleanType -> BooleanValue(false)
+        is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
@@ -682,7 +682,7 @@ fun Type.blank(): Value {
         is DataStructureType -> DataStructValue.blank(this.size)
         is StringType -> StringValue.blank(this.size)
         is NumberType -> IntValue(0)
-        is BooleanType -> BooleanValue(false)
+        is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })

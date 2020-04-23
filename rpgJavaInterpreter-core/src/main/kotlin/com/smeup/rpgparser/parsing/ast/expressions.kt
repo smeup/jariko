@@ -1,8 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.interpreter.AbstractDataDefinition
-import com.smeup.rpgparser.interpreter.FieldDefinition
-import com.smeup.rpgparser.interpreter.atLine
+import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
@@ -10,6 +8,7 @@ import java.math.BigDecimal
 
 abstract class Expression(override val position: Position? = null) : Node(position) {
     open fun render(): String = this.javaClass.simpleName
+    abstract fun evalWith(evaluator: Evaluator): Value
 }
 
 // /
@@ -20,13 +19,16 @@ abstract class NumberLiteral(override val position: Position? = null) : Expressi
 
 data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position) {
     override fun render() = value.toString()
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 data class RealLiteral(val value: BigDecimal, override val position: Position? = null) : NumberLiteral(position) {
     override fun render() = value.toString()
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class StringLiteral(val value: String, override val position: Position? = null) : Expression(position) {
     override fun render() = "\"$value\""
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // /
@@ -35,19 +37,33 @@ data class StringLiteral(val value: String, override val position: Position? = n
 
 abstract class FigurativeConstantRef(override val position: Position? = null) : Expression(position)
 
-data class BlanksRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class BlanksRefExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
-data class OnRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class OnRefExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
-data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class OffRefExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
-data class HiValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class HiValExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
-data class LowValExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class LowValExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
-data class ZeroExpr(override val position: Position? = null) : FigurativeConstantRef(position)
+data class ZeroExpr(override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
-data class AllExpr(val charsToRepeat: StringLiteral, override val position: Position? = null) : FigurativeConstantRef(position)
+data class AllExpr(val charsToRepeat: StringLiteral, override val position: Position? = null) : FigurativeConstantRef(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // /
 // / Comparisons
@@ -56,52 +72,63 @@ data class AllExpr(val charsToRepeat: StringLiteral, override val position: Posi
 data class EqualityExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} = ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class AssignmentExpr(var target: AssignableExpression, var value: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${target.render()} = ${value.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class GreaterThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} > ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class GreaterEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} >= ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class LessThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} < ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class LessEqualThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} <= ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class DifferentThanExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} <> ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // /
 // / Logical operations
 // /
 
-data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position)
+data class NotExpr(val base: Expression, override val position: Position? = null) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 data class LogicalOrExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} || ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class LogicalAndExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} && ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // /
@@ -111,26 +138,31 @@ data class LogicalAndExpr(var left: Expression, var right: Expression, override 
 data class PlusExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} + ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class MinusExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} - ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class MultExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} * ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class DivExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} / ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class ExpExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} ** ${right.render()}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // /
@@ -165,6 +197,7 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
     }
 
     override fun render() = variable.name
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class QualifiedAccessExpr(val container: Expression, val field: ReferenceByName<FieldDefinition>, override val position: Position? = null) :
@@ -182,6 +215,7 @@ data class QualifiedAccessExpr(val container: Expression, val field: ReferenceBy
     }
 
     override fun render() = "${container.render()}.${field.name}"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 data class ArrayAccessExpr(val array: Expression, val index: Expression, override val position: Position? = null) :
@@ -192,6 +226,7 @@ data class ArrayAccessExpr(val array: Expression, val index: Expression, overrid
     override fun size(): Int {
         TODO("size")
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // A Function call is not distinguishable from an array access
@@ -200,7 +235,9 @@ data class FunctionCall(
     val function: ReferenceByName<Function>,
     val args: List<Expression>,
     override val position: Position? = null
-) : Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 fun dataRefTo(dataDefinition: AbstractDataDefinition) =
         DataRefExpr(ReferenceByName(dataDefinition.name, dataDefinition))
@@ -208,4 +245,5 @@ fun dataRefTo(dataDefinition: AbstractDataDefinition) =
 data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "%ELEM(${value.render()})"
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
