@@ -5,7 +5,7 @@ import java.math.BigDecimal
 
 fun xfoot(statement: XFootStmt, interpreterCore: InterpreterCore) {
     // ConcreteArrayValue
-    val arrayValue: ArrayValue = interpreterCore.interpret(statement.left).asArray()
+    val arrayValue: ArrayValue = interpreterCore.eval(statement.left).asArray()
     val type: NumberType = arrayValue.elementType as NumberType
     // list of DecimalValue
     val searchedArray: List<Value> = arrayValue.elements()

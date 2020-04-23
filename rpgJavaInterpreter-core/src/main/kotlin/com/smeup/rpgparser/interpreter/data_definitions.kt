@@ -626,7 +626,11 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     // adjust the scale
     if (scale > 0 && number != "0") {
         val len = number.length
-        number = number.substring(0, len - scale) + "." + number.substring(len - scale, len)
+        number = buildString {
+            append(number.substring(0, len - scale))
+            append(".")
+            append(number.substring(len - scale, len))
+        }
     }
     number = sign + number
     return try {

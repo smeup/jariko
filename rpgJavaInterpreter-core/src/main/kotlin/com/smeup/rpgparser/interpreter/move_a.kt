@@ -5,7 +5,7 @@ import com.smeup.rpgparser.parsing.ast.*
 fun move(target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
     when (target) {
         is DataRefExpr -> {
-            var newValue = interpreterCore.interpret(value)
+            var newValue = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
                 newValue = newValue.takeLast(target.size())
                 if (value.type().size < target.size()) {
@@ -26,10 +26,10 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
             moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCore)
         }
         is PredefinedGlobalIndicatorExpr -> {
-            interpreterCore.assign(target, interpreterCore.interpret(valueExpression))
+            interpreterCore.assign(target, interpreterCore.eval(valueExpression))
         }
         is PredefinedIndicatorExpr -> {
-            val value = interpreterCore.interpret(valueExpression)
+            val value = interpreterCore.eval(valueExpression)
             for (index in target.index..ALL_PREDEFINED_INDEXES.last) {
                 interpreterCore.assign(PredefinedIndicatorExpr(index), value)
             }
@@ -39,7 +39,7 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
-            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCore.interpret(target.index) as IntValue).value.toInt(), interpreterCore)
+            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCore.eval(target.index) as IntValue).value.toInt(), interpreterCore)
         }
     }
 }
@@ -50,7 +50,7 @@ private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, valu
         "Result must be an Array or a String"
     }
     return if (value is FigurativeConstantRef) {
-        interpreterCore.assign(target, interpreterCore.interpret(value))
+        interpreterCore.assign(target, interpreterCore.eval(value))
     } else {
         val type = if (targetType is ArrayType) {
             targetType.element
@@ -97,10 +97,10 @@ private fun moveaNumber(
 private fun InterpreterCore.toArray(expression: Expression): ConcreteArrayValue =
     when (expression) {
         is ArrayAccessExpr -> {
-            val arrayValueRaw = interpret(expression.array)
+            val arrayValueRaw = eval(expression.array)
             val arrayValue = arrayValueRaw as? ArrayValue
                 ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
-            val indexValue = interpret(expression.index).asInt().value.toInt()
+            val indexValue = eval(expression.index).asInt().value.toInt()
             arrayValue
                 .elements()
                 .slice((indexValue - 1)..arrayValue.arrayLength())
@@ -108,12 +108,12 @@ private fun InterpreterCore.toArray(expression: Expression): ConcreteArrayValue 
         }
         is DataRefExpr -> {
             if (expression.type() is ArrayType) {
-                interpret(expression) as ConcreteArrayValue
+                eval(expression) as ConcreteArrayValue
             } else {
-                ConcreteArrayValue(mutableListOf(interpret(expression)), expression.type())
+                ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
             }
         }
-        else -> ConcreteArrayValue(mutableListOf(interpret(expression)), expression.type())
+        else -> ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
     }
 
 private fun moveaString(
@@ -151,10 +151,10 @@ private fun moveaString(
 
 private fun valueFromSourceExpression(interpreterCore: InterpreterCore, valueExpression: Expression): Value {
     return if (valueExpression is ArrayAccessExpr) {
-        val arrayValueRaw = interpreterCore.interpret(valueExpression.array) as ArrayValue
-        val index = (interpreterCore.interpret(valueExpression.index) as NumberValue).bigDecimal.toInt()
+        val arrayValueRaw = interpreterCore.eval(valueExpression.array) as ArrayValue
+        val index = (interpreterCore.eval(valueExpression.index) as NumberValue).bigDecimal.toInt()
         arrayValueRaw.concatenateElementsFrom(index)
     } else {
-        interpreterCore.interpret(valueExpression)
+        interpreterCore.eval(valueExpression)
     }
 }

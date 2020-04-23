@@ -57,6 +57,6 @@ class ExpressionEvaluationTest {
         initializations.forEach {
             interpreter[it.key] = it.value
         }
-        return interpreter.interpret(expr)
+        return interpreter.eval(expr)
     }
 }

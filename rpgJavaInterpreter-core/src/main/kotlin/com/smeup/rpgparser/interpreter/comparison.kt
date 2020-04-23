@@ -77,12 +77,12 @@ fun ComparisonOperator?.verify(factor1: Expression, factor2: Expression, interpr
 }
 
 fun InterpreterCore.compareExpressions(left: Expression, right: Expression, charset: Charset): Comparison {
-    val factor1 = interpret(left)
+    val factor1 = eval(left)
     if (factor1 !is NumberValue && factor1 !is StringValue) {
         throw UnsupportedOperationException("Unable to compare: Factor1 datatype ($factor1) is not yet supported.")
     }
 
-    val factor2 = interpret(right)
+    val factor2 = eval(right)
     if (factor2 !is NumberValue && factor2 !is StringValue) {
         throw UnsupportedOperationException("Unable to compare: Factor2 datatype ($factor2) is not yet supported.")
     }

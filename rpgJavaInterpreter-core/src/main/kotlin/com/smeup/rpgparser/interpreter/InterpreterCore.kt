@@ -10,7 +10,6 @@ import com.smeup.rpgparser.parsing.ast.WithRightIndicators
 interface InterpreterCore {
     fun log(logEntry: () -> LogEntry)
     fun assign(target: AssignableExpression, value: Value): Value
-    fun interpret(expression: Expression): Value
     operator fun get(data: AbstractDataDefinition): Value
     fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue)
     fun eval(expression: Expression): Value
