@@ -1,9 +1,5 @@
 package com.smeup.rpgparser.evaluation
 
-import Kute10_53
-import Kute10_54
-import Kute10_55
-import Kute10_56
 import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.execution.RunnerCLI.programName
@@ -324,23 +320,9 @@ class MUTEExamplesTest {
     }
 
     @Test @Category(PerformanceTest::class)
-    // DO (empty loop of 10000000 iterations)
-    fun executeKUTE10_53() {
-        val kute10_53 = Kute10_53()
-        kute10_53.performanceComparing()
-    }
-
-    @Test @Category(PerformanceTest::class)
     // FOR (empty loop of 10000000 iterations)
     fun executeMUTE10_54() {
         assertMuteOK("MUTE10_54")
-    }
-
-    @Test @Category(PerformanceTest::class)
-    // FOR (empty loop of 10000000 iterations)
-    fun executeKUTE10_54() {
-        val kute10_54 = Kute10_54()
-        kute10_54.performanceComparing()
     }
 
     @Test @Category(PerformanceTest::class)
@@ -350,23 +332,9 @@ class MUTEExamplesTest {
     }
 
     @Test @Category(PerformanceTest::class)
-    // DOW (loop of 10000000 iterations with increment of a numeric var)
-    fun executeKUTE10_55() {
-        val kute10_55 = Kute10_55()
-        kute10_55.performanceComparing()
-    }
-
-    @Test @Category(PerformanceTest::class)
     // DOU (loop of 10000000 iterations with increment of a numeric var)
-    fun executeMUTE10_56() {
+    fun execute() {
         assertMuteOK("MUTE10_56")
-    }
-
-    @Test @Category(PerformanceTest::class)
-    // DOU (loop of 10000000 iterations with increment of a numeric var)
-    fun executeKUTE10_56() {
-        val kute10_56 = Kute10_56()
-        kute10_56.performanceComparing()
     }
 
     private fun dummyProgramFinder() = DummyProgramFinder("/performance/")

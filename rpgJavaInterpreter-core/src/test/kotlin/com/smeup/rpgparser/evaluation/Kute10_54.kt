@@ -1,7 +1,4 @@
-import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.interpreter.*
-import org.junit.Test
-import org.junit.experimental.categories.Category
 import java.nio.charset.Charset
 import kotlin.test.assertTrue
 
@@ -11,9 +8,7 @@ class Kute10_54 {
     var actualElapsedTimeInMillisec = 0L
     val expectedElapsedTimeInMillisec = 306L
 
-    @Test
-    @Category(PerformanceTest::class)
-    public fun performanceComparing() {
+    public fun performanceComparing(): Array<String> {
         var loopCounter = 0L
         var startValue: Value = IntValue(0)
         val endLimit: Value = IntValue(10000000)
@@ -31,8 +26,10 @@ class Kute10_54 {
             actualElapsedTimeInMillisec = System.currentTimeMillis() - startTime
         }
 
-        var message = "Expected execution takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
-        assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message)
+        var message1 = "Expected execution takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
+        assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message1)
+
+        return arrayOf(message1)
     }
 
     private fun increment(startValue: Value, amount: Long = 1): Value {
@@ -58,4 +55,8 @@ class Kute10_54 {
         }
         return value.asInt().value * sign
     }
+}
+
+fun main(args: Array<String>) {
+    Kute10_54().performanceComparing().forEach { println(it) }
 }
