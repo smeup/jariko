@@ -3,13 +3,12 @@ package com.smeup.rpgparser.evaluation
 import Kute10_53
 import Kute10_54
 import Kute10_55
-import Kute10_56
+import Kute10_56_
 import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.DummyProgramFinder
 import com.smeup.rpgparser.ExtendedCollectorSystemInterface
 import com.smeup.rpgparser.PerformanceTest
-import com.smeup.rpgparser.execution.RunnerCLI.programName
 import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.mute.executeMuteAnnotations
 import org.junit.Test
@@ -361,14 +360,14 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     // DOU (loop of 10000000 iterations with increment of a numeric var)
-    fun executeMUTE10_56() {
+    fun execute() {
         assertMuteOK("MUTE10_56")
     }
 
     @Test @Category(PerformanceTest::class)
     // DOU (loop of 10000000 iterations with increment of a numeric var)
     fun executeKUTE10_56() {
-        val kute10_56 = Kute10_56()
+        val kute10_56 = Kute10_56_()
         kute10_56.performanceComparing()
     }
 
