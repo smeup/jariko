@@ -128,13 +128,14 @@ fun executeMuteAnnotations(
     programStream: InputStream,
     systemInterface: SystemInterface,
     verbose: Boolean = false,
-    parameters: Map<String, Value> = mapOf()
+    parameters: Map<String, Value> = mapOf(),
+    programName: String = "<UNKNOWN>"
 ): SortedMap<Int, MuteAnnotationExecuted>? {
     val parserResult =
         RpgParserFacade().apply { muteSupport = true }
         .parse(programStream)
     return if (parserResult.correct) {
-        parserResult.executeMuteAnnotations(verbose, systemInterface, parameters)
+        parserResult.executeMuteAnnotations(verbose, systemInterface, parameters, programName)
     } else {
         null
     }

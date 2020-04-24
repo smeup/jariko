@@ -130,7 +130,10 @@ test {
     }
 }
 
+//If you want to collect data about failed performance tests, run this task with:
+//gradlew testPerformance -DexportCsvFile="/some/file.csv"
 task testPerformance(type: Test) {
+    systemProperty 'exportCsvFile', System.getProperty('exportCsvFile')
     maxHeapSize = "2048m"
     testLogging {
         events "passed", "skipped", "failed"
