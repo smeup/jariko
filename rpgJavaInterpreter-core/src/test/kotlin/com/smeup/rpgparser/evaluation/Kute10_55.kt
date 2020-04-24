@@ -31,7 +31,7 @@ class Kute10_55 {
         val lessThanExpr = LessThanExpr(dataRefExpr, rightInt)
         val intLiteral = IntLiteral(1)
         val plusExpr = PlusExpr(dataRefExpr, intLiteral)
-        var evalStatement = dummyEvalStmt(dataRefExpr, plusExpr, PLUS_ASSIGNMENT)
+        var evalStatement = dummyEvalStmt(dataRefExpr, plusExpr, NORMAL_ASSIGNMENT)
 
         val startTime = System.currentTimeMillis()
         while (eval(lessThanExpr).asBoolean().value) {
@@ -39,7 +39,6 @@ class Kute10_55 {
             loopCounter++
         }
         actualElapsedTimeInMillisec = System.currentTimeMillis() - startTime
-
         var message = "Expected execution of ${rightInt.value} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
         assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message)
         message = "Expected execution of ${rightInt.value} iterations, actual is $loopCounter iterations."
