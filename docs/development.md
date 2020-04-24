@@ -85,7 +85,7 @@ If you want to force the execution of all checks:
 ## Profiling
 
 You can create a jfr file (java flight recorder) at the end
-of RPG program interpretation, jfr file path will be show in console.  
+of RPG program interpretation, jfr file path will be showed in console.  
 This feature allows to evaluate bottlenecks, and improve jariko performance.  
 Usage:
 ```
