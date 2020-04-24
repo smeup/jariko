@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.rpgparser.interpreter.Evaluator
+import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Position
 
 // %LOOKUP
@@ -12,7 +14,9 @@ data class LookupExpr(
     var searchedValued: Expression,
     val array: Expression,
     override val position: Position? = null
-) : Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %SCAN
 data class ScanExpr(
@@ -20,7 +24,9 @@ data class ScanExpr(
     val source: Expression,
     val start: Expression? = null,
     override val position: Position? = null
-) : Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %XLATE
 data class TranslateExpr(
@@ -29,8 +35,9 @@ data class TranslateExpr(
     var string: Expression,
     val startPos: Expression,
     override val position: Position? = null
-) :
-    Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %TRIM
 data class TrimExpr(
@@ -42,6 +49,7 @@ data class TrimExpr(
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
         return "%TRIM(${this.value.render()} $toTrim)"
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %TRIMR
@@ -55,6 +63,7 @@ data class TrimrExpr(
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
         return "%TRIMR(${this.value.render()} $toTrim)"
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %TRIML
@@ -68,6 +77,7 @@ data class TrimlExpr(
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
         return "%TRIMR(${this.value.render()} $toTrim)"
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %SUBST
@@ -85,6 +95,7 @@ data class SubstExpr(
     override fun size(): Int {
         TODO("size")
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %LEN
@@ -93,6 +104,7 @@ data class LenExpr(var value: Expression, override val position: Position? = nul
     override fun render(): String {
         return "%LEN(${this.value.render()})"
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %REM
@@ -100,8 +112,9 @@ data class RemExpr(
     val dividend: Expression,
     val divisor: Expression,
     override val position: Position? = null
-) :
-    Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %DEC
 data class DecExpr(
@@ -109,11 +122,11 @@ data class DecExpr(
     var intDigits: Expression,
     val decDigits: Expression,
     override val position: Position? = null
-) :
-    Expression(position) {
+) : Expression(position) {
     override fun render(): String {
         return "${this.value.render()}"
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %INT
@@ -125,6 +138,7 @@ data class IntExpr(
     override fun render(): String {
         return "${this.value.render()}"
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %SQRT
@@ -133,6 +147,7 @@ data class SqrtExpr(var value: Expression, override val position: Position? = nu
     override fun render(): String {
         return "${this.value.render()}"
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %EDITC
@@ -141,8 +156,9 @@ data class EditcExpr(
     var value: Expression,
     val format: Expression,
     override val position: Position? = null
-) :
-    Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %EDITW
 // TODO add other parameters
@@ -150,36 +166,41 @@ data class EditwExpr(
     var value: Expression,
     val format: Expression,
     override val position: Position? = null
-) :
-    Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %FOUND
 data class FoundExpr(
     var name: String? = null,
     override val position: Position? = null
-) :
-    Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %EOF
 data class EofExpr(
     var name: String? = null,
     override val position: Position? = null
-) :
-        Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %EQUAL
 data class EqualExpr(
     var name: String? = null,
     override val position: Position? = null
-) :
-        Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %ABS
 data class AbsExpr(
     var value: Expression,
     override val position: Position? = null
-) :
-    Expression(position)
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %CHAR
 data class CharExpr(var value: Expression, override val position: Position? = null) :
@@ -187,11 +208,14 @@ data class CharExpr(var value: Expression, override val position: Position? = nu
     override fun render(): String {
         return "%CHAR(${value.render()})"
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %TIMESTAMP
 data class TimeStampExpr(val value: Expression?, override val position: Position? = null) :
-    Expression(position)
+    Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %DIFF
 data class DiffExpr(
@@ -200,7 +224,9 @@ data class DiffExpr(
     val durationCode: Expression,
     override val position: Position? = null
 ) :
-    Expression(position)
+    Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // %REPLACE
 data class ReplaceExpr(
@@ -210,9 +236,13 @@ data class ReplaceExpr(
     val length: Expression? = null,
     override val position: Position? = null
 ) :
-    Expression(position)
+    Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
 
 // TODO Move and handle different types of duration
 // TODO document what a duration code is
 data class DurationCodeExpr(override var position: Position? = null) :
-    Expression(position)
+    Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}

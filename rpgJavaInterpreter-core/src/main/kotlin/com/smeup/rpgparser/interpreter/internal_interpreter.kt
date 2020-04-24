@@ -290,10 +290,10 @@ class InternalInterpreter(
                         LT -> LessThanExpr(it.val1, it.val2, it.position)
                         LE -> LessEqualThanExpr(it.val1, it.val2, it.position)
                     }
-                    val value1 = expressionEvaluation.eval(it.val1)
-                    val value2 = expressionEvaluation.eval(it.val2)
+                    val value1 = it.val1.evalWith(expressionEvaluation)
+                    val value2 = it.val2.evalWith(expressionEvaluation)
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
-                    val value = expressionEvaluation.eval(exp)
+                    val value = exp.evalWith(expressionEvaluation)
                     require(value is BooleanValue) {
                         "Expected BooleanValue, but found $value"
                     }
@@ -320,7 +320,7 @@ class InternalInterpreter(
                     // Skip
                 }
                 is MuteFailAnnotation -> {
-                    val message = expressionEvaluation.eval(it.message)
+                    val message = it.message.evalWith(expressionEvaluation)
                     log { MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, message) }
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
@@ -1077,7 +1077,7 @@ class InternalInterpreter(
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
             }
-            else -> expressionEvaluation.eval(expression)
+            else -> expression.evalWith(expressionEvaluation)
         }
         if (expression !is StringLiteral && expression !is IntLiteral &&
             expression !is DataRefExpr && expression !is BlanksRefExpr) {
