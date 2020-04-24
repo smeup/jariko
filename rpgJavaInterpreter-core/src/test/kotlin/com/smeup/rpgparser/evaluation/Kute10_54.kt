@@ -1,7 +1,5 @@
-import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
-import org.junit.experimental.categories.Category
 import java.nio.charset.Charset
 import kotlin.test.assertTrue
 
@@ -12,7 +10,6 @@ class Kute10_54 {
     val expectedElapsedTimeInMillisec = 306L
 
     @Test
-    @Category(PerformanceTest::class)
     public fun performanceComparing() {
         var loopCounter = 0L
         var startValue: Value = IntValue(0)

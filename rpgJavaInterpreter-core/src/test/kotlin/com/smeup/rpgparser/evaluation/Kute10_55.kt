@@ -21,7 +21,7 @@ import kotlin.test.assertTrue
            loopCounter++
        }
 
-    "Hybrid" means it uses both Kotlin technology and the Jariko intepreter implementation, so, for exemple
+    "Hybrid" means it uses both Kotlin technology and the Jariko intepreter implementation, so, for example
     the increment of the variable checked for each iteration is done using "EvalStmt" (not simply the plus "+" operator)
     and the value of the variable is stored (read/write) in globalSymbolTable (SymbolTable) Map.
     This approach should be useful for developer to be more efficient to develop/debug code due to
