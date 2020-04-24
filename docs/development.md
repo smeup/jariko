@@ -1,4 +1,4 @@
-# Development
+``# Development
 
 This document contains information for developers who want to contribute to the the project.
 
@@ -57,6 +57,11 @@ All tests (except for performance tests) can be executed by running:
 To run performance tests (i.e. tests tagged with the annotation `@Category(PerformanceTest::class)`) run:
 ```
 ./gradlew testPerformance
+```
+
+You can collect data about failed performance tests in a .csv file using:
+```
+./gradlew testPerformance -DexportCsvFile="/some/file.csv"
 ```
 
 To run all tests:

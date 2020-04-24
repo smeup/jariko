@@ -2,7 +2,6 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.*
@@ -12,10 +11,7 @@ import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
-import java.nio.charset.Charset
-import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.TimeoutException
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
@@ -27,42 +23,35 @@ object InterpreterConfiguration {
     var enableRuntimeChecksOnAssignement = false
 }
 
-interface InterpretationContext {
-    val currentProgramName: String
-    fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
-    fun shouldReinitialize(): Boolean
-}
-
-object DummyInterpretationContext : InterpretationContext {
-    override val currentProgramName: String
-        get() = "<UNSPECIFIED>"
-
-    override fun shouldReinitialize() = false
-
-    override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
-        // nothing to do
-    }
-}
-
 val ALL_PREDEFINED_INDEXES = 1..99
 
-class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCore {
+class InterpreterStatus(
+    val symbolTable: SymbolTable,
+    val predefinedIndicators: HashMap<IndicatorKey, BooleanValue>
+) {
+    var lastFound = false
+    var lastDBFile: DBFile? = null
+    fun indicator(key: IndicatorKey) = predefinedIndicators[key] ?: BooleanValue.FALSE
+    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable.get(abstractDataDefinition)
+}
+
+class InternalInterpreter(
+    val systemInterface: SystemInterface,
+    private val localizationContext: LocalizationContext = LocalizationContext()
+) : InterpreterCore {
     private val globalSymbolTable = SymbolTable()
     private val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
-    // TODO default value DECEDIT can be changed
-    var decedit: String = "."
-    // TODO default value CHARSET can be changed
-    val charset = Charset.forName("Cp037")
 
     var interpretationContext: InterpretationContext = DummyInterpretationContext
     private val klists = HashMap<String, List<String>>()
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    private var lastFound = false
-    private var lastDBFile: DBFile? = null
+    private val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
 
     private val dbFileMap = DBFileMap(systemInterface.db)
+
+    private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
     override fun log(logEntry: () -> LogEntry) {
         if (!logHandlers.isEmpty()) logHandlers.log(logEntry())
@@ -158,7 +147,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             }
                             initialValue
                         }
-                        it.initializationValue != null -> interpret(it.initializationValue)
+                        it.initializationValue != null -> eval(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
                             (it.type as ArrayType)
@@ -169,7 +158,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         blankValue(it)
                         it.fields.forEach { field ->
                             if (field.initializationValue != null) {
-                                val fieldValue = coerce(interpret(field.initializationValue), field.type)
+                                val fieldValue = coerce(eval(field.initializationValue), field.type)
                                 (value as DataStructValue).set(field, fieldValue)
                             }
                         }
@@ -243,7 +232,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
             val elapsedTime = measureTimeMillis {
                 execute(compilationUnit.main.stmts)
             }
-            if (elapsedTime > compilationUnit.minTimeOut!!) throw TimeoutException("Execution took $elapsedTime millis, but there was a ${compilationUnit.minTimeOut} millis timeout")
+            if (elapsedTime > compilationUnit.minTimeOut!!) {
+                throw InterpreterTimeoutException(interpretationContext.currentProgramName, elapsedTime, compilationUnit.minTimeOut!!)
+            }
         }
     }
 
@@ -300,10 +291,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         LT -> LessThanExpr(it.val1, it.val2, it.position)
                         LE -> LessEqualThanExpr(it.val1, it.val2, it.position)
                     }
-                    val value1 = interpretConcrete(it.val1)
-                    val value2 = interpretConcrete(it.val2)
+                    val value1 = it.val1.evalWith(expressionEvaluation)
+                    val value2 = it.val2.evalWith(expressionEvaluation)
                     // TODO use value1 and value2 without re-evaluate them as they could have side-effects
-                    val value = interpretConcrete(exp)
+                    val value = exp.evalWith(expressionEvaluation)
                     require(value is BooleanValue) {
                         "Expected BooleanValue, but found $value"
                     }
@@ -330,7 +321,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     // Skip
                 }
                 is MuteFailAnnotation -> {
-                    val message = interpretConcrete(it.message)
+                    val message = it.message.evalWith(expressionEvaluation)
                     log { MuteAnnotationExecutionLogEntry(this.interpretationContext.currentProgramName, it, message) }
                     systemInterface.addExecutedAnnotation(
                         it.position!!.start.line,
@@ -348,7 +339,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun IndicatorCondition?.shouldExecuteStatement(): Boolean {
         if (this == null) return true
-        val indicator = indicator(key).value
+        val indicator = status.indicator(key).value
         return if (negate) !indicator else indicator
     }
 
@@ -356,7 +347,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
         this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
-            val indicator = indicator(indicatorKey).value
+            val indicator = status.indicator(indicatorKey).value
             var condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
             val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
             solvedIndicatorCondition
@@ -463,7 +454,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SelectStmt -> {
                     for (case in statement.cases) {
-                        val result = interpret(case.condition)
+                        val result = eval(case.condition)
 
                         log { SelectCaseExecutionLogEntry(this.interpretationContext.currentProgramName, case, result) }
                         if (result.asBoolean().value) {
@@ -573,8 +564,8 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is DisplayStmt -> {
                     val values = mutableListOf<Value>()
-                    statement.factor1?.let { values.add(interpret(it)) }
-                    statement.response?.let { values.add(interpret(it)) }
+                    statement.factor1?.let { values.add(eval(it)) }
+                    statement.response?.let { values.add(eval(it)) }
                     // TODO: receive input from systemInterface and assign value to response
                     systemInterface.display(rawRender(values))
                 }
@@ -820,11 +811,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         is DataRefExpr -> {
                             // TODO: partial implementation just for *MS - Add more cases
                             val minuend = if (statement.factor1 == null) {
-                                interpret(statement.target)
+                                eval(statement.target)
                             } else {
-                                interpret(statement.factor1)
+                                eval(statement.factor1)
                             }
-                            val subtrahend = interpret(statement.factor2)
+                            val subtrahend = eval(statement.factor2)
                             val newValue =
                                     (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
                             assign(statement.target, IntValue(newValue))
@@ -845,13 +836,13 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     throw IterException()
                 }
                 is CheckStmt -> {
-                    var baseString = interpret(statement.baseString).asString().value
+                    var baseString = eval(statement.baseString).asString().value
                     if (statement.baseString is DataRefExpr) {
                         baseString = baseString.padEnd(statement.baseString.size())
                     }
-                    val charSet = interpret(statement.comparatorString).asString().value
+                    val charSet = eval(statement.comparatorString).asString().value
                     val wrongIndex = statement.wrongCharPosition
-                    lastFound = false
+                    status.lastFound = false
                     if (wrongIndex != null) {
                         assign(wrongIndex, IntValue.ZERO)
                     }
@@ -860,7 +851,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                             if (wrongIndex != null) {
                                 assign(wrongIndex, IntValue((i + statement.start).toLong()))
                             }
-                            lastFound = true
+                            status.lastFound = true
                             return
                         }
                     }
@@ -876,7 +867,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 }
                 is SetllStmt -> {
                     val dbFile = dbFile(statement.name, statement)
-                    lastFound = if (statement.searchArg.type() is KListType) {
+                    status.lastFound = if (statement.searchArg.type() is KListType) {
                         dbFile.setll(toSearchValues(statement.searchArg))
                     } else {
                         dbFile.setll(eval(statement.searchArg))
@@ -919,7 +910,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     throw GotoException(statement.tag)
                 }
                 is CabStmt -> {
-                    val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, charset)
+                    val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, localizationContext.charset)
                     when (comparisonResult.comparison) {
                         Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
                         Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
@@ -928,18 +919,18 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     if (comparisonResult.isVerified) throw GotoException(statement.tag)
                 }
                 is SortAStmt -> {
-                    sortA(interpret(statement.target), charset)
+                    sortA(eval(statement.target), localizationContext.charset)
                 }
                 is CatStmt -> {
                     val blanksInBetween = statement.blanksInBetween
                     val blanks = StringValue.blank(blanksInBetween)
-                    val factor2 = interpret(statement.right)
-                    var result = interpret(statement.target)
+                    val factor2 = eval(statement.right)
+                    var result = eval(statement.target)
                     val resultLen = result.asString().length()
                     var concatenatedFactors: Value
 
                     if (null != statement.left) {
-                        val factor1 = interpret(statement.left)
+                        val factor1 = eval(statement.left)
                         val f1Trimmed = (factor1 as StringValue).value.trim()
                         val factor1Trimmed = StringValue(f1Trimmed)
                         concatenatedFactors = if (blanksInBetween > 0) {
@@ -971,14 +962,14 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                     log { CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)) }
                 }
                 is CompStmt -> {
-                    when (this.compareExpressions(statement.left, statement.right, charset)) {
+                    when (this.compareExpressions(statement.left, statement.right, localizationContext.charset)) {
                         Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
                         Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
                         Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
                     }
                 }
                 is LookupStmt -> {
-                    lookUp(statement, this, charset)
+                    lookUp(statement, this, localizationContext.charset)
                 }
                 is XFootStmt -> {
                     xfoot(statement, this)
@@ -1026,10 +1017,10 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
-            lastFound = true
+            status.lastFound = true
             record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
         } else {
-            lastFound = false
+            status.lastFound = false
         }
     }
 
@@ -1038,7 +1029,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
         }
-        lastDBFile = dbFile
+        status.lastDBFile = dbFile
         return dbFile
     }
 
@@ -1050,9 +1041,9 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
 
     private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
         if (downward) {
-            isEqualOrGreater(index, end, charset)
+            isEqualOrGreater(index, end, localizationContext.charset)
         } else {
-            isEqualOrSmaller(index, end, charset)
+            isEqualOrSmaller(index, end, localizationContext.charset)
         }
 
     private fun step(byValue: Expression, downward: Boolean): Long {
@@ -1078,42 +1069,33 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     private fun rawRender(value: Value): String {
         return when (value) {
             is NumberValue -> if (value.isNegative()) "${value.abs().render()}-" else value.render()
-            else -> render(value)
-        }
-    }
-
-    private fun render(value: Value): String {
-        return when (value) {
-            is StringValue -> value.value.trimEnd()
-            is BooleanValue -> value.asString().value // TODO check if it's the best solution
-            is NumberValue -> value.render()
-            is ArrayValue -> "[${value.elements().map { render(it) }.joinToString(", ")}]"
-            is TimeStampValue -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value.value)
-            is DataStructValue -> value.value.trimEnd()
-            is ZeroValue -> "0"
-            is AllValue -> value.charsToRepeat
-            else -> TODO("Unable to render value $value (${value.javaClass.canonicalName})")
+            else -> value.stringRepresentation()
         }
     }
 
     override fun eval(expression: Expression): Value {
-        return when (expression) {
+        val value = when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
             }
-            else -> interpret(expression)
+            else -> expression.evalWith(expressionEvaluation)
         }
+        if (expression !is StringLiteral && expression !is IntLiteral &&
+            expression !is DataRefExpr && expression !is BlanksRefExpr) {
+            log { ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value) }
+        }
+        return value
     }
 
     private fun mult(statement: MultStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         require(statement.target is DataRefExpr)
         val rightValue: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(interpret(statement.factor1).render())
+            BigDecimal(eval(statement.factor1).render())
         } else {
             BigDecimal(get(statement.target.variable.referred!!).render())
         }
-        val leftValue = BigDecimal(interpret(statement.factor2).render())
+        val leftValue = BigDecimal(eval(statement.factor2).render())
         val result = rightValue.multiply(leftValue)
         val type = statement.target.variable.referred!!.type
         require(type is NumberType)
@@ -1128,11 +1110,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         require(statement.target is DataRefExpr)
         val dividend: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(interpret(statement.factor1).render())
+            BigDecimal(eval(statement.factor1).render())
         } else {
             BigDecimal(get(statement.target.variable.referred!!).render())
         }
-        val divisor = BigDecimal(interpret(statement.factor2).render())
+        val divisor = BigDecimal(eval(statement.factor2).render())
         val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
         val type = statement.target.variable.referred!!.type
         require(type is NumberType)
@@ -1160,7 +1142,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                 return assign(target.variable.referred!!, value)
             }
             is ArrayAccessExpr -> {
-                val arrayValue = interpret(target.array) as ArrayValue
+                val arrayValue = eval(target.array) as ArrayValue
                 val targetType = target.array.type()
                 // Before assigning the single element we do a sanity check:
                 // is the value we have for the array compatible with the type
@@ -1170,7 +1152,7 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
                         "The value $arrayValue is not assignable to $targetType"
                     }
                 }
-                val indexValue = interpret(target.index)
+                val indexValue = eval(target.index)
                 val elementType = (targetType as ArrayType).element
                 val evaluatedValue = coerce(value, elementType)
                 val index = indexValue.asInt().value.toInt()
@@ -1260,11 +1242,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun add(statement: AddStmt): Value {
-        val addend1 = interpret(statement.addend1)
+        val addend1 = eval(statement.addend1)
         require(addend1 is NumberValue) {
             "$addend1 should be a number"
         }
-        val addend2 = interpret(statement.right)
+        val addend2 = eval(statement.right)
         require(addend2 is NumberValue) {
             "$addend2 should be a number"
         }
@@ -1278,11 +1260,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
     }
 
     private fun sub(statement: SubStmt): Value {
-        val minuend = interpret(statement.minuend)
+        val minuend = eval(statement.minuend)
         require(minuend is NumberValue) {
             "$minuend should be a number"
         }
-        val subtrahend = interpret(statement.right)
+        val subtrahend = eval(statement.right)
         require(subtrahend is NumberValue) {
             "$subtrahend should be a number"
         }
@@ -1295,444 +1277,11 @@ class InternalInterpreter(val systemInterface: SystemInterface) : InterpreterCor
         }
     }
 
-    override fun interpret(expression: Expression): Value {
-        val value = interpretConcrete(expression)
-        if (expression !is StringLiteral && expression !is IntLiteral &&
-            expression !is DataRefExpr && expression !is BlanksRefExpr) {
-            log { ExpressionEvaluationLogEntry(this.interpretationContext.currentProgramName, expression, value) }
-        }
-        return value
-    }
-
-    private fun evalAsBoolean(expression: Expression): Boolean = eval(expression).asBoolean().value
-
-    private fun interpretConcrete(expression: Expression): Value {
-        return when (expression) {
-            is StringLiteral -> StringValue(expression.value)
-            is IntLiteral -> IntValue(expression.value)
-            is RealLiteral -> DecimalValue(expression.value)
-            is NumberOfElementsExpr -> {
-                val value = interpret(expression.value)
-                when (value) {
-                    is ArrayValue -> value.arrayLength().asValue()
-                    else -> throw IllegalStateException("Cannot ask number of elements of $value")
-                }
-            }
-            is DataRefExpr -> get(
-                expression.variable.referred
-                    ?: throw IllegalStateException("[${interpretationContext.currentProgramName}] Unsolved reference ${expression.variable.name} at ${expression.position}")
-            )
-            is EqualityExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                return areEquals(left, right).asValue()
-            }
-            is DifferentThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                return (!areEquals(left, right)).asValue()
-            }
-            is GreaterThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                return isGreaterThan(left, right, charset).asValue()
-            }
-            is GreaterEqualThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                return (isGreaterThan(left, right, charset) || areEquals(left, right)).asValue()
-            }
-            is LessEqualThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                return (isEqualOrSmaller(left, right, charset)).asValue()
-            }
-            is LessThanExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                return isSmallerThan(left, right, charset).asValue()
-            }
-            is BlanksRefExpr -> {
-                return BlanksValue
-            }
-            is DecExpr -> {
-                val decDigits = interpret(expression.decDigits).asInt().value
-                val valueAsString = interpret(expression.value).asString().value
-                val valueAsBigDecimal = valueAsString.asBigDecimal()
-                require(valueAsBigDecimal != null) {
-                    "Line ${expression.position?.line()} - %DEC can't understand '$valueAsString'"
-                }
-                return if (decDigits == 0L) {
-                    IntValue(valueAsBigDecimal.toLong())
-                } else {
-                    DecimalValue(valueAsBigDecimal)
-                }
-            }
-            is PlusExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                when {
-                    left is StringValue && right is StringValue -> {
-                        if (left.varying) {
-                            val s = left.value.trimEnd() + right.value
-                            StringValue(s)
-                        } else {
-                            val s = left.value + right.value
-                            StringValue(s)
-                        }
-                    }
-                    left is IntValue && right is IntValue -> IntValue(left.value + right.value)
-                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal + right.bigDecimal)
-                    else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
-                }
-            }
-            is MinusExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                when {
-                    left is IntValue && right is IntValue -> IntValue(left.value - right.value)
-                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal - right.bigDecimal)
-                    else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
-                }
-            }
-            is MultExpr -> {
-                val left = interpret(expression.left)
-                val right = interpret(expression.right)
-                when {
-                    left is IntValue && right is IntValue -> IntValue(left.value * right.value)
-                    left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal * right.bigDecimal)
-                    else -> throw UnsupportedOperationException("I do not know how to multiply $left and $right at ${expression.position}")
-                }
-            }
-            is CharExpr -> {
-                val value = interpret(expression.value)
-                return StringValue(render(value).trim())
-            }
-            is LookupExpr -> {
-                val searchValued = interpret(expression.searchedValued)
-                val array = interpret(expression.array) as ArrayValue
-                val index = array.elements().indexOfFirst {
-                    areEquals(it, searchValued)
-                }
-                return if (index == -1) 0.asValue() else (index + 1).asValue()
-            }
-            is ArrayAccessExpr -> {
-                val arrayValueRaw = interpret(expression.array)
-                val arrayValue = arrayValueRaw as? ArrayValue
-                        ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
-                val indexValue = interpret(expression.index)
-                return arrayValue.getElement(indexValue.asInt().value.toInt())
-            }
-            is HiValExpr -> return HiValValue
-            is LowValExpr -> return LowValValue
-            is ZeroExpr -> return ZeroValue
-            is AllExpr -> return AllValue(eval(expression.charsToRepeat).asString().value)
-            is TranslateExpr -> {
-                val originalChars = eval(expression.from).asString().value
-                val newChars = eval(expression.to).asString().value
-                val start = eval(expression.startPos).asInt().value.toInt()
-                val s = eval(expression.string).asString().value
-                val pair = s.divideAtIndex(start - 1)
-                var right = pair.second
-                val substitutionMap = mutableMapOf<Char, Char>()
-                originalChars.forEachIndexed { i, c ->
-                    if (newChars.length > i) {
-                        substitutionMap[c] = newChars[i]
-                    }
-                }
-                substitutionMap.forEach {
-                    right = right.replace(it.key, it.value)
-                }
-                return StringValue(pair.first + right)
-            }
-            is LogicalAndExpr -> {
-                val left = eval(expression.left).asBoolean().value
-                return if (left) {
-                    eval(expression.right)
-                } else {
-                    BooleanValue(false)
-                }
-            }
-            is LogicalOrExpr -> {
-                val left = eval(expression.left).asBoolean().value
-                return if (left) {
-                    BooleanValue(true)
-                } else {
-                    eval(expression.right)
-                }
-            }
-            is LogicalCondition -> {
-                if (expression.ands.any { !evalAsBoolean(it) }) {
-                    return BooleanValue.FALSE
-                }
-
-                if (evalAsBoolean(expression.expression)) {
-                    return BooleanValue.TRUE
-                }
-
-                return BooleanValue(expression.ors.any { evalAsBoolean(it) })
-            }
-            is OnRefExpr -> {
-                return BooleanValue.TRUE
-            }
-            is NotExpr -> {
-                return BooleanValue(!evalAsBoolean(expression.base))
-            }
-            is ScanExpr -> {
-                var startIndex = 0
-                if (expression.start != null) {
-                    startIndex = eval(expression.start).asInt().value.toInt()
-                }
-                val value = eval(expression.value).asString().value
-                val source = eval(expression.source).asString().value
-                val result = source.indexOf(value, startIndex)
-                return IntValue(if (result == -1) 0 else result.toLong() + 1)
-            }
-            is SubstExpr -> {
-                val length = if (expression.length != null) eval(expression.length).asInt().value.toInt() else 0
-                val start = eval(expression.start).asInt().value.toInt() - 1
-                val originalString = eval(expression.string).asString().value
-                return if (length == 0) {
-                    StringValue(originalString.padEnd(start + 1).substring(start))
-                } else {
-                    StringValue(originalString.padEnd(start + length + 1).substring(start, start + length))
-                }
-            }
-            is LenExpr -> {
-                val value = eval(expression.value)
-                return when (value) {
-                    is StringValue -> {
-                        when (expression.value) {
-                            is DataRefExpr -> {
-                                val type = expression.value.type()
-                                when (type) {
-                                    is StringType -> {
-                                        value.length(type.varying).asValue()
-                                    }
-                                    else -> {
-                                        value.value.length.asValue()
-                                    }
-                                }
-                            }
-                            is ArrayAccessExpr -> {
-                                value.value.length.asValue()
-                                // value.elementSize().asValue()
-                            }
-                            else -> {
-                                return value.length().asValue()
-                            }
-                        }
-                    }
-                    is DataStructValue -> {
-                        value.value.length.asValue() }
-                    is ArrayValue -> {
-                        // Incorrect data structure size calculation #28
-                        when (expression.value) {
-                            is DataRefExpr -> value.totalSize().asValue()
-                            is ArrayAccessExpr -> value.elementSize().asValue()
-                            else -> {
-                                TODO("Invalid LEN parameter $value")
-                            }
-                        }
-                    }
-                    else -> {
-                        TODO("Invalid LEN parameter $value")
-                    }
-                }
-            }
-            is OffRefExpr -> {
-                return BooleanValue(false)
-            }
-            is PredefinedIndicatorExpr -> {
-                return indicator(expression.index)
-            }
-            is FunctionCall -> {
-                val functionToCall = expression.function.name
-                val function = systemInterface.findFunction(globalSymbolTable, functionToCall)
-                    ?: throw RuntimeException("Function $functionToCall cannot be found (${interpretationContext.currentProgramName}:${expression.position.line()})")
-                // TODO check number and types of params
-                val paramsValues = expression.args.map { eval(it) }
-                return function.execute(systemInterface, paramsValues, globalSymbolTable)
-            }
-            is TimeStampExpr -> {
-                if (expression.value == null) {
-                    return TimeStampValue(Date())
-                } else {
-                    val evaluated = eval(expression.value)
-                    if (evaluated is StringValue) {
-                        return TimeStampValue(evaluated.value.asIsoDate())
-                    }
-                    TODO("TimeStamp parsing: " + evaluated)
-                }
-            }
-            is EditcExpr -> {
-                val n = eval(expression.value)
-                val format = eval(expression.format)
-                if (format !is StringValue) throw UnsupportedOperationException("Required string value, but got $format at ${expression.position}")
-                return n.asDecimal().formatAs(format.value, expression.value.type(), this.decedit)
-            }
-            is DiffExpr -> {
-                // TODO expression.durationCode
-                val v1 = eval(expression.value1)
-                val v2 = eval(expression.value2)
-                return DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
-            }
-            is DivExpr -> {
-                val v1 = eval(expression.left)
-                val v2 = eval(expression.right)
-                // Check the type and select the correct operation
-                if (v1 is IntValue && v2 is IntValue) {
-                    return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
-                }
-                require(v1 is NumberValue && v2 is NumberValue)
-                val res = v1.bigDecimal.toDouble() / v2.bigDecimal.toDouble()
-                // Detects what kind of eval must be evaluated
-                if (expression.parent is EvalStmt) {
-                    val parent = expression.parent as EvalStmt
-                    val targetType = parent.target.type() as NumberType
-                    // EVAL(H)
-                    if (parent.flags.halfAdjust) {
-                        // perform the calculation, adjust the operand scale to the target
-                        return DecimalValue(v1.bigDecimal.setScale(targetType.decimalDigits).divide(v2.bigDecimal.setScale(targetType.decimalDigits), RoundingMode.HALF_UP))
-                    }
-                    // Eval(M)
-                    if (parent.flags.maximumNumberOfDigitsRule) {
-                        TODO("EVAL(M) not supported yet")
-                    }
-                    // Eval(R)
-                    if (parent.flags.resultDecimalPositionRule) {
-                        TODO("EVAL(R) not supported yet")
-                    }
-                    return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits, RoundingMode.DOWN))
-                }
-                // TODO rounding and scale???
-                return DecimalValue(BigDecimal(res))
-            }
-            is ExpExpr -> {
-                val v1 = eval(expression.left)
-                val v2 = eval(expression.right)
-                return DecimalValue(BigDecimal(Math.pow(v1.asInt().value.toDouble(), v2.asInt().value.toDouble())))
-            }
-            is TrimrExpr -> {
-                return if (expression.charactersToTrim == null) {
-                    StringValue(eval(expression.value).asString().value.trimEnd())
-                } else {
-                    val suffix = eval(expression.charactersToTrim).asString().value
-                    var result = eval(expression.value).asString().value
-                    while (result.endsWith(suffix)) {
-                        result = result.substringBefore(suffix)
-                    }
-                    StringValue(result)
-                }
-            }
-            is TrimlExpr -> {
-                if (expression.charactersToTrim == null) {
-                    return StringValue(eval(expression.value).asString().value.trimStart())
-                } else {
-                    val prefix = eval(expression.charactersToTrim).asString().value
-                    var result = eval(expression.value).asString().value
-                    while (result.startsWith(prefix)) {
-                        result = result.substringAfter(prefix)
-                    }
-                    return StringValue(result)
-                }
-            }
-            is TrimExpr -> {
-                return StringValue(eval(expression.value).asString().value.trim())
-            }
-            is FoundExpr -> {
-                // TODO fix this bad implementation
-                if (expression.name == null) {
-                    return BooleanValue(lastFound)
-                }
-                TODO("Line ${expression.position?.line()} - %FOUND expression with file names is not implemented yet")
-            }
-            is EofExpr -> {
-                // TODO fix this bad implementation
-                if (expression.name == null) {
-                    return BooleanValue(lastDBFile?.eof() ?: false)
-                }
-                TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
-            }
-            is EqualExpr -> {
-                // TODO fix this bad implementation
-                if (expression.name == null) {
-                    return BooleanValue(lastDBFile?.equal() ?: false)
-                }
-                TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
-            }
-            is AbsExpr -> {
-                val value = interpret(expression.value)
-                return DecimalValue(BigDecimal.valueOf(Math.abs(value.asDecimal().value.toDouble())))
-            }
-            is EditwExpr -> {
-                val n = eval(expression.value)
-                val format = eval(expression.format)
-                require(format is StringValue) { "Required string value, but got $format at ${expression.position}" }
-                return n.asDecimal().formatAsWord(format.value, expression.value.type())
-            }
-            is IntExpr -> {
-                return when (val value = interpret(expression.value)) {
-                    is StringValue ->
-                        IntValue(cleanNumericString(value.value).asLong())
-                    is DecimalValue ->
-                        value.asInt()
-                    else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
-                }
-            }
-            is RemExpr -> {
-                val n = eval(expression.dividend).asInt().value
-                val m = eval(expression.divisor).asInt().value
-                return IntValue(n % m)
-            }
-            is QualifiedAccessExpr -> {
-                val containerValue = eval(expression.container)
-                val dataStringValue = containerValue as DataStructValue
-                return dataStringValue[expression.field.referred ?: throw IllegalStateException("Referenced to field not resolved: ${expression.field.name}")]
-            }
-            is ReplaceExpr -> {
-                val replString = eval(expression.replacement).asString().value
-                val sourceString = eval(expression.source).asString().value
-                val replStringLength: Int = replString.length
-                // case of %REPLACE(stringToReplaceWith:stringSource)
-                if (expression.start == null) {
-                    return StringValue(sourceString.replaceRange(0..replStringLength - 1, replString))
-                }
-                // case of %REPLACE(stringToReplaceWith:stringSource:startIndex)
-                if (expression.length == null) {
-                    val startNr = eval(expression.start).asInt().value.toInt()
-                    return StringValue(sourceString.replaceRange((startNr - 1)..(startNr + replStringLength - 2), replString))
-                } else {
-                // case of %REPLACE(stringToReplaceWith:stringSource:startIndex:nrOfCharsToReplace)
-                    val startNr = eval(expression.start).asInt().value.toInt() - 1
-                    val nrOfCharsToReplace = eval(expression.length).asInt().value.toInt()
-                    return StringValue(sourceString.replaceRange(startNr, (startNr + nrOfCharsToReplace), replString))
-                }
-            }
-            is SqrtExpr -> {
-                val value = interpret(expression.value)
-                return DecimalValue(BigDecimal.valueOf(Math.sqrt(value.asDecimal().value.toDouble())))
-            }
-            else -> TODO(expression.toString())
-        }
-    }
-
-    private fun indicator(key: IndicatorKey) = predefinedIndicators[key] ?: BooleanValue.FALSE
-
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return when (dataDefinition.type) {
             is DataStructureType -> dataDefinition.type.blank(dataDefinition)
             else -> dataDefinition.type.blank()
         }
-    }
-}
-
-private fun cleanNumericString(s: String): String {
-    val result = s.moveEndingString("-")
-    return when {
-        result.contains(".") -> result.substringBefore(".")
-        result.contains(",") -> result.substringBefore(",")
-        else -> result
     }
 }

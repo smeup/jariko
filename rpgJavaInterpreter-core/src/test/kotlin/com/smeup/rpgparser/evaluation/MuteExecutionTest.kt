@@ -9,7 +9,6 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
-import java.util.concurrent.TimeoutException
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -61,7 +60,7 @@ class MuteExecutionTest {
         try {
             execute(cu, emptyMap(), si)
             fail("No timeout")
-        } catch (e: TimeoutException) {
+        } catch (e: InterpreterTimeoutException) {
             assertTrue(e.toString().contains(cu.timeouts[0].timeout.toString()))
         }
     }
