@@ -134,7 +134,7 @@ Then run the mute test with:
 java -jar rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar MY_TEST.rpgle
 ```
 
-You can run all the mute tests (i.e. files with suffix .rpgle) contained in a directory with:
+You can run all the mute tests (i.e. files with suffix rpgle) contained in a directory with:
 
 ```
 java -jar rpgJavaInterpreter-core-mute-all.jar /path/to/my/dir

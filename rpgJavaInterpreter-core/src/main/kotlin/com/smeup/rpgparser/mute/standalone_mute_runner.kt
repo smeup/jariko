@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
 private fun findFilesToRun(muteSource: File): FilesToRun =
     if (muteSource.isDirectory) {
         FilesToRun(muteSource, muteSource.listFiles { _, name ->
-            name.endsWith(".rpgle", true)
+            name.endsWith("rpgle", true)
         }.toList())
     } else {
         FilesToRun(muteSource.parentFile, listOf(muteSource))
