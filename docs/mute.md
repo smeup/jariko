@@ -134,6 +134,19 @@ Then run the mute test with:
 java -jar rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-mute-all.jar MY_TEST.rpgle
 ```
 
+You can run all the mute tests (i.e. files with suffix .rpgle) contained in a directory with:
+
+```
+java -jar rpgJavaInterpreter-core-mute-all.jar /path/to/my/dir
+```
+
+You can also collect all timeouts exception in a .csv file with
+
+```
+java -DexportCsvFile=/path/to/timeouts.csv -jar rpgJavaInterpreter-core-mute-all.jar /path/to/my/dir
+```
+
+
 ## Mute as part of the CI
 
 The utility to verify Mute annotation is run as part of the CI configuration. All Mute files contained in the directory _mutes_for_ci_ are automatically verified when running `./gradlew check`.
