@@ -2,7 +2,6 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.strumenta.kolasu.model.ReferenceByName
-import org.junit.Test
 import java.nio.charset.Charset
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -36,8 +35,7 @@ class Kute10_55 {
     private val expectedElapsedTimeInMillisec = 83L
     private var loopCounter = 0L
 
-    @Test
-    public fun performanceComparing() {
+    public fun performanceComparing(): Array<String> {
 
         // The variable name, 'X' instead of '$X' due to Kotlin syntax
         val name = "X"
@@ -62,10 +60,12 @@ class Kute10_55 {
         }
 
         // Results
-        var message = "Expected execution of ${rightInt.value} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
-        assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message)
-        message = "Expected execution of ${rightInt.value} iterations, actual is $loopCounter iterations."
-        assertEquals(rightInt.value, loopCounter, message)
+        var message1 = "Expected execution of ${rightInt.value} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
+        assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message1)
+        var message2 = "Expected execution of ${rightInt.value} iterations, actual is $loopCounter iterations."
+        assertEquals(rightInt.value, loopCounter, message2)
+
+        return arrayOf(message1, message2)
     }
 
     private fun doWhile(lessThanExpr: Expression, evalStatement: EvalStmt) {
@@ -263,4 +263,8 @@ class Kute10_55 {
         block()
         return System.currentTimeMillis() - start
     }
+}
+
+fun main(args: Array<String>) {
+    Kute10_55().performanceComparing().forEach { println(it) }
 }
