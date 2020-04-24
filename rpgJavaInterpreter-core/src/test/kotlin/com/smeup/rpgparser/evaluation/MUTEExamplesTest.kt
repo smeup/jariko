@@ -1,9 +1,5 @@
 package com.smeup.rpgparser.evaluation
 
-import Kute10_53
-import Kute10_54
-import Kute10_55
-import Kute10_56
 import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.execution.RunnerCLI.programName
