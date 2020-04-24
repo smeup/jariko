@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.interpreter.Evaluator
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
@@ -138,6 +140,7 @@ class LogicalCondition(val expression: Expression) : Expression() {
     fun or(conditions: List<LogicalCondition>) {
         ors.addAll(conditions)
     }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 internal fun RpgParser.CsANDxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LogicalCondition {
