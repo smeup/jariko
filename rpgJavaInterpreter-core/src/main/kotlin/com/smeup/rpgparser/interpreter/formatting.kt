@@ -7,7 +7,9 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 
-internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, padChar: Char = ' '): StringValue {
+import com.smeup.rpgparser.interpreter.DecEdit.*
+
+internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit, padChar: Char = ' '): StringValue {
     fun signumChar(empty: Boolean) = (if (this.value < ZERO) "-" else if (empty) "" else " ")
     fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
     fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
@@ -17,13 +19,13 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         DecimalFormat(decimalPattern(type), DecimalFormatSymbolsRepository.getSymbols(locale)).format(this.value.abs())
 
     // The functions below correspond to the EDITC parameter, one function per value
-    fun f1(decedit: String): String {
+    fun f1(decedit: DecEdit): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
-            "," -> {
+            COMMA -> {
                 standardDecimalFormat(type, Locale.ITALY).padStart(type.size + nrOfPunctuationsIn(type), padChar)
             }
-            "0," -> {
+            ZERO_COMMA -> {
                 if (this.value.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
@@ -33,13 +35,23 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
                     standardDecimalFormat(type, Locale.ITALY).padStart(type.size + nrOfPunctuationsIn(type), padChar)
                 }
             }
-            else -> {
+            ZERO_DOT -> {
+                if (this.value.abs() < BigDecimal.ONE) {
+                    buildString {
+                        append("0")
+                        append(standardDecimalFormat(type, Locale.US))
+                    }.padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                } else {
+                    standardDecimalFormat(type, Locale.US).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                }
+            }
+            DOT -> {
                 standardDecimalFormat(type, Locale.US).padStart(type.size + nrOfPunctuationsIn(type), padChar)
             }
         }
     }
 
-    fun f2(decedit: String): String {
+    fun f2(decedit: DecEdit): String {
         if (this.value.isZero()) {
             return "".padStart(type.size + nrOfPunctuationsIn(type as NumberType))
         } else {
@@ -50,14 +62,17 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
     fun italianDecimalformatWithNoThounsandsSeparator(type: NumberType) =
         DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.italianSymbols).format(this.value.abs())
 
-    fun f3(decedit: String): String {
+    fun usDecimalformatWithNoThounsandsSeparator(type: NumberType) =
+        DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.usSymbols).format(this.value.abs())
+
+    fun f3(decedit: DecEdit): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
-            "," -> {
+            COMMA -> {
                 italianDecimalformatWithNoThounsandsSeparator(type)
                     .padStart(type.size + points(type), padChar)
             }
-            "0," -> {
+            ZERO_COMMA -> {
                 if (this.value.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
@@ -69,7 +84,19 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
                         .padStart(type.size + points(type), padChar)
                 }
             }
-            else -> {
+            ZERO_DOT -> {
+                if (this.value.abs() < BigDecimal.ONE) {
+                    buildString {
+                        append("0")
+                        append(standardDecimalFormat(type, Locale.US))
+                    }
+                    .padStart(type.size + points(type), padChar)
+                } else {
+                    usDecimalformatWithNoThounsandsSeparator(type)
+                        .padStart(type.size + points(type), padChar)
+                }
+            }
+            DOT -> {
                 DecimalFormat(buildString {
                     append("#")
                     append(decimalsFormatString(type))
@@ -80,14 +107,14 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         }
     }
 
-    fun f4(decedit: String): String {
+    fun f4(decedit: DecEdit): String {
         if (this.value.isZero()) {
             return "".padStart(type.size + points(type as NumberType))
         } else
             return f3(decedit)
     }
 
-    fun fA(decedit: String): String {
+    fun fA(decedit: DecEdit): String {
         return if (this.value < ZERO) {
             f1(decedit) + "CR"
         } else {
@@ -95,9 +122,9 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         }
     }
 
-    fun fB(decedit: String): String = fA(decedit)
+    fun fB(decedit: DecEdit): String = fA(decedit)
 
-    fun fC(decedit: String): String {
+    fun fC(decedit: DecEdit): String {
         return if (this.value < ZERO) {
             f3(decedit) + "CR"
         } else {
@@ -105,7 +132,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         }
     }
 
-    fun fD(decedit: String): String {
+    fun fD(decedit: DecEdit): String {
         return if (this.value < ZERO) {
             f3(decedit) + "CR"
         } else {
@@ -113,21 +140,21 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         }
     }
 
-    fun fJ(decedit: String): String = f1(decedit) + signumChar(true)
+    fun fJ(decedit: DecEdit): String = f1(decedit) + signumChar(true)
 
-    fun fK(decedit: String): String = f2(decedit) + signumChar(true)
+    fun fK(decedit: DecEdit): String = f2(decedit) + signumChar(true)
 
-    fun fL(decedit: String): String = f3(decedit) + signumChar(true)
+    fun fL(decedit: DecEdit): String = f3(decedit) + signumChar(true)
 
-    fun fM(decedit: String): String = f4(decedit) + signumChar(true)
+    fun fM(decedit: DecEdit): String = f4(decedit) + signumChar(true)
 
-    fun fN(decedit: String): String = signumChar(false) + f1(decedit)
+    fun fN(decedit: DecEdit): String = signumChar(false) + f1(decedit)
 
-    fun fO(decedit: String): String = signumChar(false) + f2(decedit)
+    fun fO(decedit: DecEdit): String = signumChar(false) + f2(decedit)
 
-    fun fP(decedit: String): String = signumChar(false) + f3(decedit)
+    fun fP(decedit: DecEdit): String = signumChar(false) + f3(decedit)
 
-    fun fQ(decedit: String): String = signumChar(false) + f4(decedit)
+    fun fQ(decedit: DecEdit): String = signumChar(false) + f4(decedit)
 
     fun toBlnk(c: Char) = if (c == '0') ' ' else c
 
@@ -142,7 +169,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         }
     }
 
-    fun handleInitialZero(decedit: String): String {
+    fun handleInitialZero(decedit: DecEdit): String {
         return if (this.value.isZero()) {
             ""
         } else {
@@ -150,9 +177,10 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         }
     }
 
-    fun fX(decedit: String) = handleInitialZero(decedit).padStart(type.size, '0')
+//    fun fX(decedit: DecEdit) = value.unscaledValue().abs().toString().padStart(type.size, '0')
+    fun fX(decedit: DecEdit) = handleInitialZero(decedit).padStart(type.size, '0')
 
-    fun fZ(decedit: String) = handleInitialZero(decedit).padStart(type.size)
+    fun fZ(decedit: DecEdit) = handleInitialZero(decedit).padStart(type.size)
 
     return when (format) {
         "1" -> StringValue(f1(decedit))
