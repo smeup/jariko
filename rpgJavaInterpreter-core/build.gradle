@@ -194,7 +194,7 @@ Relative path is \"relative\" to  ${rootDir.path} directory."""
     main = "com.smeup.rpgparser.mute.StandaloneMuteRunner"
     description = """profileRpgProgram allows to understand how Jariko interprets any RPG Program.
 It creates a jfr file (java flight recorder) containing profiling informations. 
-After task execution, you can analize jfr file with JMC utility (Oralce Java Mission Control).
+After task execution, you can analize jfr file with JMC utility (Oracle Java Mission Control).
 
 $usage
 """
@@ -232,3 +232,44 @@ for further informations."""
 }
 
 check.dependsOn runMutes
+
+task profileMainClass (type: JavaExec) {
+    String usage = """Usage:
+>./gradlew $name -PmainClass=main_class
+Remember that for kotlin main_class (.kt source file extension) you need to append the suffix Kt in the class name. 
+For example if your kotlin class is  foo.HelloWorld, the command syntax will be:
+>./gradlew $name -PmainClass=foo.HelloWorldKt
+"""
+    classpath = sourceSets.test.runtimeClasspath
+    description = """$name allows to profile a main class.
+It creates a jfr file (java flight recorder) containing profiling informations. 
+After task execution, you can analize jfr file with JMC utility (Oracle Java Mission Control).
+
+$usage
+"""
+    ignoreExitValue = true
+    doFirst {
+        if (project.hasProperty("mainClass")) {
+            main = project.mainClass
+            String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
+            File rpgProgramFile = new File(project.mainClass.substring(project.mainClass.lastIndexOf(".") + 1))
+            File jfrPath =  new File(buildDir.path, "jfr/$timestamp-${rpgProgramFile.name}.jfr")
+            if (!jfrPath.getParentFile().exists()) {
+                jfrPath.getParentFile().mkdirs()
+            }
+            jvmArgs "-XX:+UnlockCommercialFeatures",
+                    "-XX:+FlightRecorder",
+                    "-XX:StartFlightRecording=duration=100s,filename=${jfrPath.path}",
+                    "-XX:FlightRecorderOptions=${project.FlightRecorderOptions}",
+                    "-XX:+UnlockDiagnosticVMOptions",
+                    "-XX:+DebugNonSafepoints"
+        }
+        else {
+            String messageError = """Missing parameter mainClass.
+${usage} 
+Type: ./gradlew help --task $name
+for further informations."""
+            throw new IllegalArgumentException(messageError)
+        }
+    }
+}
