@@ -9,44 +9,37 @@ import java.util.*
 
 internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, padChar: Char = ' '): StringValue {
     fun signumChar(empty: Boolean) = (if (this.value < ZERO) "-" else if (empty) "" else " ")
-
     fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
     fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
-
-    fun nrOfPunctuationsIn(t: NumberType): Int {
-        return commas(t) + points(t)
-    }
+    fun nrOfPunctuationsIn(t: NumberType): Int = commas(t) + points(t)
 
     fun decimalPattern(type: NumberType) = buildString {
         append("#,###")
         append(decimalsFormatString(type))
     }
 
-    fun italianDecimalFormat(type: NumberType) =
-        DecimalFormat(decimalPattern(type), DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
-
-    fun usDecimalFormat(type: NumberType) =
-        DecimalFormat(decimalPattern(type), DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+    fun standardDecimalFormat(type: NumberType, locale: Locale) =
+        DecimalFormat(decimalPattern(type), DecimalFormatSymbols(locale)).format(this.value.abs())
 
     // The functions below correspond to the EDITC parameter, one function per value
     fun f1(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
             "," -> {
-                italianDecimalFormat(type).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                standardDecimalFormat(type, Locale.ITALIAN).padStart(type.size + nrOfPunctuationsIn(type), padChar)
             }
             "0," -> {
                 if (this.value.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
-                        append(italianDecimalFormat(type))
+                        append(standardDecimalFormat(type, Locale.ITALIAN))
                     }.padStart(type.size + nrOfPunctuationsIn(type), padChar)
                 } else {
-                    italianDecimalFormat(type).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    standardDecimalFormat(type, Locale.ITALIAN).padStart(type.size + nrOfPunctuationsIn(type), padChar)
                 }
             }
             else -> {
-                usDecimalFormat(type).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                standardDecimalFormat(type, Locale.US).padStart(type.size + nrOfPunctuationsIn(type), padChar)
             }
         }
     }
@@ -59,25 +52,25 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
         }
     }
 
-    fun italianDecimalformat2(type: NumberType) =
+    fun italianDecimalformatWithNoThounsandsSeparator(type: NumberType) =
         DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
 
     fun f3(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
             "," -> {
-                italianDecimalformat2(type)
+                italianDecimalformatWithNoThounsandsSeparator(type)
                     .padStart(type.size + points(type), padChar)
             }
             "0," -> {
                 if (this.value.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
-                        append(italianDecimalFormat(type))
+                        append(standardDecimalFormat(type, Locale.ITALIAN))
                     }
                     .padStart(type.size + points(type), padChar)
                 } else {
-                    italianDecimalformat2(type)
+                    italianDecimalformatWithNoThounsandsSeparator(type)
                         .padStart(type.size + points(type), padChar)
                 }
             }
@@ -164,7 +157,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
     fun fX(decedit: String) = handleInitialZero(decedit).padStart(type.size, '0')
 
     fun fZ(decedit: String) = handleInitialZero(decedit).padStart(type.size)
-
+        
     return when (format) {
         "1" -> StringValue(f1(decedit))
         "2" -> StringValue(f2(decedit))
@@ -252,10 +245,5 @@ fun decimalsFormatString(t: NumberType) =
             append("".padEnd(t.decimalDigits, '0'))
         }
 
-private fun intPartFormatString(t: NumberType) = "".padEnd(t.entireDigits, '0')
-fun DecimalValue.intPartString(t: NumberType): String = DecimalFormat(intPartFormatString(t)).format(this.value)
-private fun fullDigitsFormatString(t: NumberType) = intPartFormatString(t) + decimalsFormatString(t)
-fun DecimalValue.wholeNumberAsString(t: NumberType): String = DecimalFormat(fullDigitsFormatString(t)).format(this.value)
-fun DecimalValue.wholeNumberAsStringJustDigits(t: NumberType): String = wholeNumberAsString(t).filter(Char::isDigit)
 fun DecimalValue.significantDigitsAsStringJustDigits(t: NumberType): String = significantDigitsAsString(t).filter(Char::isDigit)
 fun DecimalValue.significantDigitsAsString(t: NumberType): String = DecimalFormat(decimalsFormatString(t)).format(this.value)
