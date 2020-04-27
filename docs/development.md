@@ -90,7 +90,7 @@ of RPG program interpretation, jfr file path will be showed in console.
 This feature allows to evaluate bottlenecks, and improve jariko performance.  
 Usage:
 ```
-./gradlew gradlew profileRpgProgram -PrpgProgram=path_to_rpg_program
+./gradlew profileRpgProgram -PrpgProgram=path_to_rpg_program
 ```
 
 
