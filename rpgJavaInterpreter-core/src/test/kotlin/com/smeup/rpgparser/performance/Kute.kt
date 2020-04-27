@@ -1,77 +1,40 @@
+package com.smeup.rpgparser.performance
+
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import java.nio.charset.Charset
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-/**
-    Kute10_53.kt is the "hybrid" way to perform the similar MUTE10_53.rpgle DO loop code.
+open class Kute {
 
-    - (MUTE10_53.rpgle)
-        C                   DO        10000000
-        C                   ENDDO
+    private val localizationContext: LocalizationContext = LocalizationContext()
+    var globalSymbolTable = SymbolTable()
 
-    - (Kute10_53.kt)
-        while (myIterValue <= endLimit()) {
-            try {
-                // nothing to do here
-            } catch (e: IterException) {
-                // nothing to do here
+    fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
+            if (downward) {
+                isEqualOrGreater(index, end, localizationContext.charset)
+            } else {
+                isEqualOrSmaller(index, end, localizationContext.charset)
             }
-            loopCounter++
-            myIterValue++
+
+    fun step(byValue: Expression, downward: Boolean): Long {
+        val sign = if (downward) {
+            -1
+        } else {
+            1
         }
-
-    "Hybrid" means it uses both Kotlin technology and the Jariko intepreter implementation, so, for example
-    the increment of the variable checked for each iteration is done using "EvalStmt" (not simply the plus "+" operator)
-    and the value of the variable is stored (read/write) in globalSymbolTable (SymbolTable) Map.
-    This approach should be useful for developer to be more efficient to develop/debug code due to
-    performance tuning, in a more concise developing environment.
-
- */
-
-class Kute10_53 {
-
-    private val charset = Charset.forName("Cp037")
-    private var globalSymbolTable = SymbolTable()
-    private val expectedElapsedTimeInMillisec = 83L
-    private var loopCounter = 0L
-
-    public fun performanceComparing(): Array<String> {
-
-        val intLiteral = IntLiteral(1)
-        val endLimitExpression = IntLiteral(10000000)
-        val endLimit: () -> Long = optimizedIntExpression(endLimitExpression)
-
-        val actualElapsedTimeInMillisec = measureTimeMillis {
-            // 'DO' implementation
-            doExec(intLiteral, endLimit)
-        }
-
-        // Results
-        var message1 = "Expected execution of ${endLimitExpression.value} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
-        assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message1)
-        var message2 = "Expected execution of ${endLimitExpression.value} iterations, actual is $loopCounter iterations."
-        assertEquals(endLimitExpression.value, loopCounter, message2)
-
-        return arrayOf(message1, message2)
+        return eval(byValue).asInt().value * sign
     }
 
-    private fun doExec(intLiteral: IntLiteral, endLimit: () -> Long) {
-        var myIterValue = eval(intLiteral).asInt().value
-        while (myIterValue <= endLimit()) {
-            try {
-                // nothing to do here
-            } catch (e: IterException) {
-                // nothing to do here
-            }
-            loopCounter++
-            myIterValue++
+    fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
+        val value = this[dataDefinition]
+        if (value is IntValue) {
+            this[dataDefinition] = IntValue(value.value + amount)
+        } else {
+            throw UnsupportedOperationException()
         }
     }
 
-    private fun optimizedIntExpression(expression: Expression): () -> Long =
+    fun optimizedIntExpression(expression: Expression): () -> Long =
             if (expression is IntLiteral || expression is FigurativeConstantRef) {
                 val constValue = eval(expression).asInt().value
                 { constValue }
@@ -79,7 +42,7 @@ class Kute10_53 {
                 { eval(expression).asInt().value }
             }
 
-    private fun eval(expression: Expression): Value {
+    fun eval(expression: Expression): Value {
         return when (expression) {
             is AssignmentExpr -> {
                 assign(expression.target, expression.value)
@@ -88,30 +51,50 @@ class Kute10_53 {
         }
     }
 
-    private fun assign(target: AssignableExpression, value: Expression, operator: AssignmentOperator = NORMAL_ASSIGNMENT): Value {
+    fun assign(target: AssignableExpression, value: Expression, operator: AssignmentOperator = NORMAL_ASSIGNMENT): Value {
         return when (operator) {
-        NORMAL_ASSIGNMENT -> assign(target, eval(value))
-        PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
-        MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
-        MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
-        DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
-        EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
+            NORMAL_ASSIGNMENT -> assign(target, eval(value))
+            PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
+            MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
+            MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
+            DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
+            EXP_ASSIGNMENT -> assign(target, eval(ExpExpr(target, value)))
         }
     }
 
-    private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
+    fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
         return coercedValue
     }
 
-    private fun assign(target: AssignableExpression, value: Value): Value {
+    fun assign(target: AssignableExpression, value: Value): Value {
         when (target) {
             is DataRefExpr -> {
                 return assign(target.variable.referred!!, value)
             }
             else -> TODO(target.toString())
         }
+    }
+
+    fun assignEachElement(target: AssignableExpression, value: Value): Value {
+        val arrayType = target.type().asArray()
+        return assign(target, value.toArray(arrayType.nElements, arrayType.element))
+    }
+
+    fun assignEachElement(
+        target: AssignableExpression,
+        value: Expression,
+        operator: AssignmentOperator = NORMAL_ASSIGNMENT
+    ): Value {
+    return when (operator) {
+        NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
+        PLUS_ASSIGNMENT -> assignEachElement(target, eval(PlusExpr(target, value)))
+        MINUS_ASSIGNMENT -> assignEachElement(target, eval(MinusExpr(target, value)))
+        MULT_ASSIGNMENT -> assignEachElement(target, eval(MultExpr(target, value)))
+        DIVIDE_ASSIGNMENT -> assignEachElement(target, eval(DivExpr(target, value)))
+        EXP_ASSIGNMENT -> assignEachElement(target, eval(ExpExpr(target, value)))
+    }
     }
 
     private fun interpret(expression: Expression): Value {
@@ -131,7 +114,12 @@ class Kute10_53 {
             is LessThanExpr -> {
                 val left = interpret(expression.left)
                 val right = interpret(expression.right)
-                return isSmallerThan(left, right, charset).asValue()
+                return isSmallerThan(left, right, localizationContext.charset).asValue()
+            }
+            is EqualityExpr -> {
+                val left = interpret(expression.left)
+                val right = interpret(expression.right)
+                return areEquals(left, right).asValue()
             }
             is PlusExpr -> {
                 val left = interpret(expression.left)
@@ -153,6 +141,21 @@ class Kute10_53 {
             }
             else -> TODO(expression.toString())
         }
+    }
+
+    fun execute(statement: EvalStmt) {
+        val result = if (statement.target.type().isArray() &&
+                statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
+            assignEachElement(statement.target, statement.expression, statement.operator)
+        } else {
+            assign(statement.target, statement.expression, statement.operator)
+        }
+    }
+
+    inline fun measureTimeMillis(block: () -> Unit): Long {
+        val start = System.currentTimeMillis()
+        block()
+        return System.currentTimeMillis() - start
     }
 
     operator fun get(data: AbstractDataDefinition): Value {
@@ -213,14 +216,4 @@ class Kute10_53 {
             }
         }
     }
-
-    private inline fun measureTimeMillis(block: () -> Unit): Long {
-        val start = System.currentTimeMillis()
-        block()
-        return System.currentTimeMillis() - start
-    }
-}
-
-fun main(args: Array<String>) {
-    Kute10_53().performanceComparing().forEach { println(it) }
 }
