@@ -13,29 +13,24 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
     fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
     fun nrOfPunctuationsIn(t: NumberType): Int = commas(t) + points(t)
 
-    fun decimalPattern(type: NumberType) = buildString {
-        append("#,###")
-        append(decimalsFormatString(type))
-    }
-
     fun standardDecimalFormat(type: NumberType, locale: Locale) =
-        DecimalFormat(decimalPattern(type), DecimalFormatSymbols(locale)).format(this.value.abs())
+        DecimalFormat(decimalPattern(type), DecimalFormatSymbolsRepository.getSymbols(locale)).format(this.value.abs())
 
     // The functions below correspond to the EDITC parameter, one function per value
     fun f1(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
             "," -> {
-                standardDecimalFormat(type, Locale.ITALIAN).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                standardDecimalFormat(type, Locale.ITALY).padStart(type.size + nrOfPunctuationsIn(type), padChar)
             }
             "0," -> {
                 if (this.value.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
-                        append(standardDecimalFormat(type, Locale.ITALIAN))
+                        append(standardDecimalFormat(type, Locale.ITALY))
                     }.padStart(type.size + nrOfPunctuationsIn(type), padChar)
                 } else {
-                    standardDecimalFormat(type, Locale.ITALIAN).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    standardDecimalFormat(type, Locale.ITALY).padStart(type.size + nrOfPunctuationsIn(type), padChar)
                 }
             }
             else -> {
@@ -53,7 +48,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
     }
 
     fun italianDecimalformatWithNoThounsandsSeparator(type: NumberType) =
-        DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbols(Locale.ITALIAN)).format(this.value.abs())
+        DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.italianSymbols).format(this.value.abs())
 
     fun f3(decedit: String): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
@@ -66,7 +61,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
                 if (this.value.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
-                        append(standardDecimalFormat(type, Locale.ITALIAN))
+                        append(standardDecimalFormat(type, Locale.ITALY))
                     }
                     .padStart(type.size + points(type), padChar)
                 } else {
@@ -78,7 +73,8 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
                 DecimalFormat(buildString {
                     append("#")
                     append(decimalsFormatString(type))
-                }, DecimalFormatSymbols(Locale.US)).format(this.value.abs())
+                }, DecimalFormatSymbolsRepository.usSymbols)
+                    .format(this.value.abs())
                     .padStart(type.size + points(type), padChar)
             }
         }
@@ -157,7 +153,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: String, 
     fun fX(decedit: String) = handleInitialZero(decedit).padStart(type.size, '0')
 
     fun fZ(decedit: String) = handleInitialZero(decedit).padStart(type.size)
-        
+
     return when (format) {
         "1" -> StringValue(f1(decedit))
         "2" -> StringValue(f2(decedit))
@@ -237,13 +233,30 @@ internal fun DecimalValue.formatAsWord(format: String, type: Type): StringValue 
     return StringValue(result)
 }
 
-fun decimalsFormatString(t: NumberType) =
-        if (t.decimalDigits == 0) {
-            ""
-        } else buildString {
-            append(".")
-            append("".padEnd(t.decimalDigits, '0'))
+object DecimalFormatSymbolsRepository {
+    val italianSymbols = DecimalFormatSymbols(Locale.ITALY)
+    val usSymbols = DecimalFormatSymbols(Locale.US)
+    fun getSymbols(locale: Locale): DecimalFormatSymbols {
+        return when (locale) {
+            Locale.ITALY -> italianSymbols
+            Locale.US -> usSymbols
+            else -> DecimalFormatSymbols(locale)
         }
+    }
+}
+
+private fun decimalPattern(type: NumberType) = buildString {
+    append("#,###")
+    append(decimalsFormatString(type))
+}
+
+fun decimalsFormatString(t: NumberType) =
+    if (t.decimalDigits == 0) {
+        ""
+    } else buildString {
+        append(".")
+        append("".padEnd(t.decimalDigits, '0'))
+    }
 
 fun DecimalValue.significantDigitsAsStringJustDigits(t: NumberType): String = significantDigitsAsString(t).filter(Char::isDigit)
 fun DecimalValue.significantDigitsAsString(t: NumberType): String = DecimalFormat(decimalsFormatString(t)).format(this.value)
