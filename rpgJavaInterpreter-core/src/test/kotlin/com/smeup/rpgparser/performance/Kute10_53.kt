@@ -36,7 +36,7 @@ class Kute10_53 : Kute() {
     private val expectedElapsedTimeInMillisec = 68L
     private var loopCounter = 0L
 
-    fun performanceComparing(): Array<String>{
+    fun performanceComparing(): Array<String> {
         return performanceComparing(false)
     }
 

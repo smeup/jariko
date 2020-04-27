@@ -4,7 +4,6 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.strumenta.kolasu.model.ReferenceByName
-import java.lang.Thread.yield
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
