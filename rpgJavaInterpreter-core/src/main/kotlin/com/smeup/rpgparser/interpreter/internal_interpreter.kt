@@ -1051,12 +1051,15 @@ class InternalInterpreter(
     }
 
     private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
-        val value = this[dataDefinition]
-        if (value is IntValue) {
-            globalSymbolTable[dataDefinition] = IntValue(value.value + amount)
-        } else {
-            TODO("Incrementing of ${value.javaClass}")
-        }
+//        This is the good implementation...
+//        val value = this[dataDefinition]
+//        if (value is IntValue) {
+//            globalSymbolTable[dataDefinition] = IntValue(value.value + amount)
+//        } else {
+//            TODO("Incrementing of ${value.javaClass}")
+//        }
+//      This is the ugly one, eve if it's a bit faster
+        (globalSymbolTable[dataDefinition] as IntValue).inPlaceIncrement(amount)
     }
 
     private fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")

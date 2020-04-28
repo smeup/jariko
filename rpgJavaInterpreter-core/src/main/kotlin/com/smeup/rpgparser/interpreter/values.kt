@@ -198,7 +198,7 @@ fun sortA(value: Value, charset: Charset) {
     }
 }
 
-data class IntValue(val value: Long) : NumberValue() {
+data class IntValue(var value: Long) : NumberValue() {
     override val bigDecimal: BigDecimal
         get() = BigDecimal(value)
 
@@ -217,9 +217,12 @@ data class IntValue(val value: Long) : NumberValue() {
 
     override fun asInt() = this
     // TODO Verify conversion
-    override fun asDecimal(): DecimalValue = DecimalValue(BigDecimal(value))
+    override fun asDecimal(): DecimalValue = DecimalValue(bigDecimal)
 
-    fun increment() = IntValue(value + 1)
+    // TODO Too bad! Just for performance issues :-(
+    fun inPlaceIncrement(increment: Long = 1) {
+        value += increment
+    }
 
     override fun takeFirst(n: Int): Value {
         return IntValue(firstDigits(value, n))
