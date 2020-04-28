@@ -40,7 +40,11 @@ class Kute10_54 : Kute() {
     private val expectedElapsedTimeInMillisec = 306L
     private var loopCounter = 0L
 
-    public fun performanceComparing(): Array<String> {
+    fun performanceComparing(): Array<String> {
+        return performanceComparing(false)
+    }
+
+    fun performanceComparing(doAsserts: Boolean): Array<String> {
 
         // The variable name, 'X' instead of '$X' due to Kotlin syntax
         val name = "X"
@@ -52,7 +56,7 @@ class Kute10_54 : Kute() {
         var init = AssignmentExpr(initDataRefExpr, intLiteral, null)
 
         // Store the variable
-        globalSymbolTable[referred] = IntValue.ZERO.asInt()
+        globalSymbolTable[referred] = IntValue.ONE.asInt()
 
         // Create the ForStmt (similar to 'toAst' does)
         val endValue = IntLiteral(10000000)
@@ -68,10 +72,12 @@ class Kute10_54 : Kute() {
         }
 
         // Results
-        var message1 = "Expected execution of ${eval(statement.endValue).asInt()} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
-        assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message1)
-        var message2 = "Expected execution of ${eval(statement.endValue).asInt()} iterations, actual is $loopCounter iterations."
-        assertEquals(eval(statement.endValue).asInt(), loopCounter.asValue().asInt(), message2)
+        var message1 = "Expected execution of ${eval(statement.endValue).asInt()} iterations, actual is $loopCounter iterations."
+        var message2 = "Expected execution of ${eval(statement.endValue).asInt()} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
+        if (doAsserts) {
+            assertEquals(eval(statement.endValue).asInt(), loopCounter.asValue().asInt(), message1)
+            assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message2)
+        }
 
         return arrayOf(message1, message2)
     }

@@ -36,7 +36,11 @@ class Kute10_53 : Kute() {
     private val expectedElapsedTimeInMillisec = 68L
     private var loopCounter = 0L
 
-    public fun performanceComparing(): Array<String> {
+    fun performanceComparing(): Array<String> {
+        return performanceComparing(false)
+    }
+
+    fun performanceComparing(doAsserts: Boolean): Array<String> {
         val intLiteral = IntLiteral(1)
         val endLimitExpression = IntLiteral(10000000)
         val endLimit: () -> Long = optimizedIntExpression(endLimitExpression)
@@ -47,10 +51,12 @@ class Kute10_53 : Kute() {
         }
 
         // Results
-        var message1 = "Expected execution of ${endLimitExpression.value} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
-        assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message1)
-        var message2 = "Expected execution of ${endLimitExpression.value} iterations, actual is $loopCounter iterations."
-        assertEquals(endLimitExpression.value, loopCounter, message2)
+        var message1 = "Expected execution of ${endLimitExpression.value} iterations, actual is $loopCounter iterations."
+        var message2 = "Expected execution of ${endLimitExpression.value} iterations ($loopCounter done) takes less or same to $expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms."
+        if (doAsserts) {
+            assertEquals(endLimitExpression.value, loopCounter, message1)
+            assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message2)
+        }
 
         return arrayOf(message1, message2)
     }

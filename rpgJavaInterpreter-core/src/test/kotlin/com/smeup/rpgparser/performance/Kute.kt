@@ -109,7 +109,7 @@ open class Kute {
             is IntLiteral -> IntValue(expression.value)
             is DataRefExpr -> get(
                     expression.variable.referred
-                            ?: throw IllegalStateException("[Kute10_53] Unsolved reference ${expression.variable.name} at ${expression.position}")
+                            ?: throw IllegalStateException("[Kute] Unsolved reference ${expression.variable.name} at ${expression.position}")
             )
             is LessThanExpr -> {
                 val left = interpret(expression.left)
