@@ -199,9 +199,6 @@ fun sortA(value: Value, charset: Charset) {
 }
 
 data class IntValue(val value: Long) : NumberValue() {
-
-    private val internalValue = BigDecimal(value)
-
     override val bigDecimal: BigDecimal
         get() = BigDecimal(value)
 
@@ -220,7 +217,7 @@ data class IntValue(val value: Long) : NumberValue() {
 
     override fun asInt() = this
     // TODO Verify conversion
-    override fun asDecimal(): DecimalValue = DecimalValue(internalValue)
+    override fun asDecimal(): DecimalValue = DecimalValue(BigDecimal(value))
 
     fun increment() = IntValue(value + 1)
 
