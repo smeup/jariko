@@ -1053,9 +1053,9 @@ class InternalInterpreter(
     private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
         val value = this[dataDefinition]
         if (value is IntValue) {
-            this[dataDefinition] = IntValue(value.value + amount)
+            globalSymbolTable[dataDefinition] = IntValue(value.value + amount)
         } else {
-            throw UnsupportedOperationException()
+            TODO("Incrementing of ${value.javaClass}")
         }
     }
 
