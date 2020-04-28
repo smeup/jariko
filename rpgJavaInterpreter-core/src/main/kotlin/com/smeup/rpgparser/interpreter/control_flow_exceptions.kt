@@ -28,8 +28,7 @@ class InterpreterTimeoutException(val programName: String, val elapsed: Long, va
             try {
                 val file = File(this)
                 println("Printing results to $this")
-                val filExi = file.exists()
-                if (!filExi) {
+                if (!file.exists()) {
                     file.appendText("Program Name;Elapsed;Expected;Ratio\n")
                 }
                 file.appendText("$programName;$elapsed;$expected;${ratio()}\n")
