@@ -663,8 +663,8 @@ class InternalInterpreter(
                             increment(iterVar, step(statement.byValue, statement.downward))
                             loopCounter++
                         }
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             ForStatementExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -674,8 +674,8 @@ class InternalInterpreter(
                         }
                     } catch (e: LeaveException) {
                         // leaving
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             ForStatementExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -703,8 +703,8 @@ class InternalInterpreter(
                                 loopCounter++
                                 myIterValue++
                             }
-                            val elapsed = currentTimeMillis() - startTime
                             log {
+                                val elapsed = currentTimeMillis() - startTime
                                 DoStatemenExecutionLogEnd(
                                     this.interpretationContext.currentProgramName,
                                     statement,
@@ -714,8 +714,8 @@ class InternalInterpreter(
                             }
                         } catch (e: LeaveException) {
                             // nothing to do here
-                            val elapsed = currentTimeMillis() - startTime
                             log {
+                                val elapsed = currentTimeMillis() - startTime
                                 DoStatemenExecutionLogEnd(
                                     this.interpretationContext.currentProgramName,
                                     statement,
@@ -750,8 +750,8 @@ class InternalInterpreter(
                             execute(statement.body)
                             loopCounter++
                         }
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             DowStatemenExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -760,8 +760,8 @@ class InternalInterpreter(
                             )
                         }
                     } catch (e: LeaveException) {
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             DowStatemenExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -780,8 +780,8 @@ class InternalInterpreter(
                             execute(statement.body)
                             loopCounter++
                         } while (!eval(statement.endExpression).asBoolean().value)
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             DouStatemenExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -790,8 +790,8 @@ class InternalInterpreter(
                             )
                         }
                     } catch (e: LeaveException) {
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             DouStatemenExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
