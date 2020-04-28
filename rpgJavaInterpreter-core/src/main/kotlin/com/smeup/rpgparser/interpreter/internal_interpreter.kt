@@ -650,22 +650,17 @@ class InternalInterpreter(
                     val startTime = currentTimeMillis()
 
                     eval(statement.init)
-
+                    val iterVar = statement.iterDataDefinition()
                     try {
                         log { ForStatementExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                        while (enterCondition(
-                                        this[statement.iterDataDefinition()],
-                                        eval(statement.endValue),
-                                        statement.downward
-                                )
-                        ) {
+                        while (enterCondition(this[iterVar], eval(statement.endValue), statement.downward)) {
                             try {
                                 execute(statement.body)
                             } catch (e: IterException) {
                                 // nothing to do here
                             }
 
-                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
+                            increment(iterVar, step(statement.byValue, statement.downward))
                             loopCounter++
                         }
                         val elapsed = currentTimeMillis() - startTime
