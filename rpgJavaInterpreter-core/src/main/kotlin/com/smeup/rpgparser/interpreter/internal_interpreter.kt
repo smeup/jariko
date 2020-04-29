@@ -1052,8 +1052,8 @@ class InternalInterpreter(
 
     private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1): Value {
         val value = this[dataDefinition]
-        if (value is IntValue) {
-            val newValue = IntValue(value.value + amount)
+        if (value is NumberValue) {
+            val newValue = value.increment(amount)
             globalSymbolTable[dataDefinition] = newValue
             return newValue
         } else {
@@ -1222,7 +1222,12 @@ class InternalInterpreter(
                     assign(target, eval(value))
                 }
             }
-            PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
+            PLUS_ASSIGNMENT ->
+                if (target is DataRefExpr && value is IntLiteral) {
+                    increment(target.variable.referred!!, value.value)
+                } else {
+                    assign(target, eval(PlusExpr(target, value)))
+                }
             MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))

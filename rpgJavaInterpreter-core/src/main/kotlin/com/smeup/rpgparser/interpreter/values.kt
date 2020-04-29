@@ -40,6 +40,8 @@ abstract class NumberValue : Value() {
     fun isNegative(): Boolean = bigDecimal < BigDecimal.ZERO
     fun abs(): NumberValue = if (isNegative()) negate() else this
     abstract fun negate(): NumberValue
+    abstract fun increment(amount: Long): NumberValue
+
     abstract val bigDecimal: BigDecimal
 }
 
@@ -203,6 +205,7 @@ data class IntValue(var value: Long) : NumberValue() {
         get() = BigDecimal(value)
 
     override fun negate(): NumberValue = IntValue(-value)
+    override fun increment(amount: Long): NumberValue = IntValue(value + amount)
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
@@ -281,6 +284,8 @@ data class DecimalValue(val value: BigDecimal) : NumberValue() {
         get() = value
 
     override fun negate(): NumberValue = DecimalValue(-value)
+
+    override fun increment(amount: Long): NumberValue = DecimalValue(value.add(BigDecimal(amount)))
 
     override fun asInt(): IntValue = IntValue(value.toLong())
 
