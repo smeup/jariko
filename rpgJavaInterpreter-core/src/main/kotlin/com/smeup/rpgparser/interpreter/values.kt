@@ -219,11 +219,6 @@ data class IntValue(var value: Long) : NumberValue() {
     // TODO Verify conversion
     override fun asDecimal(): DecimalValue = DecimalValue(bigDecimal)
 
-    // TODO Too bad! Just for performance issues :-(
-    fun inPlaceIncrement(increment: Long = 1) {
-        value += increment
-    }
-
     override fun takeFirst(n: Int): Value {
         return IntValue(firstDigits(value, n))
     }
