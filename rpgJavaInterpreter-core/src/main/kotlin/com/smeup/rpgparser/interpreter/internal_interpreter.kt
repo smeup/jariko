@@ -1050,10 +1050,12 @@ class InternalInterpreter(
         return eval(byValue).asInt().value * sign
     }
 
-    private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
+    private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1): Value {
         val value = this[dataDefinition]
         if (value is IntValue) {
-            globalSymbolTable[dataDefinition] = IntValue(value.value + amount)
+            val newValue = IntValue(value.value + amount)
+            globalSymbolTable[dataDefinition] = newValue
+            return newValue
         } else {
             TODO("Incrementing of ${value.javaClass}")
         }
@@ -1212,7 +1214,14 @@ class InternalInterpreter(
         operator: AssignmentOperator = NORMAL_ASSIGNMENT
     ): Value {
         return when (operator) {
-            NORMAL_ASSIGNMENT -> assign(target, eval(value))
+            NORMAL_ASSIGNMENT -> {
+                if (target is DataRefExpr && value is PlusExpr && value.left.render() == target.render() && value.right is IntLiteral) {
+                    val amount = (value.right as IntLiteral).value
+                    increment(target.variable.referred!!, amount)
+                } else {
+                    assign(target, eval(value))
+                }
+            }
             PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
             MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
