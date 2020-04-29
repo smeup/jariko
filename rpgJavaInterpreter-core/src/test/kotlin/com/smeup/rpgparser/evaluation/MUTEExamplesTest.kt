@@ -336,7 +336,7 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     // DOU (loop of 10000000 iterations with increment of a numeric var)
-    fun execute() {
+    fun executeMUTE10_56() {
         assertMuteOK("MUTE10_56")
     }
 
