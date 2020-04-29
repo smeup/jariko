@@ -42,7 +42,7 @@ class ArraySearchingParameters(
             Pair(zeroBasedStartingIndex..lastIndex, 0..zeroBasedStartingIndex - 1)
         }
         searchIn(indices, searchedArray, valueToSearch, foundIndexes)
-        if (withRightIndicators.eq != null && foundIndexes.eq === -1 && (zeroBasedStartingIndex == 1 || zeroBasedStartingIndex == lastIndex)) {
+        if (withRightIndicators.eq != null && foundIndexes.eq == -1 && (zeroBasedStartingIndex == 1 || zeroBasedStartingIndex == lastIndex)) {
             searchIn(remainingIndices, searchedArray, valueToSearch, foundIndexes)
         }
         return if (!foundIndexes.found()) NotFound else FoundAtIndex(
