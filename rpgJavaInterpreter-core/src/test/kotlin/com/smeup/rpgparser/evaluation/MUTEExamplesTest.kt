@@ -4,10 +4,7 @@ import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.mute.executeMuteAnnotations
-import com.smeup.rpgparser.performance.Kute10_53
-import com.smeup.rpgparser.performance.Kute10_54
-import com.smeup.rpgparser.performance.Kute10_55
-import com.smeup.rpgparser.performance.Kute10_56
+import com.smeup.rpgparser.performance.*
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import kotlin.test.assertEquals
@@ -365,6 +362,13 @@ class MUTEExamplesTest {
     // DOU (expected 81ms. to perform a loop of 10000000 iterations with increment of a numeric var, as MUTE10_56.rpgle)
     fun executeKute10_56() {
         val kute = Kute10_56()
+        kute.performanceComparing(true)
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // CAT (expected 150ms. to perform a loop of 10000000 iterations with conCATenation of two strings as MUTE10_50.rpgle)
+    fun executeKute10_50() {
+        val kute = Kute10_50()
         kute.performanceComparing(true)
     }
 
