@@ -655,6 +655,10 @@ class InternalInterpreter(
                     val iterVar = statement.iterDataDefinition()
                     try {
                         log { ForStatementExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
+                        var step = eval(statement.byValue).asInt().value
+                        if (statement.downward) {
+                            step *= -1
+                        }
                         while (enterCondition(this[iterVar], eval(statement.endValue), statement.downward)) {
                             try {
                                 execute(statement.body)
@@ -662,7 +666,7 @@ class InternalInterpreter(
                                 // nothing to do here
                             }
 
-                            increment(iterVar, step(statement.byValue, statement.downward))
+                            increment(iterVar, step)
                             loopCounter++
                         }
                         log {

@@ -18,11 +18,11 @@ open class Kute {
 
     fun step(byValue: Expression, downward: Boolean): Long {
         val sign = if (downward) {
-            -1
+            return eval(byValue).asInt().value * -1
         } else {
-            1
+            return eval(byValue).asInt().value * 1
         }
-        return eval(byValue).asInt().value * sign
+
     }
 
     fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
