@@ -1,4 +1,5 @@
-``# Development
+# Development
+
 
 This document contains information for developers who want to contribute to the the project.
 
@@ -81,6 +82,18 @@ If you want to force the execution of all checks:
  com.esotericsoftware.kryo.KryoException: Buffer underflow
  ```
  _try to clean the .gradle directory_)
+ 
+## Profiling
+
+You can create a jfr file (java flight recorder) at the end
+of RPG program interpretation, jfr file path will be showed in console.  
+This feature allows to evaluate bottlenecks, and improve jariko performance.  
+Usage:
+```
+./gradlew profileRpgProgram -PrpgProgram=path_to_rpg_program
+```
+
+
 
 ## Creating a jar with all dependencies to run some examples
 

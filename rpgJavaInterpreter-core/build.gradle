@@ -218,7 +218,7 @@ $usage
             }
             boolean absolute = project.rpgProgram.matches("^\\w:.+|^/.+")
             if (absolute) {
-                args $project.rpgProgram
+                args "$project.rpgProgram"
             }
             else {
                 args "${rootDir.path}/$project.rpgProgram"

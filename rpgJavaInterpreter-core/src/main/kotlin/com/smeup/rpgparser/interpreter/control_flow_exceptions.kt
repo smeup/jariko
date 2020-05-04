@@ -17,10 +17,10 @@ class ReturnException(val returnValue: Value?) : ControlFlowException()
 class GotoException(val tag: String) : ControlFlowException()
 
 class InterpreterTimeoutException(val programName: String, val elapsed: Long, val expected: Long) : ControlFlowException() {
-    fun ratio(): Double = if (elapsed <= 0) 0.0 else expected.toDouble() / elapsed.toDouble()
+    fun ratio(): Double = if (elapsed <= 0) 0.0 else elapsed.toDouble() / expected.toDouble()
     override fun toString(): String {
         writeDataToCSV()
-        return "$programName TIMEOUT. Execution took $elapsed millis, but there was a $expected millis timeout. expected/elapsed ratio: ${ratio()}"
+        return "$programName TIMEOUT. Execution took $elapsed millis, but there was a $expected millis timeout. elapsed/expected ratio: ${ratio()}"
     }
 
     private fun writeDataToCSV() {
@@ -28,7 +28,10 @@ class InterpreterTimeoutException(val programName: String, val elapsed: Long, va
             try {
                 val file = File(this)
                 println("Printing results to $this")
-                file.appendText("$programName,$elapsed,$expected,${ratio()}\n")
+                if (!file.exists()) {
+                    file.appendText("Program Name;Elapsed;Expected;Ratio\n")
+                }
+                file.appendText("$programName;$elapsed;$expected;${ratio()}\n")
             } catch (e: Exception) {
                 System.err.println("Problems with csv file $this : $e")
             }

@@ -111,11 +111,13 @@ class InternalInterpreter(
                 }
             }
             else -> {
-                var previous: Value? = null
-                if (data.name in globalSymbolTable) {
-                    previous = globalSymbolTable[data.name]
+                log {
+                    var previous: Value? = null
+                    if (data.name in globalSymbolTable) {
+                        previous = globalSymbolTable[data.name]
+                    }
+                    AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous)
                 }
-                log { AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous) }
                 globalSymbolTable[data] = coerce(value, data.type)
             }
         }
@@ -650,26 +652,21 @@ class InternalInterpreter(
                     val startTime = currentTimeMillis()
 
                     eval(statement.init)
-
+                    val iterVar = statement.iterDataDefinition()
                     try {
                         log { ForStatementExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                        while (enterCondition(
-                                        this[statement.iterDataDefinition()],
-                                        eval(statement.endValue),
-                                        statement.downward
-                                )
-                        ) {
+                        while (enterCondition(this[iterVar], eval(statement.endValue), statement.downward)) {
                             try {
                                 execute(statement.body)
                             } catch (e: IterException) {
                                 // nothing to do here
                             }
 
-                            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
+                            increment(iterVar, step(statement.byValue, statement.downward))
                             loopCounter++
                         }
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             ForStatementExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -679,8 +676,8 @@ class InternalInterpreter(
                         }
                     } catch (e: LeaveException) {
                         // leaving
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             ForStatementExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -708,8 +705,8 @@ class InternalInterpreter(
                                 loopCounter++
                                 myIterValue++
                             }
-                            val elapsed = currentTimeMillis() - startTime
                             log {
+                                val elapsed = currentTimeMillis() - startTime
                                 DoStatemenExecutionLogEnd(
                                     this.interpretationContext.currentProgramName,
                                     statement,
@@ -719,8 +716,8 @@ class InternalInterpreter(
                             }
                         } catch (e: LeaveException) {
                             // nothing to do here
-                            val elapsed = currentTimeMillis() - startTime
                             log {
+                                val elapsed = currentTimeMillis() - startTime
                                 DoStatemenExecutionLogEnd(
                                     this.interpretationContext.currentProgramName,
                                     statement,
@@ -755,8 +752,8 @@ class InternalInterpreter(
                             execute(statement.body)
                             loopCounter++
                         }
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             DowStatemenExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -765,8 +762,8 @@ class InternalInterpreter(
                             )
                         }
                     } catch (e: LeaveException) {
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             DowStatemenExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -785,8 +782,8 @@ class InternalInterpreter(
                             execute(statement.body)
                             loopCounter++
                         } while (!eval(statement.endExpression).asBoolean().value)
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             DouStatemenExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -795,8 +792,8 @@ class InternalInterpreter(
                             )
                         }
                     } catch (e: LeaveException) {
-                        val elapsed = currentTimeMillis() - startTime
                         log {
+                            val elapsed = currentTimeMillis() - startTime
                             DouStatemenExecutionLogEnd(
                                 this.interpretationContext.currentProgramName,
                                 statement,
@@ -1055,12 +1052,14 @@ class InternalInterpreter(
         return eval(byValue).asInt().value * sign
     }
 
-    private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
+    private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1): Value {
         val value = this[dataDefinition]
-        if (value is IntValue) {
-            this[dataDefinition] = IntValue(value.value + amount)
+        if (value is NumberValue) {
+            val newValue = value.increment(amount)
+            globalSymbolTable[dataDefinition] = newValue
+            return newValue
         } else {
-            throw UnsupportedOperationException()
+            TODO("Incrementing of ${value.javaClass}")
         }
     }
 
@@ -1217,8 +1216,20 @@ class InternalInterpreter(
         operator: AssignmentOperator = NORMAL_ASSIGNMENT
     ): Value {
         return when (operator) {
-            NORMAL_ASSIGNMENT -> assign(target, eval(value))
-            PLUS_ASSIGNMENT -> assign(target, eval(PlusExpr(target, value)))
+            NORMAL_ASSIGNMENT -> {
+                if (target is DataRefExpr && value is PlusExpr && value.left.render() == target.render() && value.right is IntLiteral) {
+                    val amount = (value.right as IntLiteral).value
+                    increment(target.variable.referred!!, amount)
+                } else {
+                    assign(target, eval(value))
+                }
+            }
+            PLUS_ASSIGNMENT ->
+                if (target is DataRefExpr && value is IntLiteral) {
+                    increment(target.variable.referred!!, value.value)
+                } else {
+                    assign(target, eval(PlusExpr(target, value)))
+                }
             MINUS_ASSIGNMENT -> assign(target, eval(MinusExpr(target, value)))
             MULT_ASSIGNMENT -> assign(target, eval(MultExpr(target, value)))
             DIVIDE_ASSIGNMENT -> assign(target, eval(DivExpr(target, value)))
