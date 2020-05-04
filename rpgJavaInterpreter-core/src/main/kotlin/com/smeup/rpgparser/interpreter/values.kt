@@ -40,6 +40,8 @@ abstract class NumberValue : Value() {
     fun isNegative(): Boolean = bigDecimal < BigDecimal.ZERO
     fun abs(): NumberValue = if (isNegative()) negate() else this
     abstract fun negate(): NumberValue
+    abstract fun increment(amount: Long): NumberValue
+
     abstract val bigDecimal: BigDecimal
 }
 
@@ -198,14 +200,11 @@ fun sortA(value: Value, charset: Charset) {
     }
 }
 
-data class IntValue(val value: Long) : NumberValue() {
-
-    private val internalValue = BigDecimal(value)
-
-    override val bigDecimal: BigDecimal
-        get() = BigDecimal(value)
+data class IntValue(var value: Long) : NumberValue() {
+    override val bigDecimal: BigDecimal by lazy { BigDecimal(value) }
 
     override fun negate(): NumberValue = IntValue(-value)
+    override fun increment(amount: Long): NumberValue = IntValue(value + amount)
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
@@ -220,9 +219,7 @@ data class IntValue(val value: Long) : NumberValue() {
 
     override fun asInt() = this
     // TODO Verify conversion
-    override fun asDecimal(): DecimalValue = DecimalValue(internalValue)
-
-    fun increment() = IntValue(value + 1)
+    override fun asDecimal(): DecimalValue = DecimalValue(bigDecimal)
 
     override fun takeFirst(n: Int): Value {
         return IntValue(firstDigits(value, n))
@@ -286,6 +283,8 @@ data class DecimalValue(val value: BigDecimal) : NumberValue() {
         get() = value
 
     override fun negate(): NumberValue = DecimalValue(-value)
+
+    override fun increment(amount: Long): NumberValue = DecimalValue(value.add(BigDecimal(amount)))
 
     override fun asInt(): IntValue = IntValue(value.toLong())
 
