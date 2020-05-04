@@ -4,10 +4,7 @@ import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.mute.executeMuteAnnotations
-import com.smeup.rpgparser.performance.Kute10_53
-import com.smeup.rpgparser.performance.Kute10_54
-import com.smeup.rpgparser.performance.Kute10_55
-import com.smeup.rpgparser.performance.Kute10_56
+import com.smeup.rpgparser.performance.*
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import kotlin.test.assertEquals
@@ -336,7 +333,7 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     // DOU (loop of 10000000 iterations with increment of a numeric var)
-    fun execute() {
+    fun executeMUTE10_56() {
         assertMuteOK("MUTE10_56")
     }
 
@@ -344,28 +341,35 @@ class MUTEExamplesTest {
     // DO (expected 68ms. to perform an empty loop of 10000000 iterations, as MUTE10_53.rpgle)
     fun executeKute10_53() {
         val kute = Kute10_53()
-        kute.performanceComparing()
+        kute.performanceComparing(true)
     }
 
     @Test @Category(PerformanceTest::class)
     // FOR (expected 306ms. to perform an empty loop of 10000000 iterations, as MUTE10_54.rpgle)
     fun executeKute10_54() {
         val kute = Kute10_54()
-        kute.performanceComparing()
+        kute.performanceComparing(true)
     }
 
     @Test @Category(PerformanceTest::class)
     // DOW (expected 83ms. to perform a loop of 10000000 iterations with increment of a numeric var, as MUTE10_55.rpgle)
     fun executeKute10_55() {
         val kute = Kute10_55()
-        kute.performanceComparing()
+        kute.performanceComparing(true)
     }
 
     @Test @Category(PerformanceTest::class)
     // DOU (expected 81ms. to perform a loop of 10000000 iterations with increment of a numeric var, as MUTE10_56.rpgle)
     fun executeKute10_56() {
         val kute = Kute10_56()
-        kute.performanceComparing()
+        kute.performanceComparing(true)
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // CAT (expected 150ms. to perform a loop of 10000000 iterations with conCATenation of two strings as MUTE10_50.rpgle)
+    fun executeKute10_50() {
+        val kute = Kute10_50()
+        kute.performanceComparing(true)
     }
 
     private fun dummyProgramFinder() = DummyProgramFinder("/performance/")

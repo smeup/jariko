@@ -146,7 +146,7 @@ open class BaseCompileTimeInterpreter(
                     evaluateElementSizeOf(rContext, expression.variable.name)
                 } catch (e: NotFoundAtCompileTimeException) {
                     if (delegatedCompileTimeInterpreter != null) {
-                        return delegatedCompileTimeInterpreter!!.evaluateElementSizeOf(rContext, expression)
+                        return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression)
                     } else {
                         throw RuntimeException(e)
                     }
