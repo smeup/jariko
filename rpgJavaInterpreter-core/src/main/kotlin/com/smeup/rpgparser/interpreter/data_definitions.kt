@@ -74,7 +74,8 @@ data class DataDefinition(
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
-    override val position: Position? = null
+    override val position: Position? = null,
+    val hashCode: Int = name.hashCode()
 ) :
             AbstractDataDefinition(name, type, position) {
 
@@ -101,6 +102,10 @@ data class DataDefinition(
 
     fun getFieldByName(fieldName: String): FieldDefinition {
         return this.fields.find { it.name == fieldName } ?: throw java.lang.IllegalArgumentException("Field not found $fieldName")
+    }
+
+    override fun hashCode(): Int {
+        return hashCode
     }
 }
 
