@@ -24,7 +24,6 @@
       *
     MU* Type="NOXMI"
     MU* TIMEOUT(5500)
-    MU* VAL1(MSG) VAL2('') COMP(NE)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test CERCA

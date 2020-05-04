@@ -5,6 +5,9 @@
      V*=====================================================================
      V* 18/06/19  000908  CM Creato
      V* 19/06/19  V5R1    BMA Check-out 000908 in SMEDEV
+     V* 28/10/19  001213 BMA Aggiunta annotation TIMEOUT
+     V* 29/10/19  V5R1    BERNI Check-out 001213 in SMEDEV
+     V* 04/05/20  001855 BMA Tolte annotation di valutazione (non sensate in pgm performance)
      V*=====================================================================
      D* OBIETTIVO
      D*  Programma finalizzato ai test performance sugli array
@@ -52,7 +55,6 @@
      C                   ENDDO
      C                   TIME                    $TIMEN
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
-    MU* VAL1($TIMMS) VAL2(1300) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
       *
       * Ricerca
@@ -64,7 +66,6 @@
      C                   EVAL      $S=%LOOKUP('A01.780001':V1)
      C                   TIME                    $TIMEN
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
-    MU* VAL1($TIMMS) VAL2(0180) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
       *
       * Ordino
@@ -72,7 +73,6 @@
      C                   SORTA     V1
      C                   TIME                    $TIMEN
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
-    MU* VAL1($TIMMS) VAL2(1000) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
       *
       * Pulisco
@@ -80,7 +80,6 @@
      C                   EVAL      V1=''
      C                   TIME                    $TIMEN
      C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
-    MU* VAL1($TIMMS) VAL2(0080) COMP(LT)
      C                   EVAL      $TIMMS=$TIMMS/1000
      C                   ENDSR
       *---------------------------------------------------------------------
