@@ -38,6 +38,7 @@ class Kute10_50 : Kute() {
 
     private val expectedElapsedTimeInMillisec = 150L
     private var loopCounter = 0L
+    private var expectedIterations = 10000000L
 
     fun performanceComparing(): Array<String> {
         return performanceComparing(false)
@@ -65,7 +66,7 @@ class Kute10_50 : Kute() {
 
         // Perform a pure kotlin loop
         var actualElapsedTimeInMillisec = measureTimeMillis {
-            while (loopCounter < 1000000) {
+            while (loopCounter < expectedIterations) {
                 exec_CAT(statement)
                 loopCounter++
             }
@@ -75,13 +76,13 @@ class Kute10_50 : Kute() {
         var message2 = "(Kotlin pure loop) Expected execution of 10000000 iterations ($loopCounter done) takes less or same to " +
                 "$expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms. (CAT result is ${globalSymbolTable[resultRef].asString()})"
         if (doAsserts) {
-            assertEquals(10000000, loopCounter, message1)
+            assertEquals(expectedIterations, loopCounter, message1)
             assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message2)
         }
 
         // Perform a Jariko loop (DO statement)
         val intLiteral = IntLiteral(1)
-        val endLimitExpression = IntLiteral(10000000)
+        val endLimitExpression = IntLiteral(expectedIterations)
         val endLimit: () -> Long = optimizedIntExpression(endLimitExpression)
         actualElapsedTimeInMillisec = measureTimeMillis {
             // The Jariko 'DO' implementation
