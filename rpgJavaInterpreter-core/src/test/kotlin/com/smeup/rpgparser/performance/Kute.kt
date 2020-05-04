@@ -22,7 +22,6 @@ open class Kute {
         } else {
             return eval(byValue).asInt().value * 1
         }
-
     }
 
     fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1) {
