@@ -2,6 +2,7 @@ package com.smeup.rpgparser.overlay
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.executeAnnotations
+import com.smeup.rpgparser.interpreter.DecEdit
 import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.LocalizationContext
@@ -31,7 +32,7 @@ class RpgDeceditTest09 {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02_COMMA", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate(DummyDBInterface)
 
-        val localizationContext = LocalizationContext(decedit = ",")
+        val localizationContext = LocalizationContext(decedit = DecEdit.COMMA)
         val interpreter = InternalInterpreter(JavaSystemInterface(), localizationContext)
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
@@ -45,7 +46,7 @@ class RpgDeceditTest09 {
     fun parseMUTE09_02A() {
         val cu = assertASTCanBeProduced("overlay/MUTE09_02A", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate(DummyDBInterface)
-        val localizationContext = LocalizationContext(decedit = "0,")
+        val localizationContext = LocalizationContext(decedit = DecEdit.ZERO_COMMA)
         val interpreter = InternalInterpreter(JavaSystemInterface(), localizationContext)
         // Changes the default decedit
         interpreter.execute(cu, mapOf())

@@ -111,11 +111,13 @@ class InternalInterpreter(
                 }
             }
             else -> {
-                var previous: Value? = null
-                if (data.name in globalSymbolTable) {
-                    previous = globalSymbolTable[data.name]
+                log {
+                    var previous: Value? = null
+                    if (data.name in globalSymbolTable) {
+                        previous = globalSymbolTable[data.name]
+                    }
+                    AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous)
                 }
-                log { AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous) }
                 globalSymbolTable[data] = coerce(value, data.type)
             }
         }

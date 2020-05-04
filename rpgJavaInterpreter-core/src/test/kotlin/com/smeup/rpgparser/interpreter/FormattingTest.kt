@@ -11,6 +11,6 @@ class FormattingTest {
         val dv = DecimalValue(BigDecimal.valueOf(-9010.54897))
         assertEquals("9,010.548970",
                 dv.formatAs("1", NumberType(entireDigits = 4, decimalDigits = 6, rpgType = ""),
-                decedit = ".").value)
+                decedit = DecEdit.DOT).value)
     }
 }

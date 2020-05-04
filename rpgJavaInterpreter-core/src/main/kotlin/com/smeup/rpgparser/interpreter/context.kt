@@ -20,4 +20,11 @@ object DummyInterpretationContext : InterpretationContext {
     }
 }
 
-class LocalizationContext(val charset: Charset = Charset.forName("Cp037"), val decedit: String = ".")
+enum class DecEdit {
+    COMMA,
+    DOT,
+    ZERO_COMMA,
+    ZERO_DOT
+}
+
+class LocalizationContext(val charset: Charset = Charset.forName("Cp037"), val decedit: DecEdit = DecEdit.DOT)
