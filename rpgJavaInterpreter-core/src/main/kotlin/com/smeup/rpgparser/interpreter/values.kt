@@ -201,7 +201,8 @@ fun sortA(value: Value, charset: Charset) {
 }
 
 data class IntValue(var value: Long) : NumberValue() {
-    override val bigDecimal: BigDecimal by lazy { BigDecimal(value) }
+    override val bigDecimal: BigDecimal
+      get() = BigDecimal(value)
 
     override fun negate(): NumberValue = IntValue(-value)
     override fun increment(amount: Long): NumberValue = IntValue(value + amount)
