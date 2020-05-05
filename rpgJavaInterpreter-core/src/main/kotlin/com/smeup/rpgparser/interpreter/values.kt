@@ -1,9 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import java.lang.Exception
-import java.lang.RuntimeException
-import java.lang.StringBuilder
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
@@ -200,8 +197,9 @@ fun sortA(value: Value, charset: Charset) {
     }
 }
 
-data class IntValue(var value: Long) : NumberValue() {
-    override val bigDecimal: BigDecimal by lazy { BigDecimal(value) }
+data class IntValue(val value: Long) : NumberValue() {
+    override val bigDecimal: BigDecimal
+        get() = BigDecimal(value)
 
     override fun negate(): NumberValue = IntValue(-value)
     override fun increment(amount: Long): NumberValue = IntValue(value + amount)

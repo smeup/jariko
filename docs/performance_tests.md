@@ -22,6 +22,11 @@ To run performance tests (i.e. tests tagged with the annotation `@Category(Perfo
 ./gradlew testPerformance
 ```
 
+If you want to collect data about failed performance tests, run the task with:
+```
+./gradlew testPerformance -DexportCsvFile="/some/file.csv"
+```
+
 You can run all tests at the same time this way:
 ```
 ./gradlew testAll

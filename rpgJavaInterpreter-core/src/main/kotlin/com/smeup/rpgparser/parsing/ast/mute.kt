@@ -83,5 +83,17 @@ data class MuteFailAnnotationExecuted(
     override val result = BooleanValue.FALSE
 }
 
+/**
+ * The result of a passing Timeout mute annotation.
+ */
+data class MuteTimeoutAnnotationExecuted(
+    override val programName: String,
+    val timeout: Long,
+    val line: String
+) : MuteAnnotationExecuted() {
+    override fun headerDescription(): String = "Timeout $timeout - Line $line"
+    override val result = BooleanValue.TRUE
+}
+
 fun HashMap<Int, MuteAnnotationExecuted>.failed(): List<MuteAnnotationExecuted> =
     this.toSortedMap().filter { it.value.failed() }.map { it.value }
