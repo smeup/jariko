@@ -14,7 +14,7 @@ class MUTEExamplesTest {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_01() {
-        assertMuteOK("MUTE10_01", withOutput = emptyList())
+        assertMuteOK("MUTE10_01")
     }
 
     @Test @Category(PerformanceTest::class)
