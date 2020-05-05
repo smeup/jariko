@@ -320,7 +320,13 @@ class InternalInterpreter(
                     // Skip
                 }
                 is MuteTimeoutAnnotation -> {
-                    // Skip
+                    systemInterface.addExecutedAnnotation(
+                        it.position!!.start.line,
+                        MuteTimeoutAnnotationExecuted(
+                            this.interpretationContext.currentProgramName,
+                            it.timeout,
+                            line)
+                    )
                 }
                 is MuteFailAnnotation -> {
                     val message = it.message.evalWith(expressionEvaluation)
