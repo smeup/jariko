@@ -200,7 +200,7 @@ fun sortA(value: Value, charset: Charset) {
     }
 }
 
-data class IntValue(var value: Long) : NumberValue() {
+data class IntValue(val value: Long) : NumberValue() {
     override val bigDecimal: BigDecimal
       get() = BigDecimal(value)
 
