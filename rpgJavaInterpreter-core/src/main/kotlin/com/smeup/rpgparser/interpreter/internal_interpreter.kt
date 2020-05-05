@@ -270,7 +270,7 @@ class InternalInterpreter(
     private fun executeWithMute(statement: Statement) {
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
-            if (!statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))){
+            if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))){
                 statement.execute(this)
             }
         } finally {
