@@ -63,9 +63,11 @@ class Kute10_50 : Kute() {
 
         // Statement creation (similar to 'toAst' does)
         var statement = catStmt(factor1DataRefExpr, factor2DataRefExpr, resultDataRefExpr, 0, null)
+        var actualElapsedTimeInMillisec = 0L
 
         // Perform a pure kotlin loop
-        var actualElapsedTimeInMillisec = measureTimeMillis {
+        actualElapsedTimeInMillisec = measureTimeMillis {
+            loopCounter = 0L
             while (loopCounter < expectedIterations) {
                 exec_CAT(statement)
                 loopCounter++
@@ -98,7 +100,26 @@ class Kute10_50 : Kute() {
             assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message4)
         }
 
-        return arrayOf(message1, message2, message3, message4)
+
+        // Perform a pure kotlin loop
+        actualElapsedTimeInMillisec = measureTimeMillis {
+            loopCounter = 0L
+            while (loopCounter < expectedIterations) {
+                exec_CAT(statement)
+                loopCounter++
+            }
+        }
+        // Results
+        var message5 = "(Kotlin 2nd time pure loop) Expected execution of 10000000 iterations, actual is $loopCounter iterations."
+        var message6 = "(Kotlin 2nd time pure loop) Expected execution of 10000000 iterations ($loopCounter done) takes less or same to " +
+                "$expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms. (CAT result is ${globalSymbolTable[resultRef].asString()})"
+        if (doAsserts) {
+            assertEquals(expectedIterations, loopCounter, message5)
+            assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message6)
+        }
+
+
+        return arrayOf(message1, message2, message3, message4, message5, message6)
     }
 
     private fun exec_DO(intLiteral: IntLiteral, endLimit: () -> Long, statement: CatStmt) {
