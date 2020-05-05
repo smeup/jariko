@@ -1,10 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.MuteParser
-import com.smeup.rpgparser.interpreter.AbstractDataDefinition
-import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.smeup.rpgparser.interpreter.KListType
-import com.smeup.rpgparser.interpreter.startLine
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
@@ -460,7 +457,11 @@ data class IterStmt(override val position: Position? = null) : Statement(positio
 
 data class OtherStmt(override val position: Position? = null) : Statement(position)
 
-data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position)
+data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
+    companion object {
+        operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
+    }
+}
 
 data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
 

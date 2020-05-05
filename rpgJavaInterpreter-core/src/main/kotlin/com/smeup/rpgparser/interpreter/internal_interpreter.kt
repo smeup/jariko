@@ -242,7 +242,7 @@ class InternalInterpreter(
 
     private fun GotoException.indexOfTaggedStatement(statements: List<Statement>): Int =
         statements.indexOfFirst {
-            it is TagStmt && it.tag.equals(tag, true)
+            it is TagStmt && it.tag == tag
         }
 
     private fun caseInsensitiveMap(aMap: Map<String, Value>): Map<String, Value> {
