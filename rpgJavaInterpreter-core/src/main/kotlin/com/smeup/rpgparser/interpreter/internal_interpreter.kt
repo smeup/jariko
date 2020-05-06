@@ -7,14 +7,13 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.*
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.strumenta.kolasu.model.ancestor
-import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
+
 
 object InterpreterConfiguration {
     /**
@@ -37,7 +36,7 @@ class InterpreterStatus(
 
 class InternalInterpreter(
     val systemInterface: SystemInterface,
-    private val localizationContext: LocalizationContext = LocalizationContext()
+    val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
     val globalSymbolTable = SymbolTable()
     val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
@@ -47,7 +46,7 @@ class InternalInterpreter(
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    private val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
+    val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
@@ -267,12 +266,48 @@ class InternalInterpreter(
         }
     }
 
+    /*
+            try {
+
+            when (statement) {
+                // BIGSWITCH
+
+
+                else -> TODO(statement.toString())
+            }
+        } catch (e: ControlFlowException) {
+            throw e
+        } catch (e: IllegalArgumentException) {
+            val message = e.toString()
+            if (!message.contains(statement.position.line())) {
+                throw IllegalArgumentException(errorDescription(statement, e), e)
+            }
+            throw e
+        } catch (e: NotImplementedError) {
+            throw RuntimeException(errorDescription(statement, e), e)
+        } catch (e: RuntimeException) {
+            throw RuntimeException(errorDescription(statement, e), e)
+        }
+     */
+
     private fun executeWithMute(statement: Statement) {
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))){
                 statement.execute(this)
             }
+        } catch (e: ControlFlowException) {
+            throw e
+        } catch (e: IllegalArgumentException) {
+            val message = e.toString()
+            if (!message.contains(statement.position.line())) {
+                throw IllegalArgumentException(errorDescription(statement, e), e)
+            }
+            throw e
+        } catch (e: NotImplementedError) {
+            throw RuntimeException(errorDescription(statement, e), e)
+        } catch (e: RuntimeException) {
+            throw RuntimeException(errorDescription(statement, e), e)
         } finally {
             executeMutes(
                 statement.muteAnnotations,
@@ -406,257 +441,6 @@ class InternalInterpreter(
         return isExecutable
     }
 
-    private fun execute(statement: Statement) {
-        try {
-
-            when (statement) {
-                // BIGSWITCH
-                is DowStmt -> {
-                    var loopCounter: Long = 0
-                    val startTime = currentTimeMillis()
-                    try {
-                        log { DowStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                        while (eval(statement.endExpression).asBoolean().value) {
-                            execute(statement.body)
-                            loopCounter++
-                        }
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            DowStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    } catch (e: LeaveException) {
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            DowStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    }
-                }
-                is DouStmt -> {
-                    var loopCounter: Long = 0
-                    val startTime = currentTimeMillis()
-                    try {
-                        log { DouStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                        do {
-                            execute(statement.body)
-                            loopCounter++
-                        } while (!eval(statement.endExpression).asBoolean().value)
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            DouStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    } catch (e: LeaveException) {
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            DouStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    }
-                }
-                is SubDurStmt -> {
-                    when (statement.target) {
-                        is DataRefExpr -> {
-                            // TODO: partial implementation just for *MS - Add more cases
-                            val minuend = if (statement.factor1 == null) {
-                                eval(statement.target)
-                            } else {
-                                eval(statement.factor1)
-                            }
-                            val subtrahend = eval(statement.factor2)
-                            val newValue =
-                                    (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
-                            assign(statement.target, IntValue(newValue))
-                        }
-                        else -> throw UnsupportedOperationException("Data reference required: " + statement)
-                    }
-                }
-                is LeaveStmt -> {
-                    log { LeaveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement) }
-                    throw LeaveException()
-                }
-                is LeaveSrStmt -> {
-                    log { LeaveSrStatemenExecutionLog(this.interpretationContext.currentProgramName, statement) }
-                    throw LeaveSrException()
-                }
-                is IterStmt -> {
-                    log { IterStatemenExecutionLog(this.interpretationContext.currentProgramName, statement) }
-                    throw IterException()
-                }
-                is CheckStmt -> {
-                    var baseString = eval(statement.baseString).asString().value
-                    if (statement.baseString is DataRefExpr) {
-                        baseString = baseString.padEnd(statement.baseString.size())
-                    }
-                    val charSet = eval(statement.comparatorString).asString().value
-                    val wrongIndex = statement.wrongCharPosition
-                    status.lastFound = false
-                    if (wrongIndex != null) {
-                        assign(wrongIndex, IntValue.ZERO)
-                    }
-                    baseString.substring(statement.start - 1).forEachIndexed { i, c ->
-                        if (!charSet.contains(c)) {
-                            if (wrongIndex != null) {
-                                assign(wrongIndex, IntValue((i + statement.start).toLong()))
-                            }
-                            status.lastFound = true
-                            return
-                        }
-                    }
-                }
-                is ChainStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    val record = if (statement.searchArg.type() is KListType) {
-                        dbFile.chain(toSearchValues(statement.searchArg))
-                    } else {
-                        dbFile.chain(eval(statement.searchArg))
-                    }
-                    fillDataFrom(record)
-                }
-                is SetllStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    status.lastFound = if (statement.searchArg.type() is KListType) {
-                        dbFile.setll(toSearchValues(statement.searchArg))
-                    } else {
-                        dbFile.setll(eval(statement.searchArg))
-                    }
-                }
-                is ReadEqualStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    val record = when {
-                        statement.searchArg == null -> dbFile.readEqual()
-                        statement.searchArg.type() is KListType -> dbFile.readEqual(toSearchValues(statement.searchArg))
-                        else -> dbFile.readEqual(eval(statement.searchArg))
-                    }
-                    fillDataFrom(record)
-                }
-                is ReadPreviousStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    val record = when {
-                        statement.searchArg == null -> dbFile.readPrevious()
-                        statement.searchArg.type() is KListType -> dbFile.readPrevious(toSearchValues(statement.searchArg))
-                        else -> dbFile.readPrevious(eval(statement.searchArg))
-                    }
-                    fillDataFrom(record)
-                }
-                is ReadStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    val record = dbFile.read()
-                    fillDataFrom(record)
-                }
-                is ReturnStmt -> {
-                    val returnValue = statement.expression?.let { eval(statement.expression) }
-                    throw ReturnException(returnValue)
-                }
-                is DefineStmt -> {
-                    // Nothing to do here
-                }
-                is TagStmt -> {
-                    // Nothing to do here
-                }
-                is GotoStmt -> {
-                    throw GotoException(statement.tag)
-                }
-                is CabStmt -> {
-                    val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, localizationContext.charset)
-                    when (comparisonResult.comparison) {
-                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-                    }
-                    if (comparisonResult.isVerified) throw GotoException(statement.tag)
-                }
-                is SortAStmt -> {
-                    sortA(eval(statement.target), localizationContext.charset)
-                }
-                is CatStmt -> {
-                    val blanksInBetween = statement.blanksInBetween
-                    val blanks = StringValue.blank(blanksInBetween)
-                    val factor2 = eval(statement.right)
-                    var result = eval(statement.target)
-                    val resultLen = result.asString().length()
-                    var concatenatedFactors: Value
-
-                    if (null != statement.left) {
-                        val factor1 = eval(statement.left)
-                        val f1Trimmed = (factor1 as StringValue).value.trim()
-                        val factor1Trimmed = StringValue(f1Trimmed)
-                        concatenatedFactors = if (blanksInBetween > 0) {
-                            factor1Trimmed.concatenate(blanks).concatenate(factor2)
-                        } else {
-                            factor1.concatenate(factor2)
-                        }
-                    } else {
-                        concatenatedFactors = if (!result.asString().isBlank()) {
-                            result
-                        } else if (blanksInBetween > 0) {
-                            if (blanksInBetween >= resultLen) {
-                                result
-                            } else {
-                                blanks.concatenate(factor2)
-                            }
-                        } else {
-                            result
-                        }
-                    }
-                    val concatenatedFactorsLen = concatenatedFactors.asString().length()
-                    result = if (concatenatedFactorsLen >= resultLen) {
-                        concatenatedFactors.asString().getSubstring(0, resultLen)
-                    } else {
-                        concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
-                    }
-
-                    assign(statement.target, result)
-                    log { CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)) }
-                }
-                is CompStmt -> {
-                    when (this.compareExpressions(statement.left, statement.right, localizationContext.charset)) {
-                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-                    }
-                }
-                is LookupStmt -> {
-                    lookUp(statement, this, localizationContext.charset)
-                }
-                is XFootStmt -> {
-                    xfoot(statement, this)
-                }
-
-                else -> TODO(statement.toString())
-            }
-        } catch (e: ControlFlowException) {
-            throw e
-        } catch (e: IllegalArgumentException) {
-            val message = e.toString()
-            if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException(errorDescription(statement, e), e)
-            }
-            throw e
-        } catch (e: NotImplementedError) {
-            throw RuntimeException(errorDescription(statement, e), e)
-        } catch (e: RuntimeException) {
-            throw RuntimeException(errorDescription(statement, e), e)
-        }
-    }
-
     fun optimizedIntExpression(expression: Expression): () -> Long =
         if (expression is IntLiteral || expression is FigurativeConstantRef) {
             val constValue = eval(expression).asInt().value
@@ -680,7 +464,7 @@ class InternalInterpreter(
     private fun errorDescription(statement: Statement, throwable: Throwable) =
         "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
-    private fun fillDataFrom(record: Record) {
+    fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
             record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
@@ -689,7 +473,7 @@ class InternalInterpreter(
         }
     }
 
-    private fun dbFile(name: String, statement: Statement): DBFile {
+    fun dbFile(name: String, statement: Statement): DBFile {
         val dbFile = dbFileMap[name]
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
@@ -698,13 +482,13 @@ class InternalInterpreter(
         return dbFile
     }
 
-    private fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
+    fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
         val kListName = searchArgExpression.render().toUpperCase()
         val parms = klists[kListName]
         return parms!!.map { RecordField(it, get(it)) }
     }
 
-    private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
+    fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
         if (downward) {
             isEqualOrGreater(index, end, localizationContext.charset)
         } else {
@@ -905,7 +689,7 @@ class InternalInterpreter(
         }
     }
 
-    private fun assignEachElement(
+    fun assignEachElement(
         target: AssignableExpression,
         value: Expression,
         operator: AssignmentOperator = NORMAL_ASSIGNMENT
