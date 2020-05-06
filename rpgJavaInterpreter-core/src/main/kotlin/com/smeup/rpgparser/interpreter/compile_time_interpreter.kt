@@ -10,7 +10,7 @@ import java.lang.RuntimeException
  * This is a very limited interpreter used at compile time, mainly
  * while examining data definitions.
  *
- * It should consider only statically evaluatable elements.
+ * It should consider only statically evaluable elements.
  */
 interface CompileTimeInterpreter {
     fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value

@@ -13,6 +13,7 @@ import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
+import java.lang.IllegalArgumentException
 import java.util.*
 
 data class ToAstConfiguration(
@@ -47,8 +48,8 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
-    var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
-    val knownDataDefinitions = LinkedList<DataDefinition>()
+    val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
+    val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
 
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.statement()
@@ -57,7 +58,7 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
             it.dcl_ds() != null -> {
                 try {
                     val dataDefinition = it.dcl_ds().toAst(conf)
-                    knownDataDefinitions.add(dataDefinition)
+                    knownDataDefinitions.addIfNotPresent(dataDefinition)
                     DataDefinitionHolder(dataDefinition)
                 } catch (e: Exception) {
                     null
@@ -72,8 +73,8 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
             .mapNotNull {
                 when {
                     it.dspec() != null -> {
-                        val dataDefinition = it.dspec().toAst(conf, knownDataDefinitions)
-                        knownDataDefinitions.add(dataDefinition)
+                        val dataDefinition = it.dspec().toAst(conf, knownDataDefinitions.values.toList())
+                        knownDataDefinitions.addIfNotPresent(dataDefinition)
                         DataDefinitionHolder(dataDefinition)
                     }
                     it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
@@ -85,6 +86,11 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                 }
             })
     return dataDefinitionProviders.map { it.toDataDefinition() }
+}
+
+private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
+    if (put(dataDefinition.name, dataDefinition) != null)
+        throw IllegalArgumentException("${dataDefinition.name} has been defined twice")
 }
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
