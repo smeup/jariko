@@ -85,7 +85,8 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
 
 internal fun RpgParser.DspecContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: List<DataDefinition>
+    knownDataDefinitions: List<DataDefinition>,
+    keysProvider: () -> Int
 ): DataDefinition {
 
     val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)

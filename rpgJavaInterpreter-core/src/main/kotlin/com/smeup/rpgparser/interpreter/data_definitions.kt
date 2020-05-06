@@ -8,12 +8,20 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 import java.math.BigDecimal
+import java.util.concurrent.atomic.AtomicInteger
+
+// It's only for datafields missing of keyProvider
+private val provider = AtomicInteger()
 
 abstract class AbstractDataDefinition(
     override val name: String,
     open val type: Type,
     override val position: Position? = null,
-    var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
+    var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf(),
+    private val hashCode: Int = name.hashCode(),
+    open val keyProvider: () -> Int = { provider.getAndIncrement() },
+    open val key: Int = keyProvider.invoke()
+
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
@@ -53,6 +61,11 @@ abstract class AbstractDataDefinition(
     fun canBeAssigned(value: Value): Boolean {
         return type.canBeAssigned(value)
     }
+
+    override fun hashCode() = hashCode
+
+    override fun equals(other: Any?) =
+        if (other is AbstractDataDefinition) name == other.name else false
 }
 
 data class FileDefinition private constructor(override val name: String, override val position: Position?) : Node(position), Named {
@@ -75,7 +88,7 @@ data class DataDefinition(
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
     override val position: Position? = null,
-    val hashCode: Int = name.hashCode()
+    override var keyProvider: () -> Int = { provider.getAndIncrement() }
 ) :
             AbstractDataDefinition(name, type, position) {
 
@@ -102,10 +115,6 @@ data class DataDefinition(
 
     fun getFieldByName(fieldName: String): FieldDefinition {
         return this.fields.find { it.name == fieldName } ?: throw java.lang.IllegalArgumentException("Field not found $fieldName")
-    }
-
-    override fun hashCode(): Int {
-        return hashCode
     }
 }
 

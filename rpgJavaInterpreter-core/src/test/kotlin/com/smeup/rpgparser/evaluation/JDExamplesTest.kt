@@ -556,7 +556,7 @@ class JDExamplesTest {
                 FunctionParam("pos", StringType(50)),
                 FunctionParam("index", NumberType(2, 0)),
                 FunctionParam("xml", StringType(5000)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
                 assertEquals("Auto", params[0].asString().value)
                 assertEquals("POS", params[1].asString().value)
                 assertEquals(1, params[2].asInt().value)
@@ -567,7 +567,7 @@ class JDExamplesTest {
         si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
                 FunctionParam("Element", StringType(500)),
                 FunctionParam("AttributeName", StringType(50)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
                 assertEquals("<riga Targa=\"ZZ000AA\"/>", params[0].asString().value)
                 assertEquals("Targa", params[1].asString().value)
                 return StringValue("ZZ000AA")
@@ -625,14 +625,14 @@ class JDExamplesTest {
                 FunctionParam("pos", StringType(50)),
                 FunctionParam("index", NumberType(2, 0)),
                 FunctionParam("xml", StringType(5000)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
                 return StringValue("<Auto Targa=\"AB123XX\"/>")
             }
         }
         si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
                 FunctionParam("Element", StringType(500)),
                 FunctionParam("AttributeName", StringType(50)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
                 return StringValue("AB123XX")
             }
         }
