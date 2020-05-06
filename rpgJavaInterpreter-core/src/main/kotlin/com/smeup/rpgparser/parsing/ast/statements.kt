@@ -215,11 +215,11 @@ data class MoveAStmt(
 }
 
     data class MoveLStmt(
-            val operationExtender: String?,
-            val target: AssignableExpression,
-            @Derived val dataDefinition: InStatementDataDefinition? = null,
-            var expression: Expression,
-            override val position: Position? = null
+        val operationExtender: String?,
+        val target: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        var expression: Expression,
+        override val position: Position? = null
     ) : Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             if (dataDefinition != null) {
@@ -236,9 +236,9 @@ data class MoveAStmt(
 
     // TODO add other parameters
     data class ChainStmt(
-            val searchArg: Expression, // Factor1
-            val name: String, // Factor 2
-            override val position: Position? = null
+        val searchArg: Expression, // Factor1
+        val name: String, // Factor 2
+        override val position: Position? = null
     ) :
             Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
@@ -253,9 +253,9 @@ data class MoveAStmt(
     }
 
     data class ReadEqualStmt(
-            val searchArg: Expression?, // Factor1
-            val name: String, // Factor 2
-            override val position: Position? = null
+        val searchArg: Expression?, // Factor1
+        val name: String, // Factor 2
+        override val position: Position? = null
     ) :
             Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
@@ -270,9 +270,9 @@ data class MoveAStmt(
     }
 
     data class ReadPreviousStmt(
-            val searchArg: Expression?, // Factor1
-            val name: String, // Factor 2
-            override val position: Position? = null
+        val searchArg: Expression?, // Factor1
+        val name: String, // Factor 2
+        override val position: Position? = null
     ) :
             Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
@@ -287,8 +287,8 @@ data class MoveAStmt(
     }
 
     data class ReadStmt(
-            val name: String, // Factor 2
-            override val position: Position? = null
+        val name: String, // Factor 2
+        override val position: Position? = null
     ) :
             Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
@@ -299,11 +299,10 @@ data class MoveAStmt(
     }
 
     data class SetllStmt(
-            val searchArg: Expression, // Factor1
-            val name: String, // Factor 2
-            override val position: Position? = null
-    ) :
-            Statement(position) {
+        val searchArg: Expression, // Factor1
+        val name: String, // Factor 2
+        override val position: Position? = null
+    ) : Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
             val dbFile = internal_interpreter.dbFile(name, this)
             internal_interpreter.status.lastFound = if (searchArg.type() is KListType) {
@@ -315,11 +314,11 @@ data class MoveAStmt(
     }
 
     data class CheckStmt(
-            val comparatorString: Expression, // Factor1
-            val baseString: Expression,
-            val start: Int = 1,
-            val wrongCharPosition: AssignableExpression?,
-            override val position: Position? = null
+        val comparatorString: Expression, // Factor1
+        val baseString: Expression,
+        val start: Int = 1,
+        val wrongCharPosition: AssignableExpression?,
+        override val position: Position? = null
     ) : Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
             var baseString = internal_interpreter.eval(this.baseString).asString().value
@@ -345,10 +344,10 @@ data class MoveAStmt(
     }
 
     data class CallStmt(
-            val expression: Expression,
-            val params: List<PlistParam>,
-            val errorIndicator: IndicatorKey? = null,
-            override val position: Position? = null
+        val expression: Expression,
+        val params: List<PlistParam>,
+        val errorIndicator: IndicatorKey? = null,
+        override val position: Position? = null
     ) : Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             return params.mapNotNull() {
@@ -426,11 +425,11 @@ data class MoveAStmt(
     }
 
     data class IfStmt(
-            val condition: Expression,
-            val body: List<Statement>,
-            val elseIfClauses: List<ElseIfClause> = emptyList(),
-            val elseClause: ElseClause? = null,
-            override val position: Position? = null
+        val condition: Expression,
+        val body: List<Statement>,
+        val elseIfClauses: List<ElseIfClause> = emptyList(),
+        val elseClause: ElseClause? = null,
+        override val position: Position? = null
     ) : Statement(position) {
 
         override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
@@ -523,9 +522,9 @@ data class MoveAStmt(
 
     // A Plist is a list of parameters
     data class PlistStmt(
-            val params: List<PlistParam>,
-            val isEntry: Boolean,
-            override val position: Position? = null
+        val params: List<PlistParam>,
+        val isEntry: Boolean,
+        override val position: Position? = null
     ) : Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             val allDataDefinitions = params.mapNotNull { it.dataDefinition }
@@ -557,16 +556,16 @@ data class MoveAStmt(
     }
 
     data class PlistParam(
-            val param: ReferenceByName<AbstractDataDefinition>,
-            // TODO @Derived????
-            @Derived val dataDefinition: InStatementDataDefinition? = null,
-            override val position: Position? = null
+        val param: ReferenceByName<AbstractDataDefinition>,
+        // TODO @Derived????
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        override val position: Position? = null
     ) : Node(position)
 
     data class ClearStmt(
-            val value: Expression,
-            @Derived val dataDefinition: InStatementDataDefinition? = null,
-            override val position: Position? = null
+        val value: Expression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        override val position: Position? = null
     ) : Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             if (dataDefinition != null) {
@@ -604,9 +603,9 @@ data class MoveAStmt(
     }
 
     data class DefineStmt(
-            val originalName: String,
-            val newVarName: String,
-            override val position: Position? = null
+        val originalName: String,
+        val newVarName: String,
+        override val position: Position? = null
     ) : Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             val containingCU = this.ancestor(CompilationUnit::class.java)
@@ -627,7 +626,7 @@ data class MoveAStmt(
         }
 
         override fun execute(internal_interpreter: InternalInterpreter) {
-            TODO("Not yet implemented")
+            // Nothing to do here
         }
     }
 
@@ -640,16 +639,16 @@ data class MoveAStmt(
     }
 
     data class RightIndicators(
-            override val hi: IndicatorKey?,
-            override val lo: IndicatorKey?,
-            override val eq: IndicatorKey?
+        override val hi: IndicatorKey?,
+        override val lo: IndicatorKey?,
+        override val eq: IndicatorKey?
     ) : WithRightIndicators
 
     data class CompStmt(
-            val left: Expression,
-            val right: Expression,
-            val rightIndicators: WithRightIndicators,
-            override val position: Position? = null
+        val left: Expression,
+        val right: Expression,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
     ) : Statement(position), WithRightIndicators by rightIndicators {
         override fun execute(internal_interpreter: InternalInterpreter) {
             when (internal_interpreter.compareExpressions(left, right, internal_interpreter.localizationContext.charset)) {
@@ -661,10 +660,10 @@ data class MoveAStmt(
     }
 
     data class ZAddStmt(
-            val target: AssignableExpression,
-            @Derived val dataDefinition: InStatementDataDefinition? = null,
-            var expression: Expression,
-            override val position: Position? = null
+        val target: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        var expression: Expression,
+        override val position: Position? = null
     ) :
             Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
@@ -680,11 +679,11 @@ data class MoveAStmt(
     }
 
     data class MultStmt(
-            val target: AssignableExpression,
-            val halfAdjust: Boolean = false,
-            val factor1: Expression?,
-            val factor2: Expression,
-            override val position: Position? = null
+        val target: AssignableExpression,
+        val halfAdjust: Boolean = false,
+        val factor1: Expression?,
+        val factor2: Expression,
+        override val position: Position? = null
     ) : Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
             internal_interpreter.assign(target, internal_interpreter.mult(this))
@@ -692,26 +691,24 @@ data class MoveAStmt(
     }
 
     data class DivStmt(
-            val target: AssignableExpression,
-            val halfAdjust: Boolean = false,
-            val factor1: Expression?,
-            val factor2: Expression,
-            override val position: Position? = null
+        val target: AssignableExpression,
+        val halfAdjust: Boolean = false,
+        val factor1: Expression?,
+        val factor2: Expression,
+        override val position: Position? = null
     ) : Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
             internal_interpreter.assign(target, internal_interpreter.div(this))
         }
     }
 
-
     data class AddStmt(
-            val left: Expression?,
-            val result: AssignableExpression,
-            @Derived val dataDefinition: InStatementDataDefinition? = null,
-            val right: Expression,
-            override val position: Position? = null
-    ) :
-            Statement(position), StatementThatCanDefineData {
+        val left: Expression?,
+        val result: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        val right: Expression,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             if (dataDefinition != null) {
                 return listOf(dataDefinition)
@@ -729,12 +726,11 @@ data class MoveAStmt(
     }
 
     data class ZSubStmt(
-            val target: AssignableExpression,
-            @Derived val dataDefinition: InStatementDataDefinition? = null,
-            var expression: Expression,
-            override val position: Position? = null
-    ) :
-            Statement(position), StatementThatCanDefineData {
+        val target: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        var expression: Expression,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             if (dataDefinition != null) {
                 return listOf(dataDefinition)
@@ -752,13 +748,12 @@ data class MoveAStmt(
     }
 
     data class SubStmt(
-            val left: Expression?,
-            val result: AssignableExpression,
-            @Derived val dataDefinition: InStatementDataDefinition? = null,
-            val right: Expression,
-            override val position: Position? = null
-    ) :
-            Statement(position), StatementThatCanDefineData {
+        val left: Expression?,
+        val result: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        val right: Expression,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             if (dataDefinition != null) {
                 return listOf(dataDefinition)
@@ -776,8 +771,8 @@ data class MoveAStmt(
     }
 
     data class TimeStmt(
-            val value: Expression,
-            override val position: Position? = null
+        val value: Expression,
+        override val position: Position? = null
     ) : Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
             when (value) {
@@ -800,11 +795,11 @@ data class MoveAStmt(
     }
 
     data class DoStmt(
-            val endLimit: Expression,
-            val index: AssignableExpression?,
-            val body: List<Statement>,
-            val startLimit: Expression = IntLiteral(1),
-            override val position: Position? = null
+        val endLimit: Expression,
+        val index: AssignableExpression?,
+        val body: List<Statement>,
+        val startLimit: Expression = IntLiteral(1),
+        override val position: Position? = null
     ) : Statement(position) {
         override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
             // TODO check if the annotation is the last statement
@@ -870,9 +865,9 @@ data class MoveAStmt(
     }
 
     data class DowStmt(
-            val endExpression: Expression,
-            val body: List<Statement>,
-            override val position: Position? = null
+        val endExpression: Expression,
+        val body: List<Statement>,
+        override val position: Position? = null
     ) : Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
             var loopCounter: Long = 0
@@ -907,9 +902,9 @@ data class MoveAStmt(
     }
 
     data class DouStmt(
-            val endExpression: Expression,
-            val body: List<Statement>,
-            override val position: Position? = null
+        val endExpression: Expression,
+        val body: List<Statement>,
+        override val position: Position? = null
     ) : Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
             var loopCounter: Long = 0
@@ -972,7 +967,7 @@ data class MoveAStmt(
 
     data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position) {
         override fun execute(internal_interpreter: InternalInterpreter) {
-            TODO("Not yet implemented")
+            // Nothing to do here
         }
     }
 
@@ -983,12 +978,12 @@ data class MoveAStmt(
     }
 
     data class CabStmt(
-            val factor1: Expression,
-            val factor2: Expression,
-            val comparison: ComparisonOperator?,
-            val tag: String,
-            val rightIndicators: WithRightIndicators,
-            override val position: Position? = null
+        val factor1: Expression,
+        val factor2: Expression,
+        val comparison: ComparisonOperator?,
+        val tag: String,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
     ) : Statement(position), WithRightIndicators by rightIndicators {
         override fun execute(internal_interpreter: InternalInterpreter) {
             val comparisonResult = comparison.verify(factor1, factor2, internal_interpreter, internal_interpreter.localizationContext.charset)
@@ -1002,12 +997,12 @@ data class MoveAStmt(
     }
 
     data class ForStmt(
-            var init: Expression,
-            val endValue: Expression,
-            val byValue: Expression,
-            val downward: Boolean = false,
-            val body: List<Statement>,
-            override val position: Position? = null
+        var init: Expression,
+        val endValue: Expression,
+        val byValue: Expression,
+        val downward: Boolean = false,
+        val body: List<Statement>,
+        override val position: Position? = null
     ) : Statement(position) {
         fun iterDataDefinition(): AbstractDataDefinition {
             if (init is AssignmentExpr) {
@@ -1126,10 +1121,10 @@ data class MoveAStmt(
     }
 
     data class LookupStmt(
-            val left: Expression,
-            val right: Expression,
-            val rightIndicators: WithRightIndicators,
-            override val position: Position? = null
+        val left: Expression,
+        val right: Expression,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
     ) : Statement(position), WithRightIndicators by rightIndicators {
         override fun execute(internal_interpreter: InternalInterpreter) {
             lookUp(this, internal_interpreter, internal_interpreter.localizationContext.charset)
@@ -1137,11 +1132,11 @@ data class MoveAStmt(
     }
 
     data class XFootStmt(
-            val left: Expression,
-            val result: AssignableExpression,
-            val rightIndicators: WithRightIndicators,
-            @Derived val dataDefinition: InStatementDataDefinition? = null,
-            override val position: Position? = null
+        val left: Expression,
+        val result: AssignableExpression,
+        val rightIndicators: WithRightIndicators,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        override val position: Position? = null
     ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
         override fun dataDefinition(): List<InStatementDataDefinition> {
             if (dataDefinition != null) {

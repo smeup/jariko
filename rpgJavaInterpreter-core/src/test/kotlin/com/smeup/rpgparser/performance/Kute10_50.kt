@@ -100,26 +100,7 @@ class Kute10_50 : Kute() {
             assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message4)
         }
 
-
-        // Perform a pure kotlin loop
-        actualElapsedTimeInMillisec = measureTimeMillis {
-            loopCounter = 0L
-            while (loopCounter < expectedIterations) {
-                exec_CAT(statement)
-                loopCounter++
-            }
-        }
-        // Results
-        var message5 = "(Kotlin 2nd time pure loop) Expected execution of 10000000 iterations, actual is $loopCounter iterations."
-        var message6 = "(Kotlin 2nd time pure loop) Expected execution of 10000000 iterations ($loopCounter done) takes less or same to " +
-                "$expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms. (CAT result is ${globalSymbolTable[resultRef].asString()})"
-        if (doAsserts) {
-            assertEquals(expectedIterations, loopCounter, message5)
-            assertTrue(actualElapsedTimeInMillisec <= expectedElapsedTimeInMillisec, message6)
-        }
-
-
-        return arrayOf(message1, message2, message3, message4, message5, message6)
+        return arrayOf(message1, message2, message3, message4)
     }
 
     private fun exec_DO(intLiteral: IntLiteral, endLimit: () -> Long, statement: CatStmt) {
