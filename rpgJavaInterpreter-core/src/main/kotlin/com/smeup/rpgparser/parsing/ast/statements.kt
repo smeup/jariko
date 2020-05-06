@@ -358,6 +358,7 @@ data class MoveAStmt(
 
         override fun execute(internal_interpreter: InternalInterpreter) {
             internal_interpreter.log { CallExecutionLogEntry(internal_interpreter.interpretationContext.currentProgramName, this) }
+            val callStatement = this
             val programToCall = internal_interpreter.eval(expression).asString().value
             val program = internal_interpreter.systemInterface.findProgram(programToCall)
             require(program != null) {
@@ -392,10 +393,10 @@ data class MoveAStmt(
                     try {
                         internal_interpreter.systemInterface.registerProgramExecutionStart(program, params)
                         program.execute(internal_interpreter.systemInterface, params).apply {
-                            internal_interpreter.log { CallEndLogEntry("", this, System.currentTimeMillis() - startTime) }
+                            internal_interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
                         }
                     } catch (e: Exception) { // TODO Catch a more specific exception?
-                        internal_interpreter.log { CallEndLogEntry("", this, System.currentTimeMillis() - startTime) }
+                        internal_interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
                         if (errorIndicator == null) {
                             throw e
                         }
