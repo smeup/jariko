@@ -266,30 +266,6 @@ class InternalInterpreter(
         }
     }
 
-    /*
-            try {
-
-            when (statement) {
-                // BIGSWITCH
-
-
-                else -> TODO(statement.toString())
-            }
-        } catch (e: ControlFlowException) {
-            throw e
-        } catch (e: IllegalArgumentException) {
-            val message = e.toString()
-            if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException(errorDescription(statement, e), e)
-            }
-            throw e
-        } catch (e: NotImplementedError) {
-            throw RuntimeException(errorDescription(statement, e), e)
-        } catch (e: RuntimeException) {
-            throw RuntimeException(errorDescription(statement, e), e)
-        }
-     */
-
     private fun executeWithMute(statement: Statement) {
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {

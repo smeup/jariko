@@ -212,6 +212,7 @@ data class MoveAStmt(
             MoveAStatemenExecutionLog(internal_interpreter.interpretationContext.currentProgramName, this, value)
         }
     }
+}
 
     data class MoveLStmt(
             val operationExtender: String?,
@@ -1152,4 +1153,3 @@ data class MoveAStmt(
             xfoot(this, internal_interpreter)
         }
     }
-}
