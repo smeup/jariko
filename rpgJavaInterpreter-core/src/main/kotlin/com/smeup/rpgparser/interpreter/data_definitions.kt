@@ -88,9 +88,9 @@ data class DataDefinition(
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
     override val position: Position? = null,
-    override var keyProvider: () -> Int = { provider.getAndIncrement() }
+    override val keyProvider: () -> Int = { provider.getAndIncrement() }
 ) :
-            AbstractDataDefinition(name, type, position) {
+            AbstractDataDefinition(name, type, position, keyProvider = keyProvider) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()

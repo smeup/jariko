@@ -86,7 +86,7 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
 internal fun RpgParser.DspecContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: List<DataDefinition>,
-    keysProvider: () -> Int
+    keyProvider: () -> Int
 ): DataDefinition {
 
     val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
@@ -202,7 +202,9 @@ internal fun RpgParser.DspecContext.toAst(
             this.ds_name().text,
             type,
             initializationValue = initializationValue,
-            position = this.toPosition(true))
+            position = this.toPosition(true),
+            keyProvider = keyProvider
+    )
 }
 
 private val RpgParser.DspecContext.decimalPositions
@@ -679,7 +681,10 @@ class FieldsList(val fields: List<FieldInfo>) {
     fun isNotEmpty() = fields.isNotEmpty()
 }
 
-internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
+internal fun RpgParser.Dcl_dsContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    keyProvider: () -> Int
+): DataDefinition {
     var initializationValue: Expression? = null
     val size = this.declaredSize()
 
@@ -696,7 +701,9 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
             fields = fieldsList.fields.map { it.toAst(conf) },
             initializationValue = initializationValue,
             inz = inz != null,
-            position = this.toPosition(true))
+            position = this.toPosition(true),
+            keyProvider = keyProvider
+    )
 
     // set the "overlayingOn" value for all field definitions
     fieldsList.fields.forEach { fieldInfo ->
@@ -720,7 +727,8 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
 
 internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    dataDefinitionProviders: List<DataDefinitionProvider>
+    dataDefinitionProviders: List<DataDefinitionProvider>,
+    keyProvider: () -> Int
 ):
         () -> DataDefinition {
     return {
@@ -739,7 +747,9 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
                 this.name,
                 referredDataDefinition.type,
                 referredDataDefinition.fields,
-                position = this.toPosition(true))
+                position = this.toPosition(true),
+                keyProvider = keyProvider
+        )
         dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
         dataDefinition
     }

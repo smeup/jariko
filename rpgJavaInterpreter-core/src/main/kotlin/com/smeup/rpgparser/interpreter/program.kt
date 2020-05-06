@@ -16,6 +16,9 @@ interface Program {
 }
 
 class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
+
+    private var interpreter: InternalInterpreter? = null
+
     override fun params(): List<ProgramParam> {
         val plistParams = cu.entryPlist
         // TODO derive proper type from the data specification
@@ -41,8 +44,8 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
         require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
-        val interpreter = InternalInterpreter(systemInterface)
-        interpreter.interpretationContext = object : InterpretationContext {
+        if (interpreter == null) interpreter = InternalInterpreter(systemInterface)
+        interpreter!!.interpretationContext = object : InterpretationContext {
             override val currentProgramName: String
                 get() = name
             override fun shouldReinitialize() = false
@@ -59,8 +62,8 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
                 "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
             }
         }
-        interpreter.execute(this.cu, params)
-        return params().map { interpreter[it.name] }
+        interpreter!!.execute(this.cu, params)
+        return params().map { interpreter!![it.name] }
     }
 
     override fun equals(other: Any?) =

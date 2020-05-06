@@ -14,8 +14,10 @@ interface IFeaturesFactory {
 object FeaturesFactory {
 
     private val factory: IFeaturesFactory by lazy {
-        var featuresFactoryId = System.getProperty("featuresFactory", "default")
-        // if id contains dot, id is an implementation
+        val property = System.getProperty("featuresFactory", "")
+        val featuresFactoryId = if (property == "") "default" else {
+            property
+        }
         val featuresFactoryImpl = if (featuresFactoryId.indexOf(".") != -1) {
             featuresFactoryId
         } else {

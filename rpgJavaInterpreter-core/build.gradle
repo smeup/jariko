@@ -130,7 +130,7 @@ task testCore(type: Test) {
 }
 
 test {
-    systemProperty 'featuresFactory', System.getProperty('featuresFactory')
+    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     testLogging {
         events "failed"
     }
@@ -154,6 +154,7 @@ task testPerformance(type: Test) {
 }
 
 task testAll(type: Test) {
+    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     testLogging {
         events "passed", "skipped", "failed"
         showStandardStreams true
@@ -236,7 +237,7 @@ $usage
             }
             jvmArgs "-XX:+UnlockCommercialFeatures",
                     "-XX:+FlightRecorder",
-                    "-XX:StartFlightRecording=duration=100s,filename=${jfrPath.path}",
+                    "-XX:StartFlightRecording=duration=100s,filename=${jfrPath.path},settings=${rootDir.path}/profiling.jfc",
                     "-XX:FlightRecorderOptions=${project.FlightRecorderOptions}",
                     "-XX:+UnlockDiagnosticVMOptions",
                     "-XX:+DebugNonSafepoints"
@@ -250,8 +251,6 @@ for further informations."""
         }
     }
 }
-
-check.dependsOn runMutes
 
 task profileMainClass (type: JavaExec) {
     systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')

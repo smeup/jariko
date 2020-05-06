@@ -9,7 +9,7 @@ import com.smeup.rpgparser.interpreter.*
  * @see IntArrayMap
  * */
 class SymbolTable : ISymbolTable {
-    private val values = IntArrayMap<Pair<AbstractDataDefinition, Value>>(0, 1000000)
+    private val values = IntArrayMap<Pair<AbstractDataDefinition, Value>>(0, 32000)
 
     override operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
     override operator fun contains(data: AbstractDataDefinition): Boolean = data.key in values.keys

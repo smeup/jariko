@@ -52,6 +52,7 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
     // after them
     var dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
     val knownDataDefinitions = LinkedList<DataDefinition>()
+    val keyProvider = AtomicInteger()
 
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.statement()
@@ -59,7 +60,9 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
             when {
                 it.dcl_ds() != null -> {
                     try {
-                        val dataDefinition = it.dcl_ds().toAst(conf)
+                        val dataDefinition = it.dcl_ds().toAst(conf) {
+                            keyProvider.getAndIncrement()
+                        }
                         knownDataDefinitions.add(dataDefinition)
                         DataDefinitionHolder(dataDefinition)
                     } catch (e: Exception) {
@@ -69,19 +72,22 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                 else -> null
             }
         })
-    val keysProvider = AtomicInteger()
     // Second pass, everything, I mean everything
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
             when {
                 it.dspec() != null -> {
                     val dataDefinition =
-                        it.dspec().toAst(conf, knownDataDefinitions) { keysProvider.getAndIncrement() }
+                        it.dspec().toAst(conf, knownDataDefinitions) {
+                            keyProvider.getAndIncrement()
+                        }
                     knownDataDefinitions.add(dataDefinition)
                     DataDefinitionHolder(dataDefinition)
                 }
                 it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
-                    DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                    DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders) {
+                        keyProvider.getAndIncrement()
+                    })
                 } else {
                     null
                 }
