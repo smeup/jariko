@@ -83,7 +83,13 @@ class Kute10_54 : Kute() {
     }
 
     private fun exec_FOR(statement: ForStmt) {
-        while (enterCondition(this[statement.iterDataDefinition()],
+        var iterData = statement.iterDataDefinition()
+
+        var step = eval(statement.byValue).asInt().value
+        if (statement.downward) {
+            step *= -1
+        }
+        while (enterCondition(this[iterData],
                         eval(statement.endValue),
                         statement.downward)) {
             try {
@@ -91,7 +97,7 @@ class Kute10_54 : Kute() {
             } catch (e: IterException) {
                 // nothing to do here
             }
-            increment(statement.iterDataDefinition(), step(statement.byValue, statement.downward))
+            increment(iterData, step)
             loopCounter++
         }
     }
