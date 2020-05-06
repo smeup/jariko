@@ -65,7 +65,7 @@ interface SystemInterface {
         // do nothing by default
     }
 
-    fun getFeaturesFactory() = IFeaturesFactory.newInstance()
+    fun getFeaturesFactory() = FeaturesFactory.newInstance()
 }
 
 interface DBInterface {

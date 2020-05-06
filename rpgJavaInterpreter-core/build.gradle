@@ -130,6 +130,7 @@ task testCore(type: Test) {
 }
 
 test {
+    systemProperty 'featuresFactory', System.getProperty('featuresFactory')
     testLogging {
         events "failed"
     }
@@ -142,6 +143,7 @@ test {
 //gradlew testPerformance -DexportCsvFile="/some/file.csv"
 task testPerformance(type: Test) {
     systemProperty 'exportCsvFile', System.getProperty('exportCsvFile')
+    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     maxHeapSize = "2048m"
     testLogging {
         events "passed", "skipped", "failed"
@@ -203,6 +205,7 @@ task runMutes(type: JavaExec) {
 }
 
 task profileRpgProgram(type: JavaExec) {
+    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     String usage = """Usage:
 >./gradlew $name -PrpgProgram=rpg_program_path
 rpg_program_path is RPG program relative or absoulte path.
@@ -251,6 +254,7 @@ for further informations."""
 check.dependsOn runMutes
 
 task profileMainClass (type: JavaExec) {
+    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     String usage = """Usage:
 >./gradlew $name -PmainClass=main_class
 Remember that for kotlin main_class (.kt source file extension) you need to append the suffix Kt in the class name. 
