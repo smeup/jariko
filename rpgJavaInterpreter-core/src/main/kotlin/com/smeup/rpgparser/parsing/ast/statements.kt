@@ -965,7 +965,10 @@ data class MoveAStmt(
         }
     }
 
-    data class TagStmt(val tag: String, override val position: Position? = null) : Statement(position) {
+    data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
+        companion object {
+            operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
+        }
         override fun execute(internal_interpreter: InternalInterpreter) {
             // Nothing to do here
         }

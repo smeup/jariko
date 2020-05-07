@@ -14,7 +14,11 @@ class IterException : ControlFlowException()
 // Useful to interrupt infinite cycles in tests
 class InterruptForDebuggingPurposes : ControlFlowException()
 class ReturnException(val returnValue: Value?) : ControlFlowException()
-class GotoException(val tag: String) : ControlFlowException()
+class GotoException private constructor(val tag: String) : ControlFlowException() {
+    companion object {
+        operator fun invoke(tag: String): GotoException = GotoException(tag.toUpperCase())
+    }
+}
 
 class InterpreterTimeoutException(val programName: String, val elapsed: Long, val expected: Long) : ControlFlowException() {
     fun ratio(): Double = if (elapsed <= 0) 0.0 else elapsed.toDouble() / expected.toDouble()
