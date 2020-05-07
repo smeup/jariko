@@ -13,7 +13,7 @@ class ExperimentalSymbolTableTest {
 
     val variables = List<Pair<DataDefinition, Value>>(VARIABLES_NUMBER) {
         Pair(
-            DataDefinition(name = "VAR$it", type = StringType(20, false), keyProvider = { keys.getAndIncrement() }),
+            DataDefinition(name = "VAR$it", type = StringType(20, false)),
             StringValue("$it")
         )
     }

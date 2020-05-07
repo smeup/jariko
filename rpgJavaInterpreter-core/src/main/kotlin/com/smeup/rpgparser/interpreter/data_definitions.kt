@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.MuteAnnotation
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
@@ -8,10 +9,6 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 import java.math.BigDecimal
-import java.util.concurrent.atomic.AtomicInteger
-
-// It's only for datafields missing of keyProvider
-private val provider = AtomicInteger()
 
 abstract class AbstractDataDefinition(
     override val name: String,
@@ -19,8 +16,7 @@ abstract class AbstractDataDefinition(
     override val position: Position? = null,
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf(),
     private val hashCode: Int = name.hashCode(),
-    open val keyProvider: () -> Int = { provider.getAndIncrement() },
-    open val key: Int = keyProvider.invoke()
+    open val key: Int = MainExecutionContext.newId()
 
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
@@ -87,10 +83,9 @@ data class DataDefinition(
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
-    override val position: Position? = null,
-    override val keyProvider: () -> Int = { provider.getAndIncrement() }
+    override val position: Position? = null
 ) :
-            AbstractDataDefinition(name, type, position, keyProvider = keyProvider) {
+            AbstractDataDefinition(name, type, position) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
