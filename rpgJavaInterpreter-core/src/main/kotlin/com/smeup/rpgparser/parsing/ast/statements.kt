@@ -55,29 +55,29 @@ abstract class Statement(
     var continuedIndicators: HashMap<Int, ContinuedIndicator> = HashMap<Int, ContinuedIndicator>()
 
     @Throws(ControlFlowException::class, IllegalArgumentException::class, NotImplementedError::class, RuntimeException::class)
-    abstract fun execute(internal_interpreter: InternalInterpreter)
+    abstract fun execute(interpreter: InterpreterCore)
 }
 
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position) {
-    override fun execute(internal_interpreter: InternalInterpreter) {
-        internal_interpreter.log {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log {
             SubroutineExecutionLogStart(
-                    internal_interpreter.interpretationContext.currentProgramName,
+                    interpreter.interpretationContext.currentProgramName,
                     subroutine.referred!!
             )
         }
         val elapsed = measureTimeMillis {
             try {
-                internal_interpreter.execute(subroutine.referred!!.stmts)
+                interpreter.execute(subroutine.referred!!.stmts)
             } catch (e: LeaveSrException) {
                 // Nothing to do here
             } catch (e: GotoException) {
                 if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
             }
         }
-        internal_interpreter.log {
+        interpreter.log {
             SubroutineExecutionLogEnd(
-                    internal_interpreter.interpretationContext.currentProgramName,
+                    interpreter.interpretationContext.currentProgramName,
                     subroutine.referred!!,
                     elapsed
             )
@@ -109,24 +109,24 @@ data class SelectStmt(
         return muteAttached
     }
 
-    override fun execute(internal_interpreter: InternalInterpreter) {
+    override fun execute(interpreter: InterpreterCore) {
         for (case in this.cases) {
-            val result = internal_interpreter.eval(case.condition)
+            val result = interpreter.eval(case.condition)
 
-            internal_interpreter.log { SelectCaseExecutionLogEntry(internal_interpreter.interpretationContext.currentProgramName, case, result) }
+            interpreter.log { SelectCaseExecutionLogEntry(interpreter.interpretationContext.currentProgramName, case, result) }
             if (result.asBoolean().value) {
-                internal_interpreter.execute(case.body)
+                interpreter.execute(case.body)
                 return
             }
         }
         if (this.other != null) {
-            internal_interpreter.log {
+            interpreter.log {
                 SelectOtherExecutionLogEntry(
-                        internal_interpreter.interpretationContext.currentProgramName,
+                        interpreter.interpretationContext.currentProgramName,
                         this.other!!
                 )
             }
-            internal_interpreter.execute(this.other!!.body)
+            interpreter.execute(this.other!!.body)
         }
     }
 }
@@ -149,15 +149,15 @@ data class EvalStmt(
     override val position: Position? = null
 ) :
     Statement(position) {
-    override fun execute(internal_interpreter: InternalInterpreter) {
+    override fun execute(interpreter: InterpreterCore) {
             // Should I assign it one by one?
             val result = if (target.type().isArray() &&
                     target.type().asArray().element.canBeAssigned(expression.type())) {
-                internal_interpreter.assignEachElement(target, expression, operator)
+                interpreter.assignEachElement(target, expression, operator)
             } else {
-                internal_interpreter.assign(target, expression, operator)
+                interpreter.assign(target, expression, operator)
             }
-        internal_interpreter.log { EvaluationLogEntry(internal_interpreter.interpretationContext.currentProgramName, this, result) }
+        interpreter.log { EvaluationLogEntry(interpreter.interpretationContext.currentProgramName, this, result) }
     }
 }
 
@@ -168,19 +168,19 @@ data class SubDurStmt(
     override val position: Position? = null
 ) :
     Statement(position) {
-    override fun execute(internal_interpreter: InternalInterpreter) {
+    override fun execute(interpreter: InterpreterCore) {
             when (target) {
                 is DataRefExpr -> {
                     // TODO: partial implementation just for *MS - Add more cases
                     val minuend = if (factor1 == null) {
-                        internal_interpreter.eval(target)
+                        interpreter.eval(target)
                     } else {
-                        internal_interpreter.eval(factor1)
+                        interpreter.eval(factor1)
                     }
-                    val subtrahend = internal_interpreter.eval(factor2)
+                    val subtrahend = interpreter.eval(factor2)
                     val newValue =
                             (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
-                    internal_interpreter.assign(target, IntValue(newValue))
+                    interpreter.assign(target, IntValue(newValue))
                 }
                 else -> throw UnsupportedOperationException("Data reference required: " + this)
             }
@@ -193,9 +193,9 @@ data class MoveStmt(
     override val position: Position? = null
 ) :
     Statement(position) {
-    override fun execute(internal_interpreter: InternalInterpreter) {
-        val value = move(target, expression, internal_interpreter)
-        internal_interpreter.log { MoveStatemenExecutionLog(internal_interpreter.interpretationContext.currentProgramName, this, value) }
+    override fun execute(interpreter: InterpreterCore) {
+        val value = move(target, expression, interpreter)
+        interpreter.log { MoveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value) }
     }
 }
 
@@ -206,10 +206,10 @@ data class MoveAStmt(
     override val position: Position? = null
 ) :
     Statement(position) {
-    override fun execute(internal_interpreter: InternalInterpreter) {
-        val value = movea(operationExtender, target, expression, internal_interpreter)
-        internal_interpreter.log {
-            MoveAStatemenExecutionLog(internal_interpreter.interpretationContext.currentProgramName, this, value)
+    override fun execute(interpreter: InterpreterCore) {
+        val value = movea(operationExtender, target, expression, interpreter)
+        interpreter.log {
+            MoveAStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value)
         }
     }
 }
@@ -228,9 +228,9 @@ data class MoveAStmt(
             return emptyList()
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val value = movel(operationExtender, target, expression, internal_interpreter)
-            internal_interpreter.log { MoveLStatemenExecutionLog(internal_interpreter.interpretationContext.currentProgramName, this, value) }
+        override fun execute(interpreter: InterpreterCore) {
+            val value = movel(operationExtender, target, expression, interpreter)
+            interpreter.log { MoveLStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value) }
         }
     }
 
@@ -241,14 +241,14 @@ data class MoveAStmt(
         override val position: Position? = null
     ) :
             Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val dbFile = internal_interpreter.dbFile(name, this)
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
             val record = if (searchArg.type() is KListType) {
-                dbFile.chain(internal_interpreter.toSearchValues(searchArg))
+                dbFile.chain(interpreter.toSearchValues(searchArg))
             } else {
-                dbFile.chain(internal_interpreter.eval(searchArg))
+                dbFile.chain(interpreter.eval(searchArg))
             }
-            internal_interpreter.fillDataFrom(record)
+            interpreter.fillDataFrom(record)
         }
     }
 
@@ -258,14 +258,14 @@ data class MoveAStmt(
         override val position: Position? = null
     ) :
             Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val dbFile = internal_interpreter.dbFile(name, this)
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
             val record = when {
                 searchArg == null -> dbFile.readEqual()
-                searchArg.type() is KListType -> dbFile.readEqual(internal_interpreter.toSearchValues(searchArg))
-                else -> dbFile.readEqual(internal_interpreter.eval(searchArg))
+                searchArg.type() is KListType -> dbFile.readEqual(interpreter.toSearchValues(searchArg))
+                else -> dbFile.readEqual(interpreter.eval(searchArg))
             }
-            internal_interpreter.fillDataFrom(record)
+            interpreter.fillDataFrom(record)
         }
     }
 
@@ -275,14 +275,14 @@ data class MoveAStmt(
         override val position: Position? = null
     ) :
             Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val dbFile = internal_interpreter.dbFile(name, this)
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
             val record = when {
                 searchArg == null -> dbFile.readPrevious()
-                searchArg.type() is KListType -> dbFile.readPrevious(internal_interpreter.toSearchValues(searchArg))
-                else -> dbFile.readPrevious(internal_interpreter.eval(searchArg))
+                searchArg.type() is KListType -> dbFile.readPrevious(interpreter.toSearchValues(searchArg))
+                else -> dbFile.readPrevious(interpreter.eval(searchArg))
             }
-            internal_interpreter.fillDataFrom(record)
+            interpreter.fillDataFrom(record)
         }
     }
 
@@ -291,10 +291,10 @@ data class MoveAStmt(
         override val position: Position? = null
     ) :
             Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val dbFile = internal_interpreter.dbFile(name, this)
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
             val record = dbFile.read()
-            internal_interpreter.fillDataFrom(record)
+            interpreter.fillDataFrom(record)
         }
     }
 
@@ -303,12 +303,12 @@ data class MoveAStmt(
         val name: String, // Factor 2
         override val position: Position? = null
     ) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val dbFile = internal_interpreter.dbFile(name, this)
-            internal_interpreter.status.lastFound = if (searchArg.type() is KListType) {
-                dbFile.setll(internal_interpreter.toSearchValues(searchArg))
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
+            interpreter.status.lastFound = if (searchArg.type() is KListType) {
+                dbFile.setll(interpreter.toSearchValues(searchArg))
             } else {
-                dbFile.setll(internal_interpreter.eval(searchArg))
+                dbFile.setll(interpreter.eval(searchArg))
             }
         }
     }
@@ -320,23 +320,23 @@ data class MoveAStmt(
         val wrongCharPosition: AssignableExpression?,
         override val position: Position? = null
     ) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            var baseString = internal_interpreter.eval(this.baseString).asString().value
+        override fun execute(interpreter: InterpreterCore) {
+            var baseString = interpreter.eval(this.baseString).asString().value
             if (this.baseString is DataRefExpr) {
                 baseString = baseString.padEnd(this.baseString.size())
             }
-            val charSet = internal_interpreter.eval(comparatorString).asString().value
+            val charSet = interpreter.eval(comparatorString).asString().value
             val wrongIndex = wrongCharPosition
-            internal_interpreter.status.lastFound = false
+            interpreter.status.lastFound = false
             if (wrongIndex != null) {
-                internal_interpreter.assign(wrongIndex, IntValue.ZERO)
+                interpreter.assign(wrongIndex, IntValue.ZERO)
             }
             baseString.substring(start - 1).forEachIndexed { i, c ->
                 if (!charSet.contains(c)) {
                     if (wrongIndex != null) {
-                        internal_interpreter.assign(wrongIndex, IntValue((i + start).toLong()))
+                        interpreter.assign(wrongIndex, IntValue((i + start).toLong()))
                     }
-                    internal_interpreter.status.lastFound = true
+                    interpreter.status.lastFound = true
                     return
                 }
             }
@@ -355,11 +355,11 @@ data class MoveAStmt(
             }
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.log { CallExecutionLogEntry(internal_interpreter.interpretationContext.currentProgramName, this) }
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.log { CallExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
             val callStatement = this
-            val programToCall = internal_interpreter.eval(expression).asString().value
-            val program = internal_interpreter.systemInterface.findProgram(programToCall)
+            val programToCall = interpreter.eval(expression).asString().value
+            val program = interpreter.systemInterface.findProgram(programToCall)
             require(program != null) {
                 "Line: ${this.position.line()} - Program $programToCall cannot be found"
             }
@@ -367,43 +367,43 @@ data class MoveAStmt(
             val params = this.params.mapIndexed { index, it ->
                 if (it.dataDefinition != null) {
                     if (it.dataDefinition.initializationValue != null) {
-                        if (!internal_interpreter.exists(it.param.name)) {
-                            internal_interpreter.assign(it.dataDefinition, internal_interpreter.eval(it.dataDefinition.initializationValue))
+                        if (!interpreter.exists(it.param.name)) {
+                            interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
                         } else {
-                            internal_interpreter.assign(
-                                    internal_interpreter.dataDefinitionByName(it.param.name)!!,
-                                    internal_interpreter.eval(it.dataDefinition.initializationValue)
+                            interpreter.assign(
+                                    interpreter.dataDefinitionByName(it.param.name)!!,
+                                    interpreter.eval(it.dataDefinition.initializationValue)
                             )
                         }
                     } else {
-                        if (!internal_interpreter.exists(it.param.name)) {
-                            internal_interpreter.assign(it.dataDefinition, internal_interpreter.eval(BlanksRefExpr()))
+                        if (!interpreter.exists(it.param.name)) {
+                            interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
                         }
                     }
                 }
                 require(program.params().size > index) {
                     "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
                 }
-                program.params()[index].name to internal_interpreter.get(it.param.name)
+                program.params()[index].name to interpreter.get(it.param.name)
             }.toMap(LinkedHashMap())
 
             val startTime = System.currentTimeMillis()
             val paramValuesAtTheEnd =
                     try {
-                        internal_interpreter.systemInterface.registerProgramExecutionStart(program, params)
-                        program.execute(internal_interpreter.systemInterface, params).apply {
-                            internal_interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
+                        interpreter.systemInterface.registerProgramExecutionStart(program, params)
+                        program.execute(interpreter.systemInterface, params).apply {
+                            interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
                         }
                     } catch (e: Exception) { // TODO Catch a more specific exception?
-                        internal_interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
+                        interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
                         if (errorIndicator == null) {
                             throw e
                         }
-                        internal_interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
+                        interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
                         null
                     }
             paramValuesAtTheEnd?.forEachIndexed { index, value ->
-                internal_interpreter.assign(this.params[index].param.referred!!, value)
+                interpreter.assign(this.params[index].param.referred!!, value)
             }
         }
     }
@@ -418,9 +418,9 @@ data class MoveAStmt(
 
         override fun dataDefinition(): List<InStatementDataDefinition> = listOf(InStatementDataDefinition(name, KListType))
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             // TODO Add logging as for PlistStmt
-            internal_interpreter.klists[name] = fields
+            interpreter.klists[name] = fields
         }
     }
 
@@ -458,29 +458,29 @@ data class MoveAStmt(
             return muteAttached
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val condition = internal_interpreter.eval(condition)
-            internal_interpreter.log { IfExecutionLogEntry(internal_interpreter.interpretationContext.currentProgramName, this, condition) }
+        override fun execute(interpreter: InterpreterCore) {
+            val condition = interpreter.eval(condition)
+            interpreter.log { IfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this, condition) }
             if (condition.asBoolean().value) {
-                internal_interpreter.execute(this.body)
+                interpreter.execute(this.body)
             } else {
                 for (elseIfClause in elseIfClauses) {
-                    val c = internal_interpreter.eval(elseIfClause.condition)
-                    internal_interpreter.log { ElseIfExecutionLogEntry(internal_interpreter.interpretationContext.currentProgramName, elseIfClause, c) }
+                    val c = interpreter.eval(elseIfClause.condition)
+                    interpreter.log { ElseIfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, elseIfClause, c) }
                     if (c.asBoolean().value) {
-                        internal_interpreter.execute(elseIfClause.body)
+                        interpreter.execute(elseIfClause.body)
                         return
                     }
                 }
                 if (elseClause != null) {
-                    internal_interpreter.log {
+                    interpreter.log {
                         ElseExecutionLogEntry(
-                                internal_interpreter.interpretationContext.currentProgramName,
+                                interpreter.interpretationContext.currentProgramName,
                                 elseClause,
                                 condition
                         )
                     }
-                    internal_interpreter.execute(elseClause.body)
+                    interpreter.execute(elseClause.body)
                 }
             }
         }
@@ -496,15 +496,15 @@ data class MoveAStmt(
             OFF
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             indicators.forEach {
                 when (it) {
-                    is DataWrapUpIndicatorExpr -> internal_interpreter.interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
+                    is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
                     is PredefinedIndicatorExpr -> {
                         if (valueSet.name == "ON") {
-                            internal_interpreter.predefinedIndicators[it.index] = BooleanValue.TRUE
+                            interpreter.predefinedIndicators[it.index] = BooleanValue.TRUE
                         } else {
-                            internal_interpreter.predefinedIndicators[it.index] = BooleanValue.FALSE
+                            interpreter.predefinedIndicators[it.index] = BooleanValue.FALSE
                         }
                     }
                     else -> TODO()
@@ -514,8 +514,8 @@ data class MoveAStmt(
     }
 
     data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val returnValue = expression?.let { internal_interpreter.eval(expression) }
+        override fun execute(interpreter: InterpreterCore) {
+            val returnValue = expression?.let { interpreter.eval(expression) }
             throw ReturnException(returnValue)
         }
     }
@@ -538,13 +538,13 @@ data class MoveAStmt(
             return filtered
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             params.forEach {
-                if (internal_interpreter.globalSymbolTable.contains(it.param.name)) {
-                    val value = internal_interpreter.globalSymbolTable[it.param.name]
-                    internal_interpreter.log {
+                if (interpreter.globalSymbolTable.contains(it.param.name)) {
+                    val value = interpreter.globalSymbolTable[it.param.name]
+                    interpreter.log {
                         ParamListStatemenExecutionLog(
-                                internal_interpreter.interpretationContext.currentProgramName,
+                                interpreter.interpretationContext.currentProgramName,
                                 this,
                                 it.param.name,
                                 value
@@ -574,13 +574,13 @@ data class MoveAStmt(
             return emptyList()
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             return when (value) {
                 is DataRefExpr -> {
-                    val value = internal_interpreter.assign(value, BlanksRefExpr())
-                    internal_interpreter.log {
+                    val value = interpreter.assign(value, BlanksRefExpr())
+                    interpreter.log {
                         ClearStatemenExecutionLog(
-                                internal_interpreter.interpretationContext.currentProgramName,
+                                interpreter.interpretationContext.currentProgramName,
                                 this,
                                 value
                         )
@@ -588,10 +588,10 @@ data class MoveAStmt(
                     Unit
                 }
                 is PredefinedIndicatorExpr -> {
-                    val value = internal_interpreter.assign(value, BlanksRefExpr())
-                    internal_interpreter.log {
+                    val value = interpreter.assign(value, BlanksRefExpr())
+                    interpreter.log {
                         ClearStatemenExecutionLog(
-                                internal_interpreter.interpretationContext.currentProgramName,
+                                interpreter.interpretationContext.currentProgramName,
                                 this,
                                 value
                         )
@@ -625,7 +625,7 @@ data class MoveAStmt(
             }
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             // Nothing to do here
         }
     }
@@ -650,11 +650,11 @@ data class MoveAStmt(
         val rightIndicators: WithRightIndicators,
         override val position: Position? = null
     ) : Statement(position), WithRightIndicators by rightIndicators {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            when (internal_interpreter.compareExpressions(left, right, internal_interpreter.localizationContext.charset)) {
-                Comparison.GREATER -> internal_interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                Comparison.SMALLER -> internal_interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                Comparison.EQUAL -> internal_interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+        override fun execute(interpreter: InterpreterCore) {
+            when (interpreter.compareExpressions(left, right, interpreter.localizationContext.charset)) {
+                Comparison.GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+                Comparison.SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+                Comparison.EQUAL -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             }
         }
     }
@@ -673,8 +673,8 @@ data class MoveAStmt(
             return emptyList()
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.assign(target, internal_interpreter.eval(expression))
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(target, interpreter.eval(expression))
         }
     }
 
@@ -685,8 +685,8 @@ data class MoveAStmt(
         val factor2: Expression,
         override val position: Position? = null
     ) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.assign(target, internal_interpreter.mult(this))
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(target, interpreter.mult(this))
         }
     }
 
@@ -697,8 +697,8 @@ data class MoveAStmt(
         val factor2: Expression,
         override val position: Position? = null
     ) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.assign(target, internal_interpreter.div(this))
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(target, interpreter.div(this))
         }
     }
 
@@ -720,8 +720,8 @@ data class MoveAStmt(
         val addend1: Expression
             get() = left ?: result
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.assign(result, internal_interpreter.add(this))
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(result, interpreter.add(this))
         }
     }
 
@@ -738,12 +738,12 @@ data class MoveAStmt(
             return emptyList()
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val value = internal_interpreter.eval(expression)
+        override fun execute(interpreter: InterpreterCore) {
+            val value = interpreter.eval(expression)
             require(value is NumberValue) {
                 "$value should be a number"
             }
-            internal_interpreter.assign(target, value.negate())
+            interpreter.assign(target, value.negate())
         }
     }
 
@@ -765,8 +765,8 @@ data class MoveAStmt(
         val minuend: Expression
             get() = left ?: result
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.assign(result, internal_interpreter.sub(this))
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(result, interpreter.sub(this))
         }
     }
 
@@ -774,10 +774,10 @@ data class MoveAStmt(
         val value: Expression,
         override val position: Position? = null
     ) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             when (value) {
                 is DataRefExpr -> {
-                    internal_interpreter.assign(value, TimeStampValue(Date()))
+                    interpreter.assign(value, TimeStampValue(Date()))
                 }
                 else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
             }
@@ -785,12 +785,12 @@ data class MoveAStmt(
     }
 
     data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             val values = mutableListOf<Value>()
-            factor1?.let { values.add(internal_interpreter.eval(it)) }
-            response?.let { values.add(internal_interpreter.eval(it)) }
+            factor1?.let { values.add(interpreter.eval(it)) }
+            response?.let { values.add(interpreter.eval(it)) }
             // TODO: receive input from systemInterface and assign value to response
-            internal_interpreter.systemInterface.display(internal_interpreter.rawRender(values))
+            interpreter.systemInterface.display(interpreter.rawRender(values))
         }
     }
 
@@ -806,28 +806,28 @@ data class MoveAStmt(
             return acceptBody(body, mutes, start, end)
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             var loopCounter: Long = 0
             val startTime = System.currentTimeMillis()
             val endLimitExpression = endLimit
-            val endLimit: () -> Long = internal_interpreter.optimizedIntExpression(endLimitExpression)
+            val endLimit: () -> Long = interpreter.optimizedIntExpression(endLimitExpression)
             if (index == null) {
-                var myIterValue = internal_interpreter.eval(startLimit).asInt().value
+                var myIterValue = interpreter.eval(startLimit).asInt().value
                 try {
-                    internal_interpreter.log { DoStatemenExecutionLogStart(internal_interpreter.interpretationContext.currentProgramName, this) }
+                    interpreter.log { DoStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
                     while (myIterValue <= endLimit()) {
                         try {
-                            internal_interpreter.execute(body)
+                            interpreter.execute(body)
                         } catch (e: IterException) {
                             // nothing to do here
                         }
                         loopCounter++
                         myIterValue++
                     }
-                    internal_interpreter.log {
+                    interpreter.log {
                         val elapsed = System.currentTimeMillis() - startTime
                         DoStatemenExecutionLogEnd(
-                                internal_interpreter.interpretationContext.currentProgramName,
+                                interpreter.interpretationContext.currentProgramName,
                                 this,
                                 elapsed,
                                 loopCounter
@@ -835,10 +835,10 @@ data class MoveAStmt(
                     }
                 } catch (e: LeaveException) {
                     // nothing to do here
-                    internal_interpreter.log {
+                    interpreter.log {
                         val elapsed = System.currentTimeMillis() - startTime
                         DoStatemenExecutionLogEnd(
-                                internal_interpreter.interpretationContext.currentProgramName,
+                                interpreter.interpretationContext.currentProgramName,
                                 this,
                                 elapsed,
                                 loopCounter
@@ -846,16 +846,16 @@ data class MoveAStmt(
                     }
                 }
             } else {
-                internal_interpreter.assign(index, startLimit)
+                interpreter.assign(index, startLimit)
                 try {
-                    val indexExpression = internal_interpreter.optimizedIntExpression(index)
+                    val indexExpression = interpreter.optimizedIntExpression(index)
                     while (indexExpression() <= endLimit()) {
                         try {
-                            internal_interpreter.execute(body)
+                            interpreter.execute(body)
                         } catch (e: IterException) {
                             // nothing to do here
                         }
-                        internal_interpreter.assign(index, PlusExpr(index, IntLiteral(1)))
+                        interpreter.assign(index, PlusExpr(index, IntLiteral(1)))
                     }
                 } catch (e: LeaveException) {
                     // nothing to do here
@@ -869,29 +869,29 @@ data class MoveAStmt(
         val body: List<Statement>,
         override val position: Position? = null
     ) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             var loopCounter: Long = 0
             val startTime = System.currentTimeMillis()
             try {
-                internal_interpreter.log { DowStatemenExecutionLogStart(internal_interpreter.interpretationContext.currentProgramName, this) }
-                while (internal_interpreter.eval(endExpression).asBoolean().value) {
-                    internal_interpreter.execute(body)
+                interpreter.log { DowStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+                while (interpreter.eval(endExpression).asBoolean().value) {
+                    interpreter.execute(body)
                     loopCounter++
                 }
-                internal_interpreter.log {
+                interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
                     DowStatemenExecutionLogEnd(
-                            internal_interpreter.interpretationContext.currentProgramName,
+                            interpreter.interpretationContext.currentProgramName,
                             this,
                             elapsed,
                             loopCounter
                     )
                 }
             } catch (e: LeaveException) {
-                internal_interpreter.log {
+                interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
                     DowStatemenExecutionLogEnd(
-                            internal_interpreter.interpretationContext.currentProgramName,
+                            interpreter.interpretationContext.currentProgramName,
                             this,
                             elapsed,
                             loopCounter
@@ -906,29 +906,29 @@ data class MoveAStmt(
         val body: List<Statement>,
         override val position: Position? = null
     ) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             var loopCounter: Long = 0
             val startTime = System.currentTimeMillis()
             try {
-                internal_interpreter.log { DouStatemenExecutionLogStart(internal_interpreter.interpretationContext.currentProgramName, this) }
+                interpreter.log { DouStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
                 do {
-                    internal_interpreter.execute(body)
+                    interpreter.execute(body)
                     loopCounter++
-                } while (!internal_interpreter.eval(endExpression).asBoolean().value)
-                internal_interpreter.log {
+                } while (!interpreter.eval(endExpression).asBoolean().value)
+                interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
                     DouStatemenExecutionLogEnd(
-                            internal_interpreter.interpretationContext.currentProgramName,
+                            interpreter.interpretationContext.currentProgramName,
                             this,
                             elapsed,
                             loopCounter
                     )
                 }
             } catch (e: LeaveException) {
-                internal_interpreter.log {
+                interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
                     DouStatemenExecutionLogEnd(
-                            internal_interpreter.interpretationContext.currentProgramName,
+                            interpreter.interpretationContext.currentProgramName,
                             this,
                             elapsed,
                             loopCounter
@@ -939,28 +939,28 @@ data class MoveAStmt(
     }
 
     data class LeaveSrStmt(override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.log { LeaveSrStatemenExecutionLog(internal_interpreter.interpretationContext.currentProgramName, this) }
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.log { LeaveSrStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
             throw LeaveSrException()
         }
     }
 
     data class LeaveStmt(override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.log { LeaveStatemenExecutionLog(internal_interpreter.interpretationContext.currentProgramName, this) }
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.log { LeaveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
             throw LeaveException()
         }
     }
 
     data class IterStmt(override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            internal_interpreter.log { IterStatemenExecutionLog(internal_interpreter.interpretationContext.currentProgramName, this) }
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.log { IterStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
             throw IterException()
         }
     }
 
     data class OtherStmt(override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             TODO("Not yet implemented")
         }
     }
@@ -969,13 +969,13 @@ data class MoveAStmt(
         companion object {
             operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
         }
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             // Nothing to do here
         }
     }
 
     data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             throw GotoException(tag)
         }
     }
@@ -988,12 +988,12 @@ data class MoveAStmt(
         val rightIndicators: WithRightIndicators,
         override val position: Position? = null
     ) : Statement(position), WithRightIndicators by rightIndicators {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            val comparisonResult = comparison.verify(factor1, factor2, internal_interpreter, internal_interpreter.localizationContext.charset)
+        override fun execute(interpreter: InterpreterCore) {
+            val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.localizationContext.charset)
             when (comparisonResult.comparison) {
-                Comparison.GREATER -> internal_interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                Comparison.SMALLER -> internal_interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                Comparison.EQUAL -> internal_interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+                Comparison.GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+                Comparison.SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+                Comparison.EQUAL -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             }
             if (comparisonResult.isVerified) throw GotoException(tag)
         }
@@ -1024,32 +1024,32 @@ data class MoveAStmt(
             return acceptBody(body, mutes, start, end)
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             var loopCounter: Long = 0
             val startTime = System.currentTimeMillis()
 
-            internal_interpreter.eval(init)
+            interpreter.eval(init)
             val iterVar = iterDataDefinition()
             try {
-                internal_interpreter.log { ForStatementExecutionLogStart(internal_interpreter.interpretationContext.currentProgramName, this) }
-                var step = internal_interpreter.eval(byValue).asInt().value
+                interpreter.log { ForStatementExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+                var step = interpreter.eval(byValue).asInt().value
                 if (downward) {
                     step *= -1
                 }
-                while (internal_interpreter.enterCondition(internal_interpreter[iterVar], internal_interpreter.eval(endValue), downward)) {
+                while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward)) {
                     try {
-                        internal_interpreter.execute(body)
+                        interpreter.execute(body)
                     } catch (e: IterException) {
                         // nothing to do here
                     }
 
-                    internal_interpreter.increment(iterVar, step)
+                    interpreter.increment(iterVar, step)
                     loopCounter++
                 }
-                internal_interpreter.log {
+                interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
                     ForStatementExecutionLogEnd(
-                            internal_interpreter.interpretationContext.currentProgramName,
+                            interpreter.interpretationContext.currentProgramName,
                             this,
                             elapsed,
                             loopCounter
@@ -1057,10 +1057,10 @@ data class MoveAStmt(
                 }
             } catch (e: LeaveException) {
                 // leaving
-                internal_interpreter.log {
+                interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
                     ForStatementExecutionLogEnd(
-                            internal_interpreter.interpretationContext.currentProgramName,
+                            interpreter.interpretationContext.currentProgramName,
                             this,
                             elapsed,
                             loopCounter
@@ -1075,22 +1075,22 @@ data class MoveAStmt(
  * of the array to be sorted followed by the subfield to be used as a key for the sort.
  */
     data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            sortA(internal_interpreter.eval(target), internal_interpreter.localizationContext.charset)
+        override fun execute(interpreter: InterpreterCore) {
+            sortA(interpreter.eval(target), interpreter.localizationContext.charset)
         }
     }
 
     data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position) {
-        override fun execute(internal_interpreter: InternalInterpreter) {
+        override fun execute(interpreter: InterpreterCore) {
             val blanksInBetween = blanksInBetween
             val blanks = StringValue.blank(blanksInBetween)
-            val factor2 = internal_interpreter.eval(right)
-            var result = internal_interpreter.eval(target)
+            val factor2 = interpreter.eval(right)
+            var result = interpreter.eval(target)
             val resultLen = result.asString().length()
             var concatenatedFactors: Value
 
             if (null != left) {
-                val factor1 = internal_interpreter.eval(left)
+                val factor1 = interpreter.eval(left)
                 val f1Trimmed = (factor1 as StringValue).value.trim()
                 val factor1Trimmed = StringValue(f1Trimmed)
                 concatenatedFactors = if (blanksInBetween > 0) {
@@ -1118,8 +1118,8 @@ data class MoveAStmt(
                 concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
             }
 
-            internal_interpreter.assign(target, result)
-            internal_interpreter.log { CatStatementExecutionLog(internal_interpreter.interpretationContext.currentProgramName, this, internal_interpreter.eval(target)) }
+            interpreter.assign(target, result)
+            interpreter.log { CatStatementExecutionLog(interpreter.interpretationContext.currentProgramName, this, interpreter.eval(target)) }
         }
     }
 
@@ -1129,8 +1129,8 @@ data class MoveAStmt(
         val rightIndicators: WithRightIndicators,
         override val position: Position? = null
     ) : Statement(position), WithRightIndicators by rightIndicators {
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            lookUp(this, internal_interpreter, internal_interpreter.localizationContext.charset)
+        override fun execute(interpreter: InterpreterCore) {
+            lookUp(this, interpreter, interpreter.localizationContext.charset)
         }
     }
 
@@ -1148,7 +1148,7 @@ data class MoveAStmt(
             return emptyList()
         }
 
-        override fun execute(internal_interpreter: InternalInterpreter) {
-            xfoot(this, internal_interpreter)
+        override fun execute(interpreter: InterpreterCore) {
+            xfoot(this, interpreter)
         }
     }

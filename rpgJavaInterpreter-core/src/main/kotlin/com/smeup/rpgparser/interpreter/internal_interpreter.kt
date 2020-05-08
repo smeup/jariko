@@ -34,36 +34,38 @@ class InterpreterStatus(
 }
 
 class InternalInterpreter(
-    val systemInterface: SystemInterface,
-    val localizationContext: LocalizationContext = LocalizationContext()
+    override val systemInterface: SystemInterface,
+    override val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
-    val globalSymbolTable = SymbolTable()
-    val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
+    override val globalSymbolTable = SymbolTable()
 
-    var interpretationContext: InterpretationContext = DummyInterpretationContext
-    val klists = HashMap<String, List<String>>()
+    override val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
+
+    override var interpretationContext: InterpretationContext = DummyInterpretationContext
+
+    override val klists = HashMap<String, List<String>>()
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
+    override val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
     override fun log(logEntry: () -> LogEntry) {
-        if (!logHandlers.isEmpty()) logHandlers.log(logEntry())
+        if (logHandlers.isNotEmpty()) logHandlers.log(logEntry())
     }
 
-    fun exists(dataName: String) = globalSymbolTable.contains(dataName)
+    override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
 
-    fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
+    override fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
     override operator fun get(data: AbstractDataDefinition): Value {
         return globalSymbolTable[data]
     }
 
-    operator fun get(dataName: String) = globalSymbolTable[dataName]
+    override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
@@ -217,10 +219,10 @@ class InternalInterpreter(
         logHandlers = systemInterface.getAllLogHandlers()
     }
 
-    fun execute(
+    override fun execute(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
-        reinitialization: Boolean = true
+        reinitialization: Boolean
     ) {
         configureLogHandlers()
 
@@ -249,7 +251,7 @@ class InternalInterpreter(
         return result
     }
 
-    fun execute(statements: List<Statement>) {
+    override fun execute(statements: List<Statement>) {
         try {
             var i = 0
             while (i < statements.size) {
@@ -422,7 +424,7 @@ class InternalInterpreter(
         return isExecutable
     }
 
-    fun optimizedIntExpression(expression: Expression): () -> Long =
+    override fun optimizedIntExpression(expression: Expression): () -> Long =
         if (expression is IntLiteral || expression is FigurativeConstantRef) {
             val constValue = eval(expression).asInt().value
             { constValue }
@@ -445,7 +447,7 @@ class InternalInterpreter(
     private fun errorDescription(statement: Statement, throwable: Throwable) =
         "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
-    fun fillDataFrom(record: Record) {
+    override fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
             record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
@@ -454,7 +456,7 @@ class InternalInterpreter(
         }
     }
 
-    fun dbFile(name: String, statement: Statement): DBFile {
+    override fun dbFile(name: String, statement: Statement): DBFile {
         val dbFile = dbFileMap[name]
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
@@ -463,29 +465,20 @@ class InternalInterpreter(
         return dbFile
     }
 
-    fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
+    override fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
         val kListName = searchArgExpression.render().toUpperCase()
         val parms = klists[kListName]
         return parms!!.map { RecordField(it, get(it)) }
     }
 
-    fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
+    override fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
         if (downward) {
             isEqualOrGreater(index, end, localizationContext.charset)
         } else {
             isEqualOrSmaller(index, end, localizationContext.charset)
         }
 
-    private fun step(byValue: Expression, downward: Boolean): Long {
-        val sign = if (downward) {
-            -1
-        } else {
-            1
-        }
-        return eval(byValue).asInt().value * sign
-    }
-
-    fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1): Value {
+    override fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value {
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
@@ -496,7 +489,7 @@ class InternalInterpreter(
         }
     }
 
-    fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")
+    override fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")
 
     private fun rawRender(value: Value): String {
         return when (value) {
@@ -519,7 +512,7 @@ class InternalInterpreter(
         return value
     }
 
-    fun mult(statement: MultStmt): Value {
+    override fun mult(statement: MultStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         require(statement.target is DataRefExpr)
         val rightValue: BigDecimal = if (statement.factor1 != null) {
@@ -538,7 +531,7 @@ class InternalInterpreter(
         }
     }
 
-    fun div(statement: DivStmt): Value {
+    override fun div(statement: DivStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         require(statement.target is DataRefExpr)
         val dividend: BigDecimal = if (statement.factor1 != null) {
@@ -557,13 +550,13 @@ class InternalInterpreter(
         }
     }
 
-    fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
+    override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
         return coercedValue
     }
 
-    fun assignEachElement(target: AssignableExpression, value: Value): Value {
+    override fun assignEachElement(target: AssignableExpression, value: Value): Value {
         val arrayType = target.type().asArray()
         return assign(target, value.toArray(arrayType.nElements, arrayType.element))
     }
@@ -643,10 +636,10 @@ class InternalInterpreter(
         }
     }
 
-    fun assign(
+    override fun assign(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator = NORMAL_ASSIGNMENT
+        operator: AssignmentOperator
     ): Value {
         return when (operator) {
             NORMAL_ASSIGNMENT -> {
@@ -670,10 +663,10 @@ class InternalInterpreter(
         }
     }
 
-    fun assignEachElement(
+    override fun assignEachElement(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator = NORMAL_ASSIGNMENT
+        operator: AssignmentOperator
     ): Value {
         return when (operator) {
             NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
@@ -685,7 +678,7 @@ class InternalInterpreter(
         }
     }
 
-    fun add(statement: AddStmt): Value {
+    override fun add(statement: AddStmt): Value {
         val addend1 = eval(statement.addend1)
         require(addend1 is NumberValue) {
             "$addend1 should be a number"
@@ -703,7 +696,7 @@ class InternalInterpreter(
         }
     }
 
-    fun sub(statement: SubStmt): Value {
+    override fun sub(statement: SubStmt): Value {
         val minuend = eval(statement.minuend)
         require(minuend is NumberValue) {
             "$minuend should be a number"

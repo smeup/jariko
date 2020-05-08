@@ -170,7 +170,7 @@ fun RpgParserResult.executeMuteAnnotations(
             }
         }
     }
-    interpreter.execute(cu, parameters)
+    interpreter.execute(cu, parameters, reinitialization = true)
     return interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
 }
 
