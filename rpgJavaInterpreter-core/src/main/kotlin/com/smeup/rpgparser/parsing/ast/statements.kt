@@ -6,7 +6,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.strumenta.kolasu.model.*
-import java.util.HashMap
+import kotlin.system.measureTimeMillis
+import java.util.*
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -52,9 +53,37 @@ abstract class Statement(
 
     var indicatorCondition: IndicatorCondition? = null
     var continuedIndicators: HashMap<Int, ContinuedIndicator> = HashMap<Int, ContinuedIndicator>()
+
+    @Throws(ControlFlowException::class, IllegalArgumentException::class, NotImplementedError::class, RuntimeException::class)
+    abstract fun execute(interpreter: InterpreterCore)
 }
 
-data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position)
+data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log {
+            SubroutineExecutionLogStart(
+                    interpreter.interpretationContext.currentProgramName,
+                    subroutine.referred!!
+            )
+        }
+        val elapsed = measureTimeMillis {
+            try {
+                interpreter.execute(subroutine.referred!!.stmts)
+            } catch (e: LeaveSrException) {
+                // Nothing to do here
+            } catch (e: GotoException) {
+                if (!e.tag.equals(subroutine.referred!!.tag, true)) throw e
+            }
+        }
+        interpreter.log {
+            SubroutineExecutionLogEnd(
+                    interpreter.interpretationContext.currentProgramName,
+                    subroutine.referred!!,
+                    elapsed
+            )
+        }
+    }
+}
 
 data class SelectStmt(
     var cases: List<SelectCase>,
@@ -79,6 +108,27 @@ data class SelectStmt(
 
         return muteAttached
     }
+
+    override fun execute(interpreter: InterpreterCore) {
+        for (case in this.cases) {
+            val result = interpreter.eval(case.condition)
+
+            interpreter.log { SelectCaseExecutionLogEntry(interpreter.interpretationContext.currentProgramName, case, result) }
+            if (result.asBoolean().value) {
+                interpreter.execute(case.body)
+                return
+            }
+        }
+        if (this.other != null) {
+            interpreter.log {
+                SelectOtherExecutionLogEntry(
+                        interpreter.interpretationContext.currentProgramName,
+                        this.other!!
+                )
+            }
+            interpreter.execute(this.other!!.body)
+        }
+    }
 }
 
 data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
@@ -98,7 +148,18 @@ data class EvalStmt(
     val flags: EvalFlags = EvalFlags(),
     override val position: Position? = null
 ) :
-    Statement(position)
+    Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+            // Should I assign it one by one?
+            val result = if (target.type().isArray() &&
+                    target.type().asArray().element.canBeAssigned(expression.type())) {
+                interpreter.assignEachElement(target, expression, operator)
+            } else {
+                interpreter.assign(target, expression, operator)
+            }
+        interpreter.log { EvaluationLogEntry(interpreter.interpretationContext.currentProgramName, this, result) }
+    }
+}
 
 data class SubDurStmt(
     val factor1: Expression?,
@@ -106,14 +167,37 @@ data class SubDurStmt(
     val factor2: Expression,
     override val position: Position? = null
 ) :
-    Statement(position)
+    Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+            when (target) {
+                is DataRefExpr -> {
+                    // TODO: partial implementation just for *MS - Add more cases
+                    val minuend = if (factor1 == null) {
+                        interpreter.eval(target)
+                    } else {
+                        interpreter.eval(factor1)
+                    }
+                    val subtrahend = interpreter.eval(factor2)
+                    val newValue =
+                            (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
+                    interpreter.assign(target, IntValue(newValue))
+                }
+                else -> throw UnsupportedOperationException("Data reference required: " + this)
+            }
+        }
+    }
 
 data class MoveStmt(
     val target: AssignableExpression,
     var expression: Expression,
     override val position: Position? = null
 ) :
-    Statement(position)
+    Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        val value = move(target, expression, interpreter)
+        interpreter.log { MoveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value) }
+    }
+}
 
 data class MoveAStmt(
     val operationExtender: String?,
@@ -121,410 +205,950 @@ data class MoveAStmt(
     var expression: Expression,
     override val position: Position? = null
 ) :
-    Statement(position)
-
-data class MoveLStmt(
-    val operationExtender: String?,
-    val target: AssignableExpression,
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
-    var expression: Expression,
-    override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
-        }
-        return emptyList()
-    }
-}
-
-// TODO add other parameters
-data class ChainStmt(
-    val searchArg: Expression, // Factor1
-    val name: String, // Factor 2
-    override val position: Position? = null
-) :
-    Statement(position)
-
-data class ReadEqualStmt(
-    val searchArg: Expression?, // Factor1
-    val name: String, // Factor 2
-    override val position: Position? = null
-) :
-    Statement(position)
-
-data class ReadPreviousStmt(
-    val searchArg: Expression?, // Factor1
-    val name: String, // Factor 2
-    override val position: Position? = null
-) :
-    Statement(position)
-
-data class ReadStmt(
-    val name: String, // Factor 2
-    override val position: Position? = null
-) :
-    Statement(position)
-
-data class SetllStmt(
-    val searchArg: Expression, // Factor1
-    val name: String, // Factor 2
-    override val position: Position? = null
-) :
-    Statement(position)
-
-data class CheckStmt(
-    val comparatorString: Expression, // Factor1
-    val baseString: Expression,
-    val start: Int = 1,
-    val wrongCharPosition: AssignableExpression?,
-    override val position: Position? = null
-) : Statement(position)
-
-data class CallStmt(
-    val expression: Expression,
-    val params: List<PlistParam>,
-    val errorIndicator: IndicatorKey? = null,
-    override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        return params.mapNotNull() {
-            it.dataDefinition
+    Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        val value = movea(operationExtender, target, expression, interpreter)
+        interpreter.log {
+            MoveAStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value)
         }
     }
 }
 
-data class KListStmt
+    data class MoveLStmt(
+        val operationExtender: String?,
+        val target: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        var expression: Expression,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            if (dataDefinition != null) {
+                return listOf(dataDefinition)
+            }
+            return emptyList()
+        }
+
+        override fun execute(interpreter: InterpreterCore) {
+            val value = movel(operationExtender, target, expression, interpreter)
+            interpreter.log { MoveLStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value) }
+        }
+    }
+
+    // TODO add other parameters
+    data class ChainStmt(
+        val searchArg: Expression, // Factor1
+        val name: String, // Factor 2
+        override val position: Position? = null
+    ) :
+            Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
+            val record = if (searchArg.type() is KListType) {
+                dbFile.chain(interpreter.toSearchValues(searchArg))
+            } else {
+                dbFile.chain(interpreter.eval(searchArg))
+            }
+            interpreter.fillDataFrom(record)
+        }
+    }
+
+    data class ReadEqualStmt(
+        val searchArg: Expression?, // Factor1
+        val name: String, // Factor 2
+        override val position: Position? = null
+    ) :
+            Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
+            val record = when {
+                searchArg == null -> dbFile.readEqual()
+                searchArg.type() is KListType -> dbFile.readEqual(interpreter.toSearchValues(searchArg))
+                else -> dbFile.readEqual(interpreter.eval(searchArg))
+            }
+            interpreter.fillDataFrom(record)
+        }
+    }
+
+    data class ReadPreviousStmt(
+        val searchArg: Expression?, // Factor1
+        val name: String, // Factor 2
+        override val position: Position? = null
+    ) :
+            Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
+            val record = when {
+                searchArg == null -> dbFile.readPrevious()
+                searchArg.type() is KListType -> dbFile.readPrevious(interpreter.toSearchValues(searchArg))
+                else -> dbFile.readPrevious(interpreter.eval(searchArg))
+            }
+            interpreter.fillDataFrom(record)
+        }
+    }
+
+    data class ReadStmt(
+        val name: String, // Factor 2
+        override val position: Position? = null
+    ) :
+            Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
+            val record = dbFile.read()
+            interpreter.fillDataFrom(record)
+        }
+    }
+
+    data class SetllStmt(
+        val searchArg: Expression, // Factor1
+        val name: String, // Factor 2
+        override val position: Position? = null
+    ) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            val dbFile = interpreter.dbFile(name, this)
+            interpreter.status.lastFound = if (searchArg.type() is KListType) {
+                dbFile.setll(interpreter.toSearchValues(searchArg))
+            } else {
+                dbFile.setll(interpreter.eval(searchArg))
+            }
+        }
+    }
+
+    data class CheckStmt(
+        val comparatorString: Expression, // Factor1
+        val baseString: Expression,
+        val start: Int = 1,
+        val wrongCharPosition: AssignableExpression?,
+        override val position: Position? = null
+    ) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            var baseString = interpreter.eval(this.baseString).asString().value
+            if (this.baseString is DataRefExpr) {
+                baseString = baseString.padEnd(this.baseString.size())
+            }
+            val charSet = interpreter.eval(comparatorString).asString().value
+            val wrongIndex = wrongCharPosition
+            interpreter.status.lastFound = false
+            if (wrongIndex != null) {
+                interpreter.assign(wrongIndex, IntValue.ZERO)
+            }
+            baseString.substring(start - 1).forEachIndexed { i, c ->
+                if (!charSet.contains(c)) {
+                    if (wrongIndex != null) {
+                        interpreter.assign(wrongIndex, IntValue((i + start).toLong()))
+                    }
+                    interpreter.status.lastFound = true
+                    return
+                }
+            }
+        }
+    }
+
+    data class CallStmt(
+        val expression: Expression,
+        val params: List<PlistParam>,
+        val errorIndicator: IndicatorKey? = null,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            return params.mapNotNull() {
+                it.dataDefinition
+            }
+        }
+
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.log { CallExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
+            val callStatement = this
+            val programToCall = interpreter.eval(expression).asString().value
+            val program = interpreter.systemInterface.findProgram(programToCall)
+            require(program != null) {
+                "Line: ${this.position.line()} - Program $programToCall cannot be found"
+            }
+
+            val params = this.params.mapIndexed { index, it ->
+                if (it.dataDefinition != null) {
+                    if (it.dataDefinition.initializationValue != null) {
+                        if (!interpreter.exists(it.param.name)) {
+                            interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
+                        } else {
+                            interpreter.assign(
+                                    interpreter.dataDefinitionByName(it.param.name)!!,
+                                    interpreter.eval(it.dataDefinition.initializationValue)
+                            )
+                        }
+                    } else {
+                        if (!interpreter.exists(it.param.name)) {
+                            interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
+                        }
+                    }
+                }
+                require(program.params().size > index) {
+                    "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
+                }
+                program.params()[index].name to interpreter.get(it.param.name)
+            }.toMap(LinkedHashMap())
+
+            val startTime = System.currentTimeMillis()
+            val paramValuesAtTheEnd =
+                    try {
+                        interpreter.systemInterface.registerProgramExecutionStart(program, params)
+                        program.execute(interpreter.systemInterface, params).apply {
+                            interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
+                        }
+                    } catch (e: Exception) { // TODO Catch a more specific exception?
+                        interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
+                        if (errorIndicator == null) {
+                            throw e
+                        }
+                        interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
+                        null
+                    }
+            paramValuesAtTheEnd?.forEachIndexed { index, value ->
+                interpreter.assign(this.params[index].param.referred!!, value)
+            }
+        }
+    }
+
+    data class KListStmt
     private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
-    companion object {
-        operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
-            return KListStmt(name.toUpperCase(), fields, position)
+        companion object {
+            operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
+                return KListStmt(name.toUpperCase(), fields, position)
+            }
+        }
+
+        override fun dataDefinition(): List<InStatementDataDefinition> = listOf(InStatementDataDefinition(name, KListType))
+
+        override fun execute(interpreter: InterpreterCore) {
+            // TODO Add logging as for PlistStmt
+            interpreter.klists[name] = fields
         }
     }
-    override fun dataDefinition(): List<InStatementDataDefinition> = listOf(InStatementDataDefinition(name, KListType))
-}
 
-data class IfStmt(
-    val condition: Expression,
-    val body: List<Statement>,
-    val elseIfClauses: List<ElseIfClause> = emptyList(),
-    val elseClause: ElseClause? = null,
-    override val position: Position? = null
-) : Statement(position) {
+    data class IfStmt(
+        val condition: Expression,
+        val body: List<Statement>,
+        val elseIfClauses: List<ElseIfClause> = emptyList(),
+        val elseClause: ElseClause? = null,
+        override val position: Position? = null
+    ) : Statement(position) {
 
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
-        // check if the annotation is just before the ELSE
-        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
+        override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+            // check if the annotation is just before the ELSE
+            val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
 
-        // Process the body statements
-        muteAttached.addAll(
-                acceptBody(body, mutes, this.position!!.start.line, this.position.end.line)
-        )
-
-        // Process the ELSE IF
-        elseIfClauses.forEach {
+            // Process the body statements
             muteAttached.addAll(
-                    acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+                    acceptBody(body, mutes, this.position!!.start.line, this.position.end.line)
             )
+
+            // Process the ELSE IF
+            elseIfClauses.forEach {
+                muteAttached.addAll(
+                        acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+                )
+            }
+
+            // Process the ELSE
+            if (elseClause != null) {
+                muteAttached.addAll(
+                        acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position.end.line)
+                )
+            }
+
+            return muteAttached
         }
 
-        // Process the ELSE
-        if (elseClause != null) {
-            muteAttached.addAll(
-                    acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position.end.line)
-            )
-        }
-
-        return muteAttached
-    }
-}
-
-data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
-
-data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
-
-data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
-    enum class ValueSet {
-        ON,
-        OFF
-    }
-}
-
-data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position)
-
-// A Plist is a list of parameters
-data class PlistStmt(
-    val params: List<PlistParam>,
-    val isEntry: Boolean,
-    override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        val allDataDefinitions = params.mapNotNull { it.dataDefinition }
-        // We do not want params in plist to shadow existing data definitions
-        // They are implicit data definitions only when explicit data definitions are not present
-        val filtered = allDataDefinitions.filter { paramDataDef ->
-            val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
-            containingCU.dataDefinitions.none { it.name == paramDataDef.name }
-        }
-        return filtered
-    }
-}
-
-data class PlistParam(
-    val param: ReferenceByName<AbstractDataDefinition>,
-                      // TODO @Derived????
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
-    override val position: Position? = null
-) : Node(position)
-
-data class ClearStmt(
-    val value: Expression,
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
-    override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
-        }
-        return emptyList()
-    }
-}
-
-data class DefineStmt(
-    val originalName: String,
-    val newVarName: String,
-    override val position: Position? = null
-) : Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        val containingCU = this.ancestor(CompilationUnit::class.java) ?: throw IllegalStateException("Not contained in a CU")
-        val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
-        if (originalDataDefinition != null) {
-            return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
-        } else {
-            val inStatementDataDefinition =
-                containingCU.main.stmts
-                    .filterIsInstance(StatementThatCanDefineData::class.java)
-                    .asSequence()
-                    .map(StatementThatCanDefineData::dataDefinition)
-                    .flatten()
-                    .find { it.name == originalName }
-            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition!!.type, position))
+        override fun execute(interpreter: InterpreterCore) {
+            val condition = interpreter.eval(condition)
+            interpreter.log { IfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this, condition) }
+            if (condition.asBoolean().value) {
+                interpreter.execute(this.body)
+            } else {
+                for (elseIfClause in elseIfClauses) {
+                    val c = interpreter.eval(elseIfClause.condition)
+                    interpreter.log { ElseIfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, elseIfClause, c) }
+                    if (c.asBoolean().value) {
+                        interpreter.execute(elseIfClause.body)
+                        return
+                    }
+                }
+                if (elseClause != null) {
+                    interpreter.log {
+                        ElseExecutionLogEntry(
+                                interpreter.interpretationContext.currentProgramName,
+                                elseClause,
+                                condition
+                        )
+                    }
+                    interpreter.execute(elseClause.body)
+                }
+            }
         }
     }
-}
 
-interface WithRightIndicators {
-    fun allPresent(): Boolean = hi != null && lo != null && eq != null
+    data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-    val hi: IndicatorKey?
-    val lo: IndicatorKey?
-    val eq: IndicatorKey?
-}
+    data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
 
-data class RightIndicators(
-    override val hi: IndicatorKey?,
-    override val lo: IndicatorKey?,
-    override val eq: IndicatorKey?
-) : WithRightIndicators
-
-data class CompStmt(
-    val left: Expression,
-    val right: Expression,
-    val rightIndicators: WithRightIndicators,
-    override val position: Position? = null
-) : Statement(position), WithRightIndicators by rightIndicators
-
-data class ZAddStmt(
-    val target: AssignableExpression,
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
-    var expression: Expression,
-    override val position: Position? = null
-) :
-    Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
+    data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
+        enum class ValueSet {
+            ON,
+            OFF
         }
-        return emptyList()
-    }
-}
 
-data class MultStmt(
-    val target: AssignableExpression,
-    val halfAdjust: Boolean = false,
-    val factor1: Expression?,
-    val factor2: Expression,
-    override val position: Position? = null
-) : Statement(position)
-
-data class DivStmt(
-    val target: AssignableExpression,
-    val halfAdjust: Boolean = false,
-    val factor1: Expression?,
-    val factor2: Expression,
-    override val position: Position? = null
-) : Statement(position)
-
-data class AddStmt(
-    val left: Expression?,
-    val result: AssignableExpression,
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
-    val right: Expression,
-    override val position: Position? = null
-) :
-    Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
+        override fun execute(interpreter: InterpreterCore) {
+            indicators.forEach {
+                when (it) {
+                    is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
+                    is PredefinedIndicatorExpr -> {
+                        if (valueSet.name == "ON") {
+                            interpreter.predefinedIndicators[it.index] = BooleanValue.TRUE
+                        } else {
+                            interpreter.predefinedIndicators[it.index] = BooleanValue.FALSE
+                        }
+                    }
+                    else -> TODO()
+                }
+            }
         }
-        return emptyList()
     }
-    @Derived
-    val addend1: Expression
-        get() = left ?: result
-}
 
-data class ZSubStmt(
-    val target: AssignableExpression,
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
-    var expression: Expression,
-    override val position: Position? = null
-) :
-    Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
+    data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            val returnValue = expression?.let { interpreter.eval(expression) }
+            throw ReturnException(returnValue)
         }
-        return emptyList()
     }
-}
-data class SubStmt(
-    val left: Expression?,
-    val result: AssignableExpression,
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
-    val right: Expression,
-    override val position: Position? = null
-) :
-    Statement(position), StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
+
+    // A Plist is a list of parameters
+    data class PlistStmt(
+        val params: List<PlistParam>,
+        val isEntry: Boolean,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            val allDataDefinitions = params.mapNotNull { it.dataDefinition }
+            // We do not want params in plist to shadow existing data definitions
+            // They are implicit data definitions only when explicit data definitions are not present
+            val filtered = allDataDefinitions.filter { paramDataDef ->
+                val containingCU = this.ancestor(CompilationUnit::class.java)
+                        ?: throw IllegalStateException("Not contained in a CU")
+                containingCU.dataDefinitions.none { it.name == paramDataDef.name }
+            }
+            return filtered
         }
-        return emptyList()
+
+        override fun execute(interpreter: InterpreterCore) {
+            params.forEach {
+                if (interpreter.globalSymbolTable.contains(it.param.name)) {
+                    val value = interpreter.globalSymbolTable[it.param.name]
+                    interpreter.log {
+                        ParamListStatemenExecutionLog(
+                                interpreter.interpretationContext.currentProgramName,
+                                this,
+                                it.param.name,
+                                value
+                        )
+                    }
+                }
+            }
+        }
     }
-    @Derived
-    val minuend: Expression
-        get() = left ?: result
-}
 
-data class TimeStmt(
-    val value: Expression,
-    override val position: Position? = null
-) : Statement(position)
+    data class PlistParam(
+        val param: ReferenceByName<AbstractDataDefinition>,
+        // TODO @Derived????
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        override val position: Position? = null
+    ) : Node(position)
 
-data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position)
+    data class ClearStmt(
+        val value: Expression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            if (dataDefinition != null) {
+                return listOf(dataDefinition)
+            }
+            return emptyList()
+        }
 
-data class DoStmt(
-    val endLimit: Expression,
-    val index: AssignableExpression?,
-    val body: List<Statement>,
-    val startLimit: Expression = IntLiteral(1),
-    override val position: Position? = null
-) : Statement(position) {
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
-        // TODO check if the annotation is the last statement
-        return acceptBody(body, mutes, start, end)
+        override fun execute(interpreter: InterpreterCore) {
+            return when (value) {
+                is DataRefExpr -> {
+                    val value = interpreter.assign(value, BlanksRefExpr())
+                    interpreter.log {
+                        ClearStatemenExecutionLog(
+                                interpreter.interpretationContext.currentProgramName,
+                                this,
+                                value
+                        )
+                    }
+                    Unit
+                }
+                is PredefinedIndicatorExpr -> {
+                    val value = interpreter.assign(value, BlanksRefExpr())
+                    interpreter.log {
+                        ClearStatemenExecutionLog(
+                                interpreter.interpretationContext.currentProgramName,
+                                this,
+                                value
+                        )
+                    }
+                }
+                else -> throw UnsupportedOperationException("I do not know how to clear ${this.value}")
+            }
+        }
     }
-}
 
-data class DowStmt(
-    val endExpression: Expression,
-    val body: List<Statement>,
-    override val position: Position? = null
-) : Statement(position)
+    data class DefineStmt(
+        val originalName: String,
+        val newVarName: String,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            val containingCU = this.ancestor(CompilationUnit::class.java)
+                    ?: throw IllegalStateException("Not contained in a CU")
+            val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+            if (originalDataDefinition != null) {
+                return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
+            } else {
+                val inStatementDataDefinition =
+                        containingCU.main.stmts
+                                .filterIsInstance(StatementThatCanDefineData::class.java)
+                                .asSequence()
+                                .map(StatementThatCanDefineData::dataDefinition)
+                                .flatten()
+                                .find { it.name == originalName }
+                return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition!!.type, position))
+            }
+        }
 
-data class DouStmt(
-    val endExpression: Expression,
-    val body: List<Statement>,
-    override val position: Position? = null
-) : Statement(position)
-
-data class LeaveSrStmt(override val position: Position? = null) : Statement(position)
-
-data class LeaveStmt(override val position: Position? = null) : Statement(position)
-
-data class IterStmt(override val position: Position? = null) : Statement(position)
-
-data class OtherStmt(override val position: Position? = null) : Statement(position)
-
-data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
-    companion object {
-        operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
+        override fun execute(interpreter: InterpreterCore) {
+            // Nothing to do here
+        }
     }
-}
 
-data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position)
+    interface WithRightIndicators {
+        fun allPresent(): Boolean = hi != null && lo != null && eq != null
 
-data class CabStmt(
-    val factor1: Expression,
-    val factor2: Expression,
-    val comparison: ComparisonOperator?,
-    val tag: String,
-    val rightIndicators: WithRightIndicators,
-    override val position: Position? = null
-) : Statement(position), WithRightIndicators by rightIndicators
+        val hi: IndicatorKey?
+        val lo: IndicatorKey?
+        val eq: IndicatorKey?
+    }
 
-data class ForStmt(
-    var init: Expression,
-    val endValue: Expression,
-    val byValue: Expression,
-    val downward: Boolean = false,
-    val body: List<Statement>,
-    override val position: Position? = null
-) : Statement(position) {
-    fun iterDataDefinition(): AbstractDataDefinition {
-        if (init is AssignmentExpr) {
-            if ((init as AssignmentExpr).target is DataRefExpr) {
-                return ((init as AssignmentExpr).target as DataRefExpr).variable.referred!!
+    data class RightIndicators(
+        override val hi: IndicatorKey?,
+        override val lo: IndicatorKey?,
+        override val eq: IndicatorKey?
+    ) : WithRightIndicators
+
+    data class CompStmt(
+        val left: Expression,
+        val right: Expression,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
+    ) : Statement(position), WithRightIndicators by rightIndicators {
+        override fun execute(interpreter: InterpreterCore) {
+            when (interpreter.compareExpressions(left, right, interpreter.localizationContext.charset)) {
+                Comparison.GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+                Comparison.SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+                Comparison.EQUAL -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            }
+        }
+    }
+
+    data class ZAddStmt(
+        val target: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        var expression: Expression,
+        override val position: Position? = null
+    ) :
+            Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            if (dataDefinition != null) {
+                return listOf(dataDefinition)
+            }
+            return emptyList()
+        }
+
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(target, interpreter.eval(expression))
+        }
+    }
+
+    data class MultStmt(
+        val target: AssignableExpression,
+        val halfAdjust: Boolean = false,
+        val factor1: Expression?,
+        val factor2: Expression,
+        override val position: Position? = null
+    ) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(target, interpreter.mult(this))
+        }
+    }
+
+    data class DivStmt(
+        val target: AssignableExpression,
+        val halfAdjust: Boolean = false,
+        val factor1: Expression?,
+        val factor2: Expression,
+        override val position: Position? = null
+    ) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(target, interpreter.div(this))
+        }
+    }
+
+    data class AddStmt(
+        val left: Expression?,
+        val result: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        val right: Expression,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            if (dataDefinition != null) {
+                return listOf(dataDefinition)
+            }
+            return emptyList()
+        }
+
+        @Derived
+        val addend1: Expression
+            get() = left ?: result
+
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(result, interpreter.add(this))
+        }
+    }
+
+    data class ZSubStmt(
+        val target: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        var expression: Expression,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            if (dataDefinition != null) {
+                return listOf(dataDefinition)
+            }
+            return emptyList()
+        }
+
+        override fun execute(interpreter: InterpreterCore) {
+            val value = interpreter.eval(expression)
+            require(value is NumberValue) {
+                "$value should be a number"
+            }
+            interpreter.assign(target, value.negate())
+        }
+    }
+
+    data class SubStmt(
+        val left: Expression?,
+        val result: AssignableExpression,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        val right: Expression,
+        override val position: Position? = null
+    ) : Statement(position), StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            if (dataDefinition != null) {
+                return listOf(dataDefinition)
+            }
+            return emptyList()
+        }
+
+        @Derived
+        val minuend: Expression
+            get() = left ?: result
+
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.assign(result, interpreter.sub(this))
+        }
+    }
+
+    data class TimeStmt(
+        val value: Expression,
+        override val position: Position? = null
+    ) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            when (value) {
+                is DataRefExpr -> {
+                    interpreter.assign(value, TimeStampValue(Date()))
+                }
+                else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
+            }
+        }
+    }
+
+    data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            val values = mutableListOf<Value>()
+            factor1?.let { values.add(interpreter.eval(it)) }
+            response?.let { values.add(interpreter.eval(it)) }
+            // TODO: receive input from systemInterface and assign value to response
+            interpreter.systemInterface.display(interpreter.rawRender(values))
+        }
+    }
+
+    data class DoStmt(
+        val endLimit: Expression,
+        val index: AssignableExpression?,
+        val body: List<Statement>,
+        val startLimit: Expression = IntLiteral(1),
+        override val position: Position? = null
+    ) : Statement(position) {
+        override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+            // TODO check if the annotation is the last statement
+            return acceptBody(body, mutes, start, end)
+        }
+
+        override fun execute(interpreter: InterpreterCore) {
+            var loopCounter: Long = 0
+            val startTime = System.currentTimeMillis()
+            val endLimitExpression = endLimit
+            val endLimit: () -> Long = interpreter.optimizedIntExpression(endLimitExpression)
+            if (index == null) {
+                var myIterValue = interpreter.eval(startLimit).asInt().value
+                try {
+                    interpreter.log { DoStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+                    while (myIterValue <= endLimit()) {
+                        try {
+                            interpreter.execute(body)
+                        } catch (e: IterException) {
+                            // nothing to do here
+                        }
+                        loopCounter++
+                        myIterValue++
+                    }
+                    interpreter.log {
+                        val elapsed = System.currentTimeMillis() - startTime
+                        DoStatemenExecutionLogEnd(
+                                interpreter.interpretationContext.currentProgramName,
+                                this,
+                                elapsed,
+                                loopCounter
+                        )
+                    }
+                } catch (e: LeaveException) {
+                    // nothing to do here
+                    interpreter.log {
+                        val elapsed = System.currentTimeMillis() - startTime
+                        DoStatemenExecutionLogEnd(
+                                interpreter.interpretationContext.currentProgramName,
+                                this,
+                                elapsed,
+                                loopCounter
+                        )
+                    }
+                }
+            } else {
+                interpreter.assign(index, startLimit)
+                try {
+                    val indexExpression = interpreter.optimizedIntExpression(index)
+                    while (indexExpression() <= endLimit()) {
+                        try {
+                            interpreter.execute(body)
+                        } catch (e: IterException) {
+                            // nothing to do here
+                        }
+                        interpreter.assign(index, PlusExpr(index, IntLiteral(1)))
+                    }
+                } catch (e: LeaveException) {
+                    // nothing to do here
+                }
+            }
+        }
+    }
+
+    data class DowStmt(
+        val endExpression: Expression,
+        val body: List<Statement>,
+        override val position: Position? = null
+    ) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            var loopCounter: Long = 0
+            val startTime = System.currentTimeMillis()
+            try {
+                interpreter.log { DowStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+                while (interpreter.eval(endExpression).asBoolean().value) {
+                    interpreter.execute(body)
+                    loopCounter++
+                }
+                interpreter.log {
+                    val elapsed = System.currentTimeMillis() - startTime
+                    DowStatemenExecutionLogEnd(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            elapsed,
+                            loopCounter
+                    )
+                }
+            } catch (e: LeaveException) {
+                interpreter.log {
+                    val elapsed = System.currentTimeMillis() - startTime
+                    DowStatemenExecutionLogEnd(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            elapsed,
+                            loopCounter
+                    )
+                }
+            }
+        }
+    }
+
+    data class DouStmt(
+        val endExpression: Expression,
+        val body: List<Statement>,
+        override val position: Position? = null
+    ) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            var loopCounter: Long = 0
+            val startTime = System.currentTimeMillis()
+            try {
+                interpreter.log { DouStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+                do {
+                    interpreter.execute(body)
+                    loopCounter++
+                } while (!interpreter.eval(endExpression).asBoolean().value)
+                interpreter.log {
+                    val elapsed = System.currentTimeMillis() - startTime
+                    DouStatemenExecutionLogEnd(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            elapsed,
+                            loopCounter
+                    )
+                }
+            } catch (e: LeaveException) {
+                interpreter.log {
+                    val elapsed = System.currentTimeMillis() - startTime
+                    DouStatemenExecutionLogEnd(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            elapsed,
+                            loopCounter
+                    )
+                }
+            }
+        }
+    }
+
+    data class LeaveSrStmt(override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.log { LeaveSrStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+            throw LeaveSrException()
+        }
+    }
+
+    data class LeaveStmt(override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.log { LeaveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+            throw LeaveException()
+        }
+    }
+
+    data class IterStmt(override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            interpreter.log { IterStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+            throw IterException()
+        }
+    }
+
+    data class OtherStmt(override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            TODO("Not yet implemented")
+        }
+    }
+
+    data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
+        companion object {
+            operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
+        }
+        override fun execute(interpreter: InterpreterCore) {
+            // Nothing to do here
+        }
+    }
+
+    data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            throw GotoException(tag)
+        }
+    }
+
+    data class CabStmt(
+        val factor1: Expression,
+        val factor2: Expression,
+        val comparison: ComparisonOperator?,
+        val tag: String,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
+    ) : Statement(position), WithRightIndicators by rightIndicators {
+        override fun execute(interpreter: InterpreterCore) {
+            val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.localizationContext.charset)
+            when (comparisonResult.comparison) {
+                Comparison.GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+                Comparison.SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+                Comparison.EQUAL -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            }
+            if (comparisonResult.isVerified) throw GotoException(tag)
+        }
+    }
+
+    data class ForStmt(
+        var init: Expression,
+        val endValue: Expression,
+        val byValue: Expression,
+        val downward: Boolean = false,
+        val body: List<Statement>,
+        override val position: Position? = null
+    ) : Statement(position) {
+        fun iterDataDefinition(): AbstractDataDefinition {
+            if (init is AssignmentExpr) {
+                if ((init as AssignmentExpr).target is DataRefExpr) {
+                    return ((init as AssignmentExpr).target as DataRefExpr).variable.referred!!
+                } else {
+                    throw UnsupportedOperationException()
+                }
             } else {
                 throw UnsupportedOperationException()
             }
-        } else {
-            throw UnsupportedOperationException()
+        }
+
+        override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+            // TODO check if the annotation is the last statement
+            return acceptBody(body, mutes, start, end)
+        }
+
+        override fun execute(interpreter: InterpreterCore) {
+            var loopCounter: Long = 0
+            val startTime = System.currentTimeMillis()
+
+            interpreter.eval(init)
+            val iterVar = iterDataDefinition()
+            try {
+                interpreter.log { ForStatementExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+                var step = interpreter.eval(byValue).asInt().value
+                if (downward) {
+                    step *= -1
+                }
+                while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward)) {
+                    try {
+                        interpreter.execute(body)
+                    } catch (e: IterException) {
+                        // nothing to do here
+                    }
+
+                    interpreter.increment(iterVar, step)
+                    loopCounter++
+                }
+                interpreter.log {
+                    val elapsed = System.currentTimeMillis() - startTime
+                    ForStatementExecutionLogEnd(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            elapsed,
+                            loopCounter
+                    )
+                }
+            } catch (e: LeaveException) {
+                // leaving
+                interpreter.log {
+                    val elapsed = System.currentTimeMillis() - startTime
+                    ForStatementExecutionLogEnd(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            elapsed,
+                            loopCounter
+                    )
+                }
+            }
         }
     }
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
-        // TODO check if the annotation is the last statement
-        return acceptBody(body, mutes, start, end)
-    }
-}
 
-/*
+    /*
  * For an array data structure, the keyed-ds-array operand is a qualified name consisting
  * of the array to be sorted followed by the subfield to be used as a key for the sort.
  */
-data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position)
-
-data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position)
-
-data class LookupStmt(
-    val left: Expression,
-    val right: Expression,
-    val rightIndicators: WithRightIndicators,
-    override val position: Position? = null
-) : Statement(position), WithRightIndicators by rightIndicators
-
-data class XFootStmt(
-    val left: Expression,
-    val result: AssignableExpression,
-    val rightIndicators: WithRightIndicators,
-    @Derived val dataDefinition: InStatementDataDefinition? = null,
-    override val position: Position? = null
-) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
-    override fun dataDefinition(): List<InStatementDataDefinition> {
-        if (dataDefinition != null) {
-            return listOf(dataDefinition)
+    data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            sortA(interpreter.eval(target), interpreter.localizationContext.charset)
         }
-        return emptyList()
     }
-}
+
+    data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position) {
+        override fun execute(interpreter: InterpreterCore) {
+            val blanksInBetween = blanksInBetween
+            val blanks = StringValue.blank(blanksInBetween)
+            val factor2 = interpreter.eval(right)
+            var result = interpreter.eval(target)
+            val resultLen = result.asString().length()
+            var concatenatedFactors: Value
+
+            if (null != left) {
+                val factor1 = interpreter.eval(left)
+                val f1Trimmed = (factor1 as StringValue).value.trim()
+                val factor1Trimmed = StringValue(f1Trimmed)
+                concatenatedFactors = if (blanksInBetween > 0) {
+                    factor1Trimmed.concatenate(blanks).concatenate(factor2)
+                } else {
+                    factor1.concatenate(factor2)
+                }
+            } else {
+                concatenatedFactors = if (!result.asString().isBlank()) {
+                    result
+                } else if (blanksInBetween > 0) {
+                    if (blanksInBetween >= resultLen) {
+                        result
+                    } else {
+                        blanks.concatenate(factor2)
+                    }
+                } else {
+                    result
+                }
+            }
+            val concatenatedFactorsLen = concatenatedFactors.asString().length()
+            result = if (concatenatedFactorsLen >= resultLen) {
+                concatenatedFactors.asString().getSubstring(0, resultLen)
+            } else {
+                concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
+            }
+
+            interpreter.assign(target, result)
+            interpreter.log { CatStatementExecutionLog(interpreter.interpretationContext.currentProgramName, this, interpreter.eval(target)) }
+        }
+    }
+
+    data class LookupStmt(
+        val left: Expression,
+        val right: Expression,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
+    ) : Statement(position), WithRightIndicators by rightIndicators {
+        override fun execute(interpreter: InterpreterCore) {
+            lookUp(this, interpreter, interpreter.localizationContext.charset)
+        }
+    }
+
+    data class XFootStmt(
+        val left: Expression,
+        val result: AssignableExpression,
+        val rightIndicators: WithRightIndicators,
+        @Derived val dataDefinition: InStatementDataDefinition? = null,
+        override val position: Position? = null
+    ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
+        override fun dataDefinition(): List<InStatementDataDefinition> {
+            if (dataDefinition != null) {
+                return listOf(dataDefinition)
+            }
+            return emptyList()
+        }
+
+        override fun execute(interpreter: InterpreterCore) {
+            xfoot(this, interpreter)
+        }
+    }
