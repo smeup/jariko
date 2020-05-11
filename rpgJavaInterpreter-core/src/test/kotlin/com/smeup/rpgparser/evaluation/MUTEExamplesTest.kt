@@ -338,6 +338,12 @@ class MUTEExamplesTest {
     }
 
     @Test @Category(PerformanceTest::class)
+    // DOU (loop of 10000000 iterations with increment of a numeric var)
+    fun executeMUTE10_57() {
+        assertMuteOK("MUTE10_57")
+    }
+
+    @Test @Category(PerformanceTest::class)
     // DO (expected 68ms. to perform an empty loop of 10000000 iterations, as MUTE10_53.rpgle)
     fun executeKute10_53() {
         val kute = Kute10_53()
