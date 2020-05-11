@@ -3,7 +3,7 @@ package com.smeup.rpgparser.utils
 import java.math.BigDecimal
 import kotlin.system.measureTimeMillis
 
-fun <T> enrichPossibleExceptionWith(enrichedMessage: Any?, block: () -> T): T {
+inline fun <T> enrichPossibleExceptionWith(enrichedMessage: Any?, block: () -> T): T {
     try {
         return block()
     } catch (t: Throwable) {
@@ -16,7 +16,7 @@ fun measureAndPrint(block: () -> Unit) {
     println("Function executed in $timeElapsed milliseconds")
 }
 
-fun measureAndCatch(block: () -> Unit): Long {
+inline fun measureAndCatch(block: () -> Unit): Long {
     return measureTimeMillis {
         try {
             block()
