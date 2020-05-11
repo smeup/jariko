@@ -219,10 +219,10 @@ class InternalInterpreter(
         logHandlers = systemInterface.getAllLogHandlers()
     }
 
-    override fun execute(
+    fun execute(
         compilationUnit: CompilationUnit,
         initialValues: Map<String, Value>,
-        reinitialization: Boolean
+        reinitialization: Boolean = true
     ) {
         configureLogHandlers()
 

@@ -23,7 +23,6 @@ interface InterpreterCore {
     operator fun get(dataName: String): Value
     fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue)
     fun eval(expression: Expression): Value
-    fun execute(compilationUnit: CompilationUnit, initialValues: Map<String, Value>, reinitialization: Boolean = true)
     fun execute(statements: List<Statement>)
     fun dbFile(name: String, statement: Statement): DBFile
     fun toSearchValues(searchArgExpression: Expression): List<RecordField>
