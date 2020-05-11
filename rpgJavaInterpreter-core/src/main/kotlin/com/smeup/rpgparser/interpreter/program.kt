@@ -59,7 +59,7 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
                 "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
             }
         }
-        interpreter.execute(this.cu, params, reinitialization = true)
+        interpreter.execute(this.cu, params)
         return params().map { interpreter[it.name] }
     }
 
