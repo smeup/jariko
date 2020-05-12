@@ -539,6 +539,9 @@ object HiValValue : Value() {
     }
 
     override fun copy(): HiValValue = this
+
+    override operator fun compareTo(other: Value): Int =
+        if (other is HiValValue) 0 else 1
 }
 object LowValValue : Value() {
     override fun copy(): Value {
@@ -553,6 +556,9 @@ object LowValValue : Value() {
         // FIXME
         return true
     }
+
+    override operator fun compareTo(other: Value): Int =
+        if (other is LowValValue) 0 else -1
 }
 
 object ZeroValue : Value() {
