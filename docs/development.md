@@ -90,6 +90,17 @@ Usage:
 ./gradlew profileRpgProgram -PrpgProgram=path_to_rpg_program
 ```
 
+## Enable experimental or new features
+
+Jariko features are modeled by factories implementing: `com.smeup.rpgparser.interpreter.IFeaturesFactory`.  
+You can select a factory through system property: `-DfeaturesFactory=<factory.id>`.  
+Where `<factory.id>` could be:
+* default
+* experimental
+* Factory class implementation
+
+Configuration for *default* and *experimental* factory is in: `META-INF/com.smeup.jariko/features.properties`
+
 
 
 ## Creating a jar with all dependencies to run some examples

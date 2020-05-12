@@ -4,7 +4,7 @@ data class FunctionParam(val name: String, val type: Type)
 
 interface Function {
     fun params(): List<FunctionParam>
-    fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: SymbolTable): Value
+    fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value
 }
 
 abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<FunctionParam>) :
