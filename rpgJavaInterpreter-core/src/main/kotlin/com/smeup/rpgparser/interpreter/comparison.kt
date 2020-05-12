@@ -32,28 +32,10 @@ fun isSmallerThan(value1: Value, value2: Value, charset: Charset): Boolean {
 
 fun compare(value1: Value, value2: Value, charset: Charset): Comparison {
     return when {
-        value1 is IntValue && value2 is IntValue -> intComparison(value1, value2)
-        value1 is IntValue && value2 is StringValue -> throw RuntimeException("Cannot compare int and string")
-        value2 is HiValValue -> SMALLER
-        value1 is NumberValue && value2 is NumberValue -> numberComparison(value1, value2)
         value1 is StringValue && value2 is StringValue -> stringComparison(value1, value2, charset)
-        else -> TODO("Unable to compare: value 1 is $value1, Value 2 is $value2")
+        else -> value1.compareTo(value2)
     }
 }
-
-private fun numberComparison(value1: NumberValue, value2: NumberValue): Comparison =
-    when {
-        value1.bigDecimal == value2.bigDecimal -> EQUAL
-        value1.bigDecimal < value2.bigDecimal -> SMALLER
-        else -> GREATER
-    }
-
-private fun intComparison(value1: IntValue, value2: IntValue): Comparison =
-    when {
-        value1.value == value2.value -> EQUAL
-        value1.value < value2.value -> SMALLER
-        else -> GREATER
-    }
 
 fun stringComparison(value1: Value, value2: Value, charset: Charset): Comparison {
     if (value1 == value2) {
