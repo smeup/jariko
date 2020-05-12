@@ -7,7 +7,6 @@
      DCOUNT            S              8  0
      DA                S              8  0 INZ(0)
      DB                S              8  0 INZ(1)
-     DB                S              8  0 INZ(1)
      DAR1              S              3S 0 DIM(10)
       *
      C                   CLEAR                   FIELD1

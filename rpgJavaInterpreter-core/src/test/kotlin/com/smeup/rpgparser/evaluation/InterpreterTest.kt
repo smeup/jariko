@@ -17,6 +17,22 @@ import kotlin.test.assertTrue
 class InterpreterTest {
 
     @Test
+    fun doubleVarDefinitionWithDifferentTypeShouldThrowAnError() {
+        val systemInterface = JavaSystemInterface()
+
+        val source = """
+|     D n               S              1  0 inz(00)
+|     D n               S              1  0 inz(00)
+|     C                   SETON                                          LR
+        """.trimMargin()
+
+        val program = getProgram(source, systemInterface)
+        assertFailsWith(IllegalArgumentException::class) {
+            program.singleCall(listOf())
+        }
+    }
+
+    @Test
     fun executeCALCFIB_initialDeclarations_dec() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
         cu.resolveAndValidate(DummyDBInterface)

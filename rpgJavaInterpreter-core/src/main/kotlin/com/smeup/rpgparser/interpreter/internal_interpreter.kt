@@ -7,13 +7,11 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.*
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.strumenta.kolasu.model.ancestor
-import java.lang.System.currentTimeMillis
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.collections.LinkedHashMap
 import kotlin.system.measureTimeMillis
 
 object InterpreterConfiguration {
@@ -36,36 +34,37 @@ class InterpreterStatus(
 }
 
 class InternalInterpreter(
-    val systemInterface: SystemInterface,
-    private val localizationContext: LocalizationContext = LocalizationContext()
+    override val systemInterface: SystemInterface,
+    override val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
-    private val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
-    private val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
+    override val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
+    override val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
 
-    var interpretationContext: InterpretationContext = DummyInterpretationContext
-    private val klists = HashMap<String, List<String>>()
+    override var interpretationContext: InterpretationContext = DummyInterpretationContext
+
+    override val klists = HashMap<String, List<String>>()
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    private val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
+    override val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
     override fun log(logEntry: () -> LogEntry) {
-        if (!logHandlers.isEmpty()) logHandlers.log(logEntry())
+        if (logHandlers.isNotEmpty()) logHandlers.log(logEntry())
     }
 
-    private fun exists(dataName: String) = globalSymbolTable.contains(dataName)
+    override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
 
-    private fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
+    override fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
     override operator fun get(data: AbstractDataDefinition): Value {
         return globalSymbolTable[data]
     }
 
-    operator fun get(dataName: String) = globalSymbolTable[dataName]
+    override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
     operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
@@ -251,7 +250,7 @@ class InternalInterpreter(
         return result
     }
 
-    private fun execute(statements: List<Statement>) {
+    override fun execute(statements: List<Statement>) {
         try {
             var i = 0
             while (i < statements.size) {
@@ -270,7 +269,21 @@ class InternalInterpreter(
     private fun executeWithMute(statement: Statement) {
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
-            execute(statement)
+            if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
+                statement.execute(this)
+            }
+        } catch (e: ControlFlowException) {
+            throw e
+        } catch (e: IllegalArgumentException) {
+            val message = e.toString()
+            if (!message.contains(statement.position.line())) {
+                throw IllegalArgumentException(errorDescription(statement, e), e)
+            }
+            throw e
+        } catch (e: NotImplementedError) {
+            throw RuntimeException(errorDescription(statement, e), e)
+        } catch (e: RuntimeException) {
+            throw RuntimeException(errorDescription(statement, e), e)
         } finally {
             executeMutes(
                 statement.muteAnnotations,
@@ -410,596 +423,7 @@ class InternalInterpreter(
         return isExecutable
     }
 
-    private fun execute(statement: Statement) {
-        try {
-            if (!statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) return
-            when (statement) {
-                is ExecuteSubroutine -> {
-                    log {
-                        SubroutineExecutionLogStart(
-                            this.interpretationContext.currentProgramName,
-                            statement.subroutine.referred!!
-                        )
-                    }
-                    val elapsed = measureTimeMillis {
-                        try {
-                            execute(statement.subroutine.referred!!.stmts)
-                        } catch (e: LeaveSrException) {
-                            // Nothing to do here
-                        } catch (e: GotoException) {
-                            if (!e.tag.equals(statement.subroutine.referred!!.tag, true)) throw e
-                        }
-                    }
-                    log {
-                        SubroutineExecutionLogEnd(
-                            this.interpretationContext.currentProgramName,
-                            statement.subroutine.referred!!,
-                            elapsed
-                        )
-                    }
-                }
-                is EvalStmt -> {
-                    // Should I assign it one by one?
-                    val result = if (statement.target.type().isArray() &&
-                            statement.target.type().asArray().element.canBeAssigned(statement.expression.type())) {
-                        assignEachElement(statement.target, statement.expression, statement.operator)
-                    } else {
-                        assign(statement.target, statement.expression, statement.operator)
-                    }
-                    log { EvaluationLogEntry(this.interpretationContext.currentProgramName, statement, result) }
-                }
-                is MoveStmt -> {
-                    val value = move(statement.target, statement.expression, this)
-                    log { MoveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value) }
-                }
-                is MoveAStmt -> {
-                    val value = movea(statement.operationExtender, statement.target, statement.expression, this)
-                    log { MoveAStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value) }
-                }
-                is MoveLStmt -> {
-                    val value = movel(statement.operationExtender, statement.target, statement.expression, this)
-                    log { MoveLStatemenExecutionLog(this.interpretationContext.currentProgramName, statement, value) }
-                }
-                is SelectStmt -> {
-                    for (case in statement.cases) {
-                        val result = eval(case.condition)
-
-                        log { SelectCaseExecutionLogEntry(this.interpretationContext.currentProgramName, case, result) }
-                        if (result.asBoolean().value) {
-                            execute(case.body)
-                            return
-                        }
-                    }
-                    if (statement.other != null) {
-                        log {
-                            SelectOtherExecutionLogEntry(
-                                this.interpretationContext.currentProgramName,
-                                statement.other!!
-                            )
-                        }
-                        execute(statement.other!!.body)
-                    }
-                }
-                is SetStmt -> {
-                    statement.indicators.forEach {
-                        when (it) {
-                            is DataWrapUpIndicatorExpr -> interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
-                            is PredefinedIndicatorExpr -> {
-                                if (statement.valueSet.name == "ON") {
-                                    predefinedIndicators[it.index] = BooleanValue.TRUE
-                                } else {
-                                    predefinedIndicators[it.index] = BooleanValue.FALSE
-                                }
-                            }
-                            else -> TODO()
-                        }
-                    }
-                }
-                is PlistStmt -> {
-                    statement.params.forEach {
-                        if (globalSymbolTable.contains(it.param.name)) {
-                            val value = globalSymbolTable[it.param.name]
-                            log {
-                                ParamListStatemenExecutionLog(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    it.param.name,
-                                    value
-                                )
-                            }
-                        }
-                    }
-                } /* Nothing to do here */
-                is KListStmt -> {
-                    // TODO Add logging as for PlistStmt
-                    klists[statement.name] = statement.fields
-                }
-                is ClearStmt -> {
-                    return when (statement.value) {
-                        is DataRefExpr -> {
-                            val value = assign(statement.value, BlanksRefExpr())
-                            log {
-                                ClearStatemenExecutionLog(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    value
-                                )
-                            }
-                            Unit
-                        }
-                        is PredefinedIndicatorExpr -> {
-                            val value = assign(statement.value, BlanksRefExpr())
-                            log {
-                                ClearStatemenExecutionLog(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    value
-                                )
-                            }
-                        }
-                        else -> throw UnsupportedOperationException("I do not know how to clear ${statement.value}")
-                    }
-                }
-                is ZAddStmt -> {
-                    assign(statement.target, eval(statement.expression))
-                }
-                is AddStmt -> {
-                    assign(statement.result, add(statement))
-                }
-                is ZSubStmt -> {
-                    val value = eval(statement.expression)
-                    require(value is NumberValue) {
-                        "$value should be a number"
-                    }
-                    assign(statement.target, value.negate())
-                }
-                is MultStmt -> {
-                    assign(statement.target, mult(statement))
-                }
-                is DivStmt -> {
-                    assign(statement.target, div(statement))
-                }
-                is SubStmt -> {
-                    assign(statement.result, sub(statement))
-                }
-                is TimeStmt -> {
-                    when (statement.value) {
-                        is DataRefExpr -> {
-                            assign(statement.value, TimeStampValue(Date()))
-                        }
-                        else -> throw UnsupportedOperationException("I do not know how to set TIME to ${statement.value}")
-                    }
-                }
-                is DisplayStmt -> {
-                    val values = mutableListOf<Value>()
-                    statement.factor1?.let { values.add(eval(it)) }
-                    statement.response?.let { values.add(eval(it)) }
-                    // TODO: receive input from systemInterface and assign value to response
-                    systemInterface.display(rawRender(values))
-                }
-                is IfStmt -> {
-                    val condition = eval(statement.condition)
-                    log { IfExecutionLogEntry(this.interpretationContext.currentProgramName, statement, condition) }
-                    if (condition.asBoolean().value) {
-                        execute(statement.body)
-                    } else {
-                        for (elseIfClause in statement.elseIfClauses) {
-                            val c = eval(elseIfClause.condition)
-                            log { ElseIfExecutionLogEntry(this.interpretationContext.currentProgramName, elseIfClause, c) }
-                            if (c.asBoolean().value) {
-                                execute(elseIfClause.body)
-                                return
-                            }
-                        }
-                        if (statement.elseClause != null) {
-                            log {
-                                ElseExecutionLogEntry(
-                                    this.interpretationContext.currentProgramName,
-                                    statement.elseClause,
-                                    condition
-                                )
-                            }
-                            execute(statement.elseClause.body)
-                        }
-                    }
-                }
-                is CallStmt -> {
-                    log { CallExecutionLogEntry(this.interpretationContext.currentProgramName, statement) }
-                    val programToCall = eval(statement.expression).asString().value
-                    val program = systemInterface.findProgram(programToCall)
-                    require(program != null) {
-                        "Line: ${statement.position.line()} - Program $programToCall cannot be found"
-                    }
-
-                    val params = statement.params.mapIndexed { index, it ->
-                        if (it.dataDefinition != null) {
-                            if (it.dataDefinition.initializationValue != null) {
-                                if (!exists(it.param.name)) {
-                                    assign(it.dataDefinition, eval(it.dataDefinition.initializationValue))
-                                } else {
-                                    assign(
-                                            dataDefinitionByName(it.param.name)!!,
-                                            eval(it.dataDefinition.initializationValue)
-                                    )
-                                }
-                            } else {
-                                if (!exists(it.param.name)) {
-                                    assign(it.dataDefinition, eval(BlanksRefExpr()))
-                                }
-                            }
-                        }
-                        require(program.params().size > index) {
-                            "Line: ${statement.position.line()} - Parameter nr. ${index + 1} can't be found"
-                        }
-                        program.params()[index].name to get(it.param.name)
-                    }.toMap(LinkedHashMap())
-
-                    val startTime = currentTimeMillis()
-                    val paramValuesAtTheEnd =
-                            try {
-                                systemInterface.registerProgramExecutionStart(program, params)
-                                program.execute(systemInterface, params).apply {
-                                    log { CallEndLogEntry("", statement, currentTimeMillis() - startTime) }
-                                }
-                            } catch (e: Exception) { // TODO Catch a more specific exception?
-                                log { CallEndLogEntry("", statement, currentTimeMillis() - startTime) }
-                                if (statement.errorIndicator == null) {
-                                    throw e
-                                }
-                                predefinedIndicators[statement.errorIndicator] = BooleanValue.TRUE
-                                null
-                            }
-                    paramValuesAtTheEnd?.forEachIndexed { index, value ->
-                        assign(statement.params[index].param.referred!!, value)
-                    }
-                }
-                is ForStmt -> {
-                    var loopCounter: Long = 0
-                    val startTime = currentTimeMillis()
-
-                    eval(statement.init)
-                    val iterVar = statement.iterDataDefinition()
-                    try {
-                        log { ForStatementExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                        var step = eval(statement.byValue).asInt().value
-                        if (statement.downward) {
-                            step *= -1
-                        }
-                        while (enterCondition(this[iterVar], eval(statement.endValue), statement.downward)) {
-                            try {
-                                execute(statement.body)
-                            } catch (e: IterException) {
-                                // nothing to do here
-                            }
-
-                            increment(iterVar, step)
-                            loopCounter++
-                        }
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            ForStatementExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    } catch (e: LeaveException) {
-                        // leaving
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            ForStatementExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    }
-                }
-                is DoStmt -> {
-                    var loopCounter: Long = 0
-                    val startTime = currentTimeMillis()
-                    val endLimitExpression = statement.endLimit
-                    val endLimit: () -> Long = optimizedIntExpression(endLimitExpression)
-                    if (statement.index == null) {
-                        var myIterValue = eval(statement.startLimit).asInt().value
-                        try {
-                            log { DoStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                            while (myIterValue <= endLimit()) {
-                                try {
-                                    execute(statement.body)
-                                } catch (e: IterException) {
-                                    // nothing to do here
-                                }
-                                loopCounter++
-                                myIterValue++
-                            }
-                            log {
-                                val elapsed = currentTimeMillis() - startTime
-                                DoStatemenExecutionLogEnd(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    elapsed,
-                                    loopCounter
-                                )
-                            }
-                        } catch (e: LeaveException) {
-                            // nothing to do here
-                            log {
-                                val elapsed = currentTimeMillis() - startTime
-                                DoStatemenExecutionLogEnd(
-                                    this.interpretationContext.currentProgramName,
-                                    statement,
-                                    elapsed,
-                                    loopCounter
-                                )
-                            }
-                        }
-                    } else {
-                        assign(statement.index, statement.startLimit)
-                        try {
-                            val indexExpression = optimizedIntExpression(statement.index)
-                            while (indexExpression() <= endLimit()) {
-                                try {
-                                    execute(statement.body)
-                                } catch (e: IterException) {
-                                    // nothing to do here
-                                }
-                                assign(statement.index, PlusExpr(statement.index, IntLiteral(1)))
-                            }
-                        } catch (e: LeaveException) {
-                            // nothing to do here
-                        }
-                    }
-                }
-                is DowStmt -> {
-                    var loopCounter: Long = 0
-                    val startTime = currentTimeMillis()
-                    try {
-                        log { DowStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                        while (eval(statement.endExpression).asBoolean().value) {
-                            execute(statement.body)
-                            loopCounter++
-                        }
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            DowStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    } catch (e: LeaveException) {
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            DowStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    }
-                }
-                is DouStmt -> {
-                    var loopCounter: Long = 0
-                    val startTime = currentTimeMillis()
-                    try {
-                        log { DouStatemenExecutionLogStart(this.interpretationContext.currentProgramName, statement) }
-                        do {
-                            execute(statement.body)
-                            loopCounter++
-                        } while (!eval(statement.endExpression).asBoolean().value)
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            DouStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    } catch (e: LeaveException) {
-                        log {
-                            val elapsed = currentTimeMillis() - startTime
-                            DouStatemenExecutionLogEnd(
-                                this.interpretationContext.currentProgramName,
-                                statement,
-                                elapsed,
-                                loopCounter
-                            )
-                        }
-                    }
-                }
-                is SubDurStmt -> {
-                    when (statement.target) {
-                        is DataRefExpr -> {
-                            // TODO: partial implementation just for *MS - Add more cases
-                            val minuend = if (statement.factor1 == null) {
-                                eval(statement.target)
-                            } else {
-                                eval(statement.factor1)
-                            }
-                            val subtrahend = eval(statement.factor2)
-                            val newValue =
-                                    (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
-                            assign(statement.target, IntValue(newValue))
-                        }
-                        else -> throw UnsupportedOperationException("Data reference required: " + statement)
-                    }
-                }
-                is LeaveStmt -> {
-                    log { LeaveStatemenExecutionLog(this.interpretationContext.currentProgramName, statement) }
-                    throw LeaveException()
-                }
-                is LeaveSrStmt -> {
-                    log { LeaveSrStatemenExecutionLog(this.interpretationContext.currentProgramName, statement) }
-                    throw LeaveSrException()
-                }
-                is IterStmt -> {
-                    log { IterStatemenExecutionLog(this.interpretationContext.currentProgramName, statement) }
-                    throw IterException()
-                }
-                is CheckStmt -> {
-                    var baseString = eval(statement.baseString).asString().value
-                    if (statement.baseString is DataRefExpr) {
-                        baseString = baseString.padEnd(statement.baseString.size())
-                    }
-                    val charSet = eval(statement.comparatorString).asString().value
-                    val wrongIndex = statement.wrongCharPosition
-                    status.lastFound = false
-                    if (wrongIndex != null) {
-                        assign(wrongIndex, IntValue.ZERO)
-                    }
-                    baseString.substring(statement.start - 1).forEachIndexed { i, c ->
-                        if (!charSet.contains(c)) {
-                            if (wrongIndex != null) {
-                                assign(wrongIndex, IntValue((i + statement.start).toLong()))
-                            }
-                            status.lastFound = true
-                            return
-                        }
-                    }
-                }
-                is ChainStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    val record = if (statement.searchArg.type() is KListType) {
-                        dbFile.chain(toSearchValues(statement.searchArg))
-                    } else {
-                        dbFile.chain(eval(statement.searchArg))
-                    }
-                    fillDataFrom(record)
-                }
-                is SetllStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    status.lastFound = if (statement.searchArg.type() is KListType) {
-                        dbFile.setll(toSearchValues(statement.searchArg))
-                    } else {
-                        dbFile.setll(eval(statement.searchArg))
-                    }
-                }
-                is ReadEqualStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    val record = when {
-                        statement.searchArg == null -> dbFile.readEqual()
-                        statement.searchArg.type() is KListType -> dbFile.readEqual(toSearchValues(statement.searchArg))
-                        else -> dbFile.readEqual(eval(statement.searchArg))
-                    }
-                    fillDataFrom(record)
-                }
-                is ReadPreviousStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    val record = when {
-                        statement.searchArg == null -> dbFile.readPrevious()
-                        statement.searchArg.type() is KListType -> dbFile.readPrevious(toSearchValues(statement.searchArg))
-                        else -> dbFile.readPrevious(eval(statement.searchArg))
-                    }
-                    fillDataFrom(record)
-                }
-                is ReadStmt -> {
-                    val dbFile = dbFile(statement.name, statement)
-                    val record = dbFile.read()
-                    fillDataFrom(record)
-                }
-                is ReturnStmt -> {
-                    val returnValue = statement.expression?.let { eval(statement.expression) }
-                    throw ReturnException(returnValue)
-                }
-                is DefineStmt -> {
-                    // Nothing to do here
-                }
-                is TagStmt -> {
-                    // Nothing to do here
-                }
-                is GotoStmt -> {
-                    throw GotoException(statement.tag)
-                }
-                is CabStmt -> {
-                    val comparisonResult = statement.comparison.verify(statement.factor1, statement.factor2, this, localizationContext.charset)
-                    when (comparisonResult.comparison) {
-                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-                    }
-                    if (comparisonResult.isVerified) throw GotoException(statement.tag)
-                }
-                is SortAStmt -> {
-                    sortA(eval(statement.target), localizationContext.charset)
-                }
-                is CatStmt -> {
-                    val blanksInBetween = statement.blanksInBetween
-                    val blanks = StringValue.blank(blanksInBetween)
-                    val factor2 = eval(statement.right)
-                    var result = eval(statement.target)
-                    val resultLen = result.asString().length()
-                    var concatenatedFactors: Value
-
-                    if (null != statement.left) {
-                        val factor1 = eval(statement.left)
-                        val f1Trimmed = (factor1 as StringValue).value.trim()
-                        val factor1Trimmed = StringValue(f1Trimmed)
-                        concatenatedFactors = if (blanksInBetween > 0) {
-                            factor1Trimmed.concatenate(blanks).concatenate(factor2)
-                        } else {
-                            factor1.concatenate(factor2)
-                        }
-                    } else {
-                        concatenatedFactors = if (!result.asString().isBlank()) {
-                            result
-                        } else if (blanksInBetween > 0) {
-                            if (blanksInBetween >= resultLen) {
-                                result
-                            } else {
-                                blanks.concatenate(factor2)
-                            }
-                        } else {
-                            result
-                        }
-                    }
-                    val concatenatedFactorsLen = concatenatedFactors.asString().length()
-                    result = if (concatenatedFactorsLen >= resultLen) {
-                        concatenatedFactors.asString().getSubstring(0, resultLen)
-                    } else {
-                        concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
-                    }
-
-                    assign(statement.target, result)
-                    log { CatStatementExecutionLog(this.interpretationContext.currentProgramName, statement, eval(statement.target)) }
-                }
-                is CompStmt -> {
-                    when (this.compareExpressions(statement.left, statement.right, localizationContext.charset)) {
-                        Comparison.GREATER -> setPredefinedIndicators(statement, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                        Comparison.SMALLER -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                        Comparison.EQUAL -> setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-                    }
-                }
-                is LookupStmt -> {
-                    lookUp(statement, this, localizationContext.charset)
-                }
-                is XFootStmt -> {
-                    xfoot(statement, this)
-                }
-
-                else -> TODO(statement.toString())
-            }
-        } catch (e: ControlFlowException) {
-            throw e
-        } catch (e: IllegalArgumentException) {
-            val message = e.toString()
-            if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException(errorDescription(statement, e), e)
-            }
-            throw e
-        } catch (e: NotImplementedError) {
-            throw RuntimeException(errorDescription(statement, e), e)
-        } catch (e: RuntimeException) {
-            throw RuntimeException(errorDescription(statement, e), e)
-        }
-    }
-
-    private fun optimizedIntExpression(expression: Expression): () -> Long =
+    override fun optimizedIntExpression(expression: Expression): () -> Long =
         if (expression is IntLiteral || expression is FigurativeConstantRef) {
             val constValue = eval(expression).asInt().value
             { constValue }
@@ -1022,7 +446,7 @@ class InternalInterpreter(
     private fun errorDescription(statement: Statement, throwable: Throwable) =
         "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
-    private fun fillDataFrom(record: Record) {
+    override fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
             record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
@@ -1031,7 +455,7 @@ class InternalInterpreter(
         }
     }
 
-    private fun dbFile(name: String, statement: Statement): DBFile {
+    override fun dbFile(name: String, statement: Statement): DBFile {
         val dbFile = dbFileMap[name]
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
@@ -1040,29 +464,20 @@ class InternalInterpreter(
         return dbFile
     }
 
-    private fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
+    override fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
         val kListName = searchArgExpression.render().toUpperCase()
         val parms = klists[kListName]
         return parms!!.map { RecordField(it, get(it)) }
     }
 
-    private fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
+    override fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
         if (downward) {
             isEqualOrGreater(index, end, localizationContext.charset)
         } else {
             isEqualOrSmaller(index, end, localizationContext.charset)
         }
 
-    private fun step(byValue: Expression, downward: Boolean): Long {
-        val sign = if (downward) {
-            -1
-        } else {
-            1
-        }
-        return eval(byValue).asInt().value * sign
-    }
-
-    private fun increment(dataDefinition: AbstractDataDefinition, amount: Long = 1): Value {
+    override fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value {
         val value = this[dataDefinition]
         if (value is NumberValue) {
             val newValue = value.increment(amount)
@@ -1073,7 +488,7 @@ class InternalInterpreter(
         }
     }
 
-    private fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")
+    override fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")
 
     private fun rawRender(value: Value): String {
         return when (value) {
@@ -1096,7 +511,7 @@ class InternalInterpreter(
         return value
     }
 
-    private fun mult(statement: MultStmt): Value {
+    override fun mult(statement: MultStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         require(statement.target is DataRefExpr)
         val rightValue: BigDecimal = if (statement.factor1 != null) {
@@ -1115,7 +530,7 @@ class InternalInterpreter(
         }
     }
 
-    private fun div(statement: DivStmt): Value {
+    override fun div(statement: DivStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
         require(statement.target is DataRefExpr)
         val dividend: BigDecimal = if (statement.factor1 != null) {
@@ -1134,13 +549,13 @@ class InternalInterpreter(
         }
     }
 
-    private fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
+    override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
         val coercedValue = coerce(value, dataDefinition.type)
         set(dataDefinition, coercedValue)
         return coercedValue
     }
 
-    fun assignEachElement(target: AssignableExpression, value: Value): Value {
+    override fun assignEachElement(target: AssignableExpression, value: Value): Value {
         val arrayType = target.type().asArray()
         return assign(target, value.toArray(arrayType.nElements, arrayType.element))
     }
@@ -1220,10 +635,10 @@ class InternalInterpreter(
         }
     }
 
-    private fun assign(
+    override fun assign(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator = NORMAL_ASSIGNMENT
+        operator: AssignmentOperator
     ): Value {
         return when (operator) {
             NORMAL_ASSIGNMENT -> {
@@ -1247,10 +662,10 @@ class InternalInterpreter(
         }
     }
 
-    private fun assignEachElement(
+    override fun assignEachElement(
         target: AssignableExpression,
         value: Expression,
-        operator: AssignmentOperator = NORMAL_ASSIGNMENT
+        operator: AssignmentOperator
     ): Value {
         return when (operator) {
             NORMAL_ASSIGNMENT -> assignEachElement(target, eval(value))
@@ -1262,7 +677,7 @@ class InternalInterpreter(
         }
     }
 
-    private fun add(statement: AddStmt): Value {
+    override fun add(statement: AddStmt): Value {
         val addend1 = eval(statement.addend1)
         require(addend1 is NumberValue) {
             "$addend1 should be a number"
@@ -1280,7 +695,7 @@ class InternalInterpreter(
         }
     }
 
-    private fun sub(statement: SubStmt): Value {
+    override fun sub(statement: SubStmt): Value {
         val minuend = eval(statement.minuend)
         require(minuend is NumberValue) {
             "$minuend should be a number"

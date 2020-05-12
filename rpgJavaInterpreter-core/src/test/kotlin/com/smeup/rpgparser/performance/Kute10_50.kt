@@ -63,9 +63,11 @@ class Kute10_50 : Kute() {
 
         // Statement creation (similar to 'toAst' does)
         var statement = catStmt(factor1DataRefExpr, factor2DataRefExpr, resultDataRefExpr, 0, null)
+        var actualElapsedTimeInMillisec = 0L
 
         // Perform a pure kotlin loop
-        var actualElapsedTimeInMillisec = measureTimeMillis {
+        actualElapsedTimeInMillisec = measureTimeMillis {
+            loopCounter = 0L
             while (loopCounter < expectedIterations) {
                 exec_CAT(statement)
                 loopCounter++
