@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.MuteAnnotation
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
@@ -13,7 +14,10 @@ abstract class AbstractDataDefinition(
     override val name: String,
     open val type: Type,
     override val position: Position? = null,
-    var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
+    var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf(),
+    private val hashCode: Int = name.hashCode(),
+    open val key: Int = MainExecutionContext.newId()
+
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
@@ -53,6 +57,11 @@ abstract class AbstractDataDefinition(
     fun canBeAssigned(value: Value): Boolean {
         return type.canBeAssigned(value)
     }
+
+    override fun hashCode() = hashCode
+
+    override fun equals(other: Any?) =
+        if (other is AbstractDataDefinition) name == other.name else false
 }
 
 data class FileDefinition private constructor(override val name: String, override val position: Position?) : Node(position), Named {

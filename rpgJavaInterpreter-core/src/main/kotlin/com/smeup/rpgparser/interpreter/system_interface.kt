@@ -43,7 +43,7 @@ fun consoleVerboseConfiguration(): LoggingConfiguration {
 interface SystemInterface {
     fun display(value: String)
     fun findProgram(name: String): Program?
-    fun findFunction(globalSymbolTable: SymbolTable, name: String): Function?
+    fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function?
 
     val db: DBInterface
 
@@ -52,8 +52,11 @@ interface SystemInterface {
         extraLogHandlers.addAll(logHandlers)
         return this
     }
+
     val extraLogHandlers: MutableList<InterpreterLogHandler>
-    fun getAllLogHandlers() = (configureLog(this.loggingConfiguration() ?: defaultLoggingConfiguration()) + this.extraLogHandlers).toMutableList()
+    fun getAllLogHandlers() = (configureLog(
+        this.loggingConfiguration() ?: defaultLoggingConfiguration()
+    ) + this.extraLogHandlers).toMutableList()
 
     val executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted>
     fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted>
@@ -61,6 +64,8 @@ interface SystemInterface {
     fun registerProgramExecutionStart(program: Program, params: Map<String, Value>) {
         // do nothing by default
     }
+
+    fun getFeaturesFactory() = FeaturesFactory.newInstance()
 }
 
 interface DBInterface {
@@ -112,7 +117,8 @@ object DummyDBInterface : DBInterface {
 }
 
 object DummySystemInterface : SystemInterface {
-    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
+        LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = null
@@ -120,7 +126,7 @@ object DummySystemInterface : SystemInterface {
     override val db: DBInterface
         get() = DummyDBInterface
 
-    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
+    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         return null
     }
 
@@ -131,6 +137,7 @@ object DummySystemInterface : SystemInterface {
     override fun display(value: String) {
         // doing nothing
     }
+
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
         executedAnnotationInternal[line] = annotation
     }
@@ -140,8 +147,13 @@ object DummySystemInterface : SystemInterface {
     }
 }
 
-class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = null, val programFinders: List<RpgProgramFinder> = emptyList(), val output: PrintStream? = null) : SystemInterface {
-    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
+class SimpleSystemInterface(
+    var loggingConfiguration: LoggingConfiguration? = null,
+    val programFinders: List<RpgProgramFinder> = emptyList(),
+    val output: PrintStream? = null
+) : SystemInterface {
+    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
+        LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
@@ -149,7 +161,7 @@ class SimpleSystemInterface(var loggingConfiguration: LoggingConfiguration? = nu
     override val db: DBInterface
         get() = DummyDBInterface
 
-    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
+    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         return null
     }
 

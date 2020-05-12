@@ -80,7 +80,7 @@ open class JavaSystemInterface(
         }
     }
 
-    override fun findFunction(globalSymbolTable: SymbolTable, name: String): Function? {
+    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 

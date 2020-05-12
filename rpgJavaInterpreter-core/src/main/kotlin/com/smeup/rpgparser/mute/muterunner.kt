@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.types.file
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
@@ -147,31 +148,34 @@ fun RpgParserResult.executeMuteAnnotations(
     parameters: Map<String, Value> = mapOf(),
     programName: String = "<UNKONWN>"
 ): SortedMap<Int, MuteAnnotationExecuted> {
-    val root = this.root!!
-    val cu = root.rContext.toAst().apply {
-        val resolved = this.injectMuteAnnotation(root.muteContexts!!)
+    return MainExecutionContext.execute {
+        val root = this.root!!
+        val cu = root.rContext.toAst().apply {
+            val resolved = this.injectMuteAnnotation(root.muteContexts!!)
 
-        if (verbose) {
-            val sorted = resolved.sortedWith(compareBy { it.muteLine })
-            sorted.forEach {
-                println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+            if (verbose) {
+                val sorted = resolved.sortedWith(compareBy { it.muteLine })
+                sorted.forEach {
+                    println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+                }
             }
         }
-    }
-    cu.resolveAndValidate(systemInterface.db)
-    val interpreter = InternalInterpreter(systemInterface).apply {
-        interpretationContext = object : InterpretationContext {
-            override val currentProgramName: String
-                get() = programName
-            override fun shouldReinitialize() = false
+        cu.resolveAndValidate(systemInterface.db)
+        val interpreter = InternalInterpreter(systemInterface).apply {
+            interpretationContext = object : InterpretationContext {
+                override val currentProgramName: String
+                    get() = programName
 
-            override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
-                // nothing to do
+                override fun shouldReinitialize() = false
+
+                override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
+                    // nothing to do
+                }
             }
         }
+        interpreter.execute(cu, parameters)
+        interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
     }
-    interpreter.execute(cu, parameters)
-    return interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
 }
 
 object MuteRunner {
