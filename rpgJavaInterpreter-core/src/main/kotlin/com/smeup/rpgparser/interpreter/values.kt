@@ -9,7 +9,7 @@ import java.util.*
 const val PAD_CHAR = ' '
 const val PAD_STRING = PAD_CHAR.toString()
 
-abstract class Value {
+abstract class Value : Comparable<Value> {
     open fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
     open fun asString(): StringValue = throw UnsupportedOperationException()
@@ -31,6 +31,7 @@ abstract class Value {
         }
         return ConcreteArrayValue(elements, elementType)
     }
+    override operator fun compareTo(other: Value): Int = TODO("Cannot compare $this to $other")
 }
 
 abstract class NumberValue : Value() {
@@ -164,6 +165,12 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
         }
         return s1.compareTo(s2)
     }
+
+    override operator fun compareTo(other: Value): Int =
+        when (other) {
+            is StringValue -> value.compareTo(other.value)
+            else -> super.compareTo(other)
+        }
 }
 
 /**
@@ -273,6 +280,12 @@ data class IntValue(val value: Long) : NumberValue() {
     }
 
     override fun copy(): IntValue = this
+
+    override operator fun compareTo(other: Value): Int = when (other) {
+        is IntValue -> value.compareTo(other.value)
+        is DecimalValue -> this.asDecimal().compareTo(other)
+        else -> super.compareTo(other)
+    }
 }
 
 data class DecimalValue(val value: BigDecimal) : NumberValue() {
@@ -312,6 +325,13 @@ data class DecimalValue(val value: BigDecimal) : NumberValue() {
     }
 
     override fun copy(): DecimalValue = this
+
+    override operator fun compareTo(other: Value): Int =
+        when (other) {
+            is IntValue -> compareTo(other.asDecimal())
+            is DecimalValue -> this.value.compareTo(other.value)
+            else -> super.compareTo(other)
+        }
 }
 
 data class BooleanValue(val value: Boolean) : Value() {
@@ -332,6 +352,11 @@ data class BooleanValue(val value: Boolean) : Value() {
     }
 
     override fun copy(): BooleanValue = this
+    override operator fun compareTo(other: Value): Int =
+        when (other) {
+            is BooleanValue -> value.compareTo(other.value)
+            else -> super.compareTo(other)
+        }
 }
 
 data class CharacterValue(val value: Array<Char>) : Value() {
