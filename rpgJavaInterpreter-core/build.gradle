@@ -293,3 +293,5 @@ for further informations."""
         }
     }
 }
+
+check.dependsOn runMutes

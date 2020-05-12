@@ -17,7 +17,11 @@ interface Program {
 
 class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
 
-    private var interpreter: InternalInterpreter? = null
+    private var systemInterface: SystemInterface? = null
+
+    private val interpreter: InternalInterpreter by lazy {
+        InternalInterpreter(this.systemInterface!!)
+    }
 
     override fun params(): List<ProgramParam> {
         val plistParams = cu.entryPlist
@@ -44,7 +48,7 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
         require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
-        if (interpreter == null) interpreter = InternalInterpreter(systemInterface)
+        this.systemInterface = systemInterface
         interpreter!!.interpretationContext = object : InterpretationContext {
             override val currentProgramName: String
                 get() = name

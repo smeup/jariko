@@ -18,7 +18,7 @@ object FeaturesFactory {
         val featuresFactoryId = if (property == "") "default" else {
             property
         }
-        val featuresFactoryImpl = if (featuresFactoryId.indexOf(".") != -1) {
+        val featuresFactoryImpl = if (featuresFactoryId.contains('.', false)) {
             featuresFactoryId
         } else {
             val property = java.util.Properties()
