@@ -286,11 +286,13 @@ class InternalInterpreter(
         } catch (e: RuntimeException) {
             throw RuntimeException(errorDescription(statement, e), e)
         } finally {
-            executeMutes(
-                statement.muteAnnotations,
-                statement.ancestor(CompilationUnit::class.java)!!,
-                statement.position.line()
-            )
+            if (statement.muteAnnotations.size > 0) {
+                executeMutes(
+                    statement.muteAnnotations,
+                    statement.ancestor(CompilationUnit::class.java)!!,
+                    statement.position.line()
+                )
+            }
         }
     }
 
