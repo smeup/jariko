@@ -37,8 +37,8 @@ fun compare(value1: Value, value2: Value, charset: Charset): Comparison {
     }
 }
 
-fun stringComparison(value1: Value, value2: Value, charset: Charset): Comparison {
-    if (value1 == value2) {
+fun stringComparison(value1: StringValue, value2: StringValue, charset: Charset): Comparison {
+    if (value1.value == value2.value) {
         return EQUAL
     }
     if (value1.compare(value2, charset) < 0) {
