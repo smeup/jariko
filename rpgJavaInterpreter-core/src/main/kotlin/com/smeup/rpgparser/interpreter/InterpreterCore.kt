@@ -11,7 +11,7 @@ interface InterpreterCore {
     val systemInterface: SystemInterface
     val predefinedIndicators: HashMap<IndicatorKey, BooleanValue>
     val klists: HashMap<String, List<String>>
-    val globalSymbolTable: SymbolTable
+    val globalSymbolTable: ISymbolTable
     val localizationContext: LocalizationContext
     fun log(logEntry: () -> LogEntry)
     fun assign(target: AssignableExpression, value: Value): Value

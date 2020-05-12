@@ -24,7 +24,7 @@ object InterpreterConfiguration {
 val ALL_PREDEFINED_INDEXES = 1..99
 
 class InterpreterStatus(
-    val symbolTable: SymbolTable,
+    val symbolTable: ISymbolTable,
     val predefinedIndicators: HashMap<IndicatorKey, BooleanValue>
 ) {
     var lastFound = false
@@ -37,8 +37,7 @@ class InternalInterpreter(
     override val systemInterface: SystemInterface,
     override val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
-    override val globalSymbolTable = SymbolTable()
-
+    override val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
     override val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
 
     override var interpretationContext: InterpretationContext = DummyInterpretationContext

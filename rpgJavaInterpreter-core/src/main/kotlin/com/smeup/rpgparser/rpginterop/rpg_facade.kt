@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.rpginterop
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
 import java.lang.RuntimeException
@@ -52,10 +53,12 @@ abstract class RpgFacade<P> (
         val initialValues = toInitialValues(params)
 
         logHandlers.log(ProgramExecutionLogStart(programName, initialValues))
-        val elapsed = measureTimeMillis {
-            programInterpreter.execute(rpgProgram, initialValues)
+        MainExecutionContext.execute {
+            val elapsed = measureTimeMillis {
+                programInterpreter.execute(rpgProgram, initialValues)
+            }
+            logHandlers.log(ProgramExecutionLogEnd(programName, elapsed))
         }
-        logHandlers.log(ProgramExecutionLogEnd(programName, elapsed))
         return toResults(params, initialValues)
     }
 

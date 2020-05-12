@@ -1,12 +1,20 @@
-package com.smeup.rpgparser.interpreter
+package com.smeup.rpgparser.experimental
 
-import java.lang.IllegalStateException
+import com.smeup.rpgparser.fastmaps.IntArrayMap
+import com.smeup.rpgparser.interpreter.*
 
+/**
+ * Experimental SymbolTable.
+ * Data are stored in more efficient of standard maps
+ * @see IntArrayMap
+ * */
 class SymbolTable : ISymbolTable {
-    private val values = LinkedHashMap<AbstractDataDefinition, Value>()
+    private val values = IntArrayMap<Pair<AbstractDataDefinition, Value>>(0, 32000)
 
     override operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
-    override operator fun contains(data: AbstractDataDefinition): Boolean = data in values
+    override operator fun contains(data: AbstractDataDefinition): Boolean = data.key in values.keys
+
+    private var keysCounter = 0
 
     override operator fun get(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
@@ -24,26 +32,30 @@ class SymbolTable : ISymbolTable {
                 }
             }
         }
-        return values[data] ?: throw IllegalArgumentException("Cannot find searched value for $data")
+        val pair = values[data.key]
+        require(pair != null) { "Cannot find searched value for $data" }
+        return pair.second
     }
 
     override operator fun get(dataName: String): Value {
         val data = dataDefinitionByName(dataName)
         if (data != null) {
-            return values[data] ?: throw IllegalArgumentException("Cannot find searched value for $data")
+            val variable = values[data.key]
+            return variable?.second ?: throw IllegalArgumentException("Cannot find searched value for $data")
         }
+
         // We did not find a top-level declaration with that name,
         // looking among fields
-        for (topLevelValue in values) {
-            if (topLevelValue.key is DataDefinition) {
-                val field = (topLevelValue.key as DataDefinition).fields.firstOrNull {
+        for (topLevelValue in values.values) {
+            if (topLevelValue.first is DataDefinition) {
+                val field = (topLevelValue.first as DataDefinition).fields.firstOrNull {
                     it.name.equals(dataName, ignoreCase = true) && it.canBeUsedUnqualified()
                 }
                 if (field != null) {
-                    return if (topLevelValue.key.type is ArrayValue) {
+                    return if (topLevelValue.first.type is ArrayValue) {
                         TODO("We do not yet handle top level values of array type")
                     } else {
-                        (topLevelValue.value as DataStructValue)[field]
+                        (topLevelValue.second as DataStructValue)[field]
                     }
                 }
             }
@@ -52,13 +64,9 @@ class SymbolTable : ISymbolTable {
     }
 
     override fun dataDefinitionByName(dataName: String) =
-            values.keys.firstOrNull { it.name.equals(dataName, ignoreCase = true) }
+        values.values.firstOrNull { it.first.name.equals(dataName, ignoreCase = true) }?.first
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
-        require(!(data !in this && data.name in this)) {
-            "This data definition would conflict with an existing data definition with the same name. This data definition: $data. Existing data definition: ${this[data.name]}"
-        }
-        require(data.type.canBeAssigned(value))
-        return values.put(data, value.forType(data.type))
+        return values.put(data.key, Pair(data, value.forType(data.type)))?.second
     }
 }

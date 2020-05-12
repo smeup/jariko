@@ -251,7 +251,7 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
         get() = databaseInterface
 
     override fun findProgram(name: String) = programs[name]
-    override fun findFunction(globalSymbolTable: SymbolTable, name: String) = functions[name]
+    override fun findFunction(globalSymbolTable: ISymbolTable, name: String) = functions[name]
 
     override fun display(value: String) {
         displayed.add(value)
