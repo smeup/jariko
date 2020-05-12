@@ -30,12 +30,11 @@ fun isSmallerThan(value1: Value, value2: Value, charset: Charset): Boolean {
     return cmp == SMALLER
 }
 
-fun compare(value1: Value, value2: Value, charset: Charset): Comparison {
-    return when {
+fun compare(value1: Value, value2: Value, charset: Charset): Comparison =
+    when {
         value1 is StringValue && value2 is StringValue -> stringComparison(value1, value2, charset)
         else -> value1.compareTo(value2)
     }
-}
 
 fun stringComparison(value1: StringValue, value2: StringValue, charset: Charset): Comparison {
     if (value1.value == value2.value) {
@@ -49,17 +48,12 @@ fun stringComparison(value1: StringValue, value2: StringValue, charset: Charset)
 
 data class ComparisonResult(val isVerified: Boolean, val comparison: Comparison)
 
-fun ComparisonOperator?.verify(factor1: Expression, factor2: Expression, interpreter: InterpreterCore, charset: Charset): ComparisonResult {
-    val comparison = interpreter.compareExpressions(factor1, factor2, charset)
-    return when (comparison) {
+fun ComparisonOperator?.verify(factor1: Expression, factor2: Expression, interpreter: InterpreterCore, charset: Charset): ComparisonResult =
+    when (val comparison = interpreter.compareExpressions(factor1, factor2, charset)) {
         EQUAL -> ComparisonResult(this == null || this == ComparisonOperator.EQ || this == ComparisonOperator.GE || this == ComparisonOperator.LE, comparison)
         SMALLER -> ComparisonResult(this == null || this == ComparisonOperator.LE || this == ComparisonOperator.LT, comparison)
         else -> ComparisonResult(this == null || this == ComparisonOperator.GE || this == ComparisonOperator.GT, comparison)
     }
-}
 
-fun InterpreterCore.compareExpressions(left: Expression, right: Expression, charset: Charset): Comparison {
-    val factor1 = eval(left)
-    val factor2 = eval(right)
-    return compare(factor1, factor2, charset)
-}
+fun InterpreterCore.compareExpressions(left: Expression, right: Expression, charset: Charset): Comparison =
+    compare(eval(left), eval(right), charset)
