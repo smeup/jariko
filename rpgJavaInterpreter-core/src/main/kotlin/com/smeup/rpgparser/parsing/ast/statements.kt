@@ -652,9 +652,9 @@ data class MoveAStmt(
     ) : Statement(position), WithRightIndicators by rightIndicators {
         override fun execute(interpreter: InterpreterCore) {
             when (interpreter.compareExpressions(left, right, interpreter.localizationContext.charset)) {
-                Comparison.GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                Comparison.SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                Comparison.EQUAL -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+                GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+                SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+                else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             }
         }
     }
@@ -991,9 +991,9 @@ data class MoveAStmt(
         override fun execute(interpreter: InterpreterCore) {
             val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.localizationContext.charset)
             when (comparisonResult.comparison) {
-                Comparison.GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                Comparison.SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                Comparison.EQUAL -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+                GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+                SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+                else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             }
             if (comparisonResult.isVerified) throw GotoException(tag)
         }

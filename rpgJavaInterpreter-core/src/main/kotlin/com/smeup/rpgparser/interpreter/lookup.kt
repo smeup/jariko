@@ -62,19 +62,19 @@ class ArraySearchingParameters(
         for (i in idx) {
             val comparison = compare(searchedArray[i], valueToSearch, charset)
             if (withRightIndicators.eq != null) {
-                if (comparison == Comparison.EQUAL) {
+                if (comparison == EQUAL) {
                     foundIndexes.eq = i
                     break
                 }
             }
             if (withRightIndicators.lo != null) {
-                if (comparison == Comparison.SMALLER) {
+                if (comparison == SMALLER) {
                     foundIndexes.lo = i
                     break
                 }
             }
             if (withRightIndicators.hi != null) {
-                if (comparison == Comparison.GREATER) {
+                if (comparison == GREATER) {
                     foundIndexes.hi = i
                     break
                 }
