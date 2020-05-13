@@ -184,6 +184,11 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
 fun sortA(value: Value, charset: Charset) {
 
     when (value) {
+        is ConcreteArrayValue -> {
+            // TODO pass the correct charset to the default sorting algorithm
+            // TODO ascending/descending
+            value.elements.sort()
+        }
         is ProjectedArrayValue -> {
             require(value.field.type is ArrayType)
             val strings = value.field.type.element is StringType
