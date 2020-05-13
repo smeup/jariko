@@ -46,14 +46,20 @@ class InternalInterpreter(
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
+    fun logsEnabled() = logHandlers.isNotEmpty()
+
     override val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
-    override fun log(logEntry: () -> LogEntry) {
-        if (logHandlers.isNotEmpty()) logHandlers.log(logEntry())
+    override inline fun log(logEntry: () -> LogEntry) {
+        if (logsEnabled()) doLog(logEntry())
+    }
+
+    fun doLog(entry: LogEntry) {
+        logHandlers.log(entry)
     }
 
     override fun exists(dataName: String) = globalSymbolTable.contains(dataName)
