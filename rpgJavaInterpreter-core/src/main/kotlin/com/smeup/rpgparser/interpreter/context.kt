@@ -27,4 +27,4 @@ enum class DecEdit {
     ZERO_DOT
 }
 
-class LocalizationContext(val charset: Charset = Charset.forName("Cp037"), val decedit: DecEdit = DecEdit.DOT)
+class LocalizationContext(val charset: Charset = DEFAULT_CHARSET, val decedit: DecEdit = DecEdit.DOT)

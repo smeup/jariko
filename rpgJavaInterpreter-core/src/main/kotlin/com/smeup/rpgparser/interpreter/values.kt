@@ -9,6 +9,8 @@ import java.util.*
 const val PAD_CHAR = ' '
 const val PAD_STRING = PAD_CHAR.toString()
 
+val DEFAULT_CHARSET = Charset.forName("Cp037")
+
 abstract class Value : Comparable<Value> {
     open fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
@@ -168,7 +170,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
 
     override operator fun compareTo(other: Value): Int =
         when (other) {
-            is StringValue -> value.compareTo(other.value)
+            is StringValue -> compare(other, DEFAULT_CHARSET)
             else -> super.compareTo(other)
         }
 }
