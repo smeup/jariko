@@ -9,6 +9,8 @@ import java.util.*
 const val PAD_CHAR = ' '
 const val PAD_STRING = PAD_CHAR.toString()
 
+val DEFAULT_CHARSET = Charset.forName("Cp037")
+
 abstract class Value : Comparable<Value> {
     open fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     open fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
@@ -22,7 +24,6 @@ abstract class Value : Comparable<Value> {
     open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
     open fun asArray(): ArrayValue = throw UnsupportedOperationException()
     open fun render(): String = "Nope"
-    open fun compare(other: Value, charset: Charset? = null, descend: Boolean = false): Int = 0
     abstract fun copy(): Value
     fun toArray(nElements: Int, elementType: Type): Value {
         val elements = LinkedList<Value>()
@@ -149,10 +150,11 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
         return value.length
     }
 
-    override fun compare(other: Value, charset: Charset?, descend: Boolean): Int {
+    fun compare(other: StringValue, charset: Charset?, descend: Boolean = false): Int {
         require(charset != null)
+        if (this == other) return 0
         val bs1 = this.value.toByteArray(charset)
-        val bs2 = other.asString().value.toByteArray(charset)
+        val bs2 = other.value.toByteArray(charset)
 
         // It is possible to translate the character codes from the CP 037 charset to ISO 8859-1
         // character codes, so that translation  back to the CP 037 charset is an
@@ -168,7 +170,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
 
     override operator fun compareTo(other: Value): Int =
         when (other) {
-            is StringValue -> value.compareTo(other.value)
+            is StringValue -> compare(other, DEFAULT_CHARSET)
             else -> super.compareTo(other)
         }
 }
@@ -182,13 +184,26 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
 fun sortA(value: Value, charset: Charset) {
 
     when (value) {
+        is ConcreteArrayValue -> {
+            // TODO pass the correct charset to the default sorting algorithm
+            // TODO ascending/descending
+            value.elements.sort()
+        }
         is ProjectedArrayValue -> {
             require(value.field.type is ArrayType)
+            val strings = value.field.type.element is StringType
             val n = value.arrayLength
+            val multiplier = if (value.field.descend) 1 else -1
             // the good old Bubble Sort
             for (i in 1..(value.arrayLength - 1)) {
                 for (j in 1..(n - i - 1)) {
-                    if (value.getElement(j).compare(value.getElement(j + 1), charset, value.field.descend) > 0) {
+                    val compared =
+                        if (strings) {
+                            value.getElement(j).asString().compare(value.getElement(j + 1).asString(), charset, value.field.descend)
+                        } else {
+                            value.getElement(j).compareTo(value.getElement(j + 1)) * multiplier
+                        }
+                    if (compared > 0) {
                         // TODO support data structure swap
                         // For an array data structure, the keyed-ds-array operand is a qualified name
                         // consisting of the array to be sorted followed by the subfield to be used as

@@ -465,6 +465,11 @@ class InterpreterTest {
         assertEquals(listOf("ABCDEF", "ABCDEF"), outputOf("ARRAY11"))
     }
 
+    @Test
+    fun executeSORTANUM() {
+        assertEquals(listOf("0", "1", "4", "5", "6", "8", "9"), outputOf("SORTANUM"))
+    }
+
     @Test @Ignore
     fun executeLOOKUP_OPCODE() {
         assertEquals("""
