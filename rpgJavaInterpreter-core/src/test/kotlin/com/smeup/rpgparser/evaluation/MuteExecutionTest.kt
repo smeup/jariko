@@ -170,14 +170,19 @@ class MuteExecutionTest {
         assertMuteExecutionSucceded("mute/MUTE15_01", 14)
     }
 
-    @Test @Ignore
-    fun executeMUTE13_22_SCAN_OpCode() {
-        assertMuteExecutionSucceded("mute/MUTE13_22", 4)
+    @Test
+    fun executeMUTE13_22_SetOn_SetOff() {
+        assertMuteExecutionSucceded("mute/MUTE13_22", 9)
     }
 
     @Test @Ignore
     fun executeMUTE13_23_Lookup_OpCode_Eq() {
         assertMuteExecutionSucceded("mute/MUTE13_23", 8)
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_24_Scan_OpCode() {
+        assertMuteExecutionSucceded("mute/MUTE13_24", 4)
     }
 
     private fun assertMuteExecutionSucceded(
