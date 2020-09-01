@@ -5,6 +5,8 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
+import com.smeup.rpgparser.utils.resizeTo
+import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
 import kotlin.system.measureTimeMillis
 import java.util.*
@@ -1131,6 +1133,39 @@ data class MoveAStmt(
     ) : Statement(position), WithRightIndicators by rightIndicators {
         override fun execute(interpreter: InterpreterCore) {
             lookUp(this, interpreter, interpreter.localizationContext.charset)
+        }
+    }
+
+    data class ScanStmt(
+        val left: Expression,
+        val leftLength: Int?,
+        val right: Expression,
+        val startPosition: Int,
+        val target: AssignableExpression,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
+    ) : Statement(position), WithRightIndicators by rightIndicators {
+
+        override fun execute(interpreter: InterpreterCore) {
+            val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
+            val searchInto = interpreter.eval(right).asString().value.substring(startPosition - 1)
+            val occurrences = mutableListOf<Value>()
+            var index = -1
+            do {
+                index = searchInto.indexOf(stringToSearch, index + 1)
+                if (index >= 0) occurrences.add(IntValue((index + startPosition).toLong()))
+            } while (index >= 0)
+            if (occurrences.isEmpty()) {
+                interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+            } else {
+                interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+                if (target.type().isArray()) {
+                    val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
+                    interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
+                } else {
+                    interpreter.assign(target, occurrences[0])
+                }
+            }
         }
     }
 

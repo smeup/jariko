@@ -60,6 +60,8 @@ fun String.divideAtIndex(i: Int): Pair<String, String> {
 
 fun String?.isEmptyTrim() = this == null || this.trim().isEmpty()
 
+fun String.substringOfLength(l: Int?): String = if (l != null) take(l) else this
+
 inline fun String?.runIfNotEmpty(code: String.() -> Unit) {
     if (!this.isEmptyTrim()) this?.code()
 }
