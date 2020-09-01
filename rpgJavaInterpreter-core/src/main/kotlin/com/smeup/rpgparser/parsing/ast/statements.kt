@@ -1136,7 +1136,9 @@ data class MoveAStmt(
 
     data class ScanStmt(
         val left: Expression,
+        val leftLenght: Int?,
         val right: Expression,
+        val startPosition: Int,
         val target: AssignableExpression,
         val rightIndicators: WithRightIndicators,
         override val position: Position? = null
