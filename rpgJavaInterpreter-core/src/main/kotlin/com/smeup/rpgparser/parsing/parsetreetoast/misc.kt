@@ -611,6 +611,11 @@ internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
     return SetllStmt(factor1, factor2, position)
 }
 
+internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ScanStmt {
+    val position = toPosition(conf.considerPosition)
+    return TODO()
+}
+
 internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
@@ -618,18 +623,18 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     return CheckStmt(
             factor1,
             expression,
-            startPosition,
+            startPosition ?: 1,
             this.cspec_fixed_standard_parts()?.result?.toAst(conf),
             position)
 }
 
-internal fun String.toIndexedExpression(position: Position?): Pair<Expression, Int> {
+internal fun String.toIndexedExpression(position: Position?): Pair<Expression, Int?> {
     val baseStringTokens = this.split(":")
     val startPosition =
         when (baseStringTokens.size) {
             !in 1..2 -> throw UnsupportedOperationException("Wrong base string expression at line ${position?.line()}: $this")
             2 -> baseStringTokens[1].toInt()
-            else -> 1
+            else -> null
         }
     val reference = baseStringTokens[0]
     return DataRefExpr(ReferenceByName(reference), position) to startPosition
@@ -892,10 +897,6 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
             target,
             blanksInBetween,
             position)
-}
-
-internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ScanStmt {
-    return TODO()
 }
 
 internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupStmt {
