@@ -1134,6 +1134,18 @@ data class MoveAStmt(
         }
     }
 
+    data class ScanStmt(
+        val left: Expression,
+        val right: Expression,
+        val target: AssignableExpression,
+        val rightIndicators: WithRightIndicators,
+        override val position: Position? = null
+    ) : Statement(position), WithRightIndicators by rightIndicators {
+        override fun execute(interpreter: InterpreterCore) {
+            TODO("SCAN")
+        }
+    }
+
     data class XFootStmt(
         val left: Expression,
         val result: AssignableExpression,

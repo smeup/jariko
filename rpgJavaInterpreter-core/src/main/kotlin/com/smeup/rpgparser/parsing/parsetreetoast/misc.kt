@@ -327,6 +327,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCABGE() != null -> this.csCABGE().toAst(conf)
         this.csCABGT() != null -> this.csCABGT().toAst(conf)
         this.csXFOOT() != null -> this.csXFOOT().toAst(conf)
+        this.csSCAN() != null -> this.csSCAN().toAst(conf)
         else -> TODO("${this.text} at ${this.toPosition(true)}")
     }
 }
@@ -613,20 +614,25 @@ internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
 internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     val factor1 = this.factor1Context()?.content?.toAst(conf) ?: throw UnsupportedOperationException("CHECK operation requires factor 1: ${this.text} - ${position.atLine()}")
-    val baseStringTokens = this.cspec_fixed_standard_parts().factor2.text.split(":")
+    val (expression, startPosition) = this.cspec_fixed_standard_parts().factor2.text.toIndexedExpression(position)
+    return CheckStmt(
+            factor1,
+            expression,
+            startPosition,
+            this.cspec_fixed_standard_parts()?.result?.toAst(conf),
+            position)
+}
+
+internal fun String.toIndexedExpression(position: Position?): Pair<Expression, Int> {
+    val baseStringTokens = this.split(":")
     val startPosition =
         when (baseStringTokens.size) {
-            !in 1..2 -> throw UnsupportedOperationException("Wrong base string expression for CHECK at line ${position?.line()}: ${this.cspec_fixed_standard_parts().factor2.text}")
+            !in 1..2 -> throw UnsupportedOperationException("Wrong base string expression at line ${position?.line()}: $this")
             2 -> baseStringTokens[1].toInt()
             else -> 1
         }
     val reference = baseStringTokens[0]
-    return CheckStmt(
-            factor1,
-            DataRefExpr(ReferenceByName(reference), position),
-            startPosition,
-            this.cspec_fixed_standard_parts()?.result?.toAst(conf),
-            position)
+    return DataRefExpr(ReferenceByName(reference), position) to startPosition
 }
 
 internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveAStmt {
@@ -886,6 +892,10 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
             target,
             blanksInBetween,
             position)
+}
+
+internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ScanStmt {
+    return TODO()
 }
 
 internal fun CsLOOKUPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LookupStmt {
