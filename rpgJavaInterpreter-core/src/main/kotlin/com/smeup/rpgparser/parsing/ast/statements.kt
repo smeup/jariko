@@ -6,6 +6,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
+import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
 import kotlin.system.measureTimeMillis
 import java.util.*
@@ -1137,22 +1138,17 @@ data class MoveAStmt(
 
     data class ScanStmt(
         val left: Expression,
-        val leftLenght: Int?,
+        val leftLength: Int?,
         val right: Expression,
         val startPosition: Int,
         val target: AssignableExpression,
         val rightIndicators: WithRightIndicators,
         override val position: Position? = null
     ) : Statement(position), WithRightIndicators by rightIndicators {
+
         override fun execute(interpreter: InterpreterCore) {
-            // TODO - refactor this!!!
-            val fullStringToSearch = interpreter.eval(left).asString().value
-            val stringToSearch = if (leftLenght != null) {
-                fullStringToSearch.take(leftLenght)
-            } else {
-                fullStringToSearch
-            }
-            var searchInto = interpreter.eval(right).asString().value.substring(startPosition - 1)
+            val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
+            val searchInto = interpreter.eval(right).asString().value.substring(startPosition - 1)
             val occurrences = mutableListOf<Value>()
             var index = -1
             do {
