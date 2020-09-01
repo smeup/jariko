@@ -1,26 +1,102 @@
-   COP* *NOUI
      V*=====================================================================
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
-     V* 12/03/20          LOMFRN Created
+     V* 12/03/20  001678  FP Creato
+     V* 12/03/20  V5R1    BERNI Check-out 001678 in SMEDEV
+     V* 13/03/20  001689  BMA Renamed MUTE16_04 into MUTE13_20
+     V* 13/03/20  V5R1    BERNI Check-out 001689 in SMEDEV
+     V* 25/08/20  002091  BUSFIO Renamed MUTE13_20 into MUTE13_22
+     V* 25/08/20  002091  BUSFIO Sostituzione di SETON e SETOFF e esplicitazione IF
+     V* 31/08/20  V5R1    BMA   Check-out 002091 in SMEDEV
      V*=====================================================================
-     V* OBIETTIVO
-     V*  Program to test SCAN Op Code
-     V*
-     V*=====================================================================
-     D*----------------------------------------------------------------
-     D Msg             S             10    Inz('aaaaa67AA0')
-     D ResArr          S              2  0 DIM(10)
-     D i               S              2  0 Inz(1)
-     C     'aa'          SCAN      Msg:3         ResArr                   69
-    MU* VAL1(*IN69) VAL2(*ON) COMP(EQ)
-     C   69'69 on'       DSPLY
-     C                   dow       ResArr(i) > 0 And i <= 10
-     C     ResArr(i)     DSPLY
-     C                   Eval      i += 1
-     C                   Enddo
-    MU* VAL1(ResArr(1)) VAL2(3) COMP(EQ)
-    MU* VAL1(ResArr(2)) VAL2(4) COMP(EQ)
-    MU* VAL1(ResArr(3)) VAL2(0) COMP(EQ)
-     C                   Seton                                            LR
+     D FACTOR2         S              1  0
+      *---------------------------------------------------------------
+      * M A I N
+      *---------------------------------------------------------------
+     C                   EVAL      *IN34=*OFF
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN34=*OFF
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34=*OFF
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(2) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN34=*OFF
+     C                   EVAL      *IN35=*OFF
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34 OR *IN35
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN34=*OFF
+     C                   EVAL      *IN35=*OFF
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34 OR NOT *IN35
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(2) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN34=*OFF
+     C                   EVAL      *IN35=*OFF
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34 AND NOT *IN35
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN34=*OFF
+     C                   EVAL      *IN35=*OFF
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34 AND *IN35
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN34=*OFF
+     C                   EVAL      *IN35=*OFF
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34=*OFF AND NOT *IN35
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(2) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN34=*ON
+     C                   EVAL      *IN35=*ON
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34=*OFF AND NOT *IN35
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN34=*OFF
+     C                   EVAL      *IN35=*OFF
+     C                   EVAL      *IN36=*OFF
+     C                   EVAL      *IN37=*OFF
+     C                   EVAL      *IN38=*OFF
+     C                   EVAL      *IN39=*OFF
+     C                   Z-ADD     0             FACTOR2
+     C                   IF        *IN34 AND *IN35 AND NOT (*IN36) OR *IN37
+     C                             AND *IN38 AND NOT (*IN39)
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+    MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   SETON                                        LR
+      *---------------------------------------------------------------
