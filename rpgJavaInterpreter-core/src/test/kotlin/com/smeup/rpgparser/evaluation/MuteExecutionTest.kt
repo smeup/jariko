@@ -180,7 +180,7 @@ class MuteExecutionTest {
         assertMuteExecutionSucceded("mute/MUTE13_23", 8)
     }
 
-    @Test @Ignore
+    @Test
     fun executeMUTE13_24_Scan_OpCode() {
         assertMuteExecutionSucceded("mute/MUTE13_24", 4)
     }
