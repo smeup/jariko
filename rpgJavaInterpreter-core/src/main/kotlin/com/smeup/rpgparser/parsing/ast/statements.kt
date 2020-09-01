@@ -1162,13 +1162,13 @@ data class MoveAStmt(
             if (occurrences.isEmpty()) {
                 interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
             } else {
+                interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
                 if (target.type().isArray()) {
                     val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
                     interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
                 } else {
                     interpreter.assign(target, occurrences[0])
                 }
-                interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             }
         }
     }
