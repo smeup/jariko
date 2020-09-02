@@ -234,6 +234,11 @@ class InterpreterTest {
                 "56=off57=off"), outputOf("SETONOF01"))
     }
 
+    @Test @Ignore
+    fun executeDCONST() {
+        assertEquals(listOf("60"), outputOf("DCONST"))
+    }
+
     @Test
     fun executeHELLOVARST() {
         assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
