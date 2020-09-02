@@ -81,10 +81,8 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                         .toAst(conf, knownDataDefinitions.values.toList())
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                 }
-                it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
+                it.dcl_ds() != null && it.dcl_ds().useLikeDs() -> {
                     DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
-                } else {
-                    null
                 }
                 else -> null
             }
