@@ -234,7 +234,7 @@ class InterpreterTest {
                 "56=off57=off"), outputOf("SETONOF01"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeDCONST() {
         assertEquals(listOf("60"), outputOf("DCONST"))
     }

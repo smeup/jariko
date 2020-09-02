@@ -204,6 +204,20 @@ internal fun RpgParser.DspecContext.toAst(
             position = this.toPosition(true))
 }
 
+internal fun RpgParser.Dcl_cContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: List<DataDefinition>
+): DataDefinition {
+    // TODO: check more examples of const declaration
+    var initializationValueExpression: Expression = this.keyword_const().simpleExpression().toAst(conf)
+    val type = initializationValueExpression.type()
+    return DataDefinition(
+            this.ds_name().text,
+            type,
+            initializationValue = initializationValueExpression,
+            position = this.toPosition(true))
+}
+
 private val RpgParser.DspecContext.decimalPositions
     get() = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
 

@@ -8,7 +8,6 @@ import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -26,7 +25,6 @@ class DataDefinitionTest {
         cu.assertDataDefinitionIsPresent("OK", BooleanType)
     }
 
-    @Ignore
     @test fun constDataParsing() {
         val cu = parseFragmentToCompilationUnit("Dx                C                   CONST(30)")
         cu.assertDataDefinitionIsPresent("x", NumberType(2, 0))
