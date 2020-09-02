@@ -315,7 +315,7 @@ class InterpreterTest {
         assertEquals(listOf("aaaaa"), outputOf("MOVEL05"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVEL06_blanks() {
         assertEquals(listOf(""), outputOf("MOVEL06"))
     }
