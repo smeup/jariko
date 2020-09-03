@@ -18,11 +18,29 @@ private fun CompilationUnit.findInStatementDataDefinitions() {
     }
 }
 
+private fun List<Statement>?.explode(): List<Statement> =
+    if (this == null) {
+        emptyList<Statement>()
+    } else {
+        val result = mutableListOf<Statement>()
+        forEach {
+            if (it is SelectStmt) {
+                it.cases.forEach { case ->
+                    result.addAll(case.body.explode())
+                }
+                result.addAll(it.other?.body.explode())
+            } else {
+                result.add(it)
+            }
+        }
+        result
+    }
+
 fun CompilationUnit.allStatements(): List<Statement> {
     val result = mutableListOf<Statement>()
-    result.addAll(this.main.stmts)
+    result.addAll(this.main.stmts.explode())
     this.subroutines.forEach {
-        result.addAll(it.stmts)
+        result.addAll(it.stmts.explode())
     }
     return result
 }
