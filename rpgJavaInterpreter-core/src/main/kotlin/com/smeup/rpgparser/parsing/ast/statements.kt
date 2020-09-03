@@ -60,6 +60,22 @@ abstract class Statement(
     abstract fun execute(interpreter: InterpreterCore)
 }
 
+interface CompositeStatement {
+    val body: List<Statement>
+}
+
+fun List<Statement>.explode(): List<Statement> {
+    val result = mutableListOf<Statement>()
+    forEach {
+        if (it is CompositeStatement) {
+            result.addAll(it.body.explode())
+        } else {
+            result.add(it)
+        }
+    }
+    return result
+}
+
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         interpreter.log {
@@ -91,7 +107,7 @@ data class SelectStmt(
     var cases: List<SelectCase>,
     var other: SelectOtherClause? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), CompositeStatement {
     override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
 
         val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
@@ -131,11 +147,21 @@ data class SelectStmt(
             interpreter.execute(this.other!!.body)
         }
     }
+
+    override val body: List<Statement>
+        get() {
+            val result = mutableListOf<Statement>()
+            cases.forEach { case ->
+                result.addAll(case.body.explode())
+            }
+            if (other?.body != null) result.addAll(other!!.body.explode())
+            return result
+        }
 }
 
-data class SelectOtherClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
+data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
-data class SelectCase(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
+data class SelectCase(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 data class EvalFlags(
     val halfAdjust: Boolean = false,
@@ -428,11 +454,11 @@ data class MoveAStmt(
 
     data class IfStmt(
         val condition: Expression,
-        val body: List<Statement>,
+        override val body: List<Statement>,
         val elseIfClauses: List<ElseIfClause> = emptyList(),
         val elseClause: ElseClause? = null,
         override val position: Position? = null
-    ) : Statement(position) {
+    ) : Statement(position), CompositeStatement {
 
         override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
             // check if the annotation is just before the ELSE
@@ -488,9 +514,9 @@ data class MoveAStmt(
         }
     }
 
-    data class ElseClause(val body: List<Statement>, override val position: Position? = null) : Node(position)
+    data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
-    data class ElseIfClause(val condition: Expression, val body: List<Statement>, override val position: Position? = null) : Node(position)
+    data class ElseIfClause(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
     data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
         enum class ValueSet {
@@ -799,10 +825,10 @@ data class MoveAStmt(
     data class DoStmt(
         val endLimit: Expression,
         val index: AssignableExpression?,
-        val body: List<Statement>,
+        override val body: List<Statement>,
         val startLimit: Expression = IntLiteral(1),
         override val position: Position? = null
-    ) : Statement(position) {
+    ) : Statement(position), CompositeStatement {
         override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
             // TODO check if the annotation is the last statement
             return acceptBody(body, mutes, start, end)
@@ -868,9 +894,9 @@ data class MoveAStmt(
 
     data class DowStmt(
         val endExpression: Expression,
-        val body: List<Statement>,
+        override val body: List<Statement>,
         override val position: Position? = null
-    ) : Statement(position) {
+    ) : Statement(position), CompositeStatement {
         override fun execute(interpreter: InterpreterCore) {
             var loopCounter: Long = 0
             val startTime = System.currentTimeMillis()
@@ -905,9 +931,9 @@ data class MoveAStmt(
 
     data class DouStmt(
         val endExpression: Expression,
-        val body: List<Statement>,
+        override val body: List<Statement>,
         override val position: Position? = null
-    ) : Statement(position) {
+    ) : Statement(position), CompositeStatement {
         override fun execute(interpreter: InterpreterCore) {
             var loopCounter: Long = 0
             val startTime = System.currentTimeMillis()
@@ -1006,9 +1032,9 @@ data class MoveAStmt(
         val endValue: Expression,
         val byValue: Expression,
         val downward: Boolean = false,
-        val body: List<Statement>,
+        override val body: List<Statement>,
         override val position: Position? = null
-    ) : Statement(position) {
+    ) : Statement(position), CompositeStatement {
         fun iterDataDefinition(): AbstractDataDefinition {
             if (init is AssignmentExpr) {
                 if ((init as AssignmentExpr).target is DataRefExpr) {

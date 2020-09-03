@@ -17,21 +17,6 @@ private fun CompilationUnit.findInStatementDataDefinitions() {
     }
 }
 
-private fun List<Statement>.explode(): List<Statement> {
-    val result = mutableListOf<Statement>()
-    forEach {
-        if (it is SelectStmt) {
-            it.cases.forEach { case ->
-                result.addAll(case.body.explode())
-            }
-            if (it.other?.body != null) result.addAll(it.other!!.body.explode())
-        } else {
-            result.add(it)
-        }
-    }
-    return result
-}
-
 fun CompilationUnit.allStatements(): List<Statement> {
     val result = mutableListOf<Statement>()
     result.addAll(this.main.stmts.explode())

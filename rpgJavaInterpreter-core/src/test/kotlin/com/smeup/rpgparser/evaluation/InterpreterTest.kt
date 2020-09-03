@@ -240,8 +240,13 @@ class InterpreterTest {
     }
 
     @Test
-    fun executeX1_dataDefinitionsInSelect() {
-        assertEquals(listOf("R"), outputOf("X1"))
+    fun executeCALLDEF01_dataDefinitionsInSelect() {
+        assertEquals(listOf("OK"), outputOf("CALLDEF01"))
+    }
+
+    @Test
+    fun executeCALLDEF02_dataDefinitionsInNestedStatements() {
+        assertEquals(listOf("OK"), outputOf("CALLDEF02"))
     }
 
     @Test

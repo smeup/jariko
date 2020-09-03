@@ -1,3 +1,4 @@
+     D I               S              5  0
      C                   EXSR      IMP0
      C     G9MAIN        TAG
      C                   EXSR      FIN0
@@ -18,13 +19,17 @@
       *
      C                   SELECT
      C     £CRNA         WHENEQ    'L'
+     C                   FOR       I = 1 TO 1
+     C                   if        I = 1
      C                   CALL      'CALLDEFV2'
      C                   PARM                    £CRNB             2
+     C                   ENDIF
+     C                   ENDFOR
       *
      C                   OTHER
      C                   CALL      'CALLDEFV2'
      C                   PARM                    £CRNA             2
      C                   ENDSL
-
+     C                   MOVEL(P)  'OK'          £CRNA
       *
      C     G9£CRN        ENDSR
