@@ -25,6 +25,11 @@ class DataDefinitionTest {
         cu.assertDataDefinitionIsPresent("OK", BooleanType)
     }
 
+    @test fun constDataParsing() {
+        val cu = parseFragmentToCompilationUnit("Dx                C                   CONST(30)")
+        cu.assertDataDefinitionIsPresent("x", NumberType(2, 0))
+    }
+
     @test fun caseInsensitiveBooleanDataParsing() {
         val cu = parseFragmentToCompilationUnit("D OK              S              1n")
         cu.assertDataDefinitionIsPresent("OK", BooleanType)

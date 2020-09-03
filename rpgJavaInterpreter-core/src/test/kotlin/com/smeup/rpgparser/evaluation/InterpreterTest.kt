@@ -235,6 +235,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeDCONST() {
+        assertEquals(listOf("60"), outputOf("DCONST"))
+    }
+
+    @Test
     fun executeHELLOVARST() {
         assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
     }
@@ -310,7 +315,7 @@ class InterpreterTest {
         assertEquals(listOf("aaaaa"), outputOf("MOVEL05"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeMOVEL06_blanks() {
         assertEquals(listOf(""), outputOf("MOVEL06"))
     }
