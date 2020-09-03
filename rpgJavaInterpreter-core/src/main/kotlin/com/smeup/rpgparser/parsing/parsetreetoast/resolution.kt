@@ -8,7 +8,6 @@ import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.model.*
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
-import java.lang.RuntimeException
 import java.util.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
@@ -18,23 +17,20 @@ private fun CompilationUnit.findInStatementDataDefinitions() {
     }
 }
 
-private fun List<Statement>?.explode(): List<Statement> =
-    if (this == null) {
-        emptyList<Statement>()
-    } else {
-        val result = mutableListOf<Statement>()
-        forEach {
-            if (it is SelectStmt) {
-                it.cases.forEach { case ->
-                    result.addAll(case.body.explode())
-                }
-                result.addAll(it.other?.body.explode())
-            } else {
-                result.add(it)
+private fun List<Statement>.explode(): List<Statement> {
+    val result = mutableListOf<Statement>()
+    forEach {
+        if (it is SelectStmt) {
+            it.cases.forEach { case ->
+                result.addAll(case.body.explode())
             }
+            if (it.other?.body != null) result.addAll(it.other!!.body.explode())
+        } else {
+            result.add(it)
         }
-        result
     }
+    return result
+}
 
 fun CompilationUnit.allStatements(): List<Statement> {
     val result = mutableListOf<Statement>()
