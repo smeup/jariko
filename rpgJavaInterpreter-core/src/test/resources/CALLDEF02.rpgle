@@ -21,8 +21,10 @@
      C     £CRNA         WHENEQ    'L'
      C                   FOR       I = 1 TO 1
      C                   if        I = 1
+     C                   Do        1
      C                   CALL      'CALLDEFV2'
      C                   PARM                    £CRNB             2
+     C                   ENDDO
      C                   ENDIF
      C                   ENDFOR
       *
