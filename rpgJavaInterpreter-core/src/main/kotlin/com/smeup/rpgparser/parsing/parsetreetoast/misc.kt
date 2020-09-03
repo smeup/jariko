@@ -56,9 +56,9 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
             when {
                 it.dcl_ds() != null -> {
                     try {
-                        val dataDefinition = it.dcl_ds().toAst(conf)
-                        knownDataDefinitions.addIfNotPresent(dataDefinition)
-                        DataDefinitionHolder(dataDefinition)
+                        it.dcl_ds()
+                            .toAst(conf)
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     } catch (e: Exception) {
                         null
                     }
@@ -72,19 +72,29 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
         .mapNotNull {
             when {
                 it.dspec() != null -> {
-                    val dataDefinition = it.dspec().toAst(conf, knownDataDefinitions.values.toList())
-                    knownDataDefinitions.addIfNotPresent(dataDefinition)
-                    DataDefinitionHolder(dataDefinition)
+                    it.dspec()
+                        .toAst(conf, knownDataDefinitions.values.toList())
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                 }
-                it.dcl_ds() != null -> if (it.dcl_ds().useLikeDs()) {
+                it.dcl_c() != null -> {
+                    it.dcl_c()
+                        .toAst(conf, knownDataDefinitions.values.toList())
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                }
+                it.dcl_ds() != null && it.dcl_ds().useLikeDs() -> {
                     DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
-                } else {
-                    null
                 }
                 else -> null
             }
         })
     return dataDefinitionProviders.map { it.toDataDefinition() }
+}
+
+private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
+    knownDataDefinitions: MutableMap<String, DataDefinition>
+): DataDefinitionHolder {
+    knownDataDefinitions.addIfNotPresent(this)
+    return DataDefinitionHolder(this)
 }
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
