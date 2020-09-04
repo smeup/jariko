@@ -17,7 +17,7 @@ fun Value.stringRepresentation(format: String? = null): String {
 }
 
 private fun TimeStampValue.timestampFormatting(format: String?): String =
-    // TODO this is a simple stub for what will be the full implementation
+    // TODO this is a simple stub for what the full implementation will be
     if ("*ISO0" == format) {
         SimpleDateFormat("yyyyMMddHHmmssSSS000").format(value)
     } else {
