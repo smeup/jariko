@@ -131,7 +131,7 @@ class ExpressionEvaluation(
 
     override fun eval(expression: CharExpr): Value {
         val value = expression.value.evalWith(this)
-        return StringValue(value.stringRepresentation().trim())
+        return StringValue(value.stringRepresentation(expression.format).trim())
     }
 
     override fun eval(expression: LookupExpr): Value {

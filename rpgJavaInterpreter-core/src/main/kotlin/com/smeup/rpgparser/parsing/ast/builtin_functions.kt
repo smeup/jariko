@@ -203,7 +203,7 @@ data class AbsExpr(
 }
 
 // %CHAR
-data class CharExpr(var value: Expression, override val position: Position? = null) :
+data class CharExpr(var value: Expression, val format: String?, override val position: Position? = null) :
     Expression(position) {
     override fun render(): String {
         return "%CHAR(${value.render()})"

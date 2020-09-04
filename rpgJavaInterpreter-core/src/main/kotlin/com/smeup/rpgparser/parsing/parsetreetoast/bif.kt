@@ -98,6 +98,7 @@ internal fun RpgParser.Bif_editwContext.toAst(conf: ToAstConfiguration = ToAstCo
 internal fun RpgParser.Bif_charContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CharExpr {
     return CharExpr(
             this.expression().toAst(conf),
+            this?.bif_charformat()?.text?.toUpperCase(),
             toPosition(conf.considerPosition))
 }
 

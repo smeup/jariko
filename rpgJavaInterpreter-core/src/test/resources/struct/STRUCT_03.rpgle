@@ -14,6 +14,7 @@
      ** CALCULATE THE TIME FOR THE CURRENT SYSTEM DATE
      C                   EVAL      TIME_IS=%TIMESTAMP()
      C                   EVAL      TIME_ISO=%char(TIME_IS:*iso0)
+     C     TIME_ISO      DSPLY
      C                   EVAL      CURRYEAR=%dec(%SUBST(TIMe_ISo:1:4):4:0)
      C                   EVAL      CURRMONTH=%dec(%SUBST(TIMe_ISo:5:2):2:0)
      C                   EVAL      CURRDAY=%dec(%SUBST(TIMe_ISo:7:2):2:0)
