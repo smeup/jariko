@@ -240,6 +240,21 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeCALLDEFVAR() {
+        assertEquals(listOf("", "R"), outputOf("CALLDEFVAR"))
+    }
+
+    @Test
+    fun executeCALLDEF01_dataDefinitionsInSelect() {
+        assertEquals(listOf("OK"), outputOf("CALLDEF01"))
+    }
+
+    @Test
+    fun executeCALLDEF02_dataDefinitionsInNestedStatements() {
+        assertEquals(listOf("OK"), outputOf("CALLDEF02"))
+    }
+
+    @Test
     fun executeHELLOVARST() {
         assertEquals(listOf("Eq", "Hello-World", "Hello-World"), outputOf("HELLOVARST"))
     }
