@@ -968,6 +968,11 @@ Test 6
     }
 
     @Test
+    fun executeDSCHARS2() {
+        assertEquals(listOf("A123456789"), outputOf("DSCHARS2"))
+    }
+
+    @Test
     fun executeFRSTCHRCOM_CommentInFirstChars() {
         assertEquals(listOf("Hello!"), outputOf("FRSTCHRCOM"))
     }

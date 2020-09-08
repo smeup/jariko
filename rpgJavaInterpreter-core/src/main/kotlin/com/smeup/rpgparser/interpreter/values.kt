@@ -49,6 +49,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value(
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
+            is CharacterType -> expectedType.nChars >= value.length.toLong()
             is DataStructureType -> expectedType.elementSize == value.length // Check for >= ???
             is ArrayType -> expectedType.size == value.length // Check for >= ???
             else -> false
