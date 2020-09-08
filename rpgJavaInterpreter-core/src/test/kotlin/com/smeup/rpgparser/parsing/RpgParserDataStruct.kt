@@ -1,9 +1,6 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.assertASTCanBeProduced
-import com.smeup.rpgparser.assertCanBeParsed
-import com.smeup.rpgparser.execute
-import com.smeup.rpgparser.executeAnnotations
+import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
@@ -118,13 +115,15 @@ class RpgParserDataStruct {
     }
 
     @Test
-    @Ignore // this is probably failing because of TIMESTAMP()
     fun parseSTRUCT_03() {
         assertCanBeParsed("struct/STRUCT_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_03", true)
-        cu.resolveAndValidate(DummyDBInterface)
-        execute(cu, mapOf())
+        val si = CollectorSystemInterface().apply {
+            printOutput = true
+        }
+        cu.resolveAndValidate(si.databaseInterface)
+        execute(cu, mapOf(), si)
     }
 
     @Test
