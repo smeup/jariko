@@ -744,7 +744,7 @@ data class DataStructValue(var value: String, val len: Int = value.length) : Val
         return when (expectedType) {
             // Check if the size of the value mathches the expected size within the DS
             // TO REVIEW
-            is DataStructureType -> expectedType.elementSize >= value.length
+            is DataStructureType -> true
             is StringType -> expectedType.size >= this.value.length
             else -> false
         }
