@@ -977,6 +977,11 @@ Test 6
         assertEquals(listOf("20200901", "BERWSD"), outputOf("DSCHARS3"))
     }
 
+    @Test @Ignore
+    fun executeDSCHARS4() {
+        assertEquals(listOf("20200901", "BERWSD"), outputOf("DSCHARS4"))
+    }
+
     @Test
     fun executeFRSTCHRCOM_CommentInFirstChars() {
         assertEquals(listOf("Hello!"), outputOf("FRSTCHRCOM"))
