@@ -973,13 +973,18 @@ Test 6
     }
 
     @Test
-    fun executeDSCHARS3() {
+    fun executeDSCHARS3_assign_whole_DS() {
         assertEquals(listOf("20200901", "BERWSD"), outputOf("DSCHARS3"))
     }
 
     @Test @Ignore
-    fun executeDSCHARS4() {
+    fun executeDSCHARS4_assign_ds_subfields() {
         assertEquals(listOf("20200901", "BERWSD"), outputOf("DSCHARS4"))
+    }
+
+    @Test
+    fun executeDSCHARS5_clear_ds_fields() {
+        assertEquals(listOf("TEST", ""), outputOf("DSCHARS5"))
     }
 
     @Test

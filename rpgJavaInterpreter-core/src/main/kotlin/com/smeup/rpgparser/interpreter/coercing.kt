@@ -28,6 +28,10 @@ private fun coerceBlanks(type: Type): Value {
         is BooleanType -> {
             BooleanValue.FALSE
         }
+        is CharacterType -> {
+            blankString(type.nChars)
+            // TODO Use CharacterValue(Array(this.nChars) { ' ' })
+        }
         else -> TODO("Converting BlanksValue to $type")
     }
 }
