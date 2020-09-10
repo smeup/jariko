@@ -335,6 +335,11 @@ class InterpreterTest {
         assertEquals(listOf(""), outputOf("MOVEL06"))
     }
 
+    @Test @Ignore
+    fun executeMOVELDEF1_variable_definition() {
+        assertEquals(listOf("02"), outputOf("MOVELDEF1"))
+    }
+
     @Test
     fun executeMOVEAMUT13() {
         assertEquals(listOf("ABCDEFGHIL         1",
