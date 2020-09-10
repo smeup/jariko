@@ -334,6 +334,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue() {
 
     companion object {
         val ZERO = DecimalValue(BigDecimal.ZERO)
+        val ONE = DecimalValue(BigDecimal.ONE)
     }
 
     override fun render(): String {
@@ -682,25 +683,18 @@ fun String.asIsoDate(): Date {
 fun createBlankFor(dataStructureType: DataStructureType, dataDefinition: DataDefinition): Value {
     val ds = DataStructValue.blank(dataStructureType.size.toInt())
     dataDefinition.fields.forEach {
-        when (it.type) {
-            is NumberType -> when {
-                it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
-                    if (dataDefinition.inz) {
-                        ds.set(it, DecimalValue(BigDecimal.ZERO))
-                    } else {
-                        ds.set(it, DecimalValue(BigDecimal.ONE))
-                    }
-                }
-                it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                    var rnd = if (dataDefinition.inz) 0 else 1
-                    ds.set(it, IntValue(rnd.toLong()))
-                }
-            }
-        }
+        if (it.type is NumberType) ds.set(it, it.type.toRPGValue(dataDefinition.inz))
     }
 
     return ds
 }
+
+private fun NumberType.toRPGValue(iniz: Boolean): Value =
+    when (rpgType) {
+        RpgType.ZONED.rpgType, RpgType.PACKED.rpgType -> if (iniz) DecimalValue.ZERO else DecimalValue.ONE
+        RpgType.BINARY.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> if (iniz) IntValue.ZERO else IntValue.ONE
+        else -> TODO("Please handle RpgType $rpgType")
+    }
 
 fun Type.blank(): Value {
     return when (this) {
