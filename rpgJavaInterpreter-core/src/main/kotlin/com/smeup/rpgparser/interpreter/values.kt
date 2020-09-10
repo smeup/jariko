@@ -679,45 +679,29 @@ fun String.asIsoDate(): Date {
     return SimpleDateFormat(FORMAT_DATE_ISO).parse(this.take(FORMAT_DATE_ISO.length))
 }
 
-fun Type.blank(dataDefinition: DataDefinition): Value {
-    return when (this) {
-        is ArrayType -> createArrayValue(this.element, this.nElements) {
-            this.element.blank()
-        }
-        is DataStructureType -> {
-            val ds = DataStructValue.blank(this.size.toInt())
-            dataDefinition.fields.forEach {
-                when (it.type) {
-                    is NumberType -> when {
-                        it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
-                            if (dataDefinition.inz) {
-                                ds.set(it, DecimalValue(BigDecimal.ZERO))
-                            } else {
-                                ds.set(it, DecimalValue(BigDecimal.ONE))
-                            }
-                        }
-                        it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                            var rnd = if (dataDefinition.inz) 0 else 1
-                            ds.set(it, IntValue(rnd.toLong()))
-                        }
+fun createBlankFor(dataStructureType: DataStructureType, dataDefinition: DataDefinition): Value {
+    val ds = DataStructValue.blank(dataStructureType.size.toInt())
+    dataDefinition.fields.forEach {
+        when (it.type) {
+            is NumberType -> when {
+                it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
+                    if (dataDefinition.inz) {
+                        ds.set(it, DecimalValue(BigDecimal.ZERO))
+                    } else {
+                        ds.set(it, DecimalValue(BigDecimal.ONE))
                     }
                 }
+                it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
+                    var rnd = if (dataDefinition.inz) 0 else 1
+                    ds.set(it, IntValue(rnd.toLong()))
+                }
             }
-
-            ds
         }
-        is StringType -> StringValue.blank(this.size.toInt())
-        is NumberType -> IntValue(0)
-        is BooleanType -> BooleanValue.FALSE
-        is TimeStampType -> TimeStampValue.LOVAL
-        is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
-        is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
-        is FigurativeType -> BlanksValue
-        is LowValType, is HiValType -> TODO()
     }
+
+    return ds
 }
 
-// Deprecated?
 fun Type.blank(): Value {
     return when (this) {
         is ArrayType -> createArrayValue(this.element, this.nElements) {

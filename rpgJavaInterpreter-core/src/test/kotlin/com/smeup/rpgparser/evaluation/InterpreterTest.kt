@@ -335,8 +335,8 @@ class InterpreterTest {
         assertEquals(listOf(""), outputOf("MOVEL06"))
     }
 
-    @Test @Ignore
-    fun executeMOVELDEF1_variable_definition() {
+    @Test
+    fun executeMOVELDEF1_variable_definition_after_first_usage() {
         assertEquals(listOf("02"), outputOf("MOVELDEF1"))
     }
 
