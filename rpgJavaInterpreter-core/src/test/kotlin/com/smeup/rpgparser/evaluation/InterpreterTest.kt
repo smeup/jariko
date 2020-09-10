@@ -993,6 +993,11 @@ Test 6
     }
 
     @Test
+    fun executeDSCHAR6_string_to_ds_field() {
+        assertEquals(listOf("1"), outputOf("DSCHARS6"))
+    }
+
+    @Test
     fun executeFRSTCHRCOM_CommentInFirstChars() {
         assertEquals(listOf("Hello!"), outputOf("FRSTCHRCOM"))
     }
