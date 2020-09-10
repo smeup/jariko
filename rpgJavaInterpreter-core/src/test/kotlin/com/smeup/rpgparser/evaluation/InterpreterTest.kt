@@ -977,7 +977,7 @@ Test 6
         assertEquals(listOf("20200901", "BERWSD"), outputOf("DSCHARS3"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeDSCHARS4_assign_ds_subfields() {
         assertEquals(listOf("20200901", "BERWSD"), outputOf("DSCHARS4"))
     }
