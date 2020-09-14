@@ -170,11 +170,15 @@ class InternalInterpreter(
                             }
                         }
                     }
-                } else if (it is InStatementDataDefinition && it.parent is PlistParam) {
-                    value = when {
-                        it.name in initialValues -> initialValues[it.name]
-                            ?: throw RuntimeException("Initial values for ${it.name} not found")
-                        else -> null
+                } else if (it is InStatementDataDefinition) {
+                    value = if (it.parent is PlistParam) {
+                        when {
+                            it.name in initialValues -> initialValues[it.name]
+                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                            else -> null
+                        }
+                    } else {
+                        if (it.type is KListType) null else it.type.blank()
                     }
                 }
                 // Fix issue on CTDATA
@@ -724,7 +728,7 @@ class InternalInterpreter(
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return when (dataDefinition.type) {
-            is DataStructureType -> dataDefinition.type.blank(dataDefinition)
+            is DataStructureType -> createBlankFor(dataDefinition.type, dataDefinition)
             else -> dataDefinition.type.blank()
         }
     }
