@@ -680,12 +680,11 @@ fun String.asIsoDate(): Date {
     return SimpleDateFormat(FORMAT_DATE_ISO).parse(this.take(FORMAT_DATE_ISO.length))
 }
 
-fun createBlankFor(dataStructureType: DataStructureType, dataDefinition: DataDefinition): Value {
-    val ds = DataStructValue.blank(dataStructureType.size.toInt())
+fun createBlankFor(dataDefinition: DataDefinition): Value {
+    val ds = DataStructValue.blank(dataDefinition.type.size)
     dataDefinition.fields.forEach {
         if (it.type is NumberType) ds.set(it, it.type.toRPGValue(dataDefinition.inz))
     }
-
     return ds
 }
 
@@ -706,6 +705,7 @@ fun Type.blank(): Value {
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
+        // TODO check this during the process of revision of DB access
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
         is FigurativeType -> BlanksValue

@@ -178,6 +178,7 @@ class InternalInterpreter(
                             else -> null
                         }
                     } else {
+                        // TODO check this during the process of revision of DB access
                         if (it.type is KListType) null else it.type.blank()
                     }
                 }
@@ -728,7 +729,7 @@ class InternalInterpreter(
     fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return when (dataDefinition.type) {
-            is DataStructureType -> createBlankFor(dataDefinition.type, dataDefinition)
+            is DataStructureType -> createBlankFor(dataDefinition)
             else -> dataDefinition.type.blank()
         }
     }
