@@ -334,6 +334,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue() {
 
     companion object {
         val ZERO = DecimalValue(BigDecimal.ZERO)
+        val ONE = DecimalValue(BigDecimal.ONE)
     }
 
     override fun render(): String {
@@ -679,45 +680,21 @@ fun String.asIsoDate(): Date {
     return SimpleDateFormat(FORMAT_DATE_ISO).parse(this.take(FORMAT_DATE_ISO.length))
 }
 
-fun Type.blank(dataDefinition: DataDefinition): Value {
-    return when (this) {
-        is ArrayType -> createArrayValue(this.element, this.nElements) {
-            this.element.blank()
-        }
-        is DataStructureType -> {
-            val ds = DataStructValue.blank(this.size.toInt())
-            dataDefinition.fields.forEach {
-                when (it.type) {
-                    is NumberType -> when {
-                        it.type.rpgType == RpgType.ZONED.rpgType || it.type.rpgType == RpgType.PACKED.rpgType -> {
-                            if (dataDefinition.inz) {
-                                ds.set(it, DecimalValue(BigDecimal.ZERO))
-                            } else {
-                                ds.set(it, DecimalValue(BigDecimal.ONE))
-                            }
-                        }
-                        it.type.rpgType == RpgType.BINARY.rpgType || it.type.rpgType == RpgType.INTEGER.rpgType || it.type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                            var rnd = if (dataDefinition.inz) 0 else 1
-                            ds.set(it, IntValue(rnd.toLong()))
-                        }
-                    }
-                }
-            }
-
-            ds
-        }
-        is StringType -> StringValue.blank(this.size.toInt())
-        is NumberType -> IntValue(0)
-        is BooleanType -> BooleanValue.FALSE
-        is TimeStampType -> TimeStampValue.LOVAL
-        is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
-        is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
-        is FigurativeType -> BlanksValue
-        is LowValType, is HiValType -> TODO()
+fun createBlankFor(dataDefinition: DataDefinition): Value {
+    val ds = DataStructValue.blank(dataDefinition.type.size)
+    dataDefinition.fields.forEach {
+        if (it.type is NumberType) ds.set(it, it.type.toRPGValue(dataDefinition.inz))
     }
+    return ds
 }
 
-// Deprecated?
+private fun NumberType.toRPGValue(iniz: Boolean): Value =
+    when (rpgType) {
+        RpgType.ZONED.rpgType, RpgType.PACKED.rpgType -> if (iniz) DecimalValue.ZERO else DecimalValue.ONE
+        RpgType.BINARY.rpgType, RpgType.INTEGER.rpgType, RpgType.UNSIGNED.rpgType -> if (iniz) IntValue.ZERO else IntValue.ONE
+        else -> TODO("Please handle RpgType $rpgType")
+    }
+
 fun Type.blank(): Value {
     return when (this) {
         is ArrayType -> createArrayValue(this.element, this.nElements) {
@@ -728,6 +705,7 @@ fun Type.blank(): Value {
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
+        // TODO check this during the process of revision of DB access
         is KListType -> throw UnsupportedOperationException("Blank value not supported for KList")
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
         is FigurativeType -> BlanksValue

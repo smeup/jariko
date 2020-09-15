@@ -400,12 +400,16 @@ fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
 
 internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeDeclared: Int?): Type? {
     val rpgCodeType = DATA_TYPE()?.text?.trim() ?: RpgType.ZONED.rpgType
-    val precision = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
     val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
     val isPackEven = keyword().any { it.keyword_packeven() != null }
     val isVarying = keyword().any { it.keyword_varying() != null }
     val startPosition = this.explicitStartOffset()
     val endPosition = this.explicitEndOffset()
+    val precision = if (startPosition != null && endPosition != null) {
+        endPosition - startPosition.toInt()
+    } else {
+        if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null
+    }
     val totalSize = when {
         startPosition == null -> null
         endPosition == null -> endPosition
@@ -419,7 +423,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
         totalSize
     }
 
-    val baseType = when (rpgCodeType) {
+    return when (rpgCodeType) {
         "", RpgType.ZONED.rpgType -> {
             if (decimalPositions == null && precision == null) {
                 null
@@ -472,7 +476,6 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
         "N" -> BooleanType
         else -> TODO("Support RPG code type '$rpgCodeType', field $name")
     }
-    return baseType
 }
 
 fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {

@@ -62,11 +62,16 @@ fun movel(operationExtender: String?, target: AssignableExpression, value: Expre
         return interpreterCore.assign(target, interpreterCore.eval(value))
     }
     val valueType = value.type()
-    if (baseType(target.type()) is StringType && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
+    if (isStringLike(target) && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
         return assignStringToString(operationExtender, target, value, interpreterCore)
     }
     if (baseType(target.type()) is NumberType && (valueType is NumberType || valueType is FigurativeType)) {
         return assignNumberToNumber(operationExtender, target, value, interpreterCore)
     }
     throw IllegalArgumentException("Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}")
+}
+
+private fun isStringLike(target: AssignableExpression): Boolean {
+    val type = baseType(target.type())
+    return (type is StringType || type is CharacterType)
 }

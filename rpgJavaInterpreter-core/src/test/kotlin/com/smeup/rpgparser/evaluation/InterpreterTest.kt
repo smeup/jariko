@@ -336,6 +336,11 @@ class InterpreterTest {
     }
 
     @Test
+    fun executeMOVELDEF1_variable_definition_after_first_usage() {
+        assertEquals(listOf("02"), outputOf("MOVELDEF1"))
+    }
+
+    @Test
     fun executeMOVEAMUT13() {
         assertEquals(listOf("ABCDEFGHIL         1",
                             "BBBBBBBBBBBBBBBBBBBB",
@@ -977,7 +982,7 @@ Test 6
         assertEquals(listOf("20200901", "BERWSD"), outputOf("DSCHARS3"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeDSCHARS4_assign_ds_subfields() {
         assertEquals(listOf("20200901", "BERWSD"), outputOf("DSCHARS4"))
     }
@@ -985,6 +990,11 @@ Test 6
     @Test
     fun executeDSCHARS5_clear_ds_fields() {
         assertEquals(listOf("TEST", ""), outputOf("DSCHARS5"))
+    }
+
+    @Test
+    fun executeDSCHAR6_string_to_ds_field() {
+        assertEquals(listOf("1"), outputOf("DSCHARS6"))
     }
 
     @Test
