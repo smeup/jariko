@@ -13,7 +13,7 @@ class RpgParsingAcceptanceTest {
     @Category(AcceptanceTest::class)
     fun parseAllDataExamples() {
         var failures = 0
-        processFilesInDirectory("src/test/resources/data", 13) { rpgFile ->
+        processFilesInDirectory("src/test/resources/data", 12) { rpgFile ->
             try {
                 assertCanBeParsed(rpgFile)
             } catch (e: AssertionError) {

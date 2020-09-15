@@ -10,9 +10,9 @@
      D $X              S              2  0
       *--------------------------------------------------------------------------------------------*
      C                   EVAL      $X = 2
-     C*                  EVAL      VAATV0 = %SUBST(ARRAGE($X):11:1 )
-     C*                  EVAL      VADATA = %INT(%SUBST(ARRAGE($X):12:8 ))
-     C*                  EVAL      VANOME = %SUBST(ARRAGE($X):20:15)
+     C                   EVAL      VAATV0 = %SUBST(ARRAGE($X):11:1 )
+     C                   EVAL      VADATA = %INT(%SUBST(ARRAGE($X):12:8 ))
+     C                   EVAL      VANOME = %SUBST(ARRAGE($X):20:15)
      C                   EVAL      VACDC  = %SUBST(ARRAGE($X):35:15)
      C                   EVAL      VACOD1 = %SUBST(ARRAGE($X):50:15)
      C     VADATA        DSPLY
