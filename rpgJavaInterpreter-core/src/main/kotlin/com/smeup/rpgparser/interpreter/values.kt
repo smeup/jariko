@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
@@ -220,6 +221,7 @@ fun sortA(value: Value, charset: Charset) {
     }
 }
 
+@Serializable
 data class IntValue(val value: Long) : NumberValue() {
     override val bigDecimal: BigDecimal
         get() = BigDecimal(value)
@@ -304,6 +306,7 @@ data class IntValue(val value: Long) : NumberValue() {
     }
 }
 
+@Serializable
 data class DecimalValue(val value: BigDecimal) : NumberValue() {
 
     override val bigDecimal: BigDecimal
