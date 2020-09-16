@@ -495,6 +495,7 @@ abstract class ArrayValue : Value {
     }
 }
 
+@Serializable
 data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
     init {
         require(elementType !is ArrayType) {

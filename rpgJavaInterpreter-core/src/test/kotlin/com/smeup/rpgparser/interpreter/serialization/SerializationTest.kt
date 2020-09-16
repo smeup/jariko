@@ -78,7 +78,7 @@ class SerializationTest {
         checkValueSerialization(BooleanValue.FALSE)
     }
 
-    @Test @Ignore
+    @Test
     fun `ConcreteArrayValue can be serialized to Json`() {
         val arrayValue =
             ConcreteArrayValue(
