@@ -1,9 +1,6 @@
 package com.smeup.rpgparser.interpreter.serialization
 
-import com.smeup.rpgparser.interpreter.DecimalValue
-import com.smeup.rpgparser.interpreter.IntValue
-import com.smeup.rpgparser.interpreter.TimeStampValue
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -63,6 +60,18 @@ class SerializationTest {
 
         val deserializedTimeStampValue = format.decodeFromString<TimeStampValue>(string)
         assertEquals(timeStampValue, deserializedTimeStampValue)
+    }
+
+    @Test
+    fun `StringValue can be serialized to Json`() {
+        val hindiHelloWorld = "नमस्ते दुनिया"
+        val stringValue = StringValue(hindiHelloWorld)
+        val string = format.encodeToString(stringValue)
+
+        println(string)
+
+        val deserializedStringValue = format.decodeFromString<StringValue>(string)
+        assertEquals(stringValue, deserializedStringValue)
     }
 
     @Test

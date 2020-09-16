@@ -46,6 +46,7 @@ abstract class NumberValue : Value {
     abstract val bigDecimal: BigDecimal
 }
 
+@Serializable
 data class StringValue(var value: String, val varying: Boolean = false) : Value {
 
     override fun assignableTo(expectedType: Type): Boolean {
