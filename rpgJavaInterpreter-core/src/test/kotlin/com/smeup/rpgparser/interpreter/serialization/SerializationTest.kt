@@ -25,6 +25,7 @@ class SerializationTest {
             subclass(BooleanValue::class)
             subclass(TimeStampValue::class)
             subclass(CharacterValue::class)
+            subclass(ConcreteArrayValue::class)
         }
     }
 
@@ -97,6 +98,11 @@ class SerializationTest {
         val booleanValue = BooleanValue.TRUE
         val timeStampValue = TimeStampValue(Date())
         val characterValue = CharacterValue("Hello world".toCharArray().toTypedArray())
+        val arrayValue =
+            ConcreteArrayValue(
+                mutableListOf<Value>(IntValue(1), IntValue(2), IntValue(3)),
+                NumberType(3, 0, RpgType.INTEGER)
+            )
 
         val originalMap = mapOf<String, Value>(
             "one" to decimalValue,
@@ -104,7 +110,8 @@ class SerializationTest {
             "three" to stringValue,
             "four" to booleanValue,
             "five" to timeStampValue,
-            "six" to characterValue
+            "six" to characterValue,
+            "seven" to arrayValue
         )
         checkValueSerialization(originalMap, printValues = true)
     }
