@@ -24,66 +24,42 @@ class SerializationTest {
         serializersModule = module
     }
 
+    private inline fun <reified T> checkValueSerialization(value: T) {
+        val string = format.encodeToString(value)
+        println(string)
+        val deserializedValue = format.decodeFromString<T>(string)
+        assertEquals(value, deserializedValue)
+    }
+
     @Test
     fun `IntValue can be serialized to Json`() {
         val numericValue: Long = 6969
         val intValue = IntValue(numericValue)
-        val string = Json.encodeToString(intValue)
-
-        println(string)
-        assertTrue(string.contains("$numericValue"))
-
-        val deserializedIntValue = Json.decodeFromString<IntValue>(string)
-        assertEquals(intValue, deserializedIntValue)
+        checkValueSerialization(IntValue(numericValue))
     }
 
     @Test
     fun `DecimalValue can be serialized to Json`() {
         val numericValue = BigDecimal(6969.3333)
-        val decimalValue = DecimalValue(numericValue)
-        val string = format.encodeToString(decimalValue)
-
-        println(string)
-        assertTrue(string.contains("$numericValue"))
-
-        val deserializedDecimalValue = format.decodeFromString<DecimalValue>(string)
-        assertEquals(decimalValue, deserializedDecimalValue)
+        checkValueSerialization(DecimalValue(numericValue))
     }
 
     @Test
     fun `TimeStampValue can be serialized to Json`() {
         val aDate = GregorianCalendar(2020, Calendar.JANUARY, 15).time
-        val timeStampValue = TimeStampValue(aDate)
-        val string = format.encodeToString(timeStampValue)
-
-        println(string)
-
-        val deserializedTimeStampValue = format.decodeFromString<TimeStampValue>(string)
-        assertEquals(timeStampValue, deserializedTimeStampValue)
+        checkValueSerialization(TimeStampValue(aDate))
     }
 
     @Test
     fun `StringValue can be serialized to Json`() {
         val hindiHelloWorld = "नमस्ते दुनिया"
-        val stringValue = StringValue(hindiHelloWorld)
-        val string = format.encodeToString(stringValue)
-
-        println(string)
-
-        val deserializedStringValue = format.decodeFromString<StringValue>(string)
-        assertEquals(stringValue, deserializedStringValue)
+        checkValueSerialization(StringValue(hindiHelloWorld))
     }
 
     @Test
     fun `BooleanValue can be serialized to Json`() {
-        fun checkBooleanSerialization(booleanValue: BooleanValue) {
-            val string = format.encodeToString(booleanValue)
-            println(string)
-            val deserializedValue = format.decodeFromString<BooleanValue>(string)
-            assertEquals(booleanValue, deserializedValue)
-        }
-        checkBooleanSerialization((BooleanValue.TRUE))
-        checkBooleanSerialization((BooleanValue.FALSE))
+        checkValueSerialization(BooleanValue.TRUE)
+        checkValueSerialization(BooleanValue.FALSE)
     }
 
     @Test
@@ -96,12 +72,6 @@ class SerializationTest {
             "first" to decimalValue,
             "second" to intValue
         )
-
-        val string = format.encodeToString(originalMap)
-
-        println(string)
-
-        val deserializedMap = format.decodeFromString<Map<String, Value>>(string)
-        assertEquals(originalMap, deserializedMap)
+        checkValueSerialization(originalMap)
     }
 }
