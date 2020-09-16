@@ -75,6 +75,18 @@ class SerializationTest {
     }
 
     @Test
+    fun `BooleanValue can be serialized to Json`() {
+        fun checkBooleanSerialization(booleanValue: BooleanValue) {
+            val string = format.encodeToString(booleanValue)
+            println(string)
+            val deserializedValue = format.decodeFromString<BooleanValue>(string)
+            assertEquals(booleanValue, deserializedValue)
+        }
+        checkBooleanSerialization((BooleanValue.TRUE))
+        checkBooleanSerialization((BooleanValue.FALSE))
+    }
+
+    @Test
     fun `a map with IntValue and DecimalValue can be serialized to Json`() {
         val aLongNumber = 6969L
         val decimalValue = DecimalValue(BigDecimal(aLongNumber))
