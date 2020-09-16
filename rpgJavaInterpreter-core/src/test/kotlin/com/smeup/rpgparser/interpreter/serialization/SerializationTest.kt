@@ -2,7 +2,6 @@ package com.smeup.rpgparser.interpreter.serialization
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.test.forAll
-import com.smeup.rpgparser.test.integers
 import com.smeup.rpgparser.test.longs
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
