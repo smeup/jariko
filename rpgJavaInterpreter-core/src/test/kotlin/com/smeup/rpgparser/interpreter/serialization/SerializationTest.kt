@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter.serialization
 
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.test.doubles
 import com.smeup.rpgparser.test.forAll
 import com.smeup.rpgparser.test.longs
@@ -77,8 +78,18 @@ class SerializationTest {
         checkValueSerialization(BooleanValue.FALSE)
     }
 
+    @Test @Ignore
+    fun `ConcreteArrayValue can be serialized to Json`() {
+        val arrayValue =
+            ConcreteArrayValue(
+                mutableListOf<Value>(IntValue(1), IntValue(2), IntValue(3)),
+                NumberType(3, 0, RpgType.INTEGER)
+            )
+        checkValueSerialization(arrayValue)
+    }
+
     @Test
-    fun `a map with Vaules can be serialized to Json`() {
+    fun `a map with Values can be serialized to Json`() {
         val aLongNumber = 6969L
         val decimalValue = DecimalValue(BigDecimal(aLongNumber))
         val intValue = IntValue(aLongNumber)
