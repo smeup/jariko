@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter.serialization
 
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.test.doubles
 import com.smeup.rpgparser.test.forAll
 import com.smeup.rpgparser.test.longs
 import kotlinx.serialization.decodeFromString
@@ -26,7 +27,7 @@ class SerializationTest {
         serializersModule = module
     }
 
-    private inline fun <reified T> checkValueSerialization(value: T, printValues: Boolean = true): Boolean {
+    private inline fun <reified T> checkValueSerialization(value: T, printValues: Boolean = false): Boolean {
         val string = format.encodeToString(value)
         if (printValues) println(string)
         val deserializedValue = format.decodeFromString<T>(string)
@@ -37,14 +38,15 @@ class SerializationTest {
     @Test
     fun `IntValue can be serialized to Json`() {
         forAll(longs) {
-            checkValueSerialization(IntValue(this), printValues = false)
+            checkValueSerialization(IntValue(this))
         }
     }
 
     @Test
     fun `DecimalValue can be serialized to Json`() {
-        val numericValue = BigDecimal(6969.3333)
-        checkValueSerialization(DecimalValue(numericValue))
+        forAll(doubles) {
+            checkValueSerialization(DecimalValue(BigDecimal.valueOf(this)))
+        }
     }
 
     @Test
