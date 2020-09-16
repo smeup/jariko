@@ -2,18 +2,21 @@ package com.smeup.rpgparser.interpreter.serialization
 
 import com.smeup.rpgparser.interpreter.DecimalValue
 import com.smeup.rpgparser.interpreter.IntValue
+import com.smeup.rpgparser.interpreter.TimeStampValue
 import com.smeup.rpgparser.interpreter.Value
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.*
 import java.math.BigDecimal
+import java.util.*
 import kotlin.test.*
 
 class SerializationTest {
 
     private val module = SerializersModule {
         contextual(BigDecimalSerializer)
+        contextual(DateAsLongSerializer)
         polymorphic(Value::class) {
             subclass(IntValue::class)
             subclass(DecimalValue::class)
@@ -48,6 +51,18 @@ class SerializationTest {
 
         val deserializedDecimalValue = format.decodeFromString<DecimalValue>(string)
         assertEquals(decimalValue, deserializedDecimalValue)
+    }
+
+    @Test
+    fun `TimeStampValue can be serialized to Json`() {
+        val aDate = GregorianCalendar(2020, Calendar.JANUARY, 15).time
+        val timeStampValue = TimeStampValue(aDate)
+        val string = format.encodeToString(timeStampValue)
+
+        println(string)
+
+        val deserializedTimeStampValue = format.decodeFromString<TimeStampValue>(string)
+        assertEquals(timeStampValue, deserializedTimeStampValue)
     }
 
     @Test

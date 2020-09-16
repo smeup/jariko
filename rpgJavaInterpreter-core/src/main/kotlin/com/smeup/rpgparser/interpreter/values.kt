@@ -14,19 +14,19 @@ const val PAD_STRING = PAD_CHAR.toString()
 val DEFAULT_CHARSET = Charset.forName("Cp037")
 
 interface Value : Comparable<Value> {
-    open fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
-    open fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
-    open fun asString(): StringValue = throw UnsupportedOperationException()
-    open fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
-    open fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException()
-    abstract fun assignableTo(expectedType: Type): Boolean
-    open fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
-    open fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
-    open fun take(from: Int, to: Int): Value = TODO("take not yet implemented for ${this.javaClass.simpleName}")
-    open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
-    open fun asArray(): ArrayValue = throw UnsupportedOperationException()
-    open fun render(): String = "Nope"
-    abstract fun copy(): Value
+    fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
+    fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
+    fun asString(): StringValue = throw UnsupportedOperationException()
+    fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
+    fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException()
+    fun assignableTo(expectedType: Type): Boolean
+    fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
+    fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
+    fun take(from: Int, to: Int): Value = TODO("take not yet implemented for ${this.javaClass.simpleName}")
+    fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
+    fun asArray(): ArrayValue = throw UnsupportedOperationException()
+    fun render(): String = "Nope"
+    fun copy(): Value
     fun toArray(nElements: Int, elementType: Type): Value {
         val elements = LinkedList<Value>()
         for (i in 1..nElements) {
@@ -388,7 +388,8 @@ data class CharacterValue(val value: Array<Char>) : Value {
     override fun copy(): CharacterValue = this
 }
 
-data class TimeStampValue(val value: Date) : Value {
+@Serializable
+data class TimeStampValue(@Contextual val value: Date) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is TimeStampType
     }
