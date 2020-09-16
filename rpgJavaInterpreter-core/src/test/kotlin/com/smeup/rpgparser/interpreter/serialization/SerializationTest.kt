@@ -20,6 +20,10 @@ class SerializationTest {
         polymorphic(Value::class) {
             subclass(IntValue::class)
             subclass(DecimalValue::class)
+            subclass(StringValue::class)
+            subclass(BooleanValue::class)
+            subclass(TimeStampValue::class)
+            subclass(CharacterValue::class)
         }
     }
 
@@ -74,15 +78,23 @@ class SerializationTest {
     }
 
     @Test
-    fun `a map with IntValue and DecimalValue can be serialized to Json`() {
+    fun `a map with Vaules can be serialized to Json`() {
         val aLongNumber = 6969L
         val decimalValue = DecimalValue(BigDecimal(aLongNumber))
         val intValue = IntValue(aLongNumber)
+        val stringValue = StringValue(aLongNumber.toString())
+        val booleanValue = BooleanValue.TRUE
+        val timeStampValue = TimeStampValue(Date())
+        val characterValue = CharacterValue("Hello world".toCharArray().toTypedArray())
 
         val originalMap = mapOf<String, Value>(
-            "first" to decimalValue,
-            "second" to intValue
+            "one" to decimalValue,
+            "two" to intValue,
+            "three" to stringValue,
+            "four" to booleanValue,
+            "five" to timeStampValue,
+            "six" to characterValue
         )
-        checkValueSerialization(originalMap)
+        checkValueSerialization(originalMap, printValues = true)
     }
 }
