@@ -34,7 +34,6 @@ class SerializationTest {
     @Test
     fun `IntValue can be serialized to Json`() {
         val numericValue: Long = 6969
-        val intValue = IntValue(numericValue)
         checkValueSerialization(IntValue(numericValue))
     }
 
