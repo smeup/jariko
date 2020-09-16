@@ -1,6 +1,9 @@
 package com.smeup.rpgparser.interpreter.serialization
 
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.test.forAll
+import com.smeup.rpgparser.test.integers
+import com.smeup.rpgparser.test.longs
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,17 +27,19 @@ class SerializationTest {
         serializersModule = module
     }
 
-    private inline fun <reified T> checkValueSerialization(value: T) {
+    private inline fun <reified T> checkValueSerialization(value: T, printValues: Boolean = true): Boolean {
         val string = format.encodeToString(value)
-        println(string)
+        if (printValues) println(string)
         val deserializedValue = format.decodeFromString<T>(string)
         assertEquals(value, deserializedValue)
+        return true
     }
 
     @Test
     fun `IntValue can be serialized to Json`() {
-        val numericValue: Long = 6969
-        checkValueSerialization(IntValue(numericValue))
+        forAll(longs) {
+            checkValueSerialization(IntValue(this), printValues = false)
+        }
     }
 
     @Test
