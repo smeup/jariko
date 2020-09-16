@@ -62,6 +62,12 @@ class SerializationTest {
     }
 
     @Test
+    fun `CharacterValue can be serialized to Json`() {
+        val characterValue = CharacterValue("Hello world".toCharArray().toTypedArray())
+        checkValueSerialization(characterValue)
+    }
+
+    @Test
     fun `BooleanValue can be serialized to Json`() {
         checkValueSerialization(BooleanValue.TRUE)
         checkValueSerialization(BooleanValue.FALSE)
