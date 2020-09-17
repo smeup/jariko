@@ -7,37 +7,16 @@ import com.smeup.rpgparser.test.forAll
 import com.smeup.rpgparser.test.longs
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.*
 import java.math.BigDecimal
 import java.util.*
 import kotlin.test.*
 
 class SerializationTest {
 
-    private val module = SerializersModule {
-        contextual(BigDecimalSerializer)
-        contextual(DateAsLongSerializer)
-        polymorphic(Value::class) {
-            subclass(IntValue::class)
-            subclass(DecimalValue::class)
-            subclass(StringValue::class)
-            subclass(BooleanValue::class)
-            subclass(TimeStampValue::class)
-            subclass(CharacterValue::class)
-            subclass(ConcreteArrayValue::class)
-            subclass(DataStructValue::class)
-        }
-    }
-
-    val format = Json {
-        serializersModule = module
-    }
-
     private inline fun <reified T> checkValueSerialization(value: T, printValues: Boolean = false): Boolean {
-        val string = format.encodeToString(value)
+        val string = SerializationOption.serializer.encodeToString(value)
         if (printValues) println(string)
-        val deserializedValue = format.decodeFromString<T>(string)
+        val deserializedValue = SerializationOption.serializer.decodeFromString<T>(string)
         assertEquals(value, deserializedValue)
         return true
     }

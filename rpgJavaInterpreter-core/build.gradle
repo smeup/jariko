@@ -47,6 +47,7 @@ dependencies {
     compile 'com.github.ziggy42:kolor:0.0.2'
 
     compile "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC"
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.0.0-RC"
 
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
