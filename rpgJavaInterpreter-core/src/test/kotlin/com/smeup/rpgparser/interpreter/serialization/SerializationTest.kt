@@ -26,6 +26,7 @@ class SerializationTest {
             subclass(TimeStampValue::class)
             subclass(CharacterValue::class)
             subclass(ConcreteArrayValue::class)
+            subclass(DataStructValue::class)
         }
     }
 
@@ -90,6 +91,13 @@ class SerializationTest {
     }
 
     @Test
+    fun `DataStructValue can be serialized to Json`() {
+        val rawStringValue = " Hello world 123 "
+        val dsValue = DataStructValue(rawStringValue)
+        checkValueSerialization(dsValue)
+    }
+
+    @Test
     fun `a map with Values can be serialized to Json`() {
         val aLongNumber = 6969L
         val decimalValue = DecimalValue(BigDecimal(aLongNumber))
@@ -103,6 +111,7 @@ class SerializationTest {
                 mutableListOf<Value>(IntValue(1), IntValue(2), IntValue(3)),
                 NumberType(3, 0, RpgType.INTEGER)
             )
+        val dsValue = DataStructValue(" test 11233 ")
 
         val originalMap = mapOf<String, Value>(
             "one" to decimalValue,
@@ -111,7 +120,8 @@ class SerializationTest {
             "four" to booleanValue,
             "five" to timeStampValue,
             "six" to characterValue,
-            "seven" to arrayValue
+            "seven" to arrayValue,
+            "eighth" to dsValue
         )
         checkValueSerialization(originalMap, printValues = true)
     }

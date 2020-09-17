@@ -1,8 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
@@ -739,9 +738,14 @@ fun Type.blank(): Value {
 
 /**
  * StringValue wrapper
+ *
  */
+@Serializable
+data class DataStructValue(var value: String, private val optionalExternalLen: Int? = null) : Value {
+    // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
+    // See https://github.com/Kotlin/kotlinx.serialization/issues/133
+    val len by lazy { optionalExternalLen ?: value.length }
 
-data class DataStructValue(var value: String, val len: Int = value.length) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             // Check if the size of the value mathches the expected size within the DS
