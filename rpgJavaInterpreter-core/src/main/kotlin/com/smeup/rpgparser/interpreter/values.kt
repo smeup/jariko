@@ -738,7 +738,6 @@ fun Type.blank(): Value {
 
 /**
  * StringValue wrapper
- *
  */
 @Serializable
 data class DataStructValue(var value: String, private val optionalExternalLen: Int? = null) : Value {
@@ -748,7 +747,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
 
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
-            // Check if the size of the value mathches the expected size within the DS
+            // Check if the size of the value matches the expected size within the DS
             // TO REVIEW
             is DataStructureType -> true
             is StringType -> expectedType.size >= this.value.length
