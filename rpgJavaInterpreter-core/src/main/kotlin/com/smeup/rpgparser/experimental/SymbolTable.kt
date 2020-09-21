@@ -69,4 +69,6 @@ class SymbolTable : ISymbolTable {
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
         return values.put(data.key, Pair(data, value.forType(data.type)))?.second
     }
+
+    override fun getValues(): Map<AbstractDataDefinition, Value> = values.values.toMap()
 }

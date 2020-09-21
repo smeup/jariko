@@ -61,4 +61,8 @@ class SymbolTable : ISymbolTable {
         require(data.type.canBeAssigned(value))
         return values.put(data, value.forType(data.type))
     }
+
+    override fun getValues(): Map<AbstractDataDefinition, Value> {
+        return values
+    }
 }
