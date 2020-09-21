@@ -38,7 +38,7 @@ class SerializationTest {
     @Test
     fun `TimeStampValue can be serialized to Json`() {
         val aDate = GregorianCalendar(2020, Calendar.JANUARY, 15).time
-        checkValueSerialization(TimeStampValue(aDate))
+        checkValueSerialization(TimeStampValue(aDate), true)
     }
 
     @Test

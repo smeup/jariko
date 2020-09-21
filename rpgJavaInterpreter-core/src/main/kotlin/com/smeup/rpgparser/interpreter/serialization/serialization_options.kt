@@ -45,7 +45,7 @@ class StringInterpreterSerialization(val implementer: StringFormat) : Interprete
 }
 
 // TODO read the configuration from an external source
-val BINARY_SERIALIZATION = true
+val BINARY_SERIALIZATION = false
 
 object SerializationOption {
     private fun stringFormat() = Json {
@@ -57,6 +57,16 @@ object SerializationOption {
     }
 
     val serializer by lazy {
-        if (BINARY_SERIALIZATION) BinaryInterpreterSerialization(binaryFormat()) else StringInterpreterSerialization(stringFormat())
+        getSerializer(BINARY_SERIALIZATION)
+    }
+
+    fun getSerializer(binary: Boolean) = if (binary) binarySerializer else stringSerializer
+
+    val stringSerializer by lazy {
+        StringInterpreterSerialization(stringFormat())
+    }
+
+    val binarySerializer by lazy {
+        BinaryInterpreterSerialization(binaryFormat())
     }
 }
