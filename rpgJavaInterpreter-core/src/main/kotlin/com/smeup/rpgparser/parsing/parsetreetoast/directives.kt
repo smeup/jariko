@@ -32,7 +32,7 @@ fun activationGroupType(parm: RpgParser.Hs_actgrp_parmContext): ActivationGroupT
         parm.HS_CALLER() != null ->
             CallerActivationGroup
         else ->
-            NamedActivationGroup(parm.hs_string().text)
+            NamedActivationGroup(parm.hs_string().text.removeSurrounding("'").toUpperCase())
     }
 
 fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
