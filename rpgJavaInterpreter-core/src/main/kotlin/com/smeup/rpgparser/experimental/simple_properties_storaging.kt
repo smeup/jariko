@@ -2,20 +2,19 @@ package com.smeup.rpgparser.experimental
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.serialization.SerializationOption
-import kotlinx.serialization.decodeFromHexString
-import kotlinx.serialization.encodeToHexString
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-fun MemorySliceId.fileName(ext: String = "properties") = "${this.sessionId}." +
-        "${this.activationGroup}.${this.programName}.$ext"
+fun MemorySliceId.fileName(ext: String = "properties") = "${this.activationGroup}.${this.programName}.$ext"
 
 class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
 
     // Choose of binary serialization
-    private val serializer = SerializationOption.binarySerializer
+    private val serializer = SerializationOption.stringSerializer
 
     override fun open() {
     }
@@ -46,14 +45,14 @@ class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
     override fun load(memorySliceId: MemorySliceId): Map<String, Value> {
         val properties = loadProperties(memorySliceId)
         return properties.mapValues {
-            serializer.decodeFromHexString<Value>(it.value)
+            serializer.decodeFromString<Value>(it.value)
         }
     }
 
     override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
         val properties = Properties()
         values.forEach() {
-            properties.setProperty(it.key, serializer.encodeToHexString(it.value))
+            properties.setProperty(it.key, serializer.encodeToString(it.value))
         }
         storeProperties(memorySliceId, properties)
     }

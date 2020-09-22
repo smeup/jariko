@@ -1,5 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.DebugOptions
+import com.smeup.rpgparser.execution.executePgmWithStringArgs
 import com.smeup.rpgparser.experimental.PropertiesFileStorage
 import org.junit.After
 import org.junit.Before
@@ -74,10 +77,13 @@ class MemorySliceStorageTest {
     fun propertiesFileStorageTest() {
         val memorySlicePodProducer = MemorySliceMgr(PropertiesFileStorage(simpleStorageTempDir))
         val symbolTableOut = SillySymbolTable()
-        symbolTableOut.setValue(name = "myVar", value = "Ciao")
-        val memorySliceId = MemorySliceId("sessionId", "group", "programName")
+        symbolTableOut.setValue(name = "myVar", value = "VAL1")
+        val memorySliceId = MemorySliceId("group", "programName")
         val memorySlice = memorySlicePodProducer.associate(memorySliceId, symbolTableOut)
+        // jariko changes myVar value
+        symbolTableOut.setValue(name = "myVar", value = "VAL2")
         memorySlice.persist = true
+        // will be stored only memory slices with persist property set to true
         memorySlicePodProducer.store()
         val symbolTableIn = SillySymbolTable()
         symbolTableIn.setValue(name = "myVar", value = "Pippo")
@@ -87,6 +93,21 @@ class MemorySliceStorageTest {
         memorySlicePodConsumer.associate(memorySliceId, symbolTableIn)
         // here have to be the same
         assert(symbolTableOut.getValues() == symbolTableIn.getValues())
+    }
+
+    private fun getActivationGroup() = "activationGroup"
+
+    @Test
+    fun podSimulationTest() {
+        val programName = "ABSTEST.rpgle"
+        val path = javaClass.getResource("/$programName")
+        // creating configuration
+        val debugOptions = DebugOptions(getActivationGroup = { getActivationGroup() })
+        val configuration = Configuration(
+            memorySliceStorage = PropertiesFileStorage(simpleStorageTempDir),
+            debugOptions = debugOptions
+        )
+        executePgmWithStringArgs(programName = path.path, programArgs = listOf<String>(), configuration = configuration)
     }
 
     @After

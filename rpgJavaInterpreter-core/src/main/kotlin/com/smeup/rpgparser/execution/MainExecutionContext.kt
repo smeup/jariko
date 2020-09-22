@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.rpgparser.interpreter.DummyMemorySliceStorage
+import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -18,15 +20,18 @@ object MainExecutionContext {
 
     /**
      * Call this method to execute e program in ExecutionContext environment.
-     * Your program will be able to gain access to attributes available in the entire life cycle of program execution
+     * Your program will be able to gain access to the attributes available in the entire life cycle of program execution
      * @see #getAttributes
+     * @see #getConfiguration
+     * @see #getMemorySliceMgr
      * */
-    fun <T> execute(mainProgram: () -> T): T {
+    fun <T> execute(configuration: Configuration = Configuration(), mainProgram: () -> T): T {
         try {
             require(
                 context.get() == null
             ) { "Context execution already created" }
-            context.set(Context())
+            val memorySliceStorage = configuration.memorySliceStorage ?: DummyMemorySliceStorage()
+            context.set(Context(configuration = configuration, memorySliceMgr = MemorySliceMgr(memorySliceStorage)))
             return mainProgram.invoke()
         } finally {
             context.remove()
@@ -42,9 +47,21 @@ object MainExecutionContext {
      * @return a new unique identifier
      */
     fun newId() = context.get()?.idProvider?.getAndIncrement() ?: noContextIdProvider.getAndIncrement()
+
+    /**
+     * @return an instance of jariko configuration
+     * */
+    fun getConfiguration() = context.get()?.configuration
+
+    /**
+    * @return an instance of memory slice manager
+    * */
+    fun getMemorySliceMgr() = context.get()?.memorySliceMgr
 }
 
-private class Context {
-    val attributes = mapOf<String, Any>()
-    val idProvider = AtomicInteger()
-}
+private data class Context(
+    val attributes: Map<String, Any> = mapOf<String, Any>(),
+    val idProvider: AtomicInteger = AtomicInteger(),
+    val configuration: Configuration,
+    val memorySliceMgr: MemorySliceMgr
+)

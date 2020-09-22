@@ -40,7 +40,8 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
         return CommandLineParms(resultValues.values.map { it.asString().value })
     }
 
-    fun singleCall(parms: List<String>) = singleCall(CommandLineParms(parms))
+    fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
+        singleCall(CommandLineParms(parms), configuration = configuration)
 }
 
 class ResourceProgramFinder(val path: String) : RpgProgramFinder {
@@ -88,7 +89,8 @@ fun executePgmWithStringArgs(
     programName: String,
     programArgs: List<String>,
     logConfigurationFile: File? = null,
-    programFinders: List<RpgProgramFinder> = defaultProgramFinders
+    programFinders: List<RpgProgramFinder> = defaultProgramFinders,
+    configuration: Configuration = Configuration()
 ) {
     val systemInterface = JavaSystemInterface()
     systemInterface.loggingConfiguration =
@@ -96,7 +98,7 @@ fun executePgmWithStringArgs(
             ?.let(::loadLogConfiguration)
             ?: defaultLoggingConfiguration()
     val commandLineProgram = getProgram(programName, systemInterface, programFinders)
-    commandLineProgram.singleCall(programArgs)
+    commandLineProgram.singleCall(programArgs, configuration = configuration)
 }
 
 object RunnerCLI : CliktCommand() {

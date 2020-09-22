@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.rpginterop
 
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
 import java.lang.RuntimeException
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -47,13 +47,13 @@ abstract class RpgFacade<P> (
         logHandlers = systemInterface.getAllLogHandlers()
     }
 
-    fun singleCall(params: P): P? {
+    fun singleCall(params: P, configuration: Configuration = Configuration()): P? {
         configureLogHandlers()
 
         val initialValues = toInitialValues(params)
 
         logHandlers.log(ProgramExecutionLogStart(programName, initialValues))
-        MainExecutionContext.execute {
+        MainExecutionContext.execute(configuration = configuration) {
             val elapsed = measureTimeMillis {
                 programInterpreter.execute(rpgProgram, initialValues)
             }
@@ -64,8 +64,8 @@ abstract class RpgFacade<P> (
 
     protected open fun toResults(params: P, resultValues: LinkedHashMap<String, Value>): P {
         val any: Any = params!!
-        val kclass = any::class
-        val initialValues = HashMap<String, Value>()
+//        val kclass = any::class
+//        val initialValues = HashMap<String, Value>()
         // TODO This is a fake implementation
 //        kclass.memberProperties.forEach {
 //            toRpgValue(it, it.call(params)) = resultValues[it.rpgName]

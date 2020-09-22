@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.types.file
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
@@ -130,13 +131,17 @@ fun executeMuteAnnotations(
     systemInterface: SystemInterface,
     verbose: Boolean = false,
     parameters: Map<String, Value> = mapOf(),
-    programName: String = "<UNKNOWN>"
+    programName: String = "<UNKNOWN>",
+    configuration: Configuration = Configuration()
 ): SortedMap<Int, MuteAnnotationExecuted>? {
     val parserResult =
         RpgParserFacade().apply { muteSupport = true }
         .parse(programStream)
     return if (parserResult.correct) {
-        parserResult.executeMuteAnnotations(verbose, systemInterface, parameters, programName)
+        parserResult.executeMuteAnnotations(
+            verbose = verbose, systemInterface = systemInterface, parameters = parameters,
+            programName = programName, configuration = configuration
+        )
     } else {
         null
     }
@@ -146,9 +151,10 @@ fun RpgParserResult.executeMuteAnnotations(
     verbose: Boolean,
     systemInterface: SystemInterface,
     parameters: Map<String, Value> = mapOf(),
-    programName: String = "<UNKONWN>"
+    programName: String = "<UNKONWN>",
+    configuration: Configuration = Configuration()
 ): SortedMap<Int, MuteAnnotationExecuted> {
-    return MainExecutionContext.execute {
+    return MainExecutionContext.execute(configuration = configuration) {
         val root = this.root!!
         val cu = root.rContext.toAst().apply {
             val resolved = this.injectMuteAnnotation(root.muteContexts!!)

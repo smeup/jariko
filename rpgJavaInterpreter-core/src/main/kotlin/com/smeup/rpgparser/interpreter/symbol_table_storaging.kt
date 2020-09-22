@@ -19,7 +19,7 @@ interface IMemorySliceStorage : AutoCloseable {
 /**
  * Memory slice identifier.
  * */
-data class MemorySliceId(val sessionId: String, val activationGroup: String, val programName: String)
+data class MemorySliceId(val activationGroup: String, val programName: String)
 
 /**
  * Memory slice is that portion of program memory associated to the SymbolTable
@@ -27,7 +27,7 @@ data class MemorySliceId(val sessionId: String, val activationGroup: String, val
 data class MemorySlice(val memorySliceId: MemorySliceId, val symbolTable: ISymbolTable) {
 
     /**
-     * Flag to indicate that memory slice has to be persist.
+     * Flag to indicate that memory slice has to be persisted.
      * This property is optional because, if for some reason is not set, the serializer will throw an exception as warranty
      * that something has been wrong, and it needs insights.
      * */
@@ -87,5 +87,33 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
                 throw RuntimeException(result.exceptionOrNull())
             }
         }
+    }
+}
+
+class DummyMemorySliceStorage : IMemorySliceStorage {
+
+    private val memory = mapOf<String, Value>()
+
+    override fun open() {
+    }
+
+    override fun close() {
+    }
+
+    /**
+     * Load memory associated to memorySliceId
+     * */
+    override fun load(memorySliceId: MemorySliceId): Map<String, Value> = memory
+
+    override fun beginTrans() {
+    }
+
+    override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
+    }
+
+    override fun commitTrans() {
+    }
+
+    override fun rollbackTrans() {
     }
 }
