@@ -146,7 +146,7 @@ class ToAstSmokeTest {
     @Test
     fun buildAstForACTGRP_FIX() {
         val cu = assertASTCanBeProduced("ACTGRP_FIX")
-        assertEquals(findFirstDirective(cu).type,NamedActivationGroup("MYACT"))
+        assertEquals(findFirstDirective(cu).type, NamedActivationGroup("MYACT"))
     }
 
     @Test
@@ -162,7 +162,7 @@ class ToAstSmokeTest {
     }
 
     private fun findFirstDirective(cu: CompilationUnit): ActivationGroupDirective {
-        assertTrue (cu.directives.size >= 1)
+        assertTrue(cu.directives.size >= 1)
         val directive = cu.directives[0]
         assertTrue(directive is ActivationGroupDirective)
         return directive
