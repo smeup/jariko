@@ -3,6 +3,7 @@ package com.smeup.rpgparser.parsing.ast
 import com.smeup.rpgparser.assertASTCanBeProduced
 import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.Ignore
 
 class ToAstSmokeTest {
 
@@ -141,5 +142,10 @@ class ToAstSmokeTest {
     @Test
     fun buildAstForREADP() {
         assertASTCanBeProduced("db/READP")
+    }
+
+    @Test @Ignore
+    fun buildAstForACTGRP_FIX() {
+        assertASTCanBeProduced("ACTGRP_FIX")
     }
 }

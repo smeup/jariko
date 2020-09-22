@@ -197,6 +197,11 @@ class RpgParserSmokeTest {
     }
 
     @Test
+    fun parseACTGRP_FIX() {
+        assertCanBeParsed("ACTGRP_FIX")
+    }
+
+    @Test
     fun parseMUTE13_13_indicatorsWithParenthesis() {
         assertCanBeParsed("mute/MUTE13_13")
         assertASTCanBeProduced("mute/MUTE13_13", true)

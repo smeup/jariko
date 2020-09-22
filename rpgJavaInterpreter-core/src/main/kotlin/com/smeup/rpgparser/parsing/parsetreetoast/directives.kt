@@ -12,7 +12,7 @@ fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigura
     if (this.content is RpgParser.SetDeceditContext) {
         return (this.content as RpgParser.SetDeceditContext).hs_decedit_set().toAst(conf)
     } else {
-        TODO("Unexpected ${this.content} in decedit directive")
+        TODO("Unexpected ${this.content.text} in H directive")
     }
 }
 
