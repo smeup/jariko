@@ -11,7 +11,6 @@ import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.ast.MuteComparisonAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
@@ -161,18 +160,7 @@ fun RpgParserResult.executeMuteAnnotations(
             }
         }
         cu.resolveAndValidate(systemInterface.db)
-        val interpreter = InternalInterpreter(systemInterface).apply {
-            interpretationContext = object : InterpretationContext {
-                override val currentProgramName: String
-                    get() = programName
-
-                override fun shouldReinitialize() = false
-
-                override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
-                    // nothing to do
-                }
-            }
-        }
+        val interpreter = InternalInterpreter(systemInterface, interpretationContext = SimpleInterpretationContext(programName))
         interpreter.execute(cu, parameters)
         interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
     }

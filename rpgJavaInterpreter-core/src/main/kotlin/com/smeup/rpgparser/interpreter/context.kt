@@ -9,10 +9,7 @@ interface InterpretationContext {
     fun shouldReinitialize(): Boolean
 }
 
-object DummyInterpretationContext : InterpretationContext {
-    override val currentProgramName: String
-        get() = "<UNSPECIFIED>"
-
+class SimpleInterpretationContext(override val currentProgramName: String = "<UNSPECIFIED>") : InterpretationContext {
     override fun shouldReinitialize() = false
 
     override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {

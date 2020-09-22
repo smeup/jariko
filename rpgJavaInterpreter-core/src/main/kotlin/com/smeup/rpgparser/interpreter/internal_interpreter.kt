@@ -35,12 +35,11 @@ class InterpreterStatus(
 
 class InternalInterpreter(
     override val systemInterface: SystemInterface,
-    override val localizationContext: LocalizationContext = LocalizationContext()
+    override val localizationContext: LocalizationContext = LocalizationContext(),
+    override val interpretationContext: InterpretationContext = SimpleInterpretationContext()
 ) : InterpreterCore {
     override val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
     override val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
-
-    override var interpretationContext: InterpretationContext = DummyInterpretationContext
 
     override val klists = HashMap<String, List<String>>()
 

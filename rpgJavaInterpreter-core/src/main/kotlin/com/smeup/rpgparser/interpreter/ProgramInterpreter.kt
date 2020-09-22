@@ -11,8 +11,8 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
         var firstCall = false
         val interpreter = interpreters.getOrPut(rpgProgram) {
             firstCall = true
-            val ii = InternalInterpreter(systemInterface)
-            ii.interpretationContext = object : InterpretationContext {
+                InternalInterpreter(systemInterface,
+                                    interpretationContext = object : InterpretationContext {
                 override val currentProgramName: String
                     get() = rpgProgram.name
                 override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
@@ -25,8 +25,7 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
                         true
                     }
                 }
-            }
-            ii
+            })
         }
         interpreter.execute(rpgProgram.cu, initialValues, reinitialization = firstCall ||
             interpreter.interpretationContext.shouldReinitialize())
