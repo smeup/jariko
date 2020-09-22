@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.InputStream
@@ -49,15 +48,6 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
         this.systemInterface = systemInterface
-        interpreter!!.interpretationContext = object : InterpretationContext {
-            override val currentProgramName: String
-                get() = name
-            override fun shouldReinitialize() = false
-
-            override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
-                // nothing to do
-            }
-        }
 
         for (pv in params) {
             val expectedType = params().find { it.name == pv.key }!!.type
