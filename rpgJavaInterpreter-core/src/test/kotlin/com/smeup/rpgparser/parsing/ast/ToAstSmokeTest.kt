@@ -143,7 +143,7 @@ class ToAstSmokeTest {
         assertASTCanBeProduced("db/READP")
     }
 
-    @Test @Ignore
+    @Test
     fun buildAstForACTGRP_FIX() {
         assertASTCanBeProduced("ACTGRP_FIX")
     }

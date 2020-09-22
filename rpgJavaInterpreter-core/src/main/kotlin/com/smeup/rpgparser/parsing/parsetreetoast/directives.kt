@@ -2,10 +2,7 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.interpreter.BaseCompileTimeInterpreter
-import com.smeup.rpgparser.parsing.ast.DeceditDirective
-import com.smeup.rpgparser.parsing.ast.Directive
-import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.parsing.ast.StringLiteral
+import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 
 fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive =
@@ -19,8 +16,20 @@ fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigura
         else -> TODO("Unexpected ${this.content.text} in H directive")
     }
 
-fun RpgParser.Hs_actgrpContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive {
-    TODO()
+fun RpgParser.Hs_actgrpContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ActivationGroupDirective {
+    require(this.hs_actgrp_parm() != null)
+
+    return if (this.hs_actgrp_parm().HS_NEW() != null) {
+        ActivationGroupDirective(
+            NewActivationGroup,
+            this.toPosition(conf.considerPosition)
+        )
+    } else {
+        ActivationGroupDirective(
+            NamedActivationGroup(this.hs_actgrp_parm().text),
+            this.toPosition(conf.considerPosition)
+        )
+    }
 }
 
 fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
