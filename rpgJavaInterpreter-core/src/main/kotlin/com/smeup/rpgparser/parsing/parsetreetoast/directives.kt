@@ -8,12 +8,19 @@ import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.StringLiteral
 import com.strumenta.kolasu.mapping.toPosition
 
-fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive {
-    if (this.content is RpgParser.SetDeceditContext) {
-        return (this.content as RpgParser.SetDeceditContext).hs_decedit_set().toAst(conf)
-    } else {
-        TODO("Unexpected ${this.content.text} in H directive")
+fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive =
+    when (this.content) {
+        is RpgParser.SetDeceditContext -> {
+            (this.content as RpgParser.SetDeceditContext).hs_decedit_set().toAst(conf)
+        }
+        is RpgParser.SetActGrpContext -> {
+            (this.content as RpgParser.SetActGrpContext).hs_actgrp().toAst(conf)
+        }
+        else -> TODO("Unexpected ${this.content.text} in H directive")
     }
+
+fun RpgParser.Hs_actgrpContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive {
+    TODO()
 }
 
 fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {

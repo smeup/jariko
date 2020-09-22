@@ -2,8 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.assertASTCanBeProduced
 import kotlin.test.assertEquals
-import org.junit.Test
-import kotlin.test.Ignore
+import kotlin.test.*
 
 class ToAstSmokeTest {
 

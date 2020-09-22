@@ -1825,11 +1825,14 @@ hspec_fixed: HS_FIXED
 	(EOL|EOF);
 hspec_content:
       hs_decedit_set #setDecedit
+    | hs_actgrp #setActGrp
     | hs_expression* #hspecExpressions
     ;
 hs_decedit_set: (HS_DECEDIT (OPEN_PAREN hs_parm CLOSE_PAREN)?);
+hs_actgrp: (HS_ACTGRP OPEN_PAREN hs_actgrp_parm CLOSE_PAREN);
 hs_expression: (ID (OPEN_PAREN (hs_parm (COLON hs_parm)*)? CLOSE_PAREN)?);
 hs_parm: ID | hs_string | symbolicConstants;
+hs_actgrp_parm: HS_NEW | hs_string;
 hs_string: StringLiteralStart (content+=(StringContent | StringEscapedQuote))* StringLiteralEnd;
 blank_line: BLANK_LINE;
 directive: DIRECTIVE 
