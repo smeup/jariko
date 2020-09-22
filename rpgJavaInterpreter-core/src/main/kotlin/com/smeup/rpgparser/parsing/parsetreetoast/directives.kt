@@ -19,18 +19,21 @@ fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigura
 fun RpgParser.Hs_actgrpContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ActivationGroupDirective {
     require(this.hs_actgrp_parm() != null)
 
-    return if (this.hs_actgrp_parm().HS_NEW() != null) {
-        ActivationGroupDirective(
-            NewActivationGroup,
-            this.toPosition(conf.considerPosition)
-        )
-    } else {
-        ActivationGroupDirective(
-            NamedActivationGroup(this.hs_actgrp_parm().text),
-            this.toPosition(conf.considerPosition)
-        )
-    }
+    return ActivationGroupDirective(
+        activationGroupType(this.hs_actgrp_parm()),
+        this.toPosition(conf.considerPosition)
+    )
 }
+
+fun activationGroupType(parm: RpgParser.Hs_actgrp_parmContext): ActivationGroupType =
+    when {
+        parm.HS_NEW() != null ->
+            NewActivationGroup
+        parm.HS_CALLER() != null ->
+            CallerActivationGroup
+        else ->
+            NamedActivationGroup(parm.hs_string().text)
+    }
 
 fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     when {

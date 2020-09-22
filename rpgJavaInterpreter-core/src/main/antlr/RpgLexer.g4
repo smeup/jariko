@@ -1498,6 +1498,7 @@ HS_StringLiteralStart: ['] -> type(StringLiteralStart),pushMode(InStringMode) ;
 HS_COLON: ':' -> type(COLON);
 HS_DECEDIT: [dD][eE][cC][eE][dD][iI][tT];
 HS_NEW: '*'[nN][eE][wW];
+HS_CALLER: '*'[cC][aA][lL][lL][eE][rR];
 HS_ACTGRP: [aA][cC][tT][gG][rR][pP];
 HS_ID: [§£#@%$*a-zA-Z] [§£&#@\-$*a-zA-Z0-9_/,.]* -> type(ID);
 HS_WhiteSpace : [ \t]+ -> skip  ; // skip spaces, tabs, newlines
