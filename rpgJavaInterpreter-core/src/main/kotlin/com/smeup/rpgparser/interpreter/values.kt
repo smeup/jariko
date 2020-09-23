@@ -351,7 +351,7 @@ data class DecimalValue(val value: BigDecimal) : NumberValue() {
         }
 }
 
-data class BooleanValue(val value: Boolean) : Value() {
+data class BooleanValue private constructor(val value: Boolean) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is BooleanType
     }
@@ -363,6 +363,7 @@ data class BooleanValue(val value: Boolean) : Value() {
     companion object {
         val FALSE = BooleanValue(false)
         val TRUE = BooleanValue(true)
+        operator fun invoke(value: Boolean) = if (value) TRUE else FALSE
     }
     override fun render(): String {
         return value.toString()
