@@ -1256,6 +1256,11 @@ Test 6
     }
 
     @Test @Ignore
+    fun executeACTGRP_CAL() {
+        assertEquals(listOf("1", "2", "3", "1", "1", "1"), outputOf("ACTGRP_CAL"))
+    }
+
+    @Test @Ignore
     fun executeCLEARDS() {
         assertEquals(listOf("0000"), outputOf("CLEARDS"))
     }
