@@ -1,7 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import kotlinx.serialization.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
@@ -356,7 +357,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
 }
 
 @Serializable
-data class BooleanValue private constructor(val value: Boolean) : Value() {
+data class BooleanValue private constructor(val value: Boolean) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is BooleanType
     }
