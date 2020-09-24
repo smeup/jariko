@@ -1,7 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import kotlinx.serialization.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
