@@ -562,9 +562,7 @@ internal fun indicators(cspecs: Cspec_fixed_standard_partsContext, considerPosit
                     PredefinedIndicatorExpr(it.toInt(), cspecs.toPosition(considerPosition))
                 } else {
                     DataWrapUpIndicatorExpr(
-                        DataWrapUpChoice.valueOf(it.toUpperCase()), cspecs.toPosition(
-                            considerPosition
-                        )
+                        DataWrapUpChoice.valueOf(it.toUpperCase()), cspecs.toPosition(considerPosition)
                     )
                 }
             }

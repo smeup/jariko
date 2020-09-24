@@ -234,6 +234,14 @@ class InterpreterTest {
                 "56=off57=off"), outputOf("SETONOF01"))
     }
 
+    @Test @Ignore
+    fun executeSETOFLF() {
+        assertEquals(listOf("Before",
+                            "LR Of",
+                            "After set",
+                            "LR Off"), outputOf("SETOFLR"))
+    }
+
     @Test
     fun executeDCONST() {
         assertEquals(listOf("60"), outputOf("DCONST"))
@@ -1253,6 +1261,11 @@ Test 6
     @Test
     fun executeSUMDIVMULT() {
         assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
+    }
+
+    @Test @Ignore
+    fun executeACTGRP_CAL() {
+        assertEquals(listOf("1", "2", "3", "1", "1", "1"), outputOf("ACTGRP_CAL"))
     }
 
     @Test @Ignore
