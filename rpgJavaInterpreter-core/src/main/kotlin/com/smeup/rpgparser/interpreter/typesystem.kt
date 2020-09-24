@@ -6,6 +6,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import java.lang.IllegalStateException
 import kotlin.math.ceil
 import com.smeup.rpgparser.parsing.ast.*
+import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import kotlin.math.max
 
@@ -20,6 +21,7 @@ import kotlin.math.max
 // * Basing Pointer Data Type
 // * Procedure Pointer Data Type
 
+@Serializable
 sealed class Type {
     open fun numberOfElements(): Int {
         return 1
@@ -46,6 +48,7 @@ sealed class Type {
     open fun hasVariableSize() = false
 }
 
+@Serializable
 object FigurativeType : Type() {
     override val size: Int
         get() = 0
@@ -53,6 +56,7 @@ object FigurativeType : Type() {
     override fun canBeAssigned(value: Value): Boolean = true
 }
 
+@Serializable
 object KListType : Type() {
     override val size: Int
         get() = 0
@@ -60,16 +64,18 @@ object KListType : Type() {
     override fun canBeAssigned(value: Value): Boolean = false
 }
 
+@Serializable
 data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) : Type() {
     override val size: Int
         get() = elementSize
 }
 
+@Serializable
 data class StringType(val length: Int, val varying: Boolean = false) : Type() {
     override val size: Int
         get() = length
 }
-
+@Serializable
 object BooleanType : Type() {
     override val size: Int
         get() = 1
@@ -77,6 +83,7 @@ object BooleanType : Type() {
     override fun toString() = this.javaClass.simpleName
 }
 
+@Serializable
 object HiValType : Type() {
     override val size: Int
         get() = throw IllegalStateException("Has variable size")
@@ -84,6 +91,7 @@ object HiValType : Type() {
     override fun hasVariableSize() = true
 }
 
+@Serializable
 object LowValType : Type() {
     override val size: Int
         get() = throw IllegalStateException("Has variable size")
@@ -91,6 +99,7 @@ object LowValType : Type() {
     override fun hasVariableSize() = true
 }
 
+@Serializable
 object TimeStampType : Type() {
     override val size: Int
         get() = 26
@@ -100,6 +109,7 @@ object TimeStampType : Type() {
  * A CharacterType is basically very similar to an array of characters
  * and very similar to a string.
  */
+@Serializable
 data class CharacterType(val nChars: Int) : Type() {
     override val size: Int
         get() = nChars
@@ -118,6 +128,7 @@ infix fun Long.log(base: Int): Double {
     return (Math.log(this.toDouble()) / Math.log(base.toDouble()))
 }
 
+@Serializable
 data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType: String? = "") : Type() {
 
     constructor(entireDigits: Int, decimalDigits: Int, rpgType: RpgType) : this(entireDigits, decimalDigits, rpgType.rpgType)
@@ -169,6 +180,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
     }
 }
 
+@Serializable
 data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecordsPerLine: Int? = null) : Type() {
     var ascend: Boolean? = null
 
@@ -190,6 +202,7 @@ data class ArrayType(val element: Type, val nElements: Int, val compileTimeRecor
     fun compileTimeArray(): Boolean = compileTimeRecordsPerLine != null
 }
 
+@Serializable
 data class FieldType(val name: String, val type: Type)
 
 fun Expression.type(): Type {

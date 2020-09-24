@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
@@ -11,20 +13,20 @@ const val PAD_STRING = PAD_CHAR.toString()
 
 val DEFAULT_CHARSET = Charset.forName("Cp037")
 
-abstract class Value : Comparable<Value> {
-    open fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
-    open fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
-    open fun asString(): StringValue = throw UnsupportedOperationException()
-    open fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
-    open fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException()
-    abstract fun assignableTo(expectedType: Type): Boolean
-    open fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
-    open fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
-    open fun take(from: Int, to: Int): Value = TODO("take not yet implemented for ${this.javaClass.simpleName}")
-    open fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
-    open fun asArray(): ArrayValue = throw UnsupportedOperationException()
-    open fun render(): String = "Nope"
-    abstract fun copy(): Value
+interface Value : Comparable<Value> {
+    fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
+    fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
+    fun asString(): StringValue = throw UnsupportedOperationException()
+    fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
+    fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException()
+    fun assignableTo(expectedType: Type): Boolean
+    fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
+    fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
+    fun take(from: Int, to: Int): Value = TODO("take not yet implemented for ${this.javaClass.simpleName}")
+    fun concatenate(other: Value): Value = TODO("concatenate not yet implemented for ${this.javaClass.simpleName}")
+    fun asArray(): ArrayValue = throw UnsupportedOperationException()
+    fun render(): String = "Nope"
+    fun copy(): Value
     fun toArray(nElements: Int, elementType: Type): Value {
         val elements = LinkedList<Value>()
         for (i in 1..nElements) {
@@ -35,7 +37,7 @@ abstract class Value : Comparable<Value> {
     override operator fun compareTo(other: Value): Int = TODO("Cannot compare $this to $other")
 }
 
-abstract class NumberValue : Value() {
+abstract class NumberValue : Value {
     fun isNegative(): Boolean = bigDecimal < BigDecimal.ZERO
     fun abs(): NumberValue = if (isNegative()) negate() else this
     abstract fun negate(): NumberValue
@@ -44,7 +46,8 @@ abstract class NumberValue : Value() {
     abstract val bigDecimal: BigDecimal
 }
 
-data class StringValue(var value: String, val varying: Boolean = false) : Value() {
+@Serializable
+data class StringValue(var value: String, val varying: Boolean = false) : Value {
 
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
@@ -220,6 +223,7 @@ fun sortA(value: Value, charset: Charset) {
     }
 }
 
+@Serializable
 data class IntValue(val value: Long) : NumberValue() {
     override val bigDecimal: BigDecimal
         get() = BigDecimal(value)
@@ -304,7 +308,8 @@ data class IntValue(val value: Long) : NumberValue() {
     }
 }
 
-data class DecimalValue(val value: BigDecimal) : NumberValue() {
+@Serializable
+data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
 
     override val bigDecimal: BigDecimal
         get() = value
@@ -351,7 +356,8 @@ data class DecimalValue(val value: BigDecimal) : NumberValue() {
         }
 }
 
-data class BooleanValue private constructor(val value: Boolean) : Value() {
+@Serializable
+data class BooleanValue private constructor(val value: Boolean) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is BooleanType
     }
@@ -377,15 +383,32 @@ data class BooleanValue private constructor(val value: Boolean) : Value() {
         }
 }
 
-data class CharacterValue(val value: Array<Char>) : Value() {
+@Serializable
+data class CharacterValue(val value: Array<Char>) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is CharacterType
     }
 
     override fun copy(): CharacterValue = this
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CharacterValue
+
+        if (!value.contentEquals(other.value)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return value.contentHashCode()
+    }
 }
 
-data class TimeStampValue(val value: Date) : Value() {
+@Serializable
+data class TimeStampValue(@Contextual val value: Date) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is TimeStampType
     }
@@ -399,7 +422,7 @@ data class TimeStampValue(val value: Date) : Value() {
     override fun copy(): TimeStampValue = this
 }
 
-abstract class ArrayValue : Value() {
+abstract class ArrayValue : Value {
     abstract fun arrayLength(): Int
     abstract fun elementSize(): Int
     fun totalSize() = elementSize() * arrayLength()
@@ -473,6 +496,7 @@ abstract class ArrayValue : Value() {
     }
 }
 
+@Serializable
 data class ConcreteArrayValue(val elements: MutableList<Value>, override val elementType: Type) : ArrayValue() {
     init {
         require(elementType !is ArrayType) {
@@ -529,7 +553,7 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
     override fun takeFirst(n: Int): Value = takeAll().takeFirst(n)
 }
 
-object BlanksValue : Value() {
+object BlanksValue : Value {
     override fun toString(): String {
         return "BlanksValue"
     }
@@ -542,7 +566,7 @@ object BlanksValue : Value() {
     override fun copy(): BlanksValue = this
 }
 
-object HiValValue : Value() {
+object HiValValue : Value {
     private val MAX_INT = IntValue(Long.MAX_VALUE)
 
     override fun asInt(): IntValue = MAX_INT
@@ -561,7 +585,7 @@ object HiValValue : Value() {
     override operator fun compareTo(other: Value): Int =
         if (other is HiValValue) 0 else 1
 }
-object LowValValue : Value() {
+object LowValValue : Value {
     override fun copy(): Value {
         TODO("not implemented")
     }
@@ -579,7 +603,7 @@ object LowValValue : Value() {
         if (other is LowValValue) 0 else -1
 }
 
-object ZeroValue : Value() {
+object ZeroValue : Value {
 
     override fun copy(): Value {
         TODO("not implemented")
@@ -595,7 +619,7 @@ object ZeroValue : Value() {
     }
 }
 
-class AllValue(val charsToRepeat: String) : Value() {
+class AllValue(val charsToRepeat: String) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         // FIXME
         return true
@@ -717,11 +741,15 @@ fun Type.blank(): Value {
 /**
  * StringValue wrapper
  */
+@Serializable
+data class DataStructValue(var value: String, private val optionalExternalLen: Int? = null) : Value {
+    // We can't serialize a class with a var computed from another one because of a bug in the serialization plugin
+    // See https://github.com/Kotlin/kotlinx.serialization/issues/133
+    val len by lazy { optionalExternalLen ?: value.length }
 
-data class DataStructValue(var value: String, val len: Int = value.length) : Value() {
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
-            // Check if the size of the value mathches the expected size within the DS
+            // Check if the size of the value matches the expected size within the DS
             // TO REVIEW
             is DataStructureType -> true
             is StringType -> expectedType.size >= this.value.length

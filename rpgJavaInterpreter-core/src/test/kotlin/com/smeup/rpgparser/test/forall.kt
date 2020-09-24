@@ -38,6 +38,8 @@ forAll(integers) { ...
  */
 val integers = { random: Random -> random.nextInt() }
 
+val longs = { random: Random -> random.nextLong() }
+
 val doubles = { random: Random -> random.nextDouble() }
 
 val naturalNumbers = integerGenerator(0..Int.MAX_VALUE)
