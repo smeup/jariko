@@ -25,6 +25,13 @@ class ProgramInterpreter(val systemInterface: SystemInterface) {
                         true
                     }
                 }
+                override val activationGroup: String?
+                    get() {
+                        TODO()
+//                        val activationGroupType = rpgProgram.cu.directives.filterIsInstance<ActivationGroupDirective>().map {
+//                            it as ActivationGroupDirective
+//                        }[0]?.type
+                    }
             }
             ii
         }

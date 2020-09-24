@@ -68,4 +68,13 @@ class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
 
     override fun close() {
     }
+
+    fun dumpPropertiesFile() {
+        dir.listFiles()?.forEach {
+            println("** ${it.name}")
+            println(it.readText())
+            println("*************************************************************************************************")
+            println()
+        }
+    }
 }

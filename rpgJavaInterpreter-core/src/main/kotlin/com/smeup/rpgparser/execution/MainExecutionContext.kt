@@ -13,10 +13,14 @@ import java.util.concurrent.atomic.AtomicInteger
 object MainExecutionContext {
 
     private val context = ThreadLocal<Context>()
-    // idProvider in missing context (i.e. main class) environment
+    // idProvider if missing context (i.e. main class) environment
     private val noContextIdProvider = AtomicInteger()
-    // attributes in missing context (i.e. main class) environment
-    private val noContextAttributes = mapOf<String, Any>()
+    // attributes if missing context (i.e. main class) environment
+    private val noContextAttributes = mutableMapOf<String, Any>()
+    // configuration if missing context (i.e. main class) environment
+    private val noConfiguration = Configuration()
+    // memorySliceMgr if missing context (i.e. main class) environment
+    private val noMemorySliceMgr = MemorySliceMgr(DummyMemorySliceStorage())
 
     /**
      * Call this method to execute e program in ExecutionContext environment.
@@ -26,13 +30,20 @@ object MainExecutionContext {
      * @see #getMemorySliceMgr
      * */
     fun <T> execute(configuration: Configuration = Configuration(), mainProgram: () -> T): T {
-        try {
             require(
                 context.get() == null
             ) { "Context execution already created" }
-            val memorySliceStorage = configuration.memorySliceStorage ?: DummyMemorySliceStorage()
-            context.set(Context(configuration = configuration, memorySliceMgr = MemorySliceMgr(memorySliceStorage)))
-            return mainProgram.invoke()
+        val memorySliceStorage = configuration.memorySliceStorage ?: DummyMemorySliceStorage()
+        val memorySliceMgr = MemorySliceMgr(memorySliceStorage)
+        try {
+            context.set(Context(configuration = configuration, memorySliceMgr = memorySliceMgr))
+            return mainProgram.runCatching {
+                invoke()
+            }.onFailure {
+                memorySliceMgr.afterMainProgramInterpretation(false)
+            }.onSuccess {
+                memorySliceMgr.afterMainProgramInterpretation(true)
+            }.getOrThrow()
         } finally {
             context.remove()
         }
@@ -41,7 +52,7 @@ object MainExecutionContext {
     /**
      * @return execution context attributes
      * */
-    fun getAttributes() = context.get()?.attributes ?: noContextAttributes
+    fun getAttributes(): MutableMap<String, Any> = context.get()?.attributes ?: noContextAttributes
 
     /**
      * @return a new unique identifier
@@ -51,16 +62,16 @@ object MainExecutionContext {
     /**
      * @return an instance of jariko configuration
      * */
-    fun getConfiguration() = context.get()?.configuration
+    fun getConfiguration() = context.get()?.configuration ?: noConfiguration
 
     /**
     * @return an instance of memory slice manager
     * */
-    fun getMemorySliceMgr() = context.get()?.memorySliceMgr
+    fun getMemorySliceMgr() = context.get()?.memorySliceMgr ?: noMemorySliceMgr
 }
 
 private data class Context(
-    val attributes: Map<String, Any> = mapOf<String, Any>(),
+    val attributes: MutableMap<String, Any> = mutableMapOf<String, Any>(),
     val idProvider: AtomicInteger = AtomicInteger(),
     val configuration: Configuration,
     val memorySliceMgr: MemorySliceMgr

@@ -4,8 +4,8 @@ import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 
 /**
  * Creates a configuration object
- * @param memorySliceStorage Allow to implement a symbol table storaging.
- * If null symbol table persistence behaviour will be skipped
+ * @param memorySliceStorage Allows to implement a symbol table storaging.
+ * If null, symbol table persistence will be skipped
  * @param debugOptions Several debug options
  * */
 data class Configuration(
@@ -15,6 +15,10 @@ data class Configuration(
 
 /**
  * Debug options
- * @param #getActivationGroup If specified, interpreter retrieve the activation group name from lambda expression returned value
+ * @param #getActivationGroup If specified, it overrides the activation group associated to the program. Default blank
+ * @param exitInRT If specified, it overrides the exit mode established in program. Default true
  * */
-data class DebugOptions(val getActivationGroup: () -> String = { "" })
+data class DebugOptions(
+    val getActivationGroup: (programName: String) -> String = { "" },
+    val exitInRT: (programName: String) -> Boolean = { true }
+)

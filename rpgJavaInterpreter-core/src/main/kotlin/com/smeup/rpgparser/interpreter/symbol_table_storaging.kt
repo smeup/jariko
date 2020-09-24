@@ -1,19 +1,41 @@
 package com.smeup.rpgparser.interpreter
 
-import java.lang.RuntimeException
-
 interface IMemorySliceStorage : AutoCloseable {
 
+    /**
+     * Open the storage
+     * */
     fun open()
-    override fun close()
+
     /**
      * Load memory associated to memorySliceId
      * */
     fun load(memorySliceId: MemorySliceId): Map<String, Value>
+
+    /**
+     * Notify transaction start. Is called before all memory slices storing
+     * */
     fun beginTrans()
+
+    /**
+     * Store map associated to memory slices
+     * */
     fun store(memorySliceId: MemorySliceId, values: Map<String, Value>)
+
+    /**
+     * Called if all memory slices storing process is succesfully completed
+     * */
     fun commitTrans()
+
+    /**
+     * Called in case of failure
+     * */
     fun rollbackTrans()
+
+    /**
+     * Close the storage. If do not has been called commitTrans, it could be needed to implement rollback mechanisms
+     * */
+    override fun close()
 }
 
 /**
@@ -41,12 +63,24 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
 
     private var memorySlices = mutableMapOf<MemorySliceId, MemorySlice>()
 
+    init {
+        storage.open()
+    }
+
     private fun getDataDefinition(name: String, symbolTable: ISymbolTable): AbstractDataDefinition? {
         return symbolTable.dataDefinitionByName(name)
     }
 
     private fun encodeDataDefinition(dataDefinition: AbstractDataDefinition): String {
         return dataDefinition.name
+    }
+
+    fun afterMainProgramInterpretation(ok: Boolean = true) {
+        storage.use {
+            if (ok) {
+                store()
+            }
+        }
     }
 
     /**
@@ -64,29 +98,33 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
         }
     }
 
-    fun store() {
+    /**
+     * Store all memory slices.
+     * @throws RuntimeException if something go wrong
+     * */
+    private fun store() {
         val slicesNotConfigured = memorySlices.values.filter {
             it.persist == null
         }
         if (slicesNotConfigured.isNotEmpty()) {
             throw RuntimeException("persist property not set for these slices: $slicesNotConfigured")
         }
+        storage.beginTrans()
         memorySlices.values.forEach { slice ->
             val result = storage.runCatching {
-                beginTrans()
                 if (slice.persist!!) {
                     val values = slice.symbolTable.getValues().map {
                         encodeDataDefinition(it.key) to it.value
                     }.toMap()
                     storage.store(memorySliceId = slice.memorySliceId, values = values)
                 }
-                commitTrans()
             }
             if (result.isFailure) {
                 storage.rollbackTrans()
                 throw RuntimeException(result.exceptionOrNull())
             }
         }
+        storage.commitTrans()
     }
 }
 

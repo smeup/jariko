@@ -4,12 +4,14 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DebugOptions
 import com.smeup.rpgparser.execution.executePgmWithStringArgs
 import com.smeup.rpgparser.experimental.PropertiesFileStorage
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.io.File
 
 lateinit var simpleStorageTempDir: File
+val DEMO: Boolean = System.getenv("DEMO")?.toBoolean() ?: false
 
 private class SillySymbolTable : ISymbolTable {
 
@@ -70,7 +72,12 @@ private class SillySymbolTable : ISymbolTable {
 class MemorySliceStorageTest {
     @Before
     fun before() {
-        simpleStorageTempDir = File(System.getProperty("java.io.tmpdir"), "/teststorage/${System.currentTimeMillis()}")
+        val lastPathComponent = if (DEMO) {
+            "demo"
+        } else {
+            "${System.currentTimeMillis()}"
+        }
+        simpleStorageTempDir = File(System.getProperty("java.io.tmpdir"), "/teststorage/$lastPathComponent")
     }
 
     @Test
@@ -84,7 +91,7 @@ class MemorySliceStorageTest {
         symbolTableOut.setValue(name = "myVar", value = "VAL2")
         memorySlice.persist = true
         // will be stored only memory slices with persist property set to true
-        memorySlicePodProducer.store()
+        memorySlicePodProducer.afterMainProgramInterpretation()
         val symbolTableIn = SillySymbolTable()
         symbolTableIn.setValue(name = "myVar", value = "Pippo")
         // here have to be different
@@ -95,23 +102,40 @@ class MemorySliceStorageTest {
         assert(symbolTableOut.getValues() == symbolTableIn.getValues())
     }
 
-    private fun getActivationGroup() = "activationGroup"
-
     @Test
     fun podSimulationTest() {
-        val programName = "ABSTEST.rpgle"
+        val programName = "ACTGRP_FIX.rpgle"
         val path = javaClass.getResource("/$programName")
-        // creating configuration
-        val debugOptions = DebugOptions(getActivationGroup = { getActivationGroup() })
+        // Debug options: I force for each program the activation group name as ACTVGRP and RT mode exit set to true
+        val debugOptions = DebugOptions(
+            getActivationGroup = { "ACTGRP" },
+            exitInRT = { false }
+        )
+        // Create test configuration
+        // Set as storage a simple implementation properties file based (PropertiesFileStorage)
+        val memorySliceStorage = PropertiesFileStorage(simpleStorageTempDir)
         val configuration = Configuration(
-            memorySliceStorage = PropertiesFileStorage(simpleStorageTempDir),
+            memorySliceStorage = memorySliceStorage,
             debugOptions = debugOptions
         )
-        executePgmWithStringArgs(programName = path.path, programArgs = listOf<String>(), configuration = configuration)
+        // finally I set the RPG program finder needed to interpret programName sited in a specific path
+        val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
+
+        // simulate five execution in POD
+        // for each executePgmWithStringArg invocation, which we are using to simulate a like-POD execution environment, it will be created
+        // a new instance of InternalInterpreter, and every InternalInterpreter instance has an own SymbolTable instance
+        // for this reason I believe that test is trust enough
+        repeat(5) {
+            println("POD($it) execution")
+            executePgmWithStringArgs(programName = programName, programFinders = rpgProgramFinders, programArgs = listOf<String>(), configuration = configuration)
+            memorySliceStorage.dumpPropertiesFile()
+        }
     }
 
     @After
     fun after() {
-        simpleStorageTempDir.deleteRecursively()
+        if (!DEMO) {
+            simpleStorageTempDir.deleteRecursively()
+        }
     }
 }

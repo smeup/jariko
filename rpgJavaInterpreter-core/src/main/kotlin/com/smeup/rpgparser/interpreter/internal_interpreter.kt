@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
@@ -22,6 +23,8 @@ object InterpreterConfiguration {
 }
 
 val ALL_PREDEFINED_INDEXES = 1..99
+
+private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
@@ -202,6 +205,7 @@ class InternalInterpreter(
                 set(def, coerce(iv.value, def.type))
             }
         }
+        afterInitialization()
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -262,19 +266,16 @@ class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        try {
-            var i = 0
-            while (i < statements.size) {
-                try {
-                    executeWithMute(statements[i++])
-                } catch (e: GotoException) {
-                    i = e.indexOfTaggedStatement(statements)
-                    if (i < 0 || i >= statements.size) throw e
-                }
+        var i = 0
+        while (i < statements.size) {
+            try {
+                executeWithMute(statements[i++])
+            } catch (e: GotoException) {
+                i = e.indexOfTaggedStatement(statements)
+                if (i < 0 || i >= statements.size) throw e
             }
-        } catch (e: ReturnException) {
-            // TODO use return value
         }
+        onExitPgm()
     }
 
     private fun executeWithMute(statement: Statement) {
@@ -731,6 +732,34 @@ class InternalInterpreter(
         return when (dataDefinition.type) {
             is DataStructureType -> createBlankFor(dataDefinition)
             else -> dataDefinition.type.blank()
+        }
+    }
+
+    // todo if presents get from AST
+    private fun getActivationGroup(): String {
+        return MainExecutionContext.getConfiguration()?.debugOptions?.getActivationGroup?.invoke(
+            interpretationContext.currentProgramName) ?: ""
+    }
+
+    private fun getMemorySliceId() = MemorySliceId(
+        activationGroup = getActivationGroup(),
+        interpretationContext.currentProgramName
+    )
+
+    private fun afterInitialization() {
+        MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] =
+            MainExecutionContext.getMemorySliceMgr().associate(getMemorySliceId(), globalSymbolTable)
+    }
+
+    // todo waiting for franco lombardo evaluation
+    private fun isExitRT(): Boolean {
+        return MainExecutionContext.getConfiguration()?.debugOptions?.exitInRT?.invoke(
+            interpretationContext.currentProgramName) ?: false
+    }
+
+    private fun onExitPgm() {
+        (MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] as MemorySlice)?.let {
+            it.persist = isExitRT()
         }
     }
 }

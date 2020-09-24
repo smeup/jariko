@@ -57,6 +57,8 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
             override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
                 // nothing to do
             }
+            override val activationGroup: String?
+                get() = TODO()
         }
 
         for (pv in params) {

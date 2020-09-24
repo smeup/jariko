@@ -7,6 +7,7 @@ interface InterpretationContext {
     val currentProgramName: String
     fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
     fun shouldReinitialize(): Boolean
+    val activationGroup: String?
 }
 
 object DummyInterpretationContext : InterpretationContext {
@@ -18,6 +19,9 @@ object DummyInterpretationContext : InterpretationContext {
     override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
         // nothing to do
     }
+
+    override val activationGroup: String?
+        get() = null
 }
 
 enum class DecEdit {

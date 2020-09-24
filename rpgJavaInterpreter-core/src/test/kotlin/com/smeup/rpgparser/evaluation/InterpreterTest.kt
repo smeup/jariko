@@ -234,6 +234,14 @@ class InterpreterTest {
                 "56=off57=off"), outputOf("SETONOF01"))
     }
 
+    @Test @Ignore
+    fun executeSETOFLF() {
+        assertEquals(listOf("Before",
+                            "LR Of",
+                            "After set",
+                            "LR Off"), outputOf("SETOFLR"))
+    }
+
     @Test
     fun executeDCONST() {
         assertEquals(listOf("60"), outputOf("DCONST"))
