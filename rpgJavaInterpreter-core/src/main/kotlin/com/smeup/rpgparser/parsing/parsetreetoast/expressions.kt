@@ -151,11 +151,12 @@ internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConf
 }
 
 internal fun String.indicatorIndex(): Int? {
-    return if (this.toUpperCase().startsWith("*IN(") && this.endsWith(")")) {
-        this.toUpperCase().removePrefix("*IN(").removeSuffix(")").toIntOrNull()
-    } else if (this.toUpperCase().startsWith("*IN")) {
-        this.substring("*IN".length).toIntOrNull()
-    } else {
-        null
+    val uCaseIndicatorString = this.toUpperCase()
+    return when {
+        uCaseIndicatorString.startsWith("*IN(") && this.endsWith(")") ->
+            uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")").toIntOrNull()
+        uCaseIndicatorString.startsWith("*IN") ->
+            this.substring("*IN".length).toIntOrNull()
+        else -> null
     }
 }

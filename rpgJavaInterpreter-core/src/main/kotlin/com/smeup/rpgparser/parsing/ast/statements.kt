@@ -528,13 +528,7 @@ data class MoveAStmt(
             indicators.forEach {
                 when (it) {
                     is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
-                    is PredefinedIndicatorExpr -> {
-                        if (valueSet.name == "ON") {
-                            interpreter.predefinedIndicators[it.index] = BooleanValue.TRUE
-                        } else {
-                            interpreter.predefinedIndicators[it.index] = BooleanValue.FALSE
-                        }
-                    }
+                    is PredefinedIndicatorExpr -> interpreter.predefinedIndicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
                     else -> TODO()
                 }
             }
