@@ -5,8 +5,9 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import com.smeup.rpgparser.utils.*
 import com.smeup.rpgparser.utils.ComparisonOperator.*
+import com.smeup.rpgparser.utils.chunkAs
+import com.smeup.rpgparser.utils.resizeTo
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
 import java.math.MathContext
@@ -747,8 +748,9 @@ class InternalInterpreter(
     )
 
     private fun afterInitialization() {
-        MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] =
-            MainExecutionContext.getMemorySliceMgr().associate(getMemorySliceId(), globalSymbolTable)
+        MainExecutionContext.getMemorySliceMgr()?.let {
+            MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] = it.associate(getMemorySliceId(), globalSymbolTable)
+        }
     }
 
     // todo waiting for franco lombardo evaluation

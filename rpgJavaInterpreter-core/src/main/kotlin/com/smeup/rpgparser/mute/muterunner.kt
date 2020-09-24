@@ -177,6 +177,9 @@ fun RpgParserResult.executeMuteAnnotations(
                 override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
                     // nothing to do
                 }
+                override val activationGroup: String?
+                    // todo implement
+                    get() = null
             }
         }
         interpreter.execute(cu, parameters)

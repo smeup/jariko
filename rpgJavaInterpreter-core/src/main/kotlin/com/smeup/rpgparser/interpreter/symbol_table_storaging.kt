@@ -127,31 +127,3 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
         storage.commitTrans()
     }
 }
-
-class DummyMemorySliceStorage : IMemorySliceStorage {
-
-    private val memory = mapOf<String, Value>()
-
-    override fun open() {
-    }
-
-    override fun close() {
-    }
-
-    /**
-     * Load memory associated to memorySliceId
-     * */
-    override fun load(memorySliceId: MemorySliceId): Map<String, Value> = memory
-
-    override fun beginTrans() {
-    }
-
-    override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
-    }
-
-    override fun commitTrans() {
-    }
-
-    override fun rollbackTrans() {
-    }
-}

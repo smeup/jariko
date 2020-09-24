@@ -356,7 +356,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
 }
 
 @Serializable
-data class BooleanValue(val value: Boolean) : Value {
+data class BooleanValue private constructor(val value: Boolean) : Value {
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is BooleanType
     }

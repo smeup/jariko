@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.execution
 
-import com.smeup.rpgparser.interpreter.DummyMemorySliceStorage
 import com.smeup.rpgparser.interpreter.MemorySliceMgr
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -19,8 +18,6 @@ object MainExecutionContext {
     private val noContextAttributes = mutableMapOf<String, Any>()
     // configuration if missing context (i.e. main class) environment
     private val noConfiguration = Configuration()
-    // memorySliceMgr if missing context (i.e. main class) environment
-    private val noMemorySliceMgr = MemorySliceMgr(DummyMemorySliceStorage())
 
     /**
      * Call this method to execute e program in ExecutionContext environment.
@@ -33,16 +30,19 @@ object MainExecutionContext {
             require(
                 context.get() == null
             ) { "Context execution already created" }
-        val memorySliceStorage = configuration.memorySliceStorage ?: DummyMemorySliceStorage()
-        val memorySliceMgr = MemorySliceMgr(memorySliceStorage)
+        val memorySliceMgr = if (configuration.memorySliceStorage == null) {
+            null
+        } else {
+            MemorySliceMgr(configuration.memorySliceStorage)
+        }
         try {
             context.set(Context(configuration = configuration, memorySliceMgr = memorySliceMgr))
             return mainProgram.runCatching {
                 invoke()
             }.onFailure {
-                memorySliceMgr.afterMainProgramInterpretation(false)
+                memorySliceMgr?.afterMainProgramInterpretation(false)
             }.onSuccess {
-                memorySliceMgr.afterMainProgramInterpretation(true)
+                memorySliceMgr?.afterMainProgramInterpretation(true)
             }.getOrThrow()
         } finally {
             context.remove()
@@ -62,17 +62,17 @@ object MainExecutionContext {
     /**
      * @return an instance of jariko configuration
      * */
-    fun getConfiguration() = context.get()?.configuration ?: noConfiguration
+    fun getConfiguration() = context.get()?.configuration
 
     /**
     * @return an instance of memory slice manager
     * */
-    fun getMemorySliceMgr() = context.get()?.memorySliceMgr ?: noMemorySliceMgr
+    fun getMemorySliceMgr() = context.get()?.memorySliceMgr
 }
 
 private data class Context(
     val attributes: MutableMap<String, Any> = mutableMapOf<String, Any>(),
     val idProvider: AtomicInteger = AtomicInteger(),
     val configuration: Configuration,
-    val memorySliceMgr: MemorySliceMgr
+    val memorySliceMgr: MemorySliceMgr? = null
 )
