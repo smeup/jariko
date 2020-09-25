@@ -20,7 +20,7 @@
      D £FUNW1          S                   LIKE(£FUND1)
      D £FUNW2          S                   LIKE(£FUND2)
       *----------------------------------------------------------------
-     D £FUND1          DS           512    INZ
+     D £FUND1          DS           512
      D  £FUNCO                 1     10
      D  £FUNNR                11     19  0
      D  £FUNGR                20     22
@@ -83,7 +83,7 @@
      D  £FUNQ1               443    443
       *
       *----------------------------------------------------------------
-     D £FUND2          DS           512    INZ
+     D £FUND2          DS           512
       *----------------------------------------------------------------
       * Input Number
       *
@@ -106,13 +106,13 @@
      C                   PARM                    £FUNMS            7
      C                   PARM                    £FUNFI           10
      C                   PARM                    £FUNCM            2
-     C                   PARM                    £FUNW1
-     C                   PARM                    £FUNW2
+     C                   PARM                    £FUND1
+     C                   PARM                    £FUND2
       * Il chiamate passa 2 DS che vengono qui ricevute come campi stringa e assegnati alle 2 DS
       * per rimapparli
       * Nell'entry non possono essere utilizzate direttamente le DS perché sono dichiarate INZ
-     C                   EVAL      £FUND1=£FUNW1
-     C                   EVAL      £FUND2=£FUNW2
+     C*                   EVAL      £FUND1=£FUNW1
+     C*                   EVAL      £FUND2=£FUNW2
       *
      C                   Eval      NBR = £FUNNR
      C                   EXSR      FIB
@@ -122,8 +122,8 @@
      C                   Eval      £FUNQT=RESULT
       *
       * Ripasso al chiamante le 2 DS tramite i campi stringa della entry
-     C                   EVAL      £FUNW1=£FUND1
-     C                   EVAL      £FUNW2=£FUND2
+     C*                   EVAL      £FUNW1=£FUND1
+     C*                   EVAL      £FUNW2=£FUND2
       *
      C                   SETON                                        LR
       *--------------------------------------------------------------*
