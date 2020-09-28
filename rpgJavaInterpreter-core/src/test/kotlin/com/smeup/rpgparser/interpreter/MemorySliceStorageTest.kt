@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.DebugOptions
 import com.smeup.rpgparser.execution.executePgmWithStringArgs
 import com.smeup.rpgparser.experimental.PropertiesFileStorage
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
@@ -67,6 +66,16 @@ private class SillySymbolTable : ISymbolTable {
             explicitEndOffset = 30)
         this[fieldDefinition] = StringValue(value = value)
     }
+
+    /**
+     * Clear symbol table
+     * */
+    override fun clear() = values.clear()
+
+    /**
+     * @return if is empty
+     * */
+    override fun isEmpty() = values.isEmpty()
 }
 
 class MemorySliceStorageTest {
@@ -104,31 +113,26 @@ class MemorySliceStorageTest {
 
     @Test
     fun podSimulationTest() {
+        // testing program
         val programName = "ACTGRP_FIX.rpgle"
         val path = javaClass.getResource("/$programName")
-        // Debug options: I force for each program the activation group name as ACTVGRP and RT mode exit set to true
-        val debugOptions = DebugOptions(
-            getActivationGroup = { "ACTGRP" },
-            exitInRT = { false }
-        )
-        // Create test configuration
-        // Set as storage a simple implementation properties file based (PropertiesFileStorage)
-        val memorySliceStorage = PropertiesFileStorage(simpleStorageTempDir)
-        val configuration = Configuration(
-            memorySliceStorage = memorySliceStorage,
-            debugOptions = debugOptions
-        )
-        // finally I set the RPG program finder needed to interpret programName sited in a specific path
+        // here I set the path from where jariko will search for the rpg sources
         val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
+        // here I set configuration
+        val configuration = Configuration(PropertiesFileStorage(simpleStorageTempDir))
 
-        // simulate five execution in POD
-        // for each executePgmWithStringArg invocation, which we are using to simulate a like-POD execution environment, it will be created
-        // a new instance of InternalInterpreter, and every InternalInterpreter instance has an own SymbolTable instance
-        // for this reason I believe that test is trust enough
-        repeat(5) {
-            println("POD($it) execution")
-            executePgmWithStringArgs(programName = programName, programFinders = rpgProgramFinders, programArgs = listOf<String>(), configuration = configuration)
-            memorySliceStorage.dumpPropertiesFile()
+        // simulate pod execution
+        println("Executing $programName")
+        executePgmWithStringArgs(
+            programName = programName,
+            programFinders = rpgProgramFinders,
+            programArgs = listOf<String>(),
+            configuration = configuration
+        )
+        configuration.memorySliceStorage?.let { memorySliceStorage ->
+            if (memorySliceStorage is PropertiesFileStorage) {
+                memorySliceStorage.dumpPropertiesFile()
+            }
         }
     }
 

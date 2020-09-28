@@ -1,7 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import java.lang.IllegalStateException
-
 class SymbolTable : ISymbolTable {
     private val values = LinkedHashMap<AbstractDataDefinition, Value>()
 
@@ -65,4 +63,14 @@ class SymbolTable : ISymbolTable {
     override fun getValues(): Map<AbstractDataDefinition, Value> {
         return values
     }
+
+    /**
+     * Clear symbol table
+     * */
+    override fun clear() = values.clear()
+
+    /**
+     * @return if is empty
+     * */
+    override fun isEmpty() = values.isEmpty()
 }

@@ -52,11 +52,11 @@ class RunnerTest {
         val systemInterface = JavaSystemInterface()
         val program = getProgram("COUNTLRRT", systemInterface)
 
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf("RT")), listOf("Counter: 1"))
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf("LR")), listOf("Counter: 2"))
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf("RT")), listOf("Counter: 1"))
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf("RT")), listOf("Counter: 2"))
-        assertEquals(systemInterface.outputOfSingleCall(program, listOf("RT")), listOf("Counter: 3"))
+        assertEquals(listOf("Counter: 1"), systemInterface.outputOfSingleCall(program, listOf("RT")))
+        assertEquals(listOf("Counter: 2"), systemInterface.outputOfSingleCall(program, listOf("LR")))
+        assertEquals(listOf("Counter: 1"), systemInterface.outputOfSingleCall(program, listOf("RT")))
+        assertEquals(listOf("Counter: 2"), systemInterface.outputOfSingleCall(program, listOf("RT")))
+        assertEquals(listOf("Counter: 3"), systemInterface.outputOfSingleCall(program, listOf("RT")))
     }
 
     @Test

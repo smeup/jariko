@@ -169,17 +169,17 @@ fun RpgParserResult.executeMuteAnnotations(
         cu.resolveAndValidate(systemInterface.db)
         val interpreter = InternalInterpreter(systemInterface).apply {
             interpretationContext = object : InterpretationContext {
+                private var iDataWrapUpChoice: DataWrapUpChoice? = null
                 override val currentProgramName: String
                     get() = programName
 
                 override fun shouldReinitialize() = false
 
-                override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
-                    // nothing to do
-                }
-                override val activationGroup: String?
-                    // todo implement
-                    get() = null
+                override var dataWrapUpChoice: DataWrapUpChoice?
+                    get() = iDataWrapUpChoice
+                    set(value) {
+                        iDataWrapUpChoice = value
+                    }
             }
         }
         interpreter.execute(cu, parameters)

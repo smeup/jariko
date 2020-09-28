@@ -143,7 +143,9 @@ class InternalInterpreter(
         }
 
         // Assigning initial values received from outside and consider INZ clauses
-        if (reinitialization) {
+        // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
+        // circumstances is correct reinitialization
+        if (reinitialization || globalSymbolTable.isEmpty()) {
             compilationUnit.allDataDefinitions.forEach {
                 var value: Value? = null
                 if (it is DataDefinition) {
@@ -267,16 +269,19 @@ class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        var i = 0
-        while (i < statements.size) {
-            try {
-                executeWithMute(statements[i++])
-            } catch (e: GotoException) {
-                i = e.indexOfTaggedStatement(statements)
-                if (i < 0 || i >= statements.size) throw e
+        try {
+            var i = 0
+            while (i < statements.size) {
+                try {
+                    executeWithMute(statements[i++])
+                } catch (e: GotoException) {
+                    i = e.indexOfTaggedStatement(statements)
+                    if (i < 0 || i >= statements.size) throw e
+                }
             }
+        } catch (e: ReturnException) {
+            // TODO use return value
         }
-        onExitPgm()
     }
 
     private fun executeWithMute(statement: Statement) {
@@ -736,32 +741,53 @@ class InternalInterpreter(
         }
     }
 
-    // todo if presents get from AST
-    private fun getActivationGroup(): String {
-        return MainExecutionContext.getConfiguration()?.debugOptions?.getActivationGroup?.invoke(
-            interpretationContext.currentProgramName) ?: ""
-    }
-
-    private fun getMemorySliceId() = MemorySliceId(
-        activationGroup = getActivationGroup(),
-        interpretationContext.currentProgramName
-    )
-
-    private fun afterInitialization() {
-        MainExecutionContext.getMemorySliceMgr()?.let {
-            MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] = it.associate(getMemorySliceId(), globalSymbolTable)
+    private fun getActivationGroupAssignedName(): String? {
+        // for some reason, the run with mute annotation do not use RpgProgram.execute then, for now,
+        // i need test whether programstack is empty or not
+        return when {
+            MainExecutionContext.getProgramStack().isEmpty() -> null
+            else -> {
+                val activationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup?.assignedName
+                return MainExecutionContext.getConfiguration()?.jarikoCallback?.getActivationGroup?.invoke(
+                    interpretationContext.currentProgramName)?.assignedName ?: activationGroup
+            }
         }
     }
 
-    // todo waiting for franco lombardo evaluation
-    private fun isExitRT(): Boolean {
-        return MainExecutionContext.getConfiguration()?.debugOptions?.exitInRT?.invoke(
-            interpretationContext.currentProgramName) ?: false
+    private fun getMemorySliceId(): MemorySliceId? {
+        return getActivationGroupAssignedName()?.let {
+            MemorySliceId(activationGroup = it, interpretationContext.currentProgramName)
+        }
     }
 
-    private fun onExitPgm() {
-        (MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] as MemorySlice)?.let {
-            it.persist = isExitRT()
+    private fun afterInitialization() {
+        getMemorySliceId()?.let { memorySliceId ->
+            MainExecutionContext.getMemorySliceMgr()?.let {
+                MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] = it.associate(memorySliceId, globalSymbolTable)
+            }
+        }
+    }
+
+    private fun isExitingInRTMode(): Boolean {
+        val exitRT = if (interpretationContext.dataWrapUpChoice != null) {
+            interpretationContext.dataWrapUpChoice == DataWrapUpChoice.RT
+        } else {
+            false
+        }
+        return MainExecutionContext.getConfiguration()?.jarikoCallback?.exitInRT?.invoke(
+            interpretationContext.currentProgramName) ?: exitRT
+    }
+
+    // I had to introduce this function, which will be called from external, because symbol table cleaning before exits
+    // could make failing RpgProgram.execute.
+    // The failure depends on whether that the initialvalues are searched in symboltable
+    fun doSomethingAfterExecution() {
+        val exitingRT = isExitingInRTMode()
+        MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE]?.let {
+            (it as MemorySlice).persist = exitingRT
+        }
+        if (!exitingRT) {
+            globalSymbolTable.clear()
         }
     }
 }

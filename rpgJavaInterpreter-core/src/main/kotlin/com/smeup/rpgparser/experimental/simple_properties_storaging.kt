@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.experimental
 
-import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.IMemorySliceStorage
+import com.smeup.rpgparser.interpreter.MemorySliceId
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.interpreter.serialization.SerializationOption
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -70,6 +72,7 @@ class PropertiesFileStorage(private val dir: File) : IMemorySliceStorage {
     }
 
     fun dumpPropertiesFile() {
+        println("** ${dir.path}")
         dir.listFiles()?.forEach {
             println("** ${it.name}")
             println(it.readText())
