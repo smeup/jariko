@@ -38,7 +38,7 @@ interface ISymbolTable {
     fun getValues(): Map<AbstractDataDefinition, Value>
 
     /**
-     * Clear symbol table. It need to set state to not initialized
+     * Clear symbol table.
      * */
     fun clear()
 
