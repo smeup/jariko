@@ -5,7 +5,7 @@ import java.nio.charset.Charset
 
 interface InterpretationContext {
     val currentProgramName: String
-    fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice)
+    var dataWrapUpChoice: DataWrapUpChoice?
     fun shouldReinitialize(): Boolean
 }
 
@@ -15,9 +15,9 @@ object DummyInterpretationContext : InterpretationContext {
 
     override fun shouldReinitialize() = false
 
-    override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
-        // nothing to do
-    }
+    override var dataWrapUpChoice: DataWrapUpChoice?
+        get() = null
+        set(value) {}
 }
 
 enum class DecEdit {

@@ -1,11 +1,13 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import com.smeup.rpgparser.utils.*
 import com.smeup.rpgparser.utils.ComparisonOperator.*
+import com.smeup.rpgparser.utils.chunkAs
+import com.smeup.rpgparser.utils.resizeTo
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
 import java.math.MathContext
@@ -22,6 +24,8 @@ object InterpreterConfiguration {
 }
 
 val ALL_PREDEFINED_INDEXES = 1..99
+
+private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
@@ -139,7 +143,9 @@ class InternalInterpreter(
         }
 
         // Assigning initial values received from outside and consider INZ clauses
-        if (reinitialization) {
+        // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
+        // circumstances is correct reinitialization
+        if (reinitialization || globalSymbolTable.isEmpty()) {
             compilationUnit.allDataDefinitions.forEach {
                 var value: Value? = null
                 if (it is DataDefinition) {
@@ -202,6 +208,7 @@ class InternalInterpreter(
                 set(def, coerce(iv.value, def.type))
             }
         }
+        afterInitialization()
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
@@ -731,6 +738,56 @@ class InternalInterpreter(
         return when (dataDefinition.type) {
             is DataStructureType -> createBlankFor(dataDefinition)
             else -> dataDefinition.type.blank()
+        }
+    }
+
+    private fun getActivationGroupAssignedName(): String? {
+        // for some reason, the run with mute annotation do not use RpgProgram.execute then, for now,
+        // i need test whether programstack is empty or not
+        return when {
+            MainExecutionContext.getProgramStack().isEmpty() -> null
+            else -> {
+                val activationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup?.assignedName
+                return MainExecutionContext.getConfiguration()?.jarikoCallback?.getActivationGroup?.invoke(
+                    interpretationContext.currentProgramName)?.assignedName ?: activationGroup
+            }
+        }
+    }
+
+    private fun getMemorySliceId(): MemorySliceId? {
+        return getActivationGroupAssignedName()?.let {
+            MemorySliceId(activationGroup = it, interpretationContext.currentProgramName)
+        }
+    }
+
+    private fun afterInitialization() {
+        getMemorySliceId()?.let { memorySliceId ->
+            MainExecutionContext.getMemorySliceMgr()?.let {
+                MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] = it.associate(memorySliceId, globalSymbolTable)
+            }
+        }
+    }
+
+    private fun isExitingInRTMode(): Boolean {
+        val exitRT = if (interpretationContext.dataWrapUpChoice != null) {
+            interpretationContext.dataWrapUpChoice == DataWrapUpChoice.RT
+        } else {
+            false
+        }
+        return MainExecutionContext.getConfiguration()?.jarikoCallback?.exitInRT?.invoke(
+            interpretationContext.currentProgramName) ?: exitRT
+    }
+
+    // I had to introduce this function, which will be called from external, because symbol table cleaning before exits
+    // could make failing RpgProgram.execute.
+    // The failure depends on whether that the initialvalues are searched in symboltable
+    fun doSomethingAfterExecution() {
+        val exitingRT = isExitingInRTMode()
+        MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE]?.let {
+            (it as MemorySlice).persist = exitingRT
+        }
+        if (!exitingRT) {
+            globalSymbolTable.clear()
         }
     }
 }

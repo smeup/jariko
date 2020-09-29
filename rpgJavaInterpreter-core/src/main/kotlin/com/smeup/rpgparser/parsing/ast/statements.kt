@@ -8,8 +8,8 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
-import kotlin.system.measureTimeMillis
 import java.util.*
+import kotlin.system.measureTimeMillis
 
 interface StatementThatCanDefineData {
     fun dataDefinition(): List<InStatementDataDefinition>
@@ -412,7 +412,7 @@ data class MoveAStmt(
                 require(program.params().size > index) {
                     "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
                 }
-                program.params()[index].name to interpreter.get(it.param.name)
+                program.params()[index].name to interpreter[it.param.name]
             }.toMap(LinkedHashMap())
 
             val startTime = System.currentTimeMillis()
@@ -527,7 +527,7 @@ data class MoveAStmt(
         override fun execute(interpreter: InterpreterCore) {
             indicators.forEach {
                 when (it) {
-                    is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.setDataWrapUpPolicy(it.dataWrapUpChoice)
+                    is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.dataWrapUpChoice = it.dataWrapUpChoice
                     is PredefinedIndicatorExpr -> interpreter.predefinedIndicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
                     else -> TODO()
                 }

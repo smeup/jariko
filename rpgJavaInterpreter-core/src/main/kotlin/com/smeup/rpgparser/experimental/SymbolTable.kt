@@ -14,8 +14,6 @@ class SymbolTable : ISymbolTable {
     override operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
     override operator fun contains(data: AbstractDataDefinition): Boolean = data.key in values.keys
 
-    private var keysCounter = 0
-
     override operator fun get(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
             val containerValue = get(data.container)
@@ -69,4 +67,16 @@ class SymbolTable : ISymbolTable {
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
         return values.put(data.key, Pair(data, value.forType(data.type)))?.second
     }
+
+    override fun getValues(): Map<AbstractDataDefinition, Value> = values.values.toMap()
+
+    /**
+     * Clear symbol table
+     * */
+    override fun clear() = values.clear()
+
+    /**
+     * @return if is empty
+     * */
+    override fun isEmpty() = values.isEmpty()
 }
