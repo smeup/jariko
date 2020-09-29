@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.parsing.ast.ActivationGroupType
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
@@ -22,6 +24,9 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
     private val interpreter: InternalInterpreter by lazy {
         InternalInterpreter(this.systemInterface!!)
     }
+
+    var activationGroup: ActivationGroup? = null
+    private var initialized = false
 
     override fun params(): List<ProgramParam> {
         val plistParams = cu.entryPlist
@@ -50,13 +55,15 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
         }
         this.systemInterface = systemInterface
         interpreter!!.interpretationContext = object : InterpretationContext {
+            private var iDataWrapUpChoice: DataWrapUpChoice? = null
             override val currentProgramName: String
                 get() = name
             override fun shouldReinitialize() = false
-
-            override fun setDataWrapUpPolicy(dataWrapUpChoice: DataWrapUpChoice) {
-                // nothing to do
-            }
+            override var dataWrapUpChoice: DataWrapUpChoice?
+                get() = iDataWrapUpChoice
+                set(value) {
+                    iDataWrapUpChoice = value
+                }
         }
 
         for (pv in params) {
@@ -66,8 +73,29 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
                 "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
             }
         }
-        interpreter!!.execute(this.cu, params)
-        return params().map { interpreter!![it.name] }
+        if (!initialized) {
+            initialized = true
+            val caller = if (MainExecutionContext.getProgramStack().isNotEmpty()) {
+                MainExecutionContext.getProgramStack().peek()
+            } else {
+                null
+            }
+            val activationGroupType = cu.activationGroupType()
+            activationGroupType?.let {
+                activationGroup = ActivationGroup(it, it.assignedName(this, caller))
+            }
+        }
+        MainExecutionContext.getProgramStack().push(this)
+        // set reinitialization to false because symboltable cleaning currently is handled directly
+        // in internal interpreter before exit
+        // todo i don't know whether parameter reinitialization has still sense
+        interpreter.execute(this.cu, params, false)
+        params.keys.forEach { params[it] = interpreter[it] }
+        val changedInitialValues = params().map { interpreter[it.name] }
+        // here clear symbol table if needed
+        interpreter.doSomethingAfterExecution()
+        MainExecutionContext.getProgramStack().pop()
+        return changedInitialValues
     }
 
     override fun equals(other: Any?) =
@@ -77,3 +105,11 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
         return name.hashCode()
     }
 }
+
+/**
+ * Model activation group concept.
+ * @param type activation group type as from grammar
+ * @param assignedName Name assigned. The assignment algorithm depends on activation group type
+ * @see ActivationGroupType.assignedName
+ * */
+data class ActivationGroup(val type: ActivationGroupType, val assignedName: String)

@@ -31,6 +31,21 @@ interface ISymbolTable {
      * @return old value if presents
      * */
     operator fun set(data: AbstractDataDefinition, value: Value): Value?
+
+    /**
+     * @return All symbol table values
+     * */
+    fun getValues(): Map<AbstractDataDefinition, Value>
+
+    /**
+     * Clear symbol table.
+     * */
+    fun clear()
+
+    /**
+     * @return if is empty
+     * */
+    fun isEmpty(): Boolean
 }
 
 fun Value.forType(type: Type): Value {
