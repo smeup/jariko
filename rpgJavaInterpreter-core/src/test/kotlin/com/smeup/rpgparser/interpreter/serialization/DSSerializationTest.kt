@@ -8,14 +8,13 @@ import kotlinx.serialization.decodeFromString
 class DSSerializationTest {
 
     @Test
-    fun `DS serialization with class discriminator`() {
+    fun `Json DS serialization with class discriminator`() {
         val stringSerializer =
-            SerializationOption.getSerializer(false);
-        val serializedDS ="""
+            SerializationOption.getSerializer(false)
+        val serializedDS = """
             {"$CLASS_DISCRIMINATOR_TAG":"com.smeup.rpgparser.interpreter.DataStructValue", "value":"JamesBond   7","optionalExternalLen":null}
         """.trimIndent()
         val dsValue = stringSerializer.decodeFromString<Value>(serializedDS)
         assertTrue(dsValue is DataStructValue)
     }
-
 }
