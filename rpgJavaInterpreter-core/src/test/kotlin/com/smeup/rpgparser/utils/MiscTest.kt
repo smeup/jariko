@@ -1,9 +1,11 @@
 package com.smeup.rpgparser.utils
 
+import org.apache.commons.io.FileUtils
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class MiscTest {
@@ -100,5 +102,25 @@ class MiscTest {
         val compilationResults = compile(src = srcFile, srcFile.parentFile)
         assert(compilationResults.first().compiledFile == null)
         assertNotNull(compilationResults.first().parsingError)
+    }
+
+    @Test
+    fun compileFromInToOut() {
+        val tmpDir = System.getProperty("java.io.tmpdir")
+        val programName = "HELLO"
+        val srcFile = File("src/test/resources/$programName.rpgle")
+        val outBinFile = File("$tmpDir/$programName.bin")
+        val outJsonFile = File("$tmpDir/$programName.json")
+
+        outBinFile.deleteOnExit()
+        outJsonFile.deleteOnExit()
+
+        compile(srcFile.inputStream(), outBinFile.outputStream(), Format.BIN, false)
+        val expectedBin = File("src/test/resources/$programName.bin")
+        assertTrue(FileUtils.contentEquals(expectedBin, outBinFile))
+
+        compile(srcFile.inputStream(), outJsonFile.outputStream(), Format.JSON, false)
+        val expectedJson = File("src/test/resources/$programName.json")
+        assertTrue(FileUtils.contentEquals(expectedJson, outJsonFile))
     }
 }

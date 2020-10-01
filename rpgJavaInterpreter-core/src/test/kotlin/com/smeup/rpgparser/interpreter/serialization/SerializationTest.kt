@@ -5,15 +5,12 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.test.doubles
 import com.smeup.rpgparser.test.forAll
 import com.smeup.rpgparser.test.longs
-import com.smeup.rpgparser.utils.Format
-import com.smeup.rpgparser.utils.compile
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import org.apache.commons.io.FileUtils
-import java.io.File
 import java.math.BigDecimal
 import java.util.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class SerializationTest {
 
@@ -107,27 +104,5 @@ class SerializationTest {
             "eighth" to dsValue
         )
         checkValueSerialization(originalMap, printValues = true)
-    }
-
-    @Test
-    @Ignore
-    fun `serialize programs from streams`() {
-
-        val tmpDir = System.getProperty("java.io.tmpdir")
-        val programName = "HELLO"
-        var srcFile = File("src${File.separator}test${File.separator}resources${File.separator}$programName.rpgle")
-        var outBinFile = File("$tmpDir${File.separator}$programName.bin")
-        var outJsonFile = File("$tmpDir${File.separator}$programName.json")
-
-        outBinFile.deleteOnExit()
-        outJsonFile.deleteOnExit()
-
-        compile(srcFile.inputStream(), outBinFile.outputStream(), Format.BIN, false)
-        val expectedBin = File("src${File.separator}test${File.separator}resources${File.separator}$programName.bin")
-        assertTrue { FileUtils.contentEqualsIgnoreEOL(expectedBin, outBinFile, Charsets.UTF_8.toString()) }
-
-        compile(srcFile.inputStream(), outJsonFile.outputStream(), Format.JSON, false)
-        val expectedJson = File("src${File.separator}test${File.separator}resources${File.separator}$programName.json")
-        assertTrue { FileUtils.contentEqualsIgnoreEOL(expectedJson, outJsonFile, Charsets.UTF_8.toString()) }
     }
 }

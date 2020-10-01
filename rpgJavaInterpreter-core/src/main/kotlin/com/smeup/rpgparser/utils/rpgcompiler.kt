@@ -113,6 +113,10 @@ fun compile(
     format: Format? = Format.BIN,
     muteSupport: Boolean? = false
 ) {
+
+    // Compilation within MainExecutionContext should ensure comparability among rpgle program compiled in
+    // different times
+    MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
         println("Compiling inputstream to outputstream... ")
 
         var cu: CompilationUnit? = null
@@ -126,4 +130,5 @@ fun compile(
         }
 
         println("... done.")
+    }
 }
