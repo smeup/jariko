@@ -1006,9 +1006,15 @@ Test 6
     }
 
     @Test
-    fun executeDS_CALLED() {
+    fun executeDS_CALLED_with_String_parameter() {
         assertEquals(listOf("James", "Bond", "007"),
             outputOf("DS_CALLED", initialValues = mapOf("P1" to StringValue("JamesBond   7"))))
+    }
+
+    @Test
+    fun executeDS_CALLED_with_DS_parameter() {
+        assertEquals(listOf("James", "Bond", "007"),
+            outputOf("DS_CALLED", initialValues = mapOf("P1" to DataStructValue("JamesBond   7"))))
     }
 
     @Test
