@@ -45,11 +45,14 @@ class StringInterpreterSerialization(val implementer: StringFormat) : Interprete
 }
 
 // TODO read the configuration from an external source
-val BINARY_SERIALIZATION = false
+const val BINARY_SERIALIZATION = false
+const val CLASS_DISCRIMINATOR_TAG = "#class"
 
 object SerializationOption {
     private fun stringFormat() = Json {
         serializersModule = module
+        classDiscriminator = CLASS_DISCRIMINATOR_TAG
+        prettyPrint = false     // See how to set this option
     }
 
     private fun binaryFormat() = Cbor {

@@ -73,7 +73,7 @@ class SerializationTest {
     fun `DataStructValue can be serialized to Json`() {
         val rawStringValue = " Hello world 123 "
         val dsValue = DataStructValue(rawStringValue)
-        checkValueSerialization(dsValue)
+        checkValueSerialization(dsValue, true)
     }
 
     @Test
