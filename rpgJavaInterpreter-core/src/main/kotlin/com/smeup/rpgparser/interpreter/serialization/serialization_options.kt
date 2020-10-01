@@ -52,7 +52,8 @@ object SerializationOption {
     private fun stringFormat() = Json {
         serializersModule = module
         classDiscriminator = CLASS_DISCRIMINATOR_TAG
-        prettyPrint = false     // See how to set this option
+        // See how to set this option
+        prettyPrint = false
     }
 
     private fun binaryFormat() = Cbor {
