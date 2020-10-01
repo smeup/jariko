@@ -1008,9 +1008,8 @@ Test 6
     @Test
     fun executeDS_CALLED() {
         assertEquals(listOf("James", "Bond", "007"),
-            outputOf("DS_CALLED", initialValues = mapOf("P1" to  StringValue("JamesBond   7"))))
+            outputOf("DS_CALLED", initialValues = mapOf("P1" to StringValue("JamesBond   7"))))
     }
-
 
     @Test
     fun executeFRSTCHRCOM_CommentInFirstChars() {
