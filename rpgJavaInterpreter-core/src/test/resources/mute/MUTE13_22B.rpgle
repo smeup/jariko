@@ -12,5 +12,12 @@
     MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
      C                   EVAL      FACTOR2+=1
       *
+     C                   IF        *IN99=*OFF
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+      *
+    MU* VAL1(FACTOR2) VAL2(2) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
      C                   SETON                                        LR
       *---------------------------------------------------------------
