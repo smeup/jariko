@@ -175,6 +175,11 @@ class MuteExecutionTest {
         assertMuteExecutionSucceded("mute/MUTE13_22", 9)
     }
 
+    @Test
+    fun executeMUTE13_22B_If_test_does_not_change_indicator_value() {
+        assertMuteExecutionSucceded("mute/MUTE13_22B", 2)
+    }
+
     @Test @Ignore
     fun executeMUTE13_23_Lookup_OpCode_Eq() {
         assertMuteExecutionSucceded("mute/MUTE13_23", 8)
