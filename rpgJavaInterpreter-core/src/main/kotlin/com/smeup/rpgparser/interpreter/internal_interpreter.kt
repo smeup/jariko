@@ -29,7 +29,8 @@ private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memo
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
-    val predefinedIndicators: HashMap<IndicatorKey, BooleanValue>
+    val predefinedIndicators: HashMap<IndicatorKey, BooleanValue>,
+    val lrIndicator: () -> Boolean
 ) {
     var lastFound = false
     var lastDBFile: DBFile? = null
@@ -52,7 +53,9 @@ class InternalInterpreter(
 
     fun logsEnabled() = logHandlers.isNotEmpty()
 
-    override val status = InterpreterStatus(globalSymbolTable, predefinedIndicators)
+    private var lrIndicator = false
+
+    override val status = InterpreterStatus(globalSymbolTable, predefinedIndicators, { lrIndicator })
 
     private val dbFileMap = DBFileMap(systemInterface.db)
 
