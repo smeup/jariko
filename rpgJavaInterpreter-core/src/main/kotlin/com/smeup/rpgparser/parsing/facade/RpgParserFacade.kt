@@ -20,13 +20,11 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.apache.commons.io.input.BOMInputStream
-import java.io.ByteArrayOutputStream
+import java.io.BufferedReader
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.HashMap
-import org.antlr.v4.runtime.*
-
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 
@@ -67,22 +65,8 @@ class RpgParserFacade {
         return CharStreams.fromStream(paddedCode.byteInputStream(StandardCharsets.UTF_8))
     }
 
-    private fun inputStreamToString(inputStream: InputStream): String {
-        ByteArrayOutputStream().use { result ->
-            val buffer = ByteArray(1024)
-            var length: Int
-            do {
-                length = inputStream.read(buffer)
-                if (length == -1) {
-                    break
-                } else {
-                    result.write(buffer, 0, length)
-                }
-            } while (true)
-
-            return result.toString(Charsets.UTF_8.name())
-        }
-    }
+    private fun inputStreamToString(inputStream: InputStream): String =
+        inputStream.bufferedReader().use(BufferedReader::readText)
 
     fun lex(inputStream: InputStream): RpgLexerResult {
         val errors = LinkedList<Error>()
@@ -240,7 +224,7 @@ class RpgParserFacade {
     }
 
     fun parseAndProduceAst(inputStream: InputStream): CompilationUnit {
-        val result = RpgParserFacade().parse(inputStream)
+        val result = parse(inputStream)
         require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
         return result.root!!.rContext.toAst().apply {
             if (muteSupport) {
