@@ -321,4 +321,31 @@ class SymbolTableStoragingTest {
      """
     }
 
+    @Test
+    fun wrongNumericVariableSize(){
+        // Variable 'NUM' is defined as '1' integer digit and '0' decimal digit.
+        // Due to its definition, 'NUM' variable can store values from -9 to 9.
+        // This test shows how numeric variable declaration doesn't work properly cause,
+        // cause the 'NUM' variable can store 9999 value.
+        val myProgram = """
+     H ACTGRP('MyAct')
+     D NUM             S              1  0
+     D MSG             S             12
+     C                   EVAL      NUM = 9999
+     C                   EVAL      MSG = %CHAR(NUM) 
+     C     MSG           DSPLY
+     C                   SETON                                          RT
+     """
+        val commandLineProgram = getProgram(nameOrSource = myProgram)
+        val memoryStorage = MemoryStorage()
+        val configuration = Configuration(memorySliceStorage = memoryStorage)
+        commandLineProgram.singleCall(emptyList(), configuration)
+        val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
+        require(variables != null)
+        assertEquals(
+                expected = IntValue(9),
+                actual = variables["NUM"] ?: error("Not found NUM")
+        )
+    }
+
 }
