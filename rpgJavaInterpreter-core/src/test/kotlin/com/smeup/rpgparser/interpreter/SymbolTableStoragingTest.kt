@@ -321,6 +321,7 @@ class SymbolTableStoragingTest {
     }
 
     @Test
+    @Ignore
     fun wrongNumericVariableSize() {
         // Variable 'NUM' is defined as '1' integer digit and '0' decimal digit.
         // Due to its definition, 'NUM' variable can store values from -9 to 9.
