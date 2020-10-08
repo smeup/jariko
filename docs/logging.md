@@ -2,6 +2,10 @@
 
 The interpreter provides a logging facility to trace the RPG program execution.
 To enable the log functionality it is required to specify the configuration file using the **-lc** or  **--log-configuration** on the runner command line, the muterunner command line or for any other tool.
+For example, you can run your program this way:
+```
+java -jar /path/to/rpgJavaInterpreter-core-all.jar -lc /path/to/logging.properties /path/to/HELLO.rpgle
+```
 
 The logging permits to monitor the interpreter behaviour at the runtime. The logging messages are is subdivided in channels, each one designed to capture a specific aspect of the interpreter. 
 
