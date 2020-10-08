@@ -233,11 +233,12 @@ class RpgParserFacade {
         }
     }
 
-    fun parseExpression(inputStream: InputStream, longLines: Boolean = true): ParsingResult<ExpressionContext> {
+    fun parseExpression(inputStream: InputStream, longLines: Boolean = true, printTree: Boolean = false): ParsingResult<ExpressionContext> {
         // Nothing to do with Mute support, as annotations can be only on statements
         val errors = LinkedList<Error>()
         val parser = createParser(inputStream, errors, longLines = longLines)
         val root = parser.expression()
+        if (printTree) println(parseTreeToXml(root, parser))
         verifyParseTree(parser, errors, root)
         return ParsingResult(errors, root)
     }
