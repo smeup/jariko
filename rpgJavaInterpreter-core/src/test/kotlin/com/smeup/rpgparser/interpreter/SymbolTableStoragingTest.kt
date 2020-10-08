@@ -193,7 +193,7 @@ class SymbolTableStoragingTest {
     }
 
     @Test
-    fun sameVariablesButDifferentACTGRP(){
+    fun sameVariablesButDifferentACTGRP() {
         // Program A called, program B called, both with 'SETON RT', both have same var Z but with different two values.
         // Memory must have separated scopes cause two programs have two different ACTGRP (MyActA and MyActB).
         val myProgramA = """
@@ -249,7 +249,7 @@ class SymbolTableStoragingTest {
     }
 
     @Test
-    fun sameVariablesAndSameACTGRP(){
+    fun sameVariablesAndSameACTGRP() {
         // Program A called, program B called, both with 'SETON RT', both have same var 'Z' but with different values.
         // Memory have separated scopes cause two programs with same ACTGRP (MyActSAME and MyActSAME) have different names.
         val myProgramA = """
@@ -302,7 +302,6 @@ class SymbolTableStoragingTest {
                 expected = StringValue("A"),
                 actual = variables["Z"] ?: error("Not found Z")
         )
-
     }
 
     @Test
@@ -322,7 +321,7 @@ class SymbolTableStoragingTest {
     }
 
     @Test
-    fun wrongNumericVariableSize(){
+    fun wrongNumericVariableSize() {
         // Variable 'NUM' is defined as '1' integer digit and '0' decimal digit.
         // Due to its definition, 'NUM' variable can store values from -9 to 9.
         // This test shows how numeric variable declaration doesn't work properly cause,
@@ -347,5 +346,4 @@ class SymbolTableStoragingTest {
                 actual = variables["NUM"] ?: error("Not found NUM")
         )
     }
-
 }
