@@ -122,6 +122,7 @@ Yes, of course: see the [presentation list](docs/presentations.md)
 ## How to use this code in your project
 
 At the moment, we use [Jitpack](https://jitpack.io/) to publish the [project](https://jitpack.io/#smeup/jariko).
+See more details [here](docs/jitpack.md).
 
 ### Maven
 If you use Maven, add these lines to your pom.xml in order to add the repository
