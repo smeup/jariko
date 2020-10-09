@@ -223,7 +223,7 @@ data class SubDurStmt(
                     }
                 }
             }
-            else -> throw UnsupportedOperationException("Data reference required: " + this)
+            else -> throw UnsupportedOperationException("Data reference required: $this")
         }
     }
 }
