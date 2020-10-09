@@ -123,6 +123,8 @@ So you can run an RPGLE file from the command line this way (after moving to the
 java -jar rpgJavaInterpreter-core-all.jar path/to/my/RPGLE [parameters]
 ```
 
+### Program Search Directories
+
 In order to pass a list of directories containing your sources, you can use the -psd option (Program Search Drectories) with a comma separated list of directories:
 
 ``` 
