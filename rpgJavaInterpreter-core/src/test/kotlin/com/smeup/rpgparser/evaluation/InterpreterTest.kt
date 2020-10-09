@@ -287,6 +287,11 @@ class InterpreterTest {
         assertStartsWith(outputOf("SUBDURTEST"), "1100")
     }
 
+    @Test @Ignore
+    fun executeDAYOFWEEK() {
+        assertEquals(listOf("3"), outputOf("DAYOFWEEK"))
+    }
+
     @Test
     fun executeCALCFIBCA5() {
         assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), outputOf("CALCFIBCA5"))

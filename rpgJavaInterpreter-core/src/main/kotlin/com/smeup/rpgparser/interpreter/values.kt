@@ -18,7 +18,7 @@ interface Value : Comparable<Value> {
     fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
     fun asString(): StringValue = throw UnsupportedOperationException()
     fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
-    fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException()
+    fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an TimeStamp - $this")
     fun assignableTo(expectedType: Type): Boolean
     fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
     fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
@@ -107,6 +107,8 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value 
         }
         return BooleanValue.FALSE
     }
+
+    override fun asTimeStamp(): TimeStampValue = TimeStampValue(value.asIsoDate())
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
@@ -702,7 +704,13 @@ fun String.asValue() = StringValue(this)
 private const val FORMAT_DATE_ISO = "yyyy-MM-dd-HH.mm.ss.SSS"
 
 fun String.asIsoDate(): Date {
-    return SimpleDateFormat(FORMAT_DATE_ISO).parse(this.take(FORMAT_DATE_ISO.length))
+    var dateString = if (length >= FORMAT_DATE_ISO.length) {
+        this.take(FORMAT_DATE_ISO.length)
+    } else {
+        // TODO
+        this + "-00.00.00.000"
+    }
+    return SimpleDateFormat(FORMAT_DATE_ISO).parse(dateString)
 }
 
 fun createBlankFor(dataDefinition: DataDefinition): Value {
