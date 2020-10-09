@@ -282,8 +282,20 @@ class InternalInterpreter(
                     if (i < 0 || i >= statements.size) throw e
                 }
             }
+            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
+                interpretationContext.currentProgramName,
+                globalSymbolTable,
+                null
+            )
         } catch (e: ReturnException) {
             // TODO use return value
+        } catch (t: Throwable) {
+            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
+                interpretationContext.currentProgramName,
+                globalSymbolTable,
+                t
+            )
+            throw t
         }
     }
 
@@ -769,6 +781,10 @@ class InternalInterpreter(
                 MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] = it.associate(memorySliceId, globalSymbolTable)
             }
         }
+        MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm.invoke(
+            interpretationContext.currentProgramName,
+            globalSymbolTable
+        )
     }
 
     private fun isExitingInRTMode(): Boolean {
