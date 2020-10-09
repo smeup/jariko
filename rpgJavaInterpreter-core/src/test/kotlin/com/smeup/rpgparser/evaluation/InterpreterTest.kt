@@ -295,6 +295,11 @@ class InterpreterTest {
         assertEquals(listOf("40208"), outputOf("SUBDURTES2"))
     }
 
+    @Test
+    fun executeDIFFTEST2() {
+        assertEquals(listOf("40208"), outputOf("DIFFTEST2"))
+    }
+
     @Test @Ignore
     fun executeDAYOFWEEK() {
         val currentDayOfWeek = SimpleDateFormat("u").format(Date())

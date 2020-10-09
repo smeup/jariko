@@ -8,6 +8,7 @@ import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.moveEndingString
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -308,7 +309,11 @@ class ExpressionEvaluation(
         val v2 = expression.value2.evalWith(this)
         return when (expression.durationCode) {
             is DurationInMSecs -> DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
-            else -> TODO("Unable to handle ${expression.durationCode}")
+            is DurationInDays -> DecimalValue(BigDecimal(
+                ChronoUnit.DAYS.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            ))
         }
     }
 

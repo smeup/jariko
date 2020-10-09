@@ -611,7 +611,7 @@ internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 }
 
 private fun String.toDuration(): DurationCode =
-    when(toUpperCase()) {
+    when (toUpperCase()) {
         "*D", "*DAYS" -> DurationInDays
         "*MS", "*MSECONDS" -> DurationInMSecs
         else -> TODO("Implement conversion to DurationCode for $this")

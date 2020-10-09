@@ -145,9 +145,9 @@ internal fun RpgParser.Bif_diffContext.toAst(conf: ToAstConfiguration = ToAstCon
 
 internal fun RpgParser.DurationCodeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DurationCode =
     when {
-        SPLAT_MSECONDS() != null -> DurationInMSecs
-        SPLAT_DAYS() != null -> DurationInDays
-        else -> TODO()
+        SPLAT_MSECONDS() != null || SPLAT_MS() != null -> DurationInMSecs
+        SPLAT_DAYS() != null || SPLAT_D() != null -> DurationInDays
+        else -> TODO("Implement ${this.text}")
     }
 
 internal fun RpgParser.Bif_substContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubstExpr {
