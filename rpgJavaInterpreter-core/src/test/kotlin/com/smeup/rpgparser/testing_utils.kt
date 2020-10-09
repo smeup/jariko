@@ -154,8 +154,8 @@ fun assertCodeCanBeParsed(code: String): RContext {
     return result.root!!.rContext
 }
 
-fun assertExpressionCanBeParsed(code: String): ExpressionContext {
-    val result = RpgParserFacade().parseExpression(inputStreamForCode(code))
+fun assertExpressionCanBeParsed(code: String, printTree: Boolean = false): ExpressionContext {
+    val result = RpgParserFacade().parseExpression(inputStreamForCode(code), printTree = true)
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!
