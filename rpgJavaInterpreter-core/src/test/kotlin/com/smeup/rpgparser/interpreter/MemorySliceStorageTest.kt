@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.executePgmWithStringArgs
 import com.smeup.rpgparser.experimental.PropertiesFileStorage
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
@@ -8,6 +9,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import kotlin.test.assertEquals
 
 lateinit var simpleStorageTempDir: File
 val DEMO: Boolean = System.getenv("DEMO")?.toBoolean() ?: false
@@ -111,6 +113,14 @@ class MemorySliceStorageTest {
         assert(symbolTableOut.getValues() == symbolTableIn.getValues())
     }
 
+    // Test flow:
+    // Step 0 - Executing ACTGRP_FIX that exits in RT
+    // Step 1 - Executing ACTGRP_FIX that exits in RT
+    // Assertions for each step:
+    // Step 0 - X = 1
+    // Step 1 - X = 2
+    // Final assertion:
+    // X in storage = 2
     @Test
     fun podSimulationTest() {
         // testing program
@@ -118,20 +128,86 @@ class MemorySliceStorageTest {
         val path = javaClass.getResource("/$programName")
         // here I set the path from where jariko will search for the rpg sources
         val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
+        var currentStep = 0
         // here I set configuration
-        val configuration = Configuration(PropertiesFileStorage(simpleStorageTempDir))
+        val configuration = Configuration(
+            PropertiesFileStorage(simpleStorageTempDir),
+            JarikoCallback(
+                onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
+                    val x = symbolTable["X"]
+                    assertEquals(currentStep + 1, x.asInt().value.toInt())
+                }
 
-        // simulate pod execution
-        println("Executing $programName")
-        executePgmWithStringArgs(
-            programName = programName,
-            programFinders = rpgProgramFinders,
-            programArgs = listOf<String>(),
-            configuration = configuration
+            )
         )
-        configuration.memorySliceStorage?.let { memorySliceStorage ->
-            if (memorySliceStorage is PropertiesFileStorage) {
-                memorySliceStorage.dumpPropertiesFile()
+        val times = 2
+        repeat(times) {
+            // simulate pod execution
+            currentStep = it
+            println("Executing $programName")
+            executePgmWithStringArgs(
+                programName = programName,
+                programFinders = rpgProgramFinders,
+                programArgs = listOf<String>(),
+                configuration = configuration
+            )
+            configuration.memorySliceStorage?.let { memorySliceStorage ->
+                if (memorySliceStorage is PropertiesFileStorage) {
+                    memorySliceStorage.dumpPropertiesFile()
+                }
+            }
+        }
+        val memorySliceId = MemorySliceId(activationGroup = "MYACT", programName = programName)
+        val x = configuration.memorySliceStorage!!.load(memorySliceId)["X"]!!
+        assertEquals(times, x.asInt().value.toInt())
+    }
+
+    // Test flow:
+    // Step 0 - Executing ACTGRP_FIX that exits in RT
+    // Step 1 - Executing ACTGRP_FIX that exits in LR (forced LR programmatically via callback)
+    // Step 2 - Executing ACTGRP_FIX that exits in LR (forced LR programmatically via callback)
+    // Assertions for each step:
+    // Step 0 - X = 1
+    // Step 1 - X = 2
+    // Step 2 - X = 2
+    // Variable evaluation via JarikoCallback.onExitPgm
+    @Test
+    fun simulateRTFollowedByLR() {
+        val programName = "ACTGRP_FIX.rpgle"
+        val path = javaClass.getResource("/$programName")
+        // here I set the path from where jariko will search for the rpg sources
+        val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
+        val memorySliceId = MemorySliceId(activationGroup = "MYACT", programName = programName)
+        // I work with same instance of MemorySliceStorage for each test
+        val memorySliceStorage = PropertiesFileStorage(simpleStorageTempDir)
+        repeat(3) {
+            val exitInRT = it == 0
+            val configuration = Configuration(
+                memorySliceStorage = memorySliceStorage,
+                // at the first iteration force RT in order to store a SymbolTable
+                jarikoCallback = JarikoCallback(
+                    exitInRT = { exitInRT },
+                    onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
+                        val x = symbolTable["X"]
+                        if (it == 0) {
+                            assertEquals(1, x.asInt().value.toInt())
+                        } else {
+                            assertEquals(2, x.asInt().value.toInt())
+                        }
+                    }
+                )
+            )
+            println("Executing $programName")
+            executePgmWithStringArgs(
+                programName = programName,
+                programFinders = rpgProgramFinders,
+                programArgs = listOf<String>(),
+                configuration = configuration
+            )
+            configuration.memorySliceStorage?.let { memorySliceStorage ->
+                if (memorySliceStorage is PropertiesFileStorage) {
+                    memorySliceStorage.dumpPropertiesFile()
+                }
             }
         }
     }
