@@ -10,6 +10,9 @@ import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.LinkedHashMap
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -289,7 +292,7 @@ class InterpreterTest {
 
     @Test @Ignore
     fun executeDAYOFWEEK() {
-        assertEquals(listOf("3"), outputOf("DAYOFWEEK"))
+        assertEquals(listOf(SimpleDateFormat("u").format(Date())), outputOf("DAYOFWEEK"))
     }
 
     @Test
