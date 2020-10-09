@@ -292,7 +292,8 @@ class InterpreterTest {
 
     @Test @Ignore
     fun executeDAYOFWEEK() {
-        assertEquals(listOf(SimpleDateFormat("u").format(Date())), outputOf("DAYOFWEEK"))
+        val currentDayOfWeek = SimpleDateFormat("u").format(Date())
+        assertEquals(listOf(currentDayOfWeek), outputOf("DAYOFWEEK"))
     }
 
     @Test
