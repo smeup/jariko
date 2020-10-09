@@ -221,7 +221,7 @@ data class TimeStampExpr(val value: Expression?, override val position: Position
 data class DiffExpr(
     var value1: Expression,
     var value2: Expression,
-    val durationCode: Expression,
+    val durationCode: DurationCode,
     override val position: Position? = null
 ) :
     Expression(position) {
@@ -242,7 +242,6 @@ data class ReplaceExpr(
 
 // TODO Move and handle different types of duration
 // TODO document what a duration code is
-data class DurationCodeExpr(override var position: Position? = null) :
-    Expression(position) {
-    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
-}
+sealed class DurationCode
+object DurationInMSec : DurationCode()
+object DurationInDays : DurationCode()

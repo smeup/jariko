@@ -467,8 +467,6 @@ class ExpressionEvaluation(
     override fun eval(expression: DataWrapUpIndicatorExpr) =
         throw RuntimeException("DataWrapUpIndicatorExpr should be handled by the interpreter: $expression")
 
-    override fun eval(expression: DurationCodeExpr): Value = TODO("DurationCodeExpr evaluation")
-
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")
         return when {
