@@ -306,7 +306,10 @@ class ExpressionEvaluation(
         // TODO expression.durationCode
         val v1 = expression.value1.evalWith(this)
         val v2 = expression.value2.evalWith(this)
-        return DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
+        return when (expression.durationCode) {
+            is DurationInMSecs -> DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
+            else -> TODO("Unable to handle ${expression.durationCode}")
+        }
     }
 
     override fun eval(expression: DivExpr): Value {

@@ -243,5 +243,5 @@ data class ReplaceExpr(
 // TODO Move and handle different types of duration
 // TODO document what a duration code is
 sealed class DurationCode
-object DurationInMSec : DurationCode()
+object DurationInMSecs : DurationCode()
 object DurationInDays : DurationCode()
