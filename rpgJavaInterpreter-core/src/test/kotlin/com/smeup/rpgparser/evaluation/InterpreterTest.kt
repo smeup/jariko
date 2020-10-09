@@ -290,6 +290,11 @@ class InterpreterTest {
         assertStartsWith(outputOf("SUBDURTEST"), "1100")
     }
 
+    @Test
+    fun executeSUBDURTES2() {
+        assertEquals(listOf("40208"), outputOf("SUBDURTES2"))
+    }
+
     @Test @Ignore
     fun executeDAYOFWEEK() {
         val currentDayOfWeek = SimpleDateFormat("u").format(Date())

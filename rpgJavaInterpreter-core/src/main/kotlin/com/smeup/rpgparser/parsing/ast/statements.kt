@@ -8,6 +8,7 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -193,27 +194,39 @@ data class SubDurStmt(
     val factor1: Expression?,
     val target: AssignableExpression,
     val factor2: Expression,
+    val durationCode: DurationCode,
     override val position: Position? = null
 ) :
     Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-            when (target) {
-                is DataRefExpr -> {
-                    // TODO: partial implementation just for *MS - Add more cases
-                    val minuend = if (factor1 == null) {
-                        interpreter.eval(target)
-                    } else {
-                        interpreter.eval(factor1)
-                    }
-                    val subtrahend = interpreter.eval(factor2)
-                    val newValue =
-                            (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
-                    interpreter.assign(target, IntValue(newValue))
+        when (target) {
+            is DataRefExpr -> {
+                // TODO: partial implementation just for *MS  and *D - Add more cases
+                val minuend = if (factor1 == null) {
+                    interpreter.eval(target)
+                } else {
+                    interpreter.eval(factor1)
                 }
-                else -> throw UnsupportedOperationException("Data reference required: " + this)
+                val subtrahend = interpreter.eval(factor2)
+                when (durationCode) {
+                    DurationInMSecs -> {
+                        val newValue =
+                            (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
+                        interpreter.assign(target, IntValue(newValue))
+                    }
+                    DurationInDays -> {
+                        val newValue =
+                            ChronoUnit.DAYS.between(
+                                subtrahend.asTimeStamp().value.toInstant(), minuend.asTimeStamp().value.toInstant()
+                            )
+                        interpreter.assign(target, IntValue(newValue))
+                    }
+                }
             }
+            else -> throw UnsupportedOperationException("Data reference required: " + this)
         }
     }
+}
 
 data class MoveStmt(
     val target: AssignableExpression,
