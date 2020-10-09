@@ -125,7 +125,7 @@ java -jar rpgJavaInterpreter-core-all.jar path/to/my/RPGLE [parameters]
 
 ### Program Search Directories
 
-In order to pass a list of directories containing your sources, you can use the -psd option (Program Search Drectories) with a comma separated list of directories:
+In order to pass a list of directories containing your sources, you can use the -psd option (Program Search Directories) with a comma separated list of directories:
 
 ``` 
 java -jar rpgJavaInterpreter-core-all.jar -psd /dir/one,/dir/two MYRPG [parameters]
