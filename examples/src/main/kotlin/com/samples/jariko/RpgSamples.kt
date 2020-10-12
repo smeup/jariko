@@ -7,50 +7,29 @@ import com.smeup.rpgparser.interpreter.ISymbolTable
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import java.io.File
 
-fun main(args: Array<String>) {
-   if(args.isEmpty()) {
-        println("Usages:")
-        println("1. java -jar RpgJavaInterpreter.jar 15  -> to calculate fibonacci of #15 ")
-        println("2. java -jar RpgJavaInterpreter.jar [/rpg/path/] [rpglefile.rpgle] [programParams]  -> to execute generic rpg program")
-        return
-    }
+/**
+ * This class is used to expose function 'execWithCallback' to jariko rpgle interpreter
+ *
+ * @param programPath path to rpgle programs
+ * @param programName rpgle program filename
+ * @param programArgs parm to pass to rpgle
+ * @param jarikoCallback instance of JarikoCallback
+ */
 
-    if (args.size == 1) {
-        val programName = "fibonacci.rpgle"
-        val programParm = listOf(args[0])
-        val jarikoCallback = JarikoCallback(
-                exitInRT = { false },
-                onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
-                    println(symbolTable["FINAL_VAL"].asInt().value)
-                }
-        )
-        execWithCallback(programName, programParm, jarikoCallback)
-    } else {
-        val programPath = args[0]
-        val programName = args[1]
-        val programParm = args.toList()
-        val jarikoCallback = JarikoCallback()
-        execWithCallback(programName, programPath, programParm, jarikoCallback)
-    }
+fun fibonacciOf(fibonacciOf: Int){
+    val programPath = "examples/src/main/kotlin/com/samples/jariko"
+    val programName = "fibonacci.rpgle"
+    val programArgs = listOf(fibonacciOf.toString())
+    val jarikoCallback = JarikoCallback(
+            exitInRT = { false },
+            onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
+                println(symbolTable["FINAL_VAL"].asInt().value)
+            }
+    )
+    execWithCallback(programPath, programName, programArgs, jarikoCallback)
 }
 
-private fun execWithCallback(programName: String, programParms: List<String>, jarikoCallback: JarikoCallback ) {
-    val rpgProgramFinders = listOf(DirRpgProgramFinder(File("examples/src/main/kotlin/com/jariko/samples")))
-    val configuration = Configuration(
-            jarikoCallback = jarikoCallback
-    )
-
-    println("Running $programName ...")
-    executePgmWithStringArgs(
-            programName = programName,
-            programFinders = rpgProgramFinders,
-            programArgs = programParms,
-            configuration = configuration
-    )
-    println("... done.")
-}
-
-private fun execWithCallback(programName: String, programPath: String, programParms: List<String>, jarikoCallback: JarikoCallback ){
+fun execWithCallback(programPath: String, programName: String, programArgs: List<String>, jarikoCallback: JarikoCallback) {
     val rpgProgramFinders = listOf(DirRpgProgramFinder(File(programPath)))
     val configuration = Configuration(
             jarikoCallback = jarikoCallback
@@ -60,15 +39,16 @@ private fun execWithCallback(programName: String, programPath: String, programPa
     executePgmWithStringArgs(
             programName = programName,
             programFinders = rpgProgramFinders,
-            programArgs = programParms,
+            programArgs = programArgs,
             configuration = configuration
     )
     println("... done.")
 }
 
-
-
-
+fun main(args: Array<String>) {
+    // Sample of fibonacciOf 15
+    fibonacciOf(15)
+}
 
 
 
