@@ -24,14 +24,3 @@ dependencies {
   testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion".toString()
   testCompile 'junit:junit:4.12'
 }
-
-//Creates smeup-rpg/rpgJavaInterpreter-core/build/libs/rpgJavaInterpreter-core-runnable-samples-all.jar
-task fatSamplesJar(type: Jar) {
-    manifest {
-        attributes 'Main-Class': 'com.samples.jariko.RpgSamples'
-    }
-    archiveBaseName = project.name + '-runnable-samples-all'
-    archiveVersion = ''
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
-}

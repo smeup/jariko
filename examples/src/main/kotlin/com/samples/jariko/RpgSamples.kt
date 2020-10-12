@@ -10,21 +10,10 @@ import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import java.io.File
 
 /**
- * This class is used to expose function 'execWithCallback' to jariko rpgle interpreter
- * The function can be called with two signature:
- *
- * @param programPath path to rpgle programs
- * @param programName rpgle program filename
- * @param programArgs parm to pass to rpgle
- * @param jarikoCallback instance of JarikoCallback
- *
- * or:
- *
- * @param programSource source of rpgle program
- * @param programArgs parm to pass to rpgle
- * @param jarikoCallback instance of JarikoCallback
+ * This function execute fibonacciOf number passed as argument
+ * The rpgle program in retrieve from local sources from programPath
+ * @param fibonacciOf integer to calculate fibonacci series
  */
-
 fun fibonacciOf(fibonacciOf: Int) {
     val programPath = "examples/src/main/kotlin/com/samples/jariko"
     val programName = "fibonacci.rpgle"
@@ -38,6 +27,14 @@ fun fibonacciOf(fibonacciOf: Int) {
     execWithCallback(programPath, programName, programArgs, jarikoCallback)
 }
 
+/**
+ * This function is used to execute rpgle from programPath, named filename,
+ * with programArgs as parameters showing var values by JarikoCallback
+ * @param programPath path to rpgle programs
+ * @param programName rpgle program filename
+ * @param programArgs parm to pass to rpgle
+ * @param jarikoCallback instance of JarikoCallback
+ */
 fun execWithCallback(programPath: String, programName: String, programArgs: List<String>, jarikoCallback: JarikoCallback) {
     val rpgProgramFinders = listOf(DirRpgProgramFinder(File(programPath)))
     val configuration = Configuration(
@@ -54,6 +51,13 @@ fun execWithCallback(programPath: String, programName: String, programArgs: List
     println("... done.")
 }
 
+/**
+ * This function is used to execute rpgle source as programSource,
+ * with programArgs as parameters showing var values by JarikoCallback
+ * @param programSource source of rpgle program
+ * @param programArgs parm to pass to rpgle
+ * @param jarikoCallback instance of JarikoCallback
+ */
 fun execWithCallBack(programSource: String, programArgs: List<String>, jarikoCallback: JarikoCallback) {
     println("Running source: $programSource ...")
     val configuration = Configuration(
@@ -65,7 +69,10 @@ fun execWithCallBack(programSource: String, programArgs: List<String>, jarikoCal
     println("... done.")
 }
 
-fun main(args: Array<String>) {
+/**
+ * This function show some execution samples
+ */
+fun execSamples() {
     // Sample of fibonacciOf(15) using local rpgle source file "fibonacci.rpgle"
     fibonacciOf(15)
 
