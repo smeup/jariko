@@ -25,7 +25,7 @@ import java.io.File
  * @param jarikoCallback instance of JarikoCallback
  */
 
-fun fibonacciOf(fibonacciOf: Int){
+fun fibonacciOf(fibonacciOf: Int) {
     val programPath = "examples/src/main/kotlin/com/samples/jariko"
     val programName = "fibonacci.rpgle"
     val programArgs = listOf(fibonacciOf.toString())
@@ -54,7 +54,7 @@ fun execWithCallback(programPath: String, programName: String, programArgs: List
     println("... done.")
 }
 
-fun execWithCallBack(programSource: String, programArgs: List<String>, jarikoCallback: JarikoCallback){
+fun execWithCallBack(programSource: String, programArgs: List<String>, jarikoCallback: JarikoCallback) {
     println("Running source: $programSource ...")
     val configuration = Configuration(
             jarikoCallback = jarikoCallback
@@ -80,12 +80,10 @@ fun main(args: Array<String>) {
 
     // Sample of execWithCallback with programSource
     val programSource = """
-     D PWROF2          S              5
      D PWROF2_N        S              5  0
       * Calculate power of two of received number
      C     *ENTRY        PLIST
-     C                   PARM                    PWROF2
-     C                   EVAL      PWROF2_N = %DEC(%TRIM(PWROF2):5:0)
+     C                   PARM                    PWROF2_N
      C                   EVAL      PWROF2_N = PWROF2_N * PWROF2_N
      C                   SETON                                          LR
      """
@@ -97,6 +95,3 @@ fun main(args: Array<String>) {
     )
     execWithCallBack(programSource, listOf("12"), jarikoCallback)
 }
-
-
-
