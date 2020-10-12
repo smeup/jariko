@@ -80,17 +80,19 @@ fun main(args: Array<String>) {
 
     // Sample of execWithCallback with programSource
     val programSource = """
-     D PWROF2          S              5  0
+     D PWROF2          S              5
+     D PWROF2_N        S              5  0
       * Calculate power of two of received number
      C     *ENTRY        PLIST
      C                   PARM                    PWROF2
-     C                   EVAL      PWROF2 = PWROF2 * PWROF2
+     C                   EVAL      PWROF2_N = %DEC(%TRIM(PWROF2):5:0)
+     C                   EVAL      PWROF2_N = PWROF2_N * PWROF2_N
      C                   SETON                                          LR
      """
     jarikoCallback = JarikoCallback(
             exitInRT = { false },
             onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
-                println(symbolTable["PWROF2"].asInt().value)
+                println(symbolTable["PWROF2_N"].asInt().value)
             }
     )
     execWithCallBack(programSource, listOf("12"), jarikoCallback)
