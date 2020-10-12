@@ -68,37 +68,3 @@ fun execWithCallBack(programSource: String, programArgs: List<String>, jarikoCal
     commandLineProgram.singleCall(programArgs, configuration = configuration)
     println("... done.")
 }
-
-/**
- * This function show some execution samples
- */
-fun execSamples() {
-    // Sample of fibonacciOf(15) using local rpgle source file "fibonacci.rpgle"
-    fibonacciOf(15)
-
-    // Sample of execWithCallback with programPath and programName
-    var jarikoCallback = JarikoCallback(
-            exitInRT = { false },
-            onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
-                println(symbolTable["FINAL_VAL"].asInt().value)
-            }
-    )
-    execWithCallback("examples/src/main/kotlin/com/samples/jariko", "fibonacci.rpgle", listOf("12"), jarikoCallback)
-
-    // Sample of execWithCallback with programSource
-    val programSource = """
-     D PWROF2_N        S              5  0
-      * Calculate power of two of received number
-     C     *ENTRY        PLIST
-     C                   PARM                    PWROF2_N
-     C                   EVAL      PWROF2_N = PWROF2_N * PWROF2_N
-     C                   SETON                                          LR
-     """
-    jarikoCallback = JarikoCallback(
-            exitInRT = { false },
-            onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
-                println(symbolTable["PWROF2_N"].asInt().value)
-            }
-    )
-    execWithCallBack(programSource, listOf("12"), jarikoCallback)
-}
