@@ -16,7 +16,7 @@ val DEFAULT_CHARSET = Charset.forName("Cp037")
 interface Value : Comparable<Value> {
     fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
     fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
-    fun asString(): StringValue = throw UnsupportedOperationException()
+    fun asString(): StringValue
     fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
     fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException()
     fun assignableTo(expectedType: Type): Boolean
@@ -306,6 +306,10 @@ data class IntValue(val value: Long) : NumberValue() {
         is DecimalValue -> this.asDecimal().compareTo(other)
         else -> super.compareTo(other)
     }
+
+    override fun asString(): StringValue {
+        return StringValue(value.toString())
+    }
 }
 
 @Serializable
@@ -354,6 +358,10 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
             is DecimalValue -> this.value.compareTo(other.value)
             else -> super.compareTo(other)
         }
+
+    override fun asString(): StringValue {
+        return StringValue(value.toString())
+    }
 }
 
 @Serializable
@@ -405,6 +413,10 @@ data class CharacterValue(val value: Array<Char>) : Value {
     override fun hashCode(): Int {
         return value.contentHashCode()
     }
+
+    override fun asString(): StringValue {
+        return StringValue(value.toString())
+    }
 }
 
 @Serializable
@@ -420,6 +432,10 @@ data class TimeStampValue(@Contextual val value: Date) : Value {
     }
 
     override fun copy(): TimeStampValue = this
+
+    override fun asString(): StringValue {
+        return StringValue(value.toString())
+    }
 }
 
 abstract class ArrayValue : Value {
@@ -564,6 +580,10 @@ object BlanksValue : Value {
     }
 
     override fun copy(): BlanksValue = this
+
+    override fun asString(): StringValue {
+        return StringValue(this.toString())
+    }
 }
 
 object HiValValue : Value {
@@ -584,7 +604,12 @@ object HiValValue : Value {
 
     override operator fun compareTo(other: Value): Int =
         if (other is HiValValue) 0 else 1
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
 }
+
 object LowValValue : Value {
     override fun copy(): Value {
         TODO("not implemented")
@@ -601,6 +626,10 @@ object LowValValue : Value {
 
     override operator fun compareTo(other: Value): Int =
         if (other is LowValValue) 0 else -1
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
 }
 
 object ZeroValue : Value {
@@ -617,6 +646,10 @@ object ZeroValue : Value {
         // FIXME
         return true
     }
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
 }
 
 class AllValue(val charsToRepeat: String) : Value {
@@ -626,6 +659,10 @@ class AllValue(val charsToRepeat: String) : Value {
     }
 
     override fun copy(): AllValue = this
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
 }
 
 /**
@@ -684,6 +721,10 @@ class ProjectedArrayValue(
         } else {
             false
         }
+    }
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
     }
 }
 
