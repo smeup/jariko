@@ -18,13 +18,15 @@ fun fibonacciOf(fibonacciOf: Int) {
     val programPath = "examples/src/main/kotlin/com/samples/jariko"
     val programName = "fibonacci.rpgle"
     val programArgs = listOf(fibonacciOf.toString())
+    var output: Long = 0
     val jarikoCallback = JarikoCallback(
             exitInRT = { false },
             onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
-                println(symbolTable["FINAL_VAL"].asInt().value)
+                output = symbolTable["FINAL_VAL"].asInt().value
             }
     )
     execWithCallback(programPath, programName, programArgs, jarikoCallback)
+    print(output)
 }
 
 /**
@@ -40,7 +42,6 @@ fun execWithCallback(programPath: String, programName: String, programArgs: List
     val configuration = Configuration(
             jarikoCallback = jarikoCallback
     )
-
     println("Running $programName ...")
     executePgmWithStringArgs(
             programName = programName,
