@@ -10,6 +10,9 @@ import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.LinkedHashMap
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -285,6 +288,22 @@ class InterpreterTest {
     @Test
     fun executeSUBDURTEST() {
         assertStartsWith(outputOf("SUBDURTEST"), "1100")
+    }
+
+    @Test
+    fun executeSUBDURTES2() {
+        assertEquals(listOf("40208"), outputOf("SUBDURTES2"))
+    }
+
+    @Test
+    fun executeDIFFTEST2() {
+        assertEquals(listOf("40208"), outputOf("DIFFTEST2"))
+    }
+
+    @Test @Ignore
+    fun executeDAYOFWEEK() {
+        val currentDayOfWeek = SimpleDateFormat("u").format(Date())
+        assertEquals(listOf(currentDayOfWeek), outputOf("DAYOFWEEK"))
     }
 
     @Test

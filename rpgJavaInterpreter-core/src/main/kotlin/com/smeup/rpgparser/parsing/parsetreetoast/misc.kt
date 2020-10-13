@@ -606,8 +606,16 @@ internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUBDUR operation requires factor 2: ${this.text} - ${position.atLine()}")
     // TODO handle duration code after the :
     val target = this.cspec_fixed_standard_parts().result.text.split(":")
-    return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, position)
+    val durationCode = if (target.size > 1) target[1].toDuration() else DurationInMSecs
+    return SubDurStmt(left, DataRefExpr(ReferenceByName(target[0]), position), factor2, durationCode, position)
 }
+
+private fun String.toDuration(): DurationCode =
+    when (toUpperCase()) {
+        "*D", "*DAYS" -> DurationInDays
+        "*MS", "*MSECONDS" -> DurationInMSecs
+        else -> TODO("Implement conversion to DurationCode for $this")
+    }
 
 internal fun CsCHAINContext.toAst(conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)

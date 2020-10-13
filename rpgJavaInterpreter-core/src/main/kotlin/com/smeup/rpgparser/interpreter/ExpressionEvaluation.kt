@@ -8,6 +8,7 @@ import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.moveEndingString
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -306,7 +307,14 @@ class ExpressionEvaluation(
         // TODO expression.durationCode
         val v1 = expression.value1.evalWith(this)
         val v2 = expression.value2.evalWith(this)
-        return DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
+        return when (expression.durationCode) {
+            is DurationInMSecs -> DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
+            is DurationInDays -> DecimalValue(BigDecimal(
+                ChronoUnit.DAYS.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            ))
+        }
     }
 
     override fun eval(expression: DivExpr): Value {
@@ -466,8 +474,6 @@ class ExpressionEvaluation(
 
     override fun eval(expression: DataWrapUpIndicatorExpr) =
         throw RuntimeException("DataWrapUpIndicatorExpr should be handled by the interpreter: $expression")
-
-    override fun eval(expression: DurationCodeExpr): Value = TODO("DurationCodeExpr evaluation")
 
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")

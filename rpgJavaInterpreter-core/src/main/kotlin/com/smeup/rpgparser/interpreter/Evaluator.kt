@@ -58,7 +58,6 @@ interface Evaluator {
     fun eval(expression: ReplaceExpr): Value
     fun eval(expression: SqrtExpr): Value
     fun eval(expression: AssignmentExpr): Value
-    fun eval(expression: DurationCodeExpr): Value
     fun eval(expression: PredefinedGlobalIndicatorExpr): Value
     fun eval(expression: DataWrapUpIndicatorExpr): Value
 }
