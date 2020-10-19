@@ -4,10 +4,12 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.executePgmWithStringArgs
 import com.smeup.rpgparser.execution.getProgram
-import com.smeup.rpgparser.interpreter.ISymbolTable
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import java.io.File
+import java.math.BigDecimal
 
 /**
  * This function execute fibonacciOf number passed as argument
@@ -68,4 +70,58 @@ fun execWithCallBack(programSource: String, programArgs: List<String>, jarikoCal
     val commandLineProgram = getProgram(programSource, systemInterface)
     commandLineProgram.singleCall(programArgs, configuration = configuration)
     println("... done.")
+}
+
+/**
+ * Draft version of how to pass a DS to Jariko.
+ * */
+fun passDSToJariko() {
+    // testing program
+    val pgm = "     DMsg              S              3\n" +
+            "     DP1               DS\n" +
+            "     D Name                           5A\n" +
+            "     D Surname                        5A\n" +
+            "     D Nbr                            5  2\n" +
+            "     C     *ENTRY        PLIST\n" +
+            "     C                   PARM                    P1\n" +
+            "     C     Name          DSPLY\n" +
+            "     C     Surname       DSPLY\n" +
+            "     C     Nbr           DSPLY\n" +
+            "     C     Msg           DSPLY\n" +
+            "     C                   SETON                                        LR"
+    // set len of DS
+    val dsLen = 15
+    val commandLineProgram = getProgram(nameOrSource = pgm)
+    // create instance
+    val dataStructValue = DataStructValue("".padStart(dsLen))
+    // set DS fields fields
+    // note explicitEndOffset is required but not significant
+    dataStructValue.set(
+        field = FieldDefinition(
+            name = "Name",
+            type = StringType(5, false),
+            explicitStartOffset = 0,
+            explicitEndOffset = 0
+        ),
+        value = StringValue("John")
+    )
+    dataStructValue.set(
+        field = FieldDefinition(
+            name = "Surname",
+            type = StringType(5, false),
+            explicitStartOffset = 5,
+            explicitEndOffset = 0
+        ),
+        value = StringValue("Smith")
+    )
+    // note rpgType = RpgType.ZONED is always required regardless of number type definition in rpg program
+    dataStructValue.set(
+        field = FieldDefinition(
+            name = "Nbr",
+            type = NumberType(entireDigits = 3, decimalDigits = 2, rpgType = RpgType.ZONED),
+            explicitStartOffset = 10, explicitEndOffset = 0
+        ),
+        value = DecimalValue(BigDecimal.valueOf(12.12)))
+    // call program passing the string representation of dataStructValue
+    commandLineProgram.singleCall(arrayListOf(dataStructValue.value))
 }
