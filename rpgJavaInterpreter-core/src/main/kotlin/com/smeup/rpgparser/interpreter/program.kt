@@ -1,9 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.parsing.ast.ActivationGroupType
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.InputStream
@@ -80,7 +78,17 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
             } else {
                 null
             }
-            val activationGroupType = cu.activationGroupType()
+            var activationGroupType = cu.activationGroupType()
+            // if activation group is not in AST (not defined in RPG program)
+            if (activationGroupType == null) {
+                activationGroupType = when (caller) {
+                    // for main program, which does not have a caller, activation group is fixed by config
+                    null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                    else -> {
+                        CallerActivationGroup
+                    }
+                }
+            }
             activationGroupType?.let {
                 activationGroup = ActivationGroup(it, it.assignedName(this, caller))
             }
