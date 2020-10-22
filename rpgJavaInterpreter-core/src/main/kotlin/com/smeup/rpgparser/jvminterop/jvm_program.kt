@@ -17,6 +17,30 @@ abstract class JvmProgramRaw(val name: String = "<UNNAMED JVM PROGRAM>", val par
     override fun params() = params
 }
 
+/**
+ * Allows to mock JvmProgram
+ * @param name Program name
+ * @param params Program param list
+ * @param executionLogic If you want you can implement here execution logic. Default return an empty list
+ * */
+class JvmMockProgram(
+    val name: String,
+    private val params: List<ProgramParam> = emptyList(),
+    private val executionLogic: (
+        systemInterface: SystemInterface,
+        params: LinkedHashMap<String, Value>
+    ) -> List<Value> = { _: SystemInterface, _: LinkedHashMap<String, Value> ->
+        emptyList()
+    }
+) : Program {
+
+    override fun params() = params
+
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+        return executionLogic.invoke(systemInterface, params)
+    }
+}
+
 abstract class JvmProgramByReflection : Program {
 
     companion object {

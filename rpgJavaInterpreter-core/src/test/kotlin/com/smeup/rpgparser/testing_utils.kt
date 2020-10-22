@@ -4,6 +4,7 @@ package com.smeup.rpgparser
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.jvminterop.JvmMockProgram
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
@@ -21,7 +22,6 @@ import org.apache.commons.io.input.BOMInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
-import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.test.assertEquals
@@ -335,13 +335,18 @@ class DummyProgramFinder(private val path: String) : RpgProgramFinder {
     }
 }
 
-open class ExtendedCollectorSystemInterface() : CollectorSystemInterface() {
+open class ExtendedCollectorSystemInterface(private val jvmMockPrograms: List<JvmMockProgram> = emptyList()) : CollectorSystemInterface() {
 
     val programFinders = mutableListOf<RpgProgramFinder>(DummyProgramFinder("/"))
     private val rpgPrograms = HashMap<String, RpgProgram>()
+    private val nameToMockPrograms: Map<String, Program>
+
+    init {
+        nameToMockPrograms = jvmMockPrograms.map { it.name to it }.toMap()
+    }
 
     override fun findProgram(name: String): Program? {
-        return super.findProgram(name) ?: findWithFinders(name)
+        return nameToMockPrograms[name] ?: super.findProgram(name) ?: findWithFinders(name)
     }
 
     private fun findWithFinders(name: String): Program? {
