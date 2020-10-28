@@ -21,7 +21,12 @@ class RunnerTest {
     }
 
     private fun createLogFile(): File {
-        return newFile(folder, "log.log")
+        return newFile(folder, "log.log").apply {
+            // if exists clean
+            if (exists()) {
+                FileUtils.writeStringToFile(this, "", Charset.defaultCharset())
+            }
+        }
     }
 
     private fun createConfigurationFile(logFile: File): File {
@@ -49,7 +54,7 @@ class RunnerTest {
     }
 
     private fun newFile(folder: File, name: String): File {
-        return File(folder, name).apply { this.delete() }
+        return File(folder, name)
     }
 
     @Test
