@@ -8,17 +8,16 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.Appender
 import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.core.appender.ConsoleAppender
+import org.apache.logging.log4j.core.appender.FileAppender
+import org.apache.logging.log4j.core.config.AppenderRef
 import org.apache.logging.log4j.core.config.Configuration
+import org.apache.logging.log4j.core.config.LoggerConfig
+import org.apache.logging.log4j.core.layout.PatternLayout
 import java.io.File
 import java.io.FileInputStream
-import java.util.*
-import org.apache.logging.log4j.core.layout.PatternLayout
-import org.apache.logging.log4j.core.appender.FileAppender
-import org.apache.logging.log4j.core.config.LoggerConfig
-import org.apache.logging.log4j.core.config.AppenderRef
 import java.io.InputStreamReader
-import java.lang.RuntimeException
 import java.nio.charset.Charset
+import java.util.*
 
 const val DATA_LOGGER: String = "data"
 const val LOOP_LOGGER: String = "loop"
@@ -28,12 +27,9 @@ const val PERFORMANCE_LOGGER: String = "performance"
 const val RESOLUTION_LOGGER: String = "resolution"
 
 abstract class LogHandler(val level: LogLevel, val sep: String) {
+    // as this method is for registration only, I think it is incorrect to extract the extension as well
     fun extractFilename(name: String): String {
-        val fullName = name.substringAfterLast("/")
-        val fileName = fullName.substringBeforeLast(".")
-        val extension = fullName.substringAfterLast(".")
-
-        return "$fileName.$extension"
+        return name.substringAfterLast("/").substringBeforeLast(".")
     }
 
     open fun render(logEntry: LogEntry): String {

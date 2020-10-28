@@ -95,35 +95,37 @@ fun executeWithMutes(
     var executed = 0
     val exceptions = LinkedList<Throwable>()
 
-    var parserResult: RpgParserResult? = null
-    val file = File(path.toString())
-    try {
-        parserResult =
-            RpgParserFacade().apply { muteSupport = true }
-            .parse(file.inputStream())
-        if (parserResult.correct) {
-            val systemInterface =
-                SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(
-                    logConfigurationFile
-                )
-            parserResult.executeMuteAnnotations(verbose, systemInterface, programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
-                if (verbose || annotation.failed()) {
-                    println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
-                    if (annotation.failed()) {
-                        failed++
-                        if (annotation is MuteComparisonAnnotationExecuted) {
-                            println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
-                            println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
+    val systemInterface =
+        SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(
+            logConfigurationFile
+        )
+    return MainExecutionContext.execute(systemInterface = systemInterface) {
+        var parserResult: RpgParserResult? = null
+        val file = File(path.toString())
+        try {
+            parserResult =
+                RpgParserFacade().apply { muteSupport = true }
+                .parse(file.inputStream())
+            if (parserResult.correct) {
+                parserResult.executeMuteAnnotations(verbose, systemInterface, programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
+                    if (verbose || annotation.failed()) {
+                        println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
+                        if (annotation.failed()) {
+                            failed++
+                            if (annotation is MuteComparisonAnnotationExecuted) {
+                                println("   Value 1: ${annotation.value1Expression.render()} -> ${annotation.value1Result}")
+                                println("   Value 2: ${annotation.value2Expression.render()} -> ${annotation.value2Result}")
+                            }
                         }
                     }
+                    executed++
                 }
-                executed++
             }
+        } catch (e: Throwable) {
+            exceptions.add(e)
         }
-    } catch (e: Throwable) {
-        exceptions.add(e)
+        ExecutionResult(file, parserResult?.root?.muteContexts?.size ?: 0, executed, failed, exceptions, parserResult?.errors ?: emptyList())
     }
-    return ExecutionResult(file, parserResult?.root?.muteContexts?.size ?: 0, executed, failed, exceptions, parserResult?.errors ?: emptyList())
 }
 
 fun executeMuteAnnotations(
@@ -134,16 +136,19 @@ fun executeMuteAnnotations(
     programName: String = "<UNKNOWN>",
     configuration: Configuration = Configuration()
 ): SortedMap<Int, MuteAnnotationExecuted>? {
-    val parserResult =
-        RpgParserFacade().apply { muteSupport = true }
-        .parse(programStream)
-    return if (parserResult.correct) {
-        parserResult.executeMuteAnnotations(
-            verbose = verbose, systemInterface = systemInterface, parameters = parameters,
-            programName = programName, configuration = configuration
-        )
-    } else {
-        null
+    return MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
+        it.executionProgramName = programName
+        val parserResult =
+            RpgParserFacade().apply { muteSupport = true }
+            .parse(programStream)
+        if (parserResult.correct) {
+            parserResult.executeMuteAnnotations(
+                verbose = verbose, systemInterface = systemInterface, parameters = parameters,
+                programName = programName, configuration = configuration
+            )
+        } else {
+            null
+        }
     }
 }
 
@@ -154,37 +159,35 @@ fun RpgParserResult.executeMuteAnnotations(
     programName: String = "<UNKONWN>",
     configuration: Configuration = Configuration()
 ): SortedMap<Int, MuteAnnotationExecuted> {
-    return MainExecutionContext.execute(configuration = configuration) {
-        val root = this.root!!
-        val cu = root.rContext.toAst().apply {
-            val resolved = this.injectMuteAnnotation(root.muteContexts!!)
+    val root = this.root!!
+    val cu = root.rContext.toAst().apply {
+        val resolved = this.injectMuteAnnotation(root.muteContexts!!)
 
-            if (verbose) {
-                val sorted = resolved.sortedWith(compareBy { it.muteLine })
-                sorted.forEach {
-                    println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
-                }
+        if (verbose) {
+            val sorted = resolved.sortedWith(compareBy { it.muteLine })
+            sorted.forEach {
+                println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
             }
         }
-        cu.resolveAndValidate(systemInterface.db)
-        val interpreter = InternalInterpreter(systemInterface).apply {
-            interpretationContext = object : InterpretationContext {
-                private var iDataWrapUpChoice: DataWrapUpChoice? = null
-                override val currentProgramName: String
-                    get() = programName
-
-                override fun shouldReinitialize() = false
-
-                override var dataWrapUpChoice: DataWrapUpChoice?
-                    get() = iDataWrapUpChoice
-                    set(value) {
-                        iDataWrapUpChoice = value
-                    }
-            }
-        }
-        interpreter.execute(cu, parameters)
-        interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
     }
+    cu.resolveAndValidate(systemInterface.db)
+    val interpreter = InternalInterpreter(systemInterface).apply {
+        interpretationContext = object : InterpretationContext {
+            private var iDataWrapUpChoice: DataWrapUpChoice? = null
+            override val currentProgramName: String
+                get() = programName
+
+            override fun shouldReinitialize() = false
+
+            override var dataWrapUpChoice: DataWrapUpChoice?
+                get() = iDataWrapUpChoice
+                set(value) {
+                    iDataWrapUpChoice = value
+                }
+        }
+    }
+    interpreter.execute(cu, parameters)
+    return interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
 }
 
 object MuteRunner {

@@ -38,12 +38,14 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
 
         if (logger.isInfoEnabled) {
             when (logEntry) {
+                is ProgramParsingLogEnd -> logger.info(render(logEntry))
+                is AstLogEnd -> logger.info(render(logEntry))
                 is SubroutineExecutionLogEnd -> logger.info(render(logEntry))
                 is ForStatementExecutionLogEnd -> logger.info(render(logEntry))
                 is DoStatemenExecutionLogEnd -> logger.info(render(logEntry))
                 is DowStatemenExecutionLogEnd -> logger.info(render(logEntry))
                 is CallEndLogEntry -> logger.info(render(logEntry))
-                is ProgramExecutionLogEnd -> logger.info(render(logEntry))
+                is ProgramInterpretationLogEnd -> logger.info(render(logEntry))
             }
         }
     }
@@ -62,15 +64,17 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
 
         if (logger.isInfoEnabled) {
             when (logEntry) {
+                is ProgramParsingLogStart -> logger.info(render(logEntry))
+                is ProgramParsingLogEnd -> logger.info(render(logEntry))
+                is AstLogStart -> logger.info(render(logEntry))
+                is AstLogEnd -> logger.info(render(logEntry))
                 is ParamListStatemenExecutionLog -> logger.info(render(logEntry))
                 is SelectCaseExecutionLogEntry -> logger.info(render(logEntry))
                 is SelectOtherExecutionLogEntry -> logger.info(render(logEntry))
                 is SubroutineExecutionLogStart -> logger.info(render(logEntry))
                 is SubroutineExecutionLogEnd -> logger.info(render(logEntry))
-                is ProgramExecutionLogStart -> {
-                    logger.info(render(logEntry))
-                }
-                is ProgramExecutionLogEnd -> logger.info(render(logEntry))
+                is ProgramInterpretationLogStart -> logger.info(render(logEntry))
+                is ProgramInterpretationLogEnd -> logger.info(render(logEntry))
                 is IfExecutionLogEntry -> logger.info(render(logEntry))
                 is ElseIfExecutionLogEntry -> logger.info(render(logEntry))
                 is ClearStatemenExecutionLog -> logger.info(render(logEntry))

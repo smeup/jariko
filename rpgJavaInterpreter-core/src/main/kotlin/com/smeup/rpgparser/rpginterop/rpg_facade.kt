@@ -4,7 +4,6 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
-import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.LinkedHashMap
 import kotlin.reflect.KClass
@@ -14,7 +13,6 @@ import kotlin.reflect.KType
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
-import kotlin.system.measureTimeMillis
 
 annotation class Param(val name: String)
 
@@ -41,25 +39,26 @@ abstract class RpgFacade<P> (
 
     private val programInterpreter = ProgramInterpreter(systemInterface.addExtraLogHandlers(logHandlers))
     private val programName by lazy { programNameSource.nameFor(this) }
-    protected val rpgProgram by lazy { RpgSystem.getProgram(programName) }
+    private var rpgProgram: RpgProgram? = null
 
     private fun configureLogHandlers() {
         logHandlers = systemInterface.getAllLogHandlers()
     }
 
     fun singleCall(params: P, configuration: Configuration = Configuration()): P? {
-        configureLogHandlers()
-
-        val initialValues = toInitialValues(params)
-
-        logHandlers.log(ProgramExecutionLogStart(programName, initialValues))
-        MainExecutionContext.execute(configuration = configuration) {
-            val elapsed = measureTimeMillis {
-                programInterpreter.execute(rpgProgram, initialValues)
+        return MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
+            configureLogHandlers()
+            it.executionProgramName = programName
+            // i need to create rpgProgram inside MainExecutionContext to fix issue on experimental symbol table.
+            // Issue is due to the reusing of id generator in the AST creation, for which, if I create AST outside MainExecutionContext
+            // is never reinitialized and it creates an id number (keyid associated to variable) greater than maximum allowed by experimental symbol table
+            if (rpgProgram == null) {
+                rpgProgram = RpgSystem.getProgram(programName)
             }
-            logHandlers.log(ProgramExecutionLogEnd(programName, elapsed))
+            val initialValues = toInitialValues(rpgProgram!!, params)
+            programInterpreter.execute(rpgProgram!!, initialValues)
+            toResults(params, initialValues)
         }
-        return toResults(params, initialValues)
     }
 
     protected open fun toResults(params: P, resultValues: LinkedHashMap<String, Value>): P {
@@ -73,7 +72,7 @@ abstract class RpgFacade<P> (
         return params
     }
 
-    protected open fun toInitialValues(params: P): LinkedHashMap<String, Value> {
+    protected open fun toInitialValues(rpgProgram: RpgProgram, params: P): LinkedHashMap<String, Value> {
         val any: Any = params!!
         val kclass = any::class
         val initialValues = LinkedHashMap<String, Value>()
