@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.execution
 
-import com.smeup.rpgparser.interpreter.MemorySliceMgr
-import com.smeup.rpgparser.interpreter.RpgProgram
+import com.smeup.rpgparser.interpreter.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -13,15 +12,13 @@ import java.util.concurrent.atomic.AtomicInteger
  * */
 object MainExecutionContext {
 
-    private val context = ThreadLocal<Context>()
-    // idProvider if missing context (i.e. main class) environment
-    private val noContextIdProvider = AtomicInteger()
-    // attributes if missing context (i.e. main class) environment
-    private val noContextAttributes = mutableMapOf<String, Any>()
-    // configuration if missing context (i.e. main class) environment
-    private val noConfiguration = Configuration()
-    // configuration if missing context (i.e. main class) environment
-    private val noProgramStack = Stack<RpgProgram>()
+    // default values in case jariko is not called from the command line program
+    private val context: ThreadLocal<Context> by lazy { ThreadLocal<Context>() }
+    private val noContextIdProvider: AtomicInteger by lazy { AtomicInteger() }
+    private val noContextAttributes: MutableMap<String, Any> by lazy { mutableMapOf<String, Any>() }
+    private val noConfiguration: Configuration by lazy { Configuration() }
+    private val noProgramStack: Stack<RpgProgram> by lazy { Stack<RpgProgram>() }
+    //
 
     /**
      * Call this method to execute e program in ExecutionContext environment.
@@ -30,7 +27,7 @@ object MainExecutionContext {
      * @see #getConfiguration
      * @see #getMemorySliceMgr
      * */
-    fun <T> execute(configuration: Configuration = Configuration(), mainProgram: () -> T): T {
+    fun <T> execute(configuration: Configuration = Configuration(), systemInterface: SystemInterface, mainProgram: (context: Context) -> T): T {
             require(
                 context.get() == null
             ) { "Context execution already created" }
@@ -40,9 +37,9 @@ object MainExecutionContext {
             MemorySliceMgr(configuration.memorySliceStorage)
         }
         try {
-            context.set(Context(configuration = configuration, memorySliceMgr = memorySliceMgr))
+            context.set(Context(configuration = configuration, memorySliceMgr = memorySliceMgr, systemInterface = systemInterface))
             return mainProgram.runCatching {
-                invoke()
+                invoke(context.get())
             }.onFailure {
                 memorySliceMgr?.afterMainProgramInterpretation(false)
             }.onSuccess {
@@ -74,15 +71,45 @@ object MainExecutionContext {
     fun getMemorySliceMgr() = context.get()?.memorySliceMgr
 
     /**
-     * @return program stack
+     * @return program stack. This is an execution stack
      * */
     fun getProgramStack() = context.get()?.programStack ?: noProgramStack
+
+    /**
+     * @return Execution program name
+     */
+    fun getExecutionProgramName() = context.get()?.executionProgramName ?: ""
+
+    /**
+     * Set execution program name
+     */
+    fun setExecutionProgramName(executionProgramName: String) {
+        context.get()?.executionProgramName = executionProgramName
+    }
+
+    /**
+     * Logs entries
+     */
+    fun log(logEntry: LogEntry) {
+        context.get()?.let { it.log(logEntry) }
+    }
 }
 
-private data class Context(
+data class Context(
     val attributes: MutableMap<String, Any> = mutableMapOf<String, Any>(),
     val idProvider: AtomicInteger = AtomicInteger(),
     val configuration: Configuration,
     val memorySliceMgr: MemorySliceMgr? = null,
-    val programStack: Stack<RpgProgram> = Stack<RpgProgram>()
-)
+    val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
+    val systemInterface: SystemInterface,
+    var executionProgramName: String? = null
+) {
+
+    private val logHandlers: MutableList<InterpreterLogHandler> by lazy {
+        systemInterface.getAllLogHandlers()
+    }
+
+    fun log(logEntry: LogEntry) {
+        logHandlers.log(logEntry)
+    }
+}

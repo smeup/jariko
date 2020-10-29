@@ -11,8 +11,8 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.rpginterop.*
-import java.io.File
 import org.apache.commons.io.input.BOMInputStream
+import java.io.File
 
 class CommandLineParms(val parmsList: List<String>)
 
@@ -21,7 +21,7 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
 }
 
 class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)), systemInterface) {
-    override fun toInitialValues(params: CommandLineParms): LinkedHashMap<String, Value> {
+    override fun toInitialValues(rpgProgram: RpgProgram, params: CommandLineParms): LinkedHashMap<String, Value> {
         val result = LinkedHashMap<String, Value> ()
         val values = params.parmsList.map { parameter -> StringValue(parameter) }
         val zipped = rpgProgram.params()
@@ -50,7 +50,6 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
         return if (resourceStream != null) {
             RpgProgram.fromInputStream(BOMInputStream(resourceStream), dbInterface, nameOrSource)
         } else {
-            println("Resource $path not found")
             null
         }
     }

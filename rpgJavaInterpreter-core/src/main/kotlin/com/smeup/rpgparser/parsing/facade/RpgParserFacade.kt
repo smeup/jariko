@@ -5,7 +5,8 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.interpreter.line
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -27,6 +28,7 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
+import kotlin.system.measureTimeMillis
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>
 typealias MutesImmutableMap = Map<Int, MuteParser.MuteLineContext>
@@ -56,6 +58,10 @@ typealias RpgLexerResult = ParsingResult<List<Token>>
 class RpgParserFacade {
 
     var muteSupport: Boolean = true
+
+    private val executionProgramName: String by lazy {
+        MainExecutionContext.getExecutionProgramName()
+    }
 
     private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80): CharStream {
         val code = inputStreamToString(inputStream)
@@ -122,7 +128,7 @@ class RpgParserFacade {
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+                    ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
             }
         })
         val commonTokenStream = CommonTokenStream(lexer)
@@ -131,7 +137,7 @@ class RpgParserFacade {
         parser.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.SYNTACTIC, errorMessage
-                        ?: "unspecified"))
+                    ?: "unspecified"))
             }
         })
         return parser
@@ -211,26 +217,38 @@ class RpgParserFacade {
     }
 
     fun parse(inputStream: InputStream): RpgParserResult {
-        val errors = LinkedList<Error>()
-        val code = inputStreamToString(inputStream)
-        val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
-        val root = parser.r()
-        var mutes: MutesImmutableMap? = null
-        if (muteSupport) {
-            mutes = findMutes(code, errors)
+        val parserResult: RpgParserResult
+        MainExecutionContext.log(ProgramParsingLogStart(executionProgramName))
+        val elapsed = measureTimeMillis {
+            val errors = LinkedList<Error>()
+            val code = inputStreamToString(inputStream)
+            val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
+            val root = parser.r()
+            var mutes: MutesImmutableMap? = null
+            if (muteSupport) {
+                mutes = findMutes(code, errors)
+            }
+            verifyParseTree(parser, errors, root)
+            parserResult = RpgParserResult(errors, ParseTrees(root, mutes), parser)
         }
-        verifyParseTree(parser, errors, root)
-        return RpgParserResult(errors, ParseTrees(root, mutes), parser)
+        MainExecutionContext.log(ProgramParsingLogEnd(executionProgramName, elapsed))
+        return parserResult
     }
 
     fun parseAndProduceAst(inputStream: InputStream): CompilationUnit {
         val result = parse(inputStream)
         require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
-        return result.root!!.rContext.toAst().apply {
-            if (muteSupport) {
-                this.injectMuteAnnotation(result.root.muteContexts!!)
+        val compilationUnit: CompilationUnit
+        MainExecutionContext.log(AstLogStart(executionProgramName))
+        val elapsed = measureTimeMillis {
+            compilationUnit = result.root!!.rContext.toAst().apply {
+                if (muteSupport) {
+                    this.injectMuteAnnotation(result.root.muteContexts!!)
+                }
             }
         }
+        MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
+        return compilationUnit
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true, printTree: Boolean = false): ParsingResult<ExpressionContext> {

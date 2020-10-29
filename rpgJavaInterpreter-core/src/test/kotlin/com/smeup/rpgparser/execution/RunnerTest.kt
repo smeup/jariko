@@ -21,7 +21,12 @@ class RunnerTest {
     }
 
     private fun createLogFile(): File {
-        return newFile(folder, "log.log")
+        return newFile(folder, "log.log").apply {
+            // if exists clean
+            if (exists()) {
+                FileUtils.writeStringToFile(this, "", Charset.defaultCharset())
+            }
+        }
     }
 
     private fun createConfigurationFile(logFile: File): File {
@@ -63,11 +68,11 @@ class RunnerTest {
         assertContain(logs, "TEST_06\t44\tPERF\tENDFOR J")
         assertContain(logs, "TEST_06\t61\tPERF\tENDFOR I")
         assertContain(logs, "TEST_06\t80\tPERF\tSUBROUTINE END\tPRINT")
-        assertContain(logs, "TEST_06\t\tPERF\tEND TEST_06")
+        assertContain(logs, "TEST_06\t\tPERF\tINTERPRETATION END TEST_06")
     }
 
-    private fun assertContain(logs: List<String>, s: String) {
-        assertNotNull(logs.find { it.contains(s) })
+    private fun assertContain(logs: List<String>, expected: String) {
+        assertNotNull(logs.find { it.contains(expected) }, "Expected: $expected")
     }
 
     @Test
@@ -79,6 +84,6 @@ class RunnerTest {
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
 
         assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat = N/D\t10")
-        assertContain(logs, "CALCFIB.CALCFIB\t\tDATA\tppdat = N/D\t10")
+        assertContain(logs, "CALCFIB\t\tDATA\tppdat = N/D\t10")
     }
 }
