@@ -1,5 +1,5 @@
 # JaRIKo: a JAva virtual machine Rpg Interpreter written in KOtlin 
-![jariko Logo](/images/jariko_small.png)  
+![jariko Logo](/images/jariko_small.png) 
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://travis-ci.org/smeup/jariko.svg?branch=master)](https://travis-ci.org/smeup/jariko)
@@ -9,13 +9,16 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/smeup/jariko)
 
 
-# ⚡️ Cross-platform RPG Code in a polyglot environment ⚡️
+# ⚡️Cross-platform RPG Code in a polyglot environment⚡️
 
 ## Introduction
 
 JaRIKo is an [interpreter](https://en.wikipedia.org/wiki/Interpreter_(computing)) for the [RPG programming language](https://en.wikipedia.org/wiki/IBM_RPG). It runs on the JVM since it's written in Kotlin.
 
 It is part of a bigger project named **Sme.UP Open Architecture**, by the italian software company **Sme.UP**. 
+
+![Sme UP Logo](/images/logo_smeup.png) 
+
 
 Sme.UP Open Architecture aims to build a **software platform for business applications** (also mistakenly known as ERP systems) and it is the core of **Sme.UP Data Platform**.  
 
