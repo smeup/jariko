@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.*
 import java.lang.IllegalArgumentException
@@ -29,7 +30,7 @@ data class CompilationUnit(
                 null)
     }
 
-    var databaseInterface: DBInterface = DummyDBInterface
+    var databaseInterface: DBFile = TODO()
 
     val entryPlist: PlistStmt?
         get() = main.stmts.plist()
@@ -51,9 +52,9 @@ data class CompilationUnit(
                 // Adds DS sub-fields
                 dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
                 fileDefinitions.forEach {
-                    val metadata = databaseInterface.metadataOf(it.name)
+                    val metadata = databaseInterface.fileMetadata
                     if (metadata != null) {
-                        if (it.internalFormatName == null) it.internalFormatName = metadata.formatName
+                        if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
                         _allDataDefinitions.addAll(metadata.fields.map(DBField::toDataDefinition))
                     }
                 }

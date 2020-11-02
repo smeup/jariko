@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.rpginterop
 
-import com.smeup.rpgparser.interpreter.DBInterface
-import com.smeup.rpgparser.interpreter.DummyDBInterface
+import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.interpreter.RpgProgram
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -9,11 +8,11 @@ import java.io.FileInputStream
 import java.util.*
 
 interface RpgProgramFinder {
-    fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram?
+    fun findRpgProgram(nameOrSource: String, dbInterface: DBFile): RpgProgram?
 }
 
 class SourceProgramFinder : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBFile): RpgProgram? {
         if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
             return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), dbInterface, nameOrSource)
         }
@@ -31,7 +30,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         directory?.let { require(it.exists()) { "The specified directory should exist: ${directory.path} -> ${directory.absolutePath}" } }
     }
 
-    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBFile): RpgProgram? {
         val file = File(prefix() + nameAndSuffix(nameOrSource))
         return if (file.exists()) {
             RpgProgram.fromInputStream(FileInputStream(file), dbInterface, nameOrSource)
@@ -61,7 +60,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 }
 
 object RpgSystem {
-    var db: DBInterface = DummyDBInterface
+    var db: DBFile = TODO()
 
     internal val programFinders = LinkedHashSet<RpgProgramFinder>()
 

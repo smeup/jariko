@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.jvminterop
 
+import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
@@ -10,10 +11,10 @@ import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
 open class JavaSystemInterface(
-    private val outputStream: PrintStream,
-    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
-    private val databaseInterface: DBInterface = DummyDBInterface,
-    var loggingConfiguration: LoggingConfiguration? = null
+        private val outputStream: PrintStream,
+        private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
+        private val databaseInterface: DBFile = TODO(),
+        var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
@@ -23,8 +24,8 @@ open class JavaSystemInterface(
         return this.loggingConfiguration
     }
 
-    override val db: DBInterface
-        get() = databaseInterface
+    override val db: DBFile
+        get() = TODO()
 
     // For calls from Java programs
     constructor (os: PrintStream) : this(os, RpgSystem::getProgram)

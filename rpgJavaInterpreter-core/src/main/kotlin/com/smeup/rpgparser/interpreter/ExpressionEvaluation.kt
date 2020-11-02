@@ -396,6 +396,7 @@ class ExpressionEvaluation(
     override fun eval(expression: EofExpr): Value {
         // TODO fix this bad implementation
         if (expression.name == null) {
+            TODO("Implements eof")
             return BooleanValue(interpreterStatus.lastDBFile?.eof() ?: false)
         }
         TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
@@ -404,6 +405,7 @@ class ExpressionEvaluation(
     override fun eval(expression: EqualExpr): Value {
         // TODO fix this bad implementation
         if (expression.name == null) {
+            TODO("Implements equal")
             return BooleanValue(interpreterStatus.lastDBFile?.equal() ?: false)
         }
         TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")

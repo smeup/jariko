@@ -1,15 +1,19 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.dbnative.file.DBFile
+
 import java.util.*
 
-class DBFileMap(private val dbInterface: DBInterface) {
+class DBFileMap(private val dbFile: DBFile) {
     private val byFileName =
         TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
     private val byFormatName =
         TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
 
     fun add(fileDefinition: FileDefinition) {
-        val dbFile = dbInterface.open(fileDefinition.name)
+
+        val dbFile = TODO("Insert DBFile open")
+
         require(dbFile != null) {
             "Cannot open ${fileDefinition.name}"
         }

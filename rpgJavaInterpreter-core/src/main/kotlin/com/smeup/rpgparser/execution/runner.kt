@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.file
+import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
@@ -45,10 +46,10 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
 }
 
 class ResourceProgramFinder(val path: String) : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbFile: DBFile): RpgProgram? {
         val resourceStream = ResourceProgramFinder::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
         return if (resourceStream != null) {
-            RpgProgram.fromInputStream(BOMInputStream(resourceStream), dbInterface, nameOrSource)
+            RpgProgram.fromInputStream(BOMInputStream(resourceStream), dbFile, nameOrSource)
         } else {
             println("Resource $path not found")
             null

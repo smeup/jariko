@@ -1,5 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.dbnative.file.DBFile
+import com.smeup.dbnative.file.Record
+import com.smeup.dbnative.file.RecordField
 import com.smeup.rpgparser.parsing.ast.*
 
 /**

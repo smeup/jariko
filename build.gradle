@@ -46,4 +46,9 @@ subprojects {
     project.version = "0.2"
 }
 
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+
 

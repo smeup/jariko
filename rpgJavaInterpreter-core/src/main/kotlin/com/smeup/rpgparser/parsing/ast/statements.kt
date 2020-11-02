@@ -284,12 +284,12 @@ data class MoveAStmt(
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             val dbFile = interpreter.dbFile(name, this)
-            val record = if (searchArg.type() is KListType) {
+            val result = if (searchArg.type() is KListType) {
                 dbFile.chain(interpreter.toSearchValues(searchArg))
             } else {
                 dbFile.chain(interpreter.eval(searchArg))
             }
-            interpreter.fillDataFrom(record)
+            interpreter.fillDataFrom(result.record)
         }
     }
 
