@@ -367,29 +367,29 @@ class AssignmentOfElementLogEntry(programName: String, val array: Expression, va
     }
 }
 
-class ProgramExecutionLogStart(programName: String, val initialValues: Map<String, Value>) : LogEntry(programName) {
+class ProgramInterpretationLogStart(programName: String, val initialValues: Map<String, Value>) : LogEntry(programName) {
     override fun toString(): String {
         return "calling $programName with initial values $initialValues"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PROGRAM START${sep}$filename"
+        val data = "INTERPRETATION START${sep}$filename"
 
         return renderHeader(channel, filename, "", sep) + data
     }
 }
 
-class ProgramExecutionLogEnd(programName: String, val elapsed: Long = -1) : LogEntry(programName) {
+class ProgramInterpretationLogEnd(programName: String, val elapsed: Long = -1) : LogEntry(programName) {
     override fun toString(): String {
         return "ending $programName"
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "END $filename${sep}${elapsed}${sep}ms"
+        val data = "INTERPRETATION END $filename${sep}${elapsed}${sep}ms"
 
         return renderHeader(channel, filename, "", sep) + data
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PROGRAM END${sep}$filename"
+        val data = "INTERPRETATION END${sep}$filename"
 
         return renderHeader(channel, filename, "", sep) + data
     }
@@ -608,5 +608,65 @@ class LookupStatementExecutionLog(programName: String, val statement: LookupStmt
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         var data = "LOOKUP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class ProgramParsingLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "parsing start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "PARSING START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class ProgramParsingLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "parsing $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "PARSING END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "PARSING END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class AstLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ast start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "AST START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class AstLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "ast $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "AST END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "AST END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
     }
 }

@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.InputStream
+import kotlin.system.measureTimeMillis
 
 data class ProgramParam(val name: String, val type: Type)
 
@@ -28,6 +29,10 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBFile, val name: String 
 
     var activationGroup: ActivationGroup? = null
     private var initialized = false
+
+    private val logHandlers: MutableList<InterpreterLogHandler> by lazy {
+        systemInterface!!.getAllLogHandlers()
+    }
 
     override fun params(): List<ProgramParam> {
         val plistParams = cu.entryPlist
@@ -55,47 +60,52 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBFile, val name: String 
             "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
         }
         this.systemInterface = systemInterface
-        interpreter!!.interpretationContext = object : InterpretationContext {
-            private var iDataWrapUpChoice: DataWrapUpChoice? = null
-            override val currentProgramName: String
-                get() = name
-            override fun shouldReinitialize() = false
-            override var dataWrapUpChoice: DataWrapUpChoice?
-                get() = iDataWrapUpChoice
-                set(value) {
-                    iDataWrapUpChoice = value
-                }
-        }
+        logHandlers.log(ProgramInterpretationLogStart(name, params))
+        val changedInitialValues: List<Value>
+        val elapsed = measureTimeMillis {
+            interpreter!!.interpretationContext = object : InterpretationContext {
+                private var iDataWrapUpChoice: DataWrapUpChoice? = null
+                override val currentProgramName: String
+                    get() = name
+                override fun shouldReinitialize() = false
+                override var dataWrapUpChoice: DataWrapUpChoice?
+                    get() = iDataWrapUpChoice
+                    set(value) {
+                        iDataWrapUpChoice = value
+                    }
+            }
 
-        for (pv in params) {
-            val expectedType = params().find { it.name == pv.key }!!.type
-            val coercedValue = coerce(pv.value, expectedType)
-            require(coercedValue.assignableTo(expectedType)) {
-                "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
+            for (pv in params) {
+                val expectedType = params().find { it.name == pv.key }!!.type
+                val coercedValue = coerce(pv.value, expectedType)
+                require(coercedValue.assignableTo(expectedType)) {
+                    "param ${pv.key} was expected to have type $expectedType. It has value: $coercedValue"
+                }
             }
+            if (!initialized) {
+                initialized = true
+                val caller = if (MainExecutionContext.getProgramStack().isNotEmpty()) {
+                    MainExecutionContext.getProgramStack().peek()
+                } else {
+                    null
+                }
+                val activationGroupType = cu.activationGroupType()
+                activationGroupType?.let {
+                    activationGroup = ActivationGroup(it, it.assignedName(this, caller))
+                }
+            }
+            MainExecutionContext.getProgramStack().push(this)
+            // set reinitialization to false because symboltable cleaning currently is handled directly
+            // in internal interpreter before exit
+            // todo i don't know whether parameter reinitialization has still sense
+            interpreter.execute(this.cu, params, false)
+            params.keys.forEach { params[it] = interpreter[it] }
+            changedInitialValues = params().map { interpreter[it.name] }
+            // here clear symbol table if needed
+            interpreter.doSomethingAfterExecution()
+            MainExecutionContext.getProgramStack().pop()
         }
-        if (!initialized) {
-            initialized = true
-            val caller = if (MainExecutionContext.getProgramStack().isNotEmpty()) {
-                MainExecutionContext.getProgramStack().peek()
-            } else {
-                null
-            }
-            val activationGroupType = cu.activationGroupType()
-            activationGroupType?.let {
-                activationGroup = ActivationGroup(it, it.assignedName(this, caller))
-            }
-        }
-        MainExecutionContext.getProgramStack().push(this)
-        // set reinitialization to false because symboltable cleaning currently is handled directly
-        // in internal interpreter before exit
-        // todo i don't know whether parameter reinitialization has still sense
-        interpreter.execute(this.cu, params, false)
-        params.keys.forEach { params[it] = interpreter[it] }
-        val changedInitialValues = params().map { interpreter[it.name] }
-        // here clear symbol table if needed
-        interpreter.doSomethingAfterExecution()
-        MainExecutionContext.getProgramStack().pop()
+        logHandlers.log(ProgramInterpretationLogEnd(name, elapsed))
         return changedInitialValues
     }
 
