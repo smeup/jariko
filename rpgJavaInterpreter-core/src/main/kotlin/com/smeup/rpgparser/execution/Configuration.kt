@@ -12,7 +12,7 @@ import com.smeup.rpgparser.interpreter.ISymbolTable
  * @param defaultActivationGroupName Default activation group. If not specified it assumes "*DEFACTGRP"
  * */
 
-const val DEFAULT_ACTIVATION_GROUP_NAME = "*DEFACTGRP"
+const val DEFAULT_ACTIVATION_GROUP_NAME = "*DFTACTGRP"
 
 data class Configuration(
     val memorySliceStorage: IMemorySliceStorage? = null,
