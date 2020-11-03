@@ -4,7 +4,9 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DEFAULT_ACTIVATION_GROUP_NAME
 import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.junit.Test
+import java.io.File
 import kotlin.test.assertEquals
 
 class ActivationGroupTest {
@@ -31,6 +33,9 @@ class ActivationGroupTest {
         commandLineProgram.singleCall(emptyList(), conf)
     }
 
+    /**
+     * Assigned activation group name should be from declaration
+     * */
     @Test
     fun testMainSpecified() {
         val pgm = "     H ACTGRP('MYACT')\n" +
@@ -50,4 +55,28 @@ class ActivationGroupTest {
         commandLineProgram.singleCall(emptyList(), conf)
     }
 
+    /**
+     * Assigned activation group name in main and called program should be MYGRP
+     * */
+    @Test
+    fun testCallCaller() {
+        val programName = "ACTGRP_CAL_CALLER.rpgle"
+        val path = javaClass.getResource("/$programName")
+        // here I set the path from where jariko will search for the rpg sources
+        val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile))
+        val conf = Configuration(
+            jarikoCallback = JarikoCallback(
+                getActivationGroup = {
+                        executingProgramName: String, associatedActivationGroup: ActivationGroup? ->
+                    println("programName: $executingProgramName")
+                    println("associatedActivationGroupName: ${associatedActivationGroup?.assignedName}")
+                    assertEquals("MYGRP", associatedActivationGroup?.assignedName)
+                    null
+                }
+            ),
+            defaultActivationGroupName = "MYGRP"
+        )
+        val commandLineProgram = getProgram(nameOrSource = programName, programFinders = rpgProgramFinders)
+        commandLineProgram.singleCall(emptyList(), conf)
+    }
 }

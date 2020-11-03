@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.MuteParser
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -398,8 +399,10 @@ data class MoveAStmt(
 
         override fun execute(interpreter: InterpreterCore) {
             interpreter.log { CallExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
+            val startTime = System.currentTimeMillis()
             val callStatement = this
             val programToCall = interpreter.eval(expression).asString().value
+            MainExecutionContext.setExecutionProgramName(programToCall)
             val program = interpreter.systemInterface.findProgram(programToCall)
             require(program != null) {
                 "Line: ${this.position.line()} - Program $programToCall cannot be found"
@@ -428,15 +431,14 @@ data class MoveAStmt(
                 program.params()[index].name to interpreter[it.param.name]
             }.toMap(LinkedHashMap())
 
-            val startTime = System.currentTimeMillis()
             val paramValuesAtTheEnd =
                     try {
                         interpreter.systemInterface.registerProgramExecutionStart(program, params)
                         program.execute(interpreter.systemInterface, params).apply {
-                            interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
+                            interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
                         }
                     } catch (e: Exception) { // TODO Catch a more specific exception?
-                        interpreter.log { CallEndLogEntry("", callStatement, System.currentTimeMillis() - startTime) }
+                        interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
                         if (errorIndicator == null) {
                             throw e
                         }

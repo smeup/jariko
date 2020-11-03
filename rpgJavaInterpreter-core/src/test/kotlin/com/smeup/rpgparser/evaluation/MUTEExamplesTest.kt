@@ -1,7 +1,14 @@
 package com.smeup.rpgparser.evaluation
 
 import com.andreapivetta.kolor.yellow
-import com.smeup.rpgparser.*
+import com.smeup.rpgparser.CollectorSystemInterface
+import com.smeup.rpgparser.DummyProgramFinder
+import com.smeup.rpgparser.ExtendedCollectorSystemInterface
+import com.smeup.rpgparser.PerformanceTest
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.interpreter.StringType
+import com.smeup.rpgparser.interpreter.parm
+import com.smeup.rpgparser.jvminterop.JvmMockProgram
 import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.mute.executeMuteAnnotations
 import com.smeup.rpgparser.performance.*
@@ -87,8 +94,8 @@ class MUTEExamplesTest {
         assertMuteOK("MUTE10_08C", withOutput = emptyList())
     }
 
-    private fun siWithProgramFinderInPerformanceFolder(): ExtendedCollectorSystemInterface {
-        val si = ExtendedCollectorSystemInterface()
+    private fun siWithProgramFinderInPerformanceFolder(jvmMockPrograms: List<JvmMockProgram> = emptyList<JvmMockProgram>()): ExtendedCollectorSystemInterface {
+        val si = ExtendedCollectorSystemInterface(jvmMockPrograms = jvmMockPrograms)
         si.programFinders.add(dummyProgramFinder())
         return si
     }
@@ -344,6 +351,17 @@ class MUTEExamplesTest {
     }
 
     @Test @Category(PerformanceTest::class)
+    fun executeMUTE10_58() {
+        // mock of £JAX_IMP0, £IXA and £JAX_FIN0
+        val jvmMockPrograms = listOf(
+            "£JAX_IMP0".mockProgram(1),
+            "£IXA".mockProgram(7),
+            "£JAX_FIN0".mockProgram(1)
+        )
+        assertMuteOK(programName = "MUTE10_58", jvmMockPrograms = jvmMockPrograms)
+    }
+
+    @Test @Category(PerformanceTest::class)
     // DO (expected 68ms. to perform an empty loop of 10000000 iterations, as MUTE10_53.rpgle)
     fun executeKute10_53() {
         val kute = Kute10_53()
@@ -378,16 +396,35 @@ class MUTEExamplesTest {
         kute.performanceComparing(true)
     }
 
+    /**
+     * Use this function to mock a program. Mock program has no logic.
+     * @param paramsCount Number of param required by program. View CALL in RPG
+     * */
+    private fun String.mockProgram(paramsCount: Int = 0): JvmMockProgram {
+        val params = Array(paramsCount) { StringType(1).parm(it.toString()) }
+        return JvmMockProgram(name = this, params = params.toList())
+    }
+
     private fun dummyProgramFinder() = DummyProgramFinder("/performance/")
 
-    private fun assertMuteOK(programName: String, withOutput: List<String>? = null) {
-        val si = siWithProgramFinderInPerformanceFolder()
+    private fun assertMuteOK(
+        programName: String,
+        withOutput: List<String>? = null,
+        configuration: Configuration = Configuration(),
+        jvmMockPrograms: List<JvmMockProgram> = emptyList<JvmMockProgram>()
+    ) {
+        val si = siWithProgramFinderInPerformanceFolder(jvmMockPrograms = jvmMockPrograms)
         val rpgSourceInputStream = dummyProgramFinder().rpgSourceInputStream(programName)
 
         require(rpgSourceInputStream != null) {
             "$programName cannot be found"
         }
-        executeMuteAnnotations(rpgSourceInputStream, si, programName = programName)
+        executeMuteAnnotations(
+            programStream = rpgSourceInputStream,
+            systemInterface = si,
+            programName = programName,
+            configuration = configuration
+        )
 
         si.assertMutesSucceed(programName)
         withOutput?.let {
