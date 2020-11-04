@@ -1,0 +1,16 @@
+on:
+  pull_request:
+    branches:
+      - master
+    types: [closed]
+
+jobs:
+  update_jitpack:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps: 
+      - name: get-commit
+        continue-on-error: true
+        run: |
+          id=$(echo ${{github.event.pull_request.merge_commit_sha}} | cut -c1-10)          
+          wget "https://jitpack.io/api/builds/com.github.smeup/jariko/$id"
