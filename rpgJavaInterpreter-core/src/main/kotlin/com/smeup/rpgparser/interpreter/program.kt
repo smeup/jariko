@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.ActivationGroupType
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
@@ -19,7 +18,7 @@ interface Program {
     fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value>
 }
 
-class RpgProgram(val cu: CompilationUnit, dbInterface: DBFile, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
+class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
 
     private var systemInterface: SystemInterface? = null
 
@@ -45,13 +44,13 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBFile, val name: String 
     }
 
     init {
-        cu.resolveAndValidate(dbInterface)
+        cu.resolveAndValidate()
     }
 
     companion object {
-        fun fromInputStream(inputStream: InputStream, dbInterface: DBFile, name: String = "<UNNAMED INPUT STREAM>"): RpgProgram {
+        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED INPUT STREAM>"): RpgProgram {
             val cu = RpgParserFacade().parseAndProduceAst(inputStream)
-            return RpgProgram(cu, dbInterface, name)
+            return RpgProgram(cu, name)
         }
     }
 

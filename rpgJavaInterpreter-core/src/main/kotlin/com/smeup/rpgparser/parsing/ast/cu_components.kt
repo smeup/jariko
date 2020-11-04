@@ -1,9 +1,14 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.dbnative.file.DBFile
-import com.smeup.rpgparser.interpreter.*
-import com.strumenta.kolasu.model.*
-import java.lang.IllegalArgumentException
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.FileDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.strumenta.kolasu.model.Derived
+import com.strumenta.kolasu.model.Named
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
 import java.util.*
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
@@ -30,8 +35,6 @@ data class CompilationUnit(
                 null)
     }
 
-    var databaseInterface: DBFile = TODO()
-
     val entryPlist: PlistStmt?
         get() = main.stmts.plist()
                 ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
@@ -52,10 +55,10 @@ data class CompilationUnit(
                 // Adds DS sub-fields
                 dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
                 fileDefinitions.forEach {
-                    val metadata = databaseInterface.fileMetadata
+                    val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.getMetadata?.invoke(it.name)
                     if (metadata != null) {
                         if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
-                        _allDataDefinitions.addAll(metadata.fields.map(DBField::toDataDefinition))
+                         _allDataDefinitions.addAll(metadata.fields.map(DBField::toDataDefinition))
                     }
                 }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)

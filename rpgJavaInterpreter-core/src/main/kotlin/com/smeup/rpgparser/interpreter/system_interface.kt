@@ -1,9 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.dbnative.file.DBFile
-import com.smeup.dbnative.file.RecordField
-import com.smeup.dbnative.model.FileMetadata
-
 import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
@@ -12,7 +8,6 @@ import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 import java.io.PrintStream
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 
 typealias LoggingConfiguration = Properties
@@ -49,8 +44,6 @@ interface SystemInterface {
     fun findProgram(name: String): Program?
     fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function?
 
-    val db: DBFile
-
     fun loggingConfiguration(): LoggingConfiguration?
     fun addExtraLogHandlers(logHandlers: List<InterpreterLogHandler>): SystemInterface {
         extraLogHandlers.addAll(logHandlers)
@@ -78,8 +71,6 @@ object DummySystemInterface : SystemInterface {
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = null
-
-    override val db: DBFile = TODO()
 
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         return null
@@ -113,8 +104,6 @@ class SimpleSystemInterface(
 
     override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
 
-    override val db: DBFile = TODO()
-
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         return null
     }
@@ -124,7 +113,7 @@ class SimpleSystemInterface(
     override fun findProgram(name: String): Program? {
         programs.computeIfAbsent(name) {
             programFinders.asSequence().mapNotNull {
-                it.findRpgProgram(name, db)
+                it.findRpgProgram(name)
             }.firstOrNull()
         }
         return programs[name]

@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.interpreter.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -93,6 +94,11 @@ object MainExecutionContext {
     fun log(logEntry: LogEntry) {
         context.get()?.let { it.log(logEntry) }
     }
+
+    /***
+     * Get DB File Factory
+     */
+    fun getDBFileFactory(): DBFileFactory? = context.get()?.dbFileFactory
 }
 
 data class Context(
@@ -102,7 +108,10 @@ data class Context(
     val memorySliceMgr: MemorySliceMgr? = null,
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
-    var executionProgramName: String? = null
+    var executionProgramName: String? = null,
+    val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
+        DBFileFactory(it.nativeAccessConfig)
+    }
 ) {
 
     private val logHandlers: MutableList<InterpreterLogHandler> by lazy {
