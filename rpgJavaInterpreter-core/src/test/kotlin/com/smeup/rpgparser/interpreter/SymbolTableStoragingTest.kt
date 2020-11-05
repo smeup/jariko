@@ -352,7 +352,7 @@ class SymbolTableStoragingTest {
     @Test
     fun multiThreadTest() {
 
-        val testNames = listOf("execPgmAndEvaluateStorage","initPgmByStorageAndEvaluateResult",
+        val testNames = listOf("execPgmAndEvaluateStorage", "initPgmByStorageAndEvaluateResult",
                 "execLRPgmAndEvaluateStorage", "execRTPgmTwiceAndPreserveValues", "initPreExistingVariablesPgmByStorageAndEvaluateResult",
                 "sameVariablesButDifferentACTGRP", "sameVariablesAndSameACTGRP")
 
@@ -360,7 +360,7 @@ class SymbolTableStoragingTest {
         val repeatTests = 100
 
         val executor = Executors.newFixedThreadPool(fixedThreadPool)
-        repeat(repeatTests){
+        repeat(repeatTests) {
             for (testName in testNames) {
                 var simbolTableStoragingTest = SymbolTableStoragingTest()
                 val workerThread: Runnable = WorkerThread(simbolTableStoragingTest, testName)
@@ -389,10 +389,9 @@ class WorkerThread(var symbolTableStoragingTest: SymbolTableStoragingTest, var t
             "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP()
             "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP()
             else -> {
-                print("Test $testName not exists" )
+                print("Test $testName not exists")
             }
         }
         println(Thread.currentThread().name + " End test $testName")
     }
-
 }
