@@ -18,7 +18,15 @@ data class Configuration(
     val memorySliceStorage: IMemorySliceStorage? = null,
     val jarikoCallback: JarikoCallback = JarikoCallback(),
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
-    val options: Map<String, String>? = HashMap()
+    val options: Options = Options()
+)
+
+/**
+ * Options object
+ * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
+ * */
+data class Options(
+    val muteSupport: Boolean = false
 )
 
 /**

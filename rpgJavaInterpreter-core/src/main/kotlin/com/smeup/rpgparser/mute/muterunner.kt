@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
@@ -90,7 +91,7 @@ fun executeWithMutes(
     logConfigurationFile: File?,
     programFinders: List<RpgProgramFinder> = emptyList(),
     output: PrintStream? = null,
-    configuration: Configuration = Configuration(options = hashMapOf("muteSupport" to "true"))
+    configuration: Configuration = Configuration(options = Options(muteSupport = true))
 ): ExecutionResult {
     var failed = 0
     var executed = 0
@@ -105,7 +106,7 @@ fun executeWithMutes(
         val file = File(path.toString())
         try {
             parserResult =
-                RpgParserFacade().apply { muteSupport = configuration.options?.get("muteSupport").toBoolean() }
+                RpgParserFacade()
                 .parse(file.inputStream())
             if (parserResult.correct) {
                 parserResult.executeMuteAnnotations(verbose, systemInterface, programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
