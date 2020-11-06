@@ -106,9 +106,9 @@ class RunnerTest {
         program.singleCall(listOf())
         assertEquals(systemInterface.consoleOutput, listOf("Hello World"))
         val executedAnnotations = systemInterface.getExecutedAnnotation()
-        assertEquals(2, executedAnnotations.size)
-        assertEquals(1, executedAnnotations.values.count { it.failed() })
-        assertEquals(1, executedAnnotations.values.count { it.succeeded() })
+        assertEquals(0, executedAnnotations.size)
+        assertEquals(0, executedAnnotations.values.count { it.failed() })
+        assertEquals(0, executedAnnotations.values.count { it.succeeded() })
     }
 
     @Test

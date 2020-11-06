@@ -57,7 +57,8 @@ typealias RpgLexerResult = ParsingResult<List<Token>>
 
 class RpgParserFacade {
 
-    var muteSupport: Boolean = true
+    // Should be 'false' as default to avoid unnecessary search of 'mute annotation' into rpg program source.
+    var muteSupport: Boolean = MainExecutionContext.getConfiguration().options?.get("muteSupport").toBoolean()
 
     private val executionProgramName: String by lazy {
         MainExecutionContext.getExecutionProgramName()

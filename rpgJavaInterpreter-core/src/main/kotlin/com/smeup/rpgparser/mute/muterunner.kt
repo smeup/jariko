@@ -89,7 +89,8 @@ fun executeWithMutes(
     verbose: Boolean = false,
     logConfigurationFile: File?,
     programFinders: List<RpgProgramFinder> = emptyList(),
-    output: PrintStream? = null
+    output: PrintStream? = null,
+    configuration: Configuration = Configuration(options = hashMapOf("muteSupport" to "true"))
 ): ExecutionResult {
     var failed = 0
     var executed = 0
@@ -99,12 +100,12 @@ fun executeWithMutes(
         SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(
             logConfigurationFile
         )
-    return MainExecutionContext.execute(systemInterface = systemInterface) {
+    return MainExecutionContext.execute(systemInterface = systemInterface, configuration = configuration) {
         var parserResult: RpgParserResult? = null
         val file = File(path.toString())
         try {
             parserResult =
-                RpgParserFacade().apply { muteSupport = true }
+                RpgParserFacade().apply { muteSupport = configuration.options?.get("muteSupport").toBoolean() }
                 .parse(file.inputStream())
             if (parserResult.correct) {
                 parserResult.executeMuteAnnotations(verbose, systemInterface, programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
