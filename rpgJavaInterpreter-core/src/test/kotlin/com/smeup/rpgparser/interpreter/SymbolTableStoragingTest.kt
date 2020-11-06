@@ -3,7 +3,10 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.getProgram
 import org.junit.Test
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
@@ -79,8 +82,8 @@ class SymbolTableStoragingTest {
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-            expected = IntValue(1),
-            actual = variables["X"] ?: error("Not found X")
+                expected = IntValue(1),
+                actual = variables["X"] ?: error("Not found X")
         )
     }
 
@@ -369,8 +372,8 @@ class SymbolTableStoragingTest {
         }
         executor.shutdown()
 
-        println("Waiting for all thread to finish...")
-        while (!executor.isTerminated) {
+        println("Waiting 60s. for all thread to finish...")
+        while (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
         }
         println("...done")
     }
@@ -379,7 +382,7 @@ class SymbolTableStoragingTest {
 class WorkerThread(var symbolTableStoragingTest: SymbolTableStoragingTest, var testName: String) : Runnable {
 
     override fun run() {
-        println(Thread.currentThread().name + " Start test $testName")
+        println(Thread.currentThread().name + " Start test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
         when (testName) {
             "execPgmAndEvaluateStorage" -> symbolTableStoragingTest.execPgmAndEvaluateStorage()
             "initPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPgmByStorageAndEvaluateResult()
@@ -392,6 +395,6 @@ class WorkerThread(var symbolTableStoragingTest: SymbolTableStoragingTest, var t
                 print("Test $testName not exists")
             }
         }
-        println(Thread.currentThread().name + " End test $testName")
+        println(Thread.currentThread().name + " End test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
     }
 }
