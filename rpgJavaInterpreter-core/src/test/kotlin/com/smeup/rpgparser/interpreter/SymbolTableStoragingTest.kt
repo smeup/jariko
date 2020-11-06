@@ -3,6 +3,10 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.getProgram
 import org.junit.Test
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
@@ -78,8 +82,8 @@ class SymbolTableStoragingTest {
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-            expected = IntValue(1),
-            actual = variables["X"] ?: error("Not found X")
+                expected = IntValue(1),
+                actual = variables["X"] ?: error("Not found X")
         )
     }
 
@@ -346,5 +350,52 @@ class SymbolTableStoragingTest {
                 expected = IntValue(9),
                 actual = variables["NUM"] ?: error("Not found NUM")
         )
+    }
+
+    @Test
+    fun multiThreadTest() {
+        // Run all SymbolTableStoragingTest.kt tests in multithread mode
+
+        val testNames = listOf("execPgmAndEvaluateStorage", "initPgmByStorageAndEvaluateResult",
+                "execLRPgmAndEvaluateStorage", "execRTPgmTwiceAndPreserveValues", "initPreExistingVariablesPgmByStorageAndEvaluateResult",
+                "sameVariablesButDifferentACTGRP", "sameVariablesAndSameACTGRP")
+
+        val fixedThreadPool = 10
+        val repeatTests = 100
+        val timeOutExecutorTermination = 60L
+
+        val executor = Executors.newFixedThreadPool(fixedThreadPool)
+        repeat(repeatTests) {
+            for (testName in testNames) {
+                var simbolTableStoragingTest = SymbolTableStoragingTest()
+                var workerThread: Runnable = WorkerThread(simbolTableStoragingTest, testName)
+                executor.execute(workerThread)
+            }
+        }
+        executor.shutdown()
+
+        println("Waiting 60s. for all thread to finish...")
+        executor.awaitTermination(timeOutExecutorTermination, TimeUnit.SECONDS)
+        println("...done")
+    }
+}
+
+class WorkerThread(var symbolTableStoragingTest: SymbolTableStoragingTest, var testName: String) : Runnable {
+
+    override fun run() {
+        println(Thread.currentThread().name + " Start test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+        when (testName) {
+            "execPgmAndEvaluateStorage" -> symbolTableStoragingTest.execPgmAndEvaluateStorage()
+            "initPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPgmByStorageAndEvaluateResult()
+            "execLRPgmAndEvaluateStorage" -> symbolTableStoragingTest.execLRPgmAndEvaluateStorage()
+            "execRTPgmTwiceAndPreserveValues" -> symbolTableStoragingTest.execRTPgmTwiceAndPreserveValues()
+            "initPreExistingVariablesPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPreExistingVariablesPgmByStorageAndEvaluateResult()
+            "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP()
+            "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP()
+            else -> {
+                print("Test $testName not exists")
+            }
+        }
+        println(Thread.currentThread().name + " End test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
     }
 }
