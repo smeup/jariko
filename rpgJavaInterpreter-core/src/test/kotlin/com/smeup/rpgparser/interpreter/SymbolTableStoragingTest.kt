@@ -354,6 +354,7 @@ class SymbolTableStoragingTest {
 
     @Test
     fun multiThreadTest() {
+        // Run all SymbolTableStoragingTest.kt tests in multithread mode
 
         val testNames = listOf("execPgmAndEvaluateStorage", "initPgmByStorageAndEvaluateResult",
                 "execLRPgmAndEvaluateStorage", "execRTPgmTwiceAndPreserveValues", "initPreExistingVariablesPgmByStorageAndEvaluateResult",
@@ -361,20 +362,20 @@ class SymbolTableStoragingTest {
 
         val fixedThreadPool = 10
         val repeatTests = 100
+        val timeOutExecutorTermination = 60L
 
         val executor = Executors.newFixedThreadPool(fixedThreadPool)
         repeat(repeatTests) {
             for (testName in testNames) {
                 var simbolTableStoragingTest = SymbolTableStoragingTest()
-                val workerThread: Runnable = WorkerThread(simbolTableStoragingTest, testName)
+                var workerThread: Runnable = WorkerThread(simbolTableStoragingTest, testName)
                 executor.execute(workerThread)
             }
         }
         executor.shutdown()
 
         println("Waiting 60s. for all thread to finish...")
-        while (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-        }
+        executor.awaitTermination(timeOutExecutorTermination, TimeUnit.SECONDS)
         println("...done")
     }
 }
