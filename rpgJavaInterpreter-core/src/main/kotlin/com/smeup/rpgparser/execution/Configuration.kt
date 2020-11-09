@@ -1,23 +1,45 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.interpreter.ActivationGroup
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.ISymbolTable
+
+const val DEFAULT_ACTIVATION_GROUP_NAME = "*DFTACTGRP"
 
 /**
  * Configuration object
  * @param memorySliceStorage Allows to implement a symbol table storaging.
  * If null, symbol table persistence will be skipped
  * @param jarikoCallback Several callback.
- * @param defaultActivationGroupName Default activation group. If not specified it assumes "*DEFACTGRP"
+ * @param reloadConfig Reload configuration, it is necessary only for db access
  * */
-
-const val DEFAULT_ACTIVATION_GROUP_NAME = "*DFTACTGRP"
-
 data class Configuration(
-    val memorySliceStorage: IMemorySliceStorage? = null,
-    val jarikoCallback: JarikoCallback = JarikoCallback(),
-    val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME
+        val memorySliceStorage: IMemorySliceStorage? = null,
+        val jarikoCallback: JarikoCallback = JarikoCallback(),
+        val reloadConfig: ReloadConfig? = null,
+        val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
+        val options: Options? = Options()
+)
+
+/**
+ * Options object
+ * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
+ * */
+data class Options(
+        val muteSupport: Boolean = false
+)
+
+/**
+ * Reload configuration
+ * @param nativeAccessConfig DB Native Accesso config
+ * @param getMetadata get metadata for a dbFile, if returns null, FileMetadata are searched using default lookup method
+ * provided by reload
+ * */
+data class ReloadConfig(
+        val nativeAccessConfig: DBNativeAccessConfig,
+        val getMetadata: (dbFile: String) -> FileMetadata?
 )
 
 /**
@@ -32,11 +54,11 @@ data class Configuration(
  * @param onExitPgm It is invoked on program exit
  * */
 data class JarikoCallback(
-    val getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = {
-        _: String, _: ActivationGroup? ->
-        null
-    },
-    val exitInRT: (programName: String) -> Boolean? = { null },
-    val onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
-    val onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> }
+        val getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = {
+            _: String, _: ActivationGroup? ->
+            null
+        },
+        val exitInRT: (programName: String) -> Boolean? = { null },
+        val onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
+        val onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> }
 )

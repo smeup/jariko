@@ -49,6 +49,10 @@ abstract class NumberValue : Value {
 @Serializable
 data class StringValue(var value: String, val varying: Boolean = false) : Value {
 
+    override fun takeLast(n: Int): Value {
+        return StringValue(value.takeLast(n))
+    }
+
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             is StringType -> expectedType.length >= value.length.toLong()
@@ -57,10 +61,6 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value 
             is ArrayType -> expectedType.size == value.length // Check for >= ???
             else -> false
         }
-    }
-
-    override fun takeLast(n: Int): Value {
-        return StringValue(value.takeLast(n))
     }
 
     override fun takeFirst(n: Int): Value {

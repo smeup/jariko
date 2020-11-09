@@ -55,6 +55,9 @@ data class CompilationUnit(
                 // Adds DS sub-fields
                 dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
                 fileDefinitions.forEach {
+
+                    //TODO()
+
                     val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.getMetadata?.invoke(it.name)
                     if (metadata != null) {
                         if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
