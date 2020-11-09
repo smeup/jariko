@@ -252,7 +252,7 @@ class RpgParserFacade {
         }
         MainExecutionContext.log(RContextLogEnd(executionProgramName, elapsedRoot))
         var mutes: MutesImmutableMap? = null
-        if (muteSupport!!) {
+        if (muteSupport) {
             mutes = findMutes(code, errors)
         }
         verifyParseTree(parser, errors, root)
@@ -267,7 +267,7 @@ class RpgParserFacade {
         MainExecutionContext.log(AstLogStart(executionProgramName))
         val elapsed = measureTimeMillis {
             compilationUnit = result.root!!.rContext.toAst().apply {
-                if (muteSupport!!) {
+                if (muteSupport) {
                     this.injectMuteAnnotation(result.root.muteContexts!!)
                 }
             }
@@ -293,7 +293,7 @@ class RpgParserFacade {
         verifyParseTree(parser, errors, root)
         val result = ParsingResult(errors, root)
         val mutes: MutesMap?
-        if (muteSupport!! && result.correct) {
+        if (muteSupport && result.correct) {
             inputStream.reset()
             mutes = findMutes(inputStream, errors)
             result.root!!.toAst().apply {
