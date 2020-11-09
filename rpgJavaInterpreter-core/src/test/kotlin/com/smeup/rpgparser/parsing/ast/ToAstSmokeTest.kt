@@ -1,8 +1,9 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.assertASTCanBeProduced
+import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.*
+import kotlin.test.assertTrue
 
 class ToAstSmokeTest {
 
@@ -157,7 +158,7 @@ class ToAstSmokeTest {
 
     @Test
     fun buildAstForACTGRP_CALLER() {
-        val cu = assertASTCanBeProduced("ACTGRP_CALLER")
+        val cu = assertASTCanBeProduced("ACTGRP_CLR")
         assertEquals(firstActivationGroupDirective(cu).type, CallerActivationGroup)
     }
 

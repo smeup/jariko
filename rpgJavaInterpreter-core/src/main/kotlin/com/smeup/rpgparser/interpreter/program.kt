@@ -1,9 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.parsing.ast.ActivationGroupType
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.InputStream
@@ -26,7 +24,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         InternalInterpreter(this.systemInterface!!)
     }
 
-    var activationGroup: ActivationGroup? = null
+    lateinit var activationGroup: ActivationGroup
     private var initialized = false
 
     private val logHandlers: MutableList<InterpreterLogHandler> by lazy {
@@ -88,8 +86,15 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 } else {
                     null
                 }
-                val activationGroupType = cu.activationGroupType()
-                activationGroupType?.let {
+                val activationGroupType = cu.activationGroupType() ?: when (caller) {
+
+                        // for main program, which does not have a caller, activation group is fixed by config
+                        null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                        else -> {
+                            CallerActivationGroup
+                        }
+                    }
+                activationGroupType.let {
                     activationGroup = ActivationGroup(it, it.assignedName(this, caller))
                 }
             }

@@ -765,9 +765,10 @@ class InternalInterpreter(
         return when {
             MainExecutionContext.getProgramStack().isEmpty() -> null
             else -> {
-                val activationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup?.assignedName
+                val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
+                val activationGroup = associatedActivationGroup?.assignedName
                 return MainExecutionContext.getConfiguration()?.jarikoCallback?.getActivationGroup?.invoke(
-                    interpretationContext.currentProgramName)?.assignedName ?: activationGroup
+                    interpretationContext.currentProgramName, associatedActivationGroup)?.assignedName ?: activationGroup
             }
         }
     }
