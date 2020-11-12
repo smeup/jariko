@@ -129,7 +129,7 @@ class RpgParserFacade {
         val elapsedLoad = measureTimeMillis {
             charInput = if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream)
         }
-        MainExecutionContext.log(RpgLoadLogEnd(executionProgramName, elapsedLoad))
+        MainExecutionContext.log(RpgLoadLogEnd(executionProgramName, elapsedLoad, charInput))
         MainExecutionContext.log(LexerLogStart(executionProgramName))
         val lexer: RpgLexer
         val elapsedLexer = measureTimeMillis {

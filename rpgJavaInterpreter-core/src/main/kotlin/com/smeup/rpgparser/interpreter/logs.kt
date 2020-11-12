@@ -4,8 +4,10 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.asNonNullString
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
+import org.antlr.v4.runtime.CharStream
 import java.io.PrintStream
 import java.util.*
+import java.util.regex.Pattern
 
 abstract class LogEntry(open val programName: String) {
 
@@ -652,7 +654,11 @@ class RpgLoadLogStart(programName: String) : LogEntry(programName) {
     }
 }
 
-class RpgLoadLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+class RpgLoadLogEnd(programName: String, val elapsed: Long, private val programSouce: CharStream?) : LogEntry(programName) {
+
+    private val lines: Int by lazy {
+        programSouce?.toString()?.split(Pattern.compile("\\r\\n|\\r|\\n"))?.size ?: 0
+    }
 
     override fun toString(): String {
         return "rpgload $programName"
@@ -661,13 +667,13 @@ class RpgLoadLogEnd(programName: String, val elapsed: Long) : LogEntry(programNa
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
         val data = "RPGLOAD END $filename${sep}${elapsed}${sep}ms"
 
-        return renderHeader(channel, filename, "", sep) + data
+        return renderHeader(channel, filename, "$lines", sep) + data
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "RPGLOAD END${sep}$filename"
 
-        return renderHeader(channel, filename, "", sep) + data
+        return renderHeader(channel, filename, "$lines", sep) + data
     }
 }
 

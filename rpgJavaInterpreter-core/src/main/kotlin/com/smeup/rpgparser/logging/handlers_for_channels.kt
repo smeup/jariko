@@ -38,13 +38,6 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
 
         if (logger.isInfoEnabled) {
             when (logEntry) {
-                is RpgLoadLogEnd -> logger.info(render(logEntry))
-                is LexerLogEnd -> logger.info(render(logEntry))
-                is ParserLogEnd -> logger.info(render(logEntry))
-                is RContextLogEnd -> logger.info(render(logEntry))
-                is CheckParseTreeLogEnd -> logger.info(render(logEntry))
-                is FindMutesLogEnd -> logger.info(render(logEntry))
-                is AstLogEnd -> logger.info(render(logEntry))
                 is SubroutineExecutionLogEnd -> logger.info(render(logEntry))
                 is ForStatementExecutionLogEnd -> logger.info(render(logEntry))
                 is DoStatemenExecutionLogEnd -> logger.info(render(logEntry))
@@ -183,6 +176,30 @@ class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
                 is CallExecutionLogEntry -> logger.info(render(logEntry))
                 is FindProgramLogEntry -> logger.info(render(logEntry))
                 is RpgProgramFinderLogEntry -> logger.info(render(logEntry))
+            }
+        }
+    }
+}
+
+class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+    private val logger = LogManager.getLogger(PARSING_LOGGER)
+
+    override fun render(logEntry: LogEntry): String {
+        val fileName = extractFilename(logEntry.programName)
+        return logEntry.renderPerformance("PARS", fileName, this.sep)
+    }
+
+    override fun handle(logEntry: LogEntry) {
+
+        if (logger.isInfoEnabled) {
+            when (logEntry) {
+                is RpgLoadLogEnd -> logger.info(render(logEntry))
+                is LexerLogEnd -> logger.info(render(logEntry))
+                is ParserLogEnd -> logger.info(render(logEntry))
+                is RContextLogEnd -> logger.info(render(logEntry))
+                is CheckParseTreeLogEnd -> logger.info(render(logEntry))
+                is FindMutesLogEnd -> logger.info(render(logEntry))
+                is AstLogEnd -> logger.info(render(logEntry))
             }
         }
     }
