@@ -4,8 +4,10 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.asNonNullString
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
+import org.antlr.v4.runtime.CharStream
 import java.io.PrintStream
 import java.util.*
+import java.util.regex.Pattern
 
 abstract class LogEntry(open val programName: String) {
 
@@ -611,36 +613,6 @@ class LookupStatementExecutionLog(programName: String, val statement: LookupStmt
     }
 }
 
-class ProgramParsingLogStart(programName: String) : LogEntry(programName) {
-    override fun toString(): String {
-        return "parsing start $programName"
-    }
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PARSING START$sep"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
-class ProgramParsingLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
-
-    override fun toString(): String {
-        return "parsing $programName"
-    }
-
-    override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "PARSING END $filename${sep}${elapsed}${sep}ms"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-
-    override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "PARSING END${sep}$filename"
-
-        return renderHeader(channel, filename, "", sep) + data
-    }
-}
-
 class AstLogStart(programName: String) : LogEntry(programName) {
     override fun toString(): String {
         return "ast start $programName"
@@ -666,6 +638,190 @@ class AstLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) 
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "AST END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class RpgLoadLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "rpgload start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "RPGLOAD START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class RpgLoadLogEnd(programName: String, val elapsed: Long, private val programSouce: CharStream?) : LogEntry(programName) {
+
+    private val lines: Int by lazy {
+        programSouce?.toString()?.split(Pattern.compile("\\r\\n|\\r|\\n"))?.size ?: 0
+    }
+
+    override fun toString(): String {
+        return "rpgload $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "RPGLOAD END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "$lines", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "RPGLOAD END${sep}$filename"
+
+        return renderHeader(channel, filename, "$lines", sep) + data
+    }
+}
+
+class LexerLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "lexer start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "LEXER START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class LexerLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "lexer $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "LEXER END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "LEXER END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class ParserLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "parser start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "PARSER START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class ParserLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "parser $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "PARSER END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "PARSER END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class RContextLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "rcontext start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "RCONTEXT START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class RContextLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "rcontext $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "RCONTEXT END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "RCONTEXT END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class CheckParseTreeLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "chkptree start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "CHKPTREE START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class CheckParseTreeLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "chkptree $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "CHKPTREE END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "CHKPTREE END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class FindMutesLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "findmutes start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "FINDMUTES START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class FindMutesLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "findmutes $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "FINDMUTES END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "FINDMUTES END${sep}$filename"
 
         return renderHeader(channel, filename, "", sep) + data
     }

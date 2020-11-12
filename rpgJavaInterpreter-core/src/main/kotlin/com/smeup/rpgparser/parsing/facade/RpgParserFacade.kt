@@ -57,7 +57,8 @@ typealias RpgLexerResult = ParsingResult<List<Token>>
 
 class RpgParserFacade {
 
-    var muteSupport: Boolean = true
+    // Should be 'false' as default to avoid unnecessary search of 'mute annotation' into rpg program source.
+    var muteSupport: Boolean = MainExecutionContext.getConfiguration().options?.muteSupport ?: false
 
     private val executionProgramName: String by lazy {
         MainExecutionContext.getExecutionProgramName()
@@ -123,40 +124,60 @@ class RpgParserFacade {
     }
 
     fun createParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): RpgParser {
-        val lexer = RpgLexer(if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream))
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(object : BaseErrorListener() {
-            override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.LEXICAL, errorMessage
-                    ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
-            }
-        })
-        val commonTokenStream = CommonTokenStream(lexer)
-        val parser = RpgParser(commonTokenStream)
-        parser.removeErrorListeners()
-        parser.addErrorListener(object : BaseErrorListener() {
-            override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.SYNTACTIC, errorMessage
-                    ?: "unspecified"))
-            }
-        })
+        MainExecutionContext.log(RpgLoadLogStart(executionProgramName))
+        val charInput: CharStream?
+        val elapsedLoad = measureTimeMillis {
+            charInput = if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream)
+        }
+        MainExecutionContext.log(RpgLoadLogEnd(executionProgramName, elapsedLoad, charInput))
+        MainExecutionContext.log(LexerLogStart(executionProgramName))
+        val lexer: RpgLexer
+        val elapsedLexer = measureTimeMillis {
+            lexer = RpgLexer(charInput)
+            lexer.removeErrorListeners()
+            lexer.addErrorListener(object : BaseErrorListener() {
+                override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
+                    errors.add(Error(ErrorType.LEXICAL, errorMessage
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+                }
+            })
+        }
+        MainExecutionContext.log(LexerLogEnd(executionProgramName, elapsedLexer))
+        MainExecutionContext.log(ParserLogStart(executionProgramName))
+        val parser: RpgParser
+        val elapsedParser = measureTimeMillis {
+            val commonTokenStream = CommonTokenStream(lexer)
+            parser = RpgParser(commonTokenStream)
+            parser.removeErrorListeners()
+            parser.addErrorListener(object : BaseErrorListener() {
+                override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
+                    errors.add(Error(ErrorType.SYNTACTIC, errorMessage
+                        ?: "unspecified"))
+                }
+            })
+        }
+        MainExecutionContext.log(ParserLogEnd(executionProgramName, elapsedParser))
         return parser
     }
 
     private fun verifyParseTree(parser: Parser, errors: MutableList<Error>, root: ParserRuleContext) {
-        val commonTokenStream = parser.tokenStream as CommonTokenStream
-        val lastToken = commonTokenStream.get(commonTokenStream.index())
-        if (lastToken.type != Token.EOF) {
-            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition))
-        }
-
-        root.processDescendantsAndErrors({
-            if (it.exception != null) {
-                errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition))
+        MainExecutionContext.log(CheckParseTreeLogStart(executionProgramName))
+        val elapsed = measureTimeMillis {
+            val commonTokenStream = parser.tokenStream as CommonTokenStream
+            val lastToken = commonTokenStream.get(commonTokenStream.index())
+            if (lastToken.type != Token.EOF) {
+                errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition))
             }
-        }, {
-            errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
-        })
+
+            root.processDescendantsAndErrors({
+                if (it.exception != null) {
+                    errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition))
+                }
+            }, {
+                errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
+            })
+        }
+        MainExecutionContext.log(CheckParseTreeLogEnd(executionProgramName, elapsed))
     }
 
     private fun parseMute(code: String, errors: MutableList<Error>): MuteParser.MuteLineContext {
@@ -195,43 +216,47 @@ class RpgParserFacade {
             findMutes(code.byteInputStream(Charsets.UTF_8), errors)
 
     private fun findMutes(code: InputStream, errors: MutableList<Error>): MutesMap {
-        val lexResult = lex(BOMInputStream(code))
-        errors.addAll(lexResult.errors)
-        // Find sequence 3, 5, 590
+        MainExecutionContext.log(FindMutesLogStart(executionProgramName))
         val mutes: MutesMap = HashMap()
-        lexResult.root?.forEachIndexed { index, token0 ->
-            if (index + 2 < lexResult.root.size) {
-                val token1 = lexResult.root[index + 1]
-                val token2 = lexResult.root[index + 2]
-                // Please note the leading spaces added
-                if (token0.type == LEAD_WS5_Comments && token0.text == "".padStart(4) + "M" &&
+        val elapsed = measureTimeMillis {
+            val lexResult = lex(BOMInputStream(code))
+            errors.addAll(lexResult.errors)
+            lexResult.root?.forEachIndexed { index, token0 ->
+                if (index + 2 < lexResult.root.size) {
+                    val token1 = lexResult.root[index + 1]
+                    val token2 = lexResult.root[index + 2]
+                    // Please note the leading spaces added
+                    if (token0.type == LEAD_WS5_Comments && token0.text == "".padStart(4) + "M" &&
                         token1.type == COMMENT_SPEC_FIXED && token1.text == "U*" &&
                         token2.type == COMMENTS_TEXT) {
-                    // Please note the leading spaces added to the token
-                    var preproc = preprocess(token2.text)
-                    mutes[token2.line] = parseMute("".padStart(8) + preproc, errors)
+                        // Please note the leading spaces added to the token
+                        var preproc = preprocess(token2.text)
+                        mutes[token2.line] = parseMute("".padStart(8) + preproc, errors)
+                    }
                 }
             }
         }
+        MainExecutionContext.log(FindMutesLogEnd(executionProgramName, elapsed))
         return mutes
     }
 
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
-        MainExecutionContext.log(ProgramParsingLogStart(executionProgramName))
-        val elapsed = measureTimeMillis {
-            val errors = LinkedList<Error>()
-            val code = inputStreamToString(inputStream)
-            val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
-            val root = parser.r()
-            var mutes: MutesImmutableMap? = null
-            if (muteSupport) {
-                mutes = findMutes(code, errors)
-            }
-            verifyParseTree(parser, errors, root)
-            parserResult = RpgParserResult(errors, ParseTrees(root, mutes), parser)
+        val errors = LinkedList<Error>()
+        val code = inputStreamToString(inputStream)
+        val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
+        val root: RContext
+        MainExecutionContext.log(RContextLogStart(executionProgramName))
+        val elapsedRoot = measureTimeMillis {
+            root = parser.r()
         }
-        MainExecutionContext.log(ProgramParsingLogEnd(executionProgramName, elapsed))
+        MainExecutionContext.log(RContextLogEnd(executionProgramName, elapsedRoot))
+        var mutes: MutesImmutableMap? = null
+        if (muteSupport) {
+            mutes = findMutes(code, errors)
+        }
+        verifyParseTree(parser, errors, root)
+        parserResult = RpgParserResult(errors, ParseTrees(root, mutes), parser)
         return parserResult
     }
 
