@@ -1,10 +1,12 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
+import com.smeup.dbnative.manager.DBFileFactory
+import com.smeup.dbnative.manager.findConnectionConfigFor
 
 import java.util.*
 
-class DBFileMap(private val dbFile: DBFile) {
+class DBFileMap() {
     private val byFileName =
         TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
     private val byFormatName =
@@ -12,15 +14,17 @@ class DBFileMap(private val dbFile: DBFile) {
 
     fun add(fileDefinition: FileDefinition) {
 
-        val dbFile = TODO("Insert DBFile open")
+        if (byFileName.containsKey(fileDefinition) == false) {
 
-        require(dbFile != null) {
-            "Cannot open ${fileDefinition.name}"
-        }
-        byFileName[fileDefinition.name] = dbFile
-        val formatName = fileDefinition.internalFormatName
-        if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
-            byFormatName[formatName] = dbFile
+            //Get DBFile from Reload
+
+            val dbFile = DBFileFactory(TODO()).open(fileDefinition.name, null)
+
+            byFileName[fileDefinition.name] = dbFile
+            val formatName = fileDefinition.internalFormatName
+            if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
+                byFormatName[formatName] = dbFile
+            }
         }
     }
 

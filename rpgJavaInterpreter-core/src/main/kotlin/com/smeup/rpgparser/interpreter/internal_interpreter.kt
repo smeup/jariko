@@ -60,7 +60,7 @@ class InternalInterpreter(
 
     override val status = InterpreterStatus(globalSymbolTable, predefinedIndicators, { lrIndicator })
 
-    private val dbFileMap = DBFileMap(systemInterface.db)
+    private val dbFileMap = DBFileMap()
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
@@ -487,6 +487,8 @@ class InternalInterpreter(
     override fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
+
+            //TODO: insert conversion from Any to Value
             record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
         } else {
             status.lastFound = false
