@@ -25,6 +25,7 @@ const val STATEMENT_LOGGER: String = "statement"
 const val EXPRESSION_LOGGER: String = "expression"
 const val PERFORMANCE_LOGGER: String = "performance"
 const val RESOLUTION_LOGGER: String = "resolution"
+const val PARSING_LOGGER: String = "parsing"
 
 abstract class LogHandler(val level: LogLevel, val sep: String) {
     // as this method is for registration only, I think it is incorrect to extract the extension as well
@@ -68,7 +69,7 @@ enum class LogLevel {
 
 fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
 
-    val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFORMANCE_LOGGER, RESOLUTION_LOGGER)
+    val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFORMANCE_LOGGER, RESOLUTION_LOGGER, PARSING_LOGGER)
     val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
     val ctx: LoggerContext by lazy {
         LogManager.getContext(false) as LoggerContext
@@ -109,6 +110,10 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
                     RESOLUTION_LOGGER -> {
                         configureLogChannel(ctx, it, config)
                         handlers.add(ResolutionLogHandler(logLevel, dataSeparator))
+                    }
+                    PARSING_LOGGER -> {
+                        configureLogChannel(ctx, it, config)
+                        handlers.add(ParsingLogHandler(logLevel, dataSeparator))
                     }
                 }
             }

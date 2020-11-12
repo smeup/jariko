@@ -105,6 +105,7 @@ fun executeWithMutes(
         var parserResult: RpgParserResult? = null
         val file = File(path.toString())
         try {
+            it.executionProgramName = file.name
             parserResult =
                 RpgParserFacade()
                 .parse(file.inputStream())
