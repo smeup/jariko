@@ -30,7 +30,7 @@ const val PARSING_LOGGER: String = "parsing"
 abstract class LogHandler(val level: LogLevel, val sep: String) {
     // as this method is for registration only, I think it is incorrect to extract the extension as well
     fun extractFilename(name: String): String {
-        return name.substringAfterLast("/").substringBeforeLast(".")
+        return name.replace('\\', '/').substringAfterLast("/").substringBeforeLast(".")
     }
 
     open fun render(logEntry: LogEntry): String {
