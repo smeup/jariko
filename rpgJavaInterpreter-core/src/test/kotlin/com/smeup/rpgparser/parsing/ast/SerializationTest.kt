@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import org.junit.BeforeClass
 import org.junit.Ignore
@@ -26,7 +28,11 @@ class SerializationTest {
         }
     }
 
-    private fun createAstFromSource(fileName: String, inputStream: InputStream) = RpgParserFacade().parseAndProduceAst(inputStream)
+    private fun createAstFromSource(fileName: String, inputStream: InputStream): CompilationUnit {
+        return MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+            RpgParserFacade().parseAndProduceAst(inputStream)
+        }
+    }
 
     private fun String.timestampName() = "${timestamp}_$this"
 
@@ -71,7 +77,7 @@ class SerializationTest {
                     val astBySerialized: CompilationUnit
                     // println("\t\t${measureTimeMillis { astBySerialized = file.readText().createCompilationUnit() }}")
                     println("\t\t${measureTimeMillis { astBySerialized = file.readBytes().createCompilationUnit() }}")
-                    //assertEquals(astBySource, astBySerialized)
+                    // assertEquals(astBySource, astBySerialized)
                 }
             }
         }

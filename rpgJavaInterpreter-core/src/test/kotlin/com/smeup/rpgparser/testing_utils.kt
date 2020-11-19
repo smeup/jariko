@@ -2,8 +2,10 @@
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmMockProgram
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
@@ -85,7 +87,9 @@ fun assertCanBeLexed(file: File, onlyVisibleTokens: Boolean = true): List<Token>
 }
 
 fun assertCanBeLexed(inputStream: InputStream, onlyVisibleTokens: Boolean = true): List<Token> {
-    val result = RpgParserFacade().lex(inputStream)
+    val result = MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+        RpgParserFacade().lex(inputStream)
+    }
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return if (onlyVisibleTokens) {
@@ -96,12 +100,14 @@ fun assertCanBeLexed(inputStream: InputStream, onlyVisibleTokens: Boolean = true
 }
 
 fun assertCanBeParsed(inputStream: InputStream, withMuteSupport: Boolean = false): RContext {
-    val result = RpgParserFacade()
+    return MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+        val result = RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStream)
-    assertTrue(result.correct,
+        assertTrue(result.correct,
             message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
-    return result.root!!.rContext
+        result.root!!.rContext
+    }
 }
 
 fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RContext {
@@ -109,12 +115,13 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, pri
 }
 
 fun assertCanBeParsedResult(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RpgParserResult {
-    val result = RpgParserFacade()
+    val result = MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+        RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStreamFor(exampleName))
+    }
 
     if (printTree) println(result.toTreeString())
-
     assertTrue(result.correct,
             message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
     return result

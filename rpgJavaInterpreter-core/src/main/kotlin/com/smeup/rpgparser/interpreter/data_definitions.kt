@@ -59,7 +59,6 @@ abstract class AbstractDataDefinition(
     fun canBeAssigned(value: Value): Boolean {
         return type.canBeAssigned(value)
     }
-
 }
 
 @Serializable
@@ -310,7 +309,6 @@ data class FieldDefinition(
 
     val offsets: Pair<Int, Int>
         get() = Pair(startOffset, endOffset)
-
 }
 
 // Positions 64 through 68 specify the length of the result field. This entry is optional, but can be used to define a
