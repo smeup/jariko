@@ -35,7 +35,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-    compile "com.github.ftomassetti:kolasu:a0e7970eae"
+    compile "me.lanarimarco:kolasu:0.2.3-SNAPSHOT"
 
     compile "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
     compile "org.apache.logging.log4j:log4j-api:2.12.1"
@@ -46,8 +46,8 @@ dependencies {
 
     compile 'com.github.ziggy42:kolor:0.0.2'
 
-    compile "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC"
-    compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.0.0-RC"
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.1"
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.0.1"
 
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"

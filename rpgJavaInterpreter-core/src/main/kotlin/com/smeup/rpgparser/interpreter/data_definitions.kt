@@ -8,14 +8,16 @@ import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.math.BigDecimal
 
+@Serializable
 abstract class AbstractDataDefinition(
-    override val name: String,
-    open val type: Type,
-    override val position: Position? = null,
+    @Transient override val name: String = "",
+    @Transient open val type: Type = StringType(1, false),
+    @Transient override val position: Position? = null,
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf(),
-    private val hashCode: Int = name.hashCode(),
     open val key: Int = MainExecutionContext.newId()
 
 ) : Node(position), Named {
@@ -58,12 +60,9 @@ abstract class AbstractDataDefinition(
         return type.canBeAssigned(value)
     }
 
-    override fun hashCode() = hashCode
-
-    override fun equals(other: Any?) =
-        if (other is AbstractDataDefinition) name == other.name else false
 }
 
+@Serializable
 data class FileDefinition private constructor(override val name: String, override val position: Position?) : Node(position), Named {
     companion object {
         operator fun invoke(name: String, position: Position? = null): FileDefinition {
@@ -77,6 +76,7 @@ data class FileDefinition private constructor(override val name: String, overrid
         }
 }
 
+@Serializable
 data class DataDefinition(
     override val name: String,
     override val type: Type,
@@ -191,6 +191,7 @@ fun Type.toDataStructureValue(value: Value): StringValue {
     }
 }
 
+@Serializable
 data class FieldDefinition(
     override val name: String,
     override val type: Type,
@@ -310,9 +311,6 @@ data class FieldDefinition(
     val offsets: Pair<Int, Int>
         get() = Pair(startOffset, endOffset)
 
-    override fun hashCode(): Int {
-        return name.hashCode() * 31 + type.hashCode() * 7
-    }
 }
 
 // Positions 64 through 68 specify the length of the result field. This entry is optional, but can be used to define a
@@ -320,6 +318,7 @@ data class FieldDefinition(
 // if the result field contains a field name. Other data types must be defined on the definition specification or on the
 // calculation specification using the *LIKE DEFINE operation.
 
+@Serializable
 class InStatementDataDefinition(
     override val name: String,
     override val type: Type,

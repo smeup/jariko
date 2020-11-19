@@ -9,6 +9,8 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.system.measureTimeMillis
@@ -27,11 +29,14 @@ enum class AssignmentOperator(val text: String) {
 }
 
 typealias IndicatorKey = Int
+@Serializable
 data class IndicatorCondition(val key: IndicatorKey, val negate: Boolean)
+@Serializable
 data class ContinuedIndicator(val key: IndicatorKey, val negate: Boolean, val level: String)
 
+@Serializable
 abstract class Statement(
-    override val position: Position? = null,
+    @Transient override val position: Position? = null,
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf()
 ) : Node(position) {
     open fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int = 0, end: Int): MutableList<MuteAnnotationResolved> {
@@ -78,6 +83,7 @@ fun List<Statement>.explode(): List<Statement> {
     return result
 }
 
+@Serializable
 data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         interpreter.log {
@@ -105,6 +111,7 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     }
 }
 
+@Serializable
 data class SelectStmt(
     var cases: List<SelectCase>,
     var other: SelectOtherClause? = null,
@@ -161,16 +168,20 @@ data class SelectStmt(
         }
 }
 
+@Serializable
 data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
+@Serializable
 data class SelectCase(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
+@Serializable
 data class EvalFlags(
     val halfAdjust: Boolean = false,
     val maximumNumberOfDigitsRule: Boolean = false,
     val resultDecimalPositionRule: Boolean = false
 )
 
+@Serializable
 data class EvalStmt(
     val target: AssignableExpression,
     var expression: Expression,
@@ -191,6 +202,7 @@ data class EvalStmt(
     }
 }
 
+@Serializable
 data class SubDurStmt(
     val factor1: Expression?,
     val target: AssignableExpression,
@@ -255,7 +267,7 @@ data class MoveAStmt(
         }
     }
 }
-
+    @Serializable
     data class MoveLStmt(
         val operationExtender: String?,
         val target: AssignableExpression,
@@ -385,6 +397,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class CallStmt(
         val expression: Expression,
         val params: List<PlistParam>,
@@ -467,6 +480,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class IfStmt(
         val condition: Expression,
         override val body: List<Statement>,
@@ -529,10 +543,13 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
+    @Serializable
     data class ElseIfClause(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
+    @Serializable
     data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
         enum class ValueSet {
             ON,
@@ -558,6 +575,7 @@ data class MoveAStmt(
     }
 
     // A Plist is a list of parameters
+    @Serializable
     data class PlistStmt(
         val params: List<PlistParam>,
         val isEntry: Boolean,
@@ -592,6 +610,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class PlistParam(
         val param: ReferenceByName<AbstractDataDefinition>,
         // TODO @Derived????
@@ -599,6 +618,7 @@ data class MoveAStmt(
         override val position: Position? = null
     ) : Node(position)
 
+    @Serializable
     data class ClearStmt(
         val value: Expression,
         @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -739,6 +759,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class AddStmt(
         val left: Expression?,
         val result: AssignableExpression,
@@ -807,6 +828,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class TimeStmt(
         val value: Expression,
         override val position: Position? = null
@@ -821,6 +843,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             val values = mutableListOf<Value>()
@@ -831,6 +854,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class DoStmt(
         val endLimit: Expression,
         val index: AssignableExpression?,
@@ -982,6 +1006,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class LeaveStmt(override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             interpreter.log { LeaveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
@@ -989,6 +1014,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class IterStmt(override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             interpreter.log { IterStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
@@ -1002,6 +1028,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
         companion object {
             operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
@@ -1011,6 +1038,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             throw GotoException(tag)

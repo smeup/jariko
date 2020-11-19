@@ -3,6 +3,7 @@ package com.smeup.rpgparser.parsing.ast
 import com.smeup.rpgparser.interpreter.Evaluator
 import com.smeup.rpgparser.interpreter.Value
 import com.strumenta.kolasu.model.Position
+import kotlinx.serialization.Serializable
 
 // %LOOKUP
 // To be supported:
@@ -10,6 +11,7 @@ import com.strumenta.kolasu.model.Position
 // * %LOOKUPLE
 // * %LOOKUPGT
 // * %LOOKUPGE
+@Serializable
 data class LookupExpr(
     var searchedValued: Expression,
     val array: Expression,
@@ -40,6 +42,7 @@ data class TranslateExpr(
 }
 
 // %TRIM
+@Serializable
 data class TrimExpr(
     var value: Expression,
     val charactersToTrim: Expression? = null,
@@ -81,6 +84,7 @@ data class TrimlExpr(
 }
 
 // %SUBST
+@Serializable
 data class SubstExpr(
     var string: Expression,
     val start: Expression,
@@ -130,6 +134,7 @@ data class DecExpr(
 }
 
 // %INT
+@Serializable
 data class IntExpr(
     var value: Expression,
     override val position: Position? = null
@@ -152,6 +157,7 @@ data class SqrtExpr(var value: Expression, override val position: Position? = nu
 
 // %EDITC
 // TODO add other parameters
+@Serializable
 data class EditcExpr(
     var value: Expression,
     val format: Expression,
@@ -203,6 +209,7 @@ data class AbsExpr(
 }
 
 // %CHAR
+@Serializable
 data class CharExpr(var value: Expression, val format: String?, override val position: Position? = null) :
     Expression(position) {
     override fun render(): String {
@@ -242,6 +249,9 @@ data class ReplaceExpr(
 
 // TODO Move and handle different types of duration
 // TODO document what a duration code is
+@Serializable
 sealed class DurationCode
+@Serializable
 object DurationInMSecs : DurationCode()
+@Serializable
 object DurationInDays : DurationCode()
