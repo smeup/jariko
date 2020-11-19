@@ -16,10 +16,30 @@ const val DEFAULT_ACTIVATION_GROUP_NAME = "*DFTACTGRP"
  * @param reloadConfig Reload configuration, it is necessary only for db access
  * */
 data class Configuration(
-    val memorySliceStorage: IMemorySliceStorage? = null,
-    val jarikoCallback: JarikoCallback = JarikoCallback(),
-    val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME
+        val memorySliceStorage: IMemorySliceStorage? = null,
+        val jarikoCallback: JarikoCallback = JarikoCallback(),
+        val reloadConfig: ReloadConfig? = null,
+        val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
+        val options: Options? = Options()
 )
+
+/**
+ * Options object
+ * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
+ * */
+data class Options(
+        val muteSupport: Boolean = false
+)
+
+/**
+ * Reload configuration
+ * @param nativeAccessConfig DB Native Accesso config
+ * @param getMetadata get metadata for a dbFile, if returns null, FileMetadata are searched using default lookup method
+ * provided by reload
+ * */
+data class ReloadConfig(
+        val nativeAccessConfig: DBNativeAccessConfig,
+        val getMetadata: (dbFile: String) -> FileMetadata?)
 
 /**
  * Sometimes we have to gain control of Jariko, this is the right place.
@@ -41,3 +61,4 @@ data class JarikoCallback(
     val onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     val onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> }
 )
+

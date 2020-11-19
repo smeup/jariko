@@ -13,7 +13,6 @@ import kotlin.reflect.full.isSubclassOf
 open class JavaSystemInterface(
     private val outputStream: PrintStream,
     private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
-    private val databaseInterface: DBFile = TODO(),
     var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 

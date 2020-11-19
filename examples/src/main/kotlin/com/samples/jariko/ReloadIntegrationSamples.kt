@@ -16,7 +16,7 @@ fun callJarikoWithReload() {
         user = "user", 
         password = "password", 
         driver = "myDriverclass"
-    )
+        )
     )
 
     // pass reloadConfig to jariko

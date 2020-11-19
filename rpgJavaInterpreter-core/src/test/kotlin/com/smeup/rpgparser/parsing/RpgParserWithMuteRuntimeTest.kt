@@ -4,7 +4,6 @@ import com.smeup.rpgparser.assertCanBeParsedResult
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.ResourceProgramFinder
-import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.interpreter.SimpleSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
@@ -40,7 +39,7 @@ class RpgParserWithMuteRuntimeTest {
     @Test
     fun parseMUTE01_runtime() {
         val cu = assertASTCanBeProduced("mute/MUTE01_RUNTIME", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         DummySystemInterface.executedAnnotationInternal.clear()
         val interpreter = execute(cu, mapOf())
 
@@ -91,7 +90,7 @@ class RpgParserWithMuteRuntimeTest {
     fun parseMUTE02_runtime() {
         DummySystemInterface.executedAnnotationInternal.clear()
         val cu = assertASTCanBeProduced("mute/MUTE02_RUNTIME", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf())
 
         assertEquals(interpreter.systemInterface.getExecutedAnnotation().size, 5)
@@ -127,7 +126,7 @@ class RpgParserWithMuteRuntimeTest {
     fun parseMUTE02_runtimeWithArray() {
         DummySystemInterface.executedAnnotationInternal.clear()
         val cu = assertASTCanBeProduced("mute/MUTE02_RUNTIME_array", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf())
 
         assertEquals(interpreter.systemInterface.getExecutedAnnotation().size, 1)
@@ -141,7 +140,7 @@ class RpgParserWithMuteRuntimeTest {
     @Test
     fun executingFIZZBUZZTEST() {
         val cu = assertASTCanBeProduced("mute/FIZZBUZZTEST", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val si = SimpleSystemInterface(programFinders = listOf(ResourceProgramFinder("/mute/")))
 
         val interpreter = execute(cu, mapOf(), systemInterface = si)
@@ -154,7 +153,7 @@ class RpgParserWithMuteRuntimeTest {
     @Test
     fun executingGOTOexecutesMutesToo() {
         val cu = assertASTCanBeProduced("mute/MUTEGOTO", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val interpreter = execute(cu, mapOf())
 

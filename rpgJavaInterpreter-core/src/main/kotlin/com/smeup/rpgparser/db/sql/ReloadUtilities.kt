@@ -7,6 +7,10 @@ import com.smeup.dbnative.model.CharacterType
 import com.smeup.dbnative.model.TimeStampType
 import com.smeup.dbnative.utils.getField
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.BooleanValue
+import com.smeup.rpgparser.interpreter.DecimalValue
+import com.smeup.rpgparser.interpreter.IntValue
+import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.Type
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
@@ -34,12 +38,56 @@ public fun Field.toDataDefinition(): DataDefinition {
         is TimeType      -> com.smeup.rpgparser.interpreter.TimeStampType
         is BinaryType    -> NumberType(fieldType.size, fieldType.digits, RpgType.BINARY)
         is VarbinaryType -> NumberType(fieldType.size, fieldType.digits, RpgType.BINARY)
-        is NumericType   -> NumberType(fieldType.size, fieldType.digits, RpgType.ZONED)
-        is RealType      -> NumberType(fieldType.size, fieldType.digits, RpgType.ZONED)
     }
 
     return DataDefinition(this.name, type)
 }
+
+/*
+/**
+ * Convert Jariko values in corresponding Reload values
+ */
+public fun Value.asReloadValue(): com.smeup.dbnative.model.Value {
+
+    var value =  when (this) {
+
+        is StringValue -> com.smeup.dbnative.model.StringValue(this.value)
+        is IntValue -> com.smeup.dbnative.model.IntValue(this.value.toInt())
+        is DecimalValue -> com.smeup.dbnative.model.DecimalValue(this.value)
+        is BooleanValue -> com.smeup.dbnative.model.BooleanValue(this.value)
+        is CharacterValue -> com.smeup.dbnative.model.StringValue(this.value.toString())
+        is ArrayValue -> com.smeup.dbnative.model.StringValue(this.asString().value)
+        is ConcreteArrayValue -> com.smeup.dbnative.model.StringValue(this.asString().value)
+        is BlanksValue -> com.smeup.dbnative.model.StringValue("")
+        is HiValValue -> com.smeup.dbnative.model.StringValue(this.asString().value)
+        is LowValValue -> com.smeup.dbnative.model.StringValue(this.asString().value)
+        is ZeroValue  -> com.smeup.dbnative.model.IntValue("0".toInt())
+        is AllValue -> com.smeup.dbnative.model.StringValue(this.asString().value)
+        is ProjectedArrayValue -> com.smeup.dbnative.model.StringValue(this.asString().value)
+        else -> com.smeup.dbnative.model.StringValue(this.asString().value)
+    }
+
+    return value;
+}
+
+
+/**
+ * Convert Jariko values in corresponding Reload values
+ */
+
+public fun com.smeup.dbnative.model.Value.asJarikoValue(): Value {
+    var value = when (this) {
+
+        is com.smeup.dbnative.model.StringValue -> StringValue(this.value)
+        is com.smeup.dbnative.model.IntValue -> IntValue(this.value.toLong())
+        is com.smeup.dbnative.model.DecimalValue -> DecimalValue(this.value)
+        is com.smeup.dbnative.model.BooleanValue -> BooleanValue(this.value)
+        else -> StringValue(this.asString())
+    }
+    return value
+}
+*/
+
 
 public fun Record.toValue(metadata: FileMetadata): List<Value> {
 
@@ -63,8 +111,6 @@ public fun Record.toValue(metadata: FileMetadata): List<Value> {
             is TimeType      -> com.smeup.rpgparser.interpreter.TimeStampType
             is BinaryType    -> NumberType(fieldType.size, fieldType.digits, RpgType.BINARY)
             is VarbinaryType -> NumberType(fieldType.size, fieldType.digits, RpgType.BINARY)
-            is NumericType   -> NumberType(fieldType.size, fieldType.digits, RpgType.ZONED)
-            is RealType      -> NumberType(fieldType.size, fieldType.digits, RpgType.ZONED)
             null -> TODO()
         }
     }

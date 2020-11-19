@@ -59,7 +59,6 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 }
 
 object RpgSystem {
-    var db: DBFile = TODO()
 
     internal val programFinders = LinkedHashSet<RpgProgramFinder>()
 

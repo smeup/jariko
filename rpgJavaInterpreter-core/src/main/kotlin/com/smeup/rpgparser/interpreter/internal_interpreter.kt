@@ -144,6 +144,12 @@ class InternalInterpreter(
         reinitialization: Boolean = true
     ) {
         // TODO verify if these values should be reinitialised or not
+
+
+        //TODO get configuration for Reload initialization
+
+
+
         compilationUnit.fileDefinitions.forEach {
             dbFileMap.add(it)
         }
@@ -487,9 +493,7 @@ class InternalInterpreter(
     override fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
-
-            //TODO: insert conversion from Any to Value
-            record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
+            record.forEach { assign(dataDefinitionByName(it.key)!!, StringValue(it.value)) }
         } else {
             status.lastFound = false
         }
@@ -504,10 +508,10 @@ class InternalInterpreter(
         return dbFile
     }
 
-    override fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
+    override fun toSearchValues(searchArgExpression: Expression): List<String> {
         val kListName = searchArgExpression.render().toUpperCase()
         val parms = klists[kListName]
-        return parms!!.map { RecordField(it, get(it)) }
+        return parms!!.map { get(it).asString().value }
     }
 
     override fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
