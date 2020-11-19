@@ -28,11 +28,7 @@ class SerializationTest {
         }
     }
 
-    private fun createAstFromSource(fileName: String, inputStream: InputStream): CompilationUnit {
-        return MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
-            RpgParserFacade().parseAndProduceAst(inputStream)
-        }
-    }
+    private fun createAstFromSource(fileName: String, inputStream: InputStream) = RpgParserFacade().parseAndProduceAst(inputStream)
 
     private fun String.timestampName() = "${timestamp}_$this"
 
@@ -40,18 +36,20 @@ class SerializationTest {
     fun probeSerializationForAllPerformanceMuteAst() {
         val errors = mutableSetOf<String?>()
         testFiles.forEach { file ->
-            FileInputStream(file).use { it ->
+            FileInputStream(file).use { inputStream ->
                 println("Creating AST from source: ${file.name}")
-                val compilationUnit = createAstFromSource(file.name, it)
-                println("Probing...")
-                kotlin.runCatching {
-                    compilationUnit.encodeToString()
-                }.onFailure { error ->
-                    if (errors.add(error.message)) {
-                        System.err.println(error.message)
+                MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+                    val compilationUnit = createAstFromSource(file.name, inputStream)
+                    println("Probing...")
+                    kotlin.runCatching {
+                        compilationUnit.encodeToString()
+                    }.onFailure { error ->
+                        if (errors.add(error.message)) {
+                            System.err.println(error.message)
+                        }
+                    }.onSuccess {
+                        println("Ok")
                     }
-                }.onSuccess {
-                    println("Ok")
                 }
             }
         }
