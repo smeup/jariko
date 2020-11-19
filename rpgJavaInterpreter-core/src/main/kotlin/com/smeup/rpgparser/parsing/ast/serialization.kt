@@ -1,11 +1,8 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
+import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -52,6 +49,7 @@ private val modules = SerializersModule {
         subclass(FunctionCall::class)
         subclass(BlanksRefExpr::class)
         subclass(CharExpr::class)
+        subclass(AbsExpr::class)
     }
     polymorphic(AssignableExpression::class) {
         subclass(DataRefExpr::class)
@@ -64,6 +62,7 @@ private val json = Json {
     serializersModule = modules
 }
 
+@ExperimentalSerializationApi
 private val cbor = Cbor {
     serializersModule = modules
 }
@@ -71,5 +70,7 @@ private val cbor = Cbor {
 fun CompilationUnit.encodeToString() = json.encodeToString(this)
 fun String.createCompilationUnit() = json.decodeFromString<CompilationUnit>(this)
 
+@ExperimentalSerializationApi
 fun CompilationUnit.encodeToByteArray() = cbor.encodeToByteArray(this)
+@ExperimentalSerializationApi
 fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit>(this)

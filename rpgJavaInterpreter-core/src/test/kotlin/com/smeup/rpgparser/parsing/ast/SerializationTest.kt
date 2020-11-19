@@ -33,6 +33,7 @@ class SerializationTest {
     private fun String.timestampName() = "${timestamp}_$this"
 
     @Test
+    @Ignore
     fun probeSerializationForAllPerformanceMuteAst() {
         val errors = mutableSetOf<String?>()
         testFiles.forEach { file ->

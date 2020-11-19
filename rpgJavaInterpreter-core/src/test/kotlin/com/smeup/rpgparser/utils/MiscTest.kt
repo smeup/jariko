@@ -1,7 +1,8 @@
 package com.smeup.rpgparser.utils
 
-import kotlin.test.assertEquals
 import org.junit.Test
+import java.io.File
+import kotlin.test.assertEquals
 import kotlin.test.fail
 
 class MiscTest {
@@ -57,5 +58,36 @@ class MiscTest {
             result = "OK"
         }
         assertEquals("OK", result)
+    }
+
+    @Test
+    fun compilerTest() {
+        val dummyDir = "/asasuj8kkagabatakapa"
+        assertEquals(
+            true,
+            compile(src = File(dummyDir), File(dummyDir).parentFile).isEmpty()
+        )
+
+        val program = "     ** String of 50 chars:\n" +
+                "     D Msg             S             50\n" +
+                "     ** Implicit declaration of a number with 3 digits, 2 of them are decimals\n" +
+                "     C                   clear                   X                 3 2\n" +
+                "     C                   eval      x = %ABS(-1)\n" +
+                "     C                   eval      Msg = 'X is ' + %CHAR(X)\n" +
+                "     C                   dsply                   Msg\n" +
+                "     C                   SETON                                          LR"
+        val src = File.createTempFile("MYPGM", ".rpgle")
+        src.writeText(program)
+        println("Compiling $src")
+        val compiledFiles = compile(src = src, src.parentFile)
+        println("Compiled files: $compiledFiles")
+        assertEquals(
+            1,
+            compiledFiles.size
+        )
+        src.delete()
+        compiledFiles.forEach {
+            it.delete()
+        }
     }
 }

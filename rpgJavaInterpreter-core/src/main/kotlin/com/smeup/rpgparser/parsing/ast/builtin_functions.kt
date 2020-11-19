@@ -201,6 +201,7 @@ data class EqualExpr(
 }
 
 // %ABS
+@Serializable
 data class AbsExpr(
     var value: Expression,
     override val position: Position? = null
