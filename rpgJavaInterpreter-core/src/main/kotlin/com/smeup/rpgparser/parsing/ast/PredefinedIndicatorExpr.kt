@@ -6,6 +6,7 @@ import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 
 // *IN01..*IN99
+@Serializable
 data class PredefinedIndicatorExpr(val index: Int, override val position: Position? = null) :
     AssignableExpression(position) {
     init {
@@ -16,6 +17,7 @@ data class PredefinedIndicatorExpr(val index: Int, override val position: Positi
 }
 
 // *IN
+@Serializable
 data class PredefinedGlobalIndicatorExpr(override val position: Position? = null) :
         AssignableExpression(position) {
     override fun size(): Int {

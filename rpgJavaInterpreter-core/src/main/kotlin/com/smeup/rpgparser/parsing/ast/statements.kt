@@ -241,6 +241,7 @@ data class SubDurStmt(
     }
 }
 
+@Serializable
 data class MoveStmt(
     val target: AssignableExpression,
     var expression: Expression,
@@ -253,6 +254,7 @@ data class MoveStmt(
     }
 }
 
+@Serializable
 data class MoveAStmt(
     val operationExtender: String?,
     val target: AssignableExpression,
@@ -289,6 +291,7 @@ data class MoveAStmt(
     }
 
     // TODO add other parameters
+    @Serializable
     data class ChainStmt(
         val searchArg: Expression, // Factor1
         val name: String, // Factor 2
@@ -306,6 +309,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ReadEqualStmt(
         val searchArg: Expression?, // Factor1
         val name: String, // Factor 2
@@ -323,6 +327,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ReadPreviousStmt(
         val searchArg: Expression?, // Factor1
         val name: String, // Factor 2
@@ -340,6 +345,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ReadStmt(
         val name: String, // Factor 2
         override val position: Position? = null
@@ -352,6 +358,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class SetllStmt(
         val searchArg: Expression, // Factor1
         val name: String, // Factor 2
@@ -367,6 +374,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class CheckStmt(
         val comparatorString: Expression, // Factor1
         val baseString: Expression,
@@ -464,6 +472,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class KListStmt
     private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
         companion object {
@@ -567,6 +576,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             val returnValue = expression?.let { interpreter.eval(expression) }
@@ -659,6 +669,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class DefineStmt(
         val originalName: String,
         val newVarName: String,
@@ -701,6 +712,7 @@ data class MoveAStmt(
         override val eq: IndicatorKey?
     ) : WithRightIndicators
 
+    @Serializable
     data class CompStmt(
         val left: Expression,
         val right: Expression,
@@ -716,6 +728,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ZAddStmt(
         val target: AssignableExpression,
         @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -735,6 +748,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class MultStmt(
         val target: AssignableExpression,
         val halfAdjust: Boolean = false,
@@ -747,6 +761,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class DivStmt(
         val target: AssignableExpression,
         val halfAdjust: Boolean = false,
@@ -783,6 +798,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ZSubStmt(
         val target: AssignableExpression,
         @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -805,6 +821,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class SubStmt(
         val left: Expression?,
         val result: AssignableExpression,
@@ -925,6 +942,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class DowStmt(
         val endExpression: Expression,
         override val body: List<Statement>,
@@ -962,6 +980,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class DouStmt(
         val endExpression: Expression,
         override val body: List<Statement>,
@@ -999,6 +1018,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class LeaveSrStmt(override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             interpreter.log { LeaveSrStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
@@ -1022,6 +1042,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class OtherStmt(override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             TODO("Not yet implemented")
@@ -1045,6 +1066,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class CabStmt(
         val factor1: Expression,
         val factor2: Expression,
@@ -1064,6 +1086,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ForStmt(
         var init: Expression,
         val endValue: Expression,
@@ -1139,12 +1162,14 @@ data class MoveAStmt(
  * For an array data structure, the keyed-ds-array operand is a qualified name consisting
  * of the array to be sorted followed by the subfield to be used as a key for the sort.
  */
+    @Serializable
     data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             sortA(interpreter.eval(target), interpreter.localizationContext.charset)
         }
     }
 
+    @Serializable
     data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             val blanksInBetween = blanksInBetween
@@ -1188,6 +1213,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class LookupStmt(
         val left: Expression,
         val right: Expression,
@@ -1199,6 +1225,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class ScanStmt(
         val left: Expression,
         val leftLength: Int?,
@@ -1232,6 +1259,7 @@ data class MoveAStmt(
         }
     }
 
+    @Serializable
     data class XFootStmt(
         val left: Expression,
         val result: AssignableExpression,
