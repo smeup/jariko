@@ -1,7 +1,12 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.rpginterop.Param
+import com.smeup.rpgparser.rpginterop.RpgFacade
+import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -60,6 +65,16 @@ class MemoryStorage : IMemorySliceStorage {
 }
 
 class SymbolTableStoragingTest {
+
+    @Test
+    fun singlePgmFromDisk() {
+        // This test is used to test multithread tests loading the rpgle source
+        // from disk
+        RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+        val javaSystemInterface = JavaSystemInterface()
+        XTHREAD(javaSystemInterface).call("THE FUNZ", "THE METO")
+        assertEquals(listOf("Funz:THE FUNZ   Meto:THE METO"), javaSystemInterface.consoleOutput)
+    }
 
     @Test
     fun execPgmAndEvaluateStorage() {
@@ -378,6 +393,21 @@ class SymbolTableStoragingTest {
         executor.awaitTermination(timeOutExecutorTermination, TimeUnit.SECONDS)
         println("...done")
     }
+
+    @Test
+    fun singlePgmFromDiskMultithread() {
+        println("Run singlePgmFromDiskMultithread...")
+        val executor = Executors.newFixedThreadPool(30)
+        repeat(10000) {
+            var simbolTableStoragingTest = SymbolTableStoragingTest()
+            var workerThread: Runnable = WorkerThread(simbolTableStoragingTest, "singlePgmFromDisk")
+            executor.execute(workerThread)
+        }
+        executor.shutdown()
+        println("Waiting 60s. for all thread to finish...")
+        executor.awaitTermination(60L, TimeUnit.SECONDS)
+        println("...done")
+    }
 }
 
 class WorkerThread(var symbolTableStoragingTest: SymbolTableStoragingTest, var testName: String) : Runnable {
@@ -392,10 +422,22 @@ class WorkerThread(var symbolTableStoragingTest: SymbolTableStoragingTest, var t
             "initPreExistingVariablesPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPreExistingVariablesPgmByStorageAndEvaluateResult()
             "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP()
             "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP()
+            "singlePgmFromDisk" -> symbolTableStoragingTest.singlePgmFromDisk()
             else -> {
                 print("Test $testName not exists")
             }
         }
         println(Thread.currentThread().name + " End test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+    }
+}
+
+data class XTHREADParams(
+    @property:Param("U\$FUNZ") val funz: String,
+    @property:Param("U\$METO") val meto: String
+)
+
+class XTHREAD(javaSystemInterface: JavaSystemInterface) : RpgFacade<XTHREADParams>(systemInterface = javaSystemInterface) {
+    fun call(funz: String, meto: String) {
+        singleCall(XTHREADParams(funz, meto))
     }
 }
