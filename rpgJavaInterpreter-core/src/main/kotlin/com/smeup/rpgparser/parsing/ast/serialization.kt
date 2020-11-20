@@ -58,11 +58,8 @@ private val modules = SerializersModule {
     }
     polymorphic(Expression::class) {
         subclass(AbsExpr::class)
-        subclass(AllExpr::class)
         subclass(ArrayAccessExpr::class)
-        subclass(AssignableExpression::class)
         subclass(AssignmentExpr::class)
-        subclass(BlanksRefExpr::class)
         subclass(CharExpr::class)
         subclass(DataRefExpr::class)
         subclass(DataWrapUpIndicatorExpr::class)
@@ -76,12 +73,10 @@ private val modules = SerializersModule {
         subclass(EqualExpr::class)
         subclass(EqualityExpr::class)
         subclass(ExpExpr::class)
-        subclass(FigurativeConstantRef::class)
         subclass(FoundExpr::class)
         subclass(FunctionCall::class)
         subclass(GreaterEqualThanExpr::class)
         subclass(GreaterThanExpr::class)
-        subclass(HiValExpr::class)
         subclass(IntExpr::class)
         subclass(IntLiteral::class)
         subclass(LenExpr::class)
@@ -91,14 +86,10 @@ private val modules = SerializersModule {
         subclass(LogicalCondition::class)
         subclass(LogicalOrExpr::class)
         subclass(LookupExpr::class)
-        subclass(LowValExpr::class)
         subclass(MinusExpr::class)
         subclass(MultExpr::class)
         subclass(NotExpr::class)
-        subclass(NumberLiteral::class)
         subclass(NumberOfElementsExpr::class)
-        subclass(OffRefExpr::class)
-        subclass(OnRefExpr::class)
         subclass(PlusExpr::class)
         subclass(PredefinedGlobalIndicatorExpr::class)
         subclass(PredefinedIndicatorExpr::class)
@@ -115,7 +106,6 @@ private val modules = SerializersModule {
         subclass(TrimExpr::class)
         subclass(TrimlExpr::class)
         subclass(TrimrExpr::class)
-        subclass(ZeroExpr::class)
     }
     polymorphic(AssignableExpression::class) {
         subclass(ArrayAccessExpr::class)
@@ -125,7 +115,15 @@ private val modules = SerializersModule {
         subclass(PredefinedIndicatorExpr::class)
         subclass(QualifiedAccessExpr::class)
         subclass(SubstExpr::class)
-
+    }
+    polymorphic(FigurativeConstantRef::class) {
+        subclass(AllExpr::class)
+        subclass(BlanksRefExpr::class)
+        subclass(HiValExpr::class)
+        subclass(LowValExpr::class)
+        subclass(OffRefExpr::class)
+        subclass(OnRefExpr::class)
+        subclass(ZeroExpr::class)
     }
 }
 

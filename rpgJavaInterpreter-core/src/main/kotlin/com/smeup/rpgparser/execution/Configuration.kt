@@ -3,6 +3,9 @@ package com.smeup.rpgparser.execution
 import com.smeup.rpgparser.interpreter.ActivationGroup
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.ISymbolTable
+import java.io.File
+
+const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
 
 /**
  * Configuration object
@@ -12,21 +15,21 @@ import com.smeup.rpgparser.interpreter.ISymbolTable
  * @param defaultActivationGroupName Default activation group. If not specified it assumes "*DEFACTGRP"
  * */
 
-const val DEFAULT_ACTIVATION_GROUP_NAME = "*DFTACTGRP"
-
 data class Configuration(
-    val memorySliceStorage: IMemorySliceStorage? = null,
-    val jarikoCallback: JarikoCallback = JarikoCallback(),
-    val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
-    val options: Options? = Options()
+    var memorySliceStorage: IMemorySliceStorage? = null,
+    var jarikoCallback: JarikoCallback = JarikoCallback(),
+    var defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
+    var options: Options? = Options()
 )
 
 /**
  * Options object
  * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
+ * @param compiledProgramsDir If specified Jariko searches compiled program in this directory
  * */
 data class Options(
-    val muteSupport: Boolean = false
+    var muteSupport: Boolean = false,
+    var compiledProgramsDir: File? = null
 )
 
 /**
@@ -41,11 +44,11 @@ data class Options(
  * @param onExitPgm It is invoked on program exit
  * */
 data class JarikoCallback(
-    val getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = {
+    var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = {
         _: String, _: ActivationGroup? ->
         null
     },
-    val exitInRT: (programName: String) -> Boolean? = { null },
-    val onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
-    val onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> }
+    var exitInRT: (programName: String) -> Boolean? = { null },
+    var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
+    var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> }
 )

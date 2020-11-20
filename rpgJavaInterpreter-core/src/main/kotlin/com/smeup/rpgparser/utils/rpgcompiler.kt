@@ -39,19 +39,20 @@ private fun compileFile(file: File, targetDir: File, format: Format): File {
 /**
  * Compile programs
  * @param src Source file or dir
- * @param targetDir The programs will be compiled in this directory
- * @param format Format of compiled file. Default Format.BIN
+ * @param compiledProgramsDir The programs will be compiled in this directory
+ * @param format Compiled file format. Default Format.BIN
  * @return Compiled files
  * */
-fun compile(src: File, targetDir: File, format: Format = Format.BIN): Collection<File> {
+@JvmOverloads
+fun compile(src: File, compiledProgramsDir: File, format: Format = Format.BIN): Collection<File> {
     val compiledFiles = mutableListOf<File>()
     if (src.exists()) {
         if (src.isFile) {
-            compiledFiles.add(compileFile(src, targetDir, format))
+            compiledFiles.add(compileFile(src, compiledProgramsDir, format))
         } else {
             src.listFiles { file ->
                 file.name.endsWith(".rpgle")
-            }.forEach { file -> compiledFiles.add(compileFile(file, targetDir, format)) }
+            }.forEach { file -> compiledFiles.add(compileFile(file, compiledProgramsDir, format)) }
         }
     }
     return compiledFiles

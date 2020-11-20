@@ -7,7 +7,10 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmMockProgram
-import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.DataRefExpr
+import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.ast.Statement
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
@@ -18,6 +21,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.strumenta.kolasu.model.ReferenceByName
 import junit.framework.Assert
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
@@ -34,8 +38,6 @@ import kotlin.test.fail
 class Dummy
 
 interface PerformanceTest
-
-interface PerformanceTest2
 
 fun parseFragmentToCompilationUnit(
     code: String,
@@ -161,15 +163,11 @@ fun assertCodeCanBeParsed(code: String): RContext {
     return result.root!!.rContext
 }
 
-fun assertExpressionCanBeParsed(code: String, printTree: Boolean = false): ExpressionContext {
+fun assertExpressionCanBeParsed(code: String): ExpressionContext {
     val result = RpgParserFacade().parseExpression(inputStreamForCode(code), printTree = true)
     assertTrue(result.correct,
             message = "Errors: ${result.errors.joinToString(separator = ", ")}")
     return result.root!!
-}
-
-fun expressionAst(code: String): Expression {
-    return assertExpressionCanBeParsed(code).toAst(ToAstConfiguration(considerPosition = false))
 }
 
 fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): StatementContext {
@@ -301,6 +299,7 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
+@ExperimentalSerializationApi
 fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): List<String> {
     execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si)
     return si.displayed.map(String::trimEnd)
@@ -308,7 +307,14 @@ fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), p
 
 private const val TRACE = false
 
-fun execute(programName: String, initialValues: Map<String, Value>, si: CollectorSystemInterface = ExtendedCollectorSystemInterface(), logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE), printTree: Boolean = false): InternalInterpreter {
+@ExperimentalSerializationApi
+fun execute(
+    programName: String,
+    initialValues: Map<String, Value>,
+    si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
+    logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE),
+    printTree: Boolean = false
+): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
     cu.resolveAndValidate(si.db)
     si.addExtraLogHandlers(logHandlers)
@@ -320,7 +326,7 @@ fun rpgProgram(name: String, dbInterface: DBInterface = DummyDBInterface): RpgPr
 }
 
 fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
-    var failed: Int = 0
+    var failed = 0
     annotations.forEach { (line, annotation) ->
         try {
             assertTrue(annotation.result.asBoolean().value)
@@ -342,7 +348,7 @@ class DummyProgramFinder(private val path: String) : RpgProgramFinder {
     }
 }
 
-open class ExtendedCollectorSystemInterface(private val jvmMockPrograms: List<JvmMockProgram> = emptyList()) : CollectorSystemInterface() {
+open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockProgram> = emptyList()) : CollectorSystemInterface() {
 
     val programFinders = mutableListOf<RpgProgramFinder>(DummyProgramFinder("/"))
     private val rpgPrograms = HashMap<String, RpgProgram>()

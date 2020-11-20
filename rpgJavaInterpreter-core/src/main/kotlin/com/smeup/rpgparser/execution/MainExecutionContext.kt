@@ -34,7 +34,7 @@ object MainExecutionContext {
         val memorySliceMgr = if (configuration.memorySliceStorage == null) {
             null
         } else {
-            MemorySliceMgr(configuration.memorySliceStorage)
+            MemorySliceMgr(configuration.memorySliceStorage!!)
         }
         try {
             context.set(Context(configuration = configuration, memorySliceMgr = memorySliceMgr, systemInterface = systemInterface))

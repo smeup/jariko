@@ -12,7 +12,6 @@ import org.junit.Test
 import org.junit.experimental.categories.Category
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.LinkedHashMap
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -632,7 +631,7 @@ Test 6
         assertEquals(listOf("25"), outputOf("PROCEDURE6"))
     }
 
-    @Test @Ignore
+    @Test
     fun executeCALLER_CALLED_pgm_with_RT() {
         assertEquals(listOf(
             "Executing CALLER",
