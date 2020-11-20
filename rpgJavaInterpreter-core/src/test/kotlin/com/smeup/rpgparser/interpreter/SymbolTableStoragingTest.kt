@@ -1,15 +1,16 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.CommandLineProgram
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.rpginterop.Param
-import com.smeup.rpgparser.rpginterop.RpgFacade
-import com.smeup.rpgparser.rpginterop.RpgSystem
+import com.smeup.rpgparser.rpginterop.*
 import org.junit.Test
+import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.test.Ignore
@@ -65,16 +66,6 @@ class MemoryStorage : IMemorySliceStorage {
 }
 
 class SymbolTableStoragingTest {
-
-    @Test
-    fun singlePgmFromDisk() {
-        // This test is used to test multithread tests loading the rpgle source
-        // from disk
-        RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
-        val javaSystemInterface = JavaSystemInterface()
-        XTHREAD(javaSystemInterface).call("THE FUNZ", "THE METO")
-        assertEquals(listOf("Funz:THE FUNZ   Meto:THE METO"), javaSystemInterface.consoleOutput)
-    }
 
     @Test
     fun execPgmAndEvaluateStorage() {
@@ -395,18 +386,27 @@ class SymbolTableStoragingTest {
     }
 
     @Test
-    fun singlePgmFromDiskMultithread() {
-        println("Run singlePgmFromDiskMultithread...")
-        val executor = Executors.newFixedThreadPool(30)
-        repeat(10000) {
-            var simbolTableStoragingTest = SymbolTableStoragingTest()
-            var workerThread: Runnable = WorkerThread(simbolTableStoragingTest, "singlePgmFromDisk")
-            executor.execute(workerThread)
+    fun testMultiThreadRpgSystem() {
+        val executor = Executors.newFixedThreadPool(10)
+        val job = mutableListOf<Runnable>()
+        repeat(100) {
+            executor.execute {
+                val interpreter = Interpreter()
+                interpreter.run()
+                println(it)
+            }
         }
+        executor.awaitTermination(10, TimeUnit.SECONDS)
         executor.shutdown()
-        println("Waiting 60s. for all thread to finish...")
-        executor.awaitTermination(60L, TimeUnit.SECONDS)
-        println("...done")
+    }
+
+    fun singlePgmFromDisk() {
+        // This test is used to test multithread tests loading the rpgle source
+        // from disk
+        RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+        val javaSystemInterface = JavaSystemInterface()
+        XTHREAD(javaSystemInterface).call("THE FUNZ", "THE METO")
+        assertEquals(listOf("Funz:THE FUNZ   Meto:THE METO"), javaSystemInterface.consoleOutput)
     }
 }
 
@@ -439,5 +439,22 @@ data class XTHREADParams(
 class XTHREAD(javaSystemInterface: JavaSystemInterface) : RpgFacade<XTHREADParams>(systemInterface = javaSystemInterface) {
     fun call(funz: String, meto: String) {
         singleCall(XTHREADParams(funz, meto))
+    }
+}
+
+class Interpreter : Runnable {
+    override fun run() {
+    println("Run interpreter: ${Thread.currentThread().name}")
+    val jariko: CommandLineProgram
+    val systemInterface: SystemInterface = JavaSystemInterface()
+    (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
+    val rpgDir = File("src/test/resources/")
+    val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
+    jariko = getProgram("XTHREAD.rpgle", systemInterface, programFinders)
+    try {
+        jariko.singleCall(Arrays.asList("FUNZ", "METO"), Configuration())
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
     }
 }
