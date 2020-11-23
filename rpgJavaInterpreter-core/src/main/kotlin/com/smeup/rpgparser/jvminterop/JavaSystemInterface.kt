@@ -11,7 +11,7 @@ import kotlin.reflect.full.isSubclassOf
 
 open class JavaSystemInterface(
     private val outputStream: PrintStream,
-    //private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
+    private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
     private val databaseInterface: DBInterface = DummyDBInterface,
     var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
@@ -27,7 +27,7 @@ open class JavaSystemInterface(
         get() = databaseInterface
 
     // For calls from Java programs
-    //constructor (os: PrintStream) : this(os, RpgSystem::getProgram)
+    constructor (os: PrintStream) : this(os, RpgSystem::getProgram)
     constructor() : this(System.out)
 
     private val consoleOutputList = LinkedList<String>()
@@ -58,8 +58,7 @@ open class JavaSystemInterface(
     }
 
     private fun findInFileSystem(programName: String): Program? {
-        //return programSource?.call(programName)
-        return RpgSystem.getProgram(programName)
+        return programSource?.call(programName)
     }
 
     private fun findInPackages(programName: String): Program? {
