@@ -37,7 +37,7 @@ class JavaSystemInterfaceTest {
 //    }
 
     private fun createJavaSystemInterface(): JavaSystemInterface {
-        val javaSystemInterface = JavaSystemInterface(System.out, programSource = null)
+        val javaSystemInterface = JavaSystemInterface(System.out)
         val packageName = this.javaClass.`package`.name
         javaSystemInterface.addJavaInteropPackage(packageName)
         return javaSystemInterface
