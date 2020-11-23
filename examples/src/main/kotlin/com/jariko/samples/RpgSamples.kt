@@ -1,4 +1,4 @@
-package com.samples.jariko
+package com.jariko.samples
 
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.JarikoCallback
@@ -11,13 +11,15 @@ import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import java.io.File
 import java.math.BigDecimal
 
+object RpgSamples
+
 /**
  * This function execute fibonacciOf number passed as argument
  * The rpgle program in retrieve from local sources from programPath
  * @param fibonacciOf integer to calculate fibonacci series
  */
 fun fibonacciOf(fibonacciOf: Int) {
-    val programPath = "examples/src/main/kotlin/com/samples/jariko"
+    val programPath = File(RpgSamples.javaClass.getResource("/rpg").file).path
     val programName = "fibonacci.rpgle"
     val programArgs = listOf(fibonacciOf.toString())
     var output: Long = 0

@@ -50,8 +50,8 @@ dependencies {
 
   compile 'com.fifesoft:rsyntaxtextarea:2.5.8'
   compile 'com.fifesoft:autocomplete:2.5.8'
-  compile "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0"
-  compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.0.0"
+  compile "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
+  compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
 
 }
 

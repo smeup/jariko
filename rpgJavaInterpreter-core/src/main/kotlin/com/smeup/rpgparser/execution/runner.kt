@@ -40,7 +40,7 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
         return CommandLineParms(resultValues.values.map { it.asString().value })
     }
 
-    fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
+    @JvmOverloads fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
         singleCall(CommandLineParms(parms), configuration = configuration)
 }
 
