@@ -26,6 +26,6 @@
      C     *ENTRY        PLIST
      C                   PARM                    $RESPGM
       *
-     C                   EVAL      $COUNT=2000
+     C*                  EVAL      $COUNT=2000
       *
      C                   ENDSR

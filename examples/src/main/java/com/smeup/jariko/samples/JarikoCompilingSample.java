@@ -2,7 +2,6 @@ package com.smeup.jariko.samples;
 
 import com.smeup.rpgparser.execution.CommandLineProgram;
 import com.smeup.rpgparser.execution.Configuration;
-import com.smeup.rpgparser.execution.Options;
 import com.smeup.rpgparser.execution.RunnerKt;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder;
@@ -26,16 +25,15 @@ public class JarikoCompilingSample {
         // Compile all programms in srcDir
         System.out.println("Compiled programs: " + RpgcompilerKt.compile(srcDir, compiledProgramsDir));
         Configuration configuration = new Configuration();
-        Options options = new Options();
         // Set where Jariko should search for compiled programs
-        options.setCompiledProgramsDir(compiledProgramsDir);
-        configuration.setOptions(options);
+        configuration.getOptions().setCompiledProgramsDir(compiledProgramsDir);
         JavaSystemInterface javaSystemInterface = new JavaSystemInterface();
         javaSystemInterface.addJavaInteropPackage("com.smeup.jariko.samples");
         List<RpgProgramFinder> programFinders = Arrays.asList(new DirRpgProgramFinder(srcDir));
         // Start Jariko
         CommandLineProgram jariko = RunnerKt.getProgram("MUTE10_75L", javaSystemInterface, programFinders);
         System.out.println(jariko.singleCall(Arrays.asList(), configuration).getParmsList());
+
     }
 
 }

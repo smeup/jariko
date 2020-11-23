@@ -79,15 +79,15 @@ class MiscTest {
         val src = File.createTempFile("MYPGM", ".rpgle")
         src.writeText(program)
         println("Compiling $src")
-        val compiledFiles = compile(src = src, src.parentFile)
-        println("Compiled files: $compiledFiles")
+        val compilationResults = compile(src = src, src.parentFile)
+        println("Compilation results: $compilationResults")
         assertEquals(
             1,
-            compiledFiles.size
+            compilationResults.first()
         )
         src.delete()
-        compiledFiles.forEach {
-            it.delete()
+        compilationResults.forEach {
+            it.compiledFile?.delete()
         }
     }
 }

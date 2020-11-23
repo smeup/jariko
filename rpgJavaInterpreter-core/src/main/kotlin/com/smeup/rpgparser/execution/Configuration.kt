@@ -16,11 +16,13 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
  * */
 
 data class Configuration(
-    var memorySliceStorage: IMemorySliceStorage? = null,
+    val memorySliceStorage: IMemorySliceStorage? = null,
     var jarikoCallback: JarikoCallback = JarikoCallback(),
-    var defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
+    val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
     var options: Options? = Options()
-)
+) {
+    constructor(memorySliceStorage: IMemorySliceStorage?) : this (null, JarikoCallback())
+}
 
 /**
  * Options object
