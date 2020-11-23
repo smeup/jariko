@@ -4,6 +4,7 @@ out
 *.ipr
 *.iws
 build
+kolasu/build
 bin/
 .classpath
 .project

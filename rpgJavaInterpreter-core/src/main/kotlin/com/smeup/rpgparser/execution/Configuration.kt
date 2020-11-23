@@ -21,7 +21,10 @@ data class Configuration(
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
     var options: Options? = Options()
 ) {
-    constructor(memorySliceStorage: IMemorySliceStorage?) : this (null, JarikoCallback())
+    constructor(memorySliceStorage: IMemorySliceStorage?) :
+            this (memorySliceStorage, JarikoCallback(), DEFAULT_ACTIVATION_GROUP_NAME, Options())
+    constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
+            this (memorySliceStorage, JarikoCallback(), defaultActivationGroupName, Options())
 }
 
 /**

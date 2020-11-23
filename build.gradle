@@ -2,7 +2,6 @@
 //Main build script
 //-----------------
 buildscript {
-    ext.kotlinVersion = "${kotlinVersion}"
 
     repositories {
         mavenCentral()

@@ -3,6 +3,7 @@ package com.smeup.rpgparser.utils
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.fail
 
 class MiscTest {
@@ -62,7 +63,7 @@ class MiscTest {
 
     @Test
     fun compilerTest() {
-        val dummyDir = "/asasuj8kkagabatakapa"
+        val dummyDir = "/impossibiledir12334567"
         assertEquals(
             true,
             compile(src = File(dummyDir), File(dummyDir).parentFile).isEmpty()
@@ -76,18 +77,27 @@ class MiscTest {
                 "     C                   eval      Msg = 'X is ' + %CHAR(X)\n" +
                 "     C                   dsply                   Msg\n" +
                 "     C                   SETON                                          LR"
-        val src = File.createTempFile("MYPGM", ".rpgle")
-        src.writeText(program)
-        println("Compiling $src")
-        val compilationResults = compile(src = src, src.parentFile)
+        val srcFile = File.createTempFile("MYPGM", ".rpgle")
+        srcFile.writeText(program)
+        println("Compiling $srcFile")
+        val compilationResults = compile(src = srcFile, srcFile.parentFile)
         println("Compilation results: $compilationResults")
-        assertEquals(
-            1,
-            compilationResults.first()
-        )
-        src.delete()
+        assertNotNull(compilationResults.first().compiledFile)
+        assert(compilationResults.first().error == null)
+        srcFile.delete()
         compilationResults.forEach {
             it.compiledFile?.delete()
         }
+    }
+
+    @Test
+    fun compileTestBadFile() {
+        val program = "BADRPG\n d a a a a a aa a a a a a a"
+        val srcFile = File.createTempFile("MYPGM", ".rpgle")
+        srcFile.writeText(program)
+        println("Compiling $srcFile")
+        val compilationResults = compile(src = srcFile, srcFile.parentFile)
+        assert(compilationResults.first().compiledFile == null)
+        assertNotNull(compilationResults.first().error)
     }
 }
