@@ -1,12 +1,9 @@
 package com.smeup.rpgparser.rpginterop
 
-import com.smeup.rpgparser.interpreter.DBInterface
-import com.smeup.rpgparser.interpreter.DummyDBInterface
-import com.smeup.rpgparser.interpreter.RpgProgram
+import com.smeup.rpgparser.interpreter.*
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
-import java.util.*
 
 interface RpgProgramFinder {
     fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram?
@@ -62,16 +59,19 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 object RpgSystem {
     var db: DBInterface = DummyDBInterface
 
-    internal val programFinders = LinkedHashSet<RpgProgramFinder>()
+    private val programFinders = mutableSetOf<RpgProgramFinder>()
 
+    @Synchronized
     fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {
         programFinders.addAll(programFindersList)
     }
 
+    @Synchronized
     fun addProgramFinder(programFinder: RpgProgramFinder) {
         programFinders.add(programFinder)
     }
 
+    @Synchronized
     fun getProgram(programName: String): RpgProgram {
         programFinders.forEach {
             val program = it.findRpgProgram(programName, db)
@@ -80,5 +80,12 @@ object RpgSystem {
             }
         }
         throw RuntimeException("Program $programName not found")
+    }
+
+    @Synchronized
+    fun log(logHandlers: List<InterpreterLogHandler>) {
+        programFinders.forEach {
+            logHandlers.log(RpgProgramFinderLogEntry(it.toString()))
+        }
     }
 }

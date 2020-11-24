@@ -1,16 +1,15 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.execution.CommandLineProgram
 import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.rpginterop.*
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import org.junit.Test
 import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.test.Ignore
@@ -30,7 +29,7 @@ class MemoryStorage : IMemorySliceStorage {
      * Load memory associated to memorySliceId
      * */
     override fun load(memorySliceId: MemorySliceId): Map<String, Value> {
-        return storage.getOrDefault(memorySliceId, mutableMapOf<String, Value>())
+        return storage.getOrDefault(memorySliceId, mutableMapOf())
     }
 
     /**
@@ -88,8 +87,8 @@ class SymbolTableStoragingTest {
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-                expected = IntValue(1),
-                actual = variables["X"] ?: error("Not found X")
+            expected = IntValue(1),
+            actual = variables["X"] ?: error("Not found X")
         )
     }
 
@@ -136,9 +135,9 @@ class SymbolTableStoragingTest {
         commandLineProgram.singleCall(emptyList(), configuration)
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         assertEquals(
-                expected = null,
-                actual = variables,
-                "Expected no variables due to 'SETON LR' instruction."
+            expected = null,
+            actual = variables,
+            "Expected no variables due to 'SETON LR' instruction."
         )
     }
 
@@ -162,8 +161,8 @@ class SymbolTableStoragingTest {
         var variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-                expected = IntValue(1),
-                actual = variables["X"] ?: error("Not found X")
+            expected = IntValue(1),
+            actual = variables["X"] ?: error("Not found X")
         )
 
         // Second program execution, X variable must exist with value 1, than it will increase to value 2.
@@ -171,8 +170,8 @@ class SymbolTableStoragingTest {
         variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-                expected = IntValue(2),
-                actual = variables["X"] ?: error("Not found X")
+            expected = IntValue(2),
+            actual = variables["X"] ?: error("Not found X")
         )
     }
 
@@ -197,8 +196,8 @@ class SymbolTableStoragingTest {
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-                expected = StringValue("B"),
-                actual = variables["Z"] ?: error("Not found Z")
+            expected = StringValue("B"),
+            actual = variables["Z"] ?: error("Not found Z")
         )
     }
 
@@ -236,8 +235,8 @@ class SymbolTableStoragingTest {
         var variables = memoryStorage.storage[MemorySliceId("MyActA".toUpperCase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
-                expected = StringValue("A"),
-                actual = variables["Z"] ?: error("Not found Z")
+            expected = StringValue("A"),
+            actual = variables["Z"] ?: error("Not found Z")
         )
 
         // First call to program B, instatiate and initialize Z variable to value 'B'.
@@ -245,16 +244,16 @@ class SymbolTableStoragingTest {
         variables = memoryStorage.storage[MemorySliceId("MyActB".toUpperCase(), programName = myProgramB)]
         require(variables != null)
         assertEquals(
-                expected = StringValue("B"),
-                actual = variables["Z"] ?: error("Not found Z")
+            expected = StringValue("B"),
+            actual = variables["Z"] ?: error("Not found Z")
         )
 
         // Z variable on MyActA must have previous value of A
         variables = memoryStorage.storage[MemorySliceId("MyActA".toUpperCase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
-                expected = StringValue("A"),
-                actual = variables["Z"] ?: error("Not found Z")
+            expected = StringValue("A"),
+            actual = variables["Z"] ?: error("Not found Z")
         )
     }
 
@@ -292,8 +291,8 @@ class SymbolTableStoragingTest {
         var variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
-                expected = StringValue("A"),
-                actual = variables["Z"] ?: error("Not found Z")
+            expected = StringValue("A"),
+            actual = variables["Z"] ?: error("Not found Z")
         )
 
         // First call to program B, instatiate and initialize Z variable to value 'B'
@@ -301,16 +300,16 @@ class SymbolTableStoragingTest {
         variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramB)]
         require(variables != null)
         assertEquals(
-                expected = StringValue("B"),
-                actual = variables["Z"] ?: error("Not found Z")
+            expected = StringValue("B"),
+            actual = variables["Z"] ?: error("Not found Z")
         )
 
         // Variable 'Z myProgramA scoped' have not changed his initial values, no interference between trwo programs
         variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
-                expected = StringValue("A"),
-                actual = variables["Z"] ?: error("Not found Z")
+            expected = StringValue("A"),
+            actual = variables["Z"] ?: error("Not found Z")
         )
     }
 
@@ -319,15 +318,15 @@ class SymbolTableStoragingTest {
     fun execRTPgmTwiceAndNotPreserveValues() {
         // TODO Handle ACTGRP(*NEW)
         // Program RT-closing: test to check SymbolTable does NOT preserve variables values due to *NEW activation group
-        val myProgram = """
-     H ACTGRP(*NEW)
-     D X               S              1  0
-     D Msg             S             12
-     C                   EVAL      X = X + 1
-     C                   EVAL      Msg = %CHAR(X)
-     C     msg           dsply
-     C                   SETON                                          RT
-     """
+//        """
+//     H ACTGRP(*NEW)
+//     D X               S              1  0
+//     D Msg             S             12
+//     C                   EVAL      X = X + 1
+//     C                   EVAL      Msg = %CHAR(X)
+//     C     msg           dsply
+//     C                   SETON                                          RT
+//     """
     }
 
     @Test
@@ -353,8 +352,8 @@ class SymbolTableStoragingTest {
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-                expected = IntValue(9),
-                actual = variables["NUM"] ?: error("Not found NUM")
+            expected = IntValue(9),
+            actual = variables["NUM"] ?: error("Not found NUM")
         )
     }
 
@@ -362,99 +361,91 @@ class SymbolTableStoragingTest {
     fun multiThreadTest() {
         // Run all SymbolTableStoragingTest.kt tests in multithread mode
 
-        val testNames = listOf("execPgmAndEvaluateStorage", "initPgmByStorageAndEvaluateResult",
-                "execLRPgmAndEvaluateStorage", "execRTPgmTwiceAndPreserveValues", "initPreExistingVariablesPgmByStorageAndEvaluateResult",
-                "sameVariablesButDifferentACTGRP", "sameVariablesAndSameACTGRP")
+        val testNames = listOf(
+            "execPgmAndEvaluateStorage",
+            "initPgmByStorageAndEvaluateResult",
+            "execLRPgmAndEvaluateStorage",
+            "execRTPgmTwiceAndPreserveValues",
+            "initPreExistingVariablesPgmByStorageAndEvaluateResult",
+            "sameVariablesButDifferentACTGRP",
+            "sameVariablesAndSameACTGRP"
+        )
 
         val fixedThreadPool = 10
         val repeatTests = 100
         val timeOutExecutorTermination = 60L
 
         val executor = Executors.newFixedThreadPool(fixedThreadPool)
+        val callables = mutableListOf<Callable<Throwable?>>()
         repeat(repeatTests) {
             for (testName in testNames) {
-                var simbolTableStoragingTest = SymbolTableStoragingTest()
-                var workerThread: Runnable = WorkerThread(simbolTableStoragingTest, testName)
-                executor.execute(workerThread)
+                val simbolTableStoragingTest = SymbolTableStoragingTest()
+                callables.add(WorkerThread(simbolTableStoragingTest, testName))
             }
         }
+        val futures = executor.invokeAll(callables)
         executor.shutdown()
-
         println("Waiting 60s. for all thread to finish...")
         executor.awaitTermination(timeOutExecutorTermination, TimeUnit.SECONDS)
         println("...done")
+        if (futures.any { it.get() != null }) {
+            throw (futures.first { it.get() != null }.get())!!
+        }
     }
 
     @Test
-    fun testMultiThreadRpgSystem() {
+    fun testExecPgmLoadedFromSource() {
         val executor = Executors.newFixedThreadPool(10)
-        val job = mutableListOf<Runnable>()
+        var failed: Throwable? = null
+        mutableListOf<Runnable>()
         repeat(100) {
             executor.execute {
-                val interpreter = Interpreter()
-                interpreter.run()
-                println(it)
+                runCatching {
+                    println("Run interpreter: ${Thread.currentThread().name}")
+                    val systemInterface: SystemInterface = JavaSystemInterface()
+                    (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
+                    val rpgDir = File("src/test/resources/")
+                    val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
+                    val jariko = getProgram("XTHREAD.rpgle", systemInterface, programFinders)
+                    jariko.singleCall(listOf("FUNZ", "METO"), Configuration())
+                    println(it)
+                }.onFailure {
+                    println(it)
+                    failed = it
+                }
             }
         }
-        executor.awaitTermination(10, TimeUnit.SECONDS)
         executor.shutdown()
-    }
-
-    fun singlePgmFromDisk() {
-        // This test is used to test multithread tests loading the rpgle source
-        // from disk
-        RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
-        val javaSystemInterface = JavaSystemInterface()
-        XTHREAD(javaSystemInterface).call("THE FUNZ", "THE METO")
-        assertEquals(listOf("Funz:THE FUNZ   Meto:THE METO"), javaSystemInterface.consoleOutput)
+        executor.awaitTermination(10, TimeUnit.SECONDS)
+        assert(failed == null)
     }
 }
 
-class WorkerThread(var symbolTableStoragingTest: SymbolTableStoragingTest, var testName: String) : Runnable {
+class WorkerThread(private val symbolTableStoragingTest: SymbolTableStoragingTest, private val testName: String) :
+    Callable<Throwable?> {
 
-    override fun run() {
-        println(Thread.currentThread().name + " Start test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-        when (testName) {
-            "execPgmAndEvaluateStorage" -> symbolTableStoragingTest.execPgmAndEvaluateStorage()
-            "initPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPgmByStorageAndEvaluateResult()
-            "execLRPgmAndEvaluateStorage" -> symbolTableStoragingTest.execLRPgmAndEvaluateStorage()
-            "execRTPgmTwiceAndPreserveValues" -> symbolTableStoragingTest.execRTPgmTwiceAndPreserveValues()
-            "initPreExistingVariablesPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPreExistingVariablesPgmByStorageAndEvaluateResult()
-            "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP()
-            "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP()
-            "singlePgmFromDisk" -> symbolTableStoragingTest.singlePgmFromDisk()
-            else -> {
-                print("Test $testName not exists")
+    override fun call(): Throwable? {
+        kotlin.runCatching {
+            println(Thread.currentThread().name + " Start test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+            when (testName) {
+                "execPgmAndEvaluateStorage" -> symbolTableStoragingTest.execPgmAndEvaluateStorage()
+                "initPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPgmByStorageAndEvaluateResult()
+                "execLRPgmAndEvaluateStorage" -> symbolTableStoragingTest.execLRPgmAndEvaluateStorage()
+                "execRTPgmTwiceAndPreserveValues" -> symbolTableStoragingTest.execRTPgmTwiceAndPreserveValues()
+                "initPreExistingVariablesPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPreExistingVariablesPgmByStorageAndEvaluateResult()
+                "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP()
+                "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP()
+                else -> {
+                    error("Test $testName not exists")
+                }
             }
+            println(Thread.currentThread().name + " End test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+        }.onFailure {
+            println(it)
+            return it
+        }.onSuccess {
+            return null
         }
-        println(Thread.currentThread().name + " End test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-    }
-}
-
-data class XTHREADParams(
-    @property:Param("U\$FUNZ") val funz: String,
-    @property:Param("U\$METO") val meto: String
-)
-
-class XTHREAD(javaSystemInterface: JavaSystemInterface) : RpgFacade<XTHREADParams>(systemInterface = javaSystemInterface) {
-    fun call(funz: String, meto: String) {
-        singleCall(XTHREADParams(funz, meto))
-    }
-}
-
-class Interpreter : Runnable {
-    override fun run() {
-    println("Run interpreter: ${Thread.currentThread().name}")
-    val jariko: CommandLineProgram
-    val systemInterface: SystemInterface = JavaSystemInterface()
-    (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
-    val rpgDir = File("src/test/resources/")
-    val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
-    jariko = getProgram("XTHREAD.rpgle", systemInterface, programFinders)
-    try {
-        jariko.singleCall(Arrays.asList("FUNZ", "METO"), Configuration())
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
+        return Throwable("Why am i here?")
     }
 }
