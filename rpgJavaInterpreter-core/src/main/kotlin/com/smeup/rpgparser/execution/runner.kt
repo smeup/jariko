@@ -77,9 +77,7 @@ fun getProgram(
         RpgSystem.addProgramFinder(it)
     }
 
-    RpgSystem.programFinders.forEach {
-        systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
-    }
+    RpgSystem.log(systemInterface.getAllLogHandlers())
 
     return CommandLineProgram(nameOrSource, systemInterface)
 }
