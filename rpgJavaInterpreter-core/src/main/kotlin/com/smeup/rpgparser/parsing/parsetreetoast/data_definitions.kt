@@ -8,9 +8,6 @@ import com.smeup.rpgparser.parsing.ast.IntLiteral
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
-import java.lang.Exception
-import java.lang.IllegalStateException
-import java.lang.RuntimeException
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
@@ -720,10 +717,12 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
             val correspondingFieldDefinition = dataDefinition.fields.find { it.name == fieldInfo.name }!!
             val overlayTarget = fieldInfo.overlayInfo!!.targetFieldName
             if (overlayTarget == dataDefinition.name) {
-                correspondingFieldDefinition.overlayingOn = dataDefinition
+                correspondingFieldDefinition.overlayingOn =  { dataDefinition }
             } else {
-                correspondingFieldDefinition.overlayingOn = dataDefinition.fields.find { fieldDefinition ->
-                    fieldDefinition.name == overlayTarget
+                correspondingFieldDefinition.overlayingOn = {
+                    dataDefinition.fields.find { fieldDefinition ->
+                        fieldDefinition.name == overlayTarget
+                    }
                 }
                         ?: throw IllegalStateException("Field not found: the overlay target is $overlayTarget. Fields available: ${dataDefinition.fields.joinToString(separator = ", ") { it.name }}")
             }
@@ -756,7 +755,9 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
                 referredDataDefinition.type,
                 referredDataDefinition.fields,
                 position = this.toPosition(true))
-        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
+        // I do not pass dataDefinition but function that returns dataDefinition to resolve issue on serialization
+        // related to circularly reference that causes raising of overflow exception
+        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = { dataDefinition }) }
         dataDefinition
     }
 }

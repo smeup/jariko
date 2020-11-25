@@ -1,4 +1,4 @@
-package com.smeup.rpgparser.interpreter.serialization
+package com.smeup.rpgparser.serialization
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

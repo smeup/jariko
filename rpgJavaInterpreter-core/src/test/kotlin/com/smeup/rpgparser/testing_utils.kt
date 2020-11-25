@@ -19,6 +19,8 @@ import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
+import com.smeup.rpgparser.utils.CompilationResult
+import com.smeup.rpgparser.utils.compile
 import com.strumenta.kolasu.model.ReferenceByName
 import junit.framework.Assert
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -38,6 +40,12 @@ import kotlin.test.fail
 class Dummy
 
 interface PerformanceTest
+
+val compiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bin").apply {
+    if (!this.exists()) {
+        this.mkdirs()
+    }
+}
 
 fun parseFragmentToCompilationUnit(
     code: String,
@@ -392,4 +400,41 @@ open class MockDBFile : DBFile {
     override fun eof(): Boolean = TODO()
     override fun equal(): Boolean = TODO()
     override fun read(): Record = TODO()
+}
+
+
+@ExperimentalSerializationApi
+fun compileAllMutes() {
+    val rpgBaseDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle").file).parent
+    val dirs = listOf("", "data/ds", "data/interop", "primitives", "db", "logging", "mute",
+        "overlay", "performance", "struct")
+    val compilationResults = mutableListOf<CompilationResult>()
+    val compiledDir =
+    dirs.forEach { it ->
+        val compilingDir = File(rpgBaseDir, it)
+        println("Compiling dir $compilingDir")
+        val compiled = compile(compilingDir, compiledDir)
+        if (compiled.any { it.error != null }) {
+            compiled.filter {
+                it.error != null
+            }.forEach { result ->
+                System.err.println("Compiling error on: ${result.srcFile}")
+                result.error!!.printStackTrace()
+            }
+            error("Compilation error view logs")
+        }
+        compiled.filter {
+            it.parsingError != null
+        }.forEach { result ->
+            System.err.println("Parsing error on ${result.srcFile}: ${result.parsingError}")
+            result.parsingError!!.printStackTrace()
+        }
+    }
+
+//    val file = File("C:\\dev\\java\\smeup\\jariko\\rpgJavaInterpreter-core\\build\\resources\\test\\data\\ds\\MUTE12_01.rpgle")
+//    compile(file, File("c:/temp"), Format.JSON)
+}
+
+fun main() {
+    compileAllMutes()
 }

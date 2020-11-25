@@ -1,13 +1,10 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.parsing.ast.DataRefExpr
-import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import java.lang.IllegalStateException
-import kotlin.math.ceil
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
+import kotlin.math.ceil
 import kotlin.math.max
 
 // Supported data types:

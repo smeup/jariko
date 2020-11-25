@@ -217,15 +217,17 @@ class RpgParserDataStruct {
 
     @Test
     fun compressionIntoDSofPackedValue() {
-        val PAC030 = FieldDefinition(name = "PAC030",
-                type = NumberType(3, 0, RpgType.PACKED),
-                explicitStartOffset = null,
-                explicitEndOffset = null,
-                calculatedStartOffset = 6,
-                calculatedEndOffset = 8,
-                overriddenContainer = null,
-                position = null,
-                declaredArrayInLineOnThisField = null)
+        val PAC030 = FieldDefinition(
+            name = "PAC030",
+            type = NumberType(3, 0, RpgType.PACKED),
+            explicitStartOffset = null,
+            explicitEndOffset = null,
+            calculatedStartOffset = 6,
+            calculatedEndOffset = 8,
+            overriddenContainer = { null },
+            position = null,
+            declaredArrayInLineOnThisField = null
+        )
         val encodedValue = PAC030.toDataStructureValue(IntValue(999))
         assertEquals(2, encodedValue.value.length)
     }

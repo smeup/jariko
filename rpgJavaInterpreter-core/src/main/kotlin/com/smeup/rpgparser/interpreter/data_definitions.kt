@@ -8,6 +8,7 @@ import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.math.BigDecimal
@@ -78,7 +79,7 @@ data class FileDefinition private constructor(override val name: String, overrid
 @Serializable
 data class DataDefinition(
     override val name: String,
-    override val type: Type,
+    @SerialName (value = "dataDefType") override val type: Type,
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
@@ -193,7 +194,7 @@ fun Type.toDataStructureValue(value: Value): StringValue {
 @Serializable
 data class FieldDefinition(
     override val name: String,
-    override val type: Type,
+    @SerialName("fieldDefType") override val type: Type,
     val explicitStartOffset: Int? = null,
     val explicitEndOffset: Int? = null,
     val calculatedStartOffset: Int? = null,
@@ -201,7 +202,7 @@ data class FieldDefinition(
         // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
         // container. We basically duplicate it
     @property:Link
-    var overriddenContainer: DataDefinition? = null,
+    @Transient var overriddenContainer: () -> DataDefinition? = { null } ,
     val initializationValue: Expression? = null,
     val descend: Boolean = false,
     override val position: Position? = null,
@@ -222,12 +223,12 @@ data class FieldDefinition(
     // true when the FieldDefinition contains a DIM keyword on its line
     // or when the field is overlaying on an a field which has the DIM keyword
     val declaredArrayInLine: Int?
-        get() = declaredArrayInLineOnThisField ?: (overlayingOn as? FieldDefinition)?.declaredArrayInLine
+        get() = declaredArrayInLineOnThisField ?: (overlayingOn.invoke() as? FieldDefinition)?.declaredArrayInLine
 
     val size: Int = type.size
 
     @property:Link
-    var overlayingOn: AbstractDataDefinition? = null
+    @Transient var overlayingOn: () -> AbstractDataDefinition? = { null }
 
     // when they are arrays, how many bytes should we skip into the DS to find the next element?
     // normally it would be the same size as an element of the DS, however if they are declared
@@ -238,7 +239,7 @@ data class FieldDefinition(
             return if (declaredArrayInLineOnThisField != null) {
                 elementSize()
             } else {
-                (overlayingOn as? FieldDefinition)?.stepSize ?: elementSize()
+                (overlayingOn.invoke() as? FieldDefinition)?.stepSize ?: elementSize()
             }
         }
 
@@ -257,11 +258,11 @@ data class FieldDefinition(
     /**
      * The fields used through LIKEDS cannot be used unqualified
      */
-    fun canBeUsedUnqualified() = this.overriddenContainer == null
+    fun canBeUsedUnqualified() = this.overriddenContainer.invoke() == null
 
     @Derived
     val container
-        get() = overriddenContainer
+        get() = overriddenContainer.invoke()
                 ?: this.parent as? DataDefinition
                 ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
 

@@ -297,4 +297,9 @@ for further informations."""
     }
 }
 
-check.dependsOn runMutes
+task createAst(type: JavaExec) {
+    //main="com.smeup.rpgparser.execution.asasasa"
+    //classpath = sourceSets.test.runtimeClasspath
+}
+
+check.dependsOn createAst, runMutes

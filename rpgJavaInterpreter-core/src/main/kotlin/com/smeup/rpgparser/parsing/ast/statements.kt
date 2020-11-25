@@ -706,6 +706,7 @@ data class MoveAStmt(
         val eq: IndicatorKey?
     }
 
+    @Serializable
     data class RightIndicators(
         override val hi: IndicatorKey?,
         override val lo: IndicatorKey?,
