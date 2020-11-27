@@ -2,6 +2,7 @@ package com.smeup.rpgparser.rpginterop
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.interpreter.RpgProgram
+import com.smeup.rpgparser.interpreter.*
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -12,9 +13,9 @@ interface RpgProgramFinder {
 }
 
 class SourceProgramFinder : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
         if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
-            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), nameOrSource)
+            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), dbInterface, nameOrSource)
         }
         return null
     }
@@ -30,10 +31,10 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         directory?.let { require(it.exists()) { "The specified directory should exist: ${directory.path} -> ${directory.absolutePath}" } }
     }
 
-    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
         val file = File(prefix() + nameAndSuffix(nameOrSource))
         return if (file.exists()) {
-            RpgProgram.fromInputStream(FileInputStream(file), nameOrSource)
+            RpgProgram.fromInputStream(FileInputStream(file), dbInterface, nameOrSource)
         } else {
             null
         }
@@ -62,21 +63,31 @@ object RpgSystem {
 
     internal val programFinders = LinkedHashSet<RpgProgramFinder>()
 
+    @Synchronized
     fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {
         programFinders.addAll(programFindersList)
     }
 
+    @Synchronized
     fun addProgramFinder(programFinder: RpgProgramFinder) {
         programFinders.add(programFinder)
     }
 
+    @Synchronized
     fun getProgram(programName: String): RpgProgram {
         programFinders.forEach {
-            val program = it.findRpgProgram(programName)
+            val program = it.findRpgProgram(programName, db)
             if (program != null) {
                 return program
             }
         }
         throw RuntimeException("Program $programName not found")
+    }
+
+    @Synchronized
+    fun log(logHandlers: List<InterpreterLogHandler>) {
+        programFinders.forEach {
+            logHandlers.log(RpgProgramFinderLogEntry(it.toString()))
+        }
     }
 }

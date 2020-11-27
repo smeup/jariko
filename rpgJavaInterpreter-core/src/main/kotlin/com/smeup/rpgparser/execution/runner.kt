@@ -40,7 +40,7 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
         return CommandLineParms(resultValues.values.map { it.asString().value })
     }
 
-    fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
+    @JvmOverloads fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
         singleCall(CommandLineParms(parms), configuration = configuration)
 }
 
@@ -76,9 +76,7 @@ fun getProgram(
         RpgSystem.addProgramFinder(it)
     }
 
-    RpgSystem.programFinders.forEach {
-        systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
-    }
+    RpgSystem.log(systemInterface.getAllLogHandlers())
 
     return CommandLineProgram(nameOrSource, systemInterface)
 }

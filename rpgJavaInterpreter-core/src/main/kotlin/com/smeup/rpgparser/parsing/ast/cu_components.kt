@@ -1,21 +1,13 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.db.sql.toDataDefinition
-import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.interpreter.AbstractDataDefinition
-import com.smeup.rpgparser.interpreter.DataDefinition
-import com.smeup.rpgparser.interpreter.FileDefinition
-import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.strumenta.kolasu.model.Derived
-import com.strumenta.kolasu.model.Named
-import com.strumenta.kolasu.model.Node
-import com.strumenta.kolasu.model.Position
-
-
+import com.smeup.rpgparser.interpreter.*
+import com.strumenta.kolasu.model.*
+import java.lang.IllegalArgumentException
 import java.util.*
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
 // to its main components
+@Serializable
 data class CompilationUnit(
     val fileDefinitions: List<FileDefinition>,
     val dataDefinitions: List<DataDefinition>,
@@ -42,7 +34,7 @@ data class CompilationUnit(
         get() = main.stmts.plist()
                 ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
 
-    private val inStatementsDataDefinitions = LinkedList<InStatementDataDefinition>()
+    private val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
 
     fun addInStatementDataDefinitions(dataDefinitions: List<InStatementDataDefinition>) {
         inStatementsDataDefinitions.addAll(dataDefinitions)
@@ -116,6 +108,7 @@ data class CompilationUnit(
     fun getFileDefinition(name: String) = fileDefinitions.first { it.name.equals(name, ignoreCase = true) }
 }
 
+@Serializable
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
 
 class Subroutine(override val name: String, val stmts: List<Statement>, val tag: String? = null, override val position: Position? = null) : Named, Node(position)

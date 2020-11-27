@@ -5,8 +5,11 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
-abstract class MuteAnnotation(override val position: Position? = null) : Node(position)
+@Serializable
+abstract class MuteAnnotation(@Transient override val position: Position? = null) : Node(position)
 
 data class MuteComparisonAnnotation(
     var val1: Expression,
@@ -23,6 +26,7 @@ data class MuteTypeAnnotation(override var position: Position? = null) : MuteAnn
 /**
  * A timeout annotation
  */
+@Serializable
 data class MuteTimeoutAnnotation(val timeout: Long, override var position: Position? = null) : MuteAnnotation(position)
 
 /**

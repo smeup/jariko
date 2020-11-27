@@ -8,6 +8,7 @@ import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.createCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.parseTreeToXml
@@ -22,6 +23,7 @@ import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.apache.commons.io.input.BOMInputStream
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -61,7 +63,9 @@ class RpgParserFacade {
     var muteSupport: Boolean = MainExecutionContext.getConfiguration().options?.muteSupport ?: false
 
     private val executionProgramName: String by lazy {
-        MainExecutionContext.getExecutionProgramName()
+        MainExecutionContext.getExecutionProgramName().let {
+            File(it).name.replaceBeforeLast(".", "")
+        }
     }
 
     private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80): CharStream {
@@ -260,7 +264,18 @@ class RpgParserFacade {
         return parserResult
     }
 
-    fun parseAndProduceAst(inputStream: InputStream): CompilationUnit {
+    private fun tryToLoadCompilationUnit(): CompilationUnit? {
+        return MainExecutionContext.getConfiguration().options?.compiledProgramsDir?.let { compiledDir ->
+            val compiledFile = File(compiledDir, executionProgramName + ".bin")
+            if (compiledFile.exists()) {
+                compiledFile.readBytes().createCompilationUnit()
+            } else {
+                null
+            }
+        }
+    }
+
+    private fun createAst(inputStream: InputStream): CompilationUnit {
         val result = parse(inputStream)
         require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
         val compilationUnit: CompilationUnit
@@ -274,6 +289,10 @@ class RpgParserFacade {
         }
         MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
         return compilationUnit
+    }
+
+    fun parseAndProduceAst(inputStream: InputStream): CompilationUnit {
+        return tryToLoadCompilationUnit() ?: createAst(inputStream)
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true, printTree: Boolean = false): ParsingResult<ExpressionContext> {

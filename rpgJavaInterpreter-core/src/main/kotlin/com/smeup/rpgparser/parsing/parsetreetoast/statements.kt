@@ -8,7 +8,7 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
-import java.lang.RuntimeException
+import kotlinx.serialization.Serializable
 
 fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
@@ -130,7 +130,8 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
     }
 }
 
-class LogicalCondition(val expression: Expression) : Expression() {
+@Serializable
+data class LogicalCondition(val expression: Expression) : Expression() {
     val ands = mutableListOf<LogicalCondition>()
     fun and(conditions: List<LogicalCondition>) {
         ands.addAll(conditions)

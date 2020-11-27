@@ -35,7 +35,7 @@ object MainExecutionContext {
         val memorySliceMgr = if (configuration.memorySliceStorage == null) {
             null
         } else {
-            MemorySliceMgr(configuration.memorySliceStorage)
+            MemorySliceMgr(configuration.memorySliceStorage!!)
         }
         try {
             context.set(Context(configuration = configuration, memorySliceMgr = memorySliceMgr, systemInterface = systemInterface))
@@ -59,7 +59,21 @@ object MainExecutionContext {
     /**
      * @return a new unique identifier
      */
-    fun newId() = context.get()?.idProvider?.getAndIncrement() ?: noContextIdProvider.getAndIncrement()
+    fun newId(): Int {
+        return if (context.get() != null) {
+            context.get().idProvider.getAndIncrement()
+        } else {
+            // In many tests, the parsing is called outside of the execution context
+            // It's not too wrong assume that over 32000 it can be reset idProvider
+            // In this way doesn't fail the variables assignment when involved the experimental
+            // symbol table
+            if (noContextIdProvider.get() == 32000) {
+                Exception("Reset idProvider").printStackTrace()
+                noContextIdProvider.set(0)
+            }
+            noContextIdProvider.getAndIncrement()
+        }
+    }
 
     /**
      * @return an instance of jariko configuration
