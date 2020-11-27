@@ -5,8 +5,11 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
-import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -140,6 +143,12 @@ private val modules = SerializersModule {
     polymorphic(WithRightIndicators::class) {
         subclass(RightIndicators::class)
     }
+    polymorphic(MuteAnnotation::class) {
+        subclass(MuteComparisonAnnotation::class)
+        subclass(MuteFailAnnotation::class)
+        subclass(MuteTimeoutAnnotation::class)
+        subclass(MuteTypeAnnotation::class)
+    }
     contextual(BigDecimal::class, BigDecimalSerializer)
 }
 
@@ -147,7 +156,6 @@ val json = Json {
     serializersModule = modules
 }
 
-@ExperimentalSerializationApi
 val cbor = Cbor {
     serializersModule = modules
 }
@@ -155,7 +163,5 @@ val cbor = Cbor {
 fun CompilationUnit.encodeToString() = json.encodeToString(this)
 fun String.createCompilationUnit() = json.decodeFromString<CompilationUnit>(this)
 
-@ExperimentalSerializationApi
 fun CompilationUnit.encodeToByteArray() = cbor.encodeToByteArray(this)
-@ExperimentalSerializationApi
 fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit>(this)

@@ -10,6 +10,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.createCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.setOverlayOn
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.parseTreeToXml
 import com.strumenta.kolasu.model.Point
@@ -64,7 +65,13 @@ class RpgParserFacade {
 
     private val executionProgramName: String by lazy {
         MainExecutionContext.getExecutionProgramName().let {
-            File(it).name.replaceBeforeLast(".", "")
+            val name = File(it).name.replaceAfterLast(".", "")
+            if (name.endsWith(".")) {
+                name.substring(0, name.length - 1)
+            }
+            else {
+                name
+            }
         }
     }
 
@@ -266,11 +273,21 @@ class RpgParserFacade {
 
     private fun tryToLoadCompilationUnit(): CompilationUnit? {
         return MainExecutionContext.getConfiguration().options?.compiledProgramsDir?.let { compiledDir ->
-            val compiledFile = File(compiledDir, executionProgramName + ".bin")
+            val start = System.currentTimeMillis()
+            val compiledFile = File(compiledDir, "$executionProgramName.bin")
             if (compiledFile.exists()) {
-                compiledFile.readBytes().createCompilationUnit()
+                MainExecutionContext.log(AstLogStart(executionProgramName))
+                compiledFile.readBytes().createCompilationUnit().apply {
+                    MainExecutionContext.log(AstLogEnd(executionProgramName, System.currentTimeMillis() - start))
+                }
             } else {
                 null
+            }
+        }?.apply {
+            dataDefinitions.forEach { dataDefinition ->
+                dataDefinition.fields.forEach { fieldDefinition ->
+                    dataDefinition.setOverlayOn(fieldDefinition)
+                }
             }
         }
     }

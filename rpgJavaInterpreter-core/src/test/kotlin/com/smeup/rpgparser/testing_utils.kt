@@ -1,8 +1,11 @@
 @file:Suppress("DEPRECATION")
+@file:JvmName("TestingUtils")
 package com.smeup.rpgparser
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -19,11 +22,9 @@ import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
-import com.smeup.rpgparser.utils.CompilationResult
 import com.smeup.rpgparser.utils.compile
 import com.strumenta.kolasu.model.ReferenceByName
 import junit.framework.Assert
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
@@ -151,15 +152,26 @@ fun assertASTCanBeProduced(
     withMuteSupport: Boolean = false,
     printTree: Boolean = false
 ): CompilationUnit {
-    val result = assertCanBeParsedResult(exampleName, withMuteSupport, printTree)
-    val parseTreeRoot = result.root!!.rContext
-    val ast = parseTreeRoot.toAst(ToAstConfiguration(
+    val ast: CompilationUnit
+    // if printTree true it is necessary create parserResult, then I can't load ast from bin
+    if (printTree) {
+        val result = assertCanBeParsedResult(exampleName, withMuteSupport, printTree)
+        val parseTreeRoot = result.root!!.rContext
+        ast = parseTreeRoot.toAst(ToAstConfiguration(
             considerPosition = considerPosition))
-    if (withMuteSupport) {
-        if (!considerPosition) {
-            throw IllegalStateException("Mute annotations can be injected only when retaining the position")
+        if (withMuteSupport) {
+            if (!considerPosition) {
+                throw IllegalStateException("Mute annotations can be injected only when retaining the position")
+            }
+            ast.injectMuteAnnotation(result.root!!.muteContexts!!)
         }
-        ast.injectMuteAnnotation(result.root!!.muteContexts!!)
+    }
+    else {
+        val configuration = Configuration(options = Options(muteSupport = withMuteSupport, compiledProgramsDir = compiledDir))
+        ast = MainExecutionContext.execute(systemInterface = JavaSystemInterface(), configuration = configuration) {
+            it.executionProgramName = exampleName
+            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
+        }
     }
     return ast
 }
@@ -307,7 +319,6 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-@ExperimentalSerializationApi
 fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): List<String> {
     execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si)
     return si.displayed.map(String::trimEnd)
@@ -315,7 +326,6 @@ fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), p
 
 private const val TRACE = false
 
-@ExperimentalSerializationApi
 fun execute(
     programName: String,
     initialValues: Map<String, Value>,
@@ -402,18 +412,18 @@ open class MockDBFile : DBFile {
     override fun read(): Record = TODO()
 }
 
-
-@ExperimentalSerializationApi
-fun compileAllMutes() {
+fun compileAllMutes(verbose: Boolean = true, dir: String? = null) {
     val rpgBaseDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle").file).parent
-    val dirs = listOf("", "data/ds", "data/interop", "primitives", "db", "logging", "mute",
-        "overlay", "performance", "struct")
-    val compilationResults = mutableListOf<CompilationResult>()
-    val compiledDir =
+    val dirs = dir?.let {
+        listOf(it)
+    } ?: listOf("", "data/ds", "data/interop", "primitives", "db", "logging", "mute",
+        "overlay", "performance", "performance-ast", "struct")
     dirs.forEach { it ->
+        val muteSupport = it != "performance-ast"
         val compilingDir = File(rpgBaseDir, it)
-        println("Compiling dir $compilingDir")
-        val compiled = compile(compilingDir, compiledDir)
+        println("Compiling dir $compilingDir with muteSupport: $muteSupport")
+
+        val compiled = compile(compilingDir, compiledDir, muteSupport = muteSupport)
         if (compiled.any { it.error != null }) {
             compiled.filter {
                 it.error != null
@@ -423,18 +433,24 @@ fun compileAllMutes() {
             }
             error("Compilation error view logs")
         }
-        compiled.filter {
-            it.parsingError != null
-        }.forEach { result ->
-            System.err.println("Parsing error on ${result.srcFile}: ${result.parsingError}")
-            result.parsingError!!.printStackTrace()
+        if (verbose) {
+            compiled.filter {
+                it.parsingError != null
+            }.forEach { result ->
+                System.err.println("Parsing error on ${result.srcFile}: ${result.parsingError}")
+                result.parsingError!!.printStackTrace()
+            }
         }
     }
-
-//    val file = File("C:\\dev\\java\\smeup\\jariko\\rpgJavaInterpreter-core\\build\\resources\\test\\data\\ds\\MUTE12_01.rpgle")
-//    compile(file, File("c:/temp"), Format.JSON)
 }
 
-fun main() {
-    compileAllMutes()
+fun main(args: Array<String>) {
+    val errorMsg = "Usage: java com.smeup.rpgparser.TestingUtils -compileMutes"
+    if (args.isEmpty()) {
+        error(errorMsg)
+    }
+    when (args[0]) {
+        "-compileAllMutes" -> compileAllMutes()
+        else -> error(errorMsg)
+    }
 }

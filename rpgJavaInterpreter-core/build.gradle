@@ -297,9 +297,12 @@ for further informations."""
     }
 }
 
-task createAst(type: JavaExec) {
-    //main="com.smeup.rpgparser.execution.asasasa"
-    //classpath = sourceSets.test.runtimeClasspath
+task compileAllMutes(type: JavaExec) {
+    main="com.smeup.rpgparser.TestingUtils"
+    classpath = sourceSets.test.runtimeClasspath
+    args "-compileAllMutes"
+
 }
 
-check.dependsOn createAst, runMutes
+check.dependsOn compileAllMutes, runMutes
+testPerformance.dependsOn compileAllMutes

@@ -1,10 +1,11 @@
 package com.smeup.rpgparser.utils
 
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.encodeToByteArray
 import com.smeup.rpgparser.parsing.ast.encodeToString
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import kotlinx.serialization.ExperimentalSerializationApi
 import java.io.File
 import java.io.FileInputStream
 
@@ -21,9 +22,13 @@ data class CompilationOption(val format: Format = Format.BIN, val muteSupport: B
  * @param error Compilation error
  * @param parseError Parsing error
  * */
-data class CompilationResult(val srcFile: File, val compiledFile: File? = null, val error: Throwable? = null, val parsingError: Throwable? = null)
+data class CompilationResult(
+    val srcFile: File,
+    val compiledFile: File? = null,
+    val error: Throwable? = null,
+    val parsingError: Throwable? = null
+)
 
-@ExperimentalSerializationApi
 private fun compileFile(file: File, targetDir: File, format: Format, muteSupport: Boolean): CompilationResult {
     runCatching {
         println("Compiling $file")
@@ -69,14 +74,28 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
  * @return muteSupport Enable muteSupport. Default false
  * */
 @JvmOverloads
-fun compile(src: File, compiledProgramsDir: File, format: Format = Format.BIN, muteSupport: Boolean = false): Collection<CompilationResult> {
+fun compile(
+    src: File,
+    compiledProgramsDir: File,
+    format: Format = Format.BIN,
+    muteSupport: Boolean = false
+): Collection<CompilationResult> {
+    val systemInterface = JavaSystemInterface()
+    // In MainExecutionContext to avoid warning on idProvider reset
     val compilationResult = mutableListOf<CompilationResult>()
     if (src.isFile) {
-        compilationResult.add(compileFile(src, compiledProgramsDir, format, muteSupport))
+        MainExecutionContext.execute(systemInterface = systemInterface) {
+            compilationResult.add(compileFile(src, compiledProgramsDir, format, muteSupport))
+        }
+
     } else {
         src.listFiles { file ->
             file.name.endsWith(".rpgle")
-        }?.forEach { file -> compilationResult.add(compileFile(file, compiledProgramsDir, format, muteSupport)) }
+        }?.forEach { file ->
+            MainExecutionContext.execute(systemInterface = systemInterface) {
+                compilationResult.add(compileFile(file, compiledProgramsDir, format, muteSupport))
+            }
+        }
     }
     return compilationResult
 }

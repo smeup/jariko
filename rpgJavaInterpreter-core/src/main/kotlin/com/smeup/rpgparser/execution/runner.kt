@@ -101,12 +101,16 @@ fun executePgmWithStringArgs(
 object RunnerCLI : CliktCommand() {
     val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
     val programsSearchDirs by option("-psd").split(",")
+    val compiledProgramDir by option("-cpd", "--compiled-program-dir").file(exists = true, readable = true)
     val programName by argument("program name")
     val programArgs by argument().multiple(required = false)
 
     override fun run() {
         val allProgramFinders = defaultProgramFinders + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
-        executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders)
+        val configuration = Configuration()
+        configuration.options?.compiledProgramsDir = compiledProgramDir
+        executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders,
+        configuration = configuration)
     }
 }
 
