@@ -67,8 +67,7 @@ class RpgParserFacade {
             val name = File(it).name.replaceAfterLast(".", "")
             if (name.endsWith(".")) {
                 name.substring(0, name.length - 1)
-            }
-            else {
+            } else {
                 name
             }
         }
