@@ -64,7 +64,12 @@ class RpgParserFacade {
 
     private val executionProgramName: String by lazy {
         MainExecutionContext.getExecutionProgramName().let {
-            File(it).name.replaceBeforeLast(".", "")
+            val name = File(it).name.replaceAfterLast(".", "")
+            if (name.endsWith(".")) {
+                name.substring(0, name.length - 1)
+            } else {
+                name
+            }
         }
     }
 
