@@ -17,31 +17,18 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
  * @param reloadConfig Reload configuration, it is necessary only for db access
  * */
 
-const val DEFAULT_ACTIVATION_GROUP_NAME = "*DFTACTGRP"
-
 data class Configuration(
-    val memorySliceStorage: IMemorySliceStorage? = null,
-    var jarikoCallback: JarikoCallback = JarikoCallback(),
-    val reloadConfig: ReloadConfig? = null,
-    val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
-    var options: Options? = Options()
+        val memorySliceStorage: IMemorySliceStorage? = null,
+        var jarikoCallback: JarikoCallback = JarikoCallback(),
+        val reloadConfig: ReloadConfig? = null,
+        val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
+        var options: Options? = Options()
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
-            this (memorySliceStorage, JarikoCallback(), DEFAULT_ACTIVATION_GROUP_NAME, Options())
+            this (memorySliceStorage, JarikoCallback(), ReloadConfig(), DEFAULT_ACTIVATION_GROUP_NAME, Options())
     constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
-            this (memorySliceStorage, JarikoCallback(), defaultActivationGroupName, Options())
+            this (memorySliceStorage, JarikoCallback(), ReloadConfig(), defaultActivationGroupName, Options())
 }
-)
-
-/**
- * Options object
- * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
- * @param compiledProgramsDir If specified Jariko searches compiled program in this directory
- * */
-data class Options(
-    var muteSupport: Boolean = false,
-    var compiledProgramsDir: File? = null
-)
 
 /**
  * Reload configuration
@@ -50,8 +37,18 @@ data class Options(
  * provided by reload
  * */
 data class ReloadConfig(
-        val nativeAccessConfig: DBNativeAccessConfig,
-        val metadata: List<FileMetadata>)
+        val nativeAccessConfig: DBNativeAccessConfig? = null,
+        val metadata: List<FileMetadata> = emptyList())
+
+/**
+ * Options object
+ * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
+ * @param compiledProgramsDir If specified Jariko searches compiled program in this directory
+ * */
+data class Options(
+        var muteSupport: Boolean = false,
+        var compiledProgramsDir: File? = null
+)
 
 /**
  * Sometimes we have to gain control of Jariko, this is the right place.

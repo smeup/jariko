@@ -13,9 +13,9 @@ interface RpgProgramFinder {
 }
 
 class SourceProgramFinder : RpgProgramFinder {
-    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
-            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), dbInterface, nameOrSource)
+            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), nameOrSource)
         }
         return null
     }
@@ -31,10 +31,10 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         directory?.let { require(it.exists()) { "The specified directory should exist: ${directory.path} -> ${directory.absolutePath}" } }
     }
 
-    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         val file = File(prefix() + nameAndSuffix(nameOrSource))
         return if (file.exists()) {
-            RpgProgram.fromInputStream(FileInputStream(file), dbInterface, nameOrSource)
+            RpgProgram.fromInputStream(FileInputStream(file), nameOrSource)
         } else {
             null
         }
@@ -76,7 +76,7 @@ object RpgSystem {
     @Synchronized
     fun getProgram(programName: String): RpgProgram {
         programFinders.forEach {
-            val program = it.findRpgProgram(programName, db)
+            val program = it.findRpgProgram(programName)
             if (program != null) {
                 return program
             }

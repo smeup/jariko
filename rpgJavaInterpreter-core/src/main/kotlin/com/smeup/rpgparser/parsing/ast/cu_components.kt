@@ -1,9 +1,14 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.rpgparser.db.sql.toDataDefinition
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
-import com.strumenta.kolasu.model.*
-import java.lang.IllegalArgumentException
-import java.util.*
+import com.strumenta.kolasu.model.Derived
+import com.strumenta.kolasu.model.Named
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
+import kotlinx.serialization.Serializable
+
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
 // to its main components
@@ -53,7 +58,7 @@ data class CompilationUnit(
 
                     // Create DS from file metadata
 
-                    val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.metadata?.first{metadata -> metadata.tableName == it.name}
+                    val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.metadata?.first{ metadata -> metadata.tableName == it.name}
                     if (metadata != null) {
                         if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
                          _allDataDefinitions.addAll(metadata.fields.map{field -> field.toDataDefinition()})
@@ -111,11 +116,14 @@ data class CompilationUnit(
 @Serializable
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
 
-class Subroutine(override val name: String, val stmts: List<Statement>, val tag: String? = null, override val position: Position? = null) : Named, Node(position)
+@Serializable
+data class Subroutine(override val name: String, val stmts: List<Statement>, val tag: String? = null, override val position: Position? = null) : Named, Node(position)
 
-class Function(override val name: String, override val position: Position? = null) : Named, Node(position)
+@Serializable
+data class Function(override val name: String, override val position: Position? = null) : Named, Node(position)
 
-class CompileTimeArray(override val name: String, val lines: List<String>, override val position: Position? = null) : Named, Node(position)
+@Serializable
+data class CompileTimeArray(override val name: String, val lines: List<String>, override val position: Position? = null) : Named, Node(position)
 
 enum class DataWrapUpChoice {
     LR,

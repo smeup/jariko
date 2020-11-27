@@ -124,12 +124,12 @@ data class Context(
     val systemInterface: SystemInterface,
     var executionProgramName: String? = null,
     val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
-        it.nativeAccessConfig.connectionsConfig.forEach() { connectionConfig ->
+        it.nativeAccessConfig?.connectionsConfig?.forEach() { connectionConfig ->
             it.metadata.forEach() {metadata ->
             DBFileFactory.registerMetadata(metadata)
             }
         }
-        DBFileFactory(it.nativeAccessConfig)
+        DBFileFactory(it.nativeAccessConfig!!)
     }
 ) {
 
