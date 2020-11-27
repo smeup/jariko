@@ -25,7 +25,7 @@ class ChainHostsDBTest {
         @JvmStatic
         fun init() {
             server = startDB()
-            execute(listOf(sqlCreateQATOCHOSTS(), recordFormatNameQATOCHOSTS(), insertRecordsQATOCHOSTS()))
+            execute(listOf(sqlCreateQATOCHOSTS(), insertRecordsQATOCHOSTS()))
         }
 
         @AfterClass
@@ -47,8 +47,6 @@ class ChainHostsDBTest {
             RESERVED CHAR(49) DEFAULT '' NOT NULL,
             PRIMARY KEY(INTERNET) )
         """.trimIndent()
-
-        private fun recordFormatNameQATOCHOSTS() = "COMMENT ON TABLE QATOCHOST IS 'QHOSTS'"
 
         private fun insertRecordsQATOCHOSTS() = "INSERT INTO QATOCHOST (INTERNET, HOSTNME1) VALUES('127.0.0.1', 'LOOPBACK')"
     }
@@ -76,7 +74,7 @@ class ChainHostsDBTest {
     }
 
     private fun createMetadata() = FileMetadata(
-            "QHOSTS",
+            "QATOCHOST",
             "QHOSTS",
             listOf("INTERNET" fieldByType CharacterType(15),
                     "HOSTNME1" fieldByType CharacterType(255),
@@ -89,6 +87,4 @@ class ChainHostsDBTest {
             listOf("INTERNET"),
             true
     )
-
-
 }

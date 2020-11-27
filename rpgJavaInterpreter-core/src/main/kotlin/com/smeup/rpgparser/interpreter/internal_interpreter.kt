@@ -500,7 +500,10 @@ class InternalInterpreter(
     }
 
     override fun dbFile(name: String, statement: Statement): DBFile {
-        val dbFile = dbFileMap[name]
+
+        // Nem could be file name or format name
+        val dbFile = dbFileMap.get(name)
+
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
         }
