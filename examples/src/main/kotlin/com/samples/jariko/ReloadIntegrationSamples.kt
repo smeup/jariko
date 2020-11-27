@@ -23,7 +23,7 @@ fun callJarikoWithReload() {
     val config = Configuration(
         reloadConfig = ReloadConfig(
             nativeAccessConfig = DBNativeAccessConfig(connectionsConfig), 
-            getMetadata = {_: String ->  null}
+            metadata = emptyList()
     ))
 
     // call jariko

@@ -111,7 +111,9 @@ data class Context(
     var executionProgramName: String? = null,
     val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
         it.nativeAccessConfig.connectionsConfig.forEach() { connectionConfig ->
-            DBFileFactory.registerMetadata(it.getMetadata(connectionConfig.fileName)!!)
+            it.metadata.forEach() {metadata ->
+            DBFileFactory.registerMetadata(metadata)
+            }
         }
         DBFileFactory(it.nativeAccessConfig)
     }

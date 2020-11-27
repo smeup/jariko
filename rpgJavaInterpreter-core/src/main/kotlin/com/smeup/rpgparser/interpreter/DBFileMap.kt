@@ -18,7 +18,7 @@ class DBFileMap() {
      */
     fun add(fileDefinition: FileDefinition) {
 
-        if (byFileName.containsKey(fileDefinition) == false) {
+        if (byFileName.containsKey(fileDefinition.name) == false) {
 
             //Get DBFile from Reload using DBFileFactory registered in Context
             val dbFile = MainExecutionContext.getDBFileFactory()?.open(fileDefinition.name, null)

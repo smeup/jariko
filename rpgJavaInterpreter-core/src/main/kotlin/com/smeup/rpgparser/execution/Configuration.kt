@@ -39,7 +39,7 @@ data class Options(
  * */
 data class ReloadConfig(
         val nativeAccessConfig: DBNativeAccessConfig,
-        val getMetadata: (dbFile: String) -> FileMetadata?)
+        val metadata: List<FileMetadata>)
 
 /**
  * Sometimes we have to gain control of Jariko, this is the right place.
