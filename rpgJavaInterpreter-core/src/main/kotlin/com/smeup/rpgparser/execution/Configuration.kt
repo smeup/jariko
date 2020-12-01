@@ -31,10 +31,12 @@ data class Configuration(
  * Options object
  * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
  * @param compiledProgramsDir If specified Jariko searches compiled program in this directory
+ * @param muteVerbose If true increases mute logging granularity
  * */
 data class Options(
     var muteSupport: Boolean = false,
-    var compiledProgramsDir: File? = null
+    var compiledProgramsDir: File? = null,
+    var muteVerbose: Boolean = false
 )
 
 /**

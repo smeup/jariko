@@ -1,21 +1,22 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.db.sql.outputOfDBPgm
-import com.smeup.rpgparser.interpreter.*
-import org.junit.*
+import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.interpreter.StringValue
+import org.junit.Test
 import kotlin.test.assertEquals
 
-class Chain2FilesDBTest {
+class Chain2FilesDBTest : AbstractTestCase() {
 
     @Test
     fun executeCHAIN2FILE() {
         assertEquals(
                 listOf("Not found in First", "2nd: SomeDescription"),
                 outputOfDBPgm(
-                        "db/CHAIN2FILE",
-                        listOf(sqlCreateTestTable("FIRST"), recordFormatTestTable("FIRST"),
+                    programName = "db/CHAIN2FILE",
+                    initialSQL = listOf(sqlCreateTestTable("FIRST"), recordFormatTestTable("FIRST"),
                                 sqlCreateTestTable("SECOND"), recordFormatTestTable("SECOND"), insertTestRecords("SECOND")),
-                        mapOf("toFind" to StringValue("ABCDE"))))
+                    inputParms = mapOf("toFind" to StringValue("ABCDE"))
+                ))
     }
 
     private fun sqlCreateTestTable(name: String) =

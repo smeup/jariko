@@ -1,7 +1,11 @@
 @file:Suppress("DEPRECATION")
 @file:JvmName("TestingUtils")
+
 package com.smeup.rpgparser
 
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -42,11 +46,13 @@ class Dummy
 
 interface PerformanceTest
 
-val compiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bin").apply {
+val testCompiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bin").apply {
     if (!this.exists()) {
         this.mkdirs()
     }
 }
+
+private val rpgTestSrcDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle").file).parent
 
 fun parseFragmentToCompilationUnit(
     code: String,
@@ -77,7 +83,8 @@ fun assertIsIntValue(value: Value, intValue: Long) {
 }
 
 fun inputStreamFor(exampleName: String): InputStream {
-    val resourceStream = Dummy::class.java.getResourceAsStream("/$exampleName.rpgle") ?: throw RuntimeException("$exampleName not found")
+    val resourceStream =
+        Dummy::class.java.getResourceAsStream("/$exampleName.rpgle") ?: throw RuntimeException("$exampleName not found")
     return BOMInputStream(resourceStream)
 }
 
@@ -101,8 +108,10 @@ fun assertCanBeLexed(inputStream: InputStream, onlyVisibleTokens: Boolean = true
     val result = MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
         RpgParserFacade().lex(inputStream)
     }
-    assertTrue(result.correct,
-            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+    assertTrue(
+        result.correct,
+        message = "Errors: ${result.errors.joinToString(separator = ", ")}"
+    )
     return if (onlyVisibleTokens) {
         result.root!!.filter { it.channel != Lexer.HIDDEN }
     } else {
@@ -115,8 +124,10 @@ fun assertCanBeParsed(inputStream: InputStream, withMuteSupport: Boolean = false
         val result = RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
             .parse(inputStream)
-        assertTrue(result.correct,
-            message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
+        assertTrue(
+            result.correct,
+            message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}"
+        )
         result.root!!.rContext
     }
 }
@@ -125,7 +136,11 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, pri
     return assertCanBeParsedResult(exampleName, withMuteSupport, printTree).root!!.rContext
 }
 
-fun assertCanBeParsedResult(exampleName: String, withMuteSupport: Boolean = false, printTree: Boolean = false): RpgParserResult {
+fun assertCanBeParsedResult(
+    exampleName: String,
+    withMuteSupport: Boolean = false,
+    printTree: Boolean = false
+): RpgParserResult {
     val result = MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
         RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
@@ -133,8 +148,10 @@ fun assertCanBeParsedResult(exampleName: String, withMuteSupport: Boolean = fals
     }
 
     if (printTree) println(result.toTreeString())
-    assertTrue(result.correct,
-            message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}")
+    assertTrue(
+        result.correct,
+        message = "Errors: (line ${result.errors.firstLine()}) ${result.errors.joinToString(separator = ", ")}"
+    )
     return result
 }
 
@@ -150,24 +167,28 @@ fun assertASTCanBeProduced(
     exampleName: String,
     considerPosition: Boolean = false,
     withMuteSupport: Boolean = false,
-    printTree: Boolean = false
+    printTree: Boolean = false,
+    compiledProgramsDir: File?
 ): CompilationUnit {
     val ast: CompilationUnit
     // if printTree true it is necessary create parserResult, then I can't load ast from bin
     if (printTree) {
         val result = assertCanBeParsedResult(exampleName, withMuteSupport, printTree)
         val parseTreeRoot = result.root!!.rContext
-        ast = parseTreeRoot.toAst(ToAstConfiguration(
-            considerPosition = considerPosition))
+        ast = parseTreeRoot.toAst(
+            ToAstConfiguration(
+                considerPosition = considerPosition
+            )
+        )
         if (withMuteSupport) {
             if (!considerPosition) {
                 throw IllegalStateException("Mute annotations can be injected only when retaining the position")
             }
             ast.injectMuteAnnotation(result.root!!.muteContexts!!)
         }
-    }
-    else {
-        val configuration = Configuration(options = Options(muteSupport = withMuteSupport, compiledProgramsDir = compiledDir))
+    } else {
+        val configuration =
+            Configuration(options = Options(muteSupport = withMuteSupport, compiledProgramsDir = compiledProgramsDir))
         ast = MainExecutionContext.execute(systemInterface = JavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
             RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
@@ -178,15 +199,19 @@ fun assertASTCanBeProduced(
 
 fun assertCodeCanBeParsed(code: String): RContext {
     val result = RpgParserFacade().parse(inputStreamForCode(code))
-    assertTrue(result.correct,
-            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+    assertTrue(
+        result.correct,
+        message = "Errors: ${result.errors.joinToString(separator = ", ")}"
+    )
     return result.root!!.rContext
 }
 
 fun assertExpressionCanBeParsed(code: String): ExpressionContext {
     val result = RpgParserFacade().parseExpression(inputStreamForCode(code), printTree = true)
-    assertTrue(result.correct,
-            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+    assertTrue(
+        result.correct,
+        message = "Errors: ${result.errors.joinToString(separator = ", ")}"
+    )
     return result.root!!
 }
 
@@ -205,16 +230,18 @@ fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): Statem
             println("Issue already at the lexical level")
         }
     }
-    assertTrue(result.correct,
-            message = "Errors: ${result.errors.joinToString(separator = ", ")}")
+    assertTrue(
+        result.correct,
+        message = "Errors: ${result.errors.joinToString(separator = ", ")}"
+    )
     return result.root!!
 }
 
 fun CompilationUnit.assertNrOfMutesAre(expected: Int) {
     val actual =
         this.allDataDefinitions.map { it.muteAnnotations.size }.sum() +
-        this.main.stmts.nrOfMutes() +
-        this.subroutines.map { it.stmts.nrOfMutes() }.sum()
+                this.main.stmts.nrOfMutes() +
+                this.subroutines.map { it.stmts.nrOfMutes() }.sum()
     assertEquals(expected, actual, "Expected $expected mutes, but were $actual")
 }
 
@@ -228,9 +255,17 @@ fun CompilationUnit.assertDataDefinitionIsPresent(
     assertTrue(this.hasDataDefinition(name), message = "Data definition $name not found in Compilation Unit")
     val dataDefinition = this.getDataDefinition(name)
     assertEquals(dataType, dataDefinition.type)
-    assertEquals(fields.size, dataDefinition.fields.size, "Expected ${fields.size} fields, found ${dataDefinition.fields.size}")
+    assertEquals(
+        fields.size,
+        dataDefinition.fields.size,
+        "Expected ${fields.size} fields, found ${dataDefinition.fields.size}"
+    )
     for (i in 0 until fields.size) {
-        assertEquals(fields[i], dataDefinition.fields[i], "Expected field $i was ${fields[i]}, found ${dataDefinition.fields[i]}")
+        assertEquals(
+            fields[i],
+            dataDefinition.fields[i],
+            "Expected field $i was ${fields[i]}, found ${dataDefinition.fields[i]}"
+        )
     }
     assertEquals(fields, dataDefinition.fields)
     return dataDefinition
@@ -256,7 +291,8 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
 open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
-    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
+        LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {
@@ -319,21 +355,29 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
-fun outputOf(programName: String, initialValues: Map<String, Value> = mapOf(), printTree: Boolean = false, si: CollectorSystemInterface = ExtendedCollectorSystemInterface()): List<String> {
-    execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si)
+fun outputOf(
+    programName: String,
+    initialValues: Map<String, Value> = mapOf(),
+    printTree: Boolean = false,
+    si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
+    compiledProgramsDir: File?
+): List<String> {
+    execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si,
+        compiledProgramsDir = compiledProgramsDir)
     return si.displayed.map(String::trimEnd)
 }
 
-private const val TRACE = false
+const val TRACE = false
 
 fun execute(
     programName: String,
     initialValues: Map<String, Value>,
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
     logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE),
-    printTree: Boolean = false
+    printTree: Boolean = false,
+    compiledProgramsDir: File?
 ): InternalInterpreter {
-    val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
+    val cu = assertASTCanBeProduced(programName, true, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
     cu.resolveAndValidate(si.db)
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
@@ -357,7 +401,11 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
 }
 
 class DummyProgramFinder(private val path: String) : RpgProgramFinder {
-    fun rpgSourceInputStream(nameOrSource: String): InputStream? = Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
+
+    fun getFile(name: String) = File(Dummy::class.java.getResource("$path$name.rpgle").file)
+
+    fun rpgSourceInputStream(nameOrSource: String): InputStream? =
+        Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
 
     override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
         return rpgSourceInputStream(nameOrSource)?.let {
@@ -366,7 +414,8 @@ class DummyProgramFinder(private val path: String) : RpgProgramFinder {
     }
 }
 
-open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockProgram> = emptyList()) : CollectorSystemInterface() {
+open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockProgram> = emptyList()) :
+    CollectorSystemInterface() {
 
     val programFinders = mutableListOf<RpgProgramFinder>(DummyProgramFinder("/"))
     private val rpgPrograms = HashMap<String, RpgProgram>()
@@ -412,18 +461,14 @@ open class MockDBFile : DBFile {
     override fun read(): Record = TODO()
 }
 
-fun compileAllMutes(verbose: Boolean = true, dir: String? = null) {
-    val rpgBaseDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle").file).parent
-    val dirs = dir?.let {
-        listOf(it)
-    } ?: listOf("", "data/ds", "data/interop", "primitives", "db", "logging", "mute",
-        "overlay", "performance", "performance-ast", "struct")
+fun compileAllMutes(verbose: Boolean = true, dirs: List<String>) {
+
     dirs.forEach { it ->
         val muteSupport = it != "performance-ast"
-        val compilingDir = File(rpgBaseDir, it)
-        println("Compiling dir $compilingDir with muteSupport: $muteSupport")
+        val srcDir = File(rpgTestSrcDir, it)
+        println("Compiling dir ${srcDir.absolutePath} with muteSupport: $muteSupport")
 
-        val compiled = compile(compilingDir, compiledDir, muteSupport = muteSupport)
+        val compiled = compile(srcDir, testCompiledDir, muteSupport = muteSupport)
         if (compiled.any { it.error != null }) {
             compiled.filter {
                 it.error != null
@@ -444,13 +489,26 @@ fun compileAllMutes(verbose: Boolean = true, dir: String? = null) {
     }
 }
 
+private class CompileAllMutes : CliktCommand(
+    help = "Compile all rpg programs located in resources",
+    name = "compileAllMutes"
+
+) {
+    private val dirs: String by option(
+        "-dirs",
+        help = "list of relative directories relative to path: $rpgTestSrcDir"
+    ).default(
+        listOf(
+            ".", "data/ds", "data/interop", "primitives", "db", "logging", "mute",
+            "overlay", "performance", "performance-ast", "struct"
+        ).joinToString()
+    )
+
+    override fun run() {
+        compileAllMutes(dirs = dirs.split(",").map { it.trim() })
+    }
+}
+
 fun main(args: Array<String>) {
-    val errorMsg = "Usage: java com.smeup.rpgparser.TestingUtils -compileMutes"
-    if (args.isEmpty()) {
-        error(errorMsg)
-    }
-    when (args[0]) {
-        "-compileAllMutes" -> compileAllMutes()
-        else -> error(errorMsg)
-    }
+    CompileAllMutes().main(args)
 }

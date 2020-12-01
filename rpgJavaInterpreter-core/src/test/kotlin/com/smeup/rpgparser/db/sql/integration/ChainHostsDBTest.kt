@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.db.sql.outputOfDBPgm
-import com.smeup.rpgparser.interpreter.*
-import org.junit.*
+import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.interpreter.StringValue
+import org.junit.Test
 import kotlin.test.assertEquals
 
-class ChainHostsDBTest {
+class ChainHostsDBTest : AbstractTestCase() {
 
     @Test
     fun findsExistingRecord() {

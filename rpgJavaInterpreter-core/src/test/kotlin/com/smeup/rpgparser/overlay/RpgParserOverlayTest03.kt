@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.overlay
 
-import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.DummyDBInterface
@@ -12,7 +12,7 @@ import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 import java.io.File
 
-public class RpgParserOverlayTest03 {
+public class RpgParserOverlayTest03 : AbstractTestCase() {
 
     @Test
     fun parseMUTE03_09_syntax() {

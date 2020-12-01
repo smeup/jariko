@@ -62,14 +62,14 @@ class RpgParserFacade {
 
     // Should be 'false' as default to avoid unnecessary search of 'mute annotation' into rpg program source.
     var muteSupport: Boolean = MainExecutionContext.getConfiguration().options?.muteSupport ?: false
+    private var muteVerbose = MainExecutionContext.getConfiguration().options?.muteVerbose ?: false
 
     private val executionProgramName: String by lazy {
         MainExecutionContext.getExecutionProgramName().let {
             val name = File(it).name.replaceAfterLast(".", "")
             if (name.endsWith(".")) {
                 name.substring(0, name.length - 1)
-            }
-            else {
+            } else {
                 name
             }
         }
@@ -300,7 +300,13 @@ class RpgParserFacade {
         val elapsed = measureTimeMillis {
             compilationUnit = result.root!!.rContext.toAst().apply {
                 if (muteSupport) {
-                    this.injectMuteAnnotation(result.root.muteContexts!!)
+                    val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
+                    if (muteVerbose) {
+                        val sorted = resolved.sortedWith(compareBy { it.muteLine })
+                        sorted.forEach {
+                            println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+                        }
+                    }
                 }
             }
         }

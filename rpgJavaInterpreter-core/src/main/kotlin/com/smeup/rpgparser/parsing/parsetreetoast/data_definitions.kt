@@ -769,7 +769,7 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
                 position = this.toPosition(true))
         // I do not pass dataDefinition but function that returns dataDefinition to resolve issue on serialization
         // related to circularly reference that causes raising of overflow exception
-        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = { dataDefinition }) }
+        dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
         dataDefinition
     }
 }

@@ -1,14 +1,14 @@
 package com.smeup.rpgparser.evaluation
 
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.MockDBFile
-import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
-class InterpreterSmokeTest {
+class InterpreterSmokeTestCase : AbstractTestCase() {
 
     @Test
     fun executeJD_001() {

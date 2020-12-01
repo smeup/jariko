@@ -9,7 +9,7 @@ import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class RpgParserDataStruct {
+class RpgParserDataStruct : AbstractTestCase() {
 
     @Test
     fun parseSTRUCT_01_MYDS_isRecognizedCorrectly() {
@@ -224,7 +224,7 @@ class RpgParserDataStruct {
             explicitEndOffset = null,
             calculatedStartOffset = 6,
             calculatedEndOffset = 8,
-            overriddenContainer = { null },
+            overriddenContainer = null,
             position = null,
             declaredArrayInLineOnThisField = null
         )

@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.db.sql.outputOfDBPgm
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.interpreter.StringValue
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class SetllDBTest {
+class SetllDBTest : AbstractTestCase() {
 
     @Test
     fun setllHigherMatch() {

@@ -1,10 +1,10 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.db.sql.outputOfDBPgm
+import com.smeup.rpgparser.AbstractTestCase
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class EqualDBTest {
+class EqualDBTest : AbstractTestCase() {
 
     @Test
     fun equalWithNoSetllReturnsFalse() {

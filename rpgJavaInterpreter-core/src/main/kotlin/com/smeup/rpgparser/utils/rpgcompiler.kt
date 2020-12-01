@@ -57,6 +57,7 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
                     )
                 ).apply { writeText(cu!!.encodeToString()) }
             }
+            println("Compiled in $compiledFile")
             return CompilationResult(file, compiledFile)
         }
     }.onFailure {
@@ -87,7 +88,6 @@ fun compile(
         MainExecutionContext.execute(systemInterface = systemInterface) {
             compilationResult.add(compileFile(src, compiledProgramsDir, format, muteSupport))
         }
-
     } else {
         src.listFiles { file ->
             file.name.endsWith(".rpgle")

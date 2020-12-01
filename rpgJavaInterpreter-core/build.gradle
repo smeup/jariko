@@ -300,9 +300,13 @@ for further informations."""
 task compileAllMutes(type: JavaExec) {
     main="com.smeup.rpgparser.TestingUtils"
     classpath = sourceSets.test.runtimeClasspath
-    args "-compileAllMutes"
-
 }
 
-check.dependsOn compileAllMutes, runMutes
-testPerformance.dependsOn compileAllMutes
+task compilePerformanceMutes(type: JavaExec) {
+    main="com.smeup.rpgparser.TestingUtils"
+    classpath = sourceSets.test.runtimeClasspath
+    args "-dirs", "performance"
+}
+
+check.dependsOn compileAllMutes,runMutes
+testPerformance.dependsOn compilePerformanceMutes

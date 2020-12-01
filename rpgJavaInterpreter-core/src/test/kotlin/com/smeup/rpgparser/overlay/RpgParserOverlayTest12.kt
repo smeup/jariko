@@ -1,14 +1,9 @@
 package com.smeup.rpgparser.overlay
 
-import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.interpreter.ArrayType
-import com.smeup.rpgparser.interpreter.CharacterType
-import com.smeup.rpgparser.interpreter.DummyDBInterface
-import com.smeup.rpgparser.interpreter.InternalInterpreter
-import com.smeup.rpgparser.interpreter.NumberType
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.ArrayAccessExpr
 import com.smeup.rpgparser.parsing.ast.FunctionCall
@@ -19,7 +14,7 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class RpgParserOverlayTest12 {
+class RpgParserOverlayTest12 : AbstractTestCase() {
 
     @Test
     fun parseMUTE12_01_syntax() {

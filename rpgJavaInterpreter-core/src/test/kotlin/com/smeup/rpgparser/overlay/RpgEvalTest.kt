@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.overlay
 
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.interpreter.DummyDBInterface
@@ -9,12 +10,12 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 
-class RpgEvalTest {
+class RpgEvalTest : AbstractTestCase() {
 
     @Test
     fun EVAL_runtime() {
         RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
-        val cu = com.smeup.rpgparser.assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())

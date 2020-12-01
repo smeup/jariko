@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.db.sql.outputOfDBPgm
-import com.smeup.rpgparser.interpreter.*
-import org.junit.*
+import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.interpreter.StringValue
+import org.junit.Test
 import kotlin.test.assertEquals
 
-class Chain2KeysDBTest {
+class Chain2KeysDBTest : AbstractTestCase() {
 
     @Test
     fun findsExistingRecord() {
@@ -14,7 +14,8 @@ class Chain2KeysDBTest {
                 outputOfDBPgm(
                         "db/CHAIN2KEYS",
                         listOf(sqlCreateTestTable(), insertRecords()),
-                        mapOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("12"))))
+                        mapOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("12"))
+                ))
     }
 
     @Test

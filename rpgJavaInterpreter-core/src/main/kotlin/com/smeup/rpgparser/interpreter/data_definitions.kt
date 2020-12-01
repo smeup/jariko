@@ -202,7 +202,7 @@ data class FieldDefinition(
         // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
         // container. We basically duplicate it
     @property:Link
-    @Transient var overriddenContainer: () -> DataDefinition? = { null },
+    @Transient var overriddenContainer: DataDefinition? = null,
     val initializationValue: Expression? = null,
     val descend: Boolean = false,
     override val position: Position? = null,
@@ -259,11 +259,11 @@ data class FieldDefinition(
     /**
      * The fields used through LIKEDS cannot be used unqualified
      */
-    fun canBeUsedUnqualified() = this.overriddenContainer.invoke() == null
+    fun canBeUsedUnqualified() = this.overriddenContainer == null
 
     @Derived
     val container
-        get() = overriddenContainer.invoke()
+        get() = overriddenContainer
                 ?: this.parent as? DataDefinition
                 ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
 
