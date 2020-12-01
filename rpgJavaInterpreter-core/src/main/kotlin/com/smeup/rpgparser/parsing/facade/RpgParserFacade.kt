@@ -9,6 +9,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.createCompilationUnit
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.setOverlayOn
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -298,7 +299,9 @@ class RpgParserFacade {
         val compilationUnit: CompilationUnit
         MainExecutionContext.log(AstLogStart(executionProgramName))
         val elapsed = measureTimeMillis {
-            compilationUnit = result.root!!.rContext.toAst().apply {
+            compilationUnit = result.root!!.rContext.toAst(
+                MainExecutionContext.getConfiguration().options?.toAstConfiguration ?: ToAstConfiguration()
+            ).apply {
                 if (muteSupport) {
                     val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
                     if (muteVerbose) {

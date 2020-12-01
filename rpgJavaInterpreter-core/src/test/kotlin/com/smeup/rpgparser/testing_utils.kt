@@ -168,7 +168,10 @@ fun assertASTCanBeProduced(
     considerPosition: Boolean = false,
     withMuteSupport: Boolean = false,
     printTree: Boolean = false,
-    compiledProgramsDir: File?
+    compiledProgramsDir: File?,
+    // Workaround to solve problem related datadefinition creation outer of the execution context used in experimental data access
+    // testing utils are quite unordered
+    afterAstCreated: (ast: CompilationUnit) -> Unit = {}
 ): CompilationUnit {
     val ast: CompilationUnit
     // if printTree true it is necessary create parserResult, then I can't load ast from bin
@@ -185,13 +188,17 @@ fun assertASTCanBeProduced(
                 throw IllegalStateException("Mute annotations can be injected only when retaining the position")
             }
             ast.injectMuteAnnotation(result.root!!.muteContexts!!)
+            afterAstCreated.invoke(ast)
         }
     } else {
         val configuration =
-            Configuration(options = Options(muteSupport = withMuteSupport, compiledProgramsDir = compiledProgramsDir))
+            Configuration(options = Options(muteSupport = withMuteSupport, compiledProgramsDir = compiledProgramsDir,
+            toAstConfiguration = ToAstConfiguration(considerPosition)))
         ast = MainExecutionContext.execute(systemInterface = JavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
-            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
+            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName)).apply {
+                afterAstCreated.invoke(this)
+            }
         }
     }
     return ast

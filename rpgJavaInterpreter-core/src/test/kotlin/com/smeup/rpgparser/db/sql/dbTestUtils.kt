@@ -5,6 +5,7 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import java.io.File
 import java.util.concurrent.ThreadLocalRandom
@@ -28,12 +29,19 @@ fun outputOfDBPgm(
     printTree: Boolean = false,
     compiledProgramsDir: File?
 ): List<String> {
-    val cu = assertASTCanBeProduced(programName, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
-    val dbInterface = connectionForTest()
-    dbInterface.execute(initialSQL)
-    cu.resolveAndValidate(dbInterface)
     val si = CollectorSystemInterface()
-    si.databaseInterface = dbInterface
-    execute(cu, inputParms, si)
+    val afterAstCreated = { ast: CompilationUnit ->
+        val dbInterface = connectionForTest()
+        dbInterface.execute(initialSQL)
+        ast.resolveAndValidate(dbInterface)
+        si.databaseInterface = dbInterface
+        execute(ast, inputParms, si)
+        Unit
+    }
+    val cu = assertASTCanBeProduced(
+        programName, printTree = printTree,
+        compiledProgramsDir = compiledProgramsDir,
+        afterAstCreated = afterAstCreated
+    )
     return si.displayed
 }
