@@ -8,7 +8,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
-class InterpreterSmokeTestCase : AbstractTestCase() {
+open class InterpreterSmokeTestCase : AbstractTestCase() {
 
     @Test
     fun executeJD_001() {
