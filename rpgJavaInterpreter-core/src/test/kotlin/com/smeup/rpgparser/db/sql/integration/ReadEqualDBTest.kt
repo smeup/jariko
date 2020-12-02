@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.db.sql.outputOfDBPgm
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.interpreter.StringValue
 import org.junit.Assert.assertFalse
 import org.junit.Test
@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class ReadEqualDBTest {
+class ReadEqualDBTest : AbstractTestCase() {
 
     @Test
     fun doesNotFindNonExistingRecord() {

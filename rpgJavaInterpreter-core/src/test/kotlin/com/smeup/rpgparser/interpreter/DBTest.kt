@@ -1,14 +1,14 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.MockDBFile
-import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class DBTest {
+class DBTest : AbstractTestCase() {
     @Test
     fun executeCHAIN2KEYS() {
         val keysForTest = listOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("2"))

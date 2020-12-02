@@ -3,6 +3,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.rpgparser.interpreter.ActivationGroup
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.ISymbolTable
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import java.io.File
 
 const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
@@ -31,10 +32,14 @@ data class Configuration(
  * Options object
  * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
  * @param compiledProgramsDir If specified Jariko searches compiled program in this directory
+ * @param muteVerbose If true increases mute logging granularity
+ * @param toAstConfiguration Creating ast configuration
  * */
 data class Options(
     var muteSupport: Boolean = false,
-    var compiledProgramsDir: File? = null
+    var compiledProgramsDir: File? = null,
+    var muteVerbose: Boolean = false,
+    var toAstConfiguration: ToAstConfiguration = ToAstConfiguration()
 )
 
 /**

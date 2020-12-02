@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.assertDataDefinitionIsPresent
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
@@ -13,7 +13,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test
 
-class DataDefinitionTest {
+open class DataDefinitionTest : AbstractTestCase() {
 
     @test fun singleDataParsing() {
         val cu = parseFragmentToCompilationUnit("D U\$FUNZ          S             10")

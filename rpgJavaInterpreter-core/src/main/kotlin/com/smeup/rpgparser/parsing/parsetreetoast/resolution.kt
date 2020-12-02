@@ -70,6 +70,7 @@ fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
 
 /**
  * In case of semantic errors we could either raise exceptions or return a list of errors.
+ *
  */
 fun CompilationUnit.resolveAndValidate(databaseInterface: DBInterface, raiseException: Boolean = true): List<Error> {
     this.resolve(databaseInterface)

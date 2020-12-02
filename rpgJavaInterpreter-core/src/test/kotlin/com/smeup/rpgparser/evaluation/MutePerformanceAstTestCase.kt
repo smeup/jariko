@@ -1,7 +1,10 @@
 package com.smeup.rpgparser.evaluation
 
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.PerformanceTest
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.PARSING_LOGGER
 import com.smeup.rpgparser.logging.fileLoggingConfiguration
@@ -11,7 +14,7 @@ import org.junit.experimental.categories.Category
 import java.io.File
 import java.io.FileInputStream
 
-class MutePerformanceAstTest {
+open class MutePerformanceAstTestCase : AbstractTestCase() {
 
     val si = JavaSystemInterface().apply {
         val dir = File(System.getProperty("user.dir"), "build/test-results/testPerformance")
@@ -31,7 +34,9 @@ class MutePerformanceAstTest {
     ) {
         val file = File(javaClass.getResource("/performance-ast").path, fileName)
         println("Creating AST for: $file")
-        MainExecutionContext.execute(systemInterface = si) { it ->
+        val configuration = Configuration()
+        configuration.options = Options(false, getTestCompileDir())
+        MainExecutionContext.execute(systemInterface = si, configuration = configuration) { it ->
             it.executionProgramName = file.name
             val rpgParserFacade = RpgParserFacade()
             runCatching {

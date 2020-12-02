@@ -5,7 +5,9 @@ import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import java.io.File
 import java.util.concurrent.ThreadLocalRandom
 
 // Using random DB name in order to have different dbs for each test
@@ -20,13 +22,25 @@ fun connectionForTest(tables: List<FileMetadata> = emptyList()): DBSQLInterface 
     return db
 }
 
-fun outputOfDBPgm(programName: String, initialSQL: List<String>, inputParms: Map<String, StringValue> = mapOf(), printTree: Boolean = false): List<String> {
-    val cu = assertASTCanBeProduced(programName, printTree = printTree)
-    val dbInterface = connectionForTest()
-    dbInterface.execute(initialSQL)
-    cu.resolveAndValidate(dbInterface)
+fun outputOfDBPgm(
+    programName: String,
+    initialSQL: List<String>,
+    inputParms: Map<String, StringValue> = mapOf(),
+    printTree: Boolean = false,
+    compiledProgramsDir: File?
+): List<String> {
     val si = CollectorSystemInterface()
-    si.databaseInterface = dbInterface
-    execute(cu, inputParms, si)
+    val afterAstCreation = { ast: CompilationUnit ->
+        val dbInterface = connectionForTest()
+        dbInterface.execute(initialSQL)
+        ast.resolveAndValidate(dbInterface)
+        si.databaseInterface = dbInterface
+    }
+    val ast = assertASTCanBeProduced(
+        programName, printTree = printTree,
+        compiledProgramsDir = compiledProgramsDir,
+        afterAstCreation = afterAstCreation
+    )
+    execute(ast, inputParms, si)
     return si.displayed
 }

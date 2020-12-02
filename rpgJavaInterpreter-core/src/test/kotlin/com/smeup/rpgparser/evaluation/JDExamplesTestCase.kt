@@ -15,7 +15,7 @@ import org.junit.Test
 import com.smeup.rpgparser.utils.StringOutputStream
 import java.io.PrintStream
 
-class JDExamplesTest {
+open class JDExamplesTestCase : AbstractTestCase() {
 
     @Test
     fun executeJD_000_datadefinitions() {

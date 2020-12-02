@@ -1,12 +1,12 @@
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.ast.*
+import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals
-import org.junit.Test
 
-class ExpressionEvaluationTest {
+open class ExpressionEvaluationTest {
 
     @Test
     fun stringIsoDate() {

@@ -94,10 +94,11 @@ class MiscTest {
     fun compileTestBadFile() {
         val program = "BADRPG\n d a a a a a aa a a a a a a"
         val srcFile = File.createTempFile("MYPGM", ".rpgle")
+        srcFile.deleteOnExit()
         srcFile.writeText(program)
         println("Compiling $srcFile")
         val compilationResults = compile(src = srcFile, srcFile.parentFile)
         assert(compilationResults.first().compiledFile == null)
-        assertNotNull(compilationResults.first().error)
+        assertNotNull(compilationResults.first().parsingError)
     }
 }

@@ -1,40 +1,30 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.assertCanBeParsedResult
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.AbstractTestCase
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.interpreter.DummyDBInterface
 import com.smeup.rpgparser.interpreter.DummySystemInterface
 import com.smeup.rpgparser.interpreter.SimpleSystemInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.junit.Test
 
-class RpgParserWithMuteRuntimeTest {
-    // Temporary replacement
-    private fun assertASTCanBeProduced(
+open class RpgParserWithMuteRuntimeTest : AbstractTestCase() {
+
+    fun assertASTCanBeProduced(
         exampleName: String,
-        considerPosition: Boolean = false,
-        withMuteSupport: Boolean = true
+        considerPosition: Boolean
     ): CompilationUnit {
-        val parseTreeRoot = assertCanBeParsedResult(exampleName, withMuteSupport)
-        val ast = parseTreeRoot.root!!.rContext.toAst(ToAstConfiguration(
-                considerPosition = considerPosition))
-        if (withMuteSupport) {
-            if (!considerPosition) {
-                throw IllegalStateException("Mute annotations can be injected only when retaining the position")
-            }
-        }
-        if (withMuteSupport) {
-            ast.injectMuteAnnotation(parseTreeRoot.root!!.muteContexts!!)
-        }
-        return ast
+        return super.assertASTCanBeProduced(
+            exampleName = exampleName,
+            considerPosition = considerPosition,
+            withMuteSupport = true,
+            printTree = false
+        )
     }
 
     @Test

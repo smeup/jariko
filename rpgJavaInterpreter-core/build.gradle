@@ -297,4 +297,16 @@ for further informations."""
     }
 }
 
-check.dependsOn runMutes
+task compileAllMutes(type: JavaExec) {
+    main="com.smeup.rpgparser.TestingUtils"
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task compilePerformanceMutes(type: JavaExec) {
+    main="com.smeup.rpgparser.TestingUtils"
+    classpath = sourceSets.test.runtimeClasspath
+    args "-dirs", "performance"
+}
+
+check.dependsOn compileAllMutes,runMutes
+testPerformance.dependsOn compilePerformanceMutes

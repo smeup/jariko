@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.interpreter.serialization
 
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.serialization.BigDecimalSerializer
+import com.smeup.rpgparser.serialization.DateAsLongSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json

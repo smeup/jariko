@@ -12,6 +12,7 @@ import com.github.ajalt.clikt.parameters.types.file
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.Options
+import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
@@ -21,6 +22,7 @@ import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.asDouble
 import com.strumenta.kolasu.validation.Error
@@ -131,6 +133,23 @@ fun executeWithMutes(
     }
 }
 
+fun executeMuteAnnotations(
+    programSrc: File,
+    systemInterface: SystemInterface,
+    parameters: List<String> = listOf(),
+    configuration: Configuration = Configuration()
+): SortedMap<Int, MuteAnnotationExecuted>? {
+    getProgram(
+        nameOrSource = programSrc.name,
+        programFinders = listOf(DirRpgProgramFinder(programSrc.parentFile)),
+        systemInterface = systemInterface
+    ).apply {
+        singleCall(parameters, configuration)
+    }
+    return systemInterface.executedAnnotationInternal.toSortedMap()
+}
+
+@Deprecated("Will be removed in the future")
 fun executeMuteAnnotations(
     programStream: InputStream,
     systemInterface: SystemInterface,

@@ -11,6 +11,7 @@ import kotlinx.serialization.Transient
 @Serializable
 abstract class MuteAnnotation(@Transient override val position: Position? = null) : Node(position)
 
+@Serializable
 data class MuteComparisonAnnotation(
     var val1: Expression,
     var val2: Expression,
@@ -21,6 +22,7 @@ data class MuteComparisonAnnotation(
 /**
  * This type is supported for retro-compatibility but it is never processed
  */
+@Serializable
 data class MuteTypeAnnotation(override var position: Position? = null) : MuteAnnotation(position)
 
 /**
@@ -32,6 +34,7 @@ data class MuteTimeoutAnnotation(val timeout: Long, override var position: Posit
 /**
  * A Fail annotation
  */
+@Serializable
 data class MuteFailAnnotation(val message: Expression, override val position: Position? = null) :
     MuteAnnotation(position)
 

@@ -16,7 +16,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class InterpreterTest {
+open class InterpreterTestCase : AbstractTestCase() {
 
     @Test
     fun doubleVarDefinitionWithDifferentTypeShouldThrowAnError() {
