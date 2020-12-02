@@ -14,7 +14,7 @@ import org.junit.experimental.categories.Category
 import java.io.File
 import java.io.FileInputStream
 
-class MutePerformanceAstTestCase : AbstractTestCase() {
+open class MutePerformanceAstTestCase : AbstractTestCase() {
 
     val si = JavaSystemInterface().apply {
         val dir = File(System.getProperty("user.dir"), "build/test-results/testPerformance")
@@ -35,7 +35,7 @@ class MutePerformanceAstTestCase : AbstractTestCase() {
         val file = File(javaClass.getResource("/performance-ast").path, fileName)
         println("Creating AST for: $file")
         val configuration = Configuration()
-        configuration.options = Options(false, getTestCompilderDir())
+        configuration.options = Options(false, getTestCompileDir())
         MainExecutionContext.execute(systemInterface = si, configuration = configuration) { it ->
             it.executionProgramName = file.name
             val rpgParserFacade = RpgParserFacade()

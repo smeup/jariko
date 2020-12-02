@@ -9,7 +9,7 @@ import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class RpgParserDataStruct : AbstractTestCase() {
+open class RpgParserDataStruct : AbstractTestCase() {
 
     @Test
     fun parseSTRUCT_01_MYDS_isRecognizedCorrectly() {
@@ -255,17 +255,22 @@ class RpgParserDataStruct : AbstractTestCase() {
      * Test for all data type
      */
     @Test
-    fun parseSTRUCT_06_runtime() {
+    @Ignore
+    open fun parseSTRUCT_06_runtime() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
-        val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
+        val cu = assertASTCanBeProduced(
+            exampleName = "struct/STRUCT_06",
+            considerPosition = true,
+            withMuteSupport = true
+        )
         cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
@@ -277,14 +282,18 @@ class RpgParserDataStruct : AbstractTestCase() {
     fun parseSTRUCT_07_runtime() {
         assertCanBeParsed("struct/STRUCT_07", withMuteSupport = true)
 
-        val cu = assertASTCanBeProduced("struct/STRUCT_07", true)
+        val cu = assertASTCanBeProduced(
+            exampleName = "struct/STRUCT_07",
+            considerPosition = true,
+            withMuteSupport = true
+        )
         cu.resolveAndValidate(DummyDBInterface)
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }

@@ -1,12 +1,22 @@
 package com.smeup.rpgparser
 
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.Options
+import com.smeup.rpgparser.execution.defaultProgramFinders
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 
+/**
+ * This class must be extended to all test classes in order to automatically manage tests using both version
+ * of the compiled program and that of the non-compiled program.
+ * For each test case you have to implement a base test case (YourTestCase : AbstractTestCase()) and then you'll implement
+ * (YourTestCaseCompiled : YourTestCase()) that simply it will override useCompiledVersion method returning true
+ * */
 abstract class AbstractTestCase {
 
-    fun assertASTCanBeProduced(
+    open fun assertASTCanBeProduced(
         exampleName: String,
         considerPosition: Boolean = false,
         withMuteSupport: Boolean = false,
@@ -17,7 +27,7 @@ abstract class AbstractTestCase {
             considerPosition = considerPosition,
             withMuteSupport = withMuteSupport,
             printTree = printTree,
-            compiledProgramsDir = getTestCompilderDir()
+            compiledProgramsDir = getTestCompileDir()
         )
     }
 
@@ -32,7 +42,7 @@ abstract class AbstractTestCase {
             initialValues = initialValues,
             printTree = printTree,
             si = si,
-            compiledProgramsDir = getTestCompilderDir()
+            compiledProgramsDir = getTestCompileDir()
         )
     }
 
@@ -49,7 +59,7 @@ abstract class AbstractTestCase {
             si = si,
             logHandlers = logHandlers,
             printTree = printTree,
-            compiledProgramsDir = getTestCompilderDir()
+            compiledProgramsDir = getTestCompileDir()
         )
     }
 
@@ -64,11 +74,27 @@ abstract class AbstractTestCase {
             initialSQL = initialSQL,
             inputParms = inputParms,
             printTree = printTree,
-            compiledProgramsDir = getTestCompilderDir()
+            compiledProgramsDir = getTestCompileDir()
         )
     }
 
-    fun getTestCompilderDir(): File? {
+    fun executePgmWithStringArgs(
+        programName: String,
+        programArgs: List<String>,
+        logConfigurationFile: File? = null,
+        programFinders: List<RpgProgramFinder> = defaultProgramFinders,
+        configuration: Configuration = Configuration()
+    ) {
+        com.smeup.rpgparser.execution.executePgmWithStringArgs(
+            programName = programName,
+            programArgs = programArgs,
+            logConfigurationFile = logConfigurationFile,
+            programFinders = programFinders,
+            configuration = configuration.adaptForTestCase(this)
+        )
+    }
+
+    fun getTestCompileDir(): File? {
         return if (useCompiledVersion()) {
             testCompiledDir
         } else {
@@ -77,4 +103,13 @@ abstract class AbstractTestCase {
     }
 
     open fun useCompiledVersion() = false
+}
+
+fun Configuration.adaptForTestCase(testCase: AbstractTestCase): Configuration {
+    if (this.options != null) {
+        this.options!!.compiledProgramsDir = testCase.getTestCompileDir()
+    } else {
+        this.options = Options(compiledProgramsDir = testCase.getTestCompileDir())
+    }
+    return this
 }

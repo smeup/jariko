@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ToAstSmokeTest : AbstractTestCase() {
+open class ToAstSmokeTest : AbstractTestCase() {
 
     @Test
     fun buildAstForJD_001() {

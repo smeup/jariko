@@ -13,7 +13,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test as test
 
-class DataDefinitionTest : AbstractTestCase() {
+open class DataDefinitionTest : AbstractTestCase() {
 
     @test fun singleDataParsing() {
         val cu = parseFragmentToCompilationUnit("D U\$FUNZ          S             10")

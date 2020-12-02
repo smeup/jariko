@@ -293,7 +293,10 @@ class RpgParserFacade {
         }
     }
 
-    private fun createAst(inputStream: InputStream): CompilationUnit {
+    private fun createAst(
+        inputStream: InputStream,
+        afterAstCreation: (ast: CompilationUnit) -> Unit = { }
+    ): CompilationUnit {
         val result = parse(inputStream)
         require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
         val compilationUnit: CompilationUnit
@@ -311,14 +314,18 @@ class RpgParserFacade {
                         }
                     }
                 }
+                afterAstCreation.invoke(this)
             }
         }
         MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
         return compilationUnit
     }
 
-    fun parseAndProduceAst(inputStream: InputStream): CompilationUnit {
-        return tryToLoadCompilationUnit() ?: createAst(inputStream)
+    fun parseAndProduceAst(
+        inputStream: InputStream,
+        afterAstCreation: (ast: CompilationUnit) -> Unit = {}
+    ): CompilationUnit {
+        return tryToLoadCompilationUnit() ?: createAst(inputStream, afterAstCreation)
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true, printTree: Boolean = false): ParsingResult<ExpressionContext> {

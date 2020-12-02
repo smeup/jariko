@@ -15,7 +15,7 @@ import org.junit.experimental.categories.Category
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
-class MUTEExamplesTestCase : AbstractTestCase() {
+open class MUTEExamplesTestCase : AbstractTestCase() {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_01() {
@@ -408,7 +408,7 @@ class MUTEExamplesTestCase : AbstractTestCase() {
     private fun assertMuteOK(
         programName: String,
         withOutput: List<String>? = null,
-        configuration: Configuration = Configuration(options = Options(muteSupport = true, compiledProgramsDir = getTestCompilderDir(), muteVerbose = true)),
+        configuration: Configuration = Configuration(options = Options(muteSupport = true, compiledProgramsDir = getTestCompileDir(), muteVerbose = true)),
         jvmMockPrograms: List<JvmMockProgram> = emptyList<JvmMockProgram>()
     ) {
         val si = siWithProgramFinderInPerformanceFolder(jvmMockPrograms = jvmMockPrograms)

@@ -11,7 +11,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 import kotlin.test.*
 
-class MuteExecutionTestCase : AbstractTestCase() {
+open class MuteExecutionTestCase : AbstractTestCase() {
 
     @Test
     fun executeSimpleMute() {

@@ -15,7 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import org.junit.Test as test
 
-class StatementsTest : AbstractTestCase() {
+open class StatementsTest : AbstractTestCase() {
 
     private fun statement(code: String): Statement {
         val stmtContext = assertStatementCanBeParsed("     C                   $code                                                          ")

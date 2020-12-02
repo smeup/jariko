@@ -14,7 +14,7 @@ import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 
-class RpgParserOverlayTest11 : AbstractTestCase() {
+open class RpgParserOverlayTest11 : AbstractTestCase() {
 
     @Test
     fun parseMUTE11_11C_syntax() {

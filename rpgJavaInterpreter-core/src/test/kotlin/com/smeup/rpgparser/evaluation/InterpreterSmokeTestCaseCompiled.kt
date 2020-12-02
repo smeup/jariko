@@ -1,6 +1,4 @@
-package com.smeup.rpgparser.evaluation.compiled
-
-import com.smeup.rpgparser.evaluation.InterpreterSmokeTestCase
+package com.smeup.rpgparser.evaluation
 
 class InterpreterSmokeTestCaseCompiled : InterpreterSmokeTestCase() {
 

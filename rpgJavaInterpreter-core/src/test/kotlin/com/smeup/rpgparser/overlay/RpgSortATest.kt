@@ -9,7 +9,7 @@ import java.nio.charset.Charset
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class RpgSortATest : AbstractTestCase() {
+open class RpgSortATest : AbstractTestCase() {
 
     @Test
     fun encodeDecodeCp037() {

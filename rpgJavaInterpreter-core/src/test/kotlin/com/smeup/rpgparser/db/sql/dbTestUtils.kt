@@ -30,18 +30,17 @@ fun outputOfDBPgm(
     compiledProgramsDir: File?
 ): List<String> {
     val si = CollectorSystemInterface()
-    val afterAstCreated = { ast: CompilationUnit ->
+    val afterAstCreation = { ast: CompilationUnit ->
         val dbInterface = connectionForTest()
         dbInterface.execute(initialSQL)
         ast.resolveAndValidate(dbInterface)
         si.databaseInterface = dbInterface
-        execute(ast, inputParms, si)
-        Unit
     }
-    val cu = assertASTCanBeProduced(
+    val ast = assertASTCanBeProduced(
         programName, printTree = printTree,
         compiledProgramsDir = compiledProgramsDir,
-        afterAstCreated = afterAstCreated
+        afterAstCreation = afterAstCreation
     )
+    execute(ast, inputParms, si)
     return si.displayed
 }

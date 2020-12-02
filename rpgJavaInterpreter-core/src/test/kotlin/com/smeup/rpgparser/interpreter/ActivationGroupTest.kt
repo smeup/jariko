@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.adaptForTestCase
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DEFAULT_ACTIVATION_GROUP_NAME
 import com.smeup.rpgparser.execution.JarikoCallback
@@ -9,7 +11,7 @@ import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 
-class ActivationGroupTest {
+open class ActivationGroupTest : AbstractTestCase() {
 
     /**
      * Assigned activation group name should be the default from configuration
@@ -29,6 +31,7 @@ class ActivationGroupTest {
                 }
             )
         )
+        conf.adaptForTestCase(this)
         val commandLineProgram = getProgram(pgm)
         commandLineProgram.singleCall(emptyList(), conf)
     }
@@ -50,7 +53,7 @@ class ActivationGroupTest {
                     null
                 }
             )
-        )
+        ).adaptForTestCase(this)
         val commandLineProgram = getProgram(pgm)
         commandLineProgram.singleCall(emptyList(), conf)
     }
@@ -75,7 +78,7 @@ class ActivationGroupTest {
                 }
             ),
             defaultActivationGroupName = "MYGRP"
-        )
+        ).adaptForTestCase(this)
         val commandLineProgram = getProgram(nameOrSource = programName, programFinders = rpgProgramFinders)
         commandLineProgram.singleCall(emptyList(), conf)
     }

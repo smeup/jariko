@@ -4,9 +4,9 @@ import com.smeup.rpgparser.assertCanBeParsedResult
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import org.junit.Test
 
 public class RpgParserWithMuteScopeTest {
 

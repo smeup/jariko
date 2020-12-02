@@ -10,7 +10,7 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
-class RpgDeceditTest09 : AbstractTestCase() {
+open class RpgDeceditTest09 : AbstractTestCase() {
 
     @Test
     fun parseMUTE09_02() {

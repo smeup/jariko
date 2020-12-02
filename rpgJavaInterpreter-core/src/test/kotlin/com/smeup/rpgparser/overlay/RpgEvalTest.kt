@@ -10,7 +10,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 
-class RpgEvalTest : AbstractTestCase() {
+open class RpgEvalTest : AbstractTestCase() {
 
     @Test
     fun EVAL_runtime() {

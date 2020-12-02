@@ -13,7 +13,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class RpgParserWithMuteSupportTest : AbstractTestCase() {
+open class RpgParserWithMuteSupportTest : AbstractTestCase() {
     // Please note the 8 leading spaces
     val comparisonAnnotation = "".padStart(8) + "VAL1(array(1)) VAL2(1) COMP(EQ)"
     val comparisonAnnotationPreProcessed = "".padStart(8) + "VAL1[array(1)] VAL2[1] COMP(EQ)"

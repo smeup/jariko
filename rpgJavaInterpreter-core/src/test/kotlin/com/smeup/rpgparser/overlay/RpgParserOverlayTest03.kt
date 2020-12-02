@@ -12,7 +12,7 @@ import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 import java.io.File
 
-public class RpgParserOverlayTest03 : AbstractTestCase() {
+open class RpgParserOverlayTest03 : AbstractTestCase() {
 
     @Test
     fun parseMUTE03_09_syntax() {

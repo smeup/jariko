@@ -26,6 +26,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
+import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
 import com.strumenta.kolasu.model.ReferenceByName
 import junit.framework.Assert
@@ -170,8 +171,7 @@ fun assertASTCanBeProduced(
     printTree: Boolean = false,
     compiledProgramsDir: File?,
     // Workaround to solve problem related datadefinition creation outer of the execution context used in experimental data access
-    // testing utils are quite unordered
-    afterAstCreated: (ast: CompilationUnit) -> Unit = {}
+    afterAstCreation: (ast: CompilationUnit) -> Unit = {}
 ): CompilationUnit {
     val ast: CompilationUnit
     // if printTree true it is necessary create parserResult, then I can't load ast from bin
@@ -188,7 +188,7 @@ fun assertASTCanBeProduced(
                 throw IllegalStateException("Mute annotations can be injected only when retaining the position")
             }
             ast.injectMuteAnnotation(result.root!!.muteContexts!!)
-            afterAstCreated.invoke(ast)
+            afterAstCreation.invoke(ast)
         }
     } else {
         val configuration =
@@ -196,9 +196,7 @@ fun assertASTCanBeProduced(
             toAstConfiguration = ToAstConfiguration(considerPosition)))
         ast = MainExecutionContext.execute(systemInterface = JavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
-            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName)).apply {
-                afterAstCreated.invoke(this)
-            }
+            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName), afterAstCreation = afterAstCreation)
         }
     }
     return ast
@@ -468,14 +466,14 @@ open class MockDBFile : DBFile {
     override fun read(): Record = TODO()
 }
 
-fun compileAllMutes(verbose: Boolean = true, dirs: List<String>) {
+fun compileAllMutes(verbose: Boolean = true, dirs: List<String>, format: Format = Format.BIN) {
 
     dirs.forEach { it ->
         val muteSupport = it != "performance-ast"
         val srcDir = File(rpgTestSrcDir, it)
         println("Compiling dir ${srcDir.absolutePath} with muteSupport: $muteSupport")
 
-        val compiled = compile(srcDir, testCompiledDir, muteSupport = muteSupport)
+        val compiled = compile(srcDir, testCompiledDir, muteSupport = muteSupport, format = format)
         if (compiled.any { it.error != null }) {
             compiled.filter {
                 it.error != null
@@ -510,9 +508,13 @@ private class CompileAllMutes : CliktCommand(
             "overlay", "performance", "performance-ast", "struct"
         ).joinToString()
     )
+    private val format: String by option(
+        "-format",
+        help = "Compiled file format: [BIN|JSON]"
+    ).default("BIN")
 
     override fun run() {
-        compileAllMutes(dirs = dirs.split(",").map { it.trim() })
+        compileAllMutes(dirs = dirs.split(",").map { it.trim() }, format = Format.valueOf(format))
     }
 }
 

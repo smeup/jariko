@@ -8,7 +8,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class RpgParserDataOverlay : AbstractTestCase() {
+open class RpgParserDataOverlay : AbstractTestCase() {
 
     /**
      * Test Structure Overlay
