@@ -305,7 +305,7 @@ task compileAllMutes(type: JavaExec) {
 task compilePerformanceMutes(type: JavaExec) {
     main="com.smeup.rpgparser.TestingUtils"
     classpath = sourceSets.test.runtimeClasspath
-    args "-dirs", "performance"
+    args "-dirs", "performance,performance-ast"
 }
 
 check.dependsOn compileAllMutes,runMutes
