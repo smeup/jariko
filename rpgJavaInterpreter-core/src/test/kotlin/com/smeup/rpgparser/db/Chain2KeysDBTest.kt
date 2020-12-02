@@ -6,8 +6,6 @@ import com.smeup.dbnative.model.FileMetadata
 import com.smeup.dbnative.utils.fieldByType
 import com.smeup.rpgparser.db.utilities.execute
 import com.smeup.rpgparser.db.utilities.outputOfDBPgm
-import com.smeup.rpgparser.db.utilities.startDB
-import com.smeup.rpgparser.db.utilities.stopDB
 import com.smeup.rpgparser.interpreter.*
 import org.hsqldb.Server
 import org.junit.*
@@ -17,19 +15,10 @@ class Chain2KeysDBTest {
 
     companion object {
 
-        lateinit var server: Server
-
         @BeforeClass
         @JvmStatic
         fun init() {
-            server = startDB()
             execute(listOf(sqlCreateTestTable(), insertRecords()))
-        }
-
-        @AfterClass
-        @JvmStatic
-        fun end() {
-            stopDB(server)
         }
 
         private fun sqlCreateTestTable() =

@@ -36,6 +36,15 @@ private fun coerceBlanks(type: Type): Value {
     }
 }
 
+//TODO: is it correct?
+private fun String.toNumberSize(size: Int): String {
+    var result = this;
+    while (result.length < size) {
+        result = "0" + result
+    }
+    return result
+}
+
 private fun coerceString(value: StringValue, type: Type): Value {
     return when (type) {
         is StringType -> {
@@ -69,15 +78,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     // TODO commented out see #45
                     // value.isBlank() -> IntValue.ZERO
                     type.rpgType == RpgType.BINARY.rpgType -> {
-                        val intValue = decodeBinary(value.value, type.size.toInt())
+                        val intValue = decodeBinary(value.value.toNumberSize(type.size.toInt()), type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.INTEGER.rpgType -> {
-                        val intValue = decodeInteger(value.value, type.size.toInt())
+                        val intValue = decodeInteger(value.value.toNumberSize(type.size.toInt()), type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                        val intValue = decodeUnsigned(value.value, type.size.toInt())
+                        val intValue = decodeUnsigned(value.value.toNumberSize(type.size.toInt()), type.size.toInt())
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.ZONED.rpgType -> {

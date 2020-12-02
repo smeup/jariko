@@ -6,8 +6,6 @@ import com.smeup.dbnative.model.IntegerType
 import com.smeup.dbnative.utils.fieldByType
 import com.smeup.rpgparser.db.utilities.execute
 import com.smeup.rpgparser.db.utilities.outputOfDBPgm
-import com.smeup.rpgparser.db.utilities.startDB
-import com.smeup.rpgparser.db.utilities.stopDB
 import com.smeup.rpgparser.interpreter.StringValue
 import org.hsqldb.Server
 import org.junit.AfterClass
@@ -24,14 +22,7 @@ class ChainHostsDBTest {
         @BeforeClass
         @JvmStatic
         fun init() {
-            server = startDB()
             execute(listOf(sqlCreateQATOCHOSTS(), insertRecordsQATOCHOSTS()))
-        }
-
-        @AfterClass
-        @JvmStatic
-        fun end() {
-            stopDB(server)
         }
 
         private fun sqlCreateQATOCHOSTS() =

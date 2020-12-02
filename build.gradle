@@ -49,5 +49,9 @@ configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
+dependencies {
+    implementation 'org.junit.jupiter:junit-jupiter'
+}
+
 
 

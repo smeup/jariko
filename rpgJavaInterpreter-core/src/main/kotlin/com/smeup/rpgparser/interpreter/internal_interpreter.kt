@@ -493,7 +493,9 @@ class InternalInterpreter(
     override fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
-            record.forEach { assign(dataDefinitionByName(it.key)!!, StringValue(it.value)) }
+            record.forEach {
+                assign(dataDefinitionByName(it.key)!!, StringValue(it.value))
+            }
         } else {
             status.lastFound = false
         }

@@ -394,10 +394,17 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: EofExpr): Value {
+
+        if (expression.name == null) {
+            return BooleanValue(interpreterStatus.lastDBFile?.eof() ?: false)
+        }
         TODO("Line ${expression.position?.line()} - %EOF expression with file names is not implemented yet")
     }
 
     override fun eval(expression: EqualExpr): Value {
+        if (expression.name == null) {
+            return BooleanValue(interpreterStatus.lastDBFile?.equal() ?: false)
+        }
         TODO("Line ${expression.position?.line()} - %EQUAL expression with file names is not implemented yet")
     }
 

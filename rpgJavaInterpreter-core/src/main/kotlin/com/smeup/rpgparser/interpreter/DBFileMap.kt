@@ -26,10 +26,14 @@ class DBFileMap() {
             dbFile?.let {
                 // dbFile not null
                 byFileName[fileDefinition.name] = dbFile
-                val formatName = fileDefinition.internalFormatName
+                var formatName = fileDefinition.internalFormatName
                 if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
                     byFormatName[formatName] = dbFile
+                } else {
+                    formatName = dbFile.fileMetadata.recordFormat
+                    byFormatName[formatName] = dbFile
                 }
+
             }
         }
     }

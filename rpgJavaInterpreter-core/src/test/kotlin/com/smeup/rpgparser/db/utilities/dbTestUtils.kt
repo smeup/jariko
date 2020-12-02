@@ -11,6 +11,8 @@ import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.hsqldb.Server
 import org.hsqldb.server.ServerConstants
+import org.junit.AfterClass
+import org.junit.BeforeClass
 import java.io.File
 import java.io.PrintWriter
 import java.sql.Connection
@@ -20,6 +22,28 @@ import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
+    object DBServer: Server() {
+        var running = false
+
+        fun startDB() {
+            setDatabaseName(0, "mainDb")
+            setDatabasePath(0, "mem:mainDb")
+            setPort(9001)
+            running = true;
+            start()
+        }
+
+        fun stopDB() {
+            running = false
+            signalCloseAllServerConnections();
+            stop();
+            shutdown();
+        }
+
+        fun isRunning(): Boolean {
+            return running
+        }
+    }
 
     private val connection: Connection by lazy {
         DriverManager.getConnection(getConnectionConfig().url, getConnectionConfig().user, getConnectionConfig().password)
@@ -43,6 +67,10 @@ import kotlin.concurrent.thread
     }
 
     fun execute(sqlStatements: List<String>) {
+        if (DBServer.isRunning() == false) {
+            DBServer.startDB()
+        }
+
         val statement = connection.createStatement()
         statement.use {
             sqlStatements.forEach { statement.addBatch(it) }
@@ -85,30 +113,4 @@ import kotlin.concurrent.thread
         return si.displayed
     }
 
-    fun startDB(): Server {
 
-        val server = Server()
-        server.setDatabaseName(0, "mainDb")
-        server.setDatabasePath(0, "mem:mainDb")
-        server.setPort(9001)
-        server.start()
-
-        /*
-        var startThread = Thread {
-            server.start()
-        }
-        val executor = Executors.newFixedThreadPool(1)
-        executor.execute(startThread)
-        executor.shutdown()
-        executor.awaitTermination(10, TimeUnit.SECONDS)
-         */
-
-        return server
-    }
-
-    fun stopDB(server: Server) {
-        server.signalCloseAllServerConnections();
-        server.stop();
-        server.shutdown();
-
-    }

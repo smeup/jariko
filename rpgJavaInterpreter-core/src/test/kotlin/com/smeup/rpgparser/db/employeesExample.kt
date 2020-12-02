@@ -14,7 +14,7 @@ fun createEMPLOYEE() =
 	MIDINIT CHAR(1) DEFAULT '' NOT NULL , 
 	LASTNAME CHAR(15) DEFAULT '' NOT NULL , 
 	WORKDEPT CHAR(3) DEFAULT '' NOT NULL, 
-	PRIMARY KEY( EMPNO ) )   
+	PRIMARY KEY( EMPNO ))   
         """.trimIndent()
 
 fun createEmployeeMetadata(): FileMetadata = FileMetadata(
@@ -28,6 +28,7 @@ fun createEmployeeMetadata(): FileMetadata = FileMetadata(
         listOf("EMPNO"),
         true
         )
+
 
 fun createXEMP2() = "CREATE VIEW XEMP2 AS SELECT * FROM EMPLOYEE ORDER BY WORKDEPT"
 
