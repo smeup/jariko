@@ -9,7 +9,7 @@ import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
-open class RpgParserDataStruct : AbstractTestCase() {
+open class RpgParserDataStruct : AbstractTest() {
 
     @Test
     fun parseSTRUCT_01_MYDS_isRecognizedCorrectly() {

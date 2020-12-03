@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertStatementCanBeParsed
 import com.smeup.rpgparser.dataRef
 import com.smeup.rpgparser.interpreter.DummyDBInterface
@@ -15,7 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import org.junit.Test as test
 
-open class StatementsTest : AbstractTestCase() {
+open class StatementsTest : AbstractTest() {
 
     private fun statement(code: String): Statement {
         val stmtContext = assertStatementCanBeParsed("     C                   $code                                                          ")

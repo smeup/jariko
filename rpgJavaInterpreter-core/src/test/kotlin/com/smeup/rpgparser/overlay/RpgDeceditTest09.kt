@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.overlay
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.DecEdit
 import com.smeup.rpgparser.interpreter.DummyDBInterface
@@ -10,7 +10,7 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
-open class RpgDeceditTest09 : AbstractTestCase() {
+open class RpgDeceditTest09 : AbstractTest() {
 
     @Test
     fun parseMUTE09_02() {

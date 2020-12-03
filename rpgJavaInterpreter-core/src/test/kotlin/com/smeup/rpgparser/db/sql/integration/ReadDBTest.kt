@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import org.junit.Test
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
-class ReadDBTest : AbstractTestCase() {
+class ReadDBTest : AbstractTest() {
 
     @Test @Ignore
     fun findsExistingRecords() {

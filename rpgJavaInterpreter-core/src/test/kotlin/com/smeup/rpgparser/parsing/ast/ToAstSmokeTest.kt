@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-open class ToAstSmokeTest : AbstractTestCase() {
+open class ToAstSmokeTest : AbstractTest() {
 
     @Test
     fun buildAstForJD_001() {

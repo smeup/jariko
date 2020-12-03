@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class ReadPreviousDBTest : AbstractTestCase() {
+class ReadPreviousDBTest : AbstractTest() {
 
     @Test
     fun readsTheWholeFileBackwards() {
