@@ -294,8 +294,7 @@ class RpgParserFacade {
     }
 
     private fun createAst(
-        inputStream: InputStream,
-        afterAstCreation: (ast: CompilationUnit) -> Unit = { }
+        inputStream: InputStream
     ): CompilationUnit {
         val result = parse(inputStream)
         require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
@@ -314,7 +313,6 @@ class RpgParserFacade {
                         }
                     }
                 }
-                afterAstCreation.invoke(this)
             }
         }
         MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
@@ -322,10 +320,11 @@ class RpgParserFacade {
     }
 
     fun parseAndProduceAst(
-        inputStream: InputStream,
-        afterAstCreation: (ast: CompilationUnit) -> Unit = {}
+        inputStream: InputStream
     ): CompilationUnit {
-        return tryToLoadCompilationUnit() ?: createAst(inputStream, afterAstCreation)
+        return (tryToLoadCompilationUnit() ?: createAst(inputStream)).apply {
+            MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
+        }
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true, printTree: Boolean = false): ParsingResult<ExpressionContext> {
