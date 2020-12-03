@@ -36,6 +36,37 @@ interface IMemorySliceStorage : AutoCloseable {
      * Close the storage. If do not has been called commitTrans, it could be needed to implement rollback mechanisms
      * */
     override fun close()
+
+    companion object {
+        /**
+         * Creates (just for tests) an instance of storage wrapped in a map
+         * */
+        fun createMemoryStorage(map: MutableMap<MemorySliceId, Map<String, Value>>): IMemorySliceStorage {
+            return object : IMemorySliceStorage {
+
+                override fun open() {
+                }
+
+                override fun load(memorySliceId: MemorySliceId) = map.getOrDefault(memorySliceId, mutableMapOf())
+
+                override fun beginTrans() {
+                }
+
+                override fun store(memorySliceId: MemorySliceId, values: Map<String, Value>) {
+                    map[memorySliceId] = values
+                }
+
+                override fun commitTrans() {
+                }
+
+                override fun rollbackTrans() {
+                }
+
+                override fun close() {
+                }
+            }
+        }
+    }
 }
 
 /**

@@ -1,10 +1,13 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
@@ -1337,5 +1340,42 @@ Test 6
         assertFailsWith(Throwable::class) {
             execute("ERROR01", emptyMap())
         }
+    }
+
+    @Test
+    open fun executeX1X2110() {
+        val dsValue = DataStructValue.blank(30448)
+        var dsDataDefinition: DataDefinition? = null
+        // TODO: 03/12/2020 Move in inline function of CompilationUnit the logic to set e DS
+        val configuration = Configuration(
+            memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf()),
+            jarikoCallback = JarikoCallback(
+                afterAstCreation = { ast: CompilationUnit ->
+                    ast.dataDefinitions.forEach { dataDefinition ->
+                        when (dataDefinition.type) {
+                            is DataStructureType -> {
+                                dsDataDefinition = dataDefinition
+                                dataDefinition.fields.forEach {
+                                    when (it.name) {
+                                        "\$UIBPG" -> { dsValue.set(it, StringValue("EXP", false)) }
+                                        "\$UIBFU" -> { dsValue.set(it, StringValue("X1X2110", false)) }
+                                        "\$UIBME" -> { dsValue.set(it, StringValue("FIB", false)) }
+                                        "\$UIBD1" -> { dsValue.set(it, StringValue("NUM(10)", false)) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                onEnterPgm = { programName: String, symbolTable: ISymbolTable ->
+                    symbolTable[dsDataDefinition!!] = dsValue
+                }
+            )
+        )
+        executePgmWithStringArgs(
+            "X1X2110",
+            listOf(""),
+            configuration = configuration
+        )
     }
 }

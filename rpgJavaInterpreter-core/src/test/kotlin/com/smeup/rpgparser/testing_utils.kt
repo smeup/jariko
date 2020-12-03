@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.*
@@ -192,11 +193,15 @@ fun assertASTCanBeProduced(
         }
     } else {
         val configuration =
-            Configuration(options = Options(muteSupport = withMuteSupport, compiledProgramsDir = compiledProgramsDir,
-            toAstConfiguration = ToAstConfiguration(considerPosition)))
+            Configuration(options = Options(
+                muteSupport = withMuteSupport,
+                compiledProgramsDir = compiledProgramsDir,
+                toAstConfiguration = ToAstConfiguration(considerPosition)),
+                jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation)
+            )
         ast = MainExecutionContext.execute(systemInterface = JavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
-            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName), afterAstCreation = afterAstCreation)
+            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
         }
     }
     return ast
