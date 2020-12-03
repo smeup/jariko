@@ -1,10 +1,10 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertCanBeParsed
 import org.junit.Test
 
-class RpgParserSmokeTest : AbstractTestCase() {
+class RpgParserSmokeTest : AbstractTest() {
 
     @Test
     fun parseINTTEST() {

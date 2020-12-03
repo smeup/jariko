@@ -1,11 +1,11 @@
 package com.smeup.rpgparser.db.sql.integration
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.interpreter.StringValue
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class Chain2FilesDBTest : AbstractTestCase() {
+class Chain2FilesDBTest : AbstractTest() {
 
     @Test
     fun executeCHAIN2FILE() {

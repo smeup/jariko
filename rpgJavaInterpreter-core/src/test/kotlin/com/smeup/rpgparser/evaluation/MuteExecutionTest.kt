@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.ExtendedCollectorSystemInterface
 import com.smeup.rpgparser.assertNrOfMutesAre
 import com.smeup.rpgparser.execute
@@ -11,7 +11,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 import kotlin.test.*
 
-open class MuteExecutionTestCase : AbstractTestCase() {
+open class MuteExecutionTest : AbstractTest() {
 
     @Test
     fun executeSimpleMute() {

@@ -15,7 +15,7 @@ import org.junit.experimental.categories.Category
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
-open class MUTEExamplesTestCase : AbstractTestCase() {
+open class MUTEExamplesTest : AbstractTest() {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_01() {

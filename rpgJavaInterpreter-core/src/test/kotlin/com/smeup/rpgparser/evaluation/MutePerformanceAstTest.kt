@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -14,7 +14,7 @@ import org.junit.experimental.categories.Category
 import java.io.File
 import java.io.FileInputStream
 
-open class MutePerformanceAstTestCase : AbstractTestCase() {
+open class MutePerformanceAstTest : AbstractTest() {
 
     val si = JavaSystemInterface().apply {
         val dir = File(System.getProperty("user.dir"), "build/test-results/testPerformance")

@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.MuteLexer
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.strumenta.kolasu.model.Point
@@ -13,7 +13,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-open class RpgParserWithMuteSupportTest : AbstractTestCase() {
+open class RpgParserWithMuteSupportTest : AbstractTest() {
     // Please note the 8 leading spaces
     val comparisonAnnotation = "".padStart(8) + "VAL1(array(1)) VAL2(1) COMP(EQ)"
     val comparisonAnnotationPreProcessed = "".padStart(8) + "VAL1[array(1)] VAL2[1] COMP(EQ)"

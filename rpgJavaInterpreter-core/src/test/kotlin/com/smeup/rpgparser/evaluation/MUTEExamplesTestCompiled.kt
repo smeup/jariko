@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.evaluation
 
-class JDExamplesTestCaseCompiled : JDExamplesTestCase() {
+class MUTEExamplesTestCompiled : MUTEExamplesTest() {
 
     override fun useCompiledVersion() = true
 }

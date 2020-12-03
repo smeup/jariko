@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.overlay
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -9,7 +9,7 @@ import java.nio.charset.Charset
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-open class RpgSortATest : AbstractTestCase() {
+open class RpgSortATest : AbstractTest() {
 
     @Test
     fun encodeDecodeCp037() {

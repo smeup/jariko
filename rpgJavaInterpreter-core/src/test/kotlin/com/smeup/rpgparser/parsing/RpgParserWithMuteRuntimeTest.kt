@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.interpreter.DummyDBInterface
@@ -13,7 +13,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-open class RpgParserWithMuteRuntimeTest : AbstractTestCase() {
+open class RpgParserWithMuteRuntimeTest : AbstractTest() {
 
     fun assertASTCanBeProduced(
         exampleName: String,

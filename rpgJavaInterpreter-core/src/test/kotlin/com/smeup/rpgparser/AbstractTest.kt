@@ -9,12 +9,12 @@ import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 
 /**
- * This class must be extended to all test classes in order to automatically manage tests using both version
- * of the compiled program and that of the non-compiled program.
- * For each test case you have to implement a base test case (YourTestCase : AbstractTestCase()) and then you'll implement
- * (YourTestCaseCompiled : YourTestCase()) that simply it will override useCompiledVersion method returning true
+ * This class must be extended from all test classes in order to automatically manage tests using both version
+ * of the compiled programs and non-compiled programs.
+ * For each test case you have to implement a base test case (YourTest : AbstractTest()) and then you'll implement
+ * (YourTestCompiled : YourTest()) that simply it will override useCompiledVersion method returning true
  * */
-abstract class AbstractTestCase {
+abstract class AbstractTest {
 
     open fun assertASTCanBeProduced(
         exampleName: String,
@@ -105,7 +105,7 @@ abstract class AbstractTestCase {
     open fun useCompiledVersion() = false
 }
 
-fun Configuration.adaptForTestCase(testCase: AbstractTestCase): Configuration {
+fun Configuration.adaptForTestCase(testCase: AbstractTest): Configuration {
     if (this.options != null) {
         this.options!!.compiledProgramsDir = testCase.getTestCompileDir()
     } else {

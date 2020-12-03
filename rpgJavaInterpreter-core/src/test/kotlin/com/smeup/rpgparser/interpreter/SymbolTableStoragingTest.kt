@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.adaptForTestCase
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.getProgram
@@ -66,7 +66,7 @@ class MemoryStorage : IMemorySliceStorage {
     }
 }
 
-open class SymbolTableStoragingTest : AbstractTestCase() {
+open class SymbolTableStoragingTest : AbstractTest() {
 
     @Test
     fun execPgmAndEvaluateStorage() {

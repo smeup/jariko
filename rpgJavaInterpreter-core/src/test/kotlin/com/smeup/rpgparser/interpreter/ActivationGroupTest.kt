@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.AbstractTestCase
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.adaptForTestCase
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.DEFAULT_ACTIVATION_GROUP_NAME
@@ -11,7 +11,7 @@ import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 
-open class ActivationGroupTest : AbstractTestCase() {
+open class ActivationGroupTest : AbstractTest() {
 
     /**
      * Assigned activation group name should be the default from configuration
