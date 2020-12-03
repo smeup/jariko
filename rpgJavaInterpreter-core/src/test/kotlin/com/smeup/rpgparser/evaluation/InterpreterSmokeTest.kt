@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.evaluation
 
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertASTCanBeProduced
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate

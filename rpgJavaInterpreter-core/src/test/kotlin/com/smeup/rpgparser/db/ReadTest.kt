@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.db
 
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.db.utilities.execute
-import com.smeup.rpgparser.db.utilities.outputOfDBPgm
 import com.smeup.rpgparser.interpreter.StringValue
 import org.hsqldb.Server
 import org.junit.BeforeClass
@@ -9,7 +9,7 @@ import org.junit.Test
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
-class ReadTest {
+class ReadTest: AbstractTest() {
 
     companion object {
 

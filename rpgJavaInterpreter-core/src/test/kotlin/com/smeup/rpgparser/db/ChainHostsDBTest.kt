@@ -4,18 +4,17 @@ import com.smeup.dbnative.model.CharacterType
 import com.smeup.dbnative.model.FileMetadata
 import com.smeup.dbnative.model.IntegerType
 import com.smeup.dbnative.utils.fieldByType
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.db.utilities.execute
-import com.smeup.rpgparser.db.utilities.outputOfDBPgm
 import com.smeup.rpgparser.interpreter.StringValue
 import org.hsqldb.Server
-import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
 import kotlin.test.assertEquals
 
 class ChainHostsDBTest {
 
-    companion object {
+    companion object: AbstractTest() {
 
         lateinit var server: Server
 

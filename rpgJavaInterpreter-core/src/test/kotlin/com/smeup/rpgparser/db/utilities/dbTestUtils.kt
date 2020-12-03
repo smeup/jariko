@@ -78,7 +78,13 @@ import kotlin.concurrent.thread
         }
     }
 
-    fun outputOfDBPgm(programName: String, metadata: List<FileMetadata>, initialSQL: List<String>, inputParms: Map<String, StringValue> = mapOf(), printTree: Boolean = false): List<String> {
+    fun outputOfDBPgm(
+            programName: String,
+            metadata: List<FileMetadata>,
+            initialSQL: List<String>,
+            inputParms: Map<String, StringValue> = mapOf(),
+            printTree: Boolean = false,
+            compiledProgramsDir: File?): List<String> {
 
         val si = CollectorSystemInterface()
         try {

@@ -375,10 +375,8 @@ fun execute(
     printTree: Boolean = false,
     compiledProgramsDir: File?
 ): InternalInterpreter {
-    val cu = assertASTCanBeProduced(programName, true, printTree = printTree)
-    cu.resolveAndValidate()
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
-    cu.resolveAndValidate(si.db)
+    cu.resolveAndValidate()
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
 }

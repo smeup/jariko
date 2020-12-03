@@ -1,5 +1,6 @@
 package com.smeup.rpgparser
 
+import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.defaultProgramFinders
@@ -65,12 +66,14 @@ abstract class AbstractTest {
 
     fun outputOfDBPgm(
         programName: String,
+        metadata: List<FileMetadata>,
         initialSQL: List<String>,
         inputParms: Map<String, StringValue> = mapOf(),
         printTree: Boolean = false
     ): List<String> {
-        return com.smeup.rpgparser.db.sql.outputOfDBPgm(
+        return com.smeup.rpgparser.db.utilities.outputOfDBPgm(
             programName = programName,
+            metadata = metadata,
             initialSQL = initialSQL,
             inputParms = inputParms,
             printTree = printTree,

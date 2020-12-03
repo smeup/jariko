@@ -4,14 +4,14 @@ import com.smeup.dbnative.model.CharacterType
 import com.smeup.dbnative.model.DecimalType
 import com.smeup.dbnative.model.FileMetadata
 import com.smeup.dbnative.utils.fieldByType
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.db.utilities.execute
-import com.smeup.rpgparser.db.utilities.outputOfDBPgm
-import com.smeup.rpgparser.interpreter.*
-import org.hsqldb.Server
-import org.junit.*
+import com.smeup.rpgparser.interpreter.StringValue
+import org.junit.BeforeClass
+import org.junit.Test
 import kotlin.test.assertEquals
 
-class Chain2KeysDBTest {
+class Chain2KeysDBTest: AbstractTest() {
 
     companion object {
 

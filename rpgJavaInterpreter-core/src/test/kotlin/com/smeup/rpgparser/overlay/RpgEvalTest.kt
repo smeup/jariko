@@ -14,7 +14,7 @@ open class RpgEvalTest : AbstractTest() {
     @Test
     fun EVAL_runtime() {
         RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
-        val cu = com.smeup.rpgparser.assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced("overlay/EVALH", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
