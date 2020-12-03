@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.overlay
 
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.interpreter.InternalInterpreter
@@ -8,7 +9,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 
-class RpgEvalTest {
+open class RpgEvalTest : AbstractTest() {
 
     @Test
     fun EVAL_runtime() {

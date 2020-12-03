@@ -9,7 +9,7 @@ import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class RpgParserDataStruct {
+open class RpgParserDataStruct : AbstractTest() {
 
     @Test
     fun parseSTRUCT_01_MYDS_isRecognizedCorrectly() {
@@ -217,15 +217,17 @@ class RpgParserDataStruct {
 
     @Test
     fun compressionIntoDSofPackedValue() {
-        val PAC030 = FieldDefinition(name = "PAC030",
-                type = NumberType(3, 0, RpgType.PACKED),
-                explicitStartOffset = null,
-                explicitEndOffset = null,
-                calculatedStartOffset = 6,
-                calculatedEndOffset = 8,
-                overriddenContainer = null,
-                position = null,
-                declaredArrayInLineOnThisField = null)
+        val PAC030 = FieldDefinition(
+            name = "PAC030",
+            type = NumberType(3, 0, RpgType.PACKED),
+            explicitStartOffset = null,
+            explicitEndOffset = null,
+            calculatedStartOffset = 6,
+            calculatedEndOffset = 8,
+            overriddenContainer = null,
+            position = null,
+            declaredArrayInLineOnThisField = null
+        )
         val encodedValue = PAC030.toDataStructureValue(IntValue(999))
         assertEquals(2, encodedValue.value.length)
     }
@@ -253,17 +255,22 @@ class RpgParserDataStruct {
      * Test for all data type
      */
     @Test
-    fun parseSTRUCT_06_runtime() {
+    @Ignore
+    open fun parseSTRUCT_06_runtime() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
-        val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
+        val cu = assertASTCanBeProduced(
+            exampleName = "struct/STRUCT_06",
+            considerPosition = true,
+            withMuteSupport = true
+        )
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
@@ -275,14 +282,18 @@ class RpgParserDataStruct {
     fun parseSTRUCT_07_runtime() {
         assertCanBeParsed("struct/STRUCT_07", withMuteSupport = true)
 
-        val cu = assertASTCanBeProduced("struct/STRUCT_07", true)
+        val cu = assertASTCanBeProduced(
+            exampleName = "struct/STRUCT_07",
+            considerPosition = true,
+            withMuteSupport = true
+        )
         cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }

@@ -5,7 +5,7 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 
-class InterpreterSmokeTest {
+open class InterpreterSmokeTest : AbstractTest() {
 
     @Test
     fun executeJD_001() {

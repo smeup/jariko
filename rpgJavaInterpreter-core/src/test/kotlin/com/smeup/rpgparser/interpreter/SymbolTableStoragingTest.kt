@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.adaptForTestCase
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -64,7 +66,7 @@ class MemoryStorage : IMemorySliceStorage {
     }
 }
 
-class SymbolTableStoragingTest {
+open class SymbolTableStoragingTest : AbstractTest() {
 
     @Test
     fun execPgmAndEvaluateStorage() {
@@ -407,7 +409,7 @@ class SymbolTableStoragingTest {
                     val rpgDir = File("src/test/resources/")
                     val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
                     val jariko = getProgram("XTHREAD.rpgle", systemInterface, programFinders)
-                    jariko.singleCall(listOf("FUNZ", "METO"), Configuration())
+                    jariko.singleCall(listOf("FUNZ", "METO"), Configuration().adaptForTestCase(this))
                     println(it)
                 }.onFailure {
                     println(it)

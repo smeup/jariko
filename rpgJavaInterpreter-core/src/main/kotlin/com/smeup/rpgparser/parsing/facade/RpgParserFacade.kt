@@ -9,7 +9,9 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.createCompilationUnit
+import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
+import com.smeup.rpgparser.parsing.parsetreetoast.setOverlayOn
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.parseTreeToXml
 import com.strumenta.kolasu.model.Point
@@ -61,10 +63,16 @@ class RpgParserFacade {
 
     // Should be 'false' as default to avoid unnecessary search of 'mute annotation' into rpg program source.
     var muteSupport: Boolean = MainExecutionContext.getConfiguration().options?.muteSupport ?: false
+    private var muteVerbose = MainExecutionContext.getConfiguration().options?.muteVerbose ?: false
 
     private val executionProgramName: String by lazy {
         MainExecutionContext.getExecutionProgramName().let {
-            File(it).name.replaceBeforeLast(".", "")
+            val name = File(it).name.replaceAfterLast(".", "")
+            if (name.endsWith(".")) {
+                name.substring(0, name.length - 1)
+            } else {
+                name
+            }
         }
     }
 
@@ -266,33 +274,58 @@ class RpgParserFacade {
 
     private fun tryToLoadCompilationUnit(): CompilationUnit? {
         return MainExecutionContext.getConfiguration().options?.compiledProgramsDir?.let { compiledDir ->
-            val compiledFile = File(compiledDir, executionProgramName + ".bin")
+            val start = System.currentTimeMillis()
+            val compiledFile = File(compiledDir, "$executionProgramName.bin")
             if (compiledFile.exists()) {
-                compiledFile.readBytes().createCompilationUnit()
+                MainExecutionContext.log(AstLogStart(executionProgramName))
+                compiledFile.readBytes().createCompilationUnit().apply {
+                    MainExecutionContext.log(AstLogEnd(executionProgramName, System.currentTimeMillis() - start))
+                }
             } else {
                 null
+            }
+        }?.apply {
+            dataDefinitions.forEach { dataDefinition ->
+                dataDefinition.fields.forEach { fieldDefinition ->
+                    dataDefinition.setOverlayOn(fieldDefinition)
+                }
             }
         }
     }
 
-    private fun createAst(inputStream: InputStream): CompilationUnit {
+    private fun createAst(
+        inputStream: InputStream,
+        afterAstCreation: (ast: CompilationUnit) -> Unit = { }
+    ): CompilationUnit {
         val result = parse(inputStream)
         require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
         val compilationUnit: CompilationUnit
         MainExecutionContext.log(AstLogStart(executionProgramName))
         val elapsed = measureTimeMillis {
-            compilationUnit = result.root!!.rContext.toAst().apply {
+            compilationUnit = result.root!!.rContext.toAst(
+                MainExecutionContext.getConfiguration().options?.toAstConfiguration ?: ToAstConfiguration()
+            ).apply {
                 if (muteSupport) {
-                    this.injectMuteAnnotation(result.root.muteContexts!!)
+                    val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
+                    if (muteVerbose) {
+                        val sorted = resolved.sortedWith(compareBy { it.muteLine })
+                        sorted.forEach {
+                            println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+                        }
+                    }
                 }
+                afterAstCreation.invoke(this)
             }
         }
         MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
         return compilationUnit
     }
 
-    fun parseAndProduceAst(inputStream: InputStream): CompilationUnit {
-        return tryToLoadCompilationUnit() ?: createAst(inputStream)
+    fun parseAndProduceAst(
+        inputStream: InputStream,
+        afterAstCreation: (ast: CompilationUnit) -> Unit = {}
+    ): CompilationUnit {
+        return tryToLoadCompilationUnit() ?: createAst(inputStream, afterAstCreation)
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true, printTree: Boolean = false): ParsingResult<ExpressionContext> {

@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.overlay
 
-import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.InternalInterpreter
@@ -13,7 +13,7 @@ import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 
-class RpgParserOverlayTest11 {
+open class RpgParserOverlayTest11 : AbstractTest() {
 
     @Test
     fun parseMUTE11_11C_syntax() {

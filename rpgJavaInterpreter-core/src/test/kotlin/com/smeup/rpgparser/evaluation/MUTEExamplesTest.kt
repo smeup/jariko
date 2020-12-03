@@ -1,11 +1,9 @@
 package com.smeup.rpgparser.evaluation
 
 import com.andreapivetta.kolor.yellow
-import com.smeup.rpgparser.CollectorSystemInterface
-import com.smeup.rpgparser.DummyProgramFinder
-import com.smeup.rpgparser.ExtendedCollectorSystemInterface
-import com.smeup.rpgparser.PerformanceTest
+import com.smeup.rpgparser.*
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.StringType
 import com.smeup.rpgparser.interpreter.parm
 import com.smeup.rpgparser.jvminterop.JvmMockProgram
@@ -17,7 +15,7 @@ import org.junit.experimental.categories.Category
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
-class MUTEExamplesTest {
+open class MUTEExamplesTest : AbstractTest() {
 
     @Test @Category(PerformanceTest::class)
     fun executeMUTE10_01() {
@@ -410,19 +408,14 @@ class MUTEExamplesTest {
     private fun assertMuteOK(
         programName: String,
         withOutput: List<String>? = null,
-        configuration: Configuration = Configuration(),
+        configuration: Configuration = Configuration(options = Options(muteSupport = true, compiledProgramsDir = getTestCompileDir(), muteVerbose = true)),
         jvmMockPrograms: List<JvmMockProgram> = emptyList<JvmMockProgram>()
     ) {
         val si = siWithProgramFinderInPerformanceFolder(jvmMockPrograms = jvmMockPrograms)
-        val rpgSourceInputStream = dummyProgramFinder().rpgSourceInputStream(programName)
-
-        require(rpgSourceInputStream != null) {
-            "$programName cannot be found"
-        }
+        val programSrc = dummyProgramFinder().getFile(programName)
         executeMuteAnnotations(
-            programStream = rpgSourceInputStream,
+            programSrc = programSrc,
             systemInterface = si,
-            programName = programName,
             configuration = configuration
         )
 

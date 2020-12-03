@@ -1,13 +1,13 @@
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class RpgParserDataOverlay {
+open class RpgParserDataOverlay : AbstractTest() {
 
     /**
      * Test Structure Overlay

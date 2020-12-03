@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.overlay
 
-import com.smeup.rpgparser.assertASTCanBeProduced
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -9,7 +9,7 @@ import java.nio.charset.Charset
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class RpgSortATest {
+open class RpgSortATest : AbstractTest() {
 
     @Test
     fun encodeDecodeCp037() {

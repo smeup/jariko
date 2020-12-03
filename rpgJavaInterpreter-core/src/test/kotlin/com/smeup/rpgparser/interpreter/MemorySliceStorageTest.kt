@@ -1,8 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.JarikoCallback
-import com.smeup.rpgparser.execution.executePgmWithStringArgs
 import com.smeup.rpgparser.experimental.PropertiesFileStorage
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.junit.After
@@ -80,7 +80,7 @@ private class SillySymbolTable : ISymbolTable {
     override fun isEmpty() = values.isEmpty()
 }
 
-class MemorySliceStorageTest {
+open class MemorySliceStorageTest : AbstractTest() {
     @Before
     fun before() {
         val lastPathComponent = if (DEMO) {
