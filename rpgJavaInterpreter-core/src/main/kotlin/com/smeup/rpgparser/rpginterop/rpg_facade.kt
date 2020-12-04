@@ -56,7 +56,6 @@ abstract class RpgFacade<P> (
                 rpgProgram = RpgSystem.getProgram(programName)
             }
             val initialValues = toInitialValues(rpgProgram!!, params)
-
             programInterpreter.execute(rpgProgram!!, initialValues)
             toResults(params, initialValues)
         }

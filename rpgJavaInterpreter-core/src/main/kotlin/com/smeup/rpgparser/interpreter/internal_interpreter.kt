@@ -144,12 +144,6 @@ class InternalInterpreter(
         reinitialization: Boolean = true
     ) {
         // TODO verify if these values should be reinitialised or not
-
-
-        //TODO get configuration for Reload initialization
-
-
-
         compilationUnit.fileDefinitions.forEach {
             dbFileMap.add(it)
         }
@@ -493,9 +487,7 @@ class InternalInterpreter(
     override fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
-            record.forEach {
-                assign(dataDefinitionByName(it.key)!!, StringValue(it.value))
-            }
+            record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
         } else {
             status.lastFound = false
         }

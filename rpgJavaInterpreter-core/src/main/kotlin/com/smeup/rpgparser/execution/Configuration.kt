@@ -16,7 +16,7 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
  * @param memorySliceStorage Allows to implement a symbol table storaging.
  * If null, symbol table persistence will be skipped
  * @param jarikoCallback Several callback.
- * @param reloadConfig Reload configuration, it is necessary only for db access
+ * @param defaultActivationGroupName Default activation group. If not specified it assumes "*DEFACTGRP"
  * */
 
 data class Configuration(

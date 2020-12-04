@@ -61,7 +61,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 
 object RpgSystem {
 
-    internal val programFinders = LinkedHashSet<RpgProgramFinder>()
+    private val programFinders = mutableSetOf<RpgProgramFinder>()
 
     @Synchronized
     fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {
