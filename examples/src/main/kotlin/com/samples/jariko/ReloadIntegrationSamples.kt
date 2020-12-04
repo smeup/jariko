@@ -8,23 +8,22 @@ import com.smeup.rpgparser.execution.getProgram
 
 fun callJarikoWithReload() {
 
-
     // create connection config
     val connectionsConfig = listOf(ConnectionConfig(
-        fileName = "*", 
-        url = "jdbc:blabla", 
-        user = "user", 
-        password = "password", 
-        driver = "myDriverclass"
-        )
+            fileName = "*",
+            url = "jdbc:blabla",
+            user = "user",
+            password = "password",
+            driver = "myDriverclass"
+    )
     )
 
     // pass reloadConfig to jariko
     val config = Configuration(
-        reloadConfig = ReloadConfig(
-            nativeAccessConfig = DBNativeAccessConfig(connectionsConfig), 
-            metadata = emptyList()
-    ))
+            reloadConfig = ReloadConfig(
+                    nativeAccessConfig = DBNativeAccessConfig(connectionsConfig),
+                    metadata = emptyList()
+            ))
 
     // call jariko
     val inlineProgram = """
