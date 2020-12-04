@@ -1,6 +1,6 @@
 package com.smeup.rpgparser.evaluation
 
-class MutePerformanceAstCompiled : MutePerformanceAstTest() {
+class MutePerformanceAstTestCompiled : MutePerformanceAstTest() {
 
     override fun useCompiledVersion() = true
 }
