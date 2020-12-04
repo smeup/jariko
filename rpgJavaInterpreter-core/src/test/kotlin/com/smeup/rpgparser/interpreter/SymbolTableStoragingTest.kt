@@ -1,13 +1,18 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.adaptForTestCase
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.logging.PARSING_LOGGER
+import com.smeup.rpgparser.logging.PERFORMANCE_LOGGER
+import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -420,6 +425,28 @@ open class SymbolTableStoragingTest : AbstractTest() {
         executor.shutdown()
         executor.awaitTermination(10, TimeUnit.SECONDS)
         assert(failed == null)
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun initWithHugeDSpecsVarNumber() {
+        val programFinders = listOf(DirRpgProgramFinder(File(javaClass.getResource("/performance-ast").path)))
+        val si = JavaSystemInterface().also {
+            it.loggingConfiguration = consoleLoggingConfiguration(PARSING_LOGGER, PERFORMANCE_LOGGER)
+        }
+        val configuration = Configuration().adaptForTestCase(this)
+        val caller = getProgram("MUTE10_69", systemInterface = si, programFinders = programFinders)
+        caller.singleCall(emptyList(), configuration)
+    }
+
+    @Test @Category(PerformanceTest::class)
+    fun initWithHugeCSpecsVarNumber() {
+        val programFinders = listOf(DirRpgProgramFinder(File(javaClass.getResource("/performance-ast").path)))
+        val si = JavaSystemInterface().also {
+            it.loggingConfiguration = consoleLoggingConfiguration(PARSING_LOGGER, PERFORMANCE_LOGGER)
+        }
+        val configuration = Configuration().adaptForTestCase(this)
+        val caller = getProgram("MUTE10_70", systemInterface = si, programFinders = programFinders)
+        caller.singleCall(emptyList(), configuration)
     }
 }
 

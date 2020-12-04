@@ -140,6 +140,8 @@ class InternalInterpreter(
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
+        val start = System.currentTimeMillis()
+        MainExecutionContext.log(SymbolTableIniLogStart(programName = interpretationContext.currentProgramName))
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.forEach {
             dbFileMap.add(it)
@@ -211,7 +213,16 @@ class InternalInterpreter(
                 set(def, coerce(iv.value, def.type))
             }
         }
-        afterInitialization()
+        MainExecutionContext.log(SymbolTableIniLogEnd(
+            programName = interpretationContext.currentProgramName,
+            elapsed = System.currentTimeMillis() - start
+        ))
+        MainExecutionContext.log(SymbolTableLoadLogStart(programName = interpretationContext.currentProgramName))
+        MainExecutionContext.log(SymbolTableLoadLogEnd(
+            programName = interpretationContext.currentProgramName,
+            elapsed = measureTimeMillis { afterInitialization() }
+        )
+        )
     }
 
     private fun toArrayValue(compileTimeArray: CompileTimeArray, arrayType: ArrayType): Value {
