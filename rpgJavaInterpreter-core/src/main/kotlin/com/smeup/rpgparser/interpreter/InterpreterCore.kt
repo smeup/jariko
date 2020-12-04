@@ -2,7 +2,6 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
-import com.smeup.dbnative.file.RecordField
 import com.smeup.rpgparser.parsing.ast.*
 
 /**
@@ -19,9 +18,19 @@ interface InterpreterCore {
     fun log(logEntry: () -> LogEntry)
     fun assign(target: AssignableExpression, value: Value): Value
     fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value
-    fun assign(target: AssignableExpression, value: Expression, operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT): Value
+    fun assign(
+        target: AssignableExpression,
+        value: Expression,
+        operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT
+    ): Value
+
     fun assignEachElement(target: AssignableExpression, value: Value): Value
-    fun assignEachElement(target: AssignableExpression, value: Expression, operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT): Value
+    fun assignEachElement(
+        target: AssignableExpression,
+        value: Expression,
+        operator: AssignmentOperator = AssignmentOperator.NORMAL_ASSIGNMENT
+    ): Value
+
     operator fun get(data: AbstractDataDefinition): Value
     operator fun get(dataName: String): Value
     fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue)

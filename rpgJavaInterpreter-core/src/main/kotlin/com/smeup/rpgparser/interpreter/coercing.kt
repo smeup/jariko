@@ -38,7 +38,7 @@ private fun coerceBlanks(type: Type): Value {
 
 //TODO: is it correct?
 private fun String.toNumberSize(size: Int): String {
-    var result = this;
+    var result = this
     while (result.length < size) {
         result = "0" + result
     }

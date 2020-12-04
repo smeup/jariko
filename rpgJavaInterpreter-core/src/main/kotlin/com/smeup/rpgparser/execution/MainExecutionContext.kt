@@ -28,17 +28,27 @@ object MainExecutionContext {
      * @see #getConfiguration
      * @see #getMemorySliceMgr
      * */
-    fun <T> execute(configuration: Configuration = Configuration(), systemInterface: SystemInterface, mainProgram: (context: Context) -> T): T {
-            require(
-                context.get() == null
-            ) { "Context execution already created" }
+    fun <T> execute(
+        configuration: Configuration = Configuration(),
+        systemInterface: SystemInterface,
+        mainProgram: (context: Context) -> T
+    ): T {
+        require(
+            context.get() == null
+        ) { "Context execution already created" }
         val memorySliceMgr = if (configuration.memorySliceStorage == null) {
             null
         } else {
-            MemorySliceMgr(configuration.memorySliceStorage!!)
+            MemorySliceMgr(configuration.memorySliceStorage)
         }
         try {
-            context.set(Context(configuration = configuration, memorySliceMgr = memorySliceMgr, systemInterface = systemInterface))
+            context.set(
+                Context(
+                    configuration = configuration,
+                    memorySliceMgr = memorySliceMgr,
+                    systemInterface = systemInterface
+                )
+            )
             return mainProgram.runCatching {
                 invoke(context.get())
             }.onFailure {
@@ -81,8 +91,8 @@ object MainExecutionContext {
     fun getConfiguration() = context.get()?.configuration ?: noConfiguration
 
     /**
-    * @return an instance of memory slice manager
-    * */
+     * @return an instance of memory slice manager
+     * */
     fun getMemorySliceMgr() = context.get()?.memorySliceMgr
 
     /**
@@ -124,9 +134,9 @@ data class Context(
     val systemInterface: SystemInterface,
     var executionProgramName: String? = null,
     val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
-        it.nativeAccessConfig?.connectionsConfig?.forEach() { connectionConfig ->
-            it.metadata.forEach() {metadata ->
-            DBFileFactory.registerMetadata(metadata)
+        it.nativeAccessConfig?.connectionsConfig?.forEach { connectionConfig ->
+            it.metadata.forEach { metadata ->
+                DBFileFactory.registerMetadata(metadata)
             }
         }
         DBFileFactory(it.nativeAccessConfig!!)

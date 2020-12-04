@@ -27,9 +27,10 @@ data class Configuration(
         var options: Options? = Options()
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
-            this (memorySliceStorage, JarikoCallback(), ReloadConfig(), DEFAULT_ACTIVATION_GROUP_NAME, Options())
+            this(memorySliceStorage, JarikoCallback(), ReloadConfig(), DEFAULT_ACTIVATION_GROUP_NAME, Options())
+
     constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
-            this (memorySliceStorage, JarikoCallback(), ReloadConfig(), defaultActivationGroupName, Options())
+            this(memorySliceStorage, JarikoCallback(), ReloadConfig(), defaultActivationGroupName, Options())
 }
 
 /**
@@ -40,7 +41,8 @@ data class Configuration(
  * */
 data class ReloadConfig(
         val nativeAccessConfig: DBNativeAccessConfig? = DBNativeAccessConfig(emptyList()),
-        val metadata: List<FileMetadata> = emptyList())
+        val metadata: List<FileMetadata> = emptyList()
+)
 
 /**
  * Options object
@@ -50,10 +52,10 @@ data class ReloadConfig(
  * @param toAstConfiguration Creating ast configuration
  * */
 data class Options(
-    var muteSupport: Boolean = false,
-    var compiledProgramsDir: File? = null,
-    var muteVerbose: Boolean = false,
-    var toAstConfiguration: ToAstConfiguration = ToAstConfiguration()
+        var muteSupport: Boolean = false,
+        var compiledProgramsDir: File? = null,
+        var muteVerbose: Boolean = false,
+        var toAstConfiguration: ToAstConfiguration = ToAstConfiguration()
 )
 
 /**
@@ -69,12 +71,11 @@ data class Options(
  * @param afterAstCreation It is invoked after ast creation
  * */
 data class JarikoCallback(
-    var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = {
-        _: String, _: ActivationGroup? ->
-        null
-    },
-    var exitInRT: (programName: String) -> Boolean? = { null },
-    var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
-    var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
-    var afterAstCreation: (ast: CompilationUnit) -> Unit = { }
+        var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
+                null
+        },
+        var exitInRT: (programName: String) -> Boolean? = { null },
+        var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
+        var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
+        var afterAstCreation: (ast: CompilationUnit) -> Unit = { }
 )

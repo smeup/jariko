@@ -1,13 +1,10 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
-import com.smeup.dbnative.manager.DBFileFactory
-import com.smeup.dbnative.manager.findConnectionConfigFor
 import com.smeup.rpgparser.execution.MainExecutionContext
-
 import java.util.*
 
-class DBFileMap() {
+class DBFileMap {
     private val byFileName =
         TreeMap<String, DBFile>(String.CASE_INSENSITIVE_ORDER)
     private val byFormatName =
