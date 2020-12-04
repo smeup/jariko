@@ -13,14 +13,20 @@ abstract class Directive(@Transient override val position: Position? = null) : N
 data class DeceditDirective(val format: String, override val position: Position? = null) : Directive(position)
 
 @Serializable
-data class ActivationGroupDirective(@SerialName("actvgrpType") val type: ActivationGroupType, override val position: Position? = null) :
+data class ActivationGroupDirective(
+    @SerialName("actvgrpType") val type: ActivationGroupType,
+    override val position: Position? = null
+) :
     Directive(position)
 
 @Serializable
 sealed class ActivationGroupType
+
 @Serializable
 object CallerActivationGroup : ActivationGroupType()
+
 @Serializable
 object NewActivationGroup : ActivationGroupType()
+
 @Serializable
 data class NamedActivationGroup(val groupName: String) : ActivationGroupType()

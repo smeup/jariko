@@ -1,7 +1,8 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.utils.measureAndPrint
-import java.io.*
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 // TODO describe what this program does
 // TODO support option to add element to rpg program finders

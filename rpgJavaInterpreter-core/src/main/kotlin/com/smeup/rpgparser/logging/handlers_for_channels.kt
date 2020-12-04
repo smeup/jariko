@@ -12,6 +12,7 @@ class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
         val fileName = extractFilename(logEntry.programName)
         return logEntry.renderExpression("EXPR", fileName, this.sep)
     }
+
     override fun handle(logEntry: LogEntry) {
         if (logger.isInfoEnabled) {
             when (logEntry) {

@@ -3,7 +3,12 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
 
-private fun assignStringToString(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
+private fun assignStringToString(
+    operationExtender: String?,
+    target: AssignableExpression,
+    valueExpression: Expression,
+    interpreterCore: InterpreterCore
+): Value {
     var newValue = interpreterCore.eval(valueExpression)
     if (valueExpression is AllExpr) {
         return interpreterCore.assign(target, newValue)
@@ -28,7 +33,12 @@ private fun assignStringToString(operationExtender: String?, target: AssignableE
     return interpreterCore.assign(target, newValue)
 }
 
-private fun assignNumberToNumber(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
+private fun assignNumberToNumber(
+    operationExtender: String?,
+    target: AssignableExpression,
+    valueExpression: Expression,
+    interpreterCore: InterpreterCore
+): Value {
     val newValue = interpreterCore.eval(valueExpression) as NumberValue
     val targetType = target.type() as NumberType
     val newDecimalValue = DecimalValue(BigDecimal(newValue.bigDecimal.unscaledValue(), targetType.decimalDigits))
@@ -57,7 +67,12 @@ private fun NumberValue.numberToString(): Value {
     return StringValue(value)
 }
 
-fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
+fun movel(
+    operationExtender: String?,
+    target: AssignableExpression,
+    value: Expression,
+    interpreterCore: InterpreterCore
+): Value {
     if (value is FigurativeConstantRef) {
         return interpreterCore.assign(target, interpreterCore.eval(value))
     }

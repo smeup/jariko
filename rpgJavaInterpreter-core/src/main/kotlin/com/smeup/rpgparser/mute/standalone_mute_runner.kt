@@ -1,4 +1,3 @@
-
 package com.smeup.rpgparser.mute
 
 import com.github.ajalt.clikt.core.CliktCommand
@@ -21,7 +20,13 @@ private object RunnerCLI : CliktCommand() {
         filesToRun.files.forEach {
             println("Running $it")
             val result =
-                executeWithMutes(it.toPath(), true, logConfigurationFile, programFinders = programFinders, output = System.out)
+                executeWithMutes(
+                    it.toPath(),
+                    true,
+                    logConfigurationFile,
+                    programFinders = programFinders,
+                    output = System.out
+                )
             println(result)
         }
     }

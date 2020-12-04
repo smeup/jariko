@@ -6,7 +6,8 @@ import org.junit.Test as test
 
 class PositionTest {
 
-    @test fun offset() {
+    @test
+    fun offset() {
         val code = """this is some code
                      |second line
                      |third line""".trimMargin("|")
@@ -18,7 +19,8 @@ class PositionTest {
         assertFails { Point(4, 0).offset(code) }
     }
 
-    @test fun pointCompare() {
+    @test
+    fun pointCompare() {
         val p0 = START_POINT
         val p1 = Point(1, 1)
         val p2 = Point(1, 100)
@@ -55,7 +57,8 @@ class PositionTest {
         assertEquals(false, p1 > p3)
     }
 
-    @test fun isBefore() {
+    @test
+    fun isBefore() {
         val p0 = START_POINT
         val p1 = Point(1, 1)
         val p2 = Point(1, 100)
@@ -82,7 +85,8 @@ class PositionTest {
         assertEquals(false, p3.isBefore(p3))
     }
 
-    @test fun text() {
+    @test
+    fun text() {
         val code = """this is some code
                      |second line
                      |third line""".trimMargin("|")

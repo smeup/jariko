@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.jvminterop
 
-import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
@@ -16,7 +15,8 @@ open class JavaSystemInterface(
     var loggingConfiguration: LoggingConfiguration? = null
 ) : SystemInterface {
 
-    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
+    override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
+        LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? {

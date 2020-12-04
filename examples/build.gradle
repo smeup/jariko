@@ -8,7 +8,7 @@ buildscript {
         mavenCentral()
         maven {
             name 'JFrog OSS snapshot repo'
-            url  'https://oss.jfrog.org/oss-snapshot-local/'
+            url 'https://oss.jfrog.org/oss-snapshot-local/'
         }
         jcenter()
     }
@@ -19,8 +19,8 @@ buildscript {
 }
 
 dependencies {
-  compile project(":rpgJavaInterpreter-core")
-  testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion".toString()
-  testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion".toString()
-  testCompile 'junit:junit:4.12'
+    compile project(":rpgJavaInterpreter-core")
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion".toString()
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion".toString()
+    testCompile 'junit:junit:4.12'
 }

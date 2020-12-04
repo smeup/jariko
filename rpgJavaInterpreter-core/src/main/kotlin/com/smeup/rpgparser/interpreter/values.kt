@@ -15,10 +15,14 @@ val DEFAULT_CHARSET = Charset.forName("Cp037")
 
 interface Value : Comparable<Value> {
     fun asInt(): IntValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Int")
-    fun asDecimal(): DecimalValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
+    fun asDecimal(): DecimalValue =
+        throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an Decimal")
+
     fun asString(): StringValue
     fun asBoolean(): BooleanValue = throw UnsupportedOperationException()
-    fun asTimeStamp(): TimeStampValue = throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an TimeStamp - $this")
+    fun asTimeStamp(): TimeStampValue =
+        throw UnsupportedOperationException("${this.javaClass.simpleName} cannot be seen as an TimeStamp - $this")
+
     fun assignableTo(expectedType: Type): Boolean
     fun takeLast(n: Int): Value = TODO("takeLast not yet implemented for ${this.javaClass.simpleName}")
     fun takeFirst(n: Int): Value = TODO("takeFirst not yet implemented for ${this.javaClass.simpleName}")
@@ -34,6 +38,7 @@ interface Value : Comparable<Value> {
         }
         return ConcreteArrayValue(elements, elementType)
     }
+
     override operator fun compareTo(other: Value): Int = TODO("Cannot compare $this to $other")
 }
 
@@ -205,7 +210,8 @@ fun sortA(value: Value, charset: Charset) {
                 for (j in 1..(n - i - 1)) {
                     val compared =
                         if (strings) {
-                            value.getElement(j).asString().compare(value.getElement(j + 1).asString(), charset, value.field.descend)
+                            value.getElement(j).asString()
+                                .compare(value.getElement(j + 1).asString(), charset, value.field.descend)
                         } else {
                             value.getElement(j).compareTo(value.getElement(j + 1)) * multiplier
                         }
@@ -245,6 +251,7 @@ data class IntValue(val value: Long) : NumberValue() {
     }
 
     override fun asInt() = this
+
     // TODO Verify conversion
     override fun asDecimal(): DecimalValue = DecimalValue(bigDecimal)
 
@@ -381,6 +388,7 @@ data class BooleanValue private constructor(val value: Boolean) : Value {
         val TRUE = BooleanValue(true)
         operator fun invoke(value: Boolean) = if (value) TRUE else FALSE
     }
+
     override fun render(): String {
         return value.toString()
     }
@@ -473,9 +481,11 @@ abstract class ArrayValue : Value {
         }
         return false
     }
+
     override fun render(): String {
         return "Array(${elements().size})"
     }
+
     override fun asArray() = this
 
     fun areEquivalent(other: ArrayValue): Boolean {
@@ -730,7 +740,8 @@ class ProjectedArrayValue(
     }
 }
 
-fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) = ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
+fun createArrayValue(elementType: Type, n: Int, creator: (Int) -> Value) =
+    ConcreteArrayValue(Array(n, creator).toMutableList(), elementType)
 
 fun List<Value>.asConcreteArrayValue(elementType: Type) = createArrayValue(elementType, size) {
     this[it + 1]
@@ -821,7 +832,10 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
             try {
                 this.setSubstring(startIndex, endIndex, v)
             } catch (e: Exception) {
-                throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value", e)
+                throw RuntimeException(
+                    "Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value",
+                    e
+                )
             }
         } catch (e: Throwable) {
             throw RuntimeException("Issue arose while setting field ${field.name}. Value: $value", e)
@@ -835,7 +849,10 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         try {
             this.setSubstring(startIndex, endIndex, v)
         } catch (e: Exception) {
-            throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value", e)
+            throw RuntimeException(
+                "Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value",
+                e
+            )
         }
     }
 

@@ -2,12 +2,16 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.db.sql.toDataDefinition
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.FileDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
+
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
 // to its main components
@@ -29,14 +33,16 @@ data class CompilationUnit(
     }
 
     companion object {
-        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
-                emptyList(),
-                null)
+        fun empty() = CompilationUnit(
+            emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
+            emptyList(),
+            null
+        )
     }
 
     val entryPlist: PlistStmt?
         get() = main.stmts.plist()
-                ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
+            ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
 
     private val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
 
@@ -57,10 +63,11 @@ data class CompilationUnit(
 
                     // Create DS from file metadata
 
-                    val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.metadata?.first{ metadata -> metadata.tableName == it.name}
+                    val metadata =
+                        MainExecutionContext.getConfiguration()?.reloadConfig?.metadata?.first { metadata -> metadata.tableName == it.name }
                     if (metadata != null) {
                         if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
-                         _allDataDefinitions.addAll(metadata.fields.map{field -> field.toDataDefinition()})
+                        _allDataDefinitions.addAll(metadata.fields.map { field -> field.toDataDefinition() })
                     }
                 }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
@@ -88,9 +95,10 @@ data class CompilationUnit(
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
     fun getDataDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
-            ?: throw IllegalArgumentException("Data definition $name was not found")
+        ?: throw IllegalArgumentException("Data definition $name was not found")
 
-    fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
+    fun getDataOrFieldDefinition(name: String) =
+        dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
             ?: dataDefinitions.mapNotNull { it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
             ?: throw IllegalArgumentException("Data or field definition $name was not found")
 
@@ -116,13 +124,22 @@ data class CompilationUnit(
 data class MainBody(val stmts: List<Statement>, override val position: Position? = null) : Node(position)
 
 @Serializable
-data class Subroutine(override val name: String, val stmts: List<Statement>, val tag: String? = null, override val position: Position? = null) : Named, Node(position)
+data class Subroutine(
+    override val name: String,
+    val stmts: List<Statement>,
+    val tag: String? = null,
+    override val position: Position? = null
+) : Named, Node(position)
 
 @Serializable
 data class Function(override val name: String, override val position: Position? = null) : Named, Node(position)
 
 @Serializable
-data class CompileTimeArray(override val name: String, val lines: List<String>, override val position: Position? = null) : Named, Node(position)
+data class CompileTimeArray(
+    override val name: String,
+    val lines: List<String>,
+    override val position: Position? = null
+) : Named, Node(position)
 
 enum class DataWrapUpChoice {
     LR,

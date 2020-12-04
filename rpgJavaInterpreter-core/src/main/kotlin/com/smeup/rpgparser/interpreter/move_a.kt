@@ -20,7 +20,12 @@ fun move(target: AssignableExpression, value: Expression, interpreterCore: Inter
     }
 }
 
-fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
+fun movea(
+    operationExtenter: String?,
+    target: AssignableExpression,
+    valueExpression: Expression,
+    interpreterCore: InterpreterCore
+): Value {
     return when (target) {
         is DataRefExpr -> {
             moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCore)
@@ -39,12 +44,24 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
-            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCore.eval(target.index) as IntValue).value.toInt(), interpreterCore)
+            moveaFullArray(
+                operationExtenter,
+                target.array as DataRefExpr,
+                valueExpression,
+                (interpreterCore.eval(target.index) as IntValue).value.toInt(),
+                interpreterCore
+            )
         }
     }
 }
 
-private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCore: InterpreterCore): Value {
+private fun moveaFullArray(
+    operationExtenter: String?,
+    target: DataRefExpr,
+    value: Expression,
+    startIndex: Int,
+    interpreterCore: InterpreterCore
+): Value {
     val targetType = target.type()
     require(targetType is ArrayType || targetType is StringType) {
         "Result must be an Array or a String"

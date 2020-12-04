@@ -38,7 +38,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             val type = cu.getDataDefinition(it.param.name).type
             ProgramParam(it.param.name, type)
         }
-        ?: emptyList()
+            ?: emptyList()
     }
 
     init {
@@ -64,6 +64,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 private var iDataWrapUpChoice: DataWrapUpChoice? = null
                 override val currentProgramName: String
                     get() = name
+
                 override fun shouldReinitialize() = false
                 override var dataWrapUpChoice: DataWrapUpChoice?
                     get() = iDataWrapUpChoice
@@ -88,12 +89,12 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 }
                 val activationGroupType = cu.activationGroupType() ?: when (caller) {
 
-                        // for main program, which does not have a caller, activation group is fixed by config
-                        null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
-                        else -> {
-                            CallerActivationGroup
-                        }
+                    // for main program, which does not have a caller, activation group is fixed by config
+                    null -> NamedActivationGroup(MainExecutionContext.getConfiguration().defaultActivationGroupName)
+                    else -> {
+                        CallerActivationGroup
                     }
+                }
                 activationGroupType.let {
                     activationGroup = ActivationGroup(it, it.assignedName(this, caller))
                 }
@@ -114,7 +115,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     }
 
     override fun equals(other: Any?) =
-            (other is RpgProgram) && other.name == name
+        (other is RpgProgram) && other.name == name
 
     override fun hashCode(): Int {
         return name.hashCode()

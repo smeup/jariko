@@ -29,29 +29,35 @@ internal fun RpgParser.BlockContext.toAst(conf: ToAstConfiguration = ToAstConfig
             val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
             val factor2 = this.begindo().csDO().cspec_fixed_standard_parts().factor2 ?: null
             val endLimit =
-                    when {
-                        factor2 == null -> IntLiteral(1)
-                        factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
-                        else -> factor2.content.toAst(conf)
-                    }
-            DoStmt(endLimit,
+                when {
+                    factor2 == null -> IntLiteral(1)
+                    factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
+                    else -> factor2.content.toAst(conf)
+                }
+            DoStmt(
+                endLimit,
                 iter,
                 this.statement().map { it.toAst(conf) },
                 start,
-                position = toPosition(conf.considerPosition))
+                position = toPosition(conf.considerPosition)
+            )
         }
         this.begindow() != null -> {
             val endExpression = this.begindow().csDOW().fixedexpression.expression().toAst(conf)
-            DowStmt(endExpression,
-                    this.statement().map { it.toAst(conf) },
-                    position = toPosition(conf.considerPosition))
+            DowStmt(
+                endExpression,
+                this.statement().map { it.toAst(conf) },
+                position = toPosition(conf.considerPosition)
+            )
         }
         this.forstatement() != null -> this.forstatement().toAst(conf)
         this.begindou() != null -> {
             val endExpression = this.begindou().csDOU().fixedexpression.expression().toAst(conf)
-            DouStmt(endExpression,
-                    this.statement().map { it.toAst(conf) },
-                    position = toPosition(conf.considerPosition))
+            DouStmt(
+                endExpression,
+                this.statement().map { it.toAst(conf) },
+                position = toPosition(conf.considerPosition)
+            )
         }
         else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }
@@ -64,12 +70,13 @@ internal fun RpgParser.ForstatementContext.toAst(conf: ToAstConfiguration = ToAs
     val downward = csFOR.FREE_DOWNTO() != null
     val byValue = csFOR.byExpression()?.expression()?.toAst() ?: IntLiteral(1)
     return ForStmt(
-            assignment,
-            endValue,
-            byValue,
-            downward,
-            this.statement().map { it.toAst(conf) },
-            toPosition(conf.considerPosition))
+        assignment,
+        endValue,
+        byValue,
+        downward,
+        this.statement().map { it.toAst(conf) },
+        toPosition(conf.considerPosition)
+    )
 }
 
 internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectStmt {
@@ -89,7 +96,10 @@ internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = T
         } else {
             null
         }
-        other = SelectOtherClause(statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size), position = otherPosition)
+        other = SelectOtherClause(
+            statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size),
+            position = otherPosition
+        )
     }
 
     return SelectStmt(whenClauses, other, toPosition(conf.considerPosition))
@@ -141,6 +151,7 @@ data class LogicalCondition(val expression: Expression) : Expression() {
     fun or(conditions: List<LogicalCondition>) {
         ors.addAll(conditions)
     }
+
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -157,7 +168,11 @@ internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfi
     return result
 }
 
-internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression {
+internal fun ComparisonOperator.asExpression(
+    factor1: RpgParser.FactorContext,
+    factor2: RpgParser.FactorContext,
+    conf: ToAstConfiguration
+): Expression {
     val left = factor1.content.toAst(conf)
     val right = factor2.content.toAst(conf)
     return when (this) {
@@ -255,6 +270,7 @@ internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstC
 
 internal fun RpgParser.ElseIfClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseIfClause {
     return ElseIfClause(
-            this.elseifstmt().fixedexpression.expression().toAst(conf),
-            this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
+        this.elseifstmt().fixedexpression.expression().toAst(conf),
+        this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition)
+    )
 }

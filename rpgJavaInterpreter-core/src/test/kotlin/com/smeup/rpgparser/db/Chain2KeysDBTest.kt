@@ -11,10 +11,9 @@ import org.junit.BeforeClass
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class Chain2KeysDBTest: AbstractTest() {
+class Chain2KeysDBTest : AbstractTest() {
 
     companion object {
-
         @BeforeClass
         @JvmStatic
         fun init() {
@@ -22,7 +21,7 @@ class Chain2KeysDBTest: AbstractTest() {
         }
 
         private fun sqlCreateTestTable() =
-                """
+            """
         CREATE TABLE MYFILE2 (
             KY1TST CHAR(5) DEFAULT '' NOT NULL,
             KY2TST DECIMAL(2, 0) DEFAULT 0 NOT NULL,
@@ -30,40 +29,45 @@ class Chain2KeysDBTest: AbstractTest() {
             PRIMARY KEY(KY1TST, KY2TST) )
         """.trimIndent()
 
-        private fun insertRecords() = "INSERT INTO MYFILE2 (KY1TST, KY2TST, DESTST) VALUES('ABA', 1, 'ABA1'), ('ABC', 1, 'ABC1'), ('ABC', 12, 'ABC12'), ('XYZ', 1, 'XYZ1')"
+        private fun insertRecords() =
+            "INSERT INTO MYFILE2 (KY1TST, KY2TST, DESTST) VALUES('ABA', 1, 'ABA1'), ('ABC', 1, 'ABC1'), ('ABC', 12, 'ABC12'), ('XYZ', 1, 'XYZ1')"
     }
 
     @Test
     fun findsExistingRecord() {
         assertEquals(
-                listOf("Found: ABC12"),
-                outputOfDBPgm(
-                        "db/CHAIN2KEYS",
-                        listOf(createMetadata()),
-                        emptyList(),
-                        mapOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("12"))))
+            listOf("Found: ABC12"),
+            outputOfDBPgm(
+                "db/CHAIN2KEYS",
+                listOf(createMetadata()),
+                emptyList(),
+                mapOf("toFind1" to StringValue("ABC"), "toFind2" to StringValue("12"))
+            )
+        )
     }
 
     private fun createMetadata() = FileMetadata(
-            "MYFILE2",
-            "TS2REC",
-            listOf("KY1TST" fieldByType CharacterType(5),
-                    "KY2TST" fieldByType DecimalType(2, 0),
-                    "DESTST" fieldByType CharacterType(40)),
-            listOf("KY1TST", "KY2TST"),
-            true
+        "MYFILE2",
+        "TS2REC",
+        listOf(
+            "KY1TST" fieldByType CharacterType(5),
+            "KY2TST" fieldByType DecimalType(2, 0),
+            "DESTST" fieldByType CharacterType(40)
+        ),
+        listOf("KY1TST", "KY2TST"),
+        true
     )
 
     @Test
     fun doesntFindNonExistingRecord() {
         assertEquals(
             listOf("Not found"),
-                outputOfDBPgm(
-                        "db/CHAIN2KEYS",
-                        listOf(createMetadata()),
-                        emptyList(),
-                        mapOf("toFind1" to StringValue("ZZZ"), "toFind2" to StringValue("99"))))
+            outputOfDBPgm(
+                "db/CHAIN2KEYS",
+                listOf(createMetadata()),
+                emptyList(),
+                mapOf("toFind1" to StringValue("ZZZ"), "toFind2" to StringValue("99"))
+            )
+        )
     }
-
-
 }

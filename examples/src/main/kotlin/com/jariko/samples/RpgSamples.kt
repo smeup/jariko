@@ -24,10 +24,10 @@ fun fibonacciOf(fibonacciOf: Int) {
     val programArgs = listOf(fibonacciOf.toString())
     var output: Long = 0
     val jarikoCallback = JarikoCallback(
-            exitInRT = { false },
-            onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
-                output = symbolTable["FINAL_VAL"].asInt().value
-            }
+        exitInRT = { false },
+        onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
+            output = symbolTable["FINAL_VAL"].asInt().value
+        }
     )
     execWithCallback(programPath, programName, programArgs, jarikoCallback)
     print(output)
@@ -41,17 +41,22 @@ fun fibonacciOf(fibonacciOf: Int) {
  * @param programArgs parm to pass to rpgle
  * @param jarikoCallback instance of JarikoCallback
  */
-fun execWithCallback(programPath: String, programName: String, programArgs: List<String>, jarikoCallback: JarikoCallback) {
+fun execWithCallback(
+    programPath: String,
+    programName: String,
+    programArgs: List<String>,
+    jarikoCallback: JarikoCallback
+) {
     val rpgProgramFinders = listOf(DirRpgProgramFinder(File(programPath)))
     val configuration = Configuration(
-            jarikoCallback = jarikoCallback
+        jarikoCallback = jarikoCallback
     )
     println("Running $programName ...")
     executePgmWithStringArgs(
-            programName = programName,
-            programFinders = rpgProgramFinders,
-            programArgs = programArgs,
-            configuration = configuration
+        programName = programName,
+        programFinders = rpgProgramFinders,
+        programArgs = programArgs,
+        configuration = configuration
     )
     println("... done.")
 }
@@ -66,7 +71,7 @@ fun execWithCallback(programPath: String, programName: String, programArgs: List
 fun execWithCallBack(programSource: String, programArgs: List<String>, jarikoCallback: JarikoCallback) {
     println("Running source: $programSource ...")
     val configuration = Configuration(
-            jarikoCallback = jarikoCallback
+        jarikoCallback = jarikoCallback
     )
     val systemInterface = JavaSystemInterface()
     val commandLineProgram = getProgram(programSource, systemInterface)
@@ -80,17 +85,17 @@ fun execWithCallBack(programSource: String, programArgs: List<String>, jarikoCal
 fun passDSToJariko() {
     // testing program
     val pgm = "     DMsg              S              3\n" +
-            "     DP1               DS\n" +
-            "     D Name                           5A\n" +
-            "     D Surname                        5A\n" +
-            "     D Nbr                            5  2\n" +
-            "     C     *ENTRY        PLIST\n" +
-            "     C                   PARM                    P1\n" +
-            "     C     Name          DSPLY\n" +
-            "     C     Surname       DSPLY\n" +
-            "     C     Nbr           DSPLY\n" +
-            "     C     Msg           DSPLY\n" +
-            "     C                   SETON                                        LR"
+        "     DP1               DS\n" +
+        "     D Name                           5A\n" +
+        "     D Surname                        5A\n" +
+        "     D Nbr                            5  2\n" +
+        "     C     *ENTRY        PLIST\n" +
+        "     C                   PARM                    P1\n" +
+        "     C     Name          DSPLY\n" +
+        "     C     Surname       DSPLY\n" +
+        "     C     Nbr           DSPLY\n" +
+        "     C     Msg           DSPLY\n" +
+        "     C                   SETON                                        LR"
     // set len of DS
     val dsLen = 15
     val commandLineProgram = getProgram(nameOrSource = pgm)
@@ -123,7 +128,8 @@ fun passDSToJariko() {
             type = NumberType(entireDigits = 3, decimalDigits = 2, rpgType = RpgType.ZONED),
             explicitStartOffset = 10, explicitEndOffset = 0
         ),
-        value = DecimalValue(BigDecimal.valueOf(12.12)))
+        value = DecimalValue(BigDecimal.valueOf(12.12))
+    )
     // call program passing the string representation of dataStructValue
     commandLineProgram.singleCall(arrayListOf(dataStructValue.value))
 }

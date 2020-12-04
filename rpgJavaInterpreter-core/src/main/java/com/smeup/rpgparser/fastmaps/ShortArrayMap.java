@@ -10,7 +10,7 @@ public class ShortArrayMap<V> extends NumberArrayMap<Short, V> {
 
     @Override
     protected Short makeKeyFromInt(int k) {
-        return (short)k;
+        return (short) k;
     }
 
 }

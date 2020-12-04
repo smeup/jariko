@@ -46,6 +46,7 @@ fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 }
 
 fun RpgParser.Hs_decedit_setContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive {
-    val format = BaseCompileTimeInterpreter(emptyList()).evaluate(this.rContext(), this.hs_parm().toAst(conf)).asString().value
+    val format =
+        BaseCompileTimeInterpreter(emptyList()).evaluate(this.rContext(), this.hs_parm().toAst(conf)).asString().value
     return DeceditDirective(format, position = this.toPosition(conf.considerPosition))
 }

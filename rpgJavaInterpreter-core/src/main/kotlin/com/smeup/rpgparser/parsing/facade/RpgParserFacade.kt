@@ -53,7 +53,8 @@ data class ParseTrees(
     val muteContexts: MutesImmutableMap? = null
 )
 
-class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser) : ParsingResult<ParseTrees>(errors, root) {
+class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser) :
+    ParsingResult<ParseTrees>(errors, root) {
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
 }
 
@@ -92,9 +93,20 @@ class RpgParserFacade {
         val lexer = RpgLexer(inputStreamWithLongLines(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
-            override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+            override fun syntaxError(
+                p0: Recognizer<*, *>?,
+                p1: Any?,
+                line: Int,
+                charPositionInLine: Int,
+                errorMessage: String?,
+                p5: RecognitionException?
+            ) {
+                errors.add(
+                    Error(
+                        ErrorType.LEXICAL, errorMessage
+                            ?: "unspecified", position = Point(line, charPositionInLine).asPosition
+                    )
+                )
             }
         })
         val tokens = LinkedList<Token>()
@@ -115,20 +127,43 @@ class RpgParserFacade {
     }
 
     fun createMuteParser(inputStream: InputStream, errors: MutableList<Error>, longLines: Boolean): MuteParser {
-        val lexer = MuteLexer(if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream))
+        val lexer =
+            MuteLexer(if (longLines) inputStreamWithLongLines(inputStream) else CharStreams.fromStream(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(object : BaseErrorListener() {
-            override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+            override fun syntaxError(
+                p0: Recognizer<*, *>?,
+                p1: Any?,
+                line: Int,
+                charPositionInLine: Int,
+                errorMessage: String?,
+                p5: RecognitionException?
+            ) {
+                errors.add(
+                    Error(
+                        ErrorType.LEXICAL, errorMessage
+                            ?: "unspecified", position = Point(line, charPositionInLine).asPosition
+                    )
+                )
             }
         })
         val commonTokenStream = CommonTokenStream(lexer)
         val parser = MuteParser(commonTokenStream)
         parser.addErrorListener(object : BaseErrorListener() {
-            override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
-                errors.add(Error(ErrorType.SYNTACTIC, errorMessage
-                        ?: "unspecified"))
+            override fun syntaxError(
+                p0: Recognizer<*, *>?,
+                p1: Any?,
+                p2: Int,
+                p3: Int,
+                errorMessage: String?,
+                p5: RecognitionException?
+            ) {
+                errors.add(
+                    Error(
+                        ErrorType.SYNTACTIC, errorMessage
+                            ?: "unspecified"
+                    )
+                )
             }
         })
         parser.removeErrorListeners()
@@ -148,9 +183,20 @@ class RpgParserFacade {
             lexer = RpgLexer(charInput)
             lexer.removeErrorListeners()
             lexer.addErrorListener(object : BaseErrorListener() {
-                override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
-                    errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+                override fun syntaxError(
+                    p0: Recognizer<*, *>?,
+                    p1: Any?,
+                    line: Int,
+                    charPositionInLine: Int,
+                    errorMessage: String?,
+                    p5: RecognitionException?
+                ) {
+                    errors.add(
+                        Error(
+                            ErrorType.LEXICAL, errorMessage
+                                ?: "unspecified", position = Point(line, charPositionInLine).asPosition
+                        )
+                    )
                 }
             })
         }
@@ -162,9 +208,20 @@ class RpgParserFacade {
             parser = RpgParser(commonTokenStream)
             parser.removeErrorListeners()
             parser.addErrorListener(object : BaseErrorListener() {
-                override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
-                    errors.add(Error(ErrorType.SYNTACTIC, errorMessage
-                        ?: "unspecified"))
+                override fun syntaxError(
+                    p0: Recognizer<*, *>?,
+                    p1: Any?,
+                    p2: Int,
+                    p3: Int,
+                    errorMessage: String?,
+                    p5: RecognitionException?
+                ) {
+                    errors.add(
+                        Error(
+                            ErrorType.SYNTACTIC, errorMessage
+                                ?: "unspecified"
+                        )
+                    )
                 }
             })
         }
@@ -183,7 +240,13 @@ class RpgParserFacade {
 
             root.processDescendantsAndErrors({
                 if (it.exception != null) {
-                    errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition))
+                    errors.add(
+                        Error(
+                            ErrorType.SYNTACTIC,
+                            "Recognition exception: ${it.exception.message}",
+                            it.start.startPoint.asPosition
+                        )
+                    )
                 }
             }, {
                 errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
@@ -193,8 +256,10 @@ class RpgParserFacade {
     }
 
     private fun parseMute(code: String, errors: MutableList<Error>): MuteParser.MuteLineContext {
-        val muteParser = createMuteParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors,
-                longLines = true)
+        val muteParser = createMuteParser(
+            BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors,
+            longLines = true
+        )
         val root = muteParser.muteLine()
         verifyParseTree(muteParser, errors, root)
         return root
@@ -225,7 +290,7 @@ class RpgParserFacade {
     }
 
     private fun findMutes(code: String, errors: MutableList<Error>) =
-            findMutes(code.byteInputStream(Charsets.UTF_8), errors)
+        findMutes(code.byteInputStream(Charsets.UTF_8), errors)
 
     private fun findMutes(code: InputStream, errors: MutableList<Error>): MutesMap {
         MainExecutionContext.log(FindMutesLogStart(executionProgramName))
@@ -240,7 +305,8 @@ class RpgParserFacade {
                     // Please note the leading spaces added
                     if (token0.type == LEAD_WS5_Comments && token0.text == "".padStart(4) + "M" &&
                         token1.type == COMMENT_SPEC_FIXED && token1.text == "U*" &&
-                        token2.type == COMMENTS_TEXT) {
+                        token2.type == COMMENTS_TEXT
+                    ) {
                         // Please note the leading spaces added to the token
                         var preproc = preprocess(token2.text)
                         mutes[token2.line] = parseMute("".padStart(8) + preproc, errors)
@@ -327,7 +393,11 @@ class RpgParserFacade {
         }
     }
 
-    fun parseExpression(inputStream: InputStream, longLines: Boolean = true, printTree: Boolean = false): ParsingResult<ExpressionContext> {
+    fun parseExpression(
+        inputStream: InputStream,
+        longLines: Boolean = true,
+        printTree: Boolean = false
+    ): ParsingResult<ExpressionContext> {
         // Nothing to do with Mute support, as annotations can be only on statements
         val errors = LinkedList<Error>()
         val parser = createParser(inputStream, errors, longLines = longLines)
@@ -372,7 +442,10 @@ fun ParserRuleContext.processDescendants(operation: (ParserRuleContext) -> Unit,
     }
 }
 
-fun <T : ParserRuleContext> ParserRuleContext.findAllDescendants(type: KClass<T>, includingMe: Boolean = true): List<T> {
+fun <T : ParserRuleContext> ParserRuleContext.findAllDescendants(
+    type: KClass<T>,
+    includingMe: Boolean = true
+): List<T> {
     val list = LinkedList<T>()
     this.processDescendants({
         if (type.isInstance(it)) {

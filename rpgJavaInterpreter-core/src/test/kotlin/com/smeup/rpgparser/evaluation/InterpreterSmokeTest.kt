@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Test

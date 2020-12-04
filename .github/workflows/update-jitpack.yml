@@ -8,7 +8,7 @@ jobs:
   update_jitpack:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
-    steps: 
+    steps:
       - name: get-commit
         continue-on-error: true
         run: |
