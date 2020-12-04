@@ -5,6 +5,7 @@ import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.interpreter.ActivationGroup
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.ISymbolTable
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import java.io.File
 
@@ -65,6 +66,7 @@ data class Options(
  * @param exitInRT If specified, it overrides the exit mode established in program. Default null (nei seton rt od lr mode)
  * @param onEnterPgm It is invoked on program enter after symboltable initialization.
  * @param onExitPgm It is invoked on program exit
+ * @param afterAstCreation It is invoked after ast creation
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = {
@@ -73,5 +75,6 @@ data class JarikoCallback(
     },
     var exitInRT: (programName: String) -> Boolean? = { null },
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
-    var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> }
+    var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
+    var afterAstCreation: (ast: CompilationUnit) -> Unit = { }
 )

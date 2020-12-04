@@ -790,10 +790,13 @@ class InternalInterpreter(
         }
     }
 
+    // Memory slice context attribute name must to be also string representation of MemorySliceId
+    private fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
+
     private fun afterInitialization() {
         getMemorySliceId()?.let { memorySliceId ->
             MainExecutionContext.getMemorySliceMgr()?.let {
-                MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE] = it.associate(memorySliceId, globalSymbolTable)
+                MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = it.associate(memorySliceId, globalSymbolTable)
             }
         }
         MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm.invoke(
@@ -817,7 +820,7 @@ class InternalInterpreter(
     // The failure depends on whether that the initialvalues are searched in symboltable
     fun doSomethingAfterExecution() {
         val exitingRT = isExitingInRTMode()
-        MainExecutionContext.getAttributes()[MEMORY_SLICE_ATTRIBUTE]?.let {
+        MainExecutionContext.getAttributes()[getMemorySliceId()?.getAttributeKey()]?.let {
             (it as MemorySlice).persist = exitingRT
         }
         if (!exitingRT) {
