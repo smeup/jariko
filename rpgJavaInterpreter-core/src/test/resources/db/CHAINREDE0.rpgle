@@ -5,7 +5,7 @@
       * We use here the EMPLOYEE Table:
       * https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_74/sqlp/rbafyemployee.htm
       * ------------------------------------------------------------------
-     FEMPLOYEE     if   e           k disk
+     FXEMP2     if   e           k disk
      D msg             S             52    inz(*blanks)
       *
       * Reads records from file
@@ -16,7 +16,7 @@
       *-------------------------------------------------------------------------
      C     showData      begsr
      C                   dow       not %eof
-     C                   ReadE     EMPLOYEE
+     C                   ReadE     XEMP2
      C                   eval      msg = %trim(FIRSTNME) + ' ' + %trim(LASTNAME)
      C     msg           dsply
      C                   enddo

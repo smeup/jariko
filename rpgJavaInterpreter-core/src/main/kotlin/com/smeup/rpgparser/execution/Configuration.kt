@@ -22,7 +22,7 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
 data class Configuration(
         val memorySliceStorage: IMemorySliceStorage? = null,
         var jarikoCallback: JarikoCallback = JarikoCallback(),
-        val reloadConfig: ReloadConfig? = null,
+        val reloadConfig: ReloadConfig? = ReloadConfig(),
         val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
         var options: Options? = Options()
 ) {
@@ -39,7 +39,7 @@ data class Configuration(
  * provided by reload
  * */
 data class ReloadConfig(
-        val nativeAccessConfig: DBNativeAccessConfig? = null,
+        val nativeAccessConfig: DBNativeAccessConfig? = DBNativeAccessConfig(emptyList()),
         val metadata: List<FileMetadata> = emptyList())
 
 /**
