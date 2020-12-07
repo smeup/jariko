@@ -57,10 +57,10 @@ data class CompilationUnit(
 
                     // Create DS from file metadata
 
-                    val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.metadata?.first{ metadata -> metadata.tableName == it.name}
+                    val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.metadata?.first { metadata -> metadata.tableName == it.name }
                     if (metadata != null) {
                         if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
-                         _allDataDefinitions.addAll(metadata.fields.map{field -> field.toDataDefinition()})
+                            _allDataDefinitions.addAll(metadata.fields.map { field -> field.toDataDefinition() })
                     }
                 }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)

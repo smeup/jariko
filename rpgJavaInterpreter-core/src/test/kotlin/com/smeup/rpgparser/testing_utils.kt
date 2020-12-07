@@ -447,7 +447,6 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
     }
 }
 
-
 fun compileAllMutes(verbose: Boolean = true, dirs: List<String>, format: Format = Format.BIN) {
 
     dirs.forEach { it ->

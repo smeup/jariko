@@ -18,17 +18,18 @@ fun createEMPLOYEE() =
         """.trimIndent()
 
 fun createEmployeeMetadata(): FileMetadata = FileMetadata(
-        "EMPLOYEE",
-        "EMPLOYEE",
-        listOf( "EMPNO" fieldByType CharacterType(6),
-                "FIRSTNME" fieldByType CharacterType(12),
-                "MIDINIT" fieldByType  CharacterType(1),
-                "LASTNAME" fieldByType CharacterType(15),
-                "WORKDEPT" fieldByType CharacterType(3)),
-        listOf("EMPNO"),
-        true
-        )
-
+    "EMPLOYEE",
+    "EMPLOYEE",
+    listOf(
+        "EMPNO" fieldByType CharacterType(6),
+        "FIRSTNME" fieldByType CharacterType(12),
+        "MIDINIT" fieldByType CharacterType(1),
+        "LASTNAME" fieldByType CharacterType(15),
+        "WORKDEPT" fieldByType CharacterType(3)
+    ),
+    listOf("EMPNO"),
+    true
+)
 
 fun createXEMP2() = "CREATE VIEW XEMP2 AS SELECT * FROM EMPLOYEE ORDER BY WORKDEPT"
 

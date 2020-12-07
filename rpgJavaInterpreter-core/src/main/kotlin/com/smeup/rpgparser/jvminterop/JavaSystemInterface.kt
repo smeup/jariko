@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.jvminterop
 
-import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
