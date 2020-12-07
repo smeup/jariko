@@ -18,7 +18,6 @@ abstract class LogEntry(open val programName: String) {
     open fun renderStatement(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
-
     open fun renderPerformance(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
@@ -26,15 +25,12 @@ abstract class LogEntry(open val programName: String) {
     open fun renderLoop(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
-
     open fun renderData(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
-
     open fun renderExpression(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
-
     open fun renderResolution(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
@@ -50,7 +46,6 @@ data class CallExecutionLogEntry(override val programName: String, val callStmt:
     override fun toString(): String {
         return "calling $callStmt"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "CALL START${sep}${callStmt.expression.render()}"
 
@@ -64,12 +59,7 @@ data class CallExecutionLogEntry(override val programName: String, val callStmt:
     }
 }
 
-class CallEndLogEntry(
-    programName: String,
-    val callStmt: CallStmt,
-    val elapsed: Long,
-    val exception: Exception? = null
-) : LogEntry(programName) {
+class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: Long, val exception: Exception? = null) : LogEntry(programName) {
     override fun toString(): String {
         return if (exception == null) {
             "end of $callStmt"
@@ -77,13 +67,11 @@ class CallEndLogEntry(
             "exception $exception in calling $callStmt"
         }
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "CALL END${sep}${callStmt.expression.render()}"
 
         return renderHeader(channel, filename, callStmt.endLine(), sep) + data
     }
-
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
         val data = "CALL END${sep}${callStmt.expression.render()}${sep}$elapsed${sep}ms"
 
@@ -107,7 +95,6 @@ class SubroutineExecutionLogStart(programName: String, val subroutine: Subroutin
     override fun toString(): String {
         return "executing ${subroutine.name}"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "SUBROUTINE ${sep}${subroutine.name}"
 
@@ -120,8 +107,7 @@ class SubroutineExecutionLogStart(programName: String, val subroutine: Subroutin
     }
 }
 
-class SubroutineExecutionLogEnd(programName: String, val subroutine: Subroutine, val elapsed: Long) :
-    LogEntry(programName) {
+class SubroutineExecutionLogEnd(programName: String, val subroutine: Subroutine, val elapsed: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "executing ${subroutine.name}"
     }
@@ -131,7 +117,6 @@ class SubroutineExecutionLogEnd(programName: String, val subroutine: Subroutine,
 
         return renderHeader(channel, filename, subroutine.endLine(), sep) + data
     }
-
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
         val data = "SUBROUTINE END${sep}${subroutine.name}${sep}$elapsed${sep}ms"
 
@@ -143,7 +128,6 @@ class ForStatementExecutionLogStart(programName: String, val statement: ForStmt)
     override fun toString(): String {
         return "executing FOR LOOP"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val downward = if (statement.downward == true) "DOWNTO" else "TO"
         val byValue = if (statement.byValue.render() == "1") "" else "BY ${statement.byValue.render()}"
@@ -151,7 +135,6 @@ class ForStatementExecutionLogStart(programName: String, val statement: ForStmt)
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
-
     override fun renderLoop(channel: String, filename: String, sep: String): String {
         val downward = if (statement.downward == true) "DOWNTO" else "TO"
         val byValue = if (statement.byValue.render() == "1") "" else "BY ${statement.byValue.render()}"
@@ -161,16 +144,10 @@ class ForStatementExecutionLogStart(programName: String, val statement: ForStmt)
     }
 }
 
-class ForStatementExecutionLogEnd(
-    programName: String,
-    val statement: ForStmt,
-    val elapsed: Long,
-    val loopCounter: Long
-) : LogEntry(programName) {
+class ForStatementExecutionLogEnd(programName: String, val statement: ForStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "ending FOR LOOP"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val reference = statement.init.render().substringBefore("=")
         val data = "ENDFOR $reference"
@@ -184,7 +161,6 @@ class ForStatementExecutionLogEnd(
 
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
-
     override fun renderLoop(channel: String, filename: String, sep: String): String {
         val reference = statement.init.render().substringBefore("=")
         val data = "ENDFOR ${reference}${sep}${loopCounter}${sep}iterations"
@@ -192,7 +168,6 @@ class ForStatementExecutionLogEnd(
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
 }
-
 class DoStatemenExecutionLogStart(programName: String, val statement: DoStmt) : LogEntry(programName) {
     override fun toString(): String {
         return "executing DO LOOP"
@@ -210,13 +185,10 @@ class DoStatemenExecutionLogStart(programName: String, val statement: DoStmt) : 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
-
-class DoStatemenExecutionLogEnd(programName: String, val statement: DoStmt, val elapsed: Long, val loopCounter: Long) :
-    LogEntry(programName) {
+class DoStatemenExecutionLogEnd(programName: String, val statement: DoStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "ending DO LOOP"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         return renderHeader(channel, filename, statement.endLine(), sep) + "DO LOOP END"
     }
@@ -225,7 +197,6 @@ class DoStatemenExecutionLogEnd(programName: String, val statement: DoStmt, val 
         val data = "DO LOOP END${sep}${elapsed}${sep}ms"
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
-
     override fun renderLoop(channel: String, filename: String, sep: String): String {
         val data = "DO LOOP END${sep}$loopCounter "
         return renderHeader(channel, filename, statement.endLine(), sep) + data
@@ -249,17 +220,10 @@ class DouStatemenExecutionLogStart(programName: String, val statement: DouStmt) 
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
 }
-
-class DouStatemenExecutionLogEnd(
-    programName: String,
-    val statement: DouStmt,
-    val elapsed: Long,
-    val loopCounter: Long
-) : LogEntry(programName) {
+class DouStatemenExecutionLogEnd(programName: String, val statement: DouStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "ending DOU LOOP"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         return renderHeader(channel, filename, statement.endLine(), sep) + "DO LOOP END"
     }
@@ -268,7 +232,6 @@ class DouStatemenExecutionLogEnd(
         val data = "DO LOOP END${sep}${elapsed}${sep}ms"
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
-
     override fun renderLoop(channel: String, filename: String, sep: String): String {
         val data = "DO LOOP END${sep}$loopCounter "
         return renderHeader(channel, filename, statement.endLine(), sep) + data
@@ -279,30 +242,21 @@ class DowStatemenExecutionLogStart(programName: String, val statement: DowStmt) 
     override fun toString(): String {
         return "executing DOW LOOP"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "DOW LOOP START${sep}${statement.endExpression.render()} "
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
-
     override fun renderLoop(channel: String, filename: String, sep: String): String {
         val data = "DOW LOOP START${sep}${statement.endExpression.render()} "
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
-
-class DowStatemenExecutionLogEnd(
-    programName: String,
-    val statement: DowStmt,
-    val elapsed: Long,
-    val loopCounter: Long
-) : LogEntry(programName) {
+class DowStatemenExecutionLogEnd(programName: String, val statement: DowStmt, val elapsed: Long, val loopCounter: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "ending DOW LOOP"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         return renderHeader(channel, filename, statement.endLine(), sep) + "DOW LOOP END"
     }
@@ -312,7 +266,6 @@ class DowStatemenExecutionLogEnd(
 
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
-
     override fun renderLoop(channel: String, filename: String, sep: String): String {
         val data = "DOW LOOP END${sep}${sep}${loopCounter}${sep}iterations"
 
@@ -320,12 +273,10 @@ class DowStatemenExecutionLogEnd(
     }
 }
 
-class SelectCaseExecutionLogEntry(programName: String, val case: SelectCase, val result: Value) :
-    LogEntry(programName) {
+class SelectCaseExecutionLogEntry(programName: String, val case: SelectCase, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "executing SELECT CASE"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "SELECT WHEN${sep}${case.condition.render()}$sep(${result.asBoolean().value})"
 
@@ -333,12 +284,10 @@ class SelectCaseExecutionLogEntry(programName: String, val case: SelectCase, val
     }
 }
 
-class SelectOtherExecutionLogEntry(programName: String, val other: SelectOtherClause, val duration: Long = -1) :
-    LogEntry(programName) {
+class SelectOtherExecutionLogEntry(programName: String, val other: SelectOtherClause, val duration: Long = -1) : LogEntry(programName) {
     override fun toString(): String {
         return "executing SELECT OTHER"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         return renderHeader(channel, filename, other.startLine(), sep) + "SELECT OTHER"
     }
@@ -355,12 +304,10 @@ class IfExecutionLogEntry(programName: String, val statement: IfStmt, val result
     }
 }
 
-class ElseIfExecutionLogEntry(programName: String, val statement: ElseIfClause, val result: Value) :
-    LogEntry(programName) {
+class ElseIfExecutionLogEntry(programName: String, val statement: ElseIfClause, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "executing ELSE IF"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "ELSE IF {statement.condition.render()}$sep(${result.asBoolean().value})"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
@@ -371,7 +318,6 @@ class ElseExecutionLogEntry(programName: String, val statement: ElseClause, val 
     override fun toString(): String {
         return "executing ELSE "
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "ELSE"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
@@ -382,16 +328,12 @@ class EvaluationLogEntry(programName: String, val statement: EvalStmt, val value
     override fun toString(): String {
         return "evaluating $statement as $value"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data =
-            "EVAL ${statement.target.render()} ${statement.operator.text} ${statement.expression.render()}${sep}${value!!.render()}"
+        val data = "EVAL ${statement.target.render()} ${statement.operator.text} ${statement.expression.render()}${sep}${value!!.render()}"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
-
-class ExpressionEvaluationLogEntry(programName: String, val expression: Expression, val value: Value) :
-    LogEntry(programName) {
+class ExpressionEvaluationLogEntry(programName: String, val expression: Expression, val value: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "evaluating $expression as $value"
     }
@@ -409,16 +351,10 @@ class ExpressionEvaluationLogEntry(programName: String, val expression: Expressi
     }
 }
 
-class AssignmentLogEntry(
-    programName: String,
-    val data: AbstractDataDefinition,
-    val value: Value,
-    val previous: Value?
-) : LogEntry(programName) {
+class AssignmentLogEntry(programName: String, val data: AbstractDataDefinition, val value: Value, val previous: Value?) : LogEntry(programName) {
     override fun toString(): String {
         return "assigning to $data value $value"
     }
-
     override fun renderData(channel: String, filename: String, sep: String): String {
         val pvalue = if (previous == null) "N/D" else "${previous.render()}"
         val data = "${data.name} = ${pvalue}${sep}${value.render()}"
@@ -427,19 +363,16 @@ class AssignmentLogEntry(
     }
 }
 
-class AssignmentOfElementLogEntry(programName: String, val array: Expression, val index: Int, val value: Value) :
-    LogEntry(programName) {
+class AssignmentOfElementLogEntry(programName: String, val array: Expression, val index: Int, val value: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "assigning to $array[$index] value $value"
     }
 }
 
-class ProgramInterpretationLogStart(programName: String, val initialValues: Map<String, Value>) :
-    LogEntry(programName) {
+class ProgramInterpretationLogStart(programName: String, val initialValues: Map<String, Value>) : LogEntry(programName) {
     override fun toString(): String {
         return "calling $programName with initial values $initialValues"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "INTERPRETATION START${sep}$filename"
 
@@ -451,7 +384,6 @@ class ProgramInterpretationLogEnd(programName: String, val elapsed: Long = -1) :
     override fun toString(): String {
         return "ending $programName"
     }
-
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
         val data = "INTERPRETATION END $filename${sep}${elapsed}${sep}ms"
 
@@ -465,8 +397,7 @@ class ProgramInterpretationLogEnd(programName: String, val elapsed: Long = -1) :
     }
 }
 
-class MoveLStatemenExecutionLog(programName: String, val statement: MoveLStmt, val result: Value) :
-    LogEntry(programName) {
+class MoveLStatemenExecutionLog(programName: String, val statement: MoveLStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "MOVEL"
     }
@@ -477,8 +408,7 @@ class MoveLStatemenExecutionLog(programName: String, val statement: MoveLStmt, v
     }
 }
 
-class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val result: Value) :
-    LogEntry(programName) {
+class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "MOVE"
     }
@@ -489,8 +419,7 @@ class MoveStatemenExecutionLog(programName: String, val statement: MoveStmt, val
     }
 }
 
-class MoveAStatemenExecutionLog(programName: String, val statement: MoveAStmt, val result: Value) :
-    LogEntry(programName) {
+class MoveAStatemenExecutionLog(programName: String, val statement: MoveAStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "MOVEA"
     }
@@ -501,8 +430,7 @@ class MoveAStatemenExecutionLog(programName: String, val statement: MoveAStmt, v
     }
 }
 
-class ParamListStatemenExecutionLog(programName: String, val statement: PlistStmt, val name: String, val value: Value) :
-    LogEntry(programName) {
+class ParamListStatemenExecutionLog(programName: String, val statement: PlistStmt, val name: String, val value: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "PLIST"
     }
@@ -514,8 +442,7 @@ class ParamListStatemenExecutionLog(programName: String, val statement: PlistStm
     }
 }
 
-class ClearStatemenExecutionLog(programName: String, val statement: ClearStmt, val result: Value) :
-    LogEntry(programName) {
+class ClearStatemenExecutionLog(programName: String, val statement: ClearStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "CLEAR"
     }
@@ -609,13 +536,10 @@ class ListLogHandler : InterpreterLogHandler {
     val logs: List<LogEntry>
         get() = _logs
 
-    fun getExecutedSubroutines() =
-        _logs.asSequence().filterIsInstance(SubroutineExecutionLogStart::class.java).map { it.subroutine }.toList()
-
+    fun getExecutedSubroutines() = _logs.asSequence().filterIsInstance(SubroutineExecutionLogStart::class.java).map { it.subroutine }.toList()
     fun getExecutedSubroutineNames() = getExecutedSubroutines().map { it.name }
     fun getEvaluatedExpressions() = _logs.filterIsInstance(ExpressionEvaluationLogEntry::class.java)
     fun getAssignments() = _logs.filterIsInstance(AssignmentLogEntry::class.java)
-
     /**
      * Remove an expression if the last time the same expression was evaluated it had the same searchedValued
      */
@@ -661,40 +585,30 @@ class CatStatementExecutionLog(programName: String, val statement: CatStmt, val 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         var data = "CAT${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
         if (null != statement.left) {
-            data =
-                "CAT${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
+            data = "CAT${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}RESULT${sep}${result.render()}"
         }
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
 
-class CompStatementExecutionLog(programName: String, val statement: CompStmt, val result: Value) :
-    LogEntry(programName) {
+class CompStatementExecutionLog(programName: String, val statement: CompStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "COMP"
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        var data =
-            "COMP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}${statement.hi}${sep}LO${sep}${statement.lo}${sep}EQ${sep}${statement.eq}"
+        var data = "COMP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}${statement.hi}${sep}LO${sep}${statement.lo}${sep}EQ${sep}${statement.eq}"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
 
-class LookupStatementExecutionLog(
-    programName: String,
-    val statement: LookupStmt,
-    val hi: Int?,
-    val lo: Int?,
-    val eq: Int?
-) : LogEntry(programName) {
+class LookupStatementExecutionLog(programName: String, val statement: LookupStmt, val hi: Int?, val lo: Int?, val eq: Int?) : LogEntry(programName) {
     override fun toString(): String {
         return "LOOKUP"
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        var data =
-            "LOOKUP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
+        var data = "LOOKUP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
@@ -703,7 +617,6 @@ class AstLogStart(programName: String) : LogEntry(programName) {
     override fun toString(): String {
         return "ast start $programName"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "AST START$sep"
 
@@ -734,7 +647,6 @@ class RpgLoadLogStart(programName: String) : LogEntry(programName) {
     override fun toString(): String {
         return "rpgload start $programName"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "RPGLOAD START$sep"
 
@@ -742,8 +654,7 @@ class RpgLoadLogStart(programName: String) : LogEntry(programName) {
     }
 }
 
-class RpgLoadLogEnd(programName: String, val elapsed: Long, private val programSouce: CharStream?) :
-    LogEntry(programName) {
+class RpgLoadLogEnd(programName: String, val elapsed: Long, private val programSouce: CharStream?) : LogEntry(programName) {
 
     private val lines: Int by lazy {
         programSouce?.toString()?.split(Pattern.compile("\\r\\n|\\r|\\n"))?.size ?: 0
@@ -770,7 +681,6 @@ class LexerLogStart(programName: String) : LogEntry(programName) {
     override fun toString(): String {
         return "lexer start $programName"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "LEXER START$sep"
 
@@ -801,7 +711,6 @@ class ParserLogStart(programName: String) : LogEntry(programName) {
     override fun toString(): String {
         return "parser start $programName"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "PARSER START$sep"
 
@@ -832,7 +741,6 @@ class RContextLogStart(programName: String) : LogEntry(programName) {
     override fun toString(): String {
         return "rcontext start $programName"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "RCONTEXT START$sep"
 
@@ -863,7 +771,6 @@ class CheckParseTreeLogStart(programName: String) : LogEntry(programName) {
     override fun toString(): String {
         return "chkptree start $programName"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "CHKPTREE START$sep"
 
@@ -894,7 +801,6 @@ class FindMutesLogStart(programName: String) : LogEntry(programName) {
     override fun toString(): String {
         return "findmutes start $programName"
     }
-
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "FINDMUTES START$sep"
 

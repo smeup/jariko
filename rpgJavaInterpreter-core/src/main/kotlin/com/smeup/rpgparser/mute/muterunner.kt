@@ -110,21 +110,11 @@ fun executeWithMutes(
             it.executionProgramName = file.name
             parserResult =
                 RpgParserFacade()
-                    .parse(file.inputStream())
+                .parse(file.inputStream())
             if (parserResult.correct) {
-                parserResult.executeMuteAnnotations(
-                    verbose,
-                    systemInterface,
-                    programName = file.name.removeSuffix(".rpgle")
-                ).forEach { (line, annotation) ->
+                parserResult.executeMuteAnnotations(verbose, systemInterface, programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
                     if (verbose || annotation.failed()) {
-                        println(
-                            "Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${
-                                file.linkTo(
-                                    line
-                                )
-                            }".color(annotation.succeeded())
-                        )
+                        println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
                         if (annotation.failed()) {
                             failed++
                             if (annotation is MuteComparisonAnnotationExecuted) {
@@ -139,14 +129,7 @@ fun executeWithMutes(
         } catch (e: Throwable) {
             exceptions.add(e)
         }
-        ExecutionResult(
-            file,
-            parserResult?.root?.muteContexts?.size ?: 0,
-            executed,
-            failed,
-            exceptions,
-            parserResult?.errors ?: emptyList()
-        )
+        ExecutionResult(file, parserResult?.root?.muteContexts?.size ?: 0, executed, failed, exceptions, parserResult?.errors ?: emptyList())
     }
 }
 
@@ -179,7 +162,7 @@ fun executeMuteAnnotations(
         it.executionProgramName = programName
         val parserResult =
             RpgParserFacade().apply { muteSupport = true }
-                .parse(programStream)
+            .parse(programStream)
         if (parserResult.correct) {
             parserResult.executeMuteAnnotations(
                 verbose = verbose, systemInterface = systemInterface, parameters = parameters,
@@ -269,9 +252,9 @@ class MuteRunnerCLI : CliktCommand() {
     val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
 
     val pathsToProcessArgs by argument(name = "Paths to process").file(
-        exists = true,
-        folderOkay = true,
-        fileOkay = true
+            exists = true,
+            folderOkay = true,
+            fileOkay = true
     ).multiple(required = false)
 
     override fun run() {

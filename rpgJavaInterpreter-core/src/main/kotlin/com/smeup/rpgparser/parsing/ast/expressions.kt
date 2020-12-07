@@ -27,14 +27,11 @@ data class IntLiteral(val value: Long, override val position: Position? = null) 
     override fun render() = value.toString()
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
-
 @Serializable
-data class RealLiteral(@Contextual val value: BigDecimal, override val position: Position? = null) :
-    NumberLiteral(position) {
+data class RealLiteral(@Contextual val value: BigDecimal, override val position: Position? = null) : NumberLiteral(position) {
     override fun render() = value.toString()
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
-
 @Serializable
 data class StringLiteral(val value: String, override val position: Position? = null) : Expression(position) {
     override fun render() = "\"$value\""
@@ -79,8 +76,7 @@ data class ZeroExpr(override val position: Position? = null) : FigurativeConstan
 }
 
 @Serializable
-data class AllExpr(val charsToRepeat: StringLiteral, override val position: Position? = null) :
-    FigurativeConstantRef(position) {
+data class AllExpr(val charsToRepeat: StringLiteral, override val position: Position? = null) : FigurativeConstantRef(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -96,11 +92,7 @@ data class EqualityExpr(var left: Expression, var right: Expression, override va
 }
 
 @Serializable
-data class AssignmentExpr(
-    var target: AssignableExpression,
-    var value: Expression,
-    override val position: Position? = null
-) :
+data class AssignmentExpr(var target: AssignableExpression, var value: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${target.render()} = ${value.render()}"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
@@ -155,7 +147,6 @@ data class LogicalOrExpr(var left: Expression, var right: Expression, override v
     override fun render() = "${left.render()} || ${right.render()}"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
-
 @Serializable
 data class LogicalAndExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
@@ -240,12 +231,8 @@ data class DataRefExpr(val variable: ReferenceByName<AbstractDataDefinition>, ov
 }
 
 @Serializable
-data class QualifiedAccessExpr(
-    val container: Expression,
-    val field: ReferenceByName<FieldDefinition>,
-    override val position: Position? = null
-) :
-    AssignableExpression(position) {
+data class QualifiedAccessExpr(val container: Expression, val field: ReferenceByName<FieldDefinition>, override val position: Position? = null) :
+        AssignableExpression(position) {
 
     init {
         require(field.name.isNotBlank()) { "The field name should not blank" }
@@ -268,11 +255,9 @@ data class ArrayAccessExpr(val array: Expression, val index: Expression, overrid
     override fun render(): String {
         return "${this.array.render()}(${index.render()}))"
     }
-
     override fun size(): Int {
         TODO("size")
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -288,7 +273,7 @@ data class FunctionCall(
 }
 
 fun dataRefTo(dataDefinition: AbstractDataDefinition) =
-    DataRefExpr(ReferenceByName(dataDefinition.name, dataDefinition))
+        DataRefExpr(ReferenceByName(dataDefinition.name, dataDefinition))
 
 @Serializable
 data class NumberOfElementsExpr(val value: Expression, override val position: Position? = null) :

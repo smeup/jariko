@@ -193,12 +193,10 @@ fun assertASTCanBeProduced(
         }
     } else {
         val configuration =
-            Configuration(
-                options = Options(
-                    muteSupport = withMuteSupport,
-                    compiledProgramsDir = compiledProgramsDir,
-                    toAstConfiguration = ToAstConfiguration(considerPosition)
-                ),
+            Configuration(options = Options(
+                muteSupport = withMuteSupport,
+                compiledProgramsDir = compiledProgramsDir,
+                toAstConfiguration = ToAstConfiguration(considerPosition)),
                 jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation)
             )
         ast = MainExecutionContext.execute(systemInterface = JavaSystemInterface(), configuration = configuration) {
@@ -252,8 +250,8 @@ fun assertStatementCanBeParsed(code: String, addPrefix: Boolean = false): Statem
 fun CompilationUnit.assertNrOfMutesAre(expected: Int) {
     val actual =
         this.allDataDefinitions.map { it.muteAnnotations.size }.sum() +
-            this.main.stmts.nrOfMutes() +
-            this.subroutines.map { it.stmts.nrOfMutes() }.sum()
+                this.main.stmts.nrOfMutes() +
+                this.subroutines.map { it.stmts.nrOfMutes() }.sum()
     assertEquals(expected, actual, "Expected $expected mutes, but were $actual")
 }
 
@@ -367,10 +365,8 @@ fun outputOf(
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
     compiledProgramsDir: File?
 ): List<String> {
-    execute(
-        programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si,
-        compiledProgramsDir = compiledProgramsDir
-    )
+    execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si,
+        compiledProgramsDir = compiledProgramsDir)
     return si.displayed.map(String::trimEnd)
 }
 
@@ -450,6 +446,7 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
         throw IllegalArgumentException("Program $name cannot be found")
     }
 }
+
 
 fun compileAllMutes(verbose: Boolean = true, dirs: List<String>, format: Format = Format.BIN) {
 

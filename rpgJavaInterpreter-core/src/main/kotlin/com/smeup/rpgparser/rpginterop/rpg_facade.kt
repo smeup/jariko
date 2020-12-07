@@ -30,7 +30,7 @@ class ClassProgramName<P> : ProgramNameSource<P> {
     override fun nameFor(rpgFacade: RpgFacade<P>): String = rpgFacade.javaClass.simpleName
 }
 
-abstract class RpgFacade<P>(
+abstract class RpgFacade<P> (
     val programNameSource: ProgramNameSource<P> = ClassProgramName<P>(),
     val systemInterface: SystemInterface
 ) {
@@ -118,8 +118,7 @@ abstract class RpgFacade<P>(
             property.returnType.classifier is KClass<*> && (property.returnType.classifier as KClass<*>).qualifiedName == "kotlin.Array" -> {
                 val jvmArray = jvmValue as Array<*>
                 val elementType = property.returnType.arguments[0].type!!
-                val nElements = property.findAnnotation<Size>()?.size
-                    ?: throw RuntimeException("Size expected for property ${property.name}")
+                val nElements = property.findAnnotation<Size>()?.size ?: throw RuntimeException("Size expected for property ${property.name}")
                 val rpgArray = createArrayValue(elementType.toRpgType(), nElements) {
                     if (it < jvmArray.size) {
                         toRpgValue(elementType, jvmArray[it])
@@ -145,8 +144,7 @@ private fun KType.toRpgType(size: Size? = null): Type {
             StringType(size!!.size, false)
         }
         this.classifier is KClass<*> -> {
-            val length = (this.classifier as KClass<*>).memberProperties.map { it.rpgLength() }
-                .foldRight(0) { it, acc -> it + acc }
+            val length = (this.classifier as KClass<*>).memberProperties.map { it.rpgLength() }.foldRight(0) { it, acc -> it + acc }
             StringType(length, false)
         }
         else -> TODO("$this")

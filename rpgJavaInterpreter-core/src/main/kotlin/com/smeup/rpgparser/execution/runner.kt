@@ -6,10 +6,7 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.file
-import com.smeup.rpgparser.interpreter.RpgProgram
-import com.smeup.rpgparser.interpreter.StringValue
-import com.smeup.rpgparser.interpreter.SystemInterface
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
@@ -23,10 +20,9 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
     override fun nameFor(rpgFacade: RpgFacade<CommandLineParms>): String = name
 }
 
-class CommandLineProgram(name: String, systemInterface: SystemInterface) :
-    RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)), systemInterface) {
+class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)), systemInterface) {
     override fun toInitialValues(rpgProgram: RpgProgram, params: CommandLineParms): LinkedHashMap<String, Value> {
-        val result = LinkedHashMap<String, Value>()
+        val result = LinkedHashMap<String, Value> ()
         val values = params.parmsList.map { parameter -> StringValue(parameter) }
         val zipped = rpgProgram.params()
             .map { dataDefinition -> dataDefinition.name }
@@ -44,8 +40,7 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) :
         return CommandLineParms(resultValues.values.map { it.asString().value })
     }
 
-    @JvmOverloads
-    fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
+    @JvmOverloads fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
         singleCall(CommandLineParms(parms), configuration = configuration)
 }
 
@@ -65,9 +60,9 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
 }
 
 val defaultProgramFinders = listOf(
-    SourceProgramFinder(),
-    DirRpgProgramFinder(),
-    ResourceProgramFinder("/")
+        SourceProgramFinder(),
+        DirRpgProgramFinder(),
+        ResourceProgramFinder("/")
 )
 
 @JvmOverloads
@@ -110,14 +105,11 @@ object RunnerCLI : CliktCommand() {
     val programArgs by argument().multiple(required = false)
 
     override fun run() {
-        val allProgramFinders =
-            defaultProgramFinders + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
+        val allProgramFinders = defaultProgramFinders + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
         val configuration = Configuration()
         configuration.options?.compiledProgramsDir = compiledProgramDir
-        executePgmWithStringArgs(
-            programName, programArgs, logConfigurationFile, programFinders = allProgramFinders,
-            configuration = configuration
-        )
+        executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders,
+        configuration = configuration)
     }
 }
 

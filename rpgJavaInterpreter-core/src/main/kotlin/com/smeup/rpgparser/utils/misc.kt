@@ -99,11 +99,11 @@ fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this)
 fun Any?.asNonNullString(): String = this?.toString() ?: ""
 
 fun String.moveEndingString(s: String): String =
-    if (this.trimEnd().endsWith(s)) {
-        s + this.substringBefore(s)
-    } else {
-        this
-    }
+        if (this.trimEnd().endsWith(s)) {
+            s + this.substringBefore(s)
+        } else {
+            this
+        }
 
 fun String.repeatWithMaxSize(l: Int): String {
     val repetitions = (l / this.length) + 1

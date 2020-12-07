@@ -8,7 +8,7 @@ import com.strumenta.kolasu.model.ReferenceByName
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 
 internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
@@ -30,43 +30,23 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         this.OR() != null -> LogicalOrExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.AND() != null -> LogicalAndExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.comparisonOperator() != null -> when {
-            this.comparisonOperator().GT() != null -> GreaterThanExpr(
-                this.expression(0).toAst(conf),
-                this.expression(1).toAst(conf)
-            )
-            this.comparisonOperator().GE() != null -> GreaterEqualThanExpr(
-                this.expression(0).toAst(conf),
-                this.expression(1).toAst(conf)
-            )
-            this.comparisonOperator().LT() != null -> LessThanExpr(
-                this.expression(0).toAst(conf),
-                this.expression(1).toAst(conf)
-            )
-            this.comparisonOperator().LE() != null -> LessEqualThanExpr(
-                this.expression(0).toAst(conf),
-                this.expression(1).toAst(conf)
-            )
-            this.comparisonOperator().NE() != null -> DifferentThanExpr(
-                this.expression(0).toAst(conf),
-                this.expression(1).toAst(conf)
-            )
+            this.comparisonOperator().GT() != null -> GreaterThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+            this.comparisonOperator().GE() != null -> GreaterEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+            this.comparisonOperator().LT() != null -> LessThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+            this.comparisonOperator().LE() != null -> LessEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+            this.comparisonOperator().NE() != null -> DifferentThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
             else -> TODO("ComparisonOperator ${this.comparisonOperator().text}")
         }
         this.function() != null -> this.function().toAst(conf)
         this.NOT() != null -> NotExpr(this.expression(0).toAst(conf), toPosition(conf.considerPosition))
         this.PLUS() != null -> PlusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.MINUS() != null -> MinusExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(
-            this.expression(0).toAst(conf),
-            this.expression(1).toAst(conf)
-        )
+        this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
         this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
-            && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(
-            conf
-        )
+                && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
         else -> TODO(this.text.toString())
     }
 }
@@ -121,19 +101,13 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
 
 private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfiguration): Expression {
     return when {
-        this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(
-            this.text.indicatorIndex()!!,
-            toPosition(conf.considerPosition)
-        )
+        this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
         this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
     }
 }
 
-internal fun RpgParser.Multipart_identifierContext.toAst(
-    conf: ToAstConfiguration = ToAstConfiguration(),
-    fieldName: String? = null
-): Expression {
+internal fun RpgParser.Multipart_identifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), fieldName: String? = null): Expression {
     require(this.elements.size == 2) { "More than two elements not yet supported" }
 
     // The parse tree is not constructed well, and that force us to do... complicated things
@@ -153,26 +127,24 @@ internal fun RpgParser.Multipart_identifierContext.toAst(
     // So we deal with this here
 
     if (fieldName == null && this.elements[1].indexed_identifier() != null) {
-        val container =
-            this.toAst(conf, fieldName = this.elements[1].indexed_identifier().free_identifier().idOrKeyword().text)
+        val container = this.toAst(conf, fieldName = this.elements[1].indexed_identifier().free_identifier().idOrKeyword().text)
         val index = this.elements[1].indexed_identifier().expression().toAst(conf)
         return ArrayAccessExpr(container, index, position = toPosition(conf.considerPosition))
     }
 
     require(fieldName != null || this.elements[1].free_identifier() != null)
     return QualifiedAccessExpr(
-        container = this.elements[0].toAst(conf),
-        field = ReferenceByName(fieldName ?: this.elements[1].free_identifier().text),
-        position = toPosition(conf.considerPosition)
+            container = this.elements[0].toAst(conf),
+            field = ReferenceByName(fieldName ?: this.elements[1].free_identifier().text),
+            position = toPosition(conf.considerPosition)
     )
 }
-
 //
 internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
         this.free_identifier() != null -> DataRefExpr(
-            variable = ReferenceByName(this.free_identifier().text),
-            position = toPosition(conf.considerPosition)
+                variable = ReferenceByName(this.free_identifier().text),
+                position = toPosition(conf.considerPosition)
         )
         else -> TODO()
     }

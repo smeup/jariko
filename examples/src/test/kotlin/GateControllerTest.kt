@@ -10,8 +10,7 @@ import kotlin.test.assertEquals
 class GateControllerTest {
 
     // TODO fix call by reflection
-    @Test
-    @Ignore
+    @Test @Ignore
     fun runExample1() {
         RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
         RpgSystem.addProgramFinder(ResourceProgramFinder("/rpg/"))

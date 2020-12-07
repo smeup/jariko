@@ -52,13 +52,10 @@ private fun Node.resolveFunctionCalls(cu: CompilationUnit) {
             val data = cu.allDataDefinitions.firstOrNull { it.name == fc.function.name }
             if (data != null) {
                 enrichPossibleExceptionWith(fc.position) {
-                    fc.replace(
-                        ArrayAccessExpr(
+                    fc.replace(ArrayAccessExpr(
                             array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
                             index = fc.args[0],
-                            position = fc.position
-                        )
-                    )
+                            position = fc.position))
                 }
             }
         }
@@ -93,13 +90,7 @@ private fun CompilationUnit.validate(raiseException: Boolean = true): List<Error
         val targetType = it.target.type()
         val valueType = it.value.type()
         if (!targetType.canBeAssigned(valueType)) {
-            errors.add(
-                Error(
-                    ErrorType.SEMANTIC,
-                    "Invalid assignement: cannot assign ${it.value} having type $valueType to ${it.target} having type $targetType",
-                    it.position
-                )
-            )
+            errors.add(Error(ErrorType.SEMANTIC, "Invalid assignement: cannot assign ${it.value} having type $valueType to ${it.target} having type $targetType", it.position))
         }
     }
     if (errors.isNotEmpty()) {
@@ -163,8 +154,8 @@ private fun CompilationUnit.resolve() {
 
 private fun EqualityExpr.toAssignment(): AssignmentExpr {
     return AssignmentExpr(
-        this.left as AssignableExpression,
-        this.right,
-        this.position
+            this.left as AssignableExpression,
+            this.right,
+            this.position
     )
 }

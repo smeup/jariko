@@ -56,7 +56,6 @@ abstract class MuteAnnotationExecuted() {
     } else {
         "failed"
     }
-
     abstract fun headerDescription(): String
 }
 

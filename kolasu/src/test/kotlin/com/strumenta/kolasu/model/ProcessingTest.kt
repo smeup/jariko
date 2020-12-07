@@ -1,6 +1,6 @@
 package com.strumenta.kolasu.model
 
-import java.util.*
+import java.util.LinkedList
 import kotlin.test.assertEquals
 import org.junit.Test as test
 
@@ -21,8 +21,7 @@ class ProcessingTest {
         a1.replace(a2)
     }
 
-    @test
-    fun replaceSingle() {
+    @test fun replaceSingle() {
         val a1 = AW("1")
         val a2 = AW("2")
         val b = BW(a1, LinkedList())
@@ -31,8 +30,7 @@ class ProcessingTest {
         assertEquals("2", b.a.s)
     }
 
-    @test
-    fun replaceList() {
+    @test fun replaceList() {
         val a1 = AW("1")
         val a2 = AW("2")
         val a3 = AW("3")

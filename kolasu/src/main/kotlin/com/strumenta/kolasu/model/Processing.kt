@@ -1,18 +1,22 @@
 package com.strumenta.kolasu.model
 
-import java.util.*
+import java.util.LinkedList
 import kotlin.collections.HashMap
-import kotlin.reflect.*
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
+import kotlin.reflect.KVisibility
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 private val <T : Node> T.containmentProperties: Collection<KProperty1<T, *>>
     get() = this.javaClass.kotlin.memberProperties
-        .filter { it.visibility == KVisibility.PUBLIC }
-        .filter { it.findAnnotation<Derived>() == null }
-        .filter { it.findAnnotation<Link>() == null }
-        .filter { it.name != "parent" }
+            .filter { it.visibility == KVisibility.PUBLIC }
+            .filter { it.findAnnotation<Derived>() == null }
+            .filter { it.findAnnotation<Link>() == null }
+            .filter { it.name != "parent" }
 
 fun Node.assignParents() {
     this.children.forEach {
@@ -45,24 +49,20 @@ fun Node.find(predicate: (Node) -> Boolean): Node? {
                     return res
                 }
             }
-            is Collection<*> -> v.forEach {
-                (it as? Node)?.let {
-                    val res = it.find(predicate)
-                    if (res != null) {
-                        return res
-                    }
+            is Collection<*> -> v.forEach { (it as? Node)?.let {
+                val res = it.find(predicate)
+                if (res != null) {
+                    return res
                 }
-            }
+            } }
         }
     }
     return null
 }
 
 fun <T : Node> Node.specificProcess(klass: Class<T>, operation: (T) -> Unit) {
-    process {
-        if (klass.isInstance(it)) {
-            operation(it as T)
-        }
+    process { if (klass.isInstance(it)) {
+        operation(it as T) }
     }
 }
 

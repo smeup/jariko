@@ -54,7 +54,6 @@ data class TrimExpr(
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
         return "%TRIM(${this.value.render()} $toTrim)"
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -70,7 +69,6 @@ data class TrimrExpr(
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
         return "%TRIMR(${this.value.render()} $toTrim)"
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -86,7 +84,6 @@ data class TrimlExpr(
         val toTrim = if (this.charactersToTrim != null) ": ${this.charactersToTrim.render()}" else ""
         return "%TRIMR(${this.value.render()} $toTrim)"
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -98,16 +95,14 @@ data class SubstExpr(
     val length: Expression? = null,
     override val position: Position? = null
 ) :
-    AssignableExpression(position) {
+        AssignableExpression(position) {
     override fun render(): String {
         val len = if (length != null) ": ${length.render()}" else ""
         return "%SUBST(${this.string.render()} : ${start.render()} $len)"
     }
-
     override fun size(): Int {
         TODO("size")
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -118,7 +113,6 @@ data class LenExpr(var value: Expression, override val position: Position? = nul
     override fun render(): String {
         return "%LEN(${this.value.render()})"
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -143,7 +137,6 @@ data class DecExpr(
     override fun render(): String {
         return "${this.value.render()}"
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -157,18 +150,16 @@ data class IntExpr(
     override fun render(): String {
         return "${this.value.render()}"
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
 // %SQRT
 @Serializable
 data class SqrtExpr(var value: Expression, override val position: Position? = null) :
-    Expression(position) {
+        Expression(position) {
     override fun render(): String {
         return "${this.value.render()}"
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -237,7 +228,6 @@ data class CharExpr(var value: Expression, val format: String?, override val pos
     override fun render(): String {
         return "%CHAR(${value.render()})"
     }
-
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -277,9 +267,7 @@ data class ReplaceExpr(
 // TODO document what a duration code is
 @Serializable
 sealed class DurationCode
-
 @Serializable
 object DurationInMSecs : DurationCode()
-
 @Serializable
 object DurationInDays : DurationCode()

@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
         maven {
             name 'JFrog OSS snapshot repo'
-            url 'https://oss.jfrog.org/oss-snapshot-local/'
+            url  'https://oss.jfrog.org/oss-snapshot-local/'
         }
         maven {
             url "https://plugins.gradle.org/m2/"
@@ -41,7 +41,7 @@ subprojects {
         jcenter()
     }
 
-    project.group = "com.github.rpgjavainterpreter"
+    project.group   = "com.github.rpgjavainterpreter"
     project.version = "0.2"
 }
 

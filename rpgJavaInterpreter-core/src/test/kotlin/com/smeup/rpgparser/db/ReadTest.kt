@@ -9,7 +9,7 @@ import org.junit.Test
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
-class ReadTest : AbstractTest() {
+class ReadTest: AbstractTest() {
 
     companion object {
 
@@ -25,10 +25,10 @@ class ReadTest : AbstractTest() {
     @Test
     fun equalWithNoSetllReturnsFalse() {
         val outputLines = outputOfDBPgm(
-            "db/EQUALNOSET",
-            listOf(createEmployeeMetadata()),
-            emptyList(),
-            emptyMap()
+                "db/EQUALNOSET",
+                listOf(createEmployeeMetadata()),
+                emptyList(),
+                emptyMap()
         )
         assertEquals(listOf("EQUAL=0"), outputLines)
     }
@@ -37,7 +37,7 @@ class ReadTest : AbstractTest() {
     fun findsAndCountExistingRecords() {
         val outputLines = outputOfDBPgm(
             "db/READ01",
-            listOf(createEmployeeMetadata()),
+                listOf(createEmployeeMetadata()),
             emptyList(),
             emptyMap()
         )
@@ -49,28 +49,28 @@ class ReadTest : AbstractTest() {
     @Test
     fun doesNotFindNonExistingRecord() {
         assertEquals(
-            listOf("Not found"),
-            outputOfDBPgm(
-                "db/CHAINREADE",
-                listOf(createEmployeeMetadata()),
-                emptyList(),
-                mapOf("toFind" to StringValue("XXX"))
-            )
+                listOf("Not found"),
+                outputOfDBPgm(
+                        "db/CHAINREADE",
+                        listOf(createEmployeeMetadata()),
+                        emptyList(),
+                        mapOf("toFind" to StringValue("XXX"))
+                )
         )
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun findsExistingRecords2() {
         assertEquals(
-            // TODO is the order of results mandatory?
-            listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS", "KIM NATZ"),
-            outputOfDBPgm(
-                "db/CHAINREADE",
-                listOf(createEmployeeMetadata()),
-                emptyList(),
-                mapOf("toFind" to StringValue("C01"))
-            )
+                // TODO is the order of results mandatory?
+                listOf("SALLY KWAN", "DELORES QUINTANA", "HEATHER NICHOLLS", "KIM NATZ"),
+                outputOfDBPgm(
+                        "db/CHAINREADE",
+                        listOf(createEmployeeMetadata()),
+                        emptyList(),
+                        mapOf("toFind" to StringValue("C01"))
+                )
         )
     }
+
 }

@@ -1,12 +1,12 @@
 package com.smeup.rpgparser.rpginterop
 
-import com.smeup.rpgparser.interpreter.InterpreterLogHandler
+import com.smeup.dbnative.file.DBFile
 import com.smeup.rpgparser.interpreter.RpgProgram
-import com.smeup.rpgparser.interpreter.RpgProgramFinderLogEntry
-import com.smeup.rpgparser.interpreter.log
+import com.smeup.rpgparser.interpreter.*
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
+import java.util.*
 
 interface RpgProgramFinder {
     fun findRpgProgram(nameOrSource: String): RpgProgram?
@@ -15,10 +15,7 @@ interface RpgProgramFinder {
 class SourceProgramFinder : RpgProgramFinder {
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         if (nameOrSource.contains("\n") || nameOrSource.contains("\r")) {
-            return RpgProgram.fromInputStream(
-                ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)),
-                nameOrSource
-            )
+            return RpgProgram.fromInputStream(ByteArrayInputStream(nameOrSource.toByteArray(Charsets.UTF_8)), nameOrSource)
         }
         return null
     }
@@ -56,7 +53,6 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         }
         return "$name.rpgle"
     }
-
     override fun toString(): String {
         val path = if (directory == null) "" else directory.absolutePath.toString()
         return "directory: $path "

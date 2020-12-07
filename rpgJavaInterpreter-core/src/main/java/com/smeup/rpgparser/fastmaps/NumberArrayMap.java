@@ -128,7 +128,8 @@ public abstract class NumberArrayMap<K extends Number, V> extends AbstractMap<K,
 
     @Override
     public void clear() {
-        @SuppressWarnings("unchecked") final V[] newValues = (V[]) new Object[capacity];
+        @SuppressWarnings("unchecked")
+        final V[] newValues = (V[]) new Object[capacity];
         this.values = newValues;
         size = 0;
         modCount++;
@@ -338,8 +339,10 @@ public abstract class NumberArrayMap<K extends Number, V> extends AbstractMap<K,
         if (noItems > 0) {
             // Read the keys and values, and put the mappings in the NumberMap
             for (int i = 0; i < noItems; i++) {
-                @SuppressWarnings("unchecked") final K key = (K) s.readObject();
-                @SuppressWarnings("unchecked") final V value = (V) s.readObject();
+                @SuppressWarnings("unchecked")
+                final K key = (K) s.readObject();
+                @SuppressWarnings("unchecked")
+                final V value = (V) s.readObject();
                 put(key, value);
             }
         }

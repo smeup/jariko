@@ -65,7 +65,7 @@ abstract class JvmProgramByReflection : Program {
         } else {
             val params = f.parameters.filter {
                 it.kind != KParameter.Kind.INSTANCE &&
-                    it.type != SystemInterface::class.createType()
+                        it.type != SystemInterface::class.createType()
             }
             return params.map { it.toProgramParam() }
         }
@@ -108,16 +108,12 @@ private fun KParameter.toProgramParam(): ProgramParam {
 private fun KParameter.toRpgType(): Type {
     return when (this.type) {
         String::class.createType() -> {
-            StringType(
-                this.findAnnotation<Size>()?.size
-                    ?: throw RuntimeException("Size annotation required for string param ${this.name}"), true
-            )
+            StringType(this.findAnnotation<Size>()?.size
+                    ?: throw RuntimeException("Size annotation required for string param ${this.name}"), true)
         }
         Int::class.createType() -> {
-            NumberType(
-                this.findAnnotation<Size>()?.size
-                    ?: throw RuntimeException("Size annotation required for int param ${this.name}"), 0
-            )
+            NumberType(this.findAnnotation<Size>()?.size
+                    ?: throw RuntimeException("Size annotation required for int param ${this.name}"), 0)
         }
         else -> TODO(this.type.toString())
     }

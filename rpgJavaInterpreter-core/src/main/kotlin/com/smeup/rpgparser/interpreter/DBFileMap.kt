@@ -17,7 +17,7 @@ class DBFileMap {
 
         if (byFileName.containsKey(fileDefinition.name) == false) {
 
-            // Get DBFile from Reload using DBFileFactory registered in Context
+            //Get DBFile from Reload using DBFileFactory registered in Context
             val dbFile = MainExecutionContext.getDBFileFactory()?.open(fileDefinition.name, null)
 
             dbFile?.let {
@@ -30,6 +30,7 @@ class DBFileMap {
                     formatName = dbFile.fileMetadata.recordFormat
                     byFormatName[formatName] = dbFile
                 }
+
             }
         }
     }
