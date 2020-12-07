@@ -212,7 +212,7 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val commandLineProgram = getProgram(nameOrSource = myProgram)
         val memorySliceId = MemorySliceId("MyAct".toUpperCase(), programName = myProgram)
         val memoryStorage = MemoryStorage()
-        memoryStorage.storage[memorySliceId] = mutableMapOf("Z" to StringValue(value = "A", varying = true))
+        memoryStorage.storage[memorySliceId] = mutableMapOf("Z" to StringValue(value = "$varValue", varying = true))
         val configuration = Configuration(memorySliceStorage = memoryStorage)
         commandLineProgram.singleCall(emptyList(), configuration)
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
