@@ -427,24 +427,28 @@ open class SymbolTableStoragingTest : AbstractTest() {
         assert(failed == null)
     }
 
-    @Test @Category(PerformanceTest::class)
-    fun initWithHugeDSpecsVarNumber() {
+    // Performance test related to symbol table initialization with huge number of variables
+    @Test
+    @Category(PerformanceTest::class)
+    open fun initWithHugeDefinedVariables() {
         val programFinders = listOf(DirRpgProgramFinder(File(javaClass.getResource("/performance-ast").path)))
         val si = JavaSystemInterface().also {
             it.loggingConfiguration = consoleLoggingConfiguration(PARSING_LOGGER, PERFORMANCE_LOGGER)
         }
-        val configuration = Configuration().adaptForTestCase(this)
+        val configuration = Configuration(memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())).adaptForTestCase(this)
         val caller = getProgram("MUTE10_69", systemInterface = si, programFinders = programFinders)
         caller.singleCall(emptyList(), configuration)
     }
 
-    @Test @Category(PerformanceTest::class)
-    fun initWithHugeCSpecsVarNumber() {
+    // Performance test related to symbol table initialization with huge number of variables followed by evaluation of them
+    @Test
+    @Category(PerformanceTest::class)
+    open fun initAndEvalWithHugeDefinedVariables() {
         val programFinders = listOf(DirRpgProgramFinder(File(javaClass.getResource("/performance-ast").path)))
         val si = JavaSystemInterface().also {
             it.loggingConfiguration = consoleLoggingConfiguration(PARSING_LOGGER, PERFORMANCE_LOGGER)
         }
-        val configuration = Configuration().adaptForTestCase(this)
+        val configuration = Configuration(memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())).adaptForTestCase(this)
         val caller = getProgram("MUTE10_70", systemInterface = si, programFinders = programFinders)
         caller.singleCall(emptyList(), configuration)
     }
