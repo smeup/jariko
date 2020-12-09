@@ -4,6 +4,8 @@
      D U$FUNZ          S             10
       * . Method
      D U$METO          S             10
+      * . Thread
+     D U$THRE          S             20
       * . Display
      D MSG             S             40
       *---------------------------------------------------------------
@@ -13,8 +15,9 @@
       * Initial settings
      C                   EXSR      IMP0
       * Function / Method
-     C                   EVAL      MSG = 'Funz:' + U$FUNZ + ' ' +
-     C                                   'Meto:' + U$METO
+     C                   EVAL      MSG = 'Fu:' + %TRIM(U$FUNZ) + ' ' +
+     C                                   'Me:' + %TRIM(U$METO) + ' ' +
+     C                                   'Th:' + %TRIM(U$THRE)
      C     MSG           DSPLY
       * Final settings
      C                   EXSR      FIN0
@@ -30,6 +33,7 @@
      C     *ENTRY        PLIST
      C                   PARM                    U$FUNZ
      C                   PARM                    U$METO
+     C                   PARM                    U$THRE
       *
      C                   ENDSR
       *--------------------------------------------------------------*

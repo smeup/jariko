@@ -70,13 +70,17 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
     @Test
     fun execPgmAndEvaluateStorage() {
+        execPgmAndEvaluateStorage("1")
+    }
+
+    fun execPgmAndEvaluateStorage(varValue: String) {
         // Program RT-closing: test to check SymbolTable preserves variables values
         val myProgram = """
      H ACTGRP('MyAct')
-     D X               S              1  0
+     D X               S             50  
      D Msg             S             12
-     C                   EVAL      X = X + 1
-     C                   EVAL      Msg = %CHAR(X)
+     C                   EVAL      X = '$varValue'
+     C                   EVAL      Msg = X
      C     msg           dsply
      C                   SETON                                          RT
      """
@@ -89,45 +93,53 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-            expected = IntValue(1),
-            actual = variables["X"] ?: error("Not found X")
+            expected = varValue,
+            actual = (variables.get("X") as StringValue).value.trim() ?: error("Not found X")
         )
     }
 
     @Test
     fun initPgmByStorageAndEvaluateResult() {
+        initPgmByStorageAndEvaluateResult("A")
+    }
+
+    fun initPgmByStorageAndEvaluateResult(varValue: String) {
         val myProgram = """
      H ACTGRP('MyAct')
-     D X               S              2
+     D X               S             50
      D Y               S              1
      D Msg             S             12
      C     *ENTRY        PLIST
      C                   PARM                    X
-     C                   EVAL      X = Y + 'A'
-     C                   EVAL      Msg = %CHAR(X)
+     C                   EVAL      X = Y + '$varValue'
+     C                   EVAL      Msg = X
      C     msg           dsply
      C                   SETON                                          RT
      """
         val commandLineProgram = getProgram(nameOrSource = myProgram)
         val memorySliceId = MemorySliceId("MyAct".toUpperCase(), programName = myProgram)
         val memoryStorage = MemoryStorage()
-        memoryStorage.storage[memorySliceId] = mutableMapOf("Y" to StringValue(value = "A", varying = true))
+        memoryStorage.storage[memorySliceId] = mutableMapOf("Y" to StringValue(value = "$varValue", varying = true))
         val configuration = Configuration(memorySliceStorage = memoryStorage)
         // pass PLIST  in order to achieve in output the current X value and to evaluate it at the end
         val result = commandLineProgram.singleCall(listOf("B"), configuration)
         require(result != null)
-        assertEquals("AA", result.parmsList[0])
+        assertEquals("$varValue$varValue", result.parmsList[0].trim())
     }
 
     @Test
     fun execLRPgmAndEvaluateStorage() {
+        execLRPgmAndEvaluateStorage("1")
+    }
+
+    fun execLRPgmAndEvaluateStorage(varValue: String) {
         // Program LR-closing: test to check SymbolTable does not preserve variables values
         val myProgram = """
      H ACTGRP('MyAct')
-     D X               S              1  0
+     D X               S             50  
      D Msg             S             12
-     C                   EVAL      X = X + 1
-     C                   EVAL      Msg = %CHAR(X)
+     C                   EVAL      X = X + '$varValue'
+     C                   EVAL      Msg = X
      C     msg           dsply
      C                   SETON                                          LR
      """
@@ -145,13 +157,17 @@ open class SymbolTableStoragingTest : AbstractTest() {
 
     @Test
     fun execRTPgmTwiceAndPreserveValues() {
+        execRTPgmTwiceAndPreserveValues("ABC")
+    }
+
+    fun execRTPgmTwiceAndPreserveValues(varValue: String) {
         // Program RT-closing: test to check SymbolTable preserve variables values
         val myProgram = """
      H ACTGRP('MyAct')
-     D X               S              1  0
+     D X               S             50  
      D Msg             S             12
-     C                   EVAL      X = X + 1
-     C                   EVAL      Msg = %CHAR(X)
+     C                   EVAL      X = %TRIM(X) + '$varValue'
+     C                   EVAL      Msg = X
      C     msg           dsply
      C                   SETON                                          RT
      """
@@ -163,8 +179,8 @@ open class SymbolTableStoragingTest : AbstractTest() {
         var variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-            expected = IntValue(1),
-            actual = variables["X"] ?: error("Not found X")
+            expected = varValue.trim(),
+            actual = (variables.get("X") as StringValue).value.trim() ?: error("Not found X")
         )
 
         // Second program execution, X variable must exist with value 1, than it will increase to value 2.
@@ -172,56 +188,64 @@ open class SymbolTableStoragingTest : AbstractTest() {
         variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-            expected = IntValue(2),
-            actual = variables["X"] ?: error("Not found X")
+            expected = varValue.trim() + varValue.trim(),
+            actual = (variables.get("X") as StringValue).value.trim() ?: error("Not found X")
         )
     }
 
     @Test
     fun initPreExistingVariablesPgmByStorageAndEvaluateResult() {
+        initPreExistingVariablesPgmByStorageAndEvaluateResult("B")
+    }
+
+    fun initPreExistingVariablesPgmByStorageAndEvaluateResult(varValue: String) {
         // Program RT-closing: test to check per existing variable will be re-assigned
         val myProgram = """
      H ACTGRP('MyAct')
-     D Z               S              1
+     D Z               S             50
      D Msg             S             12
-     C                   EVAL      Z = 'B'
-     C                   EVAL      Msg = %CHAR(Z)
+     C                   EVAL      Z = '$varValue'
+     C                   EVAL      Msg = Z
      C     msg           dsply
      C                   SETON                                          RT
      """
         val commandLineProgram = getProgram(nameOrSource = myProgram)
         val memorySliceId = MemorySliceId("MyAct".toUpperCase(), programName = myProgram)
         val memoryStorage = MemoryStorage()
-        memoryStorage.storage[memorySliceId] = mutableMapOf("Z" to StringValue(value = "A", varying = true))
+        memoryStorage.storage[memorySliceId] = mutableMapOf("Z" to StringValue(value = "$varValue", varying = true))
         val configuration = Configuration(memorySliceStorage = memoryStorage)
         commandLineProgram.singleCall(emptyList(), configuration)
         val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
         require(variables != null)
         assertEquals(
-            expected = StringValue("B"),
-            actual = variables["Z"] ?: error("Not found Z")
+            expected = varValue,
+            actual = (variables.get("Z") as StringValue).value.trim() ?: error("Not found Z")
         )
     }
 
     @Test
     fun sameVariablesButDifferentACTGRP() {
+        sameVariablesButDifferentACTGRP("xyz")
+    }
+
+    fun sameVariablesButDifferentACTGRP(varValue: String) {
         // Program A called, program B called, both with 'SETON RT', both have same var Z but with different two values.
         // Memory must have separated scopes cause two programs have two different ACTGRP (MyActA and MyActB).
         val myProgramA = """
      H ACTGRP('MyActA')
-     D Z               S              1
+     D Z               S             50
      D Msg             S             12
-     C                   EVAL      Z = 'A'
-     C                   EVAL      Msg = %CHAR(Z)
+     C                   EVAL      Z = '$varValue'+'A'
+     C                   EVAL      Msg = Z
      C     msg           dsply
      C                   SETON                                          RT
      """
         val myProgramB = """
      H ACTGRP('MyActB')
-     D Z               S              1
+     D Z               S             50
      D Msg             S             12
-     C                   EVAL      Z = 'B'
-     C                   EVAL      Msg = %CHAR(Z)
+     C                   EVAL      Z = '$varValue'+'B'
+     C                   EVAL      Msg = Z
      C     msg           dsply
      C                   SETON                                          RT
      """
@@ -232,51 +256,55 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val memoryStorage = MemoryStorage()
         val configuration = Configuration(memorySliceStorage = memoryStorage)
 
-        // First call to program A, instatiate and initialize Z variable to value 'A'
+        // First call to program A, instatiate and initialize Z variable to value ending with 'A' character.
         commandLineProgramA.singleCall(emptyList(), configuration)
         var variables = memoryStorage.storage[MemorySliceId("MyActA".toUpperCase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
-            expected = StringValue("A"),
-            actual = variables["Z"] ?: error("Not found Z")
+            expected = "${varValue}A",
+            actual = (variables.get("Z") as StringValue).value.trim() ?: error("Not found Z")
         )
 
-        // First call to program B, instatiate and initialize Z variable to value 'B'.
+        // First call to program B, instatiate and initialize Z variable to value ending with 'B' character.
         commandLineProgramB.singleCall(emptyList(), configuration)
         variables = memoryStorage.storage[MemorySliceId("MyActB".toUpperCase(), programName = myProgramB)]
         require(variables != null)
         assertEquals(
-            expected = StringValue("B"),
-            actual = variables["Z"] ?: error("Not found Z")
+            expected = "${varValue}B",
+            actual = (variables.get("Z") as StringValue).value.trim() ?: error("Not found Z")
         )
 
-        // Z variable on MyActA must have previous value of A
+        // Z variable on MyActA must have previous value ending with 'A' character.
         variables = memoryStorage.storage[MemorySliceId("MyActA".toUpperCase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
-            expected = StringValue("A"),
-            actual = variables["Z"] ?: error("Not found Z")
+            expected = "${varValue}A",
+            actual = (variables.get("Z") as StringValue).value.trim() ?: error("Not found Z")
         )
     }
 
     @Test
     fun sameVariablesAndSameACTGRP() {
+        sameVariablesAndSameACTGRP("zyx")
+    }
+
+    fun sameVariablesAndSameACTGRP(varValue: String) {
         // Program A called, program B called, both with 'SETON RT', both have same var 'Z' but with different values.
         // Memory have separated scopes cause two programs with same ACTGRP (MyActSAME and MyActSAME) have different names.
         val myProgramA = """
      H ACTGRP('MyActSAME')
-     D Z               S              1
+     D Z               S             50
      D Msg             S             12
-     C                   EVAL      Z = 'A'
+     C                   EVAL      Z = '$varValue'+'A'
      C                   EVAL      Msg = %CHAR(Z)
      C     msg           dsply
      C                   SETON                                          RT
      """
         val myProgramB = """
      H ACTGRP('MyActSAME')
-     D Z               S              1
+     D Z               S             50
      D Msg             S             12
-     C                   EVAL      Z = 'B'
+     C                   EVAL      Z = '$varValue'+'B'
      C                   EVAL      Msg = %CHAR(Z)
      C     msg           dsply
      C                   SETON                                          RT
@@ -288,30 +316,30 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val memoryStorage = MemoryStorage()
         val configuration = Configuration(memorySliceStorage = memoryStorage)
 
-        // First call to program A, instatiate and initialize Z variable to value 'A'
+        // First call to program A, instatiate and initialize Z variable to value ending with 'A' character.
         commandLineProgramA.singleCall(emptyList(), configuration)
         var variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
-            expected = StringValue("A"),
-            actual = variables["Z"] ?: error("Not found Z")
+            expected = "${varValue}A",
+            actual = (variables.get("Z") as StringValue).value.trim() ?: error("Not found Z")
         )
 
-        // First call to program B, instatiate and initialize Z variable to value 'B'
+        // First call to program B, instatiate and initialize Z variable to value ending with 'B' character.
         commandLineProgramB.singleCall(emptyList(), configuration)
         variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramB)]
         require(variables != null)
         assertEquals(
-            expected = StringValue("B"),
-            actual = variables["Z"] ?: error("Not found Z")
+            expected = "${varValue}B",
+            actual = (variables.get("Z") as StringValue).value.trim() ?: error("Not found Z")
         )
 
-        // Variable 'Z myProgramA scoped' have not changed his initial values, no interference between trwo programs
+        // Variable 'Z myProgramA scoped' have not changed his initial values, no interference between two programs
         variables = memoryStorage.storage[MemorySliceId("MyActSAME".toUpperCase(), programName = myProgramA)]
         require(variables != null)
         assertEquals(
-            expected = StringValue("A"),
-            actual = variables["Z"] ?: error("Not found Z")
+            expected = "${varValue}A",
+            actual = (variables.get("Z") as StringValue).value.trim() ?: error("Not found Z")
         )
     }
 
@@ -403,13 +431,14 @@ open class SymbolTableStoragingTest : AbstractTest() {
         repeat(100) {
             executor.execute {
                 runCatching {
-                    println("Run interpreter: ${Thread.currentThread().name}")
+                    var varValue = Thread.currentThread().name
+                    println("Run interpreter: $varValue")
                     val systemInterface: SystemInterface = JavaSystemInterface()
                     (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
                     val rpgDir = File("src/test/resources/")
                     val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
                     val jariko = getProgram("XTHREAD.rpgle", systemInterface, programFinders)
-                    jariko.singleCall(listOf("FUNZ", "METO"), Configuration().adaptForTestCase(this))
+                    jariko.singleCall(listOf("FUNZ", "METO", "$varValue"), Configuration().adaptForTestCase(this))
                     println(it)
                 }.onFailure {
                     println(it)
@@ -429,14 +458,15 @@ class WorkerThread(private val symbolTableStoragingTest: SymbolTableStoragingTes
     override fun call(): Throwable? {
         kotlin.runCatching {
             println(Thread.currentThread().name + " Start test $testName " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+            var varValue = Thread.currentThread().name
             when (testName) {
-                "execPgmAndEvaluateStorage" -> symbolTableStoragingTest.execPgmAndEvaluateStorage()
-                "initPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPgmByStorageAndEvaluateResult()
-                "execLRPgmAndEvaluateStorage" -> symbolTableStoragingTest.execLRPgmAndEvaluateStorage()
-                "execRTPgmTwiceAndPreserveValues" -> symbolTableStoragingTest.execRTPgmTwiceAndPreserveValues()
-                "initPreExistingVariablesPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPreExistingVariablesPgmByStorageAndEvaluateResult()
-                "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP()
-                "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP()
+                "execPgmAndEvaluateStorage" -> symbolTableStoragingTest.execPgmAndEvaluateStorage(varValue)
+                "initPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPgmByStorageAndEvaluateResult(varValue)
+                "execLRPgmAndEvaluateStorage" -> symbolTableStoragingTest.execLRPgmAndEvaluateStorage(varValue)
+                "execRTPgmTwiceAndPreserveValues" -> symbolTableStoragingTest.execRTPgmTwiceAndPreserveValues(varValue)
+                "initPreExistingVariablesPgmByStorageAndEvaluateResult" -> symbolTableStoragingTest.initPreExistingVariablesPgmByStorageAndEvaluateResult(varValue)
+                "sameVariablesButDifferentACTGRP" -> symbolTableStoragingTest.sameVariablesButDifferentACTGRP(varValue)
+                "sameVariablesAndSameACTGRP" -> symbolTableStoragingTest.sameVariablesAndSameACTGRP(varValue)
                 else -> {
                     error("Test $testName not exists")
                 }
