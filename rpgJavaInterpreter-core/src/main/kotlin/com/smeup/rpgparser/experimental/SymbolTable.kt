@@ -62,10 +62,10 @@ class SymbolTable : ISymbolTable {
         throw IllegalArgumentException("Cannot find searchedValued for $dataName")
     }
 
-    override fun dataDefinitionByName(dataName: String) = names[dataName]
+    override fun dataDefinitionByName(dataName: String) = names[dataName.toUpperCase()]
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
-        names[data.name] = data
+        names[data.name.toUpperCase()] = data
         return values.put(data.key, Pair(data, value.forType(data.type)))?.second
     }
 
