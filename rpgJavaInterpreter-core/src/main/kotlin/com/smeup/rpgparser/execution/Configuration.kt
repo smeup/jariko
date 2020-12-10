@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.dbnative.DBNativeAccessConfig
+import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.interpreter.ActivationGroup
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.ISymbolTable
@@ -20,14 +22,27 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
 data class Configuration(
     val memorySliceStorage: IMemorySliceStorage? = null,
     var jarikoCallback: JarikoCallback = JarikoCallback(),
+    val reloadConfig: ReloadConfig? = ReloadConfig(),
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
     var options: Options? = Options()
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
-            this (memorySliceStorage, JarikoCallback(), DEFAULT_ACTIVATION_GROUP_NAME, Options())
+            this(memorySliceStorage, JarikoCallback(), ReloadConfig(), DEFAULT_ACTIVATION_GROUP_NAME, Options())
+
     constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
-            this (memorySliceStorage, JarikoCallback(), defaultActivationGroupName, Options())
+            this(memorySliceStorage, JarikoCallback(), ReloadConfig(), defaultActivationGroupName, Options())
 }
+
+/**
+ * Reload configuration
+ * @param nativeAccessConfig DB Native Accesso config
+ * @param getMetadata get metadata for a dbFile, if returns null, FileMetadata are searched using default lookup method
+ * provided by reload
+ * */
+data class ReloadConfig(
+    val nativeAccessConfig: DBNativeAccessConfig? = DBNativeAccessConfig(emptyList()),
+    val metadata: List<FileMetadata> = emptyList()
+)
 
 /**
  * Options object
@@ -56,9 +71,8 @@ data class Options(
  * @param afterAstCreation It is invoked after ast creation
  * */
 data class JarikoCallback(
-    var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = {
-        _: String, _: ActivationGroup? ->
-        null
+    var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
+            null
     },
     var exitInRT: (programName: String) -> Boolean? = { null },
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },

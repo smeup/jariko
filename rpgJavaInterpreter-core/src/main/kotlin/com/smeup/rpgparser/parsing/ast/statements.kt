@@ -300,12 +300,12 @@ data class MoveAStmt(
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             val dbFile = interpreter.dbFile(name, this)
-            val record = if (searchArg.type() is KListType) {
+            val result = if (searchArg.type() is KListType) {
                 dbFile.chain(interpreter.toSearchValues(searchArg))
             } else {
-                dbFile.chain(interpreter.eval(searchArg))
+                dbFile.chain(interpreter.eval(searchArg).asString().value)
             }
-            interpreter.fillDataFrom(record)
+            interpreter.fillDataFrom(result.record)
         }
     }
 
@@ -318,12 +318,12 @@ data class MoveAStmt(
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             val dbFile = interpreter.dbFile(name, this)
-            val record = when {
+            val result = when {
                 searchArg == null -> dbFile.readEqual()
                 searchArg.type() is KListType -> dbFile.readEqual(interpreter.toSearchValues(searchArg))
-                else -> dbFile.readEqual(interpreter.eval(searchArg))
+                else -> dbFile.readEqual(interpreter.eval(searchArg).asString().value)
             }
-            interpreter.fillDataFrom(record)
+            interpreter.fillDataFrom(result.record)
         }
     }
 
@@ -336,12 +336,12 @@ data class MoveAStmt(
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             val dbFile = interpreter.dbFile(name, this)
-            val record = when {
+            val result = when {
                 searchArg == null -> dbFile.readPrevious()
-                searchArg.type() is KListType -> dbFile.readPrevious(interpreter.toSearchValues(searchArg))
-                else -> dbFile.readPrevious(interpreter.eval(searchArg))
+                searchArg.type() is KListType -> dbFile.readPreviousEqual(interpreter.toSearchValues(searchArg))
+                else -> dbFile.readPreviousEqual(interpreter.eval(searchArg).asString().value)
             }
-            interpreter.fillDataFrom(record)
+            interpreter.fillDataFrom(result.record)
         }
     }
 
@@ -353,8 +353,8 @@ data class MoveAStmt(
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
             val dbFile = interpreter.dbFile(name, this)
-            val record = dbFile.read()
-            interpreter.fillDataFrom(record)
+            val result = dbFile.read()
+            interpreter.fillDataFrom(result.record)
         }
     }
 
@@ -369,7 +369,7 @@ data class MoveAStmt(
             interpreter.status.lastFound = if (searchArg.type() is KListType) {
                 dbFile.setll(interpreter.toSearchValues(searchArg))
             } else {
-                dbFile.setll(interpreter.eval(searchArg))
+                dbFile.setll(interpreter.eval(searchArg).asString().value)
             }
         }
     }

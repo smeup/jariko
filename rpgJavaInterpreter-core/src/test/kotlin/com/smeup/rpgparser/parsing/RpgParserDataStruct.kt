@@ -14,7 +14,7 @@ open class RpgParserDataStruct : AbstractTest() {
     @Test
     fun parseSTRUCT_01_MYDS_isRecognizedCorrectly() {
         val cu = assertASTCanBeProduced("struct/STRUCT_01", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val dataDefinition = cu.getDataDefinition("MYDS")
         assertEquals(0, dataDefinition.fields[0].startOffset)
@@ -30,7 +30,7 @@ open class RpgParserDataStruct : AbstractTest() {
 
         val cu = assertASTCanBeProduced("struct/STRUCT_01", true)
 
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val MYDS = cu.getDataDefinition("MYDS")
         val FLD1 = MYDS.getFieldByName("FLD1")
@@ -69,7 +69,7 @@ open class RpgParserDataStruct : AbstractTest() {
         assertCanBeParsed("struct/STRUCT_02", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_02", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         execute(cu, mapOf())
     }
 
@@ -78,7 +78,7 @@ open class RpgParserDataStruct : AbstractTest() {
         assertCanBeParsed("struct/STRUCT_03", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_03", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val CURTIMSTP = cu.getDataDefinition("CURTIMSTP")
         val CURTIMDATE = CURTIMSTP.getFieldByName("CURTIMDATE")
@@ -122,7 +122,7 @@ open class RpgParserDataStruct : AbstractTest() {
         val si = CollectorSystemInterface().apply {
             printOutput = true
         }
-        cu.resolveAndValidate(si.databaseInterface)
+        cu.resolveAndValidate()
         execute(cu, mapOf(), si)
     }
 
@@ -132,7 +132,7 @@ open class RpgParserDataStruct : AbstractTest() {
         assertCanBeParsed("struct/STRUCT_04", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_04", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         execute(cu, mapOf())
     }
 
@@ -144,7 +144,7 @@ open class RpgParserDataStruct : AbstractTest() {
         assertCanBeParsed("struct/STRUCT_05", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_05", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         execute(cu, mapOf())
     }
 
@@ -156,7 +156,7 @@ open class RpgParserDataStruct : AbstractTest() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val MYDS = cu.getDataDefinition("MYDS")
 
@@ -211,7 +211,7 @@ open class RpgParserDataStruct : AbstractTest() {
         assertCanBeParsed("struct/STRUCT_06", withMuteSupport = true)
 
         val cu = assertASTCanBeProduced("struct/STRUCT_06", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         execute(cu, mapOf())
     }
 
@@ -264,7 +264,7 @@ open class RpgParserDataStruct : AbstractTest() {
             considerPosition = true,
             withMuteSupport = true
         )
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
@@ -287,7 +287,7 @@ open class RpgParserDataStruct : AbstractTest() {
             considerPosition = true,
             withMuteSupport = true
         )
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

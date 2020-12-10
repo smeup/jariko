@@ -16,7 +16,7 @@ interface Program {
     fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value>
 }
 
-class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
+class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGRAM>") : Program {
 
     private var systemInterface: SystemInterface? = null
 
@@ -42,13 +42,13 @@ class RpgProgram(val cu: CompilationUnit, dbInterface: DBInterface, val name: St
     }
 
     init {
-        cu.resolveAndValidate(dbInterface)
+        cu.resolveAndValidate()
     }
 
     companion object {
-        fun fromInputStream(inputStream: InputStream, dbInterface: DBInterface, name: String = "<UNNAMED INPUT STREAM>"): RpgProgram {
+        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED INPUT STREAM>"): RpgProgram {
             val cu = RpgParserFacade().parseAndProduceAst(inputStream)
-            return RpgProgram(cu, dbInterface, name)
+            return RpgProgram(cu, name)
         }
     }
 

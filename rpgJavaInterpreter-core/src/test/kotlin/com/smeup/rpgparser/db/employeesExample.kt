@@ -1,6 +1,10 @@
-package com.smeup.rpgparser.db.sql.integration
+package com.smeup.rpgparser.db
 
-import com.smeup.rpgparser.db.sql.CONVENTIONAL_INDEX_SUFFIX
+import com.smeup.dbnative.model.CharacterType
+import com.smeup.dbnative.model.FileMetadata
+import com.smeup.dbnative.utils.fieldByType
+
+const val CONVENTIONAL_INDEX_SUFFIX = "_INDEX"
 
 fun createEMPLOYEE() =
     """
@@ -10,8 +14,22 @@ fun createEMPLOYEE() =
 	MIDINIT CHAR(1) DEFAULT '' NOT NULL , 
 	LASTNAME CHAR(15) DEFAULT '' NOT NULL , 
 	WORKDEPT CHAR(3) DEFAULT '' NOT NULL, 
-	PRIMARY KEY( EMPNO ) )   
+	PRIMARY KEY( EMPNO ))   
         """.trimIndent()
+
+fun createEmployeeMetadata(): FileMetadata = FileMetadata(
+    "EMPLOYEE",
+    "EMPLOYEE",
+    listOf(
+        "EMPNO" fieldByType CharacterType(6),
+        "FIRSTNME" fieldByType CharacterType(12),
+        "MIDINIT" fieldByType CharacterType(1),
+        "LASTNAME" fieldByType CharacterType(15),
+        "WORKDEPT" fieldByType CharacterType(3)
+    ),
+    listOf("EMPNO"),
+    true
+)
 
 fun createXEMP2() = "CREATE VIEW XEMP2 AS SELECT * FROM EMPLOYEE ORDER BY WORKDEPT"
 

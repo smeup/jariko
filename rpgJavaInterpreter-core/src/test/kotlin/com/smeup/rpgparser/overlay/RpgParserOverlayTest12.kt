@@ -4,6 +4,10 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.ArrayType
+import com.smeup.rpgparser.interpreter.CharacterType
+import com.smeup.rpgparser.interpreter.InternalInterpreter
+import com.smeup.rpgparser.interpreter.NumberType
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.ArrayAccessExpr
 import com.smeup.rpgparser.parsing.ast.FunctionCall
@@ -50,7 +54,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     @Test
     fun parseMUTE12_01_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
@@ -161,7 +165,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     @Test
     fun parseMUTE12_02_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_02", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
@@ -181,7 +185,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     @Test
     fun parseMUTE12_03_ast() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val functionCalls = cu.collectByType(FunctionCall::class.java)
         assertEquals(0, functionCalls.size)
         val arrayAccesses = cu.collectByType(ArrayAccessExpr::class.java)
@@ -197,7 +201,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     @Test
     fun parseMUTE12_03_inz() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
     }
@@ -205,7 +209,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     @Test
     fun parseMUTE12_03_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
@@ -228,7 +232,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     @Test
     fun parseMUTE12_04_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_04", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
@@ -251,7 +255,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     @Test
     fun parseMUTE12_05_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_05", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
 
@@ -276,7 +280,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     @Test
     fun parseMUTE12_06_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_06", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 

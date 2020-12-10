@@ -313,13 +313,6 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     val programs = HashMap<String, Program>()
     val functions = HashMap<String, Function>()
     var printOutput = false
-    var databaseInterface: DBInterface = DummyDBInterface
-        set(value) {
-            field = value
-        }
-
-    override val db: DBInterface
-        get() = databaseInterface
 
     override fun findProgram(name: String) = programs[name]
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String) = functions[name]
@@ -388,13 +381,13 @@ fun execute(
     compiledProgramsDir: File?
 ): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
-    cu.resolveAndValidate(si.db)
+    cu.resolveAndValidate()
     si.addExtraLogHandlers(logHandlers)
     return execute(cu, initialValues, si)
 }
 
-fun rpgProgram(name: String, dbInterface: DBInterface = DummyDBInterface): RpgProgram {
-    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), dbInterface, name)
+fun rpgProgram(name: String): RpgProgram {
+    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
 }
 
 fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
@@ -417,9 +410,9 @@ class DummyProgramFinder(private val path: String) : RpgProgramFinder {
     fun rpgSourceInputStream(nameOrSource: String): InputStream? =
         Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
 
-    override fun findRpgProgram(nameOrSource: String, dbInterface: DBInterface): RpgProgram? {
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         return rpgSourceInputStream(nameOrSource)?.let {
-            RpgProgram.fromInputStream(it, dbInterface, nameOrSource)
+            RpgProgram.fromInputStream(it, nameOrSource)
         }
     }
 }
@@ -447,28 +440,11 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
 
     private fun find(name: String): RpgProgram {
         programFinders.forEach {
-            val pgm = it.findRpgProgram(name, db)
+            val pgm = it.findRpgProgram(name)
             if (pgm != null) return pgm
         }
         throw IllegalArgumentException("Program $name cannot be found")
     }
-}
-
-open class MockDBFile : DBFile {
-    override fun setll(key: Value) = TODO()
-    override fun setll(keys: List<RecordField>) = TODO()
-    override fun chain(key: Value): Record = TODO()
-    override fun chain(keys: List<RecordField>): Record = TODO()
-    override fun readEqual(): Record = TODO()
-    override fun readEqual(key: Value): Record = TODO()
-    override fun readEqual(keys: List<RecordField>): Record = TODO()
-    override fun readPrevious(): Record = TODO()
-    override fun readPrevious(key: Value): Record = TODO()
-    override fun readPrevious(keys: List<RecordField>): Record = TODO()
-
-    override fun eof(): Boolean = TODO()
-    override fun equal(): Boolean = TODO()
-    override fun read(): Record = TODO()
 }
 
 fun compileAllMutes(verbose: Boolean = true, dirs: List<String>, format: Format = Format.BIN) {

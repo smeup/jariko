@@ -37,7 +37,7 @@ open class RpgSortATest : AbstractTest() {
     @Test
     fun executeSORTA() {
         val cu = assertASTCanBeProduced("overlay/SORTATEST", considerPosition = true, withMuteSupport = true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())

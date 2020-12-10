@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
-import com.smeup.rpgparser.interpreter.DBInterface
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
@@ -72,8 +71,8 @@ fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
  * In case of semantic errors we could either raise exceptions or return a list of errors.
  *
  */
-fun CompilationUnit.resolveAndValidate(databaseInterface: DBInterface, raiseException: Boolean = true): List<Error> {
-    this.resolve(databaseInterface)
+fun CompilationUnit.resolveAndValidate(raiseException: Boolean = true): List<Error> {
+    this.resolve()
     return this.validate(raiseException)
 }
 
@@ -100,12 +99,10 @@ private fun CompilationUnit.validate(raiseException: Boolean = true): List<Error
     return errors
 }
 
-private fun CompilationUnit.resolve(databaseInterface: DBInterface) {
+private fun CompilationUnit.resolve() {
     this.assignParents()
 
     this.findInStatementDataDefinitions()
-
-    this.databaseInterface = databaseInterface
 
     this.resolveDataRefs(this)
 
