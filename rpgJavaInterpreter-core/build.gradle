@@ -43,6 +43,7 @@ dependencies {
 
     compile 'commons-io:commons-io:2.6'
     compile 'com.github.ajalt:clikt:2.1.0'
+    compile 'com.github.smeup:reload:development-SNAPSHOT'
 
     compile 'com.github.ziggy42:kolor:0.0.2'
 

@@ -192,7 +192,7 @@ fun RpgParserResult.executeMuteAnnotations(
             }
         }
     }
-    cu.resolveAndValidate(systemInterface.db)
+    cu.resolveAndValidate()
     val interpreter = InternalInterpreter(systemInterface).apply {
         interpretationContext = object : InterpretationContext {
             private var iDataWrapUpChoice: DataWrapUpChoice? = null

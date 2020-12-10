@@ -394,7 +394,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: EofExpr): Value {
-        // TODO fix this bad implementation
+
         if (expression.name == null) {
             return BooleanValue(interpreterStatus.lastDBFile?.eof() ?: false)
         }
@@ -402,7 +402,6 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: EqualExpr): Value {
-        // TODO fix this bad implementation
         if (expression.name == null) {
             return BooleanValue(interpreterStatus.lastDBFile?.equal() ?: false)
         }

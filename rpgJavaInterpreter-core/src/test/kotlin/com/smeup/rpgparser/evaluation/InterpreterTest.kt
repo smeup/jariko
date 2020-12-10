@@ -40,7 +40,7 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeCALCFIB_initialDeclarations_dec() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("3")))
         assertIsIntValue(interpreter["NBR"], 3)
     }
@@ -48,7 +48,7 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeCALCFIB_initialDeclarations_inz() {
         val cu = assertASTCanBeProduced("CALCFIB_1", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         assertTrue(cu.getDataDefinition("ppdat").initializationValue == null)
         assertTrue(cu.getDataDefinition("NBR").initializationValue == null)
@@ -66,7 +66,7 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeCALCFIB_otherClauseOfSelect() {
         val cu = assertASTCanBeProduced("CALCFIB_2", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
@@ -78,7 +78,7 @@ open class InterpreterTest : AbstractTest() {
 
     private fun assertFibonacci(input: String, output: String) {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
@@ -119,7 +119,7 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeHELLO() {
         val cu = assertASTCanBeProduced("HELLO", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf(), si, listOf(logHandler))
@@ -130,7 +130,7 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeCallToFibonacciWrittenInRpg() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
@@ -142,7 +142,7 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeCallToFibonacciWrittenOnTheJvm() {
         val cu = assertASTCanBeProduced("CALCFIBCAL", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8, false)))) {
@@ -168,9 +168,9 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeFibonacciWrittenInRpgAsProgram() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val si = CollectorSystemInterface()
-        val rpgProgram = RpgProgram(cu, DummyDBInterface)
+        val rpgProgram = RpgProgram(cu)
         rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
         assertEquals(1, rpgProgram.params().size)
         assertEquals(ProgramParam("ppdat", StringType(8, false)), rpgProgram.params()[0])

@@ -8,7 +8,6 @@ import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 import java.io.PrintStream
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 
 typealias LoggingConfiguration = Properties
@@ -45,8 +44,6 @@ interface SystemInterface {
     fun findProgram(name: String): Program?
     fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function?
 
-    val db: DBInterface
-
     fun loggingConfiguration(): LoggingConfiguration?
     fun addExtraLogHandlers(logHandlers: List<InterpreterLogHandler>): SystemInterface {
         extraLogHandlers.addAll(logHandlers)
@@ -68,63 +65,12 @@ interface SystemInterface {
     fun getFeaturesFactory() = FeaturesFactory.newInstance()
 }
 
-interface DBInterface {
-    fun metadataOf(name: String): FileMetadata?
-    fun open(name: String): DBFile?
-}
-
-data class RecordField(val name: String, val value: Value)
-
-class Record(vararg fields: RecordField) : LinkedHashMap<String, Value>() {
-    init {
-        fields.forEach {
-            add(it)
-        }
-    }
-
-    fun matches(keyFields: List<RecordField>) = keyFields.all { this[it.name] == it.value }
-
-    fun add(field: RecordField) {
-        put(field.name, field.value)
-    }
-}
-
-interface DBFile {
-    fun chain(key: Value): Record
-    fun chain(keys: List<RecordField>): Record
-    fun setll(key: Value): Boolean
-    fun setll(keys: List<RecordField>): Boolean
-    fun readEqual(): Record
-    fun readEqual(key: Value): Record
-    fun readEqual(keys: List<RecordField>): Record
-    fun readPrevious(): Record
-    fun readPrevious(key: Value): Record
-    fun readPrevious(keys: List<RecordField>): Record
-    fun eof(): Boolean
-    fun equal(): Boolean
-    fun read(): Record
-}
-
-data class DBField(val name: String, val type: Type, val primaryKey: Boolean = false) {
-    fun toDataDefinition() = DataDefinition(name, type)
-}
-
-data class FileMetadata(val tableName: String, val formatName: String, val fields: List<DBField>)
-
-object DummyDBInterface : DBInterface {
-    override fun metadataOf(name: String): FileMetadata? = null
-    override fun open(name: String): DBFile? = null
-}
-
 object DummySystemInterface : SystemInterface {
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
         LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
 
     override fun loggingConfiguration(): LoggingConfiguration? = null
-
-    override val db: DBInterface
-        get() = DummyDBInterface
 
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         return null
@@ -158,9 +104,6 @@ class SimpleSystemInterface(
 
     override fun loggingConfiguration(): LoggingConfiguration? = this.loggingConfiguration
 
-    override val db: DBInterface
-        get() = DummyDBInterface
-
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         return null
     }
@@ -170,7 +113,7 @@ class SimpleSystemInterface(
     override fun findProgram(name: String): Program? {
         programs.computeIfAbsent(name) {
             programFinders.asSequence().mapNotNull {
-                it.findRpgProgram(name, db)
+                it.findRpgProgram(name)
             }.firstOrNull()
         }
         return programs[name]

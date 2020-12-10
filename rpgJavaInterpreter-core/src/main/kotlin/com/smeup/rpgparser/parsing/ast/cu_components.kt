@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.rpgparser.db.sql.toDataDefinition
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
@@ -32,8 +34,6 @@ data class CompilationUnit(
                 null)
     }
 
-    var databaseInterface: DBInterface = DummyDBInterface
-
     val entryPlist: PlistStmt?
         get() = main.stmts.plist()
                 ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
@@ -54,10 +54,13 @@ data class CompilationUnit(
                 // Adds DS sub-fields
                 dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
                 fileDefinitions.forEach {
-                    val metadata = databaseInterface.metadataOf(it.name)
+
+                    // Create DS from file metadata
+
+                    val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.metadata?.first { metadata -> metadata.tableName == it.name }
                     if (metadata != null) {
-                        if (it.internalFormatName == null) it.internalFormatName = metadata.formatName
-                        _allDataDefinitions.addAll(metadata.fields.map(DBField::toDataDefinition))
+                        if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
+                            _allDataDefinitions.addAll(metadata.fields.map { field -> field.toDataDefinition() })
                     }
                 }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)

@@ -105,14 +105,14 @@ open class DataDefinitionTest : AbstractTest() {
 
     @test fun inStatementDataDefinitionInClearIsProcessed() {
         val cu = assertASTCanBeProduced("CALCFIB", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         assertTrue(cu.hasAnyDataDefinition("dsp"))
         assertEquals(StringType(50), cu.getAnyDataDefinition("dsp").type)
     }
 
     @test fun executeJD_useOfLike() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = InternalInterpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
@@ -121,7 +121,7 @@ open class DataDefinitionTest : AbstractTest() {
 
     @test fun executeJD_useOfDim() {
         val cu = assertASTCanBeProduced("JD_001", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val interpreter = InternalInterpreter(DummySystemInterface)
         interpreter.simplyInitialize(cu, emptyMap())
         val dataDefinition = cu.getDataDefinition("U\$SVARSK_INI")
@@ -176,7 +176,7 @@ open class DataDefinitionTest : AbstractTest() {
     @Test
     fun deriveLengthOfFieldFromOverrideClause() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val AR01 = cu.getDataDefinition("ARDS").getFieldByName("AR01")
         val FI01 = cu.getDataDefinition("ARDS").getFieldByName("FI01")
         val FI02 = cu.getDataDefinition("ARDS").getFieldByName("FI02")
@@ -276,7 +276,7 @@ open class DataDefinitionTest : AbstractTest() {
     @Test
     fun initializationValue() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
         val unnamedDs = cu.getDataDefinition("@UNNAMED_DS_48")
         assertEquals(DataStructureType(listOf(
                 FieldType("LOG1", StringType(14)),
@@ -300,7 +300,7 @@ open class DataDefinitionTest : AbstractTest() {
     @Test
     fun initializationValueOnOverlay() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_03", true)
-        cu.resolveAndValidate(DummyDBInterface)
+        cu.resolveAndValidate()
 
         val AR01 = cu.getDataOrFieldDefinition("AR01") as FieldDefinition
         assertEquals(122, AR01.elementSize())

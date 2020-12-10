@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.interpreter.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -27,17 +28,27 @@ object MainExecutionContext {
      * @see #getConfiguration
      * @see #getMemorySliceMgr
      * */
-    fun <T> execute(configuration: Configuration = Configuration(), systemInterface: SystemInterface, mainProgram: (context: Context) -> T): T {
-            require(
-                context.get() == null
-            ) { "Context execution already created" }
+    fun <T> execute(
+        configuration: Configuration = Configuration(),
+        systemInterface: SystemInterface,
+        mainProgram: (context: Context) -> T
+    ): T {
+        require(
+            context.get() == null
+        ) { "Context execution already created" }
         val memorySliceMgr = if (configuration.memorySliceStorage == null) {
             null
         } else {
-            MemorySliceMgr(configuration.memorySliceStorage!!)
+            MemorySliceMgr(configuration.memorySliceStorage)
         }
         try {
-            context.set(Context(configuration = configuration, memorySliceMgr = memorySliceMgr, systemInterface = systemInterface))
+            context.set(
+                Context(
+                    configuration = configuration,
+                    memorySliceMgr = memorySliceMgr,
+                    systemInterface = systemInterface
+                )
+            )
             return mainProgram.runCatching {
                 invoke(context.get())
             }.onFailure {
@@ -80,8 +91,8 @@ object MainExecutionContext {
     fun getConfiguration() = context.get()?.configuration ?: noConfiguration
 
     /**
-    * @return an instance of memory slice manager
-    * */
+     * @return an instance of memory slice manager
+     * */
     fun getMemorySliceMgr() = context.get()?.memorySliceMgr
 
     /**
@@ -107,6 +118,11 @@ object MainExecutionContext {
     fun log(logEntry: LogEntry) {
         context.get()?.let { it.log(logEntry) }
     }
+
+    /***
+     * Get DB File Factory
+     */
+    fun getDBFileFactory(): DBFileFactory? = context.get()?.dbFileFactory
 }
 
 data class Context(
@@ -116,7 +132,15 @@ data class Context(
     val memorySliceMgr: MemorySliceMgr? = null,
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
-    var executionProgramName: String? = null
+    var executionProgramName: String? = null,
+    val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
+        it.nativeAccessConfig?.connectionsConfig?.forEach { connectionConfig ->
+            it.metadata.forEach { metadata ->
+                DBFileFactory.registerMetadata(metadata)
+            }
+        }
+        DBFileFactory(it.nativeAccessConfig!!)
+    }
 ) {
 
     private val logHandlers: MutableList<InterpreterLogHandler> by lazy {

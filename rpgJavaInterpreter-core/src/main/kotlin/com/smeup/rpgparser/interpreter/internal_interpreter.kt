@@ -1,5 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.dbnative.file.DBFile
+import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -57,7 +59,7 @@ class InternalInterpreter(
 
     override val status = InterpreterStatus(globalSymbolTable, predefinedIndicators, { lrIndicator })
 
-    private val dbFileMap = DBFileMap(systemInterface.db)
+    private val dbFileMap = DBFileMap()
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
@@ -484,14 +486,19 @@ class InternalInterpreter(
     override fun fillDataFrom(record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
-            record.forEach { assign(dataDefinitionByName(it.key)!!, it.value) }
+            record.forEach {
+                assign(dataDefinitionByName(it.key)!!, StringValue(it.value))
+            }
         } else {
             status.lastFound = false
         }
     }
 
     override fun dbFile(name: String, statement: Statement): DBFile {
-        val dbFile = dbFileMap[name]
+
+        // Nem could be file name or format name
+        val dbFile = dbFileMap.get(name)
+
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
         }
@@ -499,10 +506,10 @@ class InternalInterpreter(
         return dbFile
     }
 
-    override fun toSearchValues(searchArgExpression: Expression): List<RecordField> {
+    override fun toSearchValues(searchArgExpression: Expression): List<String> {
         val kListName = searchArgExpression.render().toUpperCase()
         val parms = klists[kListName]
-        return parms!!.map { RecordField(it, get(it)) }
+        return parms!!.map { get(it).asString().value }
     }
 
     override fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =
