@@ -36,7 +36,7 @@ repositories {
 
 def kolasuVersion = "0.2.3-SNAPSHOT"
 
-project.group   = "me.lanarimarco"
+project.group   = "me.tomassetti"
 project.version = kolasuVersion
 
 dependencies {

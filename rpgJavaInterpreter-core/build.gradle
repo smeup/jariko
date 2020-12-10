@@ -212,9 +212,14 @@ task runMutes(type: JavaExec) {
 task profileRpgProgram(type: JavaExec) {
     systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     String usage = """Usage:
->./gradlew $name -PrpgProgram=rpg_program_path
-rpg_program_path is RPG program relative or absoulte path.
-Relative path is \"relative\" to  ${rootDir.path} directory."""
+>./gradlew $name -PrpgProgram=rpg_program_path [-PcompiledProgramDir=compiled_program_dir] [-PlogConfigurationFile=log_conf_file]
+- rpg_program_path is RPG program relative or absoulte path.
+Relative path is \"relative\" to  ${rootDir.path} directory.
+Optional params
+- compiled_program_dir Optimization option. 
+  If passed, jariko will look in this directory programname.bin, if it finds it, that program will be executed
+- log_conf_file Debug option. 
+  Logging configuration file, view: https://github.com/smeup/jariko/blob/master/docs/logging.md"""
     classpath = sourceSets.main.runtimeClasspath
     main = "com.smeup.rpgparser.execution.RunnerKt"
     description = """profileRpgProgram allows to understand how Jariko interprets any RPG Program.
