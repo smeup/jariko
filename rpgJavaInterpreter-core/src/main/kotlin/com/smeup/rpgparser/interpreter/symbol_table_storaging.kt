@@ -1,5 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
+import kotlin.system.measureTimeMillis
+
 interface IMemorySliceStorage : AutoCloseable {
 
     /**
@@ -145,10 +148,14 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
         memorySlices.values.forEach { slice ->
             val result = storage.runCatching {
                 if (slice.persist!!) {
+                    MainExecutionContext.log(SymbolTableStoreLogStart(programName = slice.memorySliceId.programName))
                     val values = slice.symbolTable.getValues().map {
                         encodeDataDefinition(it.key) to it.value
                     }.toMap()
-                    storage.store(memorySliceId = slice.memorySliceId, values = values)
+                    val elapsed = measureTimeMillis {
+                        storage.store(memorySliceId = slice.memorySliceId, values = values)
+                    }
+                    MainExecutionContext.log(SymbolTableStoreLogEnd(programName = slice.memorySliceId.programName, elapsed))
                 }
             }
             if (result.isFailure) {

@@ -886,3 +886,33 @@ class SymbolTableLoadLogEnd(programName: String, val elapsed: Long) : LogEntry(p
         return renderHeader(channel, filename, "", sep) + data
     }
 }
+
+class SymbolTableStoreLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "symtblStore start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLSTORE START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class SymbolTableStoreLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "symtblstore $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLSTORE END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLSTORE END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}

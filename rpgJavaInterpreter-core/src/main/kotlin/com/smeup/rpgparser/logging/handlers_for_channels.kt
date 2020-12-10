@@ -46,6 +46,7 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
                 is ProgramInterpretationLogEnd -> logger.info(render(logEntry))
                 is SymbolTableIniLogEnd -> logger.info(render(logEntry))
                 is SymbolTableLoadLogEnd -> logger.info(render(logEntry))
+                is SymbolTableStoreLogEnd -> logger.info(render(logEntry))
             }
         }
     }
@@ -123,6 +124,8 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
                 is SymbolTableIniLogEnd -> logger.info(render(logEntry))
                 is SymbolTableLoadLogStart -> logger.info(render(logEntry))
                 is SymbolTableLoadLogEnd -> logger.info(render(logEntry))
+                is SymbolTableStoreLogStart -> logger.info(render(logEntry))
+                is SymbolTableStoreLogEnd -> logger.info(render(logEntry))
             }
         }
     }
