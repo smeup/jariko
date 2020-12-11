@@ -44,6 +44,9 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
                 is DowStatemenExecutionLogEnd -> logger.info(render(logEntry))
                 is CallEndLogEntry -> logger.info(render(logEntry))
                 is ProgramInterpretationLogEnd -> logger.info(render(logEntry))
+                is SymbolTableIniLogEnd -> logger.info(render(logEntry))
+                is SymbolTableLoadLogEnd -> logger.info(render(logEntry))
+                is SymbolTableStoreLogEnd -> logger.info(render(logEntry))
             }
         }
     }
@@ -117,6 +120,12 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
                     logger.info(render(logEntry))
                     this.inLoop--
                 }
+                is SymbolTableIniLogStart -> logger.info(render(logEntry))
+                is SymbolTableIniLogEnd -> logger.info(render(logEntry))
+                is SymbolTableLoadLogStart -> logger.info(render(logEntry))
+                is SymbolTableLoadLogEnd -> logger.info(render(logEntry))
+                is SymbolTableStoreLogStart -> logger.info(render(logEntry))
+                is SymbolTableStoreLogEnd -> logger.info(render(logEntry))
             }
         }
     }

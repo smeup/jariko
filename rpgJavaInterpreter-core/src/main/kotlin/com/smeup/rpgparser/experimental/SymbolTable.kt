@@ -5,11 +5,12 @@ import com.smeup.rpgparser.interpreter.*
 
 /**
  * Experimental SymbolTable.
- * Data are stored in more efficient of standard maps
+ * Data are stored IntArrayMap, which is a more efficient map than standard ones
  * @see IntArrayMap
  * */
 class SymbolTable : ISymbolTable {
     private val values = IntArrayMap<Pair<AbstractDataDefinition, Value>>(0, 32000)
+    private val names = mutableMapOf<String, AbstractDataDefinition>()
 
     override operator fun contains(dataName: String): Boolean = dataDefinitionByName(dataName) != null
     override operator fun contains(data: AbstractDataDefinition): Boolean = data.key in values.keys
@@ -61,10 +62,10 @@ class SymbolTable : ISymbolTable {
         throw IllegalArgumentException("Cannot find searchedValued for $dataName")
     }
 
-    override fun dataDefinitionByName(dataName: String) =
-        values.values.firstOrNull { it.first.name.equals(dataName, ignoreCase = true) }?.first
+    override fun dataDefinitionByName(dataName: String) = names[dataName.toUpperCase()]
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
+        names[data.name.toUpperCase()] = data
         return values.put(data.key, Pair(data, value.forType(data.type)))?.second
     }
 
@@ -73,7 +74,10 @@ class SymbolTable : ISymbolTable {
     /**
      * Clear symbol table
      * */
-    override fun clear() = values.clear()
+    override fun clear() {
+        values.clear()
+        names.clear()
+    }
 
     /**
      * @return if is empty

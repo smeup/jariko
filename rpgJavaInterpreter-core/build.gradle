@@ -212,11 +212,16 @@ task runMutes(type: JavaExec) {
 task profileRpgProgram(type: JavaExec) {
     systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     String usage = """Usage:
->./gradlew $name -PrpgProgram=rpg_program_path
-rpg_program_path is RPG program relative or absoulte path.
-Relative path is \"relative\" to  ${rootDir.path} directory."""
+>./gradlew $name -PrpgProgram=rpg_program_path [-PcompiledProgramDir=compiled_program_dir] [-PlogConfigurationFile=log_conf_file]
+- rpg_program_path is RPG program relative or absoulte path.
+Relative path is \"relative\" to  ${rootDir.path} directory.
+Optional params
+- compiled_program_dir Optimization option. 
+  If passed, jariko will look in this directory programname.bin, if it finds it, that program will be executed
+- log_conf_file Debug option. 
+  Logging configuration file, view: https://github.com/smeup/jariko/blob/master/docs/logging.md"""
     classpath = sourceSets.main.runtimeClasspath
-    main = "com.smeup.rpgparser.mute.StandaloneMuteRunner"
+    main = "com.smeup.rpgparser.execution.RunnerKt"
     description = """profileRpgProgram allows to understand how Jariko interprets any RPG Program.
 It creates a jfr file (java flight recorder) containing profiling informations. 
 After task execution, you can analize jfr file with JMC utility (Oracle Java Mission Control).
@@ -233,12 +238,22 @@ $usage
                 jfrPath.getParentFile().mkdirs()
             }
             boolean absolute = project.rpgProgram.matches("^\\w:.+|^/.+")
+            File compiledProgramDir = project.hasProperty("compiledProgramDir") ? new File(project.compiledProgramDir) : null
+            File logConfigurationFile = project.hasProperty("logConfigurationFile") ? new File(project.logConfigurationFile) : null
+            List<String> arguments = []
+            if (compiledProgramDir) {
+                arguments = arguments + "-cpd" + compiledProgramDir.getPath()
+            }
+            if (logConfigurationFile) {
+                arguments = arguments + "-lc" + logConfigurationFile.getPath()
+            }
             if (absolute) {
-                args "$project.rpgProgram"
+                arguments =  arguments + project.rpgProgram
             }
             else {
-                args "${rootDir.path}/$project.rpgProgram"
+                arguments =  arguments + "${rootDir.path}/$project.rpgProgram"
             }
+            args = (arguments)
             jvmArgs "-XX:+UnlockCommercialFeatures",
                     "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=duration=100s,filename=${jfrPath.path},settings=${rootDir.path}/profiling.jfc",

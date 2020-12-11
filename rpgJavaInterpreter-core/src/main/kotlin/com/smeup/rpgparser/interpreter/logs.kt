@@ -826,3 +826,93 @@ class FindMutesLogEnd(programName: String, val elapsed: Long) : LogEntry(program
         return renderHeader(channel, filename, "", sep) + data
     }
 }
+
+class SymbolTableIniLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "symtblini start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLINI START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class SymbolTableIniLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "symtblini $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLINI END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLINI END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class SymbolTableLoadLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "symtblload start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLLOAD START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class SymbolTableLoadLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "symtblload $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLLOAD END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLLOAD END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class SymbolTableStoreLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "symtblStore start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLSTORE START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class SymbolTableStoreLogEnd(programName: String, val elapsed: Long) : LogEntry(programName) {
+
+    override fun toString(): String {
+        return "symtblstore $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLSTORE END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SYMTBLSTORE END${sep}$filename"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
