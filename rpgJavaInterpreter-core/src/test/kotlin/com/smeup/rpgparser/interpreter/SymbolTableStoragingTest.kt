@@ -4,6 +4,7 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.adaptForTestCase
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.PARSING_LOGGER
@@ -21,6 +22,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class MemoryStorage : IMemorySliceStorage {
 
@@ -365,34 +367,6 @@ open class SymbolTableStoragingTest : AbstractTest() {
     }
 
     @Test
-    @Ignore
-    fun wrongNumericVariableSize() {
-        // Variable 'NUM' is defined as '1' integer digit and '0' decimal digit.
-        // Due to its definition, 'NUM' variable can store values from -9 to 9.
-        // This test shows how numeric variable declaration doesn't work properly cause,
-        // cause the 'NUM' variable can store 9999 value.
-        val myProgram = """
-     H ACTGRP('MyAct')
-     D NUM             S              1  0
-     D MSG             S             12
-     C                   EVAL      NUM = 9999
-     C                   EVAL      MSG = %CHAR(NUM) 
-     C     MSG           DSPLY
-     C                   SETON                                          RT
-     """
-        val commandLineProgram = getProgram(nameOrSource = myProgram)
-        val memoryStorage = MemoryStorage()
-        val configuration = Configuration(memorySliceStorage = memoryStorage)
-        commandLineProgram.singleCall(emptyList(), configuration)
-        val variables = memoryStorage.storage[MemorySliceId("MyAct".toUpperCase(), programName = myProgram)]
-        require(variables != null)
-        assertEquals(
-            expected = IntValue(9),
-            actual = variables["NUM"] ?: error("Not found NUM")
-        )
-    }
-
-    @Test
     fun multiThreadTest() {
         // Run all SymbolTableStoragingTest.kt tests in multithread mode
 
@@ -480,6 +454,165 @@ open class SymbolTableStoragingTest : AbstractTest() {
         val configuration = Configuration(memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())).adaptForTestCase(this)
         val caller = getProgram("MUTE10_70", systemInterface = si, programFinders = programFinders)
         caller.singleCall(emptyList(), configuration)
+    }
+
+    @Test
+    fun playWithStaticACTGRPs() {
+        //
+        // WHAT THIS TEST DOES:
+        // Some cascading calls between programs from main program using the 'CALL' statement.
+        // Some programs with same activation group, but all with 'predefined' activation group (none with '*CALLER')
+        // acting as a 'static' activation group.
+        // Values of 'STRVAR' variable will change during calls due to 'ACTGRP' scope.
+        //
+        // FLOW:
+        // Programs ACTGRP_01 call 'ACTGRP_02' three times (both with *DFTACTGRP activation group)
+        // 'ACTGRP_02' append "02." to 'STRVAR' value that is shared between two programs with same ACTGRP and 'RT' ending mode.
+        // Final STRVAR must be "02.02.02."
+        //
+        // Programs ACTGRP_03 call 'ACTGRP_04' three times (both with 'CUSTOM' activation group)
+        // 'ACTGRP_04' append "04." to 'STRVAR' value that is shared between two programs with same ACTGRP and 'RT' ending mode.
+        // Final STRVAR must be "04.04.04."
+        //
+        // Programs ACTGRP_05 call 'ACTGRP_06' three times (both with 'CUSTOM' activation group)
+        // 'ACTGRP_06' append "06." to 'STRVAR' value that is NOT shared between two programs with same ACTGRP but 'LR' ending mode.
+        // Final STRVAR not exists after ACTGRP_06 ended.
+        //
+
+        val systemInterface: SystemInterface = JavaSystemInterface()
+        (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
+        val rpgDir = File("src/test/resources/")
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
+
+        // ACTGRP_01 call ACTGRP_02
+        var jariko = getProgram("ACTGRP_01", systemInterface, programFinders)
+        var memoryStorage = MemoryStorage()
+        var configuration = Configuration(memorySliceStorage = memoryStorage)
+        configuration.adaptForTestCase(this)
+        jariko.singleCall(emptyList(), configuration)
+        val actgrp_02_vars = memoryStorage.storage[MemorySliceId(configuration.defaultActivationGroupName, programName = "ACTGRP_02")]
+        require(actgrp_02_vars != null)
+        assertEquals(
+                expected = "02.02.02.",
+                actual = (actgrp_02_vars.get("STRVAR") as StringValue).value.trim() ?: error("Not found STRVAR")
+        )
+
+        // ACTGRP_03 call ACTGRP_04
+        jariko = getProgram("ACTGRP_03", systemInterface, programFinders)
+        memoryStorage = MemoryStorage()
+        configuration = Configuration(memorySliceStorage = memoryStorage)
+        configuration.adaptForTestCase(this)
+        jariko.singleCall(emptyList(), configuration)
+        val actgrp_04_vars = memoryStorage.storage[MemorySliceId("CUSTOM", programName = "ACTGRP_04")]
+        require(actgrp_04_vars != null)
+        assertEquals(
+                expected = "04.04.04.",
+                actual = (actgrp_04_vars.get("STRVAR") as StringValue).value.trim() ?: error("Not found STRVAR")
+        )
+
+        // ACTGRP_05 call ACTGRP_06
+        jariko = getProgram("ACTGRP_05", systemInterface, programFinders)
+        memoryStorage = MemoryStorage()
+        configuration = Configuration(memorySliceStorage = memoryStorage)
+        configuration.adaptForTestCase(this)
+        jariko.singleCall(emptyList(), configuration)
+        val actgrp_06_vars = memoryStorage.storage[MemorySliceId("CUSTOM", programName = "ACTGRP_06")]
+        assertEquals(
+                expected = null,
+                actual = actgrp_06_vars
+        )
+    }
+
+    @Test
+    @Ignore
+    fun playWithDynamicACTGRPs() {
+        //
+        // WHAT THIS TEST DOES:
+        // Some cascading calls between programs from main program using the 'CALL' statement.
+        // Only the last called program 'ACTGRP_10' has *CALLER activation group, so it can be considered
+        // as  'dynamic', depending on 'caller' activation group.
+        // Values of 'STRVAR' variable will change during calls due to 'ACTGRP' scope.
+        //
+        // FLOW:
+        // Program ACTGRP_07 (*DFTACTGRP as activation group) call 'ACTGRP_08' (CUSTOM8 actgrp)
+        //  - Program ACTGRP_08 call four times 'ACTGRP_10' (*CALLER as activaton group)
+        // Program ACTGRP_07 (*DFTACTGRP as activation group) call 'ACTGRP_09' (CUSTOM9 actgrp)
+        //  - Program ACTGRP_09 call two times 'ACTGRP_10' (*CALLER as activaton group)
+        // Final STRVAR must be "10.10.10.10." in scope of ACTGRP_08.
+        // Final STRVAR must be "10.10." in scope of ACTGRP_09.
+
+        val systemInterface: SystemInterface = JavaSystemInterface()
+        (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
+        val rpgDir = File("src/test/resources/")
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(rpgDir))
+
+        // ACTGRP_07 call ACTGRP_08 and ACTGRP_09
+        val jariko = getProgram("ACTGRP_07", systemInterface, programFinders)
+        val memoryStorage = MemoryStorage()
+        val configuration = Configuration(memorySliceStorage = memoryStorage)
+        configuration.adaptForTestCase(this)
+        jariko.singleCall(emptyList(), configuration)
+        val actgrp_10_8_vars = memoryStorage.storage[MemorySliceId("CUSTOM8", programName = "ACTGRP_10")]
+        val actgrp_10_9_vars = memoryStorage.storage[MemorySliceId("CUSTOM9", programName = "ACTGRP_10")]
+        require(actgrp_10_8_vars != null)
+        require(actgrp_10_9_vars != null)
+        assertEquals(
+                expected = "10.10.10.10.",
+                actual = (actgrp_10_8_vars.get("STRVAR") as StringValue).value.trim() ?: error("Not found STRVAR")
+        )
+        assertEquals(
+                expected = "10.10.",
+                actual = (actgrp_10_9_vars.get("STRVAR") as StringValue).value.trim() ?: error("Not found STRVAR")
+        )
+    }
+
+    @Test
+    fun playWithStaticACTGRPs_NoMemorystorage() {
+        //
+        // WHAT THIS TEST DOES:
+        // Test run exactly as a part of 'playWithStaticACTGRPs' test, but the 'STRVAR' values check
+        // is performed using the 'CALLBACK' technique instead of 'MEMORYSTORAGE'.
+        // Some programs with same activation group, but all with 'predefined' activation group (none with '*CALLER')
+        // acting as a 'static' activation group.
+        // Values of 'STRVAR' variable will change during calls due to 'ACTGRP' scope.
+        //
+        // FLOW:
+        // Programs ACTGRP_01 call 'ACTGRP_02' three times (both with *DFTACTGRP activation group)
+        // 'ACTGRP_02' append "02." to 'STRVAR' value that is shared between two programs with same ACTGRP and 'RT' ending mode.
+        // Final STRVAR must be "02.02.02."
+        //
+
+        // ACTGRP_01 call ACTGRP_02
+        val programName = "ACTGRP_01"
+        val programPath = File("src${File.separator}test${File.separator}resources${File.separator}").toString() + File.separator + programName
+        val programArgs = emptyList<String>()
+        var output = mutableListOf<String>()
+        val jarikoCallback = JarikoCallback(
+                exitInRT = { true },
+                onExitPgm = { _: String, symbolTable: ISymbolTable, _: Throwable? ->
+                    if (!symbolTable.isEmpty()) {
+                        var strvar = symbolTable["STRVAR"]
+                        // Main caller may not have 'STRVAR'
+                        if (null != strvar) {
+                            output.add(strvar.asString().value)
+                        }
+                    }
+                }
+        )
+
+        // execWithCallback
+        val configuration = Configuration(
+                jarikoCallback = jarikoCallback
+        )
+        val systemInterface = JavaSystemInterface()
+        val commandLineProgram = getProgram(programPath, systemInterface)
+        commandLineProgram.singleCall(programArgs, configuration = configuration)
+
+        assertTrue { output.isNotEmpty() }
+        assertEquals(
+                expected = "02.02.02.",
+                actual = output[2].trim()
+        )
     }
 }
 
