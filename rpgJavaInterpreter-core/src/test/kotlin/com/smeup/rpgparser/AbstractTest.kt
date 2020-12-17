@@ -1,11 +1,11 @@
 package com.smeup.rpgparser
 
 import com.smeup.dbnative.model.FileMetadata
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.Options
-import com.smeup.rpgparser.execution.defaultProgramFinders
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 
@@ -66,18 +66,15 @@ abstract class AbstractTest {
 
     fun outputOfDBPgm(
         programName: String,
-        metadata: List<FileMetadata>,
-        initialSQL: List<String>,
-        inputParms: Map<String, StringValue> = mapOf(),
-        printTree: Boolean = false
+        metadata: List<FileMetadata> = emptyList(),
+        initialSQL: List<String> = emptyList(),
+        inputParms: Map<String, Value> = mapOf()
     ): List<String> {
         return com.smeup.rpgparser.db.utilities.outputOfDBPgm(
             programName = programName,
             metadata = metadata,
             initialSQL = initialSQL,
-            inputParms = inputParms,
-            printTree = printTree,
-            compiledProgramsDir = getTestCompileDir()
+            inputParms = inputParms
         )
     }
 
@@ -95,6 +92,38 @@ abstract class AbstractTest {
             programFinders = programFinders,
             configuration = configuration.adaptForTestCase(this)
         )
+    }
+
+    /**
+     * Execute a PGM
+     * @param programName Name or relative path followed by name. Example performance/MUTE10_01 to execute a PGM
+     * in test/resources/performance/MUTE10_01.rpgle
+     * @param params If needed, an instance of params to pass to the program. Default empty params
+     * @param configuration If needed, you can pass an instance of configuration. Default empty configuration
+     * @param systemInterface If needed, you can pass an instance of SystemInterface. Default JavaSystemInterface
+     * */
+    fun executePgm(
+        programName: String,
+        params: CommandLineParms = CommandLineParms(emptyList()),
+        configuration: Configuration,
+        systemInterface: SystemInterface = JavaSystemInterface()
+    ): CommandLineParms? {
+        val resourceName = if (programName.endsWith(".rpgle")) {
+            programName
+        } else {
+            "$programName.rpgle"
+        }
+        val resource = javaClass.getResource("/$resourceName")
+        require(resource != null) {
+            "Cannot find resource $resourceName"
+        }
+        val programFinders = listOf(DirRpgProgramFinder(directory = File(resource.path).parentFile.parentFile))
+        val jariko = getProgram(
+            nameOrSource = programName,
+            systemInterface = systemInterface,
+            programFinders = programFinders
+        )
+        return jariko.singleCall(params, configuration.adaptForTestCase(this))
     }
 
     fun getTestCompileDir(): File? {

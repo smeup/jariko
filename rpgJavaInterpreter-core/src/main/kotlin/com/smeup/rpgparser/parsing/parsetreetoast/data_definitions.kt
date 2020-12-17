@@ -68,9 +68,22 @@ fun RpgParser.Dcl_dsContext.elementSizeOf(fieldsList: FieldsList = this.calculat
 }
 
 internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
+    val prefixContexts = this.fs_keyword().mapNotNull { it.keyword_prefix() }
+    val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
+        Prefix(
+            prefix = prefixContexts[0].prefix.text,
+            numCharsReplaced = prefixContexts[0].nbr_of_char_replaced?.let {
+                it.text.toInt()
+            }
+        )
+    } else {
+        null
+    }
     val fileDefinition = FileDefinition(
-            this.FS_RecordName().text.trim(),
-            position = this.toPosition(true))
+        name = this.FS_RecordName().text.trim(),
+        position = this.toPosition(true),
+        prefix = prefix
+    )
     val rename = this.fs_keyword().mapNotNull { it.keyword_rename() }
     if (rename.isNotEmpty()) {
         // TODO Should we evaluate rename[0].int_format ???

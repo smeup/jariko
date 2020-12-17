@@ -62,11 +62,33 @@ abstract class AbstractDataDefinition(
     }
 }
 
+/**
+ * PREFIX node
+ * */
 @Serializable
-data class FileDefinition private constructor(override val name: String, override val position: Position?) : Node(position), Named {
+data class Prefix(private val prefix: String, private val numCharsReplaced: Int?) {
+
+    /**
+     * Apply replacement rules and returns value converted
+     * @param value Value to convert
+     * */
+    fun applyReplacementRules(value: String): String {
+        return when (numCharsReplaced) {
+            null -> "$prefix$value"
+            else -> "$prefix${value.substring(numCharsReplaced)}"
+        }
+    }
+}
+
+@Serializable
+data class FileDefinition private constructor(
+    override val name: String,
+    override val position: Position?,
+    val prefix: Prefix?
+) : Node(position), Named {
     companion object {
-        operator fun invoke(name: String, position: Position? = null): FileDefinition {
-            return FileDefinition(name.toUpperCase(), position)
+        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null): FileDefinition {
+            return FileDefinition(name.toUpperCase(), position, prefix)
         }
     }
 
