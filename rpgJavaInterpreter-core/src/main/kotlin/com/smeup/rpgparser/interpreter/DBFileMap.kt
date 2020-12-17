@@ -18,7 +18,9 @@ class DBFileMap {
         if (byFileName.containsKey(fileDefinition.name) == false) {
 
             //  Get DBFile from Reload using DBFileFactory registered in Context
-            val dbFile = MainExecutionContext.getDBFileFactory()?.open(fileDefinition.name, null)
+            val dbFile = MainExecutionContext.getDBFileFactory()?.open(
+                fileName = fileDefinition.name,
+                fileMetadata = MainExecutionContext.getConfiguration().reloadConfig?.metadataProducer?.invoke(fileDefinition.name))
 
             dbFile?.let {
                 // dbFile not null

@@ -6,15 +6,39 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.file
-import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.RpgProgram
+import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.SystemInterface
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.rpginterop.*
 import org.apache.commons.io.input.BOMInputStream
 import java.io.File
 
-class CommandLineParms(val parmsList: List<String>)
+class CommandLineParms private constructor(
+    val parmsList: List<String>,
+    val namedParams: Map<String, Value>? = null,
+    val namedParamsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>?
+) {
+    constructor(parmsList: List<String>) : this(
+        parmsList = parmsList,
+        namedParams = null,
+        namedParamsProducer = { null }
+    )
+    constructor(namedParams: Map<String, Value>) : this(
+        parmsList = emptyList(),
+        namedParams = namedParams,
+        namedParamsProducer = { null }
+    )
+    constructor(namedParamsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>) : this(
+        parmsList = emptyList(),
+        namedParams = null,
+        namedParamsProducer = namedParamsProducer
+    )
+}
 
 class CommandLineProgramNameSource(val name: String) : ProgramNameSource<CommandLineParms> {
     override fun nameFor(rpgFacade: RpgFacade<CommandLineParms>): String = name
@@ -23,25 +47,42 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
 class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)), systemInterface) {
     override fun toInitialValues(rpgProgram: RpgProgram, params: CommandLineParms): LinkedHashMap<String, Value> {
         val result = LinkedHashMap<String, Value> ()
-        val values = params.parmsList.map { parameter -> StringValue(parameter) }
-        val zipped = rpgProgram.params()
-            .map { dataDefinition -> dataDefinition.name }
-            .zip(values)
-        zipped.forEach {
-            result[it.first] = it.second
+        val producedNamedParams = params.namedParamsProducer.invoke(rpgProgram.cu)
+        if (producedNamedParams != null) {
+            result.putAll(producedNamedParams)
+        } else if (params.namedParams != null) {
+            result.putAll(params.namedParams)
+        } else {
+            val values = params.parmsList.map { parameter -> StringValue(parameter) }
+            val zipped = rpgProgram.params()
+                .map { dataDefinition -> dataDefinition.name }
+                .zip(values)
+            zipped.forEach {
+                result[it.first] = it.second
+            }
         }
         return result
     }
 
     override fun toResults(params: CommandLineParms, resultValues: LinkedHashMap<String, Value>): CommandLineParms {
-        if (params.parmsList.isEmpty()) {
-            return params
+        if (params.namedParams != null) {
+            return CommandLineParms(resultValues)
+        } else {
+            if (params.parmsList.isEmpty()) {
+                return params
+            }
+            return CommandLineParms(resultValues.values.map { it.asString().value })
         }
-        return CommandLineParms(resultValues.values.map { it.asString().value })
     }
 
     @JvmOverloads fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =
         singleCall(CommandLineParms(parms), configuration = configuration)
+
+    @JvmOverloads fun singleCall(parms: Map<String, Value>, configuration: Configuration = Configuration()) =
+        singleCall(CommandLineParms(parms), configuration = configuration)
+
+    @JvmOverloads fun singleCall(parmsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>, configuration: Configuration = Configuration()) =
+        singleCall(CommandLineParms(parmsProducer), configuration = configuration)
 }
 
 class ResourceProgramFinder(val path: String) : RpgProgramFinder {

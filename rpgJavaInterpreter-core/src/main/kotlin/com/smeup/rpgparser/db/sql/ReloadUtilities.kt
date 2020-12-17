@@ -12,12 +12,11 @@ import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 
 /**
  * Convert DBNative Field in Jariko DataDefinition
+ * @param prefix
  */
-fun Field.toDataDefinition(): DataDefinition {
+fun Field.toDataDefinition(prefix: Prefix?): DataDefinition {
 
-    val fieldType = this.type
-
-    var type: Type = when (fieldType) {
+    var type: Type = when (val fieldType = this.type) {
         is CharacterType -> StringType(fieldType.size, !fieldType.fixedSize)
         is IntegerType -> NumberType(fieldType.size, fieldType.digits, RpgType.INTEGER)
         is VarcharType -> StringType(fieldType.size, !fieldType.fixedSize)
@@ -33,8 +32,7 @@ fun Field.toDataDefinition(): DataDefinition {
         is BinaryType -> NumberType(fieldType.size, fieldType.digits, RpgType.BINARY)
         is VarbinaryType -> NumberType(fieldType.size, fieldType.digits, RpgType.BINARY)
     }
-
-    return DataDefinition(this.name, type)
+    return DataDefinition(prefix?.applyReplacementRules(name) ?: name, type)
 }
 
 /*
