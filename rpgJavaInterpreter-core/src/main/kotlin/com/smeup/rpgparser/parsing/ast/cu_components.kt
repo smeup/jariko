@@ -70,6 +70,7 @@ data class CompilationUnit(
                     require(metadata != null) {
                         "Not found metadata for $it"
                     }
+
                     if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
                     _allDataDefinitions.addAll(metadata.fields.map { field -> field.toDataDefinition(it.prefix) })
                 }
