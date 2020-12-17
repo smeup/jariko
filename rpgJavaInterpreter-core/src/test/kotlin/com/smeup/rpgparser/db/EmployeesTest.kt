@@ -3,10 +3,8 @@ package com.smeup.rpgparser.db
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.db.utilities.execute
 import com.smeup.rpgparser.interpreter.StringValue
-import org.hsqldb.Server
 import org.junit.BeforeClass
 import org.junit.Test
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 class EmployeesTest : AbstractTest() {
@@ -133,6 +131,4 @@ class EmployeesTest : AbstractTest() {
 
         assertEquals(listOf("200340", "200330", "200310", "200280", "200240"), outputLines)
     }
-
-
 }

@@ -45,7 +45,6 @@ fun createXEMP2Metadata(): FileMetadata = FileMetadata(
     true
 )
 
-
 fun createXEMP2() = "CREATE VIEW XEMP2 AS SELECT * FROM EMPLOYEE ORDER BY WORKDEPT"
 
 fun createXEMP2Index() = "CREATE INDEX XEMP2$CONVENTIONAL_INDEX_SUFFIX ON EMPLOYEE (WORKDEPT ASC)   "
