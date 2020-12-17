@@ -2,7 +2,10 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.db.sql.toDataDefinition
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
+import com.smeup.rpgparser.interpreter.DataDefinition
+import com.smeup.rpgparser.interpreter.FileDefinition
+import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
@@ -54,14 +57,21 @@ data class CompilationUnit(
                 // Adds DS sub-fields
                 dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
                 fileDefinitions.forEach {
-
                     // Create DS from file metadata
-
-                    val metadata = MainExecutionContext.getConfiguration()?.reloadConfig?.metadata?.first { metadata -> metadata.tableName == it.name }
-                    if (metadata != null) {
-                        if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
-                            _allDataDefinitions.addAll(metadata.fields.map { field -> field.toDataDefinition() })
+                    val reloadConfig = MainExecutionContext.getConfiguration()?.reloadConfig
+                    require(reloadConfig != null) {
+                        "Not found metadata for $it because missing property reloadConfig in configuration"
                     }
+                    val metadata = kotlin.runCatching {
+                        reloadConfig.metadataProducer?.invoke(it.name)
+                    }.onFailure { error ->
+                        throw RuntimeException("Not found metadata for $it", error)
+                    }.getOrNull()
+                    require(metadata != null) {
+                        "Not found metadata for $it"
+                    }
+                    if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
+                    _allDataDefinitions.addAll(metadata.fields.map { field -> field.toDataDefinition(it.prefix) })
                 }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
                 _allDataDefinitions = checkDuplicatedDataDefinition(_allDataDefinitions).toMutableList()

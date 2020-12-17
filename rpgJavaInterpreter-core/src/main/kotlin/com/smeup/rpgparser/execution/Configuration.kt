@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.dbnative.DBManagerBaseImpl
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.interpreter.ActivationGroup
@@ -22,26 +23,28 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
 data class Configuration(
     val memorySliceStorage: IMemorySliceStorage? = null,
     var jarikoCallback: JarikoCallback = JarikoCallback(),
-    val reloadConfig: ReloadConfig? = ReloadConfig(),
+    val reloadConfig: ReloadConfig? = null,
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
     var options: Options? = Options()
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
-            this(memorySliceStorage, JarikoCallback(), ReloadConfig(), DEFAULT_ACTIVATION_GROUP_NAME, Options())
+            this(memorySliceStorage, JarikoCallback(), null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
 
     constructor(memorySliceStorage: IMemorySliceStorage?, defaultActivationGroupName: String) :
-            this(memorySliceStorage, JarikoCallback(), ReloadConfig(), defaultActivationGroupName, Options())
+            this(memorySliceStorage, JarikoCallback(), null, defaultActivationGroupName, Options())
 }
 
 /**
  * Reload configuration
  * @param nativeAccessConfig DB Native Accesso config
- * @param getMetadata get metadata for a dbFile, if returns null, FileMetadata are searched using default lookup method
+ * @param metadataProducer Produce metadata for a dbFile, if returns null, FileMetadata are searched using default lookup method
  * provided by reload
  * */
 data class ReloadConfig(
-    val nativeAccessConfig: DBNativeAccessConfig? = DBNativeAccessConfig(emptyList()),
-    val metadata: List<FileMetadata> = emptyList()
+    val nativeAccessConfig: DBNativeAccessConfig,
+    val metadataProducer: (dbFile: String) -> FileMetadata? = {
+        DBManagerBaseImpl.register.getMetadata(it.toUpperCase())
+    }
 )
 
 /**

@@ -1,4 +1,4 @@
-package com.samples.jariko
+package com.jariko.samples
 
 import com.smeup.dbnative.ConnectionConfig
 import com.smeup.dbnative.DBNativeAccessConfig
@@ -20,10 +20,10 @@ fun callJarikoWithReload() {
 
     // pass reloadConfig to jariko
     val config = Configuration(
-            reloadConfig = ReloadConfig(
-                    nativeAccessConfig = DBNativeAccessConfig(connectionsConfig),
-                    metadata = emptyList()
-            ))
+        reloadConfig = ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(connectionsConfig),
+            metadataProducer = { null }
+        ))
 
     // call jariko
     val inlineProgram = """

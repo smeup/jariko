@@ -7,7 +7,7 @@ import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.getProgram
-import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.hsqldb.Server
 import java.io.File
@@ -74,9 +74,7 @@ fun outputOfDBPgm(
     programName: String,
     metadata: List<FileMetadata>,
     initialSQL: List<String>,
-    inputParms: Map<String, StringValue> = mapOf(),
-    printTree: Boolean = false,
-    compiledProgramsDir: File?
+    inputParms: Map<String, Value> = mapOf()
 ): List<String> {
 
     val si = CollectorSystemInterface()
@@ -94,13 +92,15 @@ fun outputOfDBPgm(
         val commandLineProgram =
             getProgram(nameOrSource = programName, systemInterface = si, programFinders = rpgProgramFinders)
 
-        val parms = inputParms.values.map { it.value.toString() }
+        val parms = inputParms
 
         // Create ReloadConfig for Jariko
         val conf = Configuration(
             reloadConfig = ReloadConfig(
                 nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
-                metadata = metadata
+                metadataProducer = { dbFile ->
+                    metadata.firstOrNull { it.tableName == dbFile }
+                }
             ),
             defaultActivationGroupName = "MYGRP"
         )

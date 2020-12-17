@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -882,6 +883,24 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
 
     companion object {
         fun blank(length: Int) = DataStructValue(" ".repeat(length))
+
+        /**
+         * Create a new instance of DataStructValue
+         * @param compilationUnit A compilation unit
+         * @param dataStructName Name
+         * @param values Initialization values
+         * */
+        fun createInstance(compilationUnit: CompilationUnit, dataStructName: String, values: Map<String, Value>): DataStructValue {
+            val dataStructureDefinition = compilationUnit.getDataDefinition(dataStructName)
+            val newInstance = blank(dataStructureDefinition.type.size)
+            values.forEach {
+                newInstance.set(
+                    field = dataStructureDefinition.getFieldByName(it.key),
+                    value = it.value
+                )
+            }
+            return newInstance
+        }
     }
 
     override fun toString(): String {
