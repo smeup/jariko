@@ -42,6 +42,9 @@ class ChainHostsDBTest {
             "INSERT INTO QATOCHOST (INTERNET, HOSTNME1) VALUES('127.0.0.1', 'LOOPBACK')"
     }
 
+    /**
+     * Test successfully CHAIN (%FOUND = true)
+     */
     @Test
     fun findsExistingRecord() {
         assertEquals(
@@ -55,6 +58,9 @@ class ChainHostsDBTest {
         )
     }
 
+    /**
+     * Test failed CHAIN (%FOUND = false)
+     */
     @Test
     fun doesNotFindNonExistingRecord() {
         assertEquals(

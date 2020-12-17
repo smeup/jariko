@@ -34,4 +34,13 @@ class DBFileMap {
         }
     }
     operator fun get(nameOrFormat: String): DBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+
+    /**
+     * Close all opened file
+     */
+    fun closeAll() {
+        byFileName.forEach() {
+            it.value.close()
+        }
+    }
 }

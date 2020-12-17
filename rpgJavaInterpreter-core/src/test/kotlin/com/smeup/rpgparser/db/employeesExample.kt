@@ -31,6 +31,21 @@ fun createEmployeeMetadata(): FileMetadata = FileMetadata(
     true
 )
 
+fun createXEMP2Metadata(): FileMetadata = FileMetadata(
+    "XEMP2",
+    "EMPLOYEE_XEMP2",
+    listOf(
+        "EMPNO" fieldByType CharacterType(6),
+        "FIRSTNME" fieldByType CharacterType(12),
+        "MIDINIT" fieldByType CharacterType(1),
+        "LASTNAME" fieldByType CharacterType(15),
+        "WORKDEPT" fieldByType CharacterType(3)
+    ),
+    listOf("WORKDEPT"),
+    true
+)
+
+
 fun createXEMP2() = "CREATE VIEW XEMP2 AS SELECT * FROM EMPLOYEE ORDER BY WORKDEPT"
 
 fun createXEMP2Index() = "CREATE INDEX XEMP2$CONVENTIONAL_INDEX_SUFFIX ON EMPLOYEE (WORKDEPT ASC)   "
