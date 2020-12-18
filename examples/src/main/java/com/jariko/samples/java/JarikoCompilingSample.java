@@ -1,4 +1,4 @@
-package com.smeup.jariko.samples;
+package com.jariko.samples.java;
 
 import com.smeup.rpgparser.execution.CommandLineProgram;
 import com.smeup.rpgparser.execution.Configuration;
@@ -33,7 +33,6 @@ public class JarikoCompilingSample {
         // Start Jariko
         CommandLineProgram jariko = RunnerKt.getProgram("MUTE10_75L", javaSystemInterface, programFinders);
         System.out.println(jariko.singleCall(Arrays.asList(), configuration).getParmsList());
-
     }
 
 }

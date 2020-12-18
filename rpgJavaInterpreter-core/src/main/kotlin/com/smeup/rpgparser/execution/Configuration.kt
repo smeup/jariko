@@ -45,7 +45,15 @@ data class ReloadConfig(
     val metadataProducer: (dbFile: String) -> FileMetadata? = {
         DBManagerBaseImpl.register.getMetadata(it.toUpperCase())
     }
-)
+) {
+    /**
+     * Creates a configuration with metadata loading delegated to reload
+     * */
+    constructor(nativeAccessConfig: DBNativeAccessConfig) : this (
+        nativeAccessConfig = nativeAccessConfig,
+        metadataProducer = { DBManagerBaseImpl.register.getMetadata(it.toUpperCase()) }
+    )
+}
 
 /**
  * Options object

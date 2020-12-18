@@ -18,7 +18,7 @@ import com.smeup.rpgparser.rpginterop.*
 import org.apache.commons.io.input.BOMInputStream
 import java.io.File
 
-class CommandLineParms private constructor(
+class CommandLineParms internal constructor(
     val parmsList: List<String>,
     val namedParams: Map<String, Value>? = null,
     val namedParamsProducer: (compilationUnit: CompilationUnit) -> Map<String, Value>?
@@ -65,14 +65,16 @@ class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFa
     }
 
     override fun toResults(params: CommandLineParms, resultValues: LinkedHashMap<String, Value>): CommandLineParms {
-        if (params.namedParams != null) {
-            return CommandLineParms(resultValues)
+        // paramsList empty and namePrams null means no params pass to jariko
+        val paramsList = if (params.namedParams == null && params.parmsList.isEmpty()) {
+            params.parmsList
         } else {
-            if (params.parmsList.isEmpty()) {
-                return params
-            }
-            return CommandLineParms(resultValues.values.map { it.asString().value })
+            resultValues.values.map { it.asString().value }
         }
+        return CommandLineParms(
+            parmsList = paramsList,
+            namedParams = resultValues
+        ) { null }
     }
 
     @JvmOverloads fun singleCall(parms: List<String>, configuration: Configuration = Configuration()) =

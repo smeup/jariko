@@ -1,4 +1,4 @@
-package com.smeup.jariko.samples;
+package com.jariko.samples.java;
 
 import com.smeup.rpgparser.interpreter.*;
 

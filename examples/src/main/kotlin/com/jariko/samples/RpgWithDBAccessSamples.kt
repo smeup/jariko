@@ -4,7 +4,6 @@ import com.andreapivetta.kolor.yellow
 import com.smeup.dbnative.ConnectionConfig
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.DataStructValue
@@ -21,9 +20,9 @@ private fun createConnectionConfig(): ConnectionConfig? {
     return if (url != null && user != null && password != null && driver != null) {
         ConnectionConfig(
             fileName = "*",
-            url = url!!,
-            user = user!!,
-            password = password!!,
+            url = url,
+            user = user,
+            password = password,
             driver = driver
         )
     } else {
@@ -36,22 +35,10 @@ private fun createConnectionConfig(): ConnectionConfig? {
 fun execHowToPassDS() {
     val programName = "X1_X21_05M"
     val result = createConnectionConfig()?.let { connectionConfig ->
-        // Crate DS fields
-        val dataStructFields = mapOf(
-            "\$UIBPG" to StringValue("EXB"),
-            "\$UIBFU" to StringValue(programName),
-            "\$UIBME" to StringValue("MAT.CAL"),
-            "\$UIBK2" to StringValue("ERB")
-        )
+
         var dataStructValue: DataStructValue? = null
         val configuration = Configuration(
-            reloadConfig = ReloadConfig(DBNativeAccessConfig(listOf(connectionConfig))),
-            jarikoCallback = JarikoCallback(
-                // in this callback create DS value
-                afterAstCreation = {
-                    dataStructValue = DataStructValue.createInstance(it, "£UIBDS", dataStructFields)
-                }
-            )
+            reloadConfig = ReloadConfig(DBNativeAccessConfig(listOf(connectionConfig)))
         )
         val resource = {}.javaClass.getResource("/rpg/$programName.rpgle")
         val programFinders = listOf(DirRpgProgramFinder(directory = File(resource.path).parentFile))
@@ -61,7 +48,14 @@ fun execHowToPassDS() {
             programFinders = programFinders
         ).singleCall(
             parmsProducer = {
-                mapOf("£UIBDS" to dataStructValue!!)
+                // Crate DS fields
+                val dataStructFields = mapOf(
+                    "\$UIBPG" to StringValue("EXB"),
+                    "\$UIBFU" to StringValue(programName),
+                    "\$UIBME" to StringValue("MAT.CAL"),
+                    "\$UIBK2" to StringValue("ERB")
+                )
+                mapOf("£UIBDS" to DataStructValue.createInstance(it, "£UIBDS", dataStructFields))
             },
             configuration = configuration
         )
