@@ -8,6 +8,7 @@ import com.smeup.rpgparser.RpgParser.*
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.ast.createCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
@@ -320,10 +321,17 @@ class RpgParserFacade {
     }
 
     fun parseAndProduceAst(
-        inputStream: InputStream
+        inputStream: InputStream,
+        extension: String? = SourceProgram.RPGLE.extension
     ): CompilationUnit {
-        return (tryToLoadCompilationUnit() ?: createAst(inputStream)).apply {
-            MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
+        return if (extension == SourceProgram.RPGLE.extension) {
+            (tryToLoadCompilationUnit() ?: createAst(inputStream)).apply {
+                MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
+            }
+        } else {
+            inputStream.readBytes().createCompilationUnit().apply {
+                MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
+            }
         }
     }
 
