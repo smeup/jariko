@@ -46,7 +46,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     }
 
     companion object {
-        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED INPUT STREAM>", suffix: String = "rpgle"): RpgProgram {
+        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED INPUT STREAM>", suffix: String? = SourceProgram.RPGLE.extension): RpgProgram {
             val cu = RpgParserFacade().parseAndProduceAst(inputStream, suffix)
             return RpgProgram(cu, name)
         }
