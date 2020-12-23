@@ -35,6 +35,9 @@ class ProgramFinderTest : AbstractTest() {
         var resourcesDir = File(System.getProperty("java.io.tmpdir"))
         var sourceFile = File("src/test/resources/DUMMY_FOR_TEST.rpgle")
         var sourceDestFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.rpgle")
+        if (sourceDestFile.exists()) {
+            sourceDestFile.delete()
+        }
         sourceFile.copyTo(sourceDestFile, true)
         var compiledProgramFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.bin")
         if (compiledProgramFile.exists()) {
