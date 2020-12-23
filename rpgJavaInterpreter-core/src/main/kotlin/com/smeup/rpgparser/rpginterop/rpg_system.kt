@@ -31,6 +31,9 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     }
 
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
+        // TODO
+        // refactor to avoid code duplication and a better handle of
+        // new SourceProgram exetensions
         val file = File(prefix() + nameAndSuffix(nameOrSource))
 
         // InputStream from '.rpgle' program
