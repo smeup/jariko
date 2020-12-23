@@ -35,12 +35,12 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 
         // InputStream from '.rpgle' program
         if (nameOrSource.endsWith(SourceProgram.RPGLE.extension) && file.exists()) {
-            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.RPGLE.extension)
+            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.RPGLE)
         }
 
         // InputStream from '.bin' program
         if (nameOrSource.endsWith(SourceProgram.BINARY.extension) && file.exists()) {
-            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.BINARY.extension)
+            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.BINARY)
         }
 
         // No extension, should be '.rpgle' or '.bin'
@@ -48,11 +48,11 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
             !nameOrSource.endsWith(SourceProgram.BINARY.extension)) {
             var anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.RPGLE.extension}")
             if (anonymouosFile.exists()) {
-                return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), "$nameOrSource.${SourceProgram.RPGLE.extension}", SourceProgram.RPGLE.extension)
+                return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.RPGLE)
             } else {
                 anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.BINARY.extension}")
                 if (anonymouosFile.exists()) {
-                    return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), "$nameOrSource.${SourceProgram.BINARY.extension}", SourceProgram.BINARY.extension)
+                    return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.BINARY)
                 } else {
                     return null
                 }

@@ -322,9 +322,9 @@ class RpgParserFacade {
 
     fun parseAndProduceAst(
         inputStream: InputStream,
-        extension: String? = SourceProgram.RPGLE.extension
+        extension: SourceProgram? = SourceProgram.RPGLE
     ): CompilationUnit {
-        return if (extension == SourceProgram.RPGLE.extension) {
+        return if (extension?.extension == SourceProgram.RPGLE.extension) {
             (tryToLoadCompilationUnit() ?: createAst(inputStream)).apply {
                 MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
             }

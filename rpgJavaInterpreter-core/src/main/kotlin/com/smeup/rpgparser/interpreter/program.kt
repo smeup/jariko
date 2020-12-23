@@ -46,7 +46,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     }
 
     companion object {
-        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED INPUT STREAM>", suffix: String? = SourceProgram.RPGLE.extension): RpgProgram {
+        fun fromInputStream(inputStream: InputStream, name: String = "<UNNAMED INPUT STREAM>", suffix: SourceProgram? = SourceProgram.RPGLE): RpgProgram {
             val cu = RpgParserFacade().parseAndProduceAst(inputStream, suffix)
             return RpgProgram(cu, name)
         }
@@ -60,7 +60,7 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         logHandlers.log(ProgramInterpretationLogStart(name, params))
         val changedInitialValues: List<Value>
         val elapsed = measureTimeMillis {
-            interpreter!!.interpretationContext = object : InterpretationContext {
+            interpreter.interpretationContext = object : InterpretationContext {
                 private var iDataWrapUpChoice: DataWrapUpChoice? = null
                 override val currentProgramName: String
                     get() = name
