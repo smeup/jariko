@@ -165,3 +165,8 @@ fun String.createCompilationUnit() = json.decodeFromString<CompilationUnit>(this
 
 fun CompilationUnit.encodeToByteArray() = cbor.encodeToByteArray(this)
 fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit>(this)
+
+enum class SourceProgram(val extension: String) {
+    RPGLE("rpgle"),
+    BINARY("bin"),
+}
