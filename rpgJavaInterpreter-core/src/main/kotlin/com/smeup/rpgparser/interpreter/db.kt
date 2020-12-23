@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.BufferedReader
 import java.io.InputStream
 
 private val json = Json {
@@ -51,7 +52,8 @@ data class FileMetadata(
          * Create FileMetadataInstance from json located in inputStream
          * */
         @JvmStatic
-        fun createInstance(inputStream: InputStream) = json.decodeFromString<FileMetadata>(String(inputStream.readAllBytes()))
+        fun createInstance(inputStream: InputStream) =
+            json.decodeFromString<FileMetadata>(inputStream.bufferedReader().use(BufferedReader::readText))
 
         /**
          * Create a json example including all jariko types
