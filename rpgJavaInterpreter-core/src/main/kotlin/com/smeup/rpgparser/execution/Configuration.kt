@@ -1,9 +1,8 @@
 package com.smeup.rpgparser.execution
 
-import com.smeup.dbnative.DBManagerBaseImpl
 import com.smeup.dbnative.DBNativeAccessConfig
-import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.interpreter.ActivationGroup
+import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.IMemorySliceStorage
 import com.smeup.rpgparser.interpreter.ISymbolTable
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
@@ -23,7 +22,7 @@ const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
 data class Configuration(
     val memorySliceStorage: IMemorySliceStorage? = null,
     var jarikoCallback: JarikoCallback = JarikoCallback(),
-    val reloadConfig: ReloadConfig? = null,
+    var reloadConfig: ReloadConfig? = null,
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
     var options: Options? = Options()
 ) {
@@ -42,18 +41,8 @@ data class Configuration(
  * */
 data class ReloadConfig(
     val nativeAccessConfig: DBNativeAccessConfig,
-    val metadataProducer: (dbFile: String) -> FileMetadata? = {
-        DBManagerBaseImpl.register.getMetadata(it.toUpperCase())
-    }
-) {
-    /**
-     * Creates a configuration with metadata loading delegated to reload
-     * */
-    constructor(nativeAccessConfig: DBNativeAccessConfig) : this (
-        nativeAccessConfig = nativeAccessConfig,
-        metadataProducer = { DBManagerBaseImpl.register.getMetadata(it.toUpperCase()) }
-    )
-}
+    val metadataProducer: (dbFile: String) -> FileMetadata
+)
 
 /**
  * Options object

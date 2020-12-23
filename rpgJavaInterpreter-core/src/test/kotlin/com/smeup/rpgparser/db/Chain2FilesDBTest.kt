@@ -1,11 +1,7 @@
 package com.smeup.rpgparser.db
 
-import com.smeup.dbnative.model.CharacterType
-import com.smeup.dbnative.model.DecimalType
-import com.smeup.dbnative.model.FileMetadata
-import com.smeup.dbnative.utils.fieldByType
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -28,15 +24,14 @@ class Chain2FilesDBTest : AbstractTest() {
     }
 
     private fun createMetadata(name: String) = FileMetadata(
-        name,
-        "TSTREC",
-        listOf(
-            "KEYTST" fieldByType CharacterType(5),
-            "DESTST" fieldByType CharacterType(40),
-            "NBRTST" fieldByType DecimalType(2, 0)
+        tableName = name,
+        recordFormat = "TSTREC",
+        fields = listOf(
+            DbField("KEYTST", StringType(5)),
+            DbField("DESTST", StringType(40)),
+            DbField("NBRTST", NumberType(2, 0))
         ),
-        listOf("KEYTST"),
-        true
+        listOf("KEYTST")
     )
 
     private fun sqlCreateTestTable(name: String) =

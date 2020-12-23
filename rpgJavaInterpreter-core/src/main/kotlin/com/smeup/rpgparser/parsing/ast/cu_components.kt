@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.db.sql.toDataDefinition
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition

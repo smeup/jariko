@@ -2,11 +2,11 @@ package com.smeup.rpgparser.db.utilities
 
 import com.smeup.dbnative.ConnectionConfig
 import com.smeup.dbnative.DBNativeAccessConfig
-import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.hsqldb.Server
@@ -99,7 +99,7 @@ fun outputOfDBPgm(
             reloadConfig = ReloadConfig(
                 nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
                 metadataProducer = { dbFile ->
-                    metadata.firstOrNull { it.tableName == dbFile }
+                    metadata.first { it.tableName == dbFile }
                 }
             ),
             defaultActivationGroupName = "MYGRP"

@@ -22,7 +22,7 @@ fun callJarikoWithReload() {
     val config = Configuration(
         reloadConfig = ReloadConfig(
             nativeAccessConfig = DBNativeAccessConfig(connectionsConfig),
-            metadataProducer = { null }
+            metadataProducer = { error("not yet implemented") }
         ))
 
     // call jariko

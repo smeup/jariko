@@ -15,12 +15,12 @@ class DBFileMap {
      */
     fun add(fileDefinition: FileDefinition) {
 
-        if (byFileName.containsKey(fileDefinition.name) == false) {
+        if (!byFileName.containsKey(fileDefinition.name)) {
 
-            //  Get DBFile from Reload using DBFileFactory registered in Context
             val dbFile = MainExecutionContext.getDBFileFactory()?.open(
                 fileName = fileDefinition.name,
-                fileMetadata = MainExecutionContext.getConfiguration().reloadConfig?.metadataProducer?.invoke(fileDefinition.name))
+                fileMetadata = MainExecutionContext.getConfiguration().reloadConfig?.metadataProducer?.invoke(fileDefinition.name)?.toReloadMetadata()
+            )
 
             dbFile?.let {
                 // dbFile not null

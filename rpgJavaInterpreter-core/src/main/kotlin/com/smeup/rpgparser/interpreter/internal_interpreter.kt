@@ -498,7 +498,10 @@ class InternalInterpreter(
         if (!record.isEmpty()) {
             status.lastFound = true
             record.forEach {
-                assign(dataDefinitionByName(it.key)!!, StringValue(it.value))
+                val dataDefinition = dataDefinitionByName(it.key)
+                dataDefinition?.apply {
+                    assign(this, StringValue(it.value))
+                } ?: System.err.println("Field: $it.key not found in SymbolTable")
             }
         } else {
             status.lastFound = false

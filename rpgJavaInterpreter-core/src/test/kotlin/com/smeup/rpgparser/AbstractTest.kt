@@ -1,6 +1,7 @@
 package com.smeup.rpgparser
 
-import com.smeup.dbnative.model.FileMetadata
+import com.smeup.dbnative.ConnectionConfig
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -131,6 +132,39 @@ abstract class AbstractTest {
             testCompiledDir
         } else {
             null
+        }
+    }
+
+    private fun createConnectionConfig(): ConnectionConfig? {
+        val url: String? = System.getenv("JRK_TEST_DB_URL")
+        val user: String? = System.getenv("JRK_TEST_DB_USR")
+        val password: String? = System.getenv("JRK_TEST_DB_PWD")
+        val driver: String? = System.getenv("JRK_TEST_DB_DRIVER")
+        return if (url != null && user != null && password != null && driver != null) {
+            ConnectionConfig(
+                fileName = "*",
+                url = url,
+                user = user,
+                password = password,
+                driver = driver
+            )
+        } else {
+            null
+        }
+    }
+
+    fun createReloadConfig(): ReloadConfig? {
+        return createConnectionConfig()?.let {
+            ReloadConfig(
+                nativeAccessConfig = DBNativeAccessConfig(listOf(it)),
+                metadataProducer = { dbFile ->
+                    val resource = javaClass.getResource("/db/metadata/$dbFile.json")
+                    require(resource != null) {
+                        "Cannot find /db/metadata/$dbFile.json in test resources"
+                    }
+                    FileMetadata.createInstance(resource.openStream())
+                }
+            )
         }
     }
 

@@ -1,12 +1,8 @@
 package com.smeup.rpgparser.db
 
-import com.smeup.dbnative.model.CharacterType
-import com.smeup.dbnative.model.DecimalType
-import com.smeup.dbnative.model.FileMetadata
-import com.smeup.dbnative.utils.fieldByType
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.db.utilities.execute
-import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.*
 import org.junit.BeforeClass
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -51,12 +47,11 @@ class Chain2KeysDBTest : AbstractTest() {
         "MYFILE2",
         "TS2REC",
         listOf(
-            "KY1TST" fieldByType CharacterType(5),
-            "KY2TST" fieldByType DecimalType(2, 0),
-            "DESTST" fieldByType CharacterType(40)
+            DbField("KY1TST", StringType(5)),
+            DbField("KY2TST", NumberType(2, 0)),
+                DbField("DESTST", StringType(40))
         ),
-        listOf("KY1TST", "KY2TST"),
-        true
+        listOf("KY1TST", "KY2TST")
     )
 
     @Test
