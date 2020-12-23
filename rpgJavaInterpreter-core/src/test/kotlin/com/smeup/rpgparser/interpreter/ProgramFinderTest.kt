@@ -33,9 +33,13 @@ class ProgramFinderTest : AbstractTest() {
         val systemInterface: SystemInterface = JavaSystemInterface()
         (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
         var resourcesDir = File(System.getProperty("java.io.tmpdir"))
-        var sourceFile = File("src/test/resources/ECHOPGM.rpgle")
+        var sourceFile = File("src/test/resources/DUMMY_FOR_TEST.rpgle")
         var sourceDestFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.rpgle")
         sourceFile.copyTo(sourceDestFile, true)
+        var compiledProgramFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.bin")
+        if (compiledProgramFile.exists()) {
+            compiledProgramFile.delete()
+        }
 
         // 01.
         var programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(resourcesDir))
@@ -51,10 +55,6 @@ class ProgramFinderTest : AbstractTest() {
         assertEquals("Hi, you called ECHOPGM.rpgle", results!!.parmsList[0].trim())
 
         // 04.
-        var compiledProgramFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.bin")
-        if (compiledProgramFile.exists()) {
-            compiledProgramFile.delete()
-        }
         assertFalse(compiledProgramFile.exists())
         jariko = getProgram("ECHOPGM.bin", systemInterface, programFinders)
         kotlin.runCatching {
@@ -66,7 +66,7 @@ class ProgramFinderTest : AbstractTest() {
         }
 
         // 05.
-        compile(sourceFile, resourcesDir)
+        compile(sourceDestFile, resourcesDir)
         assertTrue(compiledProgramFile.exists())
 
         // 06.
