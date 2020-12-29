@@ -26,6 +26,19 @@ open class MiscDBTest : AbstractTest() {
                 systemInterface = JavaSystemInterface().apply {
                     loggingConfiguration = consoleVerboseConfiguration()
                 },
+                /*
+                systemInterface = JavaSystemInterface().apply {
+                    loggingConfiguration = fileLoggingConfiguration(
+                        File("/home/tron/jariko_rpg", "X1_X21_06N.log"),
+                        DATA_LOGGER,
+                        LOOP_LOGGER,
+                        STATEMENT_LOGGER,
+                        EXPRESSION_LOGGER,
+                        PERFORMANCE_LOGGER,
+                        RESOLUTION_LOGGER,
+                        PARSING_LOGGER
+                    )
+                },*/
                 params = CommandLineParms() { compilationUnit ->
                     val dsName = "£UIBDS"
                     // this map have as key the ds name and as value the ds value returned byDataStructValue.createInstance

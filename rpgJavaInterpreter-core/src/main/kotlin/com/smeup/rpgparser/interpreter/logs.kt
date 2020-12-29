@@ -916,3 +916,123 @@ class SymbolTableStoreLogEnd(programName: String, val elapsed: Long) : LogEntry(
         return renderHeader(channel, filename, "", sep) + data
     }
 }
+
+class SetllLogStart(programName: String, val statement: SetllStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing SETLL"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "SETLL START$sep$statement"
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class SetllLogEnd(programName: String, val statement: SetllStmt, val elapsed: Long) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ending SETLL"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.endLine(), sep) + "SETLL END"
+    }
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "SETLL END${sep}${elapsed}${sep}ms"
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+
+class ReadLogStart(programName: String, val statement: ReadStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing READ"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "READ START$sep$statement"
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class ReadLogEnd(programName: String, val statement: ReadStmt, val elapsed: Long) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ending READ"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.endLine(), sep) + "READ END"
+    }
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "READ END${sep}${elapsed}${sep}ms"
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+
+class ReadEqualLogStart(programName: String, val statement: ReadEqualStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing READEQ"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "READEQ START$sep$statement"
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class ReadEqualLogEnd(programName: String, val statement: ReadEqualStmt, val elapsed: Long) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ending READEQ"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.endLine(), sep) + "READEQ END"
+    }
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "READEQ END${sep}${elapsed}${sep}ms"
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+
+class ReadPreviousLogStart(programName: String, val statement: ReadPreviousStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing READP"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "READP START$sep$statement"
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class ReadPreviousLogEnd(programName: String, val statement: ReadPreviousStmt, val elapsed: Long) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ending READP"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.endLine(), sep) + "READP END"
+    }
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "READP END${sep}${elapsed}${sep}ms"
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+
+class ChainLogStart(programName: String, val statement: ChainStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing CHAIN"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "CHAIN START$sep$statement"
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class ChainLogEnd(programName: String, val statement: ChainStmt, val elapsed: Long) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ending CHAIN"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.endLine(), sep) + "CHAIN END"
+    }
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "CHAIN END$sep$elapsed${sep}ms"
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}

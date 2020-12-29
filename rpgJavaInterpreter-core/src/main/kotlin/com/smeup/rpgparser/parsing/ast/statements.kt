@@ -299,13 +299,28 @@ data class MoveAStmt(
     ) :
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
-            val dbFile = interpreter.dbFile(name, this)
-            val result = if (searchArg.type() is KListType) {
-                dbFile.chain(interpreter.toSearchValues(searchArg))
-            } else {
-                dbFile.chain(interpreter.eval(searchArg).asString().value)
+            interpreter.log {
+                ChainLogStart(
+                    interpreter.interpretationContext.currentProgramName,
+                    this
+                )
             }
-            interpreter.fillDataFrom(result.record)
+            val elapsed = measureTimeMillis {
+                val dbFile = interpreter.dbFile(name, this)
+                val result = if (searchArg.type() is KListType) {
+                    dbFile.chain(interpreter.toSearchValues(searchArg))
+                } else {
+                    dbFile.chain(interpreter.eval(searchArg).asString().value)
+                }
+                interpreter.fillDataFrom(result.record)
+            }
+            interpreter.log {
+                ChainLogEnd(
+                    interpreter.interpretationContext.currentProgramName,
+                    this,
+                    elapsed
+                )
+            }
         }
     }
 
@@ -317,13 +332,28 @@ data class MoveAStmt(
     ) :
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
-            val dbFile = interpreter.dbFile(name, this)
-            val result = when {
-                searchArg == null -> dbFile.readEqual()
-                searchArg.type() is KListType -> dbFile.readEqual(interpreter.toSearchValues(searchArg))
-                else -> dbFile.readEqual(interpreter.eval(searchArg).asString().value)
+            interpreter.log {
+                ReadEqualLogStart(
+                    interpreter.interpretationContext.currentProgramName,
+                    this
+                )
             }
-            interpreter.fillDataFrom(result.record)
+            val elapsed = measureTimeMillis {
+                val dbFile = interpreter.dbFile(name, this)
+                val result = when {
+                    searchArg == null -> dbFile.readEqual()
+                    searchArg.type() is KListType -> dbFile.readEqual(interpreter.toSearchValues(searchArg))
+                    else -> dbFile.readEqual(interpreter.eval(searchArg).asString().value)
+                }
+                interpreter.fillDataFrom(result.record)
+            }
+            interpreter.log {
+                ReadEqualLogEnd(
+                    interpreter.interpretationContext.currentProgramName,
+                    this,
+                    elapsed
+                )
+            }
         }
     }
 
@@ -335,13 +365,28 @@ data class MoveAStmt(
     ) :
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
-            val dbFile = interpreter.dbFile(name, this)
-            val result = when {
-                searchArg == null -> dbFile.readPrevious()
-                searchArg.type() is KListType -> dbFile.readPreviousEqual(interpreter.toSearchValues(searchArg))
-                else -> dbFile.readPreviousEqual(interpreter.eval(searchArg).asString().value)
+            interpreter.log {
+                ReadPreviousLogStart(
+                    interpreter.interpretationContext.currentProgramName,
+                    this
+                )
             }
-            interpreter.fillDataFrom(result.record)
+            val elapsed = measureTimeMillis {
+                val dbFile = interpreter.dbFile(name, this)
+                val result = when {
+                    searchArg == null -> dbFile.readPrevious()
+                    searchArg.type() is KListType -> dbFile.readPreviousEqual(interpreter.toSearchValues(searchArg))
+                    else -> dbFile.readPreviousEqual(interpreter.eval(searchArg).asString().value)
+                }
+                interpreter.fillDataFrom(result.record)
+            }
+            interpreter.log {
+                ReadPreviousLogEnd(
+                    interpreter.interpretationContext.currentProgramName,
+                    this,
+                    elapsed
+                )
+            }
         }
     }
 
@@ -352,9 +397,24 @@ data class MoveAStmt(
     ) :
             Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
-            val dbFile = interpreter.dbFile(name, this)
-            val result = dbFile.read()
-            interpreter.fillDataFrom(result.record)
+            interpreter.log {
+                ReadLogStart(
+                    interpreter.interpretationContext.currentProgramName,
+                    this
+                )
+            }
+            val elapsed = measureTimeMillis {
+                val dbFile = interpreter.dbFile(name, this)
+                val result = dbFile.read()
+                interpreter.fillDataFrom(result.record)
+            }
+            interpreter.log {
+                ReadLogEnd(
+                    interpreter.interpretationContext.currentProgramName,
+                    this,
+                    elapsed
+                )
+            }
         }
     }
 
@@ -365,11 +425,26 @@ data class MoveAStmt(
         override val position: Position? = null
     ) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
-            val dbFile = interpreter.dbFile(name, this)
-            interpreter.status.lastFound = if (searchArg.type() is KListType) {
-                dbFile.setll(interpreter.toSearchValues(searchArg))
-            } else {
-                dbFile.setll(interpreter.eval(searchArg).asString().value)
+            interpreter.log {
+                SetllLogStart(
+                    interpreter.interpretationContext.currentProgramName,
+                    this
+                )
+            }
+            val elapsed = measureTimeMillis {
+                val dbFile = interpreter.dbFile(name, this)
+                interpreter.status.lastFound = if (searchArg.type() is KListType) {
+                    dbFile.setll(interpreter.toSearchValues(searchArg))
+                } else {
+                    dbFile.setll(interpreter.eval(searchArg).asString().value)
+                }
+            }
+            interpreter.log {
+                SetllLogEnd(
+                    interpreter.interpretationContext.currentProgramName,
+                    this,
+                    elapsed
+                )
             }
         }
     }
