@@ -76,3 +76,21 @@ object SerializationOption {
         BinaryInterpreterSerialization(binaryFormat())
     }
 }
+
+/**
+ * Value serializer helper
+ * */
+object ValueSerializer {
+
+    /**
+     * Encodes value in json format
+     * */
+    @JvmStatic
+    fun encode(value: Value) = SerializationOption.stringSerializer.encodeToString(value)
+
+    /**
+    * Decodes string in a value instance
+    * */
+    @JvmStatic
+    fun decode(string: String): Value = SerializationOption.stringSerializer.decodeFromString(string)
+}
