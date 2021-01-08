@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
@@ -329,29 +330,35 @@ data class MoveAStmt(
         val searchArg: Expression?, // Factor1
         val name: String, // Factor 2
         override val position: Position? = null
-    ) :
-            Statement(position) {
+    ) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
+            val kList: List<String> = when {
+                searchArg == null -> emptyList()
+                searchArg.type() is KListType -> interpreter.toSearchValues(searchArg)
+                else -> listOf(interpreter.eval(searchArg).asString().value)
+            }
             interpreter.log {
                 ReadEqualLogStart(
-                    interpreter.interpretationContext.currentProgramName,
-                    this
+                    programName = interpreter.interpretationContext.currentProgramName,
+                    statement = this,
+                    kList
                 )
             }
+            val result: Result
             val elapsed = measureTimeMillis {
                 val dbFile = interpreter.dbFile(name, this)
-                val result = when {
-                    searchArg == null -> dbFile.readEqual()
-                    searchArg.type() is KListType -> dbFile.readEqual(interpreter.toSearchValues(searchArg))
-                    else -> dbFile.readEqual(interpreter.eval(searchArg).asString().value)
+                result = when (searchArg) {
+                    null -> dbFile.readEqual()
+                    else -> dbFile.readEqual(kList)
                 }
                 interpreter.fillDataFrom(result.record)
             }
             interpreter.log {
                 ReadEqualLogEnd(
-                    interpreter.interpretationContext.currentProgramName,
-                    this,
-                    elapsed
+                    programName = interpreter.interpretationContext.currentProgramName,
+                    statement = this,
+                    result = result,
+                    elapsed = elapsed
                 )
             }
         }
@@ -417,7 +424,7 @@ data class MoveAStmt(
             }
         }
     }
-
+    
     @Serializable
     data class SetllStmt(
         val searchArg: Expression, // Factor1
@@ -425,19 +432,21 @@ data class MoveAStmt(
         override val position: Position? = null
     ) : Statement(position) {
         override fun execute(interpreter: InterpreterCore) {
+            val kList: List<String> = if (searchArg.type() is KListType) {
+                interpreter.toSearchValues(searchArg)
+            } else {
+                listOf(interpreter.eval(searchArg).asString().value)
+            }
             interpreter.log {
                 SetllLogStart(
-                    interpreter.interpretationContext.currentProgramName,
-                    this
+                    programName = interpreter.interpretationContext.currentProgramName,
+                    statement = this,
+                    kList = kList
                 )
             }
             val elapsed = measureTimeMillis {
                 val dbFile = interpreter.dbFile(name, this)
-                interpreter.status.lastFound = if (searchArg.type() is KListType) {
-                    dbFile.setll(interpreter.toSearchValues(searchArg))
-                } else {
-                    dbFile.setll(interpreter.eval(searchArg).asString().value)
-                }
+                interpreter.status.lastFound = dbFile.setll(kList)
             }
             interpreter.log {
                 SetllLogEnd(

@@ -501,7 +501,7 @@ class InternalInterpreter(
                 val dataDefinition = dataDefinitionByName(it.key)
                 dataDefinition?.apply {
                     assign(this, StringValue(it.value))
-                } ?: System.err.println("Field: $it.key not found in SymbolTable")
+                } ?: System.err.println("Field: ${it.key} not found in SymbolTable")
             }
         } else {
             status.lastFound = false

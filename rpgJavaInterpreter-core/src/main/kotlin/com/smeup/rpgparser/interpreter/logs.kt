@@ -917,12 +917,12 @@ class SymbolTableStoreLogEnd(programName: String, val elapsed: Long) : LogEntry(
     }
 }
 
-class SetllLogStart(programName: String, val statement: SetllStmt) : LogEntry(programName) {
+class SetllLogStart(programName: String, val statement: SetllStmt, val kList: List<String>) : LogEntry(programName) {
     override fun toString(): String {
         return "executing SETLL"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SETLL START$sep$statement"
+        val data = "SETLL START$sep$kList}"
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
@@ -965,23 +965,23 @@ class ReadLogEnd(programName: String, val statement: ReadStmt, val elapsed: Long
     }
 }
 
-class ReadEqualLogStart(programName: String, val statement: ReadEqualStmt) : LogEntry(programName) {
+class ReadEqualLogStart(programName: String, val statement: ReadEqualStmt, val kList: List<String>) : LogEntry(programName) {
     override fun toString(): String {
         return "executing READEQ"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "READEQ START$sep$statement"
+        val data = "READEQ START$sep$kList"
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
 
-class ReadEqualLogEnd(programName: String, val statement: ReadEqualStmt, val elapsed: Long) : LogEntry(programName) {
+class ReadEqualLogEnd(programName: String, val statement: ReadEqualStmt, val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "ending READEQ"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "READEQ END"
+        return renderHeader(channel, filename, statement.endLine(), sep) + "READEQ END$sep$result"
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
         val data = "READEQ END${sep}${elapsed}${sep}ms"

@@ -534,7 +534,8 @@
      C                   EVAL      $$XMLPAYLOAD=%TRIM($$XMLPAYLOAD)
      C                              +'<Righe>'
       * Recupero Data
-     C                   EVAL      $$MESE=20201221
+      * customization by lana: set MESE to 20190215
+     C                   EVAL      $$MESE=20190215
       *
      C                   EVAL      $$MM=%INT(%SUBST(%EDITC($$MESE:'X'):5:2))
       *
@@ -557,9 +558,10 @@
      C                   KFLD                    $$MESE
      C                   KFLD                    $$COMM
       *
-2x   C                   DO        $$GG
+      * customized by lana do one time and force $COMM to RDSSVI
+2x   C                   DO        1
       * settaggio variabili
-     C                   EVAL      $$COMM=''
+     C                   EVAL      $$COMM='RDSSVI'
      C                   EVAL      $PRNT=0
      C                   EVAL      $DSPN=0
      C                   CLEAR                   CODCOL
@@ -579,8 +581,10 @@
      C                   ITER
      C                   ENDIF
       *Condizione su utente
-     C                   IF        V£NOME=%TRIM('BUSFIO')
-     C                   EVAL      $$USER='1'
+      *customization by lana: search for SANBRU
+     C                   IF        V£NOME=%TRIM('SANBRU')
+     C                   EVAL      $UIBK6='OK'
+     C                   LEAVE
      C                   ENDIF
       *Controllo presenza collaboratore
      C                   EVAL      $A=%LOOKUP(V£NOME:CODCOL:1:$N)
