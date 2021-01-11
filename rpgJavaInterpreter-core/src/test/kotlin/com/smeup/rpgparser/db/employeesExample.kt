@@ -17,6 +17,8 @@ fun createEMPLOYEE() =
 	PRIMARY KEY( EMPNO ))   
         """.trimIndent()
 
+fun dropEMPLOYEE() = "DROP TABLE EMPLOYEE"
+
 fun createEmployeeMetadata(): FileMetadata = FileMetadata(
     tableName = "EMPLOYEE",
     recordFormat = "EMPLOYEE",

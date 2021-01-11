@@ -295,62 +295,41 @@ data class MoveLStmt(
 // TODO add other parameters
 @Serializable
 data class ChainStmt(
-    val searchArg: Expression, // Factor1
-    val name: String, // Factor 2
+    override val searchArg: Expression, // Factor1
+    override val name: String, // Factor 2
     override val position: Position? = null
-) :
-        Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        interpreter.log {
-            ChainLogStart(
-                interpreter.interpretationContext.currentProgramName,
-                this
-            )
-        }
-        val elapsed = measureTimeMillis {
-            val dbFile = interpreter.dbFile(name, this)
-            val result = if (searchArg.type() is KListType) {
-                dbFile.chain(interpreter.toSearchValues(searchArg))
-            } else {
-                dbFile.chain(interpreter.eval(searchArg).asString().value)
-            }
-            interpreter.fillDataFrom(result.record)
-        }
-        interpreter.log {
-            ChainLogEnd(
-                interpreter.interpretationContext.currentProgramName,
-                this,
-                elapsed
-            )
-        }
-    }
+) : AbstractReadEqualStmt(searchArg, name, position, "CHAIN") {
+    override fun readOp(dbFile: DBFile, kList: List<String>?): Result = dbFile.chain(kList!!)
 }
 
 @Serializable
-data class ReadEqualStmt(
-    val searchArg: Expression?, // Factor1
-    val name: String, // Factor 2
-    override val position: Position? = null
+abstract class AbstractReadEqualStmt(
+    @Transient open val searchArg: Expression? = null, // Factor1
+    @Transient open val name: String = "", // Factor 2
+    @Transient override val position: Position? = null,
+    private val logPref: String
+
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val kList: List<String> = when {
             searchArg == null -> emptyList()
-            searchArg.type() is KListType -> interpreter.toSearchValues(searchArg)
-            else -> listOf(interpreter.eval(searchArg).asString().value)
+            searchArg!!.type() is KListType -> interpreter.toSearchValues(searchArg!!)
+            else -> listOf(interpreter.eval(searchArg!!).asString().value)
         }
         interpreter.log {
             ReadEqualLogStart(
                 programName = interpreter.interpretationContext.currentProgramName,
                 statement = this,
-                kList
+                logPref = logPref,
+                kList = kList
             )
         }
         val result: Result
         val elapsed = measureTimeMillis {
             val dbFile = interpreter.dbFile(name, this)
             result = when (searchArg) {
-                null -> dbFile.readEqual()
-                else -> dbFile.readEqual(kList)
+                null -> readOp(dbFile)
+                else -> readOp(dbFile, kList)
             }
             interpreter.fillDataFrom(result.record)
         }
@@ -358,11 +337,14 @@ data class ReadEqualStmt(
             ReadEqualLogEnd(
                 programName = interpreter.interpretationContext.currentProgramName,
                 statement = this,
+                logPref = logPref,
                 result = result,
                 elapsed = elapsed
             )
         }
     }
+
+    abstract fun readOp(dbFile: DBFile, kList: List<String>? = null): Result
 }
 
 @Serializable
@@ -395,6 +377,38 @@ abstract class AbstractReadStmt(
     }
 
     abstract fun readOp(dbFile: DBFile): Result
+}
+
+@Serializable
+data class ReadEqualStmt(
+    override val searchArg: Expression?,
+    override val name: String,
+    override val position: Position? = null
+) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position, logPref = "READE") {
+
+    override fun readOp(dbFile: DBFile, kList: List<String>?): Result {
+        return if (kList == null) {
+            dbFile.readEqual()
+        } else {
+            dbFile.readEqual(kList)
+        }
+    }
+}
+
+@Serializable
+data class ReadPreviousEqualStmt(
+    override val searchArg: Expression?,
+    override val name: String,
+    override val position: Position? = null
+) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position, logPref = "READPE") {
+
+    override fun readOp(dbFile: DBFile, kList: List<String>?): Result {
+        return if (kList == null) {
+            dbFile.readPreviousEqual()
+        } else {
+            dbFile.readPreviousEqual(kList)
+        }
+    }
 }
 
 @Serializable
