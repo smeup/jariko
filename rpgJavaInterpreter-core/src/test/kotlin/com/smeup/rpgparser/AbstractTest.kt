@@ -1,5 +1,6 @@
 package com.smeup.rpgparser
 
+import com.andreapivetta.kolor.yellow
 import com.smeup.dbnative.ConnectionConfig
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.execution.*
@@ -166,6 +167,20 @@ abstract class AbstractTest {
                 }
             )
         }
+    }
+
+    /**
+     * Executes unitTest only if ReloadConfig is available.
+     * ReloadConfig is available only if all of the following environment variable are set:
+     * - JRK_TEST_DB_USR - DB user
+     * - JRK_TEST_DB_PWD - DB password
+     * - JRK_TEST_DB_URL - DB connection string
+     * - JRK_TEST_DB_DRIVER - DB driver
+     * */
+    fun testIfReloadConfig(unitTest: (reloadConfig: ReloadConfig) -> Unit) {
+        createReloadConfig()?.let {
+            unitTest.invoke(it)
+        } ?: println("ConnectionConfig not available".yellow())
     }
 
     open fun useCompiledVersion() = false

@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.db
 
-import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.adaptForTestCase
 import com.smeup.rpgparser.execution.CommandLineParms
@@ -20,8 +19,7 @@ open class MiscDBTest : AbstractTest() {
 
     @Test
     fun testX1_X21_06N() {
-        // if we have a reload configuration
-        createReloadConfig()?.let {
+        testIfReloadConfig {
             val config = Configuration(reloadConfig = it).adaptForTestCase(this)
             var dsDefinition: DataDefinition? = null
             var dsValue: DataStructValue? = null
@@ -53,6 +51,6 @@ open class MiscDBTest : AbstractTest() {
                 }
             )
             assertEquals("OK", dsValue!![dsDefinition!!.getFieldByName("\$UIBK6")].asString().value.trim())
-        } ?: println("ConnectionConfig not available".yellow())
+        }
     }
 }
