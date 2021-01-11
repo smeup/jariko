@@ -2,17 +2,17 @@
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V* ==============================================================
-     V* 11/01/21  002090  BUSFIO Creazione mute
-     V* 11/01/21  002090  BUSFIO Aggiunto confronto risultati due file logici
+     V* 11/01/21  002090  BUSFIO Creation mute
+     V* 11/01/21  002090  BUSFIO Add compration result of two logic file
      V* ==============================================================
      FVERAPG7L  IF   E           K DISK
      FVERAPG8L  IF   E           K DISK    RENAME(VERAPGR:VERAPG8) PREFIX(V8:2)
       *--------------------------------------------------------------------------------------------*
-     D $$NOME          S             15                                           Collaboratore
-     D $$COMM          S             15                                           Commessa
+     D $$NOME          S             15                                           Collaborator
+     D $$COMM          S             15                                           Order
      D ARRDT1          S              8  0 DIM(999)                               Array date
-     D $N              S              3  0                                        Contatore Array
-     D $NDO            S              3  0                                        Contatore DO
+     D $N              S              3  0                                        Counter Array
+     D $NDO            S              3  0                                        Counter DO
       *-/COPY £PDS --------------------------------------------------------------------------------*
       * Variabili di contesto
      D ££ATCO          S              1                                         Attivazione contesto
@@ -167,41 +167,10 @@
       *                  Numero parametri passati dall'esterno
      D  £PDSPR           *PARMS
       *--------------------------------------------------------------------------------------------*
-      * ENTRY
-      *--------------------------------------------------------------------------------------------*
-     D £UIBDS          DS         30448
-     D $UIBPG                        10A
-     D $UIBFU                        10A
-     D $UIBME                        10A
-     D $UIBT1                         2A
-     D $UIBP1                        10A
-     D $UIBK1                        15A
-     D $UIBT2                         2A
-     D $UIBP2                        10A
-     D $UIBK2                        15A
-     D $UIBT3                         2A
-     D $UIBP3                        10A
-     D $UIBK3                        15A
-     D $UIBPA                       256A
-     D $UIBT4                         2A
-     D $UIBP4                        10A
-     D $UIBK4                        15A
-     D $UIBT5                         2A
-     D $UIBP5                        10A
-     D $UIBK5                        15A
-     D $UIBT6                         2A
-     D $UIBP6                        10A
-     D $UIBK6                        15A
-     D $UIBD1                      3000A
-      *--------------------------------------------------------------------------------------------*
       * Initial settings
      C                   EXSR      IMP0
-      * Choose function and method
-1    C                   SELECT
-      * Compare result logic file
-1x   C                   WHEN      %SUBST($UIBME:1:7)='CHK.RES'
+      * Execute subroutine
      C                   EXSR      CHKRES
-1e   C                   ENDSL
       *
      C     G9MAIN        TAG
       *
@@ -212,10 +181,6 @@
     RD*  Initial Settings
       *--------------------------------------------------------------*
      C     IMP0          BEGSR
-      *
-      * ENTRY
-     C     *ENTRY        PLIST
-     C                   PARM                    £UIBDS
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -298,6 +263,5 @@
     RD* Settings routine for start program
       *--------------------------------------------------------------*
      C     *INZSR        BEGSR
-      *
       *
      C                   ENDSR
