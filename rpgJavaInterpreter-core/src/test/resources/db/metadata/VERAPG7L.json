@@ -1,0 +1,582 @@
+{
+    "tableName": "VERAPG7L",
+    "recordFormat": "VERAPGR",
+    "fields": [
+        {
+            "fieldName": "V£IDOJ",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 10,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£ATV0",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£DATA",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 8,
+                "decimalDigits": 0,
+                "rpgType": "S"
+            }
+        },
+        {
+            "fieldName": "V£NOME",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },        
+        {
+            "fieldName": "V£CDC",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£TIPO",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 3,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£ORE",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 5,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£VIAC",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 5,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },        
+        {
+            "fieldName": "V£VIAS",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 5,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£KM",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 5,
+                "decimalDigits": 0,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£KMSE",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 5,
+                "decimalDigits": 0,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£PEDC",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 11,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£PEDS",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 11,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£RISC",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 11,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£RISS",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 11,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£ALBC",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 11,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£ALBS",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 11,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£SPEC",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 11,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£SPES",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 11,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£CAUS",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 3,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£TCOM",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COM1",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 210,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COM2",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 210,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£DIAR",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 5,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£DIUS",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 5,
+                "decimalDigits": 2,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£NFAT",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 10,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£DFAT",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 8,
+                "decimalDigits": 0,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£COD1",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COD2",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COD3",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COD4",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COD5",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COD6",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COD8",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COD9",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£COD0",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 15,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£NUM1",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 21,
+                "decimalDigits": 6,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£NUM2",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 21,
+                "decimalDigits": 6,
+                "rpgType": "P"
+            }
+        },        
+        {
+            "fieldName": "V£NUM3",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 21,
+                "decimalDigits": 6,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£NUM4",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 21,
+                "decimalDigits": 6,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£NUM5",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 21,
+                "decimalDigits": 6,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£FL01",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL02",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL03",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL04",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL05",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL06",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL07",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL08",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL09",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL10",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL11",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL12",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL13",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL14",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL15",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL16",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL17",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL18",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL19",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL20",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£FL20",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 1,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£USIN",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 10,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£DTIN",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 8,
+                "decimalDigits": 0,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£ORIN",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 6,
+                "decimalDigits": 0,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£USAG",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.StringType",
+                "length": 10,
+                "varying": false
+            }
+        },
+        {
+            "fieldName": "V£DTAG",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 8,
+                "decimalDigits": 0,
+                "rpgType": "P"
+            }
+        },
+        {
+            "fieldName": "V£ORAG",
+            "type": {
+                "type": "com.smeup.rpgparser.interpreter.NumberType",
+                "entireDigits": 6,
+                "decimalDigits": 0,
+                "rpgType": "P"
+            }
+        }
+    ],
+    "accessFields": [
+        "V£CDC",
+        "V£NOME",
+        "V£DATA"
+    ]
+}
+
