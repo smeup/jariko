@@ -7,7 +7,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class Chain2KeysDBTest : AbstractTest() {
+open class Chain2KeysDBTest : AbstractTest() {
 
     companion object {
 
@@ -31,7 +31,7 @@ class Chain2KeysDBTest : AbstractTest() {
     }
 
     @Test
-    fun findsExistingRecord() {
+    open fun findsExistingRecord() {
         assertEquals(
             listOf("Found: ABC12"),
             outputOfDBPgm(
@@ -55,7 +55,7 @@ class Chain2KeysDBTest : AbstractTest() {
     )
 
     @Test
-    fun doesntFindNonExistingRecord() {
+    open fun doesntFindNonExistingRecord() {
         assertEquals(
             listOf("Not found"),
             outputOfDBPgm(

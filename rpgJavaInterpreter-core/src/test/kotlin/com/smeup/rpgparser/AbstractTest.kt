@@ -70,13 +70,15 @@ abstract class AbstractTest {
         programName: String,
         metadata: List<FileMetadata> = emptyList(),
         initialSQL: List<String> = emptyList(),
-        inputParms: Map<String, Value> = mapOf()
+        inputParms: Map<String, Value> = mapOf(),
+        configuration: Configuration = Configuration()
     ): List<String> {
         return com.smeup.rpgparser.db.utilities.outputOfDBPgm(
             programName = programName,
             metadata = metadata,
             initialSQL = initialSQL,
-            inputParms = inputParms
+            inputParms = inputParms,
+            configuration = configuration.adaptForTestCase(this)
         )
     }
 

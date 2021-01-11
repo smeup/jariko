@@ -9,7 +9,7 @@ import org.junit.Test
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
-class ReadTest : AbstractTest() {
+open class ReadTest : AbstractTest() {
 
     companion object {
 

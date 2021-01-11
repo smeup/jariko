@@ -5,10 +5,10 @@ import com.smeup.rpgparser.interpreter.*
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class Chain2FilesDBTest : AbstractTest() {
+open class Chain2FilesDBTest : AbstractTest() {
 
     @Test
-    fun executeCHAIN2FILE() {
+    open fun executeCHAIN2FILE() {
         assertEquals(
             listOf("Not found in First", "2nd: SomeDescription"),
             outputOfDBPgm(

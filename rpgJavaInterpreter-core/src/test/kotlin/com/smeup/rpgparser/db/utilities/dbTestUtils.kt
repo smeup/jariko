@@ -74,7 +74,8 @@ fun outputOfDBPgm(
     programName: String,
     metadata: List<FileMetadata>,
     initialSQL: List<String>,
-    inputParms: Map<String, Value> = mapOf()
+    inputParms: Map<String, Value> = mapOf(),
+    configuration: Configuration
 ): List<String> {
 
     val si = CollectorSystemInterface()
@@ -94,18 +95,14 @@ fun outputOfDBPgm(
 
         val parms = inputParms
 
-        // Create ReloadConfig for Jariko
-        val conf = Configuration(
-            reloadConfig = ReloadConfig(
-                nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
-                metadataProducer = { dbFile ->
-                    metadata.first { it.tableName == dbFile }
-                }
-            ),
-            defaultActivationGroupName = "MYGRP"
+        // If needed, create ReloadConfig for Jariko
+        configuration.reloadConfig = configuration.reloadConfig ?: ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
+            metadataProducer = { dbFile ->
+                metadata.first { it.tableName == dbFile }
+            }
         )
-
-        commandLineProgram.singleCall(parms, conf)
+        commandLineProgram.singleCall(parms, configuration)
     } catch (exc: Exception) {
         exc.printStackTrace()
     }

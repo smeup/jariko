@@ -633,11 +633,11 @@ internal fun CsREADEContext.toAst(conf: ToAstConfiguration): Statement {
 }
 
 internal fun CsREADPContext.toAst(conf: ToAstConfiguration): Statement {
-    val position = toPosition(conf.considerPosition)
     // TODO implement DS in result field
-    val factor1 = this.factor1Context()?.content?.toAst(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READP operation requires factor 2: ${this.text} - ${position.atLine()}")
-    return ReadPreviousStmt(factor1, factor2, position)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READP operation requires factor 2: ${this.text}}")
+    return ReadPreviousStmt(
+        factor2,
+        toPosition(conf.considerPosition))
 }
 
 internal fun CsREADContext.toAst(conf: ToAstConfiguration): Statement {

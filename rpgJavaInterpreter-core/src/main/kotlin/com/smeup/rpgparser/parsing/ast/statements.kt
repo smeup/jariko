@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
+import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -270,958 +271,707 @@ data class MoveAStmt(
         }
     }
 }
-    @Serializable
-    data class MoveLStmt(
-        val operationExtender: String?,
-        val target: AssignableExpression,
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        var expression: Expression,
-        override val position: Position? = null
-    ) : Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            if (dataDefinition != null) {
-                return listOf(dataDefinition)
-            }
-            return emptyList()
+@Serializable
+data class MoveLStmt(
+    val operationExtender: String?,
+    val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    var expression: Expression,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
         }
-
-        override fun execute(interpreter: InterpreterCore) {
-            val value = movel(operationExtender, target, expression, interpreter)
-            interpreter.log { MoveLStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value) }
-        }
+        return emptyList()
     }
 
-    // TODO add other parameters
-    @Serializable
-    data class ChainStmt(
-        val searchArg: Expression, // Factor1
-        val name: String, // Factor 2
-        override val position: Position? = null
-    ) :
-            Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.log {
-                ChainLogStart(
-                    interpreter.interpretationContext.currentProgramName,
-                    this
-                )
-            }
-            val elapsed = measureTimeMillis {
-                val dbFile = interpreter.dbFile(name, this)
-                val result = if (searchArg.type() is KListType) {
-                    dbFile.chain(interpreter.toSearchValues(searchArg))
-                } else {
-                    dbFile.chain(interpreter.eval(searchArg).asString().value)
-                }
-                interpreter.fillDataFrom(result.record)
-            }
-            interpreter.log {
-                ChainLogEnd(
-                    interpreter.interpretationContext.currentProgramName,
-                    this,
-                    elapsed
-                )
-            }
-        }
+    override fun execute(interpreter: InterpreterCore) {
+        val value = movel(operationExtender, target, expression, interpreter)
+        interpreter.log { MoveLStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value) }
     }
+}
 
-    @Serializable
-    data class ReadEqualStmt(
-        val searchArg: Expression?, // Factor1
-        val name: String, // Factor 2
-        override val position: Position? = null
-    ) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            val kList: List<String> = when {
-                searchArg == null -> emptyList()
-                searchArg.type() is KListType -> interpreter.toSearchValues(searchArg)
-                else -> listOf(interpreter.eval(searchArg).asString().value)
-            }
-            interpreter.log {
-                ReadEqualLogStart(
-                    programName = interpreter.interpretationContext.currentProgramName,
-                    statement = this,
-                    kList
-                )
-            }
-            val result: Result
-            val elapsed = measureTimeMillis {
-                val dbFile = interpreter.dbFile(name, this)
-                result = when (searchArg) {
-                    null -> dbFile.readEqual()
-                    else -> dbFile.readEqual(kList)
-                }
-                interpreter.fillDataFrom(result.record)
-            }
-            interpreter.log {
-                ReadEqualLogEnd(
-                    programName = interpreter.interpretationContext.currentProgramName,
-                    statement = this,
-                    result = result,
-                    elapsed = elapsed
-                )
-            }
+// TODO add other parameters
+@Serializable
+data class ChainStmt(
+    val searchArg: Expression, // Factor1
+    val name: String, // Factor 2
+    override val position: Position? = null
+) :
+        Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log {
+            ChainLogStart(
+                interpreter.interpretationContext.currentProgramName,
+                this
+            )
         }
-    }
-
-    @Serializable
-    data class ReadPreviousStmt(
-        val searchArg: Expression?, // Factor1
-        val name: String, // Factor 2
-        override val position: Position? = null
-    ) :
-            Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.log {
-                ReadPreviousLogStart(
-                    interpreter.interpretationContext.currentProgramName,
-                    this
-                )
-            }
-            val elapsed = measureTimeMillis {
-                val dbFile = interpreter.dbFile(name, this)
-                val result = when {
-                    searchArg == null -> dbFile.readPrevious()
-                    searchArg.type() is KListType -> dbFile.readPreviousEqual(interpreter.toSearchValues(searchArg))
-                    else -> dbFile.readPreviousEqual(interpreter.eval(searchArg).asString().value)
-                }
-                interpreter.fillDataFrom(result.record)
-            }
-            interpreter.log {
-                ReadPreviousLogEnd(
-                    interpreter.interpretationContext.currentProgramName,
-                    this,
-                    elapsed
-                )
-            }
-        }
-    }
-
-    @Serializable
-    data class ReadStmt(
-        val name: String, // Factor 2
-        override val position: Position? = null
-    ) :
-            Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.log {
-                ReadLogStart(
-                    interpreter.interpretationContext.currentProgramName,
-                    this
-                )
-            }
-            val elapsed = measureTimeMillis {
-                val dbFile = interpreter.dbFile(name, this)
-                val result = dbFile.read()
-                interpreter.fillDataFrom(result.record)
-            }
-            interpreter.log {
-                ReadLogEnd(
-                    interpreter.interpretationContext.currentProgramName,
-                    this,
-                    elapsed
-                )
-            }
-        }
-    }
-
-    @Serializable
-    data class SetllStmt(
-        val searchArg: Expression, // Factor1
-        val name: String, // Factor 2
-        override val position: Position? = null
-    ) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            val kList: List<String> = if (searchArg.type() is KListType) {
-                interpreter.toSearchValues(searchArg)
+        val elapsed = measureTimeMillis {
+            val dbFile = interpreter.dbFile(name, this)
+            val result = if (searchArg.type() is KListType) {
+                dbFile.chain(interpreter.toSearchValues(searchArg))
             } else {
-                listOf(interpreter.eval(searchArg).asString().value)
+                dbFile.chain(interpreter.eval(searchArg).asString().value)
             }
-            interpreter.log {
-                SetllLogStart(
-                    programName = interpreter.interpretationContext.currentProgramName,
-                    statement = this,
-                    kList = kList
-                )
+            interpreter.fillDataFrom(result.record)
+        }
+        interpreter.log {
+            ChainLogEnd(
+                interpreter.interpretationContext.currentProgramName,
+                this,
+                elapsed
+            )
+        }
+    }
+}
+
+@Serializable
+data class ReadEqualStmt(
+    val searchArg: Expression?, // Factor1
+    val name: String, // Factor 2
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        val kList: List<String> = when {
+            searchArg == null -> emptyList()
+            searchArg.type() is KListType -> interpreter.toSearchValues(searchArg)
+            else -> listOf(interpreter.eval(searchArg).asString().value)
+        }
+        interpreter.log {
+            ReadEqualLogStart(
+                programName = interpreter.interpretationContext.currentProgramName,
+                statement = this,
+                kList
+            )
+        }
+        val result: Result
+        val elapsed = measureTimeMillis {
+            val dbFile = interpreter.dbFile(name, this)
+            result = when (searchArg) {
+                null -> dbFile.readEqual()
+                else -> dbFile.readEqual(kList)
             }
-            val elapsed = measureTimeMillis {
-                val dbFile = interpreter.dbFile(name, this)
-                interpreter.status.lastFound = dbFile.setll(kList)
-            }
-            interpreter.log {
-                SetllLogEnd(
-                    interpreter.interpretationContext.currentProgramName,
-                    this,
-                    elapsed
-                )
-            }
+            interpreter.fillDataFrom(result.record)
+        }
+        interpreter.log {
+            ReadEqualLogEnd(
+                programName = interpreter.interpretationContext.currentProgramName,
+                statement = this,
+                result = result,
+                elapsed = elapsed
+            )
+        }
+    }
+}
+
+@Serializable
+abstract class AbstractReadStmt(
+    @Transient open val name: String = "", // Factor 2
+    @Transient override val position: Position? = null,
+    private val logPref: String
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log {
+            ReadLogStart(
+                programName = interpreter.interpretationContext.currentProgramName,
+                statement = this,
+                logPref = logPref
+            )
+        }
+        val elapsed = measureTimeMillis {
+            val dbFile = interpreter.dbFile(name, this)
+            val result = readOp(dbFile)
+            interpreter.fillDataFrom(result.record)
+        }
+        interpreter.log {
+            ReadLogEnd(
+                programName = interpreter.interpretationContext.currentProgramName,
+                this,
+                logPref = logPref,
+                elapsed
+            )
         }
     }
 
-    @Serializable
-    data class CheckStmt(
-        val comparatorString: Expression, // Factor1
-        val baseString: Expression,
-        val start: Int = 1,
-        val wrongCharPosition: AssignableExpression?,
-        override val position: Position? = null
-    ) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            var baseString = interpreter.eval(this.baseString).asString().value
-            if (this.baseString is DataRefExpr) {
-                baseString = baseString.padEnd(this.baseString.size())
+    abstract fun readOp(dbFile: DBFile): Result
+}
+
+@Serializable
+data class ReadStmt(override val name: String, override val position: Position?) : AbstractReadStmt(name, position, "READ") {
+    override fun readOp(dbFile: DBFile) = dbFile.read()
+}
+
+@Serializable
+data class ReadPreviousStmt(override val name: String, override val position: Position?) : AbstractReadStmt(name, position, "READP") {
+    override fun readOp(dbFile: DBFile) = dbFile.readPrevious()
+}
+
+@Serializable
+data class SetllStmt(
+    val searchArg: Expression, // Factor1
+    val name: String, // Factor 2
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        val kList: List<String> = if (searchArg.type() is KListType) {
+            interpreter.toSearchValues(searchArg)
+        } else {
+            listOf(interpreter.eval(searchArg).asString().value)
+        }
+        interpreter.log {
+            SetllLogStart(
+                programName = interpreter.interpretationContext.currentProgramName,
+                statement = this,
+                kList = kList
+            )
+        }
+        val elapsed = measureTimeMillis {
+            val dbFile = interpreter.dbFile(name, this)
+            interpreter.status.lastFound = dbFile.setll(kList)
+        }
+        interpreter.log {
+            SetllLogEnd(
+                interpreter.interpretationContext.currentProgramName,
+                this,
+                elapsed
+            )
+        }
+    }
+}
+
+@Serializable
+data class CheckStmt(
+    val comparatorString: Expression, // Factor1
+    val baseString: Expression,
+    val start: Int = 1,
+    val wrongCharPosition: AssignableExpression?,
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        var baseString = interpreter.eval(this.baseString).asString().value
+        if (this.baseString is DataRefExpr) {
+            baseString = baseString.padEnd(this.baseString.size())
+        }
+        val charSet = interpreter.eval(comparatorString).asString().value
+        val wrongIndex = wrongCharPosition
+        interpreter.status.lastFound = false
+        if (wrongIndex != null) {
+            interpreter.assign(wrongIndex, IntValue.ZERO)
+        }
+        baseString.substring(start - 1).forEachIndexed { i, c ->
+            if (!charSet.contains(c)) {
+                if (wrongIndex != null) {
+                    interpreter.assign(wrongIndex, IntValue((i + start).toLong()))
+                }
+                interpreter.status.lastFound = true
+                return
             }
-            val charSet = interpreter.eval(comparatorString).asString().value
-            val wrongIndex = wrongCharPosition
-            interpreter.status.lastFound = false
-            if (wrongIndex != null) {
-                interpreter.assign(wrongIndex, IntValue.ZERO)
-            }
-            baseString.substring(start - 1).forEachIndexed { i, c ->
-                if (!charSet.contains(c)) {
-                    if (wrongIndex != null) {
-                        interpreter.assign(wrongIndex, IntValue((i + start).toLong()))
+        }
+    }
+}
+
+@Serializable
+data class CallStmt(
+    val expression: Expression,
+    val params: List<PlistParam>,
+    val errorIndicator: IndicatorKey? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        return params.mapNotNull() {
+            it.dataDefinition
+        }
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log { CallExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
+        val startTime = System.currentTimeMillis()
+        val callStatement = this
+        val programToCall = interpreter.eval(expression).asString().value
+        MainExecutionContext.setExecutionProgramName(programToCall)
+        val program = interpreter.systemInterface.findProgram(programToCall)
+        require(program != null) {
+            "Line: ${this.position.line()} - Program $programToCall cannot be found"
+        }
+
+        val params = this.params.mapIndexed { index, it ->
+            if (it.dataDefinition != null) {
+                if (it.dataDefinition.initializationValue != null) {
+                    if (!interpreter.exists(it.param.name)) {
+                        interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
+                    } else {
+                        interpreter.assign(
+                                interpreter.dataDefinitionByName(it.param.name)!!,
+                                interpreter.eval(it.dataDefinition.initializationValue)
+                        )
                     }
-                    interpreter.status.lastFound = true
+                } else {
+                    if (!interpreter.exists(it.param.name)) {
+                        interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
+                    }
+                }
+            }
+            require(program.params().size > index) {
+                "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
+            }
+            program.params()[index].name to interpreter[it.param.name]
+        }.toMap(LinkedHashMap())
+
+        val paramValuesAtTheEnd =
+                try {
+                    interpreter.systemInterface.registerProgramExecutionStart(program, params)
+                    program.execute(interpreter.systemInterface, params).apply {
+                        interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
+                    }
+                } catch (e: Exception) { // TODO Catch a more specific exception?
+                    interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
+                    if (errorIndicator == null) {
+                        throw e
+                    }
+                    interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
+                    null
+                }
+        paramValuesAtTheEnd?.forEachIndexed { index, value ->
+            interpreter.assign(this.params[index].param.referred!!, value)
+        }
+    }
+}
+
+@Serializable
+data class KListStmt
+private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
+    companion object {
+        operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
+            return KListStmt(name.toUpperCase(), fields, position)
+        }
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = listOf(InStatementDataDefinition(name, KListType))
+
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO Add logging as for PlistStmt
+        interpreter.klists[name] = fields
+    }
+}
+
+@Serializable
+data class IfStmt(
+    val condition: Expression,
+    override val body: List<Statement>,
+    val elseIfClauses: List<ElseIfClause> = emptyList(),
+    val elseClause: ElseClause? = null,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+        // check if the annotation is just before the ELSE
+        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
+
+        // Process the body statements
+        muteAttached.addAll(
+                acceptBody(body, mutes, this.position!!.start.line, this.position.end.line)
+        )
+
+        // Process the ELSE IF
+        elseIfClauses.forEach {
+            muteAttached.addAll(
+                    acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+            )
+        }
+
+        // Process the ELSE
+        if (elseClause != null) {
+            muteAttached.addAll(
+                    acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position.end.line)
+            )
+        }
+
+        return muteAttached
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        val condition = interpreter.eval(condition)
+        interpreter.log { IfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this, condition) }
+        if (condition.asBoolean().value) {
+            interpreter.execute(this.body)
+        } else {
+            for (elseIfClause in elseIfClauses) {
+                val c = interpreter.eval(elseIfClause.condition)
+                interpreter.log { ElseIfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, elseIfClause, c) }
+                if (c.asBoolean().value) {
+                    interpreter.execute(elseIfClause.body)
                     return
                 }
             }
-        }
-    }
-
-    @Serializable
-    data class CallStmt(
-        val expression: Expression,
-        val params: List<PlistParam>,
-        val errorIndicator: IndicatorKey? = null,
-        override val position: Position? = null
-    ) : Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            return params.mapNotNull() {
-                it.dataDefinition
-            }
-        }
-
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.log { CallExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
-            val startTime = System.currentTimeMillis()
-            val callStatement = this
-            val programToCall = interpreter.eval(expression).asString().value
-            MainExecutionContext.setExecutionProgramName(programToCall)
-            val program = interpreter.systemInterface.findProgram(programToCall)
-            require(program != null) {
-                "Line: ${this.position.line()} - Program $programToCall cannot be found"
-            }
-
-            val params = this.params.mapIndexed { index, it ->
-                if (it.dataDefinition != null) {
-                    if (it.dataDefinition.initializationValue != null) {
-                        if (!interpreter.exists(it.param.name)) {
-                            interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
-                        } else {
-                            interpreter.assign(
-                                    interpreter.dataDefinitionByName(it.param.name)!!,
-                                    interpreter.eval(it.dataDefinition.initializationValue)
-                            )
-                        }
-                    } else {
-                        if (!interpreter.exists(it.param.name)) {
-                            interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
-                        }
-                    }
-                }
-                require(program.params().size > index) {
-                    "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
-                }
-                program.params()[index].name to interpreter[it.param.name]
-            }.toMap(LinkedHashMap())
-
-            val paramValuesAtTheEnd =
-                    try {
-                        interpreter.systemInterface.registerProgramExecutionStart(program, params)
-                        program.execute(interpreter.systemInterface, params).apply {
-                            interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
-                        }
-                    } catch (e: Exception) { // TODO Catch a more specific exception?
-                        interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
-                        if (errorIndicator == null) {
-                            throw e
-                        }
-                        interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
-                        null
-                    }
-            paramValuesAtTheEnd?.forEachIndexed { index, value ->
-                interpreter.assign(this.params[index].param.referred!!, value)
-            }
-        }
-    }
-
-    @Serializable
-    data class KListStmt
-    private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
-        companion object {
-            operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
-                return KListStmt(name.toUpperCase(), fields, position)
-            }
-        }
-
-        override fun dataDefinition(): List<InStatementDataDefinition> = listOf(InStatementDataDefinition(name, KListType))
-
-        override fun execute(interpreter: InterpreterCore) {
-            // TODO Add logging as for PlistStmt
-            interpreter.klists[name] = fields
-        }
-    }
-
-    @Serializable
-    data class IfStmt(
-        val condition: Expression,
-        override val body: List<Statement>,
-        val elseIfClauses: List<ElseIfClause> = emptyList(),
-        val elseClause: ElseClause? = null,
-        override val position: Position? = null
-    ) : Statement(position), CompositeStatement {
-
-        override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
-            // check if the annotation is just before the ELSE
-            val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
-
-            // Process the body statements
-            muteAttached.addAll(
-                    acceptBody(body, mutes, this.position!!.start.line, this.position.end.line)
-            )
-
-            // Process the ELSE IF
-            elseIfClauses.forEach {
-                muteAttached.addAll(
-                        acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
-                )
-            }
-
-            // Process the ELSE
             if (elseClause != null) {
-                muteAttached.addAll(
-                        acceptBody(elseClause.body, mutes, elseClause.position!!.start.line, elseClause.position.end.line)
-                )
-            }
-
-            return muteAttached
-        }
-
-        override fun execute(interpreter: InterpreterCore) {
-            val condition = interpreter.eval(condition)
-            interpreter.log { IfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this, condition) }
-            if (condition.asBoolean().value) {
-                interpreter.execute(this.body)
-            } else {
-                for (elseIfClause in elseIfClauses) {
-                    val c = interpreter.eval(elseIfClause.condition)
-                    interpreter.log { ElseIfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, elseIfClause, c) }
-                    if (c.asBoolean().value) {
-                        interpreter.execute(elseIfClause.body)
-                        return
-                    }
+                interpreter.log {
+                    ElseExecutionLogEntry(
+                            interpreter.interpretationContext.currentProgramName,
+                            elseClause,
+                            condition
+                    )
                 }
-                if (elseClause != null) {
-                    interpreter.log {
-                        ElseExecutionLogEntry(
-                                interpreter.interpretationContext.currentProgramName,
-                                elseClause,
-                                condition
-                        )
-                    }
-                    interpreter.execute(elseClause.body)
-                }
+                interpreter.execute(elseClause.body)
             }
         }
     }
+}
 
-    @Serializable
-    data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+@Serializable
+data class ElseClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
-    @Serializable
-    data class ElseIfClause(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+@Serializable
+data class ElseIfClause(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
-    @Serializable
-    data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
-        enum class ValueSet {
-            ON,
-            OFF
-        }
+@Serializable
+data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpression>, override val position: Position? = null) : Statement(position) {
+    enum class ValueSet {
+        ON,
+        OFF
+    }
 
-        override fun execute(interpreter: InterpreterCore) {
-            indicators.forEach {
-                when (it) {
-                    is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.dataWrapUpChoice = it.dataWrapUpChoice
-                    is PredefinedIndicatorExpr -> interpreter.predefinedIndicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
-                    else -> TODO()
-                }
+    override fun execute(interpreter: InterpreterCore) {
+        indicators.forEach {
+            when (it) {
+                is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.dataWrapUpChoice = it.dataWrapUpChoice
+                is PredefinedIndicatorExpr -> interpreter.predefinedIndicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
+                else -> TODO()
             }
         }
     }
+}
 
-    @Serializable
-    data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            val returnValue = expression?.let { interpreter.eval(expression) }
-            throw ReturnException(returnValue)
-        }
+@Serializable
+data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        val returnValue = expression?.let { interpreter.eval(expression) }
+        throw ReturnException(returnValue)
     }
+}
 
-    // A Plist is a list of parameters
-    @Serializable
-    data class PlistStmt(
-        val params: List<PlistParam>,
-        val isEntry: Boolean,
-        override val position: Position? = null
-    ) : Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            val allDataDefinitions = params.mapNotNull { it.dataDefinition }
-            // We do not want params in plist to shadow existing data definitions
-            // They are implicit data definitions only when explicit data definitions are not present
-            val filtered = allDataDefinitions.filter { paramDataDef ->
-                val containingCU = this.ancestor(CompilationUnit::class.java)
-                        ?: throw IllegalStateException("Not contained in a CU")
-                containingCU.dataDefinitions.none { it.name == paramDataDef.name }
-            }
-            return filtered
-        }
-
-        override fun execute(interpreter: InterpreterCore) {
-            params.forEach {
-                if (interpreter.globalSymbolTable.contains(it.param.name)) {
-                    val value = interpreter.globalSymbolTable[it.param.name]
-                    interpreter.log {
-                        ParamListStatemenExecutionLog(
-                                interpreter.interpretationContext.currentProgramName,
-                                this,
-                                it.param.name,
-                                value
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    @Serializable
-    data class PlistParam(
-        val param: ReferenceByName<AbstractDataDefinition>,
-        // TODO @Derived????
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        override val position: Position? = null
-    ) : Node(position)
-
-    @Serializable
-    data class ClearStmt(
-        val value: Expression,
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        override val position: Position? = null
-    ) : Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            if (dataDefinition != null) {
-                return listOf(dataDefinition)
-            }
-            return emptyList()
-        }
-
-        override fun execute(interpreter: InterpreterCore) {
-            return when (value) {
-                is DataRefExpr -> {
-                    val value = interpreter.assign(value, BlanksRefExpr())
-                    interpreter.log {
-                        ClearStatemenExecutionLog(
-                                interpreter.interpretationContext.currentProgramName,
-                                this,
-                                value
-                        )
-                    }
-                    Unit
-                }
-                is PredefinedIndicatorExpr -> {
-                    val value = interpreter.assign(value, BlanksRefExpr())
-                    interpreter.log {
-                        ClearStatemenExecutionLog(
-                                interpreter.interpretationContext.currentProgramName,
-                                this,
-                                value
-                        )
-                    }
-                }
-                else -> throw UnsupportedOperationException("I do not know how to clear ${this.value}")
-            }
-        }
-    }
-
-    @Serializable
-    data class DefineStmt(
-        val originalName: String,
-        val newVarName: String,
-        override val position: Position? = null
-    ) : Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
+// A Plist is a list of parameters
+@Serializable
+data class PlistStmt(
+    val params: List<PlistParam>,
+    val isEntry: Boolean,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val allDataDefinitions = params.mapNotNull { it.dataDefinition }
+        // We do not want params in plist to shadow existing data definitions
+        // They are implicit data definitions only when explicit data definitions are not present
+        val filtered = allDataDefinitions.filter { paramDataDef ->
             val containingCU = this.ancestor(CompilationUnit::class.java)
                     ?: throw IllegalStateException("Not contained in a CU")
-            val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
-            if (originalDataDefinition != null) {
-                return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
-            } else {
-                val inStatementDataDefinition =
-                        containingCU.main.stmts
-                                .filterIsInstance(StatementThatCanDefineData::class.java)
-                                .asSequence()
-                                .map(StatementThatCanDefineData::dataDefinition)
-                                .flatten()
-                                .find { it.name == originalName }
-                return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition!!.type, position))
-            }
+            containingCU.dataDefinitions.none { it.name == paramDataDef.name }
         }
-
-        override fun execute(interpreter: InterpreterCore) {
-            // Nothing to do here
-        }
+        return filtered
     }
 
-    interface WithRightIndicators {
-        fun allPresent(): Boolean = hi != null && lo != null && eq != null
-
-        val hi: IndicatorKey?
-        val lo: IndicatorKey?
-        val eq: IndicatorKey?
-    }
-
-    @Serializable
-    data class RightIndicators(
-        override val hi: IndicatorKey?,
-        override val lo: IndicatorKey?,
-        override val eq: IndicatorKey?
-    ) : WithRightIndicators
-
-    @Serializable
-    data class CompStmt(
-        val left: Expression,
-        val right: Expression,
-        val rightIndicators: WithRightIndicators,
-        override val position: Position? = null
-    ) : Statement(position), WithRightIndicators by rightIndicators {
-        override fun execute(interpreter: InterpreterCore) {
-            when (interpreter.compareExpressions(left, right, interpreter.localizationContext.charset)) {
-                GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-            }
-        }
-    }
-
-    @Serializable
-    data class ZAddStmt(
-        val target: AssignableExpression,
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        var expression: Expression,
-        override val position: Position? = null
-    ) :
-            Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            if (dataDefinition != null) {
-                return listOf(dataDefinition)
-            }
-            return emptyList()
-        }
-
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.assign(target, interpreter.eval(expression))
-        }
-    }
-
-    @Serializable
-    data class MultStmt(
-        val target: AssignableExpression,
-        val halfAdjust: Boolean = false,
-        val factor1: Expression?,
-        val factor2: Expression,
-        override val position: Position? = null
-    ) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.assign(target, interpreter.mult(this))
-        }
-    }
-
-    @Serializable
-    data class DivStmt(
-        val target: AssignableExpression,
-        val halfAdjust: Boolean = false,
-        val factor1: Expression?,
-        val factor2: Expression,
-        override val position: Position? = null
-    ) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.assign(target, interpreter.div(this))
-        }
-    }
-
-    @Serializable
-    data class AddStmt(
-        val left: Expression?,
-        val result: AssignableExpression,
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        val right: Expression,
-        override val position: Position? = null
-    ) : Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            if (dataDefinition != null) {
-                return listOf(dataDefinition)
-            }
-            return emptyList()
-        }
-
-        @Derived
-        val addend1: Expression
-            get() = left ?: result
-
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.assign(result, interpreter.add(this))
-        }
-    }
-
-    @Serializable
-    data class ZSubStmt(
-        val target: AssignableExpression,
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        var expression: Expression,
-        override val position: Position? = null
-    ) : Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            if (dataDefinition != null) {
-                return listOf(dataDefinition)
-            }
-            return emptyList()
-        }
-
-        override fun execute(interpreter: InterpreterCore) {
-            val value = interpreter.eval(expression)
-            require(value is NumberValue) {
-                "$value should be a number"
-            }
-            interpreter.assign(target, value.negate())
-        }
-    }
-
-    @Serializable
-    data class SubStmt(
-        val left: Expression?,
-        val result: AssignableExpression,
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        val right: Expression,
-        override val position: Position? = null
-    ) : Statement(position), StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            if (dataDefinition != null) {
-                return listOf(dataDefinition)
-            }
-            return emptyList()
-        }
-
-        @Derived
-        val minuend: Expression
-            get() = left ?: result
-
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.assign(result, interpreter.sub(this))
-        }
-    }
-
-    @Serializable
-    data class TimeStmt(
-        val value: Expression,
-        override val position: Position? = null
-    ) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            when (value) {
-                is DataRefExpr -> {
-                    interpreter.assign(value, TimeStampValue(Date()))
-                }
-                else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
-            }
-        }
-    }
-
-    @Serializable
-    data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            val values = mutableListOf<Value>()
-            factor1?.let { values.add(interpreter.eval(it)) }
-            response?.let { values.add(interpreter.eval(it)) }
-            // TODO: receive input from systemInterface and assign value to response
-            interpreter.systemInterface.display(interpreter.rawRender(values))
-        }
-    }
-
-    @Serializable
-    data class DoStmt(
-        val endLimit: Expression,
-        val index: AssignableExpression?,
-        override val body: List<Statement>,
-        val startLimit: Expression = IntLiteral(1),
-        override val position: Position? = null
-    ) : Statement(position), CompositeStatement {
-        override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
-            // TODO check if the annotation is the last statement
-            return acceptBody(body, mutes, start, end)
-        }
-
-        override fun execute(interpreter: InterpreterCore) {
-            var loopCounter: Long = 0
-            val startTime = System.currentTimeMillis()
-            val endLimitExpression = endLimit
-            val endLimit: () -> Long = interpreter.optimizedIntExpression(endLimitExpression)
-            if (index == null) {
-                var myIterValue = interpreter.eval(startLimit).asInt().value
-                try {
-                    interpreter.log { DoStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
-                    while (myIterValue <= endLimit()) {
-                        try {
-                            interpreter.execute(body)
-                        } catch (e: IterException) {
-                            // nothing to do here
-                        }
-                        loopCounter++
-                        myIterValue++
-                    }
-                    interpreter.log {
-                        val elapsed = System.currentTimeMillis() - startTime
-                        DoStatemenExecutionLogEnd(
-                                interpreter.interpretationContext.currentProgramName,
-                                this,
-                                elapsed,
-                                loopCounter
-                        )
-                    }
-                } catch (e: LeaveException) {
-                    // nothing to do here
-                    interpreter.log {
-                        val elapsed = System.currentTimeMillis() - startTime
-                        DoStatemenExecutionLogEnd(
-                                interpreter.interpretationContext.currentProgramName,
-                                this,
-                                elapsed,
-                                loopCounter
-                        )
-                    }
-                }
-            } else {
-                interpreter.assign(index, startLimit)
-                try {
-                    val indexExpression = interpreter.optimizedIntExpression(index)
-                    while (indexExpression() <= endLimit()) {
-                        try {
-                            interpreter.execute(body)
-                        } catch (e: IterException) {
-                            // nothing to do here
-                        }
-                        interpreter.assign(index, PlusExpr(index, IntLiteral(1)))
-                    }
-                } catch (e: LeaveException) {
-                    // nothing to do here
+    override fun execute(interpreter: InterpreterCore) {
+        params.forEach {
+            if (interpreter.globalSymbolTable.contains(it.param.name)) {
+                val value = interpreter.globalSymbolTable[it.param.name]
+                interpreter.log {
+                    ParamListStatemenExecutionLog(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            it.param.name,
+                            value
+                    )
                 }
             }
         }
     }
+}
 
-    @Serializable
-    data class DowStmt(
-        val endExpression: Expression,
-        override val body: List<Statement>,
-        override val position: Position? = null
-    ) : Statement(position), CompositeStatement {
-        override fun execute(interpreter: InterpreterCore) {
-            var loopCounter: Long = 0
-            val startTime = System.currentTimeMillis()
+@Serializable
+data class PlistParam(
+    val param: ReferenceByName<AbstractDataDefinition>,
+    // TODO @Derived????
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Node(position)
+
+@Serializable
+data class ClearStmt(
+    val value: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        return when (value) {
+            is DataRefExpr -> {
+                val value = interpreter.assign(value, BlanksRefExpr())
+                interpreter.log {
+                    ClearStatemenExecutionLog(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            value
+                    )
+                }
+                Unit
+            }
+            is PredefinedIndicatorExpr -> {
+                val value = interpreter.assign(value, BlanksRefExpr())
+                interpreter.log {
+                    ClearStatemenExecutionLog(
+                            interpreter.interpretationContext.currentProgramName,
+                            this,
+                            value
+                    )
+                }
+            }
+            else -> throw UnsupportedOperationException("I do not know how to clear ${this.value}")
+        }
+    }
+}
+
+@Serializable
+data class DefineStmt(
+    val originalName: String,
+    val newVarName: String,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        val containingCU = this.ancestor(CompilationUnit::class.java)
+                ?: throw IllegalStateException("Not contained in a CU")
+        val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+        if (originalDataDefinition != null) {
+            return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
+        } else {
+            val inStatementDataDefinition =
+                    containingCU.main.stmts
+                            .filterIsInstance(StatementThatCanDefineData::class.java)
+                            .asSequence()
+                            .map(StatementThatCanDefineData::dataDefinition)
+                            .flatten()
+                            .find { it.name == originalName }
+            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition!!.type, position))
+        }
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        // Nothing to do here
+    }
+}
+
+interface WithRightIndicators {
+    fun allPresent(): Boolean = hi != null && lo != null && eq != null
+
+    val hi: IndicatorKey?
+    val lo: IndicatorKey?
+    val eq: IndicatorKey?
+}
+
+@Serializable
+data class RightIndicators(
+    override val hi: IndicatorKey?,
+    override val lo: IndicatorKey?,
+    override val eq: IndicatorKey?
+) : WithRightIndicators
+
+@Serializable
+data class CompStmt(
+    val left: Expression,
+    val right: Expression,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators {
+    override fun execute(interpreter: InterpreterCore) {
+        when (interpreter.compareExpressions(left, right, interpreter.localizationContext.charset)) {
+            GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+            SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+            else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+        }
+    }
+}
+
+@Serializable
+data class ZAddStmt(
+    val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    var expression: Expression,
+    override val position: Position? = null
+) :
+        Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.assign(target, interpreter.eval(expression))
+    }
+}
+
+@Serializable
+data class MultStmt(
+    val target: AssignableExpression,
+    val halfAdjust: Boolean = false,
+    val factor1: Expression?,
+    val factor2: Expression,
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.assign(target, interpreter.mult(this))
+    }
+}
+
+@Serializable
+data class DivStmt(
+    val target: AssignableExpression,
+    val halfAdjust: Boolean = false,
+    val factor1: Expression?,
+    val factor2: Expression,
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.assign(target, interpreter.div(this))
+    }
+}
+
+@Serializable
+data class AddStmt(
+    val left: Expression?,
+    val result: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val right: Expression,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+
+    @Derived
+    val addend1: Expression
+        get() = left ?: result
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.assign(result, interpreter.add(this))
+    }
+}
+
+@Serializable
+data class ZSubStmt(
+    val target: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    var expression: Expression,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        val value = interpreter.eval(expression)
+        require(value is NumberValue) {
+            "$value should be a number"
+        }
+        interpreter.assign(target, value.negate())
+    }
+}
+
+@Serializable
+data class SubStmt(
+    val left: Expression?,
+    val result: AssignableExpression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val right: Expression,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+
+    @Derived
+    val minuend: Expression
+        get() = left ?: result
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.assign(result, interpreter.sub(this))
+    }
+}
+
+@Serializable
+data class TimeStmt(
+    val value: Expression,
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        when (value) {
+            is DataRefExpr -> {
+                interpreter.assign(value, TimeStampValue(Date()))
+            }
+            else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
+        }
+    }
+}
+
+@Serializable
+data class DisplayStmt(val factor1: Expression?, val response: Expression?, override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        val values = mutableListOf<Value>()
+        factor1?.let { values.add(interpreter.eval(it)) }
+        response?.let { values.add(interpreter.eval(it)) }
+        // TODO: receive input from systemInterface and assign value to response
+        interpreter.systemInterface.display(interpreter.rawRender(values))
+    }
+}
+
+@Serializable
+data class DoStmt(
+    val endLimit: Expression,
+    val index: AssignableExpression?,
+    override val body: List<Statement>,
+    val startLimit: Expression = IntLiteral(1),
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+        // TODO check if the annotation is the last statement
+        return acceptBody(body, mutes, start, end)
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        var loopCounter: Long = 0
+        val startTime = System.currentTimeMillis()
+        val endLimitExpression = endLimit
+        val endLimit: () -> Long = interpreter.optimizedIntExpression(endLimitExpression)
+        if (index == null) {
+            var myIterValue = interpreter.eval(startLimit).asInt().value
             try {
-                interpreter.log { DowStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
-                while (interpreter.eval(endExpression).asBoolean().value) {
-                    interpreter.execute(body)
-                    loopCounter++
-                }
-                interpreter.log {
-                    val elapsed = System.currentTimeMillis() - startTime
-                    DowStatemenExecutionLogEnd(
-                            interpreter.interpretationContext.currentProgramName,
-                            this,
-                            elapsed,
-                            loopCounter
-                    )
-                }
-            } catch (e: LeaveException) {
-                interpreter.log {
-                    val elapsed = System.currentTimeMillis() - startTime
-                    DowStatemenExecutionLogEnd(
-                            interpreter.interpretationContext.currentProgramName,
-                            this,
-                            elapsed,
-                            loopCounter
-                    )
-                }
-            }
-        }
-    }
-
-    @Serializable
-    data class DouStmt(
-        val endExpression: Expression,
-        override val body: List<Statement>,
-        override val position: Position? = null
-    ) : Statement(position), CompositeStatement {
-        override fun execute(interpreter: InterpreterCore) {
-            var loopCounter: Long = 0
-            val startTime = System.currentTimeMillis()
-            try {
-                interpreter.log { DouStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
-                do {
-                    interpreter.execute(body)
-                    loopCounter++
-                } while (!interpreter.eval(endExpression).asBoolean().value)
-                interpreter.log {
-                    val elapsed = System.currentTimeMillis() - startTime
-                    DouStatemenExecutionLogEnd(
-                            interpreter.interpretationContext.currentProgramName,
-                            this,
-                            elapsed,
-                            loopCounter
-                    )
-                }
-            } catch (e: LeaveException) {
-                interpreter.log {
-                    val elapsed = System.currentTimeMillis() - startTime
-                    DouStatemenExecutionLogEnd(
-                            interpreter.interpretationContext.currentProgramName,
-                            this,
-                            elapsed,
-                            loopCounter
-                    )
-                }
-            }
-        }
-    }
-
-    @Serializable
-    data class LeaveSrStmt(override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.log { LeaveSrStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
-            throw LeaveSrException()
-        }
-    }
-
-    @Serializable
-    data class LeaveStmt(override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.log { LeaveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
-            throw LeaveException()
-        }
-    }
-
-    @Serializable
-    data class IterStmt(override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            interpreter.log { IterStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
-            throw IterException()
-        }
-    }
-
-    @Serializable
-    data class OtherStmt(override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            TODO("Not yet implemented")
-        }
-    }
-
-    @Serializable
-    data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
-        companion object {
-            operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
-        }
-        override fun execute(interpreter: InterpreterCore) {
-            // Nothing to do here
-        }
-    }
-
-    @Serializable
-    data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            throw GotoException(tag)
-        }
-    }
-
-    @Serializable
-    data class CabStmt(
-        val factor1: Expression,
-        val factor2: Expression,
-        val comparison: ComparisonOperator?,
-        val tag: String,
-        val rightIndicators: WithRightIndicators,
-        override val position: Position? = null
-    ) : Statement(position), WithRightIndicators by rightIndicators {
-        override fun execute(interpreter: InterpreterCore) {
-            val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.localizationContext.charset)
-            when (comparisonResult.comparison) {
-                GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-                SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-                else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-            }
-            if (comparisonResult.isVerified) throw GotoException(tag)
-        }
-    }
-
-    @Serializable
-    data class ForStmt(
-        var init: Expression,
-        val endValue: Expression,
-        val byValue: Expression,
-        val downward: Boolean = false,
-        override val body: List<Statement>,
-        override val position: Position? = null
-    ) : Statement(position), CompositeStatement {
-        fun iterDataDefinition(): AbstractDataDefinition {
-            if (init is AssignmentExpr) {
-                if ((init as AssignmentExpr).target is DataRefExpr) {
-                    return ((init as AssignmentExpr).target as DataRefExpr).variable.referred!!
-                } else {
-                    throw UnsupportedOperationException()
-                }
-            } else {
-                throw UnsupportedOperationException()
-            }
-        }
-
-        override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
-            // TODO check if the annotation is the last statement
-            return acceptBody(body, mutes, start, end)
-        }
-
-        override fun execute(interpreter: InterpreterCore) {
-            var loopCounter: Long = 0
-            val startTime = System.currentTimeMillis()
-
-            interpreter.eval(init)
-            val iterVar = iterDataDefinition()
-            try {
-                interpreter.log { ForStatementExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
-                var step = interpreter.eval(byValue).asInt().value
-                if (downward) {
-                    step *= -1
-                }
-                while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward)) {
+                interpreter.log { DoStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+                while (myIterValue <= endLimit()) {
                     try {
                         interpreter.execute(body)
                     } catch (e: IterException) {
                         // nothing to do here
                     }
-
-                    interpreter.increment(iterVar, step)
                     loopCounter++
+                    myIterValue++
                 }
                 interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
-                    ForStatementExecutionLogEnd(
+                    DoStatemenExecutionLogEnd(
                             interpreter.interpretationContext.currentProgramName,
                             this,
                             elapsed,
@@ -1229,10 +979,10 @@ data class MoveAStmt(
                     )
                 }
             } catch (e: LeaveException) {
-                // leaving
+                // nothing to do here
                 interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
-                    ForStatementExecutionLogEnd(
+                    DoStatemenExecutionLogEnd(
                             interpreter.interpretationContext.currentProgramName,
                             this,
                             elapsed,
@@ -1240,126 +990,358 @@ data class MoveAStmt(
                     )
                 }
             }
-        }
-    }
-
-    /*
- * For an array data structure, the keyed-ds-array operand is a qualified name consisting
- * of the array to be sorted followed by the subfield to be used as a key for the sort.
- */
-    @Serializable
-    data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            sortA(interpreter.eval(target), interpreter.localizationContext.charset)
-        }
-    }
-
-    @Serializable
-    data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position) {
-        override fun execute(interpreter: InterpreterCore) {
-            val blanksInBetween = blanksInBetween
-            val blanks = StringValue.blank(blanksInBetween)
-            val factor2 = interpreter.eval(right)
-            var result = interpreter.eval(target)
-            val resultLen = result.asString().length()
-            var concatenatedFactors: Value
-
-            if (null != left) {
-                val factor1 = interpreter.eval(left)
-                val f1Trimmed = (factor1 as StringValue).value.trim()
-                val factor1Trimmed = StringValue(f1Trimmed)
-                concatenatedFactors = if (blanksInBetween > 0) {
-                    factor1Trimmed.concatenate(blanks).concatenate(factor2)
-                } else {
-                    factor1.concatenate(factor2)
-                }
-            } else {
-                concatenatedFactors = if (!result.asString().isBlank()) {
-                    result
-                } else if (blanksInBetween > 0) {
-                    if (blanksInBetween >= resultLen) {
-                        result
-                    } else {
-                        blanks.concatenate(factor2)
+        } else {
+            interpreter.assign(index, startLimit)
+            try {
+                val indexExpression = interpreter.optimizedIntExpression(index)
+                while (indexExpression() <= endLimit()) {
+                    try {
+                        interpreter.execute(body)
+                    } catch (e: IterException) {
+                        // nothing to do here
                     }
-                } else {
-                    result
+                    interpreter.assign(index, PlusExpr(index, IntLiteral(1)))
                 }
+            } catch (e: LeaveException) {
+                // nothing to do here
             }
-            val concatenatedFactorsLen = concatenatedFactors.asString().length()
-            result = if (concatenatedFactorsLen >= resultLen) {
-                concatenatedFactors.asString().getSubstring(0, resultLen)
-            } else {
-                concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
-            }
-
-            interpreter.assign(target, result)
-            interpreter.log { CatStatementExecutionLog(interpreter.interpretationContext.currentProgramName, this, interpreter.eval(target)) }
         }
     }
+}
 
-    @Serializable
-    data class LookupStmt(
-        val left: Expression,
-        val right: Expression,
-        val rightIndicators: WithRightIndicators,
-        override val position: Position? = null
-    ) : Statement(position), WithRightIndicators by rightIndicators {
-        override fun execute(interpreter: InterpreterCore) {
-            lookUp(this, interpreter, interpreter.localizationContext.charset)
+@Serializable
+data class DowStmt(
+    val endExpression: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+    override fun execute(interpreter: InterpreterCore) {
+        var loopCounter: Long = 0
+        val startTime = System.currentTimeMillis()
+        try {
+            interpreter.log { DowStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+            while (interpreter.eval(endExpression).asBoolean().value) {
+                interpreter.execute(body)
+                loopCounter++
+            }
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                DowStatemenExecutionLogEnd(
+                        interpreter.interpretationContext.currentProgramName,
+                        this,
+                        elapsed,
+                        loopCounter
+                )
+            }
+        } catch (e: LeaveException) {
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                DowStatemenExecutionLogEnd(
+                        interpreter.interpretationContext.currentProgramName,
+                        this,
+                        elapsed,
+                        loopCounter
+                )
+            }
         }
     }
+}
 
-    @Serializable
-    data class ScanStmt(
-        val left: Expression,
-        val leftLength: Int?,
-        val right: Expression,
-        val startPosition: Int,
-        val target: AssignableExpression,
-        val rightIndicators: WithRightIndicators,
-        override val position: Position? = null
-    ) : Statement(position), WithRightIndicators by rightIndicators {
-
-        override fun execute(interpreter: InterpreterCore) {
-            val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
-            val searchInto = interpreter.eval(right).asString().value.substring(startPosition - 1)
-            val occurrences = mutableListOf<Value>()
-            var index = -1
+@Serializable
+data class DouStmt(
+    val endExpression: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+    override fun execute(interpreter: InterpreterCore) {
+        var loopCounter: Long = 0
+        val startTime = System.currentTimeMillis()
+        try {
+            interpreter.log { DouStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
             do {
-                index = searchInto.indexOf(stringToSearch, index + 1)
-                if (index >= 0) occurrences.add(IntValue((index + startPosition).toLong()))
-            } while (index >= 0)
-            if (occurrences.isEmpty()) {
-                interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+                interpreter.execute(body)
+                loopCounter++
+            } while (!interpreter.eval(endExpression).asBoolean().value)
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                DouStatemenExecutionLogEnd(
+                        interpreter.interpretationContext.currentProgramName,
+                        this,
+                        elapsed,
+                        loopCounter
+                )
+            }
+        } catch (e: LeaveException) {
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                DouStatemenExecutionLogEnd(
+                        interpreter.interpretationContext.currentProgramName,
+                        this,
+                        elapsed,
+                        loopCounter
+                )
+            }
+        }
+    }
+}
+
+@Serializable
+data class LeaveSrStmt(override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log { LeaveSrStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+        throw LeaveSrException()
+    }
+}
+
+@Serializable
+data class LeaveStmt(override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log { LeaveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+        throw LeaveException()
+    }
+}
+
+@Serializable
+data class IterStmt(override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log { IterStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+        throw IterException()
+    }
+}
+
+@Serializable
+data class OtherStmt(override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        TODO("Not yet implemented")
+    }
+}
+
+@Serializable
+data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
+    companion object {
+        operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
+    }
+    override fun execute(interpreter: InterpreterCore) {
+        // Nothing to do here
+    }
+}
+
+@Serializable
+data class GotoStmt(val tag: String, override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        throw GotoException(tag)
+    }
+}
+
+@Serializable
+data class CabStmt(
+    val factor1: Expression,
+    val factor2: Expression,
+    val comparison: ComparisonOperator?,
+    val tag: String,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators {
+    override fun execute(interpreter: InterpreterCore) {
+        val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.localizationContext.charset)
+        when (comparisonResult.comparison) {
+            GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+            SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+            else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+        }
+        if (comparisonResult.isVerified) throw GotoException(tag)
+    }
+}
+
+@Serializable
+data class ForStmt(
+    var init: Expression,
+    val endValue: Expression,
+    val byValue: Expression,
+    val downward: Boolean = false,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+    fun iterDataDefinition(): AbstractDataDefinition {
+        if (init is AssignmentExpr) {
+            if ((init as AssignmentExpr).target is DataRefExpr) {
+                return ((init as AssignmentExpr).target as DataRefExpr).variable.referred!!
             } else {
-                interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-                if (target.type().isArray()) {
-                    val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
-                    interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
-                } else {
-                    interpreter.assign(target, occurrences[0])
+                throw UnsupportedOperationException()
+            }
+        } else {
+            throw UnsupportedOperationException()
+        }
+    }
+
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+        // TODO check if the annotation is the last statement
+        return acceptBody(body, mutes, start, end)
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        var loopCounter: Long = 0
+        val startTime = System.currentTimeMillis()
+
+        interpreter.eval(init)
+        val iterVar = iterDataDefinition()
+        try {
+            interpreter.log { ForStatementExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+            var step = interpreter.eval(byValue).asInt().value
+            if (downward) {
+                step *= -1
+            }
+            while (interpreter.enterCondition(interpreter[iterVar], interpreter.eval(endValue), downward)) {
+                try {
+                    interpreter.execute(body)
+                } catch (e: IterException) {
+                    // nothing to do here
                 }
+
+                interpreter.increment(iterVar, step)
+                loopCounter++
+            }
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                ForStatementExecutionLogEnd(
+                        interpreter.interpretationContext.currentProgramName,
+                        this,
+                        elapsed,
+                        loopCounter
+                )
+            }
+        } catch (e: LeaveException) {
+            // leaving
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                ForStatementExecutionLogEnd(
+                        interpreter.interpretationContext.currentProgramName,
+                        this,
+                        elapsed,
+                        loopCounter
+                )
             }
         }
     }
+}
 
-    @Serializable
-    data class XFootStmt(
-        val left: Expression,
-        val result: AssignableExpression,
-        val rightIndicators: WithRightIndicators,
-        @Derived val dataDefinition: InStatementDataDefinition? = null,
-        override val position: Position? = null
-    ) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
-        override fun dataDefinition(): List<InStatementDataDefinition> {
-            if (dataDefinition != null) {
-                return listOf(dataDefinition)
+/*
+* For an array data structure, the keyed-ds-array operand is a qualified name consisting
+* of the array to be sorted followed by the subfield to be used as a key for the sort.
+*/
+@Serializable
+data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        sortA(interpreter.eval(target), interpreter.localizationContext.charset)
+    }
+}
+
+@Serializable
+data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        val blanksInBetween = blanksInBetween
+        val blanks = StringValue.blank(blanksInBetween)
+        val factor2 = interpreter.eval(right)
+        var result = interpreter.eval(target)
+        val resultLen = result.asString().length()
+        var concatenatedFactors: Value
+
+        if (null != left) {
+            val factor1 = interpreter.eval(left)
+            val f1Trimmed = (factor1 as StringValue).value.trim()
+            val factor1Trimmed = StringValue(f1Trimmed)
+            concatenatedFactors = if (blanksInBetween > 0) {
+                factor1Trimmed.concatenate(blanks).concatenate(factor2)
+            } else {
+                factor1.concatenate(factor2)
             }
-            return emptyList()
+        } else {
+            concatenatedFactors = if (!result.asString().isBlank()) {
+                result
+            } else if (blanksInBetween > 0) {
+                if (blanksInBetween >= resultLen) {
+                    result
+                } else {
+                    blanks.concatenate(factor2)
+                }
+            } else {
+                result
+            }
+        }
+        val concatenatedFactorsLen = concatenatedFactors.asString().length()
+        result = if (concatenatedFactorsLen >= resultLen) {
+            concatenatedFactors.asString().getSubstring(0, resultLen)
+        } else {
+            concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
         }
 
-        override fun execute(interpreter: InterpreterCore) {
-            xfoot(this, interpreter)
+        interpreter.assign(target, result)
+        interpreter.log { CatStatementExecutionLog(interpreter.interpretationContext.currentProgramName, this, interpreter.eval(target)) }
+    }
+}
+
+@Serializable
+data class LookupStmt(
+    val left: Expression,
+    val right: Expression,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators {
+    override fun execute(interpreter: InterpreterCore) {
+        lookUp(this, interpreter, interpreter.localizationContext.charset)
+    }
+}
+
+@Serializable
+data class ScanStmt(
+    val left: Expression,
+    val leftLength: Int?,
+    val right: Expression,
+    val startPosition: Int,
+    val target: AssignableExpression,
+    val rightIndicators: WithRightIndicators,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators {
+
+    override fun execute(interpreter: InterpreterCore) {
+        val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
+        val searchInto = interpreter.eval(right).asString().value.substring(startPosition - 1)
+        val occurrences = mutableListOf<Value>()
+        var index = -1
+        do {
+            index = searchInto.indexOf(stringToSearch, index + 1)
+            if (index >= 0) occurrences.add(IntValue((index + startPosition).toLong()))
+        } while (index >= 0)
+        if (occurrences.isEmpty()) {
+            interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+        } else {
+            interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            if (target.type().isArray()) {
+                val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
+                interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
+            } else {
+                interpreter.assign(target, occurrences[0])
+            }
         }
     }
+}
+
+@Serializable
+data class XFootStmt(
+    val left: Expression,
+    val result: AssignableExpression,
+    val rightIndicators: WithRightIndicators,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        xfoot(this, interpreter)
+    }
+}
