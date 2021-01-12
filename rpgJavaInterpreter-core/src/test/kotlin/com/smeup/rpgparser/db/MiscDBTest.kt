@@ -1,14 +1,15 @@
 package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.adaptForTestCase
 import com.smeup.rpgparser.execution.CommandLineParms
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructValue
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.logging.PERFORMANCE_LOGGER
+import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -17,18 +18,35 @@ import kotlin.test.assertEquals
  * */
 open class MiscDBTest : AbstractTest() {
 
+    private fun testMute(
+        programName: String,
+        vararg consoleLoggers: String
+    ) {
+        testIfReloadConfig { reloadConfig ->
+            val si = JavaSystemInterface().apply {
+                loggingConfiguration = consoleLoggingConfiguration(*consoleLoggers)
+            }
+            executePgm(
+                programName = programName,
+                configuration = Configuration(reloadConfig = reloadConfig, options = Options(muteSupport = true)),
+                systemInterface = si
+
+            )
+        }
+    }
+
     @Test
     fun testX1_X21_06N() {
         testIfReloadConfig {
-            val config = Configuration(reloadConfig = it).adaptForTestCase(this)
+            val config = Configuration(reloadConfig = it)
             var dsDefinition: DataDefinition? = null
             var dsValue: DataStructValue? = null
             executePgm(
                 programName = "db/X1_X21_06N",
                 configuration = config,
                 systemInterface = JavaSystemInterface().apply {
-                    // statement logging in console
-                    loggingConfiguration = consoleLoggingConfiguration(PERFORMANCE_LOGGER)
+                    // performance logging in console
+                    // loggingConfiguration = consoleLoggingConfiguration(PERFORMANCE_LOGGER)
                 },
                 params = CommandLineParms() { compilationUnit ->
                     // extracting by compilationUnit data structure information needed for assertions
@@ -52,5 +70,22 @@ open class MiscDBTest : AbstractTest() {
             )
             assertEquals("OK", dsValue!![dsDefinition!!.getFieldByName("\$UIBK6")].asString().value.trim())
         }
+    }
+
+    @Test
+    open fun testMUTE16_01() {
+        testMute("db/MUTE16_01", STATEMENT_LOGGER)
+    }
+
+    @Ignore
+    @Test
+    fun testMUTE16_02() {
+        testMute("db/MUTE16_02")
+    }
+
+    @Ignore
+    @Test
+    fun testMUTE16_03() {
+        testMute("db/MUTE16_03")
     }
 }

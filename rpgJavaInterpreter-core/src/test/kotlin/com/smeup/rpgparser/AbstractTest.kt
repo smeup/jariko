@@ -109,7 +109,7 @@ abstract class AbstractTest {
     fun executePgm(
         programName: String,
         params: CommandLineParms = CommandLineParms(emptyList()),
-        configuration: Configuration,
+        configuration: Configuration = Configuration(),
         systemInterface: SystemInterface = JavaSystemInterface()
     ): CommandLineParms? {
         val resourceName = if (programName.endsWith(".rpgle")) {

@@ -57,6 +57,11 @@ abstract class RpgFacade<P> (
             }
             val initialValues = toInitialValues(rpgProgram!!, params)
             programInterpreter.execute(rpgProgram!!, initialValues)
+            configuration.options?.apply {
+                if (muteSupport) {
+                    systemInterface.assertMutesSucceed(programName)
+                }
+            }
             toResults(params, initialValues)
         }
     }

@@ -19,7 +19,13 @@ abstract class AbstractDataDefinition(
     @Transient open val type: Type = StringType(1, false),
     @Transient override val position: Position? = null,
     var muteAnnotations: MutableList<MuteAnnotation> = mutableListOf(),
-    open val key: Int = MainExecutionContext.newId()
+    // annotated with "@Transient" because in some circumstances the compiled version behaviour
+    // is wrong (fails Symbol Table value lookup by key)
+    // it is not clear the reason, to reproduce follow these steps:
+    // - remove @Transient
+    // - recompile ./gradlew compileAllMutes
+    // - launch unit test testMUTE16_01
+    @Transient open val key: Int = MainExecutionContext.newId()
 
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()

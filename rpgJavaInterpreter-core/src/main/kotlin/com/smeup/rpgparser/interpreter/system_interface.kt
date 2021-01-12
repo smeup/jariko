@@ -1,8 +1,10 @@
 package com.smeup.rpgparser.interpreter
 
+import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
+import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
@@ -139,4 +141,21 @@ class SimpleSystemInterface(
     override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
         return executedAnnotationInternal
     }
+}
+
+fun SystemInterface.assertMutesSucceed(programName: String) {
+    if (this.executedAnnotationInternal.size == 0) {
+        println("WARNING: no MUTE assertion ran in $programName".yellow())
+    }
+    val errors = mutableListOf<String>()
+    this.executedAnnotationInternal.forEach {
+        val annotation = it.value
+        if (annotation.failed()) {
+            println("Some assertion failed in $programName".color(false))
+            val message = "Mute annotation at line ${it.key} failed - ${annotation.headerDescription()}"
+            println(message.color(false))
+            errors.add(message)
+        }
+    }
+    if (errors.size > 0) error(errors.joinToString())
 }
