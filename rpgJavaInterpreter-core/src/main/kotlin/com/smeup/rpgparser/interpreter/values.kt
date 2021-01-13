@@ -609,11 +609,16 @@ object HiValValue : Value {
         if (other is HiValValue) 0 else 1
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        return this.asInt().asString()
     }
 }
 
 object LowValValue : Value {
+
+    private val MIN_INT = IntValue(Long.MIN_VALUE)
+
+    override fun asInt(): IntValue = MIN_INT
+
     override fun copy(): Value {
         TODO("not implemented")
     }
@@ -631,7 +636,7 @@ object LowValValue : Value {
         if (other is LowValValue) 0 else -1
 
     override fun asString(): StringValue {
-        TODO("Not yet implemented")
+        return this.asInt().asString()
     }
 }
 

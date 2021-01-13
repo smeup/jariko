@@ -829,6 +829,9 @@ class InternalInterpreter(
         }
         if (!exitingRT) {
             globalSymbolTable.clear()
+
+            // Close all opened DBFile
+            dbFileMap.closeAll()
         }
     }
 }

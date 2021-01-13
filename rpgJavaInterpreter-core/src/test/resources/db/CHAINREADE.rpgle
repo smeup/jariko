@@ -5,14 +5,14 @@
       * We use here the EMPLOYEE Table:
       * https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_74/sqlp/rbafyemployee.htm
       * ------------------------------------------------------------------
-     FEMPLOYEE  if   e           k disk
+     FXEMP2     if   e           k disk
      D toFind          S              3
      D msg             S             52    inz(*blanks)
       *
      C     *entry        plist
      C                   parm                    toFind
       * Reads records from file
-     C     toFind        chain     EMPLOYEE
+     C     toFind        chain     EMPLOYEE_XEMP2
      C                   if        %found
      C                   exsr      showData
      c                   else
@@ -25,6 +25,6 @@
      C                   dou       %eof
      C                   eval      msg = %trim(FIRSTNME) + ' ' + %trim(LASTNAME)
      C     msg           dsply
-     C                   ReadE     EMPLOYEE
+     C                   ReadE     EMPLOYEE_XEMP2
      C                   enddo
      C                   endsr
