@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.dbnative.file.DBFile
+import com.smeup.dbnative.file.Record
 import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -331,7 +332,7 @@ abstract class AbstractReadEqualStmt(
                 null -> readOp(dbFile)
                 else -> readOp(dbFile, kList)
             }
-            interpreter.fillDataFrom(result.record)
+            interpreter.fillDataFrom(dbFile, result.record)
         }
         interpreter.log {
             ReadEqualLogEnd(
@@ -364,7 +365,7 @@ abstract class AbstractReadStmt(
         val elapsed = measureTimeMillis {
             val dbFile = interpreter.dbFile(name, this)
             val result = readOp(dbFile)
-            interpreter.fillDataFrom(result.record)
+            interpreter.fillDataFrom(dbFile, result.record)
         }
         interpreter.log {
             ReadLogEnd(
@@ -377,6 +378,23 @@ abstract class AbstractReadStmt(
     }
 
     abstract fun readOp(dbFile: DBFile): Result
+}
+
+@Serializable
+abstract class AbstractUpdStmt(
+    @Transient open val name: String = "", // Factor 2
+    @Transient override val position: Position? = null,
+    private val logPref: String
+) : Statement(position) {
+
+    override fun execute(interpreter: InterpreterCore) {
+        val dbFile = interpreter.dbFile(name, this)
+        dbFile.fileMetadata.fields.forEach {
+            it.name
+        }
+    }
+
+    abstract fun updOp(dbFile: DBFile, record: Record): Result
 }
 
 @Serializable

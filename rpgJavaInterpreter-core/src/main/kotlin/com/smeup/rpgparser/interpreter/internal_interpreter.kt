@@ -494,27 +494,29 @@ class InternalInterpreter(
     private fun errorDescription(statement: Statement, throwable: Throwable) =
         "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
-    override fun fillDataFrom(record: Record) {
+    override fun fillDataFrom(dbFile: EnrichedDBFile, record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
-            record.forEach {
-                val dataDefinition = dataDefinitionByName(it.key)
-                dataDefinition?.apply {
-                    assign(this, StringValue(it.value))
-                } ?: System.err.println("Field: ${it.key} not found in SymbolTable")
+            record.forEach { field ->
+                // dbFieldName could be different by dataDefinition name if file definition has a prefix property
+                dbFile.getDataDefinitionName(field.key)?.let { name ->
+                    dataDefinitionByName(name)
+                }?.apply {
+                    assign(this, StringValue(field.value))
+                } ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
             }
         } else {
             status.lastFound = false
         }
     }
 
-    override fun dbFile(name: String, statement: Statement): DBFile {
+    override fun dbFile(nameOrFormat: String, statement: Statement): EnrichedDBFile {
 
         // Nem could be file name or format name
-        val dbFile = dbFileMap.get(name)
+        val dbFile = dbFileMap[nameOrFormat]
 
         require(dbFile != null) {
-            "Line: ${statement.position.line()} - File definition $name not found"
+            "Line: ${statement.position.line()} - File definition $nameOrFormat not found"
         }
         status.lastDBFile = dbFile
         return dbFile

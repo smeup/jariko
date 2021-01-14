@@ -7,7 +7,6 @@ import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructValue
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import org.junit.Ignore
 import org.junit.Test
@@ -74,10 +73,9 @@ open class MiscDBTest : AbstractTest() {
 
     @Test
     open fun testMUTE16_01() {
-        testMute("db/MUTE16_01", STATEMENT_LOGGER)
+        testMute("db/MUTE16_01")
     }
 
-    @Ignore
     @Test
     fun testMUTE16_02() {
         testMute("db/MUTE16_02")
@@ -87,5 +85,17 @@ open class MiscDBTest : AbstractTest() {
     @Test
     fun testMUTE16_03() {
         testMute("db/MUTE16_03")
+    }
+
+    @Ignore
+    @Test
+    fun testMUTE16_04() {
+        testMute("db/MUTE16_04")
+    }
+
+    @Ignore
+    @Test
+    fun testMUTE16_05() {
+        testMute("db/MUTE16_05")
     }
 }

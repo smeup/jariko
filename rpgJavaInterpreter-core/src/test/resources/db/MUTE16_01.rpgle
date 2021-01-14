@@ -229,7 +229,7 @@
      C                   KFLD                    $$COMM
       * Initialization variables
      C                   EVAL      $N=1
-     C                   EVAL      $NDO=0
+     C                   EVAL      $NDO=1
       * Read cicle VERAPG8L
      C     K8L           SETLL     VERAPG8
      C                   DO        *HIVAL

@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.asNonNullString
 import com.strumenta.kolasu.model.Node
@@ -946,7 +947,7 @@ class ReadLogStart(programName: String, val statement: Statement, private val lo
         return "executing $logPref"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "$logPref $sep$statement"
+        val data = "$logPref $sep"
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
@@ -977,6 +978,30 @@ class ReadEqualLogStart(programName: String, val statement: Statement, private v
 }
 
 class ReadEqualLogEnd(programName: String, val statement: Statement, private val logPref: String, val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ending $logPref"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.endLine(), sep) + "$logPref END$sep$result"
+    }
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "$logPref END${sep}${elapsed}${sep}ms"
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+
+class UpdLogStart(programName: String, val statement: Statement, private val logPref: String, val record: Record) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing $logPref"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "$logPref $sep$record"
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class UpdLogEnd(programName: String, val statement: Statement, private val logPref: String, val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "ending $logPref"
     }

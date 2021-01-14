@@ -102,6 +102,14 @@ data class FileDefinition private constructor(
         set(value) {
             field = value?.toUpperCase()
         }
+
+    private var fieldNameToDataDefinitionName = mutableMapOf<String, String>()
+
+    fun createDbFieldDataDefinitionRelation(dbFieldName: String, dataDefinitionName: String) {
+        fieldNameToDataDefinitionName[dbFieldName] = dataDefinitionName
+    }
+
+    fun getDataDefinitionName(dbFieldName: String) = fieldNameToDataDefinitionName[dbFieldName]
 }
 
 @Serializable
