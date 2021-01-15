@@ -6,8 +6,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.encodeToByteArray
 import com.smeup.rpgparser.parsing.ast.encodeToString
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import java.io.File
-import java.io.FileInputStream
+import java.io.*
 
 enum class Format {
     JSON, BIN
@@ -98,4 +97,35 @@ fun compile(
         }
     }
     return compilationResult
+}
+
+/**
+ * Compile programs
+ * @param src Source (rpgle content) as inputstream
+ * @param out Output (compiled source) as outpustream
+ * @param format Compiled file format. Default Format.BIN
+ * @param muteSupport Support for mute programs. Default false
+ * */
+@JvmOverloads
+fun compile(
+    src: InputStream,
+    out: OutputStream,
+    format: Format? = Format.BIN,
+    muteSupport: Boolean? = false
+) {
+    runCatching {
+        println("Compiling inputstream to outputstream... ")
+
+        var cu: CompilationUnit? = null
+        cu = RpgParserFacade().apply {
+            this.muteSupport = muteSupport!!
+        }.parseAndProduceAst(src)
+
+        when (format) {
+            Format.BIN -> out.write(cu!!.encodeToByteArray())
+            Format.JSON -> out.write(cu!!.encodeToString().toByteArray(Charsets.UTF_8))
+        }
+
+        println("... done.")
+    }
 }
