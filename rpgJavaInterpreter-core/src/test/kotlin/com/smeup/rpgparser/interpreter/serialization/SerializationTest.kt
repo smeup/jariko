@@ -110,6 +110,7 @@ class SerializationTest {
     }
 
     @Test
+    @Ignore
     fun `serialize programs from streams`() {
 
         val tmpDir = System.getProperty("java.io.tmpdir")
