@@ -113,7 +113,6 @@ fun compile(
     format: Format? = Format.BIN,
     muteSupport: Boolean? = false
 ) {
-    runCatching {
         println("Compiling inputstream to outputstream... ")
 
         var cu: CompilationUnit? = null
@@ -122,10 +121,9 @@ fun compile(
         }.parseAndProduceAst(src)
 
         when (format) {
-            Format.BIN -> out.write(cu!!.encodeToByteArray())
-            Format.JSON -> out.write(cu!!.encodeToString().toByteArray(Charsets.UTF_8))
+            Format.BIN -> out.use { it.write(cu!!.encodeToByteArray()) }
+            Format.JSON -> out.use { it.write(cu!!.encodeToString().toByteArray(Charsets.UTF_8)) }
         }
 
         println("... done.")
-    }
 }
