@@ -47,10 +47,10 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
                 is SymbolTableIniLogEnd -> logger.info(render(logEntry))
                 is SymbolTableLoadLogEnd -> logger.info(render(logEntry))
                 is SymbolTableStoreLogEnd -> logger.info(render(logEntry))
-                is SetllLogEnd -> logger.info(render(logEntry))
+                is SetLogEnd -> logger.info(render(logEntry))
                 is ReadLogEnd -> logger.info(render(logEntry))
                 is ReadEqualLogEnd -> logger.info(render(logEntry))
-                is UpdLogEnd -> logger.info(render(logEntry))
+                is StoreLogEnd -> logger.info(render(logEntry))
             }
         }
     }
@@ -130,14 +130,14 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
                 is SymbolTableLoadLogEnd -> logger.info(render(logEntry))
                 is SymbolTableStoreLogStart -> logger.info(render(logEntry))
                 is SymbolTableStoreLogEnd -> logger.info(render(logEntry))
-                is SetllLogStart -> logger.info(render(logEntry))
-                is SetllLogEnd -> logger.info(render(logEntry))
+                is SetLogStart -> logger.info(render(logEntry))
+                is SetLogEnd -> logger.info(render(logEntry))
                 is ReadLogStart -> logger.info(render(logEntry))
                 is ReadLogEnd -> logger.info(render(logEntry))
                 is ReadEqualLogStart -> logger.info(render(logEntry))
                 is ReadEqualLogEnd -> logger.info(render(logEntry))
-                is UpdLogStart -> logger.info(render(logEntry))
-                is UpdLogEnd -> logger.info(render(logEntry))
+                is StoreLogStart -> logger.info(render(logEntry))
+                is StoreLogEnd -> logger.info(render(logEntry))
             }
         }
     }

@@ -8,9 +8,9 @@ import org.junit.BeforeClass
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class ChainHostsDBTest {
+class ChainHostsDBTest : AbstractTest() {
 
-    companion object : AbstractTest() {
+    companion object {
 
         lateinit var server: Server
 

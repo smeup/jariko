@@ -71,7 +71,7 @@ abstract class AbstractTest {
         metadata: List<FileMetadata> = emptyList(),
         initialSQL: List<String> = emptyList(),
         inputParms: Map<String, Value> = mapOf(),
-        configuration: Configuration = Configuration()
+        configuration: Configuration = Configuration(options = Options(muteSupport = true))
     ): List<String> {
         return com.smeup.rpgparser.db.utilities.outputOfDBPgm(
             programName = programName,

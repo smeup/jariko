@@ -918,26 +918,26 @@ class SymbolTableStoreLogEnd(programName: String, val elapsed: Long) : LogEntry(
     }
 }
 
-class SetllLogStart(programName: String, val statement: Statement, val kList: List<String>) : LogEntry(programName) {
+class SetLogStart(programName: String, val statement: Statement, private val logPref: String, val kList: List<String>) : LogEntry(programName) {
     override fun toString(): String {
-        return "executing SETLL"
+        return "executing $logPref"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "SETLL START$sep$kList}"
+        val data = "$logPref START$sep$kList}"
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
 
-class SetllLogEnd(programName: String, val statement: Statement, val elapsed: Long) : LogEntry(programName) {
+class SetLogEnd(programName: String, val statement: Statement, private val logPref: String, val elapsed: Long) : LogEntry(programName) {
     override fun toString(): String {
-        return "ending SETLL"
+        return "ending $logPref"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "SETLL END"
+        return renderHeader(channel, filename, statement.endLine(), sep) + "$logPref END"
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "SETLL END${sep}${elapsed}${sep}ms"
+        val data = "$logPref END${sep}${elapsed}${sep}ms"
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }
 }
@@ -953,12 +953,12 @@ class ReadLogStart(programName: String, val statement: Statement, private val lo
     }
 }
 
-class ReadLogEnd(programName: String, val statement: Statement, private val logPref: String, val elapsed: Long) : LogEntry(programName) {
+class ReadLogEnd(programName: String, val statement: Statement, private val logPref: String, private val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "ending $logPref"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        return renderHeader(channel, filename, statement.endLine(), sep) + "$logPref END"
+        return renderHeader(channel, filename, statement.endLine(), sep) + "$logPref END$sep$result"
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
         val data = "$logPref END${sep}${elapsed}${sep}ms"
@@ -990,7 +990,7 @@ class ReadEqualLogEnd(programName: String, val statement: Statement, private val
     }
 }
 
-class UpdLogStart(programName: String, val statement: Statement, private val logPref: String, val record: Record) : LogEntry(programName) {
+class StoreLogStart(programName: String, val statement: Statement, private val logPref: String, val record: Record? = null) : LogEntry(programName) {
     override fun toString(): String {
         return "executing $logPref"
     }
@@ -1001,7 +1001,7 @@ class UpdLogStart(programName: String, val statement: Statement, private val log
     }
 }
 
-class UpdLogEnd(programName: String, val statement: Statement, private val logPref: String, val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
+class StoreLogEnd(programName: String, val statement: Statement, private val logPref: String, val result: com.smeup.dbnative.file.Result, val elapsed: Long) : LogEntry(programName) {
     override fun toString(): String {
         return "ending $logPref"
     }

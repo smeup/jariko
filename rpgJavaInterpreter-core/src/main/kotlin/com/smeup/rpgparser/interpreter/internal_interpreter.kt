@@ -330,6 +330,8 @@ class InternalInterpreter(
             throw RuntimeException(errorDescription(statement, e), e)
         } catch (e: RuntimeException) {
             throw RuntimeException(errorDescription(statement, e), e)
+        } catch (t: Throwable) {
+            throw RuntimeException(errorDescription(statement, t), t)
         } finally {
             if (statement.muteAnnotations.size > 0) {
                 executeMutes(

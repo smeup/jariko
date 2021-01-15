@@ -2,6 +2,7 @@ package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
+import com.smeup.dbnative.file.RecordField
 import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -293,16 +294,6 @@ data class MoveLStmt(
     }
 }
 
-// TODO add other parameters
-@Serializable
-data class ChainStmt(
-    override val searchArg: Expression, // Factor1
-    override val name: String, // Factor 2
-    override val position: Position? = null
-) : AbstractReadEqualStmt(searchArg, name, position, "CHAIN") {
-    override fun readOp(dbFile: DBFile, kList: List<String>?): Result = dbFile.chain(kList!!)
-}
-
 @Serializable
 abstract class AbstractReadEqualStmt(
     @Transient open val searchArg: Expression? = null, // Factor1
@@ -329,8 +320,8 @@ abstract class AbstractReadEqualStmt(
         val elapsed = measureTimeMillis {
             val dbFile = interpreter.dbFile(name, this)
             result = when (searchArg) {
-                null -> readOp(dbFile)
-                else -> readOp(dbFile, kList)
+                null -> read(dbFile)
+                else -> read(dbFile, kList)
             }
             interpreter.fillDataFrom(dbFile, result.record)
         }
@@ -345,7 +336,7 @@ abstract class AbstractReadEqualStmt(
         }
     }
 
-    abstract fun readOp(dbFile: DBFile, kList: List<String>? = null): Result
+    abstract fun read(dbFile: DBFile, kList: List<String>? = null): Result
 }
 
 @Serializable
@@ -362,9 +353,10 @@ abstract class AbstractReadStmt(
                 logPref = logPref
             )
         }
+        val result: Result
         val elapsed = measureTimeMillis {
             val dbFile = interpreter.dbFile(name, this)
-            val result = readOp(dbFile)
+            result = readOp(dbFile)
             interpreter.fillDataFrom(dbFile, result.record)
         }
         interpreter.log {
@@ -372,7 +364,8 @@ abstract class AbstractReadStmt(
                 programName = interpreter.interpretationContext.currentProgramName,
                 this,
                 logPref = logPref,
-                elapsed
+                result = result,
+                elapsed = elapsed
             )
         }
     }
@@ -381,7 +374,7 @@ abstract class AbstractReadStmt(
 }
 
 @Serializable
-abstract class AbstractUpdStmt(
+abstract class AbstractStoreStmt(
     @Transient open val name: String = "", // Factor 2
     @Transient override val position: Position? = null,
     private val logPref: String
@@ -389,12 +382,93 @@ abstract class AbstractUpdStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val dbFile = interpreter.dbFile(name, this)
-        dbFile.fileMetadata.fields.forEach {
-            it.name
+        val record = Record()
+        val result: Result
+        val elapsed = measureTimeMillis {
+            interpreter.log {
+                StoreLogStart(
+                    programName = interpreter.interpretationContext.currentProgramName,
+                    statement = this,
+                    logPref = "$logPref CREATE RECORD"
+                )
+            }
+            dbFile.fileMetadata.fields.forEach { field ->
+                interpreter.dataDefinitionByName(field.name)?.let { dataDefinition ->
+                    RecordField(field.name, interpreter[dataDefinition].asString().value)
+                }?.apply {
+                    record.add(this)
+                } ?: error("Not found in SymbolTable dbFieldName: ${field.name}")
+            }
+            interpreter.log {
+                StoreLogStart(
+                    programName = interpreter.interpretationContext.currentProgramName,
+                    statement = this,
+                    logPref = "$logPref STORE"
+                )
+            }
+            result = store(dbFile, record)
+        }
+        interpreter.log {
+            StoreLogEnd(
+                programName = interpreter.interpretationContext.currentProgramName,
+                statement = this,
+                logPref = logPref,
+                result = result,
+                elapsed = elapsed
+            )
         }
     }
 
-    abstract fun updOp(dbFile: DBFile, record: Record): Result
+    abstract fun store(dbFile: DBFile, record: Record): Result
+}
+
+@Serializable
+abstract class AbstractSetStmt(
+    // this one is a dummy expression needed to initialize because of "transient" annotation
+    @Transient open val searchArg: Expression = StringLiteral(""), // Factor1
+    @Transient open val name: String = "", // Factor 2
+    @Transient override val position: Position? = null,
+    private val logPref: String = ""
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        val kList: List<String> = if (searchArg.type() is KListType) {
+            interpreter.toSearchValues(searchArg)
+        } else {
+            listOf(interpreter.eval(searchArg).asString().value)
+        }
+        interpreter.log {
+            SetLogStart(
+                programName = interpreter.interpretationContext.currentProgramName,
+                statement = this,
+                kList = kList,
+                logPref = logPref
+            )
+        }
+        val elapsed = measureTimeMillis {
+            val dbFile = interpreter.dbFile(name, this)
+            interpreter.status.lastFound = set(dbFile, kList)
+        }
+        interpreter.log {
+            SetLogEnd(
+                programName = interpreter.interpretationContext.currentProgramName,
+                statement = this,
+                logPref = logPref,
+                elapsed = elapsed
+            )
+        }
+    }
+
+    abstract fun set(dbFile: DBFile, kList: List<String>): Boolean
+}
+
+// TODO add other parameters
+@Serializable
+data class ChainStmt(
+    override val searchArg: Expression, // Factor1
+    override val name: String, // Factor 2
+    override val position: Position? = null
+) : AbstractReadEqualStmt(searchArg, name, position, "CHAIN") {
+    override fun read(dbFile: DBFile, kList: List<String>?): Result = dbFile.chain(kList!!)
 }
 
 @Serializable
@@ -404,7 +478,7 @@ data class ReadEqualStmt(
     override val position: Position? = null
 ) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position, logPref = "READE") {
 
-    override fun readOp(dbFile: DBFile, kList: List<String>?): Result {
+    override fun read(dbFile: DBFile, kList: List<String>?): Result {
         return if (kList == null) {
             dbFile.readEqual()
         } else {
@@ -420,7 +494,7 @@ data class ReadPreviousEqualStmt(
     override val position: Position? = null
 ) : AbstractReadEqualStmt(searchArg = searchArg, name = name, position = position, logPref = "READPE") {
 
-    override fun readOp(dbFile: DBFile, kList: List<String>?): Result {
+    override fun read(dbFile: DBFile, kList: List<String>?): Result {
         return if (kList == null) {
             dbFile.readPreviousEqual()
         } else {
@@ -440,36 +514,42 @@ data class ReadPreviousStmt(override val name: String, override val position: Po
 }
 
 @Serializable
+data class WriteStmt(override val name: String, override val position: Position?) : AbstractStoreStmt(name = name, position = position, logPref = "WRITE") {
+    override fun store(dbFile: DBFile, record: Record) = dbFile.write(record)
+}
+
+@Serializable
+data class UpdateStmt(override val name: String, override val position: Position?) : AbstractStoreStmt(name = name, position = position, logPref = "UPDATE") {
+    override fun store(dbFile: DBFile, record: Record) = dbFile.update(record)
+}
+
+@Serializable
+data class DeleteStmt(override val name: String, override val position: Position?) : AbstractStoreStmt(name = name, position = position, logPref = "DELETE") {
+    override fun store(dbFile: DBFile, record: Record) = dbFile.delete(record)
+}
+
+@Serializable
 data class SetllStmt(
-    val searchArg: Expression, // Factor1
-    val name: String, // Factor 2
-    override val position: Position? = null
-) : Statement(position) {
-    override fun execute(interpreter: InterpreterCore) {
-        val kList: List<String> = if (searchArg.type() is KListType) {
-            interpreter.toSearchValues(searchArg)
-        } else {
-            listOf(interpreter.eval(searchArg).asString().value)
-        }
-        interpreter.log {
-            SetllLogStart(
-                programName = interpreter.interpretationContext.currentProgramName,
-                statement = this,
-                kList = kList
-            )
-        }
-        val elapsed = measureTimeMillis {
-            val dbFile = interpreter.dbFile(name, this)
-            interpreter.status.lastFound = dbFile.setll(kList)
-        }
-        interpreter.log {
-            SetllLogEnd(
-                interpreter.interpretationContext.currentProgramName,
-                this,
-                elapsed
-            )
-        }
-    }
+    override val searchArg: Expression,
+    override val name: String,
+    override val position: Position?
+) : AbstractSetStmt(
+    searchArg = searchArg,
+    name = name,
+    position = position,
+    logPref = "SETLL"
+) {
+    override fun set(dbFile: DBFile, kList: List<String>) = dbFile.setll(kList)
+}
+
+@Serializable
+data class SetgtStmt(
+    override val searchArg: Expression,
+    override val name: String,
+    override val position: Position?
+) : AbstractSetStmt(searchArg = searchArg, name = name, position = position, logPref = "SETGT") {
+
+    override fun set(dbFile: DBFile, kList: List<String>) = dbFile.setgt(kList)
 }
 
 @Serializable

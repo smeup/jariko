@@ -157,5 +157,5 @@ fun SystemInterface.assertMutesSucceed(programName: String) {
             errors.add(message)
         }
     }
-    if (errors.size > 0) error(errors.joinToString())
+    if (errors.size > 0) error(errors.joinToString(separator = "\n"))
 }

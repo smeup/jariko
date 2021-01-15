@@ -323,9 +323,14 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCHECK() != null -> this.csCHECK().toAst(conf)
         this.csKLIST() != null -> this.csKLIST().toAst(conf)
         this.csSETLL() != null -> this.csSETLL().toAst(conf)
-        this.csREADE() != null -> this.csREADE().toAst(conf)
-        this.csREADP() != null -> this.csREADP().toAst(conf)
+        this.csSETGT() != null -> this.csSETGT().toAst(conf)
         this.csREAD() != null -> this.csREAD().toAst(conf)
+        this.csREADP() != null -> this.csREADP().toAst(conf)
+        this.csREADE() != null -> this.csREADE().toAst(conf)
+        this.csREADPE() != null -> this.csREADPE().toAst(conf)
+        this.csWRITE() != null -> this.csWRITE().toAst(conf)
+        this.csUPDATE() != null -> this.csUPDATE().toAst(conf)
+        this.csDELETE() != null -> this.csDELETE().toAst(conf)
         this.csCOMP() != null -> this.csCOMP().toAst(conf)
         this.csMULT() != null -> this.csMULT().toAst(conf)
         this.csDIV() != null -> this.csDIV().toAst(conf)
@@ -661,8 +666,37 @@ internal fun CsSETLLContext.toAst(conf: ToAstConfiguration): Statement {
     require(factor1 != null) {
         "SETLL operation requires factor 1: ${this.text} - ${position.atLine()}"
     }
-    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("SETLL operation requires factor 2: ${this.text} - ${position.atLine()}")
     return SetllStmt(factor1, factor2, position)
+}
+
+internal fun CsSETGTContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    // TODO implement indicators handling
+    val factor1 = this.factor1Context()?.content?.toAst(conf) ?: this.factor1Context()?.constant?.toAst(conf)
+    require(factor1 != null) {
+        "SETGT operation requires factor 1: ${this.text} - ${position.atLine()}"
+    }
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("SETGT operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return SetgtStmt(factor1, factor2, position)
+}
+
+internal fun CsWRITEContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("WRITE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return WriteStmt(factor2, position)
+}
+
+internal fun CsUPDATEContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("WRITE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return UpdateStmt(factor2, position)
+}
+
+internal fun CsDELETEContext.toAst(conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("DELETE operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return DeleteStmt(factor2, position)
 }
 
 internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ScanStmt {
