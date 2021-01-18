@@ -84,8 +84,6 @@ open class MiscDBTest : AbstractTest() {
         testMute("db/MUTE16_02")
     }
 
-    // TODO Mute fail, we have to investigate if mute is correctly implemented
-    @Ignore
     @Test
     fun testMUTE16_03() {
         testMute("db/MUTE16_03")
@@ -98,10 +96,13 @@ open class MiscDBTest : AbstractTest() {
         testMute("db/MUTE16_04", STATEMENT_LOGGER)
     }
 
-    // TODO Mute fail, we have to investigate if mute is correctly implemented
-    @Ignore
     @Test
     fun testMUTE16_05() {
         testMute("db/MUTE16_05")
+    }
+
+    @Test
+    fun testMUTE16_06() {
+        testMute("db/MUTE16_06", STATEMENT_LOGGER)
     }
 }
