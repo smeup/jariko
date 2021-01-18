@@ -2,18 +2,12 @@
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V* ==============================================================
-     V* 11/01/21  002090  BUSFIO Creation Mute
-     V* 11/01/21  002090  BUSFIO Added write and update
-     V* 12/01/21  002090  BUSFIO Added delete and read
-     V* 18/01/21  002504  BUSFIO Check-in Branch P_002504
+     V* 18/01/21  002504  BUSFIO Creation mute
+     V* 18/01/21  002504  BUSFIO Use different key in SETLL and READE
      V* ==============================================================
-     FVERAPG7L  IF   E           K DISK
-     FVERAPG0L  UF A E           K DISK    RENAME(VERAPGR:VERAPG0) PREFIX(V0:2)
+     FVERAPG9L  IF   E           K DISK
       *--------------------------------------------------------------------------------------------*
-     D $$NAME          S             15                                           Collaborator
-     D $$COMM          S             15                                           Order
-     D $$DATE          S              8  0                                        Date
-     D $FNDREC         S              1  0                                        Found Record
+     D $$DATA          S              8  0                                        Date
       *-/COPY £PDS --------------------------------------------------------------------------------*
       * Variabili di contesto
      D ££ATCO          S              1                                         Attivazione contesto
@@ -171,13 +165,13 @@
       * Initial settings
      C                   EXSR      IMP0
       * Execute subroutine
-     C                   EXSR      TSTREC
+     C                   EXSR      CHKRES
       *
      C     G9MAIN        TAG
       *
      C                   EXSR      FIN0
       *
-     C                   SETON                                        RT
+     C                   SETON                                        LR
       *--------------------------------------------------------------*
     RD*  Initial Settings
       *--------------------------------------------------------------*
@@ -185,107 +179,27 @@
       *
      C                   ENDSR
       *--------------------------------------------------------------*
-    RD*  Test CRUD operation
+    RD* Use different key in SETLL and READE
       *--------------------------------------------------------------*
-     C     TSTREC        BEGSR
-      * Create key
-     C     K7L           KLIST
-     C                   KFLD                    $$COMM
-     C                   KFLD                    $$NAME
-     C                   KFLD                    $$DATE
-      * Write a Record
+     C     CHKRES        BEGSR
+      * Create key 1
+     C     K9S           KLIST
+     C                   KFLD                    $$DATA
+      *
       * Set variables
-     C                   EVAL      $$COMM=''
-     C                   EVAL      $$NAME='BUSFIO'
-     C                   EVAL      $$DATE=20210117
-     C                   EVAL      $FNDREC=0
-      * Read cicle
-     C     K7L           SETLL     VERAPG7L
-     C                   DO        *HIVAL
-     C     K7L           READE     VERAPG7L
-      * End of File - Exit
-4x   C                   IF        %EOF
-     C                   LEAVE
-4e   C                   ENDIF
+     C                   EVAL      $$DATA=20210114
+      * Set variables
+      * Read VERAPG9L
+     C     K9S           SETLL     VERAPG9L
+     C                   EVAL      $$DATA=20210111
+     C     K9S           READE     VERAPG9L
       *
+    MU* VAL1(V£DATA) VAL2(0) COMP(EQ)
      C     V£DATA        DSPLY     £PDSSU
+    MU* VAL1(V£NOME) VAL2('') COMP(EQ)
      C     V£NOME        DSPLY     £PDSSU
+    MU* VAL1(V£CDC) VAL2('') COMP(EQ)
      C     V£CDC         DSPLY     £PDSSU
-      *
-     C                   EVAL      $FNDREC=1
-      *
-3e   C                   ENDDO
-      *
-     C                   IF        $FNDREC=0
-     C                   EXSR      £XAIDOJ
-     C                   EVAL      V0IDOJ=V£IDOJ
-     C                   EVAL      V0DATA=$$DATE
-     C                   EVAL      V0NOME=$$NAME
-     C                   EVAL      V0CDC=$$COMM
-     C                   EVAL      V0COD1='ERB'
-     C                   EVAL      V0COM2='Prova scrittura Record'              COSTANTE
-    MU* VAL1(*IN50) VAL2(50) COMP(EQ)
-     C                   WRITE     VERAPG0                              50
-     C                   ENDIF
-      *
-      * Update Record
-    MU* VAL1(V0CDC) VAL2($$COMM) COMP(EQ)
-    MU* VAL1(V0NOME) VAL2($$NAME) COMP(EQ)
-    MU* VAL1(V0DATA) VAL2($$DATE) COMP(EQ)
-     C     V£IDOJ        CHAIN     VERAPG0L
-     C     V0CDC         DSPLY     £PDSSU
-     C     V0NOME        DSPLY     £PDSSU
-     C     V0DATA        DSPLY     £PDSSU
-     C                   IF        %FOUND
-     C                   EVAL      V0COM2='Prova Aggiornamento Record'          COSTANTE
-     C                   UPDATE    VERAPG0
-     C                   ENDIF
-      * Delete Record
-    MU* VAL1(V0CDC) VAL2($$COMM) COMP(EQ)
-    MU* VAL1(V0NOME) VAL2($$NAME) COMP(EQ)
-    MU* VAL1(V0DATA) VAL2($$DATE) COMP(EQ)
-     C     V£IDOJ        CHAIN     VERAPG0L
-     C     V0CDC         DSPLY     £PDSSU
-     C     V0NOME        DSPLY     £PDSSU
-     C     V0DATA        DSPLY     £PDSSU
-     C                   IF        %FOUND
-     C                   DELETE    VERAPG0
-     C                   ENDIF
-      * Read cicle to check if the record exist
-     C     K7L           SETLL     VERAPG7L
-     C                   DO        *HIVAL
-    MU* VAL1(V£CDC) VAL2($$COMM) COMP(NE)
-    MU* VAL1(V£NOME) VAL2($$NAME) COMP(NE)
-    MU* VAL1(V£DATA) VAL2($$DATE) COMP(NE)
-     C     K7L           READE     VERAPG7L
-      * End of File - Exit
-4x   C                   IF        %EOF
-     C                   LEAVE
-4e   C                   ENDIF
-      *
-     C     V£DATA        DSPLY     £PDSSU
-     C     V£NOME        DSPLY     £PDSSU
-     C     V£CDC         DSPLY     £PDSSU
-      *
-3e   C                   ENDDO
-      *
-     C                   ENDSR
-      *--------------------------------------------------------------*
-    RD*   /COPY £XAIDOJ
-      *--------------------------------------------------------------*
-     C     £XAIDOJ       BEGSR
-      *
-     C                   CLEAR                   V£IDOJ
-     C                   CLEAR                   $IDOJ            10 0
-      * Search the max IDOJ, start from the end
-     C     *HIVAL        SETGT     VERAPG0L
-     C                   READP(N)  VERAPG0L
-     C                   IF        NOT %EOF
-     C                   EVAL      $IDOJ=%INT(V0IDOJ)+1
-     C                   ELSE
-     C                   EVAL      $IDOJ=1
-     C                   ENDIF
-     C                   MOVEL(P)  $IDOJ         V£IDOJ
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -298,6 +212,5 @@
     RD* Settings routine for start program
       *--------------------------------------------------------------*
      C     *INZSR        BEGSR
-      *
       *
      C                   ENDSR

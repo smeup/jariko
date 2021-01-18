@@ -4,6 +4,8 @@
      V* ==============================================================
      V* 11/01/21  002090  BUSFIO Creation mute
      V* 11/01/21  002090  BUSFIO Add compration result of two logic file
+     V* 18/01/21  002504  BUSFIO Check-in branch P_002504
+     V* 18/01/21  002504  BUSFIO Update Mute annotation
      V* ==============================================================
      FVERAPG7L  IF   E           K DISK
      FVERAPG8L  IF   E           K DISK    RENAME(VERAPGR:VERAPG8) PREFIX(V8:2)
@@ -201,8 +203,6 @@
       * Read cicle VERAPG7L
      C     K7L           SETLL     VERAPG7L
      C                   DO        *HIVAL
-    MU* VAL1($$COMM) VAL2(V£CDC) COMP(EQ)
-    MU* VAL1($$NOME) VAL2(V£NOME) COMP(EQ)
      C     K7L           READE     VERAPG7L
       * End of File - Exit
 4x   C                   IF        %EOF
@@ -217,6 +217,8 @@
      C     V£NOME        DSPLY     £PDSSU
      C     V£CDC         DSPLY     £PDSSU
       *
+    MU* VAL1($$COMM) VAL2(V£CDC) COMP(EQ)
+    MU* VAL1($$NOME) VAL2(V£NOME) COMP(EQ)
      C                   EVAL      ARRDT1($N)=V£DATA
      C                   EVAL      $N=$N+1
      C                   EVAL      $NDO=$NDO+1
@@ -229,15 +231,12 @@
      C                   KFLD                    $$COMM
       * Initialization variables
      C                   EVAL      $N=1
-     C                   EVAL      $NDO=1
+     C                   EVAL      $NDO=0
       * Read cicle VERAPG8L
      C     K8L           SETLL     VERAPG8
      C                   DO        *HIVAL
-    MU* VAL1(V8DATA) VAL2(ARRDT1($N)) COMP(EQ)
      C     K8L           READE     VERAPG8
       *
-     C     V8DATA        DSPLY     £PDSSU
-     C     ARRDT1($N)    DSPLY     £PDSSU
       * End of File - Exit
 4x   C                   IF        %EOF
      C                   LEAVE
@@ -247,6 +246,9 @@
      C                   LEAVE
 4e   C                   ENDIF
       *
+    MU* VAL1(V8DATA) VAL2(ARRDT1($N)) COMP(EQ)
+     C     V8DATA        DSPLY     £PDSSU
+     C     ARRDT1($N)    DSPLY     £PDSSU
      C                   EVAL      $N=$N+1
      C                   EVAL      $NDO=$NDO+1
       *

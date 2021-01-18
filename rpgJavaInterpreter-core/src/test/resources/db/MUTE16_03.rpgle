@@ -4,6 +4,9 @@
      V* ==============================================================
      V* 11/01/21  002090  BUSFIO Creation mute
      V* 11/01/21  002090  BUSFIO Implemented SETGT and READP
+     V* 18/01/21  002504  BUSFIO Check-in Branch P_002504
+     V* 18/01/21  002504  BUSFIO Change position Mute annotation
+     V* 18/01/21  002504  BUSFIO Add new variable to check the max array size in 2nd loop
      V* ==============================================================
      FVERAPG7L  IF   E           K DISK
      FVERAPG8L  IF   E           K DISK    RENAME(VERAPGR:VERAPG8) PREFIX(V8:2)
@@ -16,6 +19,7 @@
      D ARRDT1          S             40    DIM(999)                               Data array
      D $N              S              3  0                                        Counter Array
      D $NDO            S              3  0                                        Counter DO
+     D $NMAX           S              3  0                                        Counter MAX
       *-/COPY £PDS --------------------------------------------------------------------------------*
       * Variabili di contesto
      D ££ATCO          S              1                                         Attivazione contesto
@@ -204,18 +208,20 @@
       * Read cicle VERAPG7L
      C     K7L           SETGT     VERAPG7L
      C                   DO        *HIVAL
-    MU* VAL1($$COMM) VAL2(V£CDC) COMP(EQ)
-    MU* VAL1($$NOME) VAL2(V£NOME) COMP(EQ)
      C                   READP     VERAPG7L
       * End of File - Exit
 4x   C                   IF        %EOF
      C                   LEAVE
 4e   C                   ENDIF
-      * Counter equal 100
+      * Counter equal 200
 4x   C                   IF        $NDO=200
      C                   LEAVE
 4e   C                   ENDIF
-      *
+      * Change Key
+     C                   IF        V£NOME<> $$NOME OR V£CDC<> $$COMM
+     C                   LEAVE
+     C                   ENDIF
+      * Display Result
      C     V£DATA        DSPLY     £PDSSU
      C     V£NOME        DSPLY     £PDSSU
      C     V£CDC         DSPLY     £PDSSU
@@ -226,40 +232,43 @@
      C                   EVAL      $NDO=$NDO+1
       *
 3e   C                   ENDDO
-      *
+      * Decrease $N, because Do end before put data in array
+     C                   EVAL      $N=$N-1
       * Create key
      C     K8L           KLIST
      C                   KFLD                    $$NOME
      C                   KFLD                    $$COMM
       * Initialization variables
+     C                   EVAL      $NMAX=$N
      C                   EVAL      $N=1
      C                   EVAL      $NDO=0
       * Read cicle VERAPG8L
      C     K8L           SETGT     VERAPG8
      C                   DO        *HIVAL
-      * RECUPERARE DATI DA ARRAY
-     C                   EVAL      $$DATA2=%INT(%SUBST(ARRDT1($N):1:8))
-     C                   EVAL      $$NOME2=%SUBST(ARRDT1($N):9:15)
-     C                   EVAL      $$COMM2=%SUBST(ARRDT1($N):24)
-    MU* VAL1(V8DATA) VAL2($$DATA2) COMP(EQ)
-    MU* VAL1(V8NOME) VAL2($$NOME2) COMP(EQ)
-    MU* VAL1(V8CDC) VAL2($$COMM2) COMP(EQ)
      C                   READP     VERAPG8
       *
+      * End of File - Exit
+4x   C                   IF        %EOF
+     C                   LEAVE
+4e   C                   ENDIF
+      * Counter >200 or equal array size
+4x   C                   IF        $NDO>200 OR $N=$NMAX
+     C                   LEAVE
+4e   C                   ENDIF
+      * Recover Data Array
+    MU* VAL1(V8DATA) VAL2($$DATA2) COMP(EQ)
+     C                   EVAL      $$DATA2=%INT(%SUBST(ARRDT1($N):1:8))
+    MU* VAL1(V8NOME) VAL2($$NOME2) COMP(EQ)
+     C                   EVAL      $$NOME2=%SUBST(ARRDT1($N):9:15)
+    MU* VAL1(V8CDC) VAL2($$COMM2) COMP(EQ)
+     C                   EVAL      $$COMM2=%SUBST(ARRDT1($N):24)
+      * Display Result
      C     V8DATA        DSPLY     £PDSSU
      C     $$DATA2       DSPLY     £PDSSU
      C     V8NOME        DSPLY     £PDSSU
      C     $$NOME2       DSPLY     £PDSSU
      C     V8CDC         DSPLY     £PDSSU
      C     $$COMM2       DSPLY     £PDSSU
-      * End of File - Exit
-4x   C                   IF        %EOF
-     C                   LEAVE
-4e   C                   ENDIF
-      * Counter equal 100
-4x   C                   IF        $NDO=200 OR $N=200
-     C                   LEAVE
-4e   C                   ENDIF
       *
      C                   EVAL      $N=$N+1
      C                   EVAL      $NDO=$NDO+1
