@@ -15,6 +15,7 @@
      C                   Eval      NBR    = %Dec(ppdat : 8 : 0)
      C                   EXSR      FIB
      C                   EVAL      FINAL_VAL = RESULT
+     C     FINAL_VAL     DSPLY
      C                   seton                                        lr
       *--------------------------------------------------------------*
      C     FIB           BEGSR
