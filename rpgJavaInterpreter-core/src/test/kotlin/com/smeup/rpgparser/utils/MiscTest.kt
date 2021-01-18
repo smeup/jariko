@@ -1,9 +1,11 @@
 package com.smeup.rpgparser.utils
 
+import org.apache.commons.io.FileUtils
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class MiscTest {
@@ -100,5 +102,24 @@ class MiscTest {
         val compilationResults = compile(src = srcFile, srcFile.parentFile)
         assert(compilationResults.first().compiledFile == null)
         assertNotNull(compilationResults.first().parsingError)
+    }
+
+    @Test
+    fun compileFromInToOut() {
+        val tmpDir = System.getProperty("java.io.tmpdir")
+        val programName = "HELLO"
+        val srcFile = File("src/test/resources/$programName.rpgle")
+        val outBinFile = File("$tmpDir/$programName-out.bin").apply { deleteOnExit() }
+        val outJsonFile = File("$tmpDir/$programName-out.json").apply { deleteOnExit() }
+
+        compile(srcFile.inputStream(), outBinFile.outputStream(), Format.BIN, false)
+        compile(src = srcFile, compiledProgramsDir = File(tmpDir), format = Format.BIN, muteSupport = false)
+        val expectedBin = File(tmpDir, "$programName.bin").apply { deleteOnExit() }
+        assertTrue(FileUtils.contentEquals(expectedBin, outBinFile))
+
+        compile(srcFile.inputStream(), outJsonFile.outputStream(), Format.JSON, false)
+        compile(src = srcFile, compiledProgramsDir = File(tmpDir), format = Format.JSON, muteSupport = false)
+        val expectedJson = File(tmpDir, "$programName.json").apply { deleteOnExit() }
+        assertTrue(FileUtils.contentEquals(expectedJson, outJsonFile))
     }
 }
