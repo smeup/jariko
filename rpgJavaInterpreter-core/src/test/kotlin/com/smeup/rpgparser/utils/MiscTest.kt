@@ -109,18 +109,17 @@ class MiscTest {
         val tmpDir = System.getProperty("java.io.tmpdir")
         val programName = "HELLO"
         val srcFile = File("src/test/resources/$programName.rpgle")
-        val outBinFile = File("$tmpDir/$programName.bin")
-        val outJsonFile = File("$tmpDir/$programName.json")
-
-        outBinFile.deleteOnExit()
-        outJsonFile.deleteOnExit()
+        val outBinFile = File("$tmpDir/$programName-out.bin").apply { deleteOnExit() }
+        val outJsonFile = File("$tmpDir/$programName-out.json").apply { deleteOnExit() }
 
         compile(srcFile.inputStream(), outBinFile.outputStream(), Format.BIN, false)
-        val expectedBin = File("src/test/resources/$programName.bin")
+        compile(src = srcFile, compiledProgramsDir = File(tmpDir), format = Format.BIN, muteSupport = false)
+        val expectedBin = File(tmpDir, "$programName.bin").apply { deleteOnExit() }
         assertTrue(FileUtils.contentEquals(expectedBin, outBinFile))
 
         compile(srcFile.inputStream(), outJsonFile.outputStream(), Format.JSON, false)
-        val expectedJson = File("src/test/resources/$programName.json")
+        compile(src = srcFile, compiledProgramsDir = File(tmpDir), format = Format.JSON, muteSupport = false)
+        val expectedJson = File(tmpDir, "$programName.json").apply { deleteOnExit() }
         assertTrue(FileUtils.contentEquals(expectedJson, outJsonFile))
     }
 }
