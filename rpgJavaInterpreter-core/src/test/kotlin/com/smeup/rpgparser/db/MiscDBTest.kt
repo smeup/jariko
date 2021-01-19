@@ -9,8 +9,8 @@ import com.smeup.rpgparser.interpreter.DataStructValue
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
-import org.junit.Ignore
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
 /**
@@ -18,20 +18,37 @@ import kotlin.test.assertEquals
  * */
 open class MiscDBTest : AbstractTest() {
 
+    private val executorService = java.util.concurrent.Executors.newFixedThreadPool(1)
+    private val allowedTimeForExecutionMillis = 20000L
+
     private fun testMute(
         programName: String,
-        vararg consoleLoggers: String
+        vararg consoleLoggers: String,
+        allowedTimeForExecutionMillis: Long? = this.allowedTimeForExecutionMillis
     ) {
+
         testIfReloadConfig { reloadConfig ->
             val si = JavaSystemInterface().apply {
                 loggingConfiguration = consoleLoggingConfiguration(*consoleLoggers)
             }
-            executePgm(
-                programName = programName,
-                configuration = Configuration(reloadConfig = reloadConfig, options = Options(muteSupport = true)),
-                systemInterface = si
-
-            )
+            val programToLaunch = {
+                executePgm(
+                    programName = programName,
+                    configuration = Configuration(reloadConfig = reloadConfig, options = Options(muteSupport = true)),
+                    systemInterface = si
+                )
+            }
+            allowedTimeForExecutionMillis?.let {
+                kotlin.runCatching {
+                    println("Executing testMute($programName) with timeout: $allowedTimeForExecutionMillis ms")
+                    executorService.submit(programToLaunch).get(allowedTimeForExecutionMillis, TimeUnit.MILLISECONDS)
+                }.onFailure {
+                    throw it
+                }
+            } ?: apply {
+                println("Executing testMute($programName)")
+                programToLaunch.invoke()
+            }
         }
     }
 
@@ -72,37 +89,55 @@ open class MiscDBTest : AbstractTest() {
         }
     }
 
+    // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     open fun testMUTE16_01() {
-        testMute("db/MUTE16_01")
+        testMute(programName = "db/MUTE16_01", STATEMENT_LOGGER)
     }
 
-    // TODO Waiting for reload issue fixing in case of SETLL and READE pointing to none record. In this case the time to READE execution is uselessly long
-    @Ignore
+    // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     fun testMUTE16_02() {
-        testMute("db/MUTE16_02")
+        testMute(programName = "db/MUTE16_02", STATEMENT_LOGGER)
     }
 
     @Test
     fun testMUTE16_03() {
-        testMute("db/MUTE16_03")
+        testMute(programName = "db/MUTE16_03", STATEMENT_LOGGER)
     }
 
-    // TODO Waiting for reload issue fixing in case of SETGT and READPE pointing to none record. In this case the time to READPE execution is uselessly long
-    @Ignore
+    // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     fun testMUTE16_04() {
+        // enabled STATEMENT_LOGGER to highlight performance issue
         testMute("db/MUTE16_04", STATEMENT_LOGGER)
     }
 
     @Test
     fun testMUTE16_05() {
-        testMute("db/MUTE16_05")
+        testMute("db/MUTE16_05", STATEMENT_LOGGER)
+    }
+
+    // TODO Waiting for reload issue evaluation. Poor performances
+    @Test
+    fun testMUTE16_06() {
+        // enabled STATEMENT_LOGGER to highlight performance issue
+        testMute("db/MUTE16_06", STATEMENT_LOGGER)
+    }
+
+    // TODO Waiting for reload issue evaluation. Poor performances
+    @Test
+    fun testMUTE16_07() {
+        testMute("db/MUTE16_07", STATEMENT_LOGGER)
     }
 
     @Test
-    fun testMUTE16_06() {
-        testMute("db/MUTE16_06", STATEMENT_LOGGER)
+    fun testMUTE16_08() {
+        testMute("db/MUTE16_08", STATEMENT_LOGGER)
+    }
+
+    @Test
+    fun testMUTE16_09() {
+        testMute("db/MUTE16_09", STATEMENT_LOGGER)
     }
 }

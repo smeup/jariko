@@ -258,7 +258,7 @@
      C                   ENDIF
       * Read cicle to check if the record exist
      C     K7L           SETLL     VERAPG7L
-     C                   DO
+     C                   DO        *HIVAL
      C     K7L           READE     VERAPG7L
       * End of File - Exit
 4x   C                   IF        %EOF
