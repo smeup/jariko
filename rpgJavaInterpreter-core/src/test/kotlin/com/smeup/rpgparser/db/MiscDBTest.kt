@@ -9,7 +9,9 @@ import com.smeup.rpgparser.interpreter.DataStructValue
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.STATEMENT_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.Timeout
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
@@ -19,37 +21,26 @@ import kotlin.test.assertEquals
 open class MiscDBTest : AbstractTest() {
 
     private val executorService = java.util.concurrent.Executors.newFixedThreadPool(1)
-    private val allowedTimeForExecutionMillis = 20000L
     private val consoleLoggers = arrayOf(STATEMENT_LOGGER)
+
+    @Rule
+    @JvmField
+    val globalTimeout = Timeout(10, TimeUnit.SECONDS)
 
     private fun testMute(
         programName: String,
-        vararg consoleLoggers: String = this.consoleLoggers,
-        allowedTimeForExecutionMillis: Long? = this.allowedTimeForExecutionMillis
+        vararg consoleLoggers: String = this.consoleLoggers
     ) {
 
         testIfReloadConfig { reloadConfig ->
             val si = JavaSystemInterface().apply {
                 loggingConfiguration = consoleLoggingConfiguration(*consoleLoggers)
             }
-            val programToLaunch = {
-                executePgm(
-                    programName = programName,
-                    configuration = Configuration(reloadConfig = reloadConfig, options = Options(muteSupport = true)),
-                    systemInterface = si
-                )
-            }
-            allowedTimeForExecutionMillis?.let {
-                kotlin.runCatching {
-                    println("Executing testMute($programName) with timeout: $allowedTimeForExecutionMillis ms")
-                    executorService.submit(programToLaunch).get(allowedTimeForExecutionMillis, TimeUnit.MILLISECONDS)
-                }.onFailure {
-                    throw it
-                }
-            } ?: apply {
-                println("Executing testMute($programName)")
-                programToLaunch.invoke()
-            }
+            executePgm(
+                programName = programName,
+                configuration = Configuration(reloadConfig = reloadConfig, options = Options(muteSupport = true)),
+                systemInterface = si
+            )
         }
     }
 
