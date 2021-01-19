@@ -1,10 +1,7 @@
 package com.smeup.rpgparser.execution
 
-import com.smeup.rpgparser.adaptForTestCase
-import com.smeup.rpgparser.interpreter.ISymbolTable
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.SystemInterface
-import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
@@ -141,5 +138,4 @@ class RunnerTest {
         require(result != null)
         assertEquals("Ciao!", result.parmsList[0].trim())
     }
-
 }
