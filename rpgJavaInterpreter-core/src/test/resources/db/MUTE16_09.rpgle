@@ -200,23 +200,15 @@
      C                   EVAL      $$NAME='BUSFIO'
      C                   EVAL      $$DATE=20210117
      C                   EVAL      $FNDREC=0
-      * Read cicle
-     C     K7L           SETLL     VERAPG7L
-     C                   DO        *HIVAL
-     C     K7L           READE     VERAPG7L
-      * End of File - Exit
-4x   C                   IF        %EOF
-     C                   LEAVE
-     C                   ENDIF
-      * Set variable =1, if found record
+      * Chain to check if the record exist
+     C     K7L           CHAIN     VERAPG7L
+      * Found record, increase variable
+4x   C                   IF        %FOUND
      C                   EVAL      $FNDREC=1
-    MU* VAL1(V£DATA) VAL2($$DATE) COMP(EQ)
      C     V£DATA        DSPLY     £PDSSU
-    MU* VAL1(V£NOME) VAL2($$NAME) COMP(EQ)
      C     V£NOME        DSPLY     £PDSSU
-    MU* VAL1(V£CDC) VAL2($$COMM) COMP(EQ)
      C     V£CDC         DSPLY     £PDSSU
-     C                   ENDDO
+4e   C                   ENDIF
       *
      C                   IF        $FNDREC=0
      C                   EXSR      £XAIDOJ
@@ -229,6 +221,7 @@
     MU* VAL1(*IN50) VAL2('0') COMP(EQ)
      C                   WRITE     VERAPG0                              50
      C                   ENDIF
+      *
       * Update Record
      C     V£IDOJ        CHAIN     VERAPG0L
       * Display Result
@@ -256,21 +249,17 @@
     MU* VAL1(*IN50) VAL2('0') COMP(EQ)
      C                   DELETE    VERAPG0                              50
      C                   ENDIF
-      * Read cicle to check if the record exist
-     C     K7L           SETLL     VERAPG7L
-     C                   DO
-     C     K7L           READE     VERAPG7L
+      * Chain to check if the record exist
+     C     K7L           CHAIN     VERAPG7L
       * End of File - Exit
-4x   C                   IF        %EOF
-     C                   LEAVE
-4e   C                   ENDIF
+4x   C                   IF        %FOUND
     MU* VAL1(V£CDC) VAL2($$COMM) COMP(EQ)
      C     V£CDC         DSPLY     £PDSSU
     MU* VAL1(V£NOME) VAL2($$NAME) COMP(EQ)
      C     V£NOME        DSPLY     £PDSSU
     MU* VAL1(V£DATA) VAL2($$DATE) COMP(EQ)
      C     V£DATA        DSPLY     £PDSSU
-     C                   ENDDO
+4e   C                   ENDIF
       *
      C                   ENDSR
       *--------------------------------------------------------------*
