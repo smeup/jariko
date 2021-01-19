@@ -79,33 +79,29 @@ fun outputOfDBPgm(
 ): List<String> {
 
     val si = CollectorSystemInterface()
-    try {
-        execute(initialSQL)
 
-        // Get source file parh for test
-        val path = {}.javaClass.classLoader.getResource("$programName.rpgle")
+    execute(initialSQL)
 
-        // here I set the path from where jariko will search for the rpg sources
-        val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile.parentFile))
+    // Get source file parh for test
+    val path = {}.javaClass.classLoader.getResource("$programName.rpgle")
 
-        // get program and execute
+    // here I set the path from where jariko will search for the rpg sources
+    val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile.parentFile))
 
-        val commandLineProgram =
-            getProgram(nameOrSource = programName, systemInterface = si, programFinders = rpgProgramFinders)
+    // get program and execute
 
-        val parms = inputParms
+    val commandLineProgram =
+        getProgram(nameOrSource = programName, systemInterface = si, programFinders = rpgProgramFinders)
 
-        // If needed, create ReloadConfig for Jariko
-        configuration.reloadConfig = configuration.reloadConfig ?: ReloadConfig(
-            nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
-            metadataProducer = { dbFile ->
-                metadata.first { it.tableName == dbFile }
-            }
-        )
-        commandLineProgram.singleCall(parms, configuration)
-    } catch (exc: Exception) {
-        exc.printStackTrace()
-    }
+    val parms = inputParms
 
+    // If needed, create ReloadConfig for Jariko
+    configuration.reloadConfig = configuration.reloadConfig ?: ReloadConfig(
+        nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
+        metadataProducer = { dbFile ->
+            metadata.first { it.tableName == dbFile }
+        }
+    )
+    commandLineProgram.singleCall(parms, configuration)
     return si.displayed
 }
