@@ -20,10 +20,11 @@ open class MiscDBTest : AbstractTest() {
 
     private val executorService = java.util.concurrent.Executors.newFixedThreadPool(1)
     private val allowedTimeForExecutionMillis = 20000L
+    private val consoleLoggers = arrayOf(STATEMENT_LOGGER)
 
     private fun testMute(
         programName: String,
-        vararg consoleLoggers: String,
+        vararg consoleLoggers: String = this.consoleLoggers,
         allowedTimeForExecutionMillis: Long? = this.allowedTimeForExecutionMillis
     ) {
 
@@ -92,52 +93,52 @@ open class MiscDBTest : AbstractTest() {
     // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     open fun testMUTE16_01() {
-        testMute(programName = "db/MUTE16_01", STATEMENT_LOGGER)
+        testMute(programName = "db/MUTE16_01")
     }
 
     // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     fun testMUTE16_02() {
-        testMute(programName = "db/MUTE16_02", STATEMENT_LOGGER)
+        testMute(programName = "db/MUTE16_02")
     }
 
     @Test
     fun testMUTE16_03() {
-        testMute(programName = "db/MUTE16_03", STATEMENT_LOGGER)
+        testMute(programName = "db/MUTE16_03")
     }
 
     // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     fun testMUTE16_04() {
         // enabled STATEMENT_LOGGER to highlight performance issue
-        testMute("db/MUTE16_04", STATEMENT_LOGGER)
+        testMute("db/MUTE16_04")
     }
 
     @Test
     fun testMUTE16_05() {
-        testMute("db/MUTE16_05", STATEMENT_LOGGER)
+        testMute("db/MUTE16_05")
     }
 
     // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     fun testMUTE16_06() {
         // enabled STATEMENT_LOGGER to highlight performance issue
-        testMute("db/MUTE16_06", STATEMENT_LOGGER)
+        testMute("db/MUTE16_06")
     }
 
     // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     fun testMUTE16_07() {
-        testMute("db/MUTE16_07", STATEMENT_LOGGER)
+        testMute("db/MUTE16_07")
     }
 
     @Test
     fun testMUTE16_08() {
-        testMute("db/MUTE16_08", STATEMENT_LOGGER)
+        testMute("db/MUTE16_08")
     }
 
     @Test
     fun testMUTE16_09() {
-        testMute("db/MUTE16_09", STATEMENT_LOGGER)
+        testMute("db/MUTE16_09")
     }
 }
