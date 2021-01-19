@@ -1,12 +1,22 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.rpgparser.adaptForTestCase
+import com.smeup.rpgparser.interpreter.ISymbolTable
+import com.smeup.rpgparser.interpreter.StringValue
+import com.smeup.rpgparser.interpreter.SystemInterface
+import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgSystem
 
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.junit.Test
 import java.io.File
+import java.net.URL
 import java.nio.charset.Charset
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import com.smeup.rpgparser.execution.main as runnerMain
 
@@ -86,4 +96,50 @@ class RunnerTest {
         assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat = N/D\t10")
         assertContain(logs, "CALCFIB\t\tDATA\tppdat = N/D\t10")
     }
+
+    @Test
+    fun testCallProgramHandler() {
+        /*
+         * This test check the 'dual CallStmt behaviour':
+         * 1 - Normal 'CallStmt behaviour'
+         * 'CALL_TRSLT.rpgle' execute the CALL to 'TRANSLATE.rpgle', passing "Hi" string as input parameter.
+         * Called 'TRANSLATE.rpgle' will append "!!!" string to input parameter, then return "Hi!!!" to caller.
+         *
+         * 2 - Extended 'CallStmt behaviour'
+         * 'CALL_TRSLT.rpgle' execute the CALL to 'TRANSLATE.rpgle'.
+         * Called program is not the previously known 'TRANSLATE.rpgle' but is a custom implementation of it,
+         * for example a call to an 'http service' responding with a "Ciao!" plain-text response.
+         *
+         */
+        var systemInterface: SystemInterface = JavaSystemInterface()
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
+        val configuration = Configuration()
+
+        val jariko = getProgram("CALL_TRSLT.rpgle", systemInterface, programFinders)
+        var result = jariko.singleCall(listOf("Hi"), configuration)
+        require(result != null)
+        assertEquals("Hi!!!", result.parmsList[0].trim())
+
+        var pgmToCall = "TRANSLATE"
+
+        val callProgramHandler = CallProgramHandler(
+            mayCall = { pgmToCall == "TRANSLATE" },
+            handleCall = {
+                val pgmToCall: String = "TRANSLATE",
+                val si: SystemInterface = systemInterface,
+                val parms: LinkedHashMap<String, Value> = linkedMapOf("" to StringValue("", false)) ->
+                listOf(
+                    StringValue(
+                        URL("https://run.mocky.io/v3/c4e203a5-9511-49f0-bc00-78dff4c4ebc7").readText(),
+                        false
+                    )
+                )
+            }
+        )
+        configuration.options?.callProgramHandler = callProgramHandler
+        result = jariko.singleCall(listOf(""), configuration)
+        require(result != null)
+        assertEquals("Ciao!", result.parmsList[0].trim())
+    }
+
 }

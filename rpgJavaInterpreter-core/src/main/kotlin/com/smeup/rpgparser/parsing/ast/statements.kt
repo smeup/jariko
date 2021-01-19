@@ -422,7 +422,7 @@ data class MoveAStmt(
             interpreter.log { CallExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
             val startTime = System.currentTimeMillis()
             val callStatement = this
-            val programToCall = interpreter.eval(expression).asString().value
+            val programToCall = interpreter.eval(expression).asString().value.trim()
             MainExecutionContext.setExecutionProgramName(programToCall)
             val program = interpreter.systemInterface.findProgram(programToCall)
             require(program != null) {
@@ -455,7 +455,12 @@ data class MoveAStmt(
             val paramValuesAtTheEnd =
                     try {
                         interpreter.systemInterface.registerProgramExecutionStart(program, params)
-                        program.execute(interpreter.systemInterface, params).apply {
+                        val callProgramHandler = MainExecutionContext.getConfiguration().options?.callProgramHandler
+                        if (callProgramHandler != null && callProgramHandler.mayCall(programToCall)) {
+                            callProgramHandler.handleCall.invoke(programToCall, interpreter.systemInterface, params)
+                        } else {
+                            program.execute(interpreter.systemInterface, params)
+                        }.apply {
                             interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
                         }
                     } catch (e: Exception) { // TODO Catch a more specific exception?
@@ -1278,4 +1283,15 @@ data class MoveAStmt(
         override fun execute(interpreter: InterpreterCore) {
             xfoot(this, interpreter)
         }
+    }
+
+    private data class ExternalizedProgram(
+        private val programName: String,
+        private val params: List<ProgramParam>,
+        private val execute: (programName: String, systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>
+    ) : Program {
+
+        override fun params() = params
+
+        override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) = execute.invoke(programName, systemInterface, params)
     }
