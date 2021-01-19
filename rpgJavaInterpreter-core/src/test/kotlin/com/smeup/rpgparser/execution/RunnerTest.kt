@@ -120,14 +120,13 @@ class RunnerTest {
         require(result != null)
         assertEquals("Hi!!!", result.parmsList[0].trim())
 
-        var pgmToCall = "TRANSLATE"
+        var programName = "TRANSLATE"
+        var si = systemInterface
+        var params = linkedMapOf("INPUT" to StringValue("Hi", false))
 
         val callProgramHandler = CallProgramHandler(
-            mayCall = { pgmToCall == "TRANSLATE" },
-            handleCall = {
-                val pgmToCall: String = "TRANSLATE",
-                val si: SystemInterface = systemInterface,
-                val parms: LinkedHashMap<String, Value> = linkedMapOf("" to StringValue("", false)) ->
+            mayCall = { programName == "TRANSLATE" },
+            handleCall = { programName, si, params ->
                 listOf(
                     StringValue(
                         URL("https://run.mocky.io/v3/c4e203a5-9511-49f0-bc00-78dff4c4ebc7").readText(),
@@ -136,6 +135,7 @@ class RunnerTest {
                 )
             }
         )
+
         configuration.options?.callProgramHandler = callProgramHandler
         result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
