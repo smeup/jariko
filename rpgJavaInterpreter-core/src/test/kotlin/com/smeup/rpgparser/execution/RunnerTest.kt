@@ -107,6 +107,7 @@ class RunnerTest {
          * 'CALL_TRSLT.rpgle' execute the CALL to 'TRANSLATE.rpgle'.
          * Called program is not the previously known 'TRANSLATE.rpgle' but is a custom implementation of it,
          * for example a call to an 'http service' responding with a "Ciao!" plain-text response.
+         * N.B. program with name "TRANSLATE" MUST exist, cause is needed to create implementation of Program
          *
          */
         var systemInterface: SystemInterface = JavaSystemInterface()
@@ -118,10 +119,8 @@ class RunnerTest {
         require(result != null)
         assertEquals("Hi!!!", result.parmsList[0].trim())
 
-        var programName = "TRANSLATE"
-
         val callProgramHandler = CallProgramHandler(
-            mayCall = { programName == "TRANSLATE" },
+            mayCall = { programName: String -> programName == "TRANSLATE" },
             handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
                 listOf(
                     StringValue(
@@ -136,5 +135,42 @@ class RunnerTest {
         result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
         assertEquals("Ciao!", result.parmsList[0].trim())
+    }
+
+    @Test
+    fun testCallProgramHandler_2() {
+        /*
+         * This test check the 'dual CallStmt behaviour' as follow:
+         * The main rpgle program 'CALL_STMT.rpgle' execute a loop of 4 iterations calling 'ECHO_PGM' program.
+         * Behaviour 1: If loop counter is even, the 'CallStmt' works as the 'classic rpg CALL mode', so
+         * the ECHO_PGM.rpgle program is called.
+         * Behaviour 2: If loop counter is odd, the 'CallStmt' works as the 'extended implementation of CALL', so
+         * a 'custom implementation handleCall" is executed, ad simply return "CUSTOM_PGM" string.
+         *
+         */
+        var systemInterface: SystemInterface = JavaSystemInterface()
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
+        val configuration = Configuration()
+
+        var counter = 0
+        val callProgramHandler = CallProgramHandler(
+            mayCall = { programName: String ->
+                counter++
+                counter % 2 == 0
+            },
+            handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
+                listOf(
+                    StringValue(
+                        "CUSTOM_PGM",
+                        false
+                    )
+                )
+            }
+        )
+
+        val jariko = getProgram("CALL_STMT.rpgle", systemInterface, programFinders)
+        configuration.options?.callProgramHandler = callProgramHandler
+        val result = jariko.singleCall(listOf(""), configuration)
+        require(result != null)
     }
 }

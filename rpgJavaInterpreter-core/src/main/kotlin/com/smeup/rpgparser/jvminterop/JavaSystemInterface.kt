@@ -54,7 +54,7 @@ open class JavaSystemInterface(
     }
 
     private fun findInFileSystem(programName: String): Program? {
-        return programSource?.call(programName)
+        return programSource?.invoke(programName)
     }
 
     private fun findInPackages(programName: String): Program? {
