@@ -2,6 +2,7 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.SystemInterface
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
@@ -118,12 +119,10 @@ class RunnerTest {
         assertEquals("Hi!!!", result.parmsList[0].trim())
 
         var programName = "TRANSLATE"
-        var si = systemInterface
-        var params = linkedMapOf("INPUT" to StringValue("Hi", false))
 
         val callProgramHandler = CallProgramHandler(
             mayCall = { programName == "TRANSLATE" },
-            handleCall = { programName, si, params ->
+            handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
                 listOf(
                     StringValue(
                         URL("https://run.mocky.io/v3/c4e203a5-9511-49f0-bc00-78dff4c4ebc7").readText(),
