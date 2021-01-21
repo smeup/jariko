@@ -7,21 +7,20 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgSystem
-
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.junit.Ignore
 import org.junit.Test
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.Charset
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import com.smeup.rpgparser.execution.main as runnerMain
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import kotlin.test.assertTrue
+import com.smeup.rpgparser.execution.main as runnerMain
 
 class RunnerTest {
     private val folder by lazy {
@@ -125,14 +124,17 @@ class RunnerTest {
         assertEquals("Hi!!!", result.parmsList[0].trim())
 
         val callProgramHandler = CallProgramHandler(
-            mayCall = { programName: String -> programName == "TRANSLATE" },
-            handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
-                listOf(
-                    StringValue(
-                        URL("https://run.mocky.io/v3/c4e203a5-9511-49f0-bc00-78dff4c4ebc7").readText(),
-                        false
+            handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
+                if (programName == "TRANSLATE") {
+                    listOf(
+                        StringValue(
+                            URL("https://run.mocky.io/v3/c4e203a5-9511-49f0-bc00-78dff4c4ebc7").readText(),
+                            false
+                        )
                     )
-                )
+                } else {
+                    null
+                }
             }
         )
 
@@ -162,17 +164,17 @@ class RunnerTest {
 
         var counter = 0
         val callProgramHandler = CallProgramHandler(
-            mayCall = { programName: String ->
-                counter++
-                counter % 2 == 0
-            },
             handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
-                listOf(
-                    StringValue(
-                        "CUSTOM_PGM",
-                        false
+                if (counter++ % 2 == 0) {
+                    listOf(
+                        StringValue(
+                            "CUSTOM_PGM",
+                            false
+                        )
                     )
-                )
+                } else {
+                    null
+                }
             }
         )
 
@@ -206,16 +208,18 @@ class RunnerTest {
         val configuration = Configuration()
 
         val callProgramHandler = CallProgramHandler(
-            mayCall = { programName: String ->
-                programName == "TST_001_2"
-            },
-            handleCall = { _: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
-                listOf(
-                    StringValue(
-                        doPost("TST_001_2", "JARIKO"),
-                        false
+
+            handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
+                if (programName == "TST_001_2") {
+                    listOf(
+                        StringValue(
+                            doPost(programName, "JARIKO"),
+                            false
+                        )
                     )
-                )
+                } else {
+                    null
+                }
             }
         )
 

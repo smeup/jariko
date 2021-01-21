@@ -92,11 +92,9 @@ data class JarikoCallback(
 )
 
 /**
- * Through this class, we can customize program calling. Typical scenario is call program "out of process".
- * @param mayCall Asks to handler if it wants to handle program calling. If returns true jariko will invoke handleCall
- * @param handleCall Handles programName call.
+ * Through this class, we can customize program calling. Typical scenario is program calling "out of process".
+ * @param handleCall Handles programName calling. Returns null to preserve jariko default call program handling
  * */
 data class CallProgramHandler(
-    val mayCall: (programName: String) -> Boolean,
-    val handleCall: (programName: String, systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>
+    val handleCall: (programName: String, systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>?
 )

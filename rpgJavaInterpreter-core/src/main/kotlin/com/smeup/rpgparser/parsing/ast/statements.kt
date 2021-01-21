@@ -455,11 +455,11 @@ data class MoveAStmt(
             val paramValuesAtTheEnd =
                     try {
                         interpreter.systemInterface.registerProgramExecutionStart(program, params)
-                        val callProgramHandler = MainExecutionContext.getConfiguration().options?.callProgramHandler
-                        if (callProgramHandler != null && callProgramHandler.mayCall(programToCall)) {
-                            callProgramHandler.handleCall.invoke(programToCall, interpreter.systemInterface, params)
-                        } else {
-                            program.execute(interpreter.systemInterface, params)
+                        kotlin.run {
+                            val callProgramHandler = MainExecutionContext.getConfiguration().options?.callProgramHandler
+                            // call program.execute only if callProgramHandler.handleCall do nothing
+                            callProgramHandler?.handleCall?.invoke(programToCall, interpreter.systemInterface, params)
+                                ?: program.execute(interpreter.systemInterface, params)
                         }.apply {
                             interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
                         }

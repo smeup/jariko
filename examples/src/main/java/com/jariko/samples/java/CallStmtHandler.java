@@ -1,19 +1,21 @@
 package com.jariko.samples.java;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.smeup.rpgparser.execution.CallProgramHandler;
 import com.smeup.rpgparser.execution.CommandLineProgram;
 import com.smeup.rpgparser.execution.Configuration;
 import com.smeup.rpgparser.execution.RunnerKt;
 import com.smeup.rpgparser.interpreter.StringValue;
 import com.smeup.rpgparser.interpreter.SystemInterface;
+import com.smeup.rpgparser.interpreter.Value;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder;
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CallStmtHandler {
 
@@ -27,17 +29,17 @@ public class CallStmtHandler {
         List<RpgProgramFinder> programFinders = Arrays.asList(new DirRpgProgramFinder(rpgDir));
         Configuration configuration = new Configuration();
         CommandLineProgram jariko = RunnerKt.getProgram("CALL_STMT.rpgle", systemInterface, programFinders);
-
         AtomicInteger counter = new AtomicInteger(0);
+        // alternatively my handler customize call behavior
         CallProgramHandler callProgramHandler = new CallProgramHandler(
-                (p) -> {
-                    counter.set(counter.get() + 1);
-                    int c = counter.get();
-                    return c % 2 == 0;
-                },
-                (p, s, l) -> {
-                    StringValue stringValue = new StringValue("CUSTOM_PGM", false);
-                    return Arrays.asList(stringValue);
+                (String programName, SystemInterface si, LinkedHashMap<String, Value> paramsList) -> {
+                    if (counter.incrementAndGet() % 2 == 0 ) {
+                        Value value = new StringValue("CUSTOM_PGM", false);
+                        return Arrays.asList(value);
+                    }
+                    else {
+                        return null;
+                    }
                 }
         );
 
@@ -45,7 +47,7 @@ public class CallStmtHandler {
             configuration.getOptions().setCallProgramHandler(callProgramHandler);
             jariko.singleCall(Arrays.asList(""), configuration);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }
