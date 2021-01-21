@@ -9,7 +9,6 @@ import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
-import org.junit.Ignore
 import org.junit.Test
 import java.io.BufferedReader
 import java.io.File
@@ -202,6 +201,9 @@ class RunnerTest {
          *
          * N.B.: set environment variable JARIKO_X_API_KEY
          */
+        if (null == System.getenv("JARIKO_X_API_KEY")) {
+            return
+        }
         var systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
