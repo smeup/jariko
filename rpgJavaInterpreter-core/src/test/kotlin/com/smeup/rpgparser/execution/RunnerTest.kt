@@ -10,6 +10,7 @@ import com.smeup.rpgparser.rpginterop.RpgSystem
 
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.net.HttpURLConnection
@@ -182,6 +183,7 @@ class RunnerTest {
     }
 
     @Test
+    @Ignore
     fun testCallProgramHandler_3() {
         /*
          * This test check the 'dual CallStmt behaviour' as follow:
