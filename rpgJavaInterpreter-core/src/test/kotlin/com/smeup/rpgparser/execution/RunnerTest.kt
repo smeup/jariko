@@ -185,7 +185,6 @@ class RunnerTest {
     }
 
     @Test
-    @Ignore
     fun testCallProgramHandler_3() {
         /*
          * This test check the 'dual CallStmt behaviour' as follow:
