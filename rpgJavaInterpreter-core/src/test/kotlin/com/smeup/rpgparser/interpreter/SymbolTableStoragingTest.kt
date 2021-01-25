@@ -634,9 +634,9 @@ open class SymbolTableStoragingTest : AbstractTest() {
         //
         // Second step execution
         // - in:  P1 = 'B', RESULT = ''
-        // - out:  unchanged and RESULT ='XAB' because VAR has been initialized by previous his value contained in symbol
+        // - out: P1 unchanged and RESULT ='XAB' because VAR has been initialized by previous his value contained in symbol
         //                                table storage
-        // In both cases P1 has never to be initialized by symbol table storage
+        // In both cases P1 and RESULT have never to be initialized by symbol table storage
         //
         val pgm = """       
      D P1              S             10    VARYING
