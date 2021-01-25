@@ -118,16 +118,25 @@ class MemorySliceMgr(private val storage: IMemorySliceStorage) {
     }
 
     /**
-     * Associate a symbol table to a memory slice.
+     * Associates a symbol table to a memory slice.
      * In every case the association (and initialization of symbol table) is always followed by storage load invocation, for this reason, caching optimization
      * should be handled in IMemorySliceStorage implementation.
+     * @param memorySliceId memory identifier
+     * @param symbolTable Symbol table associated to the memory slice
+     * @param initSymbolTableEntry Contains initialization logic for a single symbol table entry
      * */
-    fun associate(memorySliceId: MemorySliceId, symbolTable: ISymbolTable): MemorySlice {
+    fun associate(
+        memorySliceId: MemorySliceId,
+        symbolTable: ISymbolTable,
+        initSymbolTableEntry: (dataDefinition: AbstractDataDefinition, storedValue: Value) -> Unit = { dataDefinition, storedValue ->
+            symbolTable[dataDefinition] = storedValue
+        }
+    ): MemorySlice {
         val memorySlice = MemorySlice(memorySliceId = memorySliceId, symbolTable = symbolTable)
         memorySlices[memorySliceId] = memorySlice
         storage.load(memorySliceId).forEach() { nameToValue ->
             getDataDefinition(nameToValue.key, symbolTable).let { dataDef ->
-                symbolTable[dataDef!!] = nameToValue.value
+                initSymbolTableEntry.invoke(dataDef!!, nameToValue.value)
             }
         }
         return memorySlice
