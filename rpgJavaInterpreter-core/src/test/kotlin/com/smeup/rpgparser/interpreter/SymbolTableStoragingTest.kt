@@ -3,6 +3,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.PerformanceTest
 import com.smeup.rpgparser.adaptForTestCase
+import com.smeup.rpgparser.execution.CommandLineParms
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.getProgram
@@ -613,6 +614,58 @@ open class SymbolTableStoragingTest : AbstractTest() {
                 expected = "02.02.02.",
                 actual = output[2].trim()
         )
+    }
+
+    @Test
+    fun enterTwiceInRTAndVerifyReturnValue() {
+        // The purpose of this test is to evaluate the correctness of the initialization order of D specification in case of
+        // programs exiting in RT
+        //
+        // The program is called twice
+        //
+        // First step execution
+        // - in:  P1 = 'A', RESULT = ''
+        // - out: P1 unchanged and RESULT ='XA' because initially VAR is set to INX('X')
+        //
+        // Symbol table storage content:
+        // P1:  'A'
+        // VAR: 'XA'
+        // RESULT: 'XA'
+        //
+        // Second step execution
+        // - in:  P1 = 'B', RESULT = ''
+        // - out: P1 unchanged and RESULT ='XAB' because VAR has been initialized by previous his value contained in symbol
+        //                                table storage
+        // In both cases P1 and RESULT have never to be initialized by symbol table storage
+        //
+        val pgm = """       
+     D P1              S             10    VARYING
+     D RESULT          S             10    VARYING
+     D VAR             S             10    INZ('X')     
+     C     *ENTRY        PLIST
+     C                   PARM                    P1
+     C                   PARM                    RESULT
+     C                   EVAL      VAR =  %TRIM(VAR) + P1 
+     C                   EVAL      RESULT = %TRIM(VAR)
+     C     VAR           DSPLY     
+     C     P1            DSPLY
+     C     RESULT        DSPLY     
+     C                   SETON                                        RT
+        """
+        val configuration = Configuration(memorySliceStorage = MemoryStorage())
+        val returnAssertions = listOf("XA", "XAB")
+        listOf("A", "B").forEachIndexed { i, param ->
+            println("Passing P1=$param")
+            val result: CommandLineParms? = getProgram(
+                nameOrSource = pgm
+            ).singleCall(
+                params = CommandLineParms(listOf(param, "")),
+                configuration = configuration
+            )
+            require(result != null)
+            assertEquals(param, result.parmsList[0])
+            assertEquals(returnAssertions[i], result.parmsList[1])
+        }
     }
 }
 
