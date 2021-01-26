@@ -2383,8 +2383,7 @@ expression:
     | <assoc=right> expression EXP expression
     | expression (MULT | MULT_NOSPACE) expression
     | expression DIV expression
-    | expression PLUS expression
-    | expression MINUS expression
+    | expression (PLUS | MINUS) expression
 	| expression EQUAL expression
 	| expression (assignmentOperator | comparisonOperator | EQUAL) expression
 	| expression AND expression
