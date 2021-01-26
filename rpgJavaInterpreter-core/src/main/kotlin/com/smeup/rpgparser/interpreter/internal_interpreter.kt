@@ -222,7 +222,7 @@ class InternalInterpreter(
         MainExecutionContext.log(SymbolTableLoadLogStart(programName = interpretationContext.currentProgramName))
         MainExecutionContext.log(SymbolTableLoadLogEnd(
             programName = interpretationContext.currentProgramName,
-            elapsed = measureTimeMillis { afterInitialization() }
+            elapsed = measureTimeMillis { afterInitialization(initialValues = initialValues) }
         )
         )
     }
@@ -805,10 +805,19 @@ class InternalInterpreter(
     // Memory slice context attribute name must to be also string representation of MemorySliceId
     private fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
 
-    private fun afterInitialization() {
+    private fun afterInitialization(initialValues: Map<String, Value>) {
         getMemorySliceId()?.let { memorySliceId ->
             MainExecutionContext.getMemorySliceMgr()?.let {
-                MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = it.associate(memorySliceId, globalSymbolTable)
+                MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = it.associate(
+                    memorySliceId = memorySliceId,
+                    symbolTable = globalSymbolTable,
+                    initSymbolTableEntry = { dataDefinition, storedValue ->
+                        // initial values have not to be overwritten
+                        if (!initialValues.containsKey(dataDefinition.name)) {
+                            globalSymbolTable[dataDefinition] = storedValue
+                        }
+                    }
+                )
             }
         }
         MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm.invoke(

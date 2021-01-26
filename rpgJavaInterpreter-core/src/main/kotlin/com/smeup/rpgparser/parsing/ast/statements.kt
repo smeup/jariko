@@ -609,8 +609,8 @@ data class CallStmt(
                         interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
                     } else {
                         interpreter.assign(
-                                interpreter.dataDefinitionByName(it.param.name)!!,
-                                interpreter.eval(it.dataDefinition.initializationValue)
+                            interpreter.dataDefinitionByName(it.param.name)!!,
+                            interpreter.eval(it.dataDefinition.initializationValue)
                         )
                     }
                 } else {
@@ -626,19 +626,36 @@ data class CallStmt(
         }.toMap(LinkedHashMap())
 
         val paramValuesAtTheEnd =
-                try {
-                    interpreter.systemInterface.registerProgramExecutionStart(program, params)
-                    program.execute(interpreter.systemInterface, params).apply {
-                        interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
+            try {
+                interpreter.systemInterface.registerProgramExecutionStart(program, params)
+                kotlin.run {
+                    val callProgramHandler = MainExecutionContext.getConfiguration().options?.callProgramHandler
+                    // call program.execute only if callProgramHandler.handleCall do nothing
+                    callProgramHandler?.handleCall?.invoke(programToCall, interpreter.systemInterface, params)
+                        ?: program.execute(interpreter.systemInterface, params)
+                }.apply {
+                    interpreter.log {
+                        CallEndLogEntry(
+                            interpreter.interpretationContext.currentProgramName,
+                            callStatement,
+                            System.currentTimeMillis() - startTime
+                        )
                     }
-                } catch (e: Exception) { // TODO Catch a more specific exception?
-                    interpreter.log { CallEndLogEntry(interpreter.interpretationContext.currentProgramName, callStatement, System.currentTimeMillis() - startTime) }
-                    if (errorIndicator == null) {
-                        throw e
-                    }
-                    interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
-                    null
                 }
+            } catch (e: Exception) { // TODO Catch a more specific exception?
+                interpreter.log {
+                    CallEndLogEntry(
+                        interpreter.interpretationContext.currentProgramName,
+                        callStatement,
+                        System.currentTimeMillis() - startTime
+                    )
+                }
+                if (errorIndicator == null) {
+                    throw e
+                }
+                interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
+                null
+            }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             interpreter.assign(this.params[index].param.referred!!, value)
         }

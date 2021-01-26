@@ -1,10 +1,7 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
-import com.smeup.rpgparser.interpreter.ActivationGroup
-import com.smeup.rpgparser.interpreter.FileMetadata
-import com.smeup.rpgparser.interpreter.IMemorySliceStorage
-import com.smeup.rpgparser.interpreter.ISymbolTable
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import java.io.File
@@ -50,12 +47,14 @@ data class ReloadConfig(
  * @param compiledProgramsDir If specified Jariko searches compiled program in this directory
  * @param muteVerbose If true increases mute logging granularity
  * @param toAstConfiguration Creating ast configuration
+ * @param callProgramHandler If specified allows to override program call handling logic.
  * */
 data class Options(
     var muteSupport: Boolean = false,
     var compiledProgramsDir: File? = null,
     var muteVerbose: Boolean = false,
-    var toAstConfiguration: ToAstConfiguration = ToAstConfiguration()
+    var toAstConfiguration: ToAstConfiguration = ToAstConfiguration(),
+    var callProgramHandler: CallProgramHandler? = null
 )
 
 /**
@@ -78,4 +77,12 @@ data class JarikoCallback(
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
     var afterAstCreation: (ast: CompilationUnit) -> Unit = { }
+)
+
+/**
+ * Through this class, we can customize program calling. Typical scenario is program calling "out of process".
+ * @param handleCall Handles programName calling. Returns null to preserve jariko default call program handling
+ * */
+data class CallProgramHandler(
+    val handleCall: (programName: String, systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>?
 )

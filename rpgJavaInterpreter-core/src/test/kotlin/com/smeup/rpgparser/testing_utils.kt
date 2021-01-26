@@ -34,9 +34,7 @@ import junit.framework.Assert
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
+import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.test.assertEquals
