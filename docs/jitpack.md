@@ -11,4 +11,5 @@ So you would like to get a version of jariko at a specific commit? Try these ste
     <artifactId>rpgJavaInterpreter-core</artifactId>
     <version>4cbb2da621</version>
 </dependency>
-```
+```   
+Every time a pull request is merged into master branch a Github action is triggered to update Jariko package repository on Jitpack.
