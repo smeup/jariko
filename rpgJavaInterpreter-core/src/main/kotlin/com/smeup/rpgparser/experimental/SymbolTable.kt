@@ -33,6 +33,7 @@ class SymbolTable : ISymbolTable {
         }
         val pair = values[data.key]
         require(pair != null) { "Cannot find searched value for $data" }
+        require(pair.first.name == data.name) { "I have retrieved ${pair.first} instead of ${data.name}" }
         return pair.second
     }
 

@@ -330,6 +330,8 @@ class InternalInterpreter(
             throw RuntimeException(errorDescription(statement, e), e)
         } catch (e: RuntimeException) {
             throw RuntimeException(errorDescription(statement, e), e)
+        } catch (t: Throwable) {
+            throw RuntimeException(errorDescription(statement, t), t)
         } finally {
             if (statement.muteAnnotations.size > 0) {
                 executeMutes(
@@ -494,33 +496,39 @@ class InternalInterpreter(
     private fun errorDescription(statement: Statement, throwable: Throwable) =
         "Program ${interpretationContext.currentProgramName} - ${statement.simpleDescription()} ${throwable.message}"
 
-    override fun fillDataFrom(record: Record) {
+    override fun fillDataFrom(dbFile: EnrichedDBFile, record: Record) {
         if (!record.isEmpty()) {
             status.lastFound = true
-            record.forEach {
-                assign(dataDefinitionByName(it.key)!!, StringValue(it.value))
+            record.forEach { field ->
+                // dbFieldName could be different by dataDefinition name if file definition has a prefix property
+                dbFile.getDataDefinitionName(field.key)?.let { name ->
+                    dataDefinitionByName(name)
+                }?.apply {
+                    assign(this, StringValue(field.value))
+                } ?: System.err.println("Field: ${field.key} not found in Symbol Table. Probably reload returns more fields than required")
             }
         } else {
             status.lastFound = false
         }
     }
 
-    override fun dbFile(name: String, statement: Statement): DBFile {
+    override fun dbFile(nameOrFormat: String, statement: Statement): EnrichedDBFile {
 
         // Nem could be file name or format name
-        val dbFile = dbFileMap.get(name)
+        val dbFile = dbFileMap[nameOrFormat]
 
         require(dbFile != null) {
-            "Line: ${statement.position.line()} - File definition $name not found"
+            "Line: ${statement.position.line()} - File definition $nameOrFormat not found"
         }
         status.lastDBFile = dbFile
         return dbFile
     }
 
-    override fun toSearchValues(searchArgExpression: Expression): List<String> {
+    override fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String> {
         val kListName = searchArgExpression.render().toUpperCase()
-        val parms = klists[kListName]
-        return parms!!.map { get(it).asString().value }
+        return klists[kListName]!!.mapIndexed { index, name ->
+            get(name).asString(fileMetadata.accessFieldsType[index])
+        }
     }
 
     override fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =

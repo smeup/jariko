@@ -2,11 +2,11 @@ package com.smeup.rpgparser.db.utilities
 
 import com.smeup.dbnative.ConnectionConfig
 import com.smeup.dbnative.DBNativeAccessConfig
-import com.smeup.dbnative.model.FileMetadata
 import com.smeup.rpgparser.CollectorSystemInterface
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.hsqldb.Server
@@ -74,41 +74,34 @@ fun outputOfDBPgm(
     programName: String,
     metadata: List<FileMetadata>,
     initialSQL: List<String>,
-    inputParms: Map<String, Value> = mapOf()
+    inputParms: Map<String, Value> = mapOf(),
+    configuration: Configuration
 ): List<String> {
 
     val si = CollectorSystemInterface()
-    try {
-        execute(initialSQL)
 
-        // Get source file parh for test
-        val path = {}.javaClass.classLoader.getResource("$programName.rpgle")
+    execute(initialSQL)
 
-        // here I set the path from where jariko will search for the rpg sources
-        val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile.parentFile))
+    // Get source file parh for test
+    val path = {}.javaClass.classLoader.getResource("$programName.rpgle")
 
-        // get program and execute
+    // here I set the path from where jariko will search for the rpg sources
+    val rpgProgramFinders = listOf(DirRpgProgramFinder(File(path.path).parentFile.parentFile))
 
-        val commandLineProgram =
-            getProgram(nameOrSource = programName, systemInterface = si, programFinders = rpgProgramFinders)
+    // get program and execute
 
-        val parms = inputParms
+    val commandLineProgram =
+        getProgram(nameOrSource = programName, systemInterface = si, programFinders = rpgProgramFinders)
 
-        // Create ReloadConfig for Jariko
-        val conf = Configuration(
-            reloadConfig = ReloadConfig(
-                nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
-                metadataProducer = { dbFile ->
-                    metadata.firstOrNull { it.tableName == dbFile }
-                }
-            ),
-            defaultActivationGroupName = "MYGRP"
-        )
+    val parms = inputParms
 
-        commandLineProgram.singleCall(parms, conf)
-    } catch (exc: Exception) {
-        exc.printStackTrace()
-    }
-
+    // If needed, create ReloadConfig for Jariko
+    configuration.reloadConfig = configuration.reloadConfig ?: ReloadConfig(
+        nativeAccessConfig = DBNativeAccessConfig(listOf(getConnectionConfig())),
+        metadataProducer = { dbFile ->
+            metadata.first { it.tableName == dbFile }
+        }
+    )
+    commandLineProgram.singleCall(parms, configuration)
     return si.displayed
 }

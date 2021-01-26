@@ -4,12 +4,13 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.db.utilities.execute
 import com.smeup.rpgparser.interpreter.StringValue
 import org.hsqldb.Server
+import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
-class ReadTest : AbstractTest() {
+open class ReadTest : AbstractTest() {
 
     companion object {
 
@@ -19,6 +20,12 @@ class ReadTest : AbstractTest() {
         @JvmStatic
         fun init() {
             execute(listOf(createEMPLOYEE(), insertRecords()))
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun tearOff() {
+            execute(listOf(dropEMPLOYEE()))
         }
     }
 

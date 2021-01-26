@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.db.sql.toDataDefinition
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
@@ -72,7 +71,13 @@ data class CompilationUnit(
                     }
 
                     if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
-                    _allDataDefinitions.addAll(metadata.fields.map { field -> field.toDataDefinition(it.prefix) })
+                    _allDataDefinitions.addAll(
+                        metadata.fields.map { dbField ->
+                            dbField.toDataDefinition(it.prefix).apply {
+                                it.createDbFieldDataDefinitionRelation(dbField.fieldName, this.name)
+                            }
+                        }
+                    )
                 }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
                 _allDataDefinitions = checkDuplicatedDataDefinition(_allDataDefinitions).toMutableList()

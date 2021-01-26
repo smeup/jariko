@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.parsing.ast.*
 
@@ -36,9 +35,9 @@ interface InterpreterCore {
     fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue)
     fun eval(expression: Expression): Value
     fun execute(statements: List<Statement>)
-    fun dbFile(name: String, statement: Statement): DBFile
-    fun toSearchValues(searchArgExpression: Expression): List<String>
-    fun fillDataFrom(record: Record)
+    fun dbFile(name: String, statement: Statement): EnrichedDBFile
+    fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String>
+    fun fillDataFrom(dbFile: EnrichedDBFile, record: Record)
     fun exists(dataName: String): Boolean
     fun dataDefinitionByName(name: String): AbstractDataDefinition?
     fun mult(statement: MultStmt): Value
