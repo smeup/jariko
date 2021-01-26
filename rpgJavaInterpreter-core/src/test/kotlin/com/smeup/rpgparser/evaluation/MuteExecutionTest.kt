@@ -191,7 +191,6 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("mute/MUTE13_25", 1)
     }
 
-
     private fun assertMuteExecutionSucceded(
         exampleName: String,
         nrOfMuteAssertions: Int,
