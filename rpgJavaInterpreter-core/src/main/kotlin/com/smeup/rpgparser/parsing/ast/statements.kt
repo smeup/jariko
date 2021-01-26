@@ -303,10 +303,10 @@ abstract class AbstractReadEqualStmt(
 
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        val kList: List<String> = when {
-            searchArg == null -> emptyList()
-            searchArg!!.type() is KListType -> interpreter.toSearchValues(searchArg!!)
-            else -> listOf(interpreter.eval(searchArg!!).asString().value)
+        val dbFile = interpreter.dbFile(name, this)
+        val kList: List<String> = when (searchArg) {
+            null -> emptyList()
+            else -> searchArg!!.createKList(dbFile.jarikoMetadata, interpreter)
         }
         interpreter.log {
             ReadEqualLogStart(
@@ -318,7 +318,6 @@ abstract class AbstractReadEqualStmt(
         }
         val result: Result
         val elapsed = measureTimeMillis {
-            val dbFile = interpreter.dbFile(name, this)
             result = when (searchArg) {
                 null -> read(dbFile)
                 else -> read(dbFile, kList)
@@ -431,11 +430,8 @@ abstract class AbstractSetStmt(
     private val logPref: String = ""
 ) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        val kList: List<String> = if (searchArg.type() is KListType) {
-            interpreter.toSearchValues(searchArg)
-        } else {
-            listOf(interpreter.eval(searchArg).asString().value)
-        }
+        val dbFile = interpreter.dbFile(name, this)
+        val kList: List<String> = searchArg.createKList(dbFile.jarikoMetadata, interpreter)
         interpreter.log {
             SetLogStart(
                 programName = interpreter.interpretationContext.currentProgramName,
@@ -445,7 +441,6 @@ abstract class AbstractSetStmt(
             )
         }
         val elapsed = measureTimeMillis {
-            val dbFile = interpreter.dbFile(name, this)
             interpreter.status.lastFound = set(dbFile, kList)
         }
         interpreter.log {

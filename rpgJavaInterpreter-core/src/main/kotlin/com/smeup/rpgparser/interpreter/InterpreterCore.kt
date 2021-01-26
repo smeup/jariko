@@ -36,7 +36,7 @@ interface InterpreterCore {
     fun eval(expression: Expression): Value
     fun execute(statements: List<Statement>)
     fun dbFile(name: String, statement: Statement): EnrichedDBFile
-    fun toSearchValues(searchArgExpression: Expression): List<String>
+    fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String>
     fun fillDataFrom(dbFile: EnrichedDBFile, record: Record)
     fun exists(dataName: String): Boolean
     fun dataDefinitionByName(name: String): AbstractDataDefinition?

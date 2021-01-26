@@ -2,7 +2,9 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
+import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.parsing.ast.Expression
 import java.util.*
 
 class DBFileMap {
@@ -17,14 +19,15 @@ class DBFileMap {
     fun add(fileDefinition: FileDefinition) {
 
         if (!byFileName.containsKey(fileDefinition.name)) {
-
+            val jarikoMetadata = MainExecutionContext.getConfiguration().reloadConfig?.metadataProducer?.invoke(fileDefinition.name)
+            require(jarikoMetadata != null)
             val dbFile = MainExecutionContext.getDBFileFactory()?.open(
                 fileName = fileDefinition.name,
-                fileMetadata = MainExecutionContext.getConfiguration().reloadConfig?.metadataProducer?.invoke(fileDefinition.name)?.toReloadMetadata()
+                fileMetadata = jarikoMetadata.toReloadMetadata()
             )
 
             dbFile?.let {
-                val dbFile = EnrichedDBFile(it, fileDefinition)
+                val dbFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata)
                 // dbFile not null
                 byFileName[fileDefinition.name] = dbFile
                 var formatName = fileDefinition.internalFormatName
@@ -43,37 +46,37 @@ class DBFileMap {
 /**
  * DBFile wrapper needed to add further information to DBFile
  * */
-data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition: FileDefinition) : DBFile {
+data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition: FileDefinition, val jarikoMetadata: FileMetadata) : DBFile {
 
     override var fileMetadata = dbFile.fileMetadata
 
     override var name = dbFile.name
 
-    override fun chain(key: String) = dbFile.chain(key)
+    override fun chain(key: String) = dbFile.chain(key).validate()
 
-    override fun chain(keys: List<String>) = dbFile.chain(keys)
+    override fun chain(keys: List<String>) = dbFile.chain(keys).validate()
 
-    override fun delete(record: Record) = dbFile.delete(record)
+    override fun delete(record: Record) = dbFile.delete(record).validate()
 
     override fun eof() = dbFile.eof()
 
     override fun equal() = dbFile.equal()
 
-    override fun read() = dbFile.read()
+    override fun read() = dbFile.read().validate()
 
-    override fun readEqual() = dbFile.readEqual()
+    override fun readEqual() = dbFile.readEqual().validate()
 
-    override fun readEqual(key: String) = dbFile.readEqual(key)
+    override fun readEqual(key: String) = dbFile.readEqual(key).validate()
 
-    override fun readEqual(keys: List<String>) = dbFile.readEqual(keys)
+    override fun readEqual(keys: List<String>) = dbFile.readEqual(keys).validate()
 
-    override fun readPrevious() = dbFile.readPrevious()
+    override fun readPrevious() = dbFile.readPrevious().validate()
 
-    override fun readPreviousEqual() = dbFile.readPreviousEqual()
+    override fun readPreviousEqual() = dbFile.readPreviousEqual().validate()
 
-    override fun readPreviousEqual(key: String) = dbFile.readPreviousEqual(key)
+    override fun readPreviousEqual(key: String) = dbFile.readPreviousEqual(key).validate()
 
-    override fun readPreviousEqual(keys: List<String>) = dbFile.readPreviousEqual(keys)
+    override fun readPreviousEqual(keys: List<String>) = dbFile.readPreviousEqual(keys).validate()
 
     override fun setgt(key: String) = dbFile.setgt(key)
 
@@ -83,9 +86,45 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
 
     override fun setll(keys: List<String>) = dbFile.setll(keys)
 
-    override fun update(record: Record) = dbFile.update(record)
+    override fun update(record: Record) = dbFile.update(record).validate()
 
-    override fun write(record: Record) = dbFile.write(record)
+    override fun write(record: Record) = dbFile.write(record).validate()
 
     fun getDataDefinitionName(dbFieldName: String) = fileDefinition.getDataDefinitionName(dbFieldName)
+}
+
+/**
+ * Converts a value in string as required by reload, type currently is used in HyVal LowVal conversion
+ * */
+fun Value.asString(type: Type): String {
+    return if (this is HiValValue || this is LowValValue) {
+        coerce(this, type).asString().value
+    } else {
+        this.asString().value
+    }
+}
+
+/**
+ * Creates a keyList as required by reload
+ * */
+fun Expression.createKList(fileMetadata: FileMetadata, interpreter: InterpreterCore): List<String> {
+    return if (type() is KListType) {
+        interpreter.toSearchValues(this, fileMetadata)
+    } else {
+        val value = interpreter.eval(this)
+        listOf(value.asString(fileMetadata.accessFieldsType[0]))
+    }
+}
+
+/**
+ * Validate the result. For now do nothing
+ * */
+fun Result.validate(): Result {
+    return apply {
+//        if (record.isEmpty()) {
+//            require(indicatorEQ || indicatorHI || indicatorLO) {
+//                "record is empty bot no flag is on"
+//            }
+//        }
+    }
 }

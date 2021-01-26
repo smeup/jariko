@@ -524,10 +524,11 @@ class InternalInterpreter(
         return dbFile
     }
 
-    override fun toSearchValues(searchArgExpression: Expression): List<String> {
+    override fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String> {
         val kListName = searchArgExpression.render().toUpperCase()
-        val parms = klists[kListName]
-        return parms!!.map { get(it).asString().value }
+        return klists[kListName]!!.mapIndexed { index, name ->
+            get(name).asString(fileMetadata.accessFieldsType[index])
+        }
     }
 
     override fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean =

@@ -20,7 +20,6 @@ import kotlin.test.assertEquals
  * */
 open class MiscDBTest : AbstractTest() {
 
-    private val executorService = java.util.concurrent.Executors.newFixedThreadPool(1)
     private val consoleLoggers = arrayOf(STATEMENT_LOGGER)
 
     @Rule
@@ -123,11 +122,13 @@ open class MiscDBTest : AbstractTest() {
         testMute("db/MUTE16_07")
     }
 
+    // TODO Waiting for investigation about HIVAL LOVAL
     @Test
     fun testMUTE16_08() {
         testMute("db/MUTE16_08")
     }
 
+    // TODO Waiting for reload issue evaluation. Poor performances
     @Test
     fun testMUTE16_09() {
         testMute("db/MUTE16_09")

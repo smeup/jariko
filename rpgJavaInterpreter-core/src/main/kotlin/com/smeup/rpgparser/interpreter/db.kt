@@ -38,6 +38,15 @@ data class FileMetadata(
     val fields: List<DbField>,
     val accessFields: List<String>
 ) {
+
+    @Transient
+    private val fieldsByName: Map<String, DbField> = fields.map { it.fieldName to it }.toMap()
+
+    @Transient
+    val accessFieldsType: List<Type> = accessFields.map { fieldName ->
+        fieldsByName[fieldName]!!.type
+    }
+
     fun toJson(): String = json.encodeToString(this)
 
     companion object {
