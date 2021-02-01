@@ -187,8 +187,21 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    fun executeMUTE13_25_Eval_OpCode() {
+    @Ignore
+    fun executeMUTE13_25() {
         assertMuteExecutionSucceded("mute/MUTE13_25", 1)
+    }
+
+    @Test
+    @Ignore
+    fun executeDECIMALS() {
+        assertMuteExecutionSucceded("mute/DECIMALS", 1)
+    }
+
+    @Test
+    @Ignore
+    fun executeEVALUATIONS() {
+        assertMuteExecutionSucceded("mute/EVALUATIONS", 1)
     }
 
     private fun assertMuteExecutionSucceded(
