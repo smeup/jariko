@@ -1378,4 +1378,16 @@ Test 6
             configuration = configuration
         )
     }
+
+    @Test
+    @Ignore
+    fun executeDECIMALS() {
+        assertEquals(listOf("6.468", "6.700", "5.357", "3.400", "1.111", "3.400", "2.111", "3.410", "3.400", "3.500", "3.600"), outputOf("DECIMALS"))
+    }
+
+    @Test
+    @Ignore
+    fun executeEVALUATIONS() {
+        assertEquals(listOf("-2"), outputOf("EVALUATIONS"))
+    }
 }
