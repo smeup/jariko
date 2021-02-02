@@ -188,9 +188,13 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    @Ignore
     fun executeMUTE13_25() {
-        assertMuteExecutionSucceded("mute/MUTE13_25", 1)
+        assertMuteExecutionSucceded("mute/MUTE13_25", 26)
+    }
+
+    @Test
+    fun executeMUTE13_26() {
+        assertMuteExecutionSucceded("mute/MUTE13_26", 13)
     }
 
     private fun assertMuteExecutionSucceded(

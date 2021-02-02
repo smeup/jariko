@@ -842,7 +842,6 @@ data class ClearStmt(
                             value
                     )
                 }
-                Unit
             }
             is PredefinedIndicatorExpr -> {
                 val value = interpreter.assign(value, BlanksRefExpr())
