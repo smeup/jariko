@@ -601,9 +601,7 @@ data class CallStmt(
         require(program != null) {
             "Line: ${this.position.line()} - Program $programToCall cannot be found"
         }
-        require(program.params().size == this.params.size) {
-            "You are trying to pass to $programToCall different parameters numbers than expected"
-        }
+
         val params = this.params.mapIndexed { index, it ->
             if (it.dataDefinition != null) {
                 if (it.dataDefinition.initializationValue != null) {
