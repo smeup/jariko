@@ -7,6 +7,7 @@ import com.smeup.rpgparser.utils.asLong
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.moveEndingString
 import java.math.BigDecimal
+import java.math.MathContext
 import java.math.RoundingMode
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -105,7 +106,7 @@ class ExpressionEvaluation(
                 }
             }
             left is IntValue && right is IntValue -> IntValue(left.value + right.value)
-            left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal + right.bigDecimal)
+            left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.plus(right.bigDecimal))
             else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
         }
     }
@@ -115,7 +116,7 @@ class ExpressionEvaluation(
         val right = expression.right.evalWith(this)
         return when {
             left is IntValue && right is IntValue -> IntValue(left.value - right.value)
-            left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal - right.bigDecimal)
+            left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.minus(right.bigDecimal))
             else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
         }
     }
@@ -125,7 +126,9 @@ class ExpressionEvaluation(
         val right = expression.right.evalWith(this)
         return when {
             left is IntValue && right is IntValue -> IntValue(left.value * right.value)
-            left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal * right.bigDecimal)
+            left is NumberValue && right is NumberValue -> {
+                DecimalValue(left.bigDecimal.multiply(right.bigDecimal))
+            }
             else -> throw UnsupportedOperationException("I do not know how to multiply $left and $right at ${expression.position}")
         }
     }
@@ -320,23 +323,20 @@ class ExpressionEvaluation(
     override fun eval(expression: DivExpr): Value {
         val v1 = expression.left.evalWith(this)
         val v2 = expression.right.evalWith(this)
-        // Check the type and select the correct operation
-        if (v1 is IntValue && v2 is IntValue) {
-            return DecimalValue(BigDecimal(v1.asInt().value / v2.asInt().value))
-        }
         require(v1 is NumberValue && v2 is NumberValue)
-        val res = v1.bigDecimal.toDouble() / v2.bigDecimal.toDouble()
+
+        var res = v1.bigDecimal.divide(v2.bigDecimal, MathContext.DECIMAL128)
+
         // Detects what kind of eval must be evaluated
         if (expression.parent is EvalStmt) {
-            val parent = expression.parent as EvalStmt
-            val targetType = parent.target.type() as NumberType
+
+            val parent = (expression.parent as EvalStmt)
+            val decimalDigits = (parent.target.type() as NumberType).decimalDigits
+
             // EVAL(H)
             if (parent.flags.halfAdjust) {
-                // perform the calculation, adjust the operand scale to the target
-                return DecimalValue(
-                    v1.bigDecimal.setScale(targetType.decimalDigits)
-                        .divide(v2.bigDecimal.setScale(targetType.decimalDigits), RoundingMode.HALF_UP)
-                )
+                res = v1.bigDecimal.setScale(decimalDigits)
+                        .divide(v2.bigDecimal.setScale(decimalDigits), RoundingMode.HALF_UP)
             }
             // Eval(M)
             if (parent.flags.maximumNumberOfDigitsRule) {
@@ -346,10 +346,9 @@ class ExpressionEvaluation(
             if (parent.flags.resultDecimalPositionRule) {
                 TODO("EVAL(R) not supported yet")
             }
-            return DecimalValue(BigDecimal(res).setScale(targetType.decimalDigits, RoundingMode.DOWN))
         }
         // TODO rounding and scale???
-        return DecimalValue(BigDecimal(res))
+        return DecimalValue(res)
     }
 
     override fun eval(expression: ExpExpr): Value {
