@@ -311,7 +311,7 @@ data class IntValue(val value: Long) : NumberValue() {
     }
 
     override fun asString(): StringValue {
-        return StringValue(value.toString())
+        return StringValue(render())
     }
 }
 
@@ -350,7 +350,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     }
 
     override fun render(): String {
-        return value.toString()
+        return value.toDouble().toString()
     }
 
     override fun copy(): DecimalValue = this
@@ -363,7 +363,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
         }
 
     override fun asString(): StringValue {
-        return StringValue(value.toString())
+        return StringValue(render())
     }
 }
 
