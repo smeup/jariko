@@ -350,7 +350,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     }
 
     override fun render(): String {
-        return value.toDouble().toString()
+        return value.toPlainString()
     }
 
     override fun copy(): DecimalValue = this
