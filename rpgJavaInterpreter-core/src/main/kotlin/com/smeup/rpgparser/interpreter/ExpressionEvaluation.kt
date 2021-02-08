@@ -325,27 +325,34 @@ class ExpressionEvaluation(
         val v2 = expression.right.evalWith(this)
         require(v1 is NumberValue && v2 is NumberValue)
 
-        var res = v1.bigDecimal.divide(v2.bigDecimal, MathContext.DECIMAL128)
-
         // Detects what kind of eval must be evaluated
-        if (expression.parent is EvalStmt) {
+        val res = if (expression.parent is EvalStmt) {
 
             val parent = (expression.parent as EvalStmt)
             val decimalDigits = (parent.target.type() as NumberType).decimalDigits
 
-            // EVAL(H)
-            if (parent.flags.halfAdjust) {
-                res = v1.bigDecimal.setScale(decimalDigits)
+            when {
+                // EVAL(H)
+                parent.flags.halfAdjust -> {
+                    v1.bigDecimal.setScale(decimalDigits)
                         .divide(v2.bigDecimal.setScale(decimalDigits), RoundingMode.HALF_UP)
+                }
+                // Eval(M)
+                parent.flags.maximumNumberOfDigitsRule -> {
+                    TODO("EVAL(M) not supported yet")
+                }
+                // Eval(R)
+                parent.flags.resultDecimalPositionRule -> {
+                    TODO("EVAL(R) not supported yet")
+                }
+                else -> {
+                    // In rpgle when I move 7.500 / 8.1 = 0,9259259259259259 in a variable with precision 4 and scale 3
+                    // it become 0,925 and then, I have to scale and truncate down
+                    v1.bigDecimal.divide(v2.bigDecimal, decimalDigits, RoundingMode.DOWN)
+                }
             }
-            // Eval(M)
-            if (parent.flags.maximumNumberOfDigitsRule) {
-                TODO("EVAL(M) not supported yet")
-            }
-            // Eval(R)
-            if (parent.flags.resultDecimalPositionRule) {
-                TODO("EVAL(R) not supported yet")
-            }
+        } else {
+            v1.bigDecimal.divide(v2.bigDecimal, MathContext.DECIMAL128)
         }
         // TODO rounding and scale???
         return DecimalValue(res)
