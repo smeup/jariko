@@ -311,7 +311,7 @@ data class IntValue(val value: Long) : NumberValue() {
     }
 
     override fun asString(): StringValue {
-        return StringValue(value.toString())
+        return StringValue(render())
     }
 }
 
@@ -350,7 +350,14 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     }
 
     override fun render(): String {
-        return value.toString()
+        // zeros followed by decimal point has not be rendered
+        return value.toPlainString().let {
+            if (it.startsWith("0") && it.indexOf('.') != -1) {
+                it.replace(Regex("^0+"), "")
+            } else {
+                it
+            }
+        }
     }
 
     override fun copy(): DecimalValue = this
@@ -363,7 +370,7 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
         }
 
     override fun asString(): StringValue {
-        return StringValue(value.toString())
+        return StringValue(value.toPlainString())
     }
 }
 

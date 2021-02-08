@@ -2381,10 +2381,8 @@ expression:
 	| number
 	| OPEN_PAREN expression CLOSE_PAREN
     | <assoc=right> expression EXP expression
-    | expression (MULT | MULT_NOSPACE) expression
-    | expression DIV expression
-    | expression PLUS expression
-    | expression MINUS expression
+    | expression (MULT | MULT_NOSPACE | DIV) expression
+    | expression (PLUS | MINUS) expression
 	| expression EQUAL expression
 	| expression (assignmentOperator | comparisonOperator | EQUAL) expression
 	| expression AND expression

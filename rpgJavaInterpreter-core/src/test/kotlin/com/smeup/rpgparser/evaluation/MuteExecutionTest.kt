@@ -176,7 +176,8 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("mute/MUTE13_22B", 2)
     }
 
-    @Test @Ignore
+    @Test
+    @Ignore
     fun executeMUTE13_23_Lookup_OpCode_Eq() {
         assertMuteExecutionSucceded("mute/MUTE13_23", 8)
     }
@@ -184,6 +185,26 @@ open class MuteExecutionTest : AbstractTest() {
     @Test
     fun executeMUTE13_24_Scan_OpCode() {
         assertMuteExecutionSucceded("mute/MUTE13_24", 4)
+    }
+
+    @Test
+    fun executeMUTE13_25() {
+        assertMuteExecutionSucceded("mute/MUTE13_25", 40)
+    }
+
+    @Test
+    fun executeMUTE13_25B() {
+        assertMuteExecutionSucceded("mute/MUTE13_25B", 24)
+    }
+
+    @Test
+    fun executeMUTE13_25V() {
+        assertMuteExecutionSucceded("mute/MUTE13_25V", 24)
+    }
+
+    @Test
+    fun executeMUTE13_25D() {
+        assertMuteExecutionSucceded("mute/MUTE13_25D", 22)
     }
 
     private fun assertMuteExecutionSucceded(
