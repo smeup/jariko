@@ -1378,4 +1378,15 @@ Test 6
             configuration = configuration
         )
     }
+
+    @Test
+    fun executeFREE_HELLO() {
+        executePgmWithStringArgs(
+            programName = "FREE_HELLO",
+            emptyList()
+        )
+//        File("c:/temp/r.xml").bufferedWriter().use {
+//            it.write(assertCanBeParsedResult("FREE_HELLO", false).toTreeString())
+//        }
+    }
 }

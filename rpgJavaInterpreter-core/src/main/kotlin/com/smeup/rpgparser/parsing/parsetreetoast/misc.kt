@@ -116,6 +116,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().toAst(conf)
             it.block() != null -> it.block().toAst(conf)
+            it.free() != null -> it.free().toAst(conf)
             else -> null
         }
     }
@@ -1067,5 +1068,44 @@ internal fun CsXFOOTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
             position,
             conf
         ), position
+    )
+}
+
+internal fun FreeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    return when {
+        this.baseExpression().op().op_dsply() != null -> this.baseExpression().op().op_dsply().toAst(conf)
+        this.baseExpression().op().op_eval() != null -> this.baseExpression().op().op_eval().toAst(conf)
+        else -> TODO("${this.text} at ${this.toPosition(true)}")
+    }
+}
+
+internal fun Op_dsplyContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val expression = this.expression()[0].toAst(conf = conf)
+    return DisplayStmt(expression, null, toPosition(conf.considerPosition))
+}
+
+internal fun Op_evalContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    return this.evalExpression().toAst(conf = conf)
+}
+
+internal fun EvalExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    return if (assignmentExpression() != null) {
+        assignmentExpression().toAst(conf = conf)
+    } else {
+        TODO("${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
+    }
+}
+
+internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val target = when {
+        this.simpleExpression() != null -> this.simpleExpression().toAst(conf = conf)
+        this.expression() != null -> this.expression().toAst(conf = conf)
+        else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
+    }
+    require(target is AssignableExpression)
+    return EvalStmt(
+        target = target,
+        expression = expression().toAst(conf = conf),
+        operator = NORMAL_ASSIGNMENT
     )
 }
