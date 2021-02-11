@@ -1378,4 +1378,13 @@ Test 6
             configuration = configuration
         )
     }
+
+    @Test
+    fun executeFREE_HELLO() {
+//        executePgmWithStringArgs(
+//            programName = "FREE_HELLO",
+//            emptyList()
+//        )
+        assertASTCanBeProduced("FREE_HELLO", printTree = true)
+    }
 }

@@ -116,6 +116,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().toAst(conf)
             it.block() != null -> it.block().toAst(conf)
+            it.free() != null -> it.free().toAst(conf)
             else -> null
         }
     }
@@ -1068,4 +1069,25 @@ internal fun CsXFOOTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
             conf
         ), position
     )
+}
+
+internal fun FreeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    return when {
+        this.baseExpression().op().op_dsply() != null -> this.baseExpression().op().op_dsply().toAst(conf)
+        else -> TODO("${this.text} at ${this.toPosition(true)}")
+    }
+}
+
+internal fun Op_dsplyContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val expression = this.expression()[0].identifier().free_identifier().idOrKeyword().toAst(conf)
+    return DisplayStmt(expression, null, toPosition(conf.considerPosition))
+}
+
+internal fun IdOrKeywordContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): AssignableExpression {
+    val position = toPosition(conf.considerPosition)
+    return if (text.contains('.')) {
+        handleParsingOfTargets(text, position)
+    } else {
+        annidatedReferenceExpression(text, position)
+    }
 }
