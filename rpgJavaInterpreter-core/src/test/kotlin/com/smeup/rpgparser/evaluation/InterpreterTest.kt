@@ -1381,10 +1381,12 @@ Test 6
 
     @Test
     fun executeFREE_HELLO() {
-//        executePgmWithStringArgs(
-//            programName = "FREE_HELLO",
-//            emptyList()
-//        )
-        assertASTCanBeProduced("FREE_HELLO", printTree = true)
+        executePgmWithStringArgs(
+            programName = "FREE_HELLO",
+            emptyList()
+        )
+//        File("c:/temp/r.xml").bufferedWriter().use {
+//            it.write(assertCanBeParsedResult("FREE_HELLO", false).toTreeString())
+//        }
     }
 }
