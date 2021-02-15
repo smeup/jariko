@@ -12,7 +12,7 @@ We suppose that Jariko is executing three different programs in the same thread.
 The almost hidden objects (gray) are *not alive*, the others are *alive*, but all objects have lived (or are living)
 in the same instance of Jariko.
 
-![PD000236-SerializationModel_1.png](PD000236-SerializationModel_1.png)
+![PD000236-SerializationModel_1.png](images/PD000236-SerializationModel_1.png)
 
 ## InternalInterpreter
 For each interpreted PGM we have an instance of InternalInterpreter having its own instance of SymbolTable.  
@@ -51,7 +51,7 @@ Different colors stand for state transactions.
 Time sequence presents an hypothetical case for which the same RPG program will be interpreted sooner in POD1 and later in POD2,
 POD1 and POD2 host two different jariko instances and are totally isolated one for each other, except for the storage.
 
-![PD000236-SerializationModel_2.png](PD000236-SerializationModel_2.png)
+![PD000236-SerializationModel_2.png](images/PD000236-SerializationModel_2.png)
 * t1 - Variable X initialization and MemorySlice creation
 * t2 - Loading by IMemorySliceStorage of that memory related to MemorySliceId. 
   It being the storage empty, the default INZ value will be preserved
