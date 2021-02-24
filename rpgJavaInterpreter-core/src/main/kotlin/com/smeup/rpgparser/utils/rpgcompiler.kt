@@ -29,7 +29,7 @@ data class CompilationResult(
     val parsingError: Throwable? = null
 )
 
-private fun compileFile(file: File, targetDir: File, format: Format, muteSupport: Boolean, force: Boolean = false): CompilationResult {
+private fun compileFile(file: File, targetDir: File, format: Format, muteSupport: Boolean, force: Boolean = true): CompilationResult {
     runCatching {
         println("Compiling $file")
         val compiledFile = File(
@@ -80,7 +80,7 @@ fun compile(
     compiledProgramsDir: File,
     format: Format = Format.BIN,
     muteSupport: Boolean = false,
-    force: Boolean = false
+    force: Boolean = true
 ): Collection<CompilationResult> {
     val systemInterface = JavaSystemInterface()
     // In MainExecutionContext to avoid warning on idProvider reset
