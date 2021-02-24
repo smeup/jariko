@@ -10,7 +10,9 @@ import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.compile
 import org.junit.Test
 import java.io.File
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ProgramFinderTest : AbstractTest() {
 
@@ -30,8 +32,6 @@ class ProgramFinderTest : AbstractTest() {
         // 10. delete compiled program (es. ECHOPGM.bin) and try to call it -> OK only if not found
         // 11. call program with no suffix (es. ECHOPGM) -> OK only if not found
 
-        val systemInterface: SystemInterface = JavaSystemInterface()
-        (systemInterface as JavaSystemInterface).addJavaInteropPackage("com.smeup.api")
         var resourcesDir = File(System.getProperty("java.io.tmpdir"))
         var sourceFile = File("src/test/resources/DUMMY_FOR_TEST.rpgle")
         var sourceDestFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.rpgle")
@@ -48,18 +48,18 @@ class ProgramFinderTest : AbstractTest() {
         var programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(resourcesDir))
 
         // 02.
-        var jariko = getProgram("ECHOPGM", systemInterface, programFinders)
+        var jariko = getProgram("ECHOPGM", JavaSystemInterface(), programFinders)
         var results = jariko.singleCall(listOf("Hi, you called ECHOPGM"), Configuration().adaptForTestCase(this))
         assertEquals("Hi, you called ECHOPGM", results!!.parmsList[0].trim())
 
         // 03.
-        jariko = getProgram("ECHOPGM.rpgle", systemInterface, programFinders)
+        jariko = getProgram("ECHOPGM.rpgle", JavaSystemInterface(), programFinders)
         results = jariko.singleCall(listOf("Hi, you called ECHOPGM.rpgle"), Configuration().adaptForTestCase(this))
         assertEquals("Hi, you called ECHOPGM.rpgle", results!!.parmsList[0].trim())
 
         // 04.
         assertFalse(compiledProgramFile.exists())
-        jariko = getProgram("ECHOPGM.bin", systemInterface, programFinders)
+        jariko = getProgram("ECHOPGM.bin", JavaSystemInterface(), programFinders)
         kotlin.runCatching {
             results = jariko.singleCall(listOf("Hi, you called ECHOPGM.bin"), Configuration().adaptForTestCase(this))
         }.onFailure {
@@ -73,7 +73,7 @@ class ProgramFinderTest : AbstractTest() {
         assertTrue(compiledProgramFile.exists())
 
         // 06.
-        jariko = getProgram("ECHOPGM.bin", systemInterface, programFinders)
+        jariko = getProgram("ECHOPGM.bin", JavaSystemInterface(), programFinders)
         results = jariko.singleCall(listOf("Hi, you called ECHOPGM.bin"), Configuration().adaptForTestCase(this))
         assertEquals("Hi, you called ECHOPGM.bin", results!!.parmsList[0].trim())
 
@@ -82,7 +82,7 @@ class ProgramFinderTest : AbstractTest() {
         assertFalse(sourceDestFile.exists())
 
         // 08.
-        jariko = getProgram("ECHOPGM.rpgle", systemInterface, programFinders)
+        jariko = getProgram("ECHOPGM.rpgle", JavaSystemInterface(), programFinders)
         kotlin.runCatching {
             results = jariko.singleCall(listOf("Hi, you called ECHOPGM.rpgle"), Configuration().adaptForTestCase(this))
         }.onFailure {
@@ -92,14 +92,14 @@ class ProgramFinderTest : AbstractTest() {
         }
 
         // 09.
-        jariko = getProgram("ECHOPGM", systemInterface, programFinders)
+        jariko = getProgram("ECHOPGM", JavaSystemInterface(), programFinders)
         results = jariko.singleCall(listOf("Hi, you called ECHOPGM"), Configuration().adaptForTestCase(this))
         assertEquals("Hi, you called ECHOPGM", results!!.parmsList[0].trim())
 
         // 10.
         compiledProgramFile.delete()
         assertFalse(compiledProgramFile.exists())
-        jariko = getProgram("ECHOPGM.bin", systemInterface, programFinders)
+        jariko = getProgram("ECHOPGM.bin", JavaSystemInterface(), programFinders)
         kotlin.runCatching {
             results = jariko.singleCall(listOf("Hi, you called ECHOPGM.bin"), Configuration().adaptForTestCase(this))
         }.onFailure {
@@ -109,7 +109,7 @@ class ProgramFinderTest : AbstractTest() {
         }
 
         // 11.
-        jariko = getProgram("ECHOPGM", systemInterface, programFinders)
+        jariko = getProgram("ECHOPGM", JavaSystemInterface(), programFinders)
         kotlin.runCatching {
             results = jariko.singleCall(listOf("Hi, you called ECHOPGM"), Configuration().adaptForTestCase(this))
         }.onFailure {

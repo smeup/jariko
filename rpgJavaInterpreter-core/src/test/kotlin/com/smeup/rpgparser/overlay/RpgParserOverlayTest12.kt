@@ -4,10 +4,6 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.interpreter.ArrayType
-import com.smeup.rpgparser.interpreter.CharacterType
-import com.smeup.rpgparser.interpreter.InternalInterpreter
-import com.smeup.rpgparser.interpreter.NumberType
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.ArrayAccessExpr
 import com.smeup.rpgparser.parsing.ast.FunctionCall
@@ -52,7 +48,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     }
 
     @Test
-    fun parseMUTE12_01_runtime() {
+    open fun parseMUTE12_01_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
 

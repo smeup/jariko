@@ -30,11 +30,14 @@ open class RpgParserOverlayTest03 : AbstractTest() {
 
     @Test
     fun parseMUTE03_09_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
 
-        val interpreter = InternalInterpreter(JavaSystemInterface())
+        val interpreter = InternalInterpreter(JavaSystemInterface().apply {
+            rpgSystem = RpgSystem().apply {
+                addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
+            }
+        })
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)

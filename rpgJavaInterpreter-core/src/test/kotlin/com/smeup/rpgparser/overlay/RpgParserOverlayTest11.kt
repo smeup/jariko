@@ -5,6 +5,7 @@ import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.executeAnnotations
 import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.interpreter.NumberType
+import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
@@ -14,6 +15,14 @@ import java.io.File
 import kotlin.test.assertEquals
 
 open class RpgParserOverlayTest11 : AbstractTest() {
+
+    private fun createSystemInterface(): SystemInterface {
+        return JavaSystemInterface().apply {
+            rpgSystem = RpgSystem().apply {
+                addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
+            }
+        }
+    }
 
     @Test
     fun parseMUTE11_11C_syntax() {
@@ -27,11 +36,10 @@ open class RpgParserOverlayTest11 : AbstractTest() {
 
     @Test
     fun parseMUTE11_11C_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_11C", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
 
-        val interpreter = InternalInterpreter(JavaSystemInterface())
+        val interpreter = InternalInterpreter(createSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)
@@ -59,11 +67,10 @@ open class RpgParserOverlayTest11 : AbstractTest() {
 
     @Test
     fun parseMUTE11_15_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE11_15", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
 
-        val interpreter = InternalInterpreter(JavaSystemInterface())
+        val interpreter = InternalInterpreter(createSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)
@@ -86,9 +93,8 @@ open class RpgParserOverlayTest11 : AbstractTest() {
     fun parseMUTE11_16_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE11O16", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
 
-        val interpreter = InternalInterpreter(JavaSystemInterface())
+        val interpreter = InternalInterpreter(createSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)

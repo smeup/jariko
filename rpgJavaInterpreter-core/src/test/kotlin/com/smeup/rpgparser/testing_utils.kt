@@ -15,10 +15,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmMockProgram
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.DataRefExpr
-import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
-import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
@@ -26,7 +23,10 @@ import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgSystem
+import com.smeup.rpgparser.rpginterop.SingletonRpgSystem
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
 import com.strumenta.kolasu.model.ReferenceByName
@@ -34,7 +34,9 @@ import junit.framework.Assert
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
 import org.apache.commons.io.input.BOMInputStream
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.test.assertEquals
@@ -136,6 +138,14 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, pri
     return assertCanBeParsedResult(exampleName, withMuteSupport, printTree).root!!.rContext
 }
 
+private fun createJavaSystemInterface(): JavaSystemInterface {
+    return JavaSystemInterface().apply {
+        rpgSystem = RpgSystem().apply {
+            addProgramFinder(DirRpgProgramFinder(File(rpgTestSrcDir)))
+        }
+    }
+}
+
 fun assertCanBeParsedResult(
     exampleName: String,
     withMuteSupport: Boolean = false,
@@ -197,7 +207,7 @@ fun assertASTCanBeProduced(
                 toAstConfiguration = ToAstConfiguration(considerPosition)),
                 jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation)
             )
-        ast = MainExecutionContext.execute(systemInterface = JavaSystemInterface(), configuration = configuration) {
+        ast = MainExecutionContext.execute(systemInterface = createJavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
             RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
         }
@@ -312,8 +322,13 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     val functions = HashMap<String, Function>()
     var printOutput = false
 
-    override fun findProgram(name: String) = programs[name]
+    override fun findProgram(name: String): Program? {
+        return programs.computeIfAbsent(name) { SingletonRpgSystem.getProgram(name) }
+    }
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String) = functions[name]
+    override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
+    }
 
     override fun display(value: String) {
         displayed.add(value)
@@ -412,6 +427,10 @@ class DummyProgramFinder(private val path: String) : RpgProgramFinder {
         return rpgSourceInputStream(nameOrSource)?.let {
             RpgProgram.fromInputStream(it, nameOrSource)
         }
+    }
+
+    override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
     }
 }
 

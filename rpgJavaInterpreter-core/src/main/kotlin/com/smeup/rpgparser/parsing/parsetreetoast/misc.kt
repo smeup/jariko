@@ -1,6 +1,8 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
+import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -123,6 +125,19 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+    val copies = this.statement().mapNotNull { statementContext ->
+        when {
+            statementContext.directive() != null -> {
+                when (val directive = statementContext.directive().toAst()) {
+                    is CopyDirective -> {
+                        directive.findCopy(statementContext, conf)
+                    }
+                    else -> null
+                }
+            }
+            else -> null
+        }
+    }
     return CompilationUnit(
         fileDefinitions,
         dataDefinitions,
@@ -131,6 +146,42 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         compileTimeArrays,
         directives,
         position = this.toPosition(conf.considerPosition)
+    ).include(copies)
+}
+
+private fun CopyDirective.findCopy(context: ParserRuleContext, astConfiguration: ToAstConfiguration): Copy? {
+    return if (MainExecutionContext.getSystemInterface() != null) {
+        kotlin.runCatching {
+            MainExecutionContext.getSystemInterface()!!.findCopy(copyId)
+        }.onFailure {
+            throw java.lang.RuntimeException("Error on ${context.text} at position ${context.toPosition(astConfiguration.considerPosition)}", it)
+        }.getOrNull()
+    } else {
+        println("Cannot find COPY because SystemInterface is not in MainExecutionContext".yellow())
+        null
+    }
+}
+
+private fun CompilationUnit.include(copies: List<Copy>): CompilationUnit {
+    var cu: CompilationUnit = this
+    copies.forEach {
+        cu = cu.include(it)
+    }
+    return cu
+}
+
+private fun CompilationUnit.include(copy: Copy): CompilationUnit {
+    return copy(
+        fileDefinitions = this.fileDefinitions + copy.cu.fileDefinitions,
+        dataDefinitions = this.dataDefinitions + copy.cu.dataDefinitions,
+        main = MainBody(
+            stmts = this.main.stmts + copy.cu.main.stmts,
+            position = this.main.position
+        ),
+        subroutines = this.subroutines + copy.cu.subroutines,
+        compileTimeArrays = this.compileTimeArrays + copy.cu.compileTimeArrays,
+        directives = this.directives + copy.cu.directives,
+        position = this.position
     )
 }
 

@@ -48,8 +48,11 @@ class JD_003(javaSystemInterface: JavaSystemInterface) : RpgFacade<JD_003_params
 }
 
 fun main(args: Array<String>) {
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-    val javaSystemInterface = JavaSystemInterface()
+    val javaSystemInterface = JavaSystemInterface().apply {
+        rpgSystem = RpgSystem().apply {
+            DirRpgProgramFinder(File("examples/rpg"))
+        }
+    }
     javaSystemInterface.addJavaInteropPackage("com.github.rpgjavainterpreter.gatecontroller")
     JD_001(javaSystemInterface).call("https://xxx.myurl.com", "x", "w")
 //    JD_003(javaSystemInterface).call()

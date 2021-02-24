@@ -6,7 +6,8 @@
      C     ECHO          DSPLY
      C                   SETON                                        LR
       *---------------------------------------------------------------
-     C/COPY QILEGEN,£INZSR
+      * Copy inclusion for this test has not sense
+     C*/COPY QILEGEN,£INZSR
       *---------------------------------------------------------------
      C     £INIZI        BEGSR
      C     *ENTRY        PLIST

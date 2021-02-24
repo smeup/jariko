@@ -1,14 +1,18 @@
 package com.smeup.rpgparser.rpginterop
 
-import com.smeup.rpgparser.interpreter.RpgProgram
+import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.ast.CopyId
 import com.smeup.rpgparser.parsing.ast.SourceProgram
+import com.smeup.rpgparser.parsing.ast.key
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
 
 interface RpgProgramFinder {
     fun findRpgProgram(nameOrSource: String): RpgProgram?
+
+    fun findCopy(copyId: CopyId): Copy?
 }
 
 class SourceProgramFinder : RpgProgramFinder {
@@ -21,6 +25,10 @@ class SourceProgramFinder : RpgProgramFinder {
 
     override fun toString(): String {
         return "source:"
+    }
+
+    override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
     }
 }
 
@@ -64,6 +72,21 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         return null
     }
 
+    override fun findCopy(copyId: CopyId): Copy? {
+        val file = copyId.toFile(directory, SourceProgram.RPGLE).takeIf {
+            it.exists()
+        } ?: copyId.toFile(directory, SourceProgram.BINARY).takeIf {
+            it.exists()
+        }
+        return file?.let {
+            Copy.fromInputStream(
+                inputStream = FileInputStream(file.absoluteFile),
+                copyId = copyId,
+                sourceProgram = it.toSourceProgram()
+            )
+        }
+    }
+
     private fun prefix(): String {
         if (directory != null) {
             return directory.absolutePath + File.separator
@@ -87,9 +110,34 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     }
 }
 
-object RpgSystem {
+private fun String.printStackTrace() {
+    println("$this at:".yellow())
+    Thread.currentThread().stackTrace.filter {
+        it.className.startsWith("com.smeup.")
+    }.forEach {
+        println("${it.className}.${it.methodName}".yellow())
+    }
+}
 
-    private val programFinders = mutableSetOf<RpgProgramFinder>()
+/**
+ * Introduced only for compatibility with test cases that used still RpgSystem as singleton object
+ * */
+object SingletonRpgSystem : RpgSystem() {
+
+    override fun getProgram(programName: String): RpgProgram {
+        ("Check stacktrace because in production environment the use of SingletonRpgSystem will be deprecated").printStackTrace()
+        return super.getProgram(programName)
+    }
+
+    override fun getCopy(id: CopyId): Copy {
+        ("Check stacktrace because in production environment the use of SingletonRpgSystem will be deprecated").printStackTrace()
+        return super.getCopy(id)
+    }
+}
+
+open class RpgSystem {
+
+    val programFinders = mutableSetOf<RpgProgramFinder>()
 
     @Synchronized
     fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {
@@ -102,14 +150,32 @@ object RpgSystem {
     }
 
     @Synchronized
-    fun getProgram(programName: String): RpgProgram {
+    open fun getProgram(programName: String): RpgProgram {
         programFinders.forEach {
             val program = it.findRpgProgram(programName)
             if (program != null) {
                 return program
             }
         }
+        if (this != SingletonRpgSystem && SingletonRpgSystem.programFinders.isNotEmpty()) {
+            return SingletonRpgSystem.getProgram(programName)
+        }
         throw RuntimeException("Program $programName not found")
+    }
+
+    @Synchronized
+    open fun getCopy(id: CopyId): Copy {
+        programFinders.forEach {
+            val copy = it.findCopy(id)
+            if (copy != null) {
+                return copy
+            }
+        }
+        // very bad but is needed for compatibility
+        if (this != SingletonRpgSystem && SingletonRpgSystem.programFinders.isNotEmpty()) {
+            return SingletonRpgSystem.getCopy(id)
+        }
+        throw RuntimeException("Cannot retrieve copy $id from: $programFinders")
     }
 
     @Synchronized
@@ -118,4 +184,12 @@ object RpgSystem {
             logHandlers.log(RpgProgramFinderLogEntry(it.toString()))
         }
     }
+}
+
+private fun CopyId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))
+
+fun File.toSourceProgram() = absolutePath.substringAfterLast('.', SourceProgram.RPGLE.extension).toSourceProgram()
+
+fun String.toSourceProgram() = SourceProgram.values().first {
+    it.extension == this
 }

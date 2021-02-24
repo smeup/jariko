@@ -2,8 +2,10 @@ package com.jariko.samples.java;
 
 import com.smeup.rpgparser.execution.CommandLineProgram;
 import com.smeup.rpgparser.execution.RunnerKt;
+import com.smeup.rpgparser.interpreter.Copy;
 import com.smeup.rpgparser.interpreter.RpgProgram;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
+import com.smeup.rpgparser.parsing.ast.CopyId;
 import com.smeup.rpgparser.parsing.ast.SourceProgram;
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +48,12 @@ public class ProgramFinderSample {
                 throw new RuntimeException(e);
             }
         }
+
+        @Nullable
+        @Override
+        public Copy findCopy(@NotNull CopyId copyId) {
+            return null;
+        }
     }
 
     private static class SrcProgramFinder implements RpgProgramFinder {
@@ -66,6 +74,12 @@ public class ProgramFinderSample {
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Nullable
+        @Override
+        public Copy findCopy(@NotNull CopyId copyId) {
+            return null;
         }
     }
 

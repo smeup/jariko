@@ -6,7 +6,7 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
-import com.smeup.rpgparser.rpginterop.RpgSystem
+import com.smeup.rpgparser.rpginterop.SingletonRpgSystem
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.junit.Test
@@ -71,7 +71,7 @@ class RunnerTest {
     fun executeExample() {
         val logFile = createLogFile()
         val configurationFile = createConfigurationFile(logFile)
-        RpgSystem.addProgramFinder(ResourceProgramFinder("/logging/"))
+        SingletonRpgSystem.addProgramFinder(ResourceProgramFinder("/logging/"))
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "TEST_06", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
         assertContain(logs, "TEST_06\t44\tPERF\tENDFOR J")
@@ -89,7 +89,7 @@ class RunnerTest {
     fun executeExampleWithCall() {
         val logFile = createLogFile()
         val configurationFile = createConfigurationFile(logFile)
-        RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+        SingletonRpgSystem.addProgramFinder(ResourceProgramFinder("/"))
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "CALCFIBCA5", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
 

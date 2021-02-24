@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
+import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.interpreter.BaseCompileTimeInterpreter
 import com.smeup.rpgparser.parsing.ast.*
@@ -48,4 +49,26 @@ fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 fun RpgParser.Hs_decedit_setContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive {
     val format = BaseCompileTimeInterpreter(emptyList()).evaluate(this.rContext(), this.hs_parm().toAst(conf)).asString().value
     return DeceditDirective(format, position = this.toPosition(conf.considerPosition))
+}
+
+fun RpgParser.DirectiveContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive? {
+    return when {
+        this.dir_copy() != null -> this.dir_copy().toAst(conf)
+        // all directives except the copy ignored as useless
+        else -> {
+            println("${this.text} at ${this.toPosition(true)}".yellow())
+            null
+        }
+    }
+}
+
+internal fun RpgParser.Dir_copyContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive {
+    return CopyDirective(
+        CopyId(
+            library = library?.text,
+            file = file?.text,
+            member = member.text
+        ),
+        this.toPosition(conf.considerPosition)
+    )
 }

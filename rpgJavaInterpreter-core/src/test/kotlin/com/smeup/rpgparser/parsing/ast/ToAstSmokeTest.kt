@@ -10,7 +10,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForJD_001() {
         val cu = assertASTCanBeProduced("JD_001")
-        assertEquals(10, cu.dataDefinitions.size)
+        assertEquals(20, cu.dataDefinitions.size)
         assertEquals(4, cu.main.stmts.size)
         assertEquals(7, cu.subroutines.size)
     }
@@ -18,7 +18,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForJD_002() {
         val cu = assertASTCanBeProduced("JD_002")
-        assertEquals(18, cu.dataDefinitions.size)
+        assertEquals(28, cu.dataDefinitions.size)
         assertEquals(4, cu.main.stmts.size)
         assertEquals(10, cu.subroutines.size)
     }
@@ -26,7 +26,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForJD_003() {
         val cu = assertASTCanBeProduced("JD_003")
-        assertEquals(16, cu.dataDefinitions.size)
+        assertEquals(26, cu.dataDefinitions.size)
         assertEquals(4, cu.main.stmts.size)
         assertEquals(6, cu.subroutines.size)
     }
@@ -42,7 +42,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForJD_001_dataDefinitions() {
         val root = assertASTCanBeProduced("JD_001")
-        assertEquals(10, root.dataDefinitions.size)
+        assertEquals(20, root.dataDefinitions.size)
         assertEquals("@UNNAMED_DS_16", root.dataDefinitions[0].name)
         assertEquals("U\$FUNZ", root.dataDefinitions[1].name)
         assertEquals("U\$METO", root.dataDefinitions[2].name)
