@@ -118,9 +118,7 @@ fun getProgram(
     programFinders: List<RpgProgramFinder> = defaultProgramFinders
 ): CommandLineProgram {
     if (systemInterface is JavaSystemInterface) {
-        val rpgSystem = RpgSystem()
-        systemInterface.rpgSystem = rpgSystem
-        rpgSystem.addProgramFinders(programFinders)
+        systemInterface.rpgSystem.addProgramFinders(programFinders)
         programFinders.forEach {
             systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
         }

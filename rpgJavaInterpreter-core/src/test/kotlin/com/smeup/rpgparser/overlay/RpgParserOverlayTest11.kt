@@ -9,7 +9,6 @@ import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -18,9 +17,7 @@ open class RpgParserOverlayTest11 : AbstractTest() {
 
     private fun createSystemInterface(): SystemInterface {
         return JavaSystemInterface().apply {
-            rpgSystem = RpgSystem().apply {
-                addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
-            }
+            rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         }
     }
 

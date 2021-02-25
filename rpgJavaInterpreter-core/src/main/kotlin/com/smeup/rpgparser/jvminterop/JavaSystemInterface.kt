@@ -6,7 +6,6 @@ import com.smeup.rpgparser.parsing.ast.CopyId
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.parsetreetoast.Copy
 import com.smeup.rpgparser.rpginterop.RpgSystem
-import com.smeup.rpgparser.rpginterop.SingletonRpgSystem
 import java.io.PrintStream
 import java.util.*
 import kotlin.reflect.KFunction1
@@ -17,8 +16,7 @@ open class JavaSystemInterface(
     private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
     private val copySource: (copyId: CopyId) -> Copy? = { null },
     var loggingConfiguration: LoggingConfiguration? = null,
-    // if specified has precedence respect programSource and copySource
-    var rpgSystem: RpgSystem? = null
+    val rpgSystem: RpgSystem = RpgSystem()
 ) : SystemInterface {
 
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
@@ -29,7 +27,8 @@ open class JavaSystemInterface(
     }
 
     // For calls from Java programs
-    constructor (os: PrintStream) : this(os, SingletonRpgSystem::getProgram, { copyId -> SingletonRpgSystem.getCopy(copyId) })
+    private constructor (os: PrintStream, rpgSystem: RpgSystem) : this(os, rpgSystem::getProgram, { copyId -> rpgSystem.getCopy(copyId) }, rpgSystem = rpgSystem)
+    constructor (os: PrintStream) : this(os, RpgSystem())
     constructor() : this(System.out)
 
     private val consoleOutputList = LinkedList<String>()
@@ -62,16 +61,12 @@ open class JavaSystemInterface(
 
     override fun findCopy(copyId: CopyId): Copy? {
         return copies.computeIfAbsent(copyId) {
-            rpgSystem?.let {
-                it.getCopy(copyId)
-            } ?: copySource.invoke(copyId)
+            copySource.invoke(copyId)
         }
     }
 
     private fun findInFileSystem(programName: String): Program? {
-        return rpgSystem?.let {
-            it.getProgram(programName)
-        } ?: programSource?.invoke(programName)
+        return programSource?.invoke(programName)
     }
 
     private fun findInPackages(programName: String): Program? {

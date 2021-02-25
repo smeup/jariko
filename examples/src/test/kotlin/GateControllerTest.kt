@@ -2,7 +2,6 @@ package com.github.rpgjavainterpreter.gatecontroller
 
 import com.smeup.rpgparser.execution.ResourceProgramFinder
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -13,9 +12,7 @@ class GateControllerTest {
     @Test @Ignore
     fun runExample1() {
         val javaSystemInterface = JavaSystemInterface().apply {
-            rpgSystem = RpgSystem().apply {
-                addProgramFinders(listOf(ResourceProgramFinder("/"), ResourceProgramFinder("/rpg/")))
-            }
+            rpgSystem.addProgramFinders(listOf(ResourceProgramFinder("/"), ResourceProgramFinder("/rpg/")))
         }
         javaSystemInterface.addJavaInteropPackage("com.github.rpgjavainterpreter.gatecontroller")
         JD_001(javaSystemInterface).call("https://xxx.myurl.com", "x", "w")

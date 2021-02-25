@@ -145,7 +145,7 @@ object SingletonRpgSystem : RpgSystem() {
 
 open class RpgSystem {
 
-    val programFinders = mutableSetOf<RpgProgramFinder>()
+    internal val programFinders = mutableSetOf<RpgProgramFinder>()
 
     @Synchronized
     fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {

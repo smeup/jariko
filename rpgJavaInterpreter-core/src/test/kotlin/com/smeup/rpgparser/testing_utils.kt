@@ -22,7 +22,6 @@ import com.smeup.rpgparser.parsing.facade.firstLine
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
-import com.smeup.rpgparser.rpginterop.RpgSystem
 import com.smeup.rpgparser.rpginterop.SingletonRpgSystem
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
@@ -137,9 +136,7 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, pri
 
 private fun createJavaSystemInterface(): JavaSystemInterface {
     return JavaSystemInterface().apply {
-        rpgSystem = RpgSystem().apply {
-            addProgramFinder(DirRpgProgramFinder(File(rpgTestSrcDir)))
-        }
+        rpgSystem.addProgramFinder(DirRpgProgramFinder(File(rpgTestSrcDir)))
     }
 }
 
