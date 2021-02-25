@@ -1,4 +1,4 @@
-package com.smeup.rpgparser.interpreter
+package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.CopyId

@@ -9,7 +9,9 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.SingletonRpgSystem
 import java.io.File
+import kotlin.test.BeforeTest
 
 /**
  * This class must be extended from all test classes in order to automatically manage tests using both version
@@ -18,6 +20,13 @@ import java.io.File
  * (YourTestCompiled : YourTest()) that simply it will override useCompiledVersion method returning true
  * */
 abstract class AbstractTest {
+
+    @BeforeTest
+    fun beforeTest() {
+        // I don't like but until I won't be able to refactor the test units through
+        // the unification of the SytemInterfaces I need to use this workaround
+        SingletonRpgSystem.reset()
+    }
 
     open fun assertASTCanBeProduced(
         exampleName: String,

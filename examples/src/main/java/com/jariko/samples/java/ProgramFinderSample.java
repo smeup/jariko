@@ -2,7 +2,7 @@ package com.jariko.samples.java;
 
 import com.smeup.rpgparser.execution.CommandLineProgram;
 import com.smeup.rpgparser.execution.RunnerKt;
-import com.smeup.rpgparser.interpreter.Copy;
+import com.smeup.rpgparser.parsing.parsetreetoast.Copy;
 import com.smeup.rpgparser.interpreter.RpgProgram;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
 import com.smeup.rpgparser.parsing.ast.CopyId;

@@ -95,7 +95,7 @@ class RpgParserFacade {
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition()))
             }
         })
         val tokens = LinkedList<Token>()
@@ -109,7 +109,7 @@ class RpgParserFacade {
         } while (t.type != Token.EOF)
 
         if (tokens.last.type != Token.EOF) {
-            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint.asPosition))
+            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint.asPosition()))
         }
 
         return RpgLexerResult(errors, tokens)
@@ -121,7 +121,7 @@ class RpgParserFacade {
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition()))
             }
         })
         val commonTokenStream = CommonTokenStream(lexer)
@@ -151,7 +151,7 @@ class RpgParserFacade {
             lexer.addErrorListener(object : BaseErrorListener() {
                 override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                     errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition()))
                 }
             })
         }
@@ -179,12 +179,12 @@ class RpgParserFacade {
             val commonTokenStream = parser.tokenStream as CommonTokenStream
             val lastToken = commonTokenStream.get(commonTokenStream.index())
             if (lastToken.type != Token.EOF) {
-                errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition))
+                errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition()))
             }
 
             root.processDescendantsAndErrors({
                 if (it.exception != null) {
-                    errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition))
+                    errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition()))
                 }
             }, {
                 errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
@@ -406,4 +406,8 @@ fun ParserRuleContext.processDescendantsAndErrors(
             operationOnError(it)
         }
     }
+}
+
+fun Point.asPosition(): Position {
+    return Position(this, this)
 }

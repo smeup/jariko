@@ -6,7 +6,6 @@ import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
-import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 

@@ -4,7 +4,6 @@ import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.interpreter.BaseCompileTimeInterpreter
 import com.smeup.rpgparser.parsing.ast.*
-import com.strumenta.kolasu.mapping.toPosition
 
 fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Directive =
     when (this.content) {
@@ -56,7 +55,7 @@ fun RpgParser.DirectiveContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
         this.dir_copy() != null -> this.dir_copy().toAst(conf)
         // all directives except the copy ignored as useless
         else -> {
-            println("${this.text} at ${this.toPosition(true)}".yellow())
+            println("${this.text} at ${this.toPosition(conf.considerPosition)}".yellow())
             null
         }
     }

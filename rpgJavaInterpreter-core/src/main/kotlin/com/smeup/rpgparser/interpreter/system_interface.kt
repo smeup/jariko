@@ -7,6 +7,7 @@ import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.parsing.ast.CopyId
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.parsetreetoast.Copy
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 import java.io.PrintStream

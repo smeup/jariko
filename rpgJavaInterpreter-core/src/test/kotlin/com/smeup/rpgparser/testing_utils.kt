@@ -19,10 +19,7 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.facade.firstLine
-import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
-import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
-import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgSystem
@@ -323,7 +320,9 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     var printOutput = false
 
     override fun findProgram(name: String): Program? {
-        return programs.computeIfAbsent(name) { SingletonRpgSystem.getProgram(name) }
+        return programs[name] ?: kotlin.runCatching {
+            SingletonRpgSystem.getProgram(name)
+        }.getOrNull()
     }
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String) = functions[name]
     override fun findCopy(copyId: CopyId): Copy? {

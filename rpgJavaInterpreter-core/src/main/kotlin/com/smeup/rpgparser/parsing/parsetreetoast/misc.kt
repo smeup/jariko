@@ -11,7 +11,8 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
-import com.strumenta.kolasu.mapping.toPosition
+import com.strumenta.kolasu.mapping.endPoint
+import com.strumenta.kolasu.mapping.startPoint
 import com.strumenta.kolasu.model.*
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
@@ -128,7 +129,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val copies = this.statement().mapNotNull { statementContext ->
         when {
             statementContext.directive() != null -> {
-                when (val directive = statementContext.directive().toAst()) {
+                when (val directive = statementContext.directive().toAst(conf)) {
                     is CopyDirective -> {
                         directive.findCopy(statementContext, conf)
                     }
@@ -160,29 +161,6 @@ private fun CopyDirective.findCopy(context: ParserRuleContext, astConfiguration:
         println("Cannot find COPY because SystemInterface is not in MainExecutionContext".yellow())
         null
     }
-}
-
-private fun CompilationUnit.include(copies: List<Copy>): CompilationUnit {
-    var cu: CompilationUnit = this
-    copies.forEach {
-        cu = cu.include(it)
-    }
-    return cu
-}
-
-private fun CompilationUnit.include(copy: Copy): CompilationUnit {
-    return copy(
-        fileDefinitions = this.fileDefinitions + copy.cu.fileDefinitions,
-        dataDefinitions = this.dataDefinitions + copy.cu.dataDefinitions,
-        main = MainBody(
-            stmts = this.main.stmts + copy.cu.main.stmts,
-            position = this.main.position
-        ),
-        subroutines = this.subroutines + copy.cu.subroutines,
-        compileTimeArrays = this.compileTimeArrays + copy.cu.compileTimeArrays,
-        directives = this.directives + copy.cu.directives,
-        position = this.position
-    )
 }
 
 private fun Dcl_dsContext.useLikeDs(): Boolean {
@@ -1159,4 +1137,10 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
         expression = expression().toAst(conf = conf),
         operator = NORMAL_ASSIGNMENT
     )
+}
+
+fun ParserRuleContext.toPosition(considerPosition: Boolean = true): Position? {
+    return if (considerPosition && start != null && stop != null) {
+        Position(start.startPoint(), stop.endPoint())
+    } else null
 }

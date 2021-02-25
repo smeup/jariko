@@ -4,6 +4,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.CopyId
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.parsetreetoast.Copy
 import com.smeup.rpgparser.rpginterop.RpgSystem
 import com.smeup.rpgparser.rpginterop.SingletonRpgSystem
 import java.io.PrintStream

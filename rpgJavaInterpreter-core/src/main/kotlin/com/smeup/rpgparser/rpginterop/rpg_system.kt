@@ -1,10 +1,14 @@
 package com.smeup.rpgparser.rpginterop
 
 import com.andreapivetta.kolor.yellow
-import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.InterpreterLogHandler
+import com.smeup.rpgparser.interpreter.RpgProgram
+import com.smeup.rpgparser.interpreter.RpgProgramFinderLogEntry
+import com.smeup.rpgparser.interpreter.log
 import com.smeup.rpgparser.parsing.ast.CopyId
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.ast.key
+import com.smeup.rpgparser.parsing.parsetreetoast.Copy
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -132,6 +136,10 @@ object SingletonRpgSystem : RpgSystem() {
     override fun getCopy(id: CopyId): Copy {
         ("Check stacktrace because in production environment the use of SingletonRpgSystem will be deprecated").printStackTrace()
         return super.getCopy(id)
+    }
+
+    fun reset() {
+        programFinders.clear()
     }
 }
 

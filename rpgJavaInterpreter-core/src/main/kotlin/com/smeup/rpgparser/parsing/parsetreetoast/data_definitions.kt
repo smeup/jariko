@@ -6,7 +6,6 @@ import com.smeup.rpgparser.parsing.ast.AssignableExpression
 import com.smeup.rpgparser.parsing.ast.Expression
 import com.smeup.rpgparser.parsing.ast.IntLiteral
 import com.smeup.rpgparser.utils.asInt
-import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import kotlin.math.max
 

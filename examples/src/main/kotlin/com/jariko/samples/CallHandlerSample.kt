@@ -8,6 +8,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CopyId
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.ast.key
+import com.smeup.rpgparser.parsing.parsetreetoast.Copy
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
