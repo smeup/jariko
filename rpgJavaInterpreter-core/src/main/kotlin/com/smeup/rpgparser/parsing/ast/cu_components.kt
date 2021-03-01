@@ -5,7 +5,6 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.smeup.rpgparser.parsing.parsetreetoast.Copy
 import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
@@ -148,30 +147,3 @@ enum class DataWrapUpChoice {
 
 // A PList is a list of parameters
 fun List<Statement>.plist(): PlistStmt? = this.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
-
-/**
- * Include a list of copy in the CompilationUnit
- * @return A new instance containing result of inclusion
- * */
-fun CompilationUnit.include(copies: List<Copy>): CompilationUnit {
-    var cu: CompilationUnit = this
-    copies.forEach {
-        cu = cu.include(it)
-    }
-    return cu
-}
-
-private fun CompilationUnit.include(copy: Copy): CompilationUnit {
-    return copy(
-        fileDefinitions = this.fileDefinitions + copy.cu.fileDefinitions,
-        dataDefinitions = this.dataDefinitions + copy.cu.dataDefinitions,
-        main = MainBody(
-            stmts = this.main.stmts + copy.cu.main.stmts,
-            position = this.main.position
-        ),
-        subroutines = this.subroutines + copy.cu.subroutines,
-        compileTimeArrays = this.compileTimeArrays + copy.cu.compileTimeArrays,
-        directives = this.directives + copy.cu.directives,
-        position = this.position
-    )
-}

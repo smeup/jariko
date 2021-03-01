@@ -14,6 +14,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.setOverlayOn
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.utils.insLineNumber
 import com.smeup.rpgparser.utils.parseTreeToXml
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.model.Position
@@ -54,8 +55,17 @@ data class ParseTrees(
     val muteContexts: MutesImmutableMap? = null
 )
 
-class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser) : ParsingResult<ParseTrees>(errors, root) {
+class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser, val src: String) : ParsingResult<ParseTrees>(errors, root) {
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
+
+    fun dumpError(): String {
+        val srcError = src.insLineNumber(5) {
+            // for now return al lines
+            // linesInError.contains(it)
+            true
+        }
+        return "${errors.dumpError()}\n********* SRC\n$srcError"
+    }
 }
 
 typealias RpgLexerResult = ParsingResult<List<Token>>
@@ -67,14 +77,7 @@ class RpgParserFacade {
     private var muteVerbose = MainExecutionContext.getConfiguration().options?.muteVerbose ?: false
 
     private val executionProgramName: String by lazy {
-        MainExecutionContext.getExecutionProgramName().let {
-            val name = File(it).name.replaceAfterLast(".", "")
-            if (name.endsWith(".")) {
-                name.substring(0, name.length - 1)
-            } else {
-                name
-            }
-        }
+        getExecutionProgramName()
     }
 
     private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80): CharStream {
@@ -95,7 +98,7 @@ class RpgParserFacade {
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition()))
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
             }
         })
         val tokens = LinkedList<Token>()
@@ -109,7 +112,7 @@ class RpgParserFacade {
         } while (t.type != Token.EOF)
 
         if (tokens.last.type != Token.EOF) {
-            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint.asPosition()))
+            errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", tokens.last!!.endPoint.asPosition))
         }
 
         return RpgLexerResult(errors, tokens)
@@ -121,7 +124,7 @@ class RpgParserFacade {
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition()))
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
             }
         })
         val commonTokenStream = CommonTokenStream(lexer)
@@ -151,7 +154,7 @@ class RpgParserFacade {
             lexer.addErrorListener(object : BaseErrorListener() {
                 override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                     errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition()))
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
                 }
             })
         }
@@ -163,9 +166,9 @@ class RpgParserFacade {
             parser = RpgParser(commonTokenStream)
             parser.removeErrorListeners()
             parser.addErrorListener(object : BaseErrorListener() {
-                override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, p2: Int, p3: Int, errorMessage: String?, p5: RecognitionException?) {
+                override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                     errors.add(Error(ErrorType.SYNTACTIC, errorMessage
-                        ?: "unspecified"))
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
                 }
             })
         }
@@ -179,12 +182,12 @@ class RpgParserFacade {
             val commonTokenStream = parser.tokenStream as CommonTokenStream
             val lastToken = commonTokenStream.get(commonTokenStream.index())
             if (lastToken.type != Token.EOF) {
-                errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition()))
+                errors.add(Error(ErrorType.SYNTACTIC, "Not whole input consumed", lastToken!!.endPoint.asPosition))
             }
 
             root.processDescendantsAndErrors({
                 if (it.exception != null) {
-                    errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition()))
+                    errors.add(Error(ErrorType.SYNTACTIC, "Recognition exception: ${it.exception.message}", it.start.startPoint.asPosition))
                 }
             }, {
                 errors.add(Error(ErrorType.SYNTACTIC, "Error node found", it.toPosition(true)))
@@ -256,7 +259,11 @@ class RpgParserFacade {
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
         val errors = LinkedList<Error>()
-        val code = inputStreamToString(inputStream)
+        val code = inputStream.preprocess {
+            MainExecutionContext.getSystemInterface()?.findCopy(it)?.inputStream
+        }
+//        println("After preprocess code")
+//        println(code)
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
         val root: RContext
         MainExecutionContext.log(RContextLogStart(executionProgramName))
@@ -269,7 +276,7 @@ class RpgParserFacade {
             mutes = findMutes(code, errors)
         }
         verifyParseTree(parser, errors, root)
-        parserResult = RpgParserResult(errors, ParseTrees(root, mutes), parser)
+        parserResult = RpgParserResult(errors, ParseTrees(root, mutes), parser, code)
         return parserResult
     }
 
@@ -298,7 +305,9 @@ class RpgParserFacade {
         inputStream: InputStream
     ): CompilationUnit {
         val result = parse(inputStream)
-        require(result.correct) { "Errors: ${result.errors.joinToString(separator = ", ")}" }
+        require(result.correct) {
+            "${result.dumpError()}"
+        }
         val compilationUnit: CompilationUnit
         MainExecutionContext.log(AstLogStart(executionProgramName))
         val elapsed = measureTimeMillis {
@@ -408,6 +417,33 @@ fun ParserRuleContext.processDescendantsAndErrors(
     }
 }
 
-fun Point.asPosition(): Position {
-    return Position(this, this)
+private fun getExecutionProgramName(): String {
+    return MainExecutionContext.getExecutionProgramName().let {
+        val name = File(it).name.replaceAfterLast(".", "")
+        if (name.endsWith(".")) {
+            name.substring(0, name.length - 1)
+        } else {
+            name
+        }
+    }
+}
+
+private fun List<Error>.dumpError(): String {
+    return StringBuilder().let { sb ->
+        val groupedByLine = this.groupBy {
+            it.position?.start?.line
+        }
+        groupedByLine.forEach { errorEntry ->
+            val line = "Errors at line: ${errorEntry.key}"
+            val messages = errorEntry.value.distinctBy { it.message }.joinToString(",") {
+                it.message
+            }
+            sb.append(line).append(" messages: $messages\n")
+        }
+        sb.toString()
+    }
+}
+
+private fun List<Error>.getLineNumbers(): Set<Int?> {
+    return this.groupBy { error: Error -> error.position?.start?.line }.keys
 }

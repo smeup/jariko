@@ -109,3 +109,20 @@ fun String.repeatWithMaxSize(l: Int): String {
     val repetitions = (l / this.length) + 1
     return this.repeat(repetitions).take(l)
 }
+
+/**
+ * Insert line numbers in a string
+ * @param padChars Line number will be inserted in a range of source line between 0 and padChars
+ * */
+fun String.insLineNumber(padChars: Int, filter: (lineNumber: Int) -> Boolean): String {
+    return StringBuffer().let { sb ->
+        lines().forEachIndexed { index, line ->
+            if (filter.invoke(index + 1)) {
+                line.padEnd(padChars).let { currentLine ->
+                    sb.append("${index + 1}".padEnd(padChars)).append(currentLine.substring(padChars)).append("\n")
+                }
+            }
+        }
+        sb.toString()
+    }
+}

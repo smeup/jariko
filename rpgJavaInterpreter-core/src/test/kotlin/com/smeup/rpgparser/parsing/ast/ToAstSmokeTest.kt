@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.AbstractTest
+import org.junit.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -10,7 +11,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForJD_001() {
         val cu = assertASTCanBeProduced("JD_001")
-        assertEquals(20, cu.dataDefinitions.size)
+        assertEquals(10, cu.dataDefinitions.size)
         assertEquals(4, cu.main.stmts.size)
         assertEquals(7, cu.subroutines.size)
     }
@@ -18,7 +19,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForJD_002() {
         val cu = assertASTCanBeProduced("JD_002")
-        assertEquals(28, cu.dataDefinitions.size)
+        assertEquals(18, cu.dataDefinitions.size)
         assertEquals(4, cu.main.stmts.size)
         assertEquals(10, cu.subroutines.size)
     }
@@ -26,7 +27,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForJD_003() {
         val cu = assertASTCanBeProduced("JD_003")
-        assertEquals(26, cu.dataDefinitions.size)
+        assertEquals(16, cu.dataDefinitions.size)
         assertEquals(4, cu.main.stmts.size)
         assertEquals(6, cu.subroutines.size)
     }
@@ -42,7 +43,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForJD_001_dataDefinitions() {
         val root = assertASTCanBeProduced("JD_001")
-        assertEquals(20, root.dataDefinitions.size)
+        assertEquals(10, root.dataDefinitions.size)
         assertEquals("@UNNAMED_DS_16", root.dataDefinitions[0].name)
         assertEquals("U\$FUNZ", root.dataDefinitions[1].name)
         assertEquals("U\$METO", root.dataDefinitions[2].name)
@@ -204,5 +205,10 @@ open class ToAstSmokeTest : AbstractTest() {
         val cu = assertASTCanBeProduced("£MU1PGM", considerPosition = true)
         assert(cu.subroutines.size == 4)
         assert(cu.dataDefinitions.size == 2)
+    }
+
+    @Test @Ignore
+    fun buildAstForLOSER_PR() {
+        assertASTCanBeProduced("LOSER_PR")
     }
 }

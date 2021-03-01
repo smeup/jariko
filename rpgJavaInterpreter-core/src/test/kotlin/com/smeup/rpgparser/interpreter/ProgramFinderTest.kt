@@ -47,6 +47,8 @@ class ProgramFinderTest : AbstractTest() {
         // 01.
         var programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(resourcesDir))
 
+        // To simulate real use cases it is necessary create a new instance of system
+        // interface for each call
         // 02.
         var jariko = getProgram("ECHOPGM", JavaSystemInterface(), programFinders)
         var results = jariko.singleCall(listOf("Hi, you called ECHOPGM"), Configuration().adaptForTestCase(this))

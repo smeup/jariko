@@ -52,7 +52,7 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
 
     override var name = dbFile.name
 
-    override var logger = MainExecutionContext.getConfiguration().reloadConfig?.nativeAccessConfig?.logger
+    override var logger = dbFile.logger
 
     override fun chain(key: String) = dbFile.chain(key).validate()
 

@@ -11,8 +11,8 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.CopyId
-import com.smeup.rpgparser.parsing.parsetreetoast.Copy
+import com.smeup.rpgparser.parsing.facade.Copy
+import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.rpginterop.*
 import org.apache.commons.io.input.BOMInputStream
 import java.io.File

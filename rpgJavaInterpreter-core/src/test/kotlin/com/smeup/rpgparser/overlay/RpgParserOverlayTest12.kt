@@ -48,7 +48,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
     }
 
     @Test
-    open fun parseMUTE12_01_runtime() {
+    fun parseMUTE12_01_runtime() {
         val cu = assertASTCanBeProduced("overlay/MUTE12_01", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
 

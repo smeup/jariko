@@ -5,10 +5,10 @@ import com.smeup.rpgparser.interpreter.InterpreterLogHandler
 import com.smeup.rpgparser.interpreter.RpgProgram
 import com.smeup.rpgparser.interpreter.RpgProgramFinderLogEntry
 import com.smeup.rpgparser.interpreter.log
-import com.smeup.rpgparser.parsing.ast.CopyId
 import com.smeup.rpgparser.parsing.ast.SourceProgram
-import com.smeup.rpgparser.parsing.ast.key
-import com.smeup.rpgparser.parsing.parsetreetoast.Copy
+import com.smeup.rpgparser.parsing.facade.Copy
+import com.smeup.rpgparser.parsing.facade.CopyId
+import com.smeup.rpgparser.parsing.facade.key
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -83,11 +83,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
             it.exists()
         }
         return file?.let {
-            Copy.fromInputStream(
-                inputStream = FileInputStream(file.absoluteFile),
-                copyId = copyId,
-                sourceProgram = it.toSourceProgram()
-            )
+            Copy(FileInputStream(file.absoluteFile))
         }
     }
 
@@ -195,9 +191,3 @@ open class RpgSystem {
 }
 
 private fun CopyId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))
-
-fun File.toSourceProgram() = absolutePath.substringAfterLast('.', SourceProgram.RPGLE.extension).toSourceProgram()
-
-fun String.toSourceProgram() = SourceProgram.values().first {
-    it.extension == this
-}

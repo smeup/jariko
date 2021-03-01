@@ -4,11 +4,14 @@ import com.smeup.rpgparser.execution.CallProgramHandler
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.getProgram
-import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.ast.CopyId
+import com.smeup.rpgparser.interpreter.IntValue
+import com.smeup.rpgparser.interpreter.RpgProgram
+import com.smeup.rpgparser.interpreter.SystemInterface
+import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.SourceProgram
-import com.smeup.rpgparser.parsing.ast.key
-import com.smeup.rpgparser.parsing.parsetreetoast.Copy
+import com.smeup.rpgparser.parsing.facade.Copy
+import com.smeup.rpgparser.parsing.facade.CopyId
+import com.smeup.rpgparser.parsing.facade.key
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
@@ -55,7 +58,7 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
             val pgmUrl = URL("$endpoint/${copyId.key(SourceProgram.RPGLE)}")
             pgmUrl.openStream().use {
                 println("Loading $copyId from $pgmUrl")
-                Copy.fromInputStream(it, copyId, SourceProgram.RPGLE)
+                Copy(it)
             }
         }.onFailure {
             println(it.message)

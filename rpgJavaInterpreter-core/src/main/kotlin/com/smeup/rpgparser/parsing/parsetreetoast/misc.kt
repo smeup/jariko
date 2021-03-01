@@ -1,8 +1,6 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
-import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -11,8 +9,7 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
-import com.strumenta.kolasu.mapping.endPoint
-import com.strumenta.kolasu.mapping.startPoint
+import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.*
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
@@ -126,19 +123,6 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
-    val copies = this.statement().mapNotNull { statementContext ->
-        when {
-            statementContext.directive() != null -> {
-                when (val directive = statementContext.directive().toAst(conf)) {
-                    is CopyDirective -> {
-                        directive.findCopy(statementContext, conf)
-                    }
-                    else -> null
-                }
-            }
-            else -> null
-        }
-    }
     return CompilationUnit(
         fileDefinitions,
         dataDefinitions,
@@ -147,20 +131,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         compileTimeArrays,
         directives,
         position = this.toPosition(conf.considerPosition)
-    ).include(copies)
-}
-
-private fun CopyDirective.findCopy(context: ParserRuleContext, astConfiguration: ToAstConfiguration): Copy? {
-    return if (MainExecutionContext.getSystemInterface() != null) {
-        kotlin.runCatching {
-            MainExecutionContext.getSystemInterface()!!.findCopy(copyId)
-        }.onFailure {
-            throw java.lang.RuntimeException("Error on ${context.text} at position ${context.toPosition(astConfiguration.considerPosition)}", it)
-        }.getOrNull()
-    } else {
-        println("Cannot find COPY because SystemInterface is not in MainExecutionContext".yellow())
-        null
-    }
+    )
 }
 
 private fun Dcl_dsContext.useLikeDs(): Boolean {
@@ -1137,10 +1108,4 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
         expression = expression().toAst(conf = conf),
         operator = NORMAL_ASSIGNMENT
     )
-}
-
-fun ParserRuleContext.toPosition(considerPosition: Boolean = true): Position? {
-    return if (considerPosition && start != null && stop != null) {
-        Position(start.startPoint(), stop.endPoint())
-    } else null
 }

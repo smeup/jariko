@@ -3,7 +3,6 @@ package com.smeup.rpgparser.parsing
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.MuteLexer
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import com.smeup.rpgparser.parsing.facade.asPosition
 import com.strumenta.kolasu.model.Point
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
@@ -30,7 +29,7 @@ open class RpgParserWithMuteSupportTest : AbstractTest() {
         lexer.addErrorListener(object : BaseErrorListener() {
             override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, charPositionInLine: Int, errorMessage: String?, p5: RecognitionException?) {
                 errors.add(Error(ErrorType.LEXICAL, errorMessage
-                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition()))
+                        ?: "unspecified", position = Point(line, charPositionInLine).asPosition))
             }
         })
         val tokens = LinkedList<Token>()

@@ -7,6 +7,8 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.encodeToByteArray
 import com.smeup.rpgparser.parsing.ast.encodeToString
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.*
 
 enum class Format(val ext: String) {
@@ -47,7 +49,7 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
                         this.muteSupport = muteSupport
                     }.parseAndProduceAst(it)
                 }.onFailure {
-                    println("Compilation skipped because of following ast creating error: $it".yellow())
+                    println("Compilation skipped because of following ast creating error: ${it.message}".yellow())
                     return CompilationResult(file, null, null, it)
                 }
                 when (format) {
@@ -86,10 +88,12 @@ fun compile(
     // In MainExecutionContext to avoid warning on idProvider reset
     val compilationResult = mutableListOf<CompilationResult>()
     if (src.isFile) {
+        systemInterface.rpgSystem.addProgramFinder(DirRpgProgramFinder(src.parentFile))
         MainExecutionContext.execute(systemInterface = systemInterface) {
             compilationResult.add(compileFile(src, compiledProgramsDir, format, muteSupport, force))
         }
     } else {
+        systemInterface.rpgSystem.addProgramFinder(DirRpgProgramFinder(src.absoluteFile))
         src.listFiles { file ->
             file.name.endsWith(".rpgle")
         }?.forEach { file ->
@@ -113,14 +117,16 @@ fun compile(
     src: InputStream,
     out: OutputStream,
     format: Format? = Format.BIN,
-    muteSupport: Boolean? = false
+    muteSupport: Boolean? = false,
+    programFinders: List<RpgProgramFinder>? = null
 ) {
 
     // Compilation within MainExecutionContext should ensure comparability among rpgle program compiled in
     // different times
-    MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+    MainExecutionContext.execute(systemInterface = JavaSystemInterface().apply {
+        programFinders?.let { rpgSystem.addProgramFinders(it) }
+    }) {
         println("Compiling inputstream to outputstream... ")
-
         var cu: CompilationUnit? = null
         cu = RpgParserFacade().apply {
             this.muteSupport = muteSupport!!

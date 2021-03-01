@@ -46,7 +46,7 @@ class JD_003(javaSystemInterface: JavaSystemInterface) : RpgFacade<JD_003_params
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val javaSystemInterface = JavaSystemInterface().apply {
         rpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
     }

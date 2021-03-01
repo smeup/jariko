@@ -19,6 +19,7 @@
      D* 28/10/16  V5R1   BMA Aggiunto £PDSMI (Message ID)
      V* A£61103A  V5R1    AS Disaccoppiamento utente di sistema da utente applicativo
      V* A£61103A  V5R1   BMA Modificato commento
+     V* 21/06/17  V5R1    AS Aggiunto £INZDB (Esecuzione in ambiente con shift-in e shift-out)
      D*----------------------------------------------------------------
      D* OBIETTIVO
      D*  Copy che definisce i campi della DS che contiene
@@ -86,6 +87,8 @@
      D  £INZMU               287    287
       * Utente applicativo
      D  £INZUA               288    297
+      * Esecuzione in ambiente con shift-in e shift-out (tipicamente DBCS)
+     D  £INZDB               298    298
       *----------------------------------------------------------------
      D                SDS
      D*

@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.utils
 
+import com.smeup.rpgparser.parsing.facade.preprocess
 import org.apache.commons.io.FileUtils
 import org.junit.Test
 import java.io.File
@@ -121,5 +122,49 @@ class MiscTest {
         compile(src = srcFile, compiledProgramsDir = File(tmpDir), format = Format.JSON, muteSupport = false)
         val expectedJson = File(tmpDir, "$programName.json").apply { deleteOnExit() }
         assertTrue(FileUtils.contentEquals(expectedJson, outJsonFile))
+    }
+
+    @Test
+    fun inputStreamPreprocess() {
+
+        val src = """
+     H/COPY QILEGEN,£INIZH     
+      *---------------------------------------------------------------
+     I/COPY QILEGEN,£TABB£1DS     
+     I/COPY QILEGEN,£PDS     
+      AFTER QILEGEN,£PDS   
+      /COPY QILEGEN,£JAX_PD1            
+        """
+        val expected = """
+********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£INIZH, parent=null)
+      HELLO I AM COPY QILEGEN,£INIZH
+********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£INIZH, parent=null)     
+      *---------------------------------------------------------------
+********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£TABB£1DS, parent=null)
+      HELLO I AM COPY QILEGEN,£TABB£1DS
+********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£TABB£1DS, parent=null)     
+********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£PDS, parent=null)
+      HELLO I AM COPY QILEGEN,£PDS
+********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£PDS, parent=null)     
+      AFTER QILEGEN,£PDS   
+********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£JAX_PD1, parent=null)
+********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£JAX_PD2, parent=null)
+      HELLO I AM COPY QILEGEN,£JAX_PD2
+********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£JAX_PD2, parent=null)
+      AFTER QILEGEN,£PDS AND ADDING ${'$'}1${'$'}2${'$'}3
+********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£JAX_PD1, parent=null)  
+        """
+        val included = src.byteInputStream().preprocess {
+            // recursive test
+            // simulate copy £JAX_PD1 include £JAX_PD2
+            if (it.member == "£JAX_PD1") {
+                ("      /COPY QILEGEN,£JAX_PD2\n" +
+                        "      AFTER QILEGEN,£PDS AND ADDING $1$2$3").byteInputStream()
+            } else {
+                "      HELLO I AM COPY ${it.file},${it.member}".byteInputStream()
+            }
+        }
+        println(included)
+        assertEquals(expected.trim(), included.trim())
     }
 }

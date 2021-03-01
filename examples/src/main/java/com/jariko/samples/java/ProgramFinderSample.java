@@ -2,11 +2,11 @@ package com.jariko.samples.java;
 
 import com.smeup.rpgparser.execution.CommandLineProgram;
 import com.smeup.rpgparser.execution.RunnerKt;
-import com.smeup.rpgparser.parsing.parsetreetoast.Copy;
 import com.smeup.rpgparser.interpreter.RpgProgram;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
-import com.smeup.rpgparser.parsing.ast.CopyId;
 import com.smeup.rpgparser.parsing.ast.SourceProgram;
+import com.smeup.rpgparser.parsing.facade.Copy;
+import com.smeup.rpgparser.parsing.facade.CopyId;
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
