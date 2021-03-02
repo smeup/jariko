@@ -64,7 +64,7 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
             // linesInError.contains(it)
             true
         }
-        return "${errors.dumpError()}\n********* SRC\n$srcError"
+        return "${errors.dumpError()}\n********* SRC ${getExecutionProgramNameWithNoExtension()}\n$srcError"
     }
 }
 
@@ -77,7 +77,7 @@ class RpgParserFacade {
     private var muteVerbose = MainExecutionContext.getConfiguration().options?.muteVerbose ?: false
 
     private val executionProgramName: String by lazy {
-        getExecutionProgramName()
+        getExecutionProgramNameWithNoExtension()
     }
 
     private fun inputStreamWithLongLines(inputStream: InputStream, threshold: Int = 80): CharStream {
@@ -260,7 +260,7 @@ class RpgParserFacade {
         val parserResult: RpgParserResult
         val errors = LinkedList<Error>()
         val code = inputStream.preprocess {
-            MainExecutionContext.getSystemInterface()?.findCopy(it)?.inputStream
+            MainExecutionContext.getSystemInterface()?.findCopy(it)?.source
         }
 //        println("After preprocess code")
 //        println(code)
@@ -417,7 +417,10 @@ fun ParserRuleContext.processDescendantsAndErrors(
     }
 }
 
-private fun getExecutionProgramName(): String {
+/**
+ * @return The execution program name belonging to MainExecutionContext
+ * */
+fun getExecutionProgramNameWithNoExtension(): String {
     return MainExecutionContext.getExecutionProgramName().let {
         val name = File(it).name.replaceAfterLast(".", "")
         if (name.endsWith(".")) {

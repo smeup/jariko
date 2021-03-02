@@ -7,11 +7,20 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.util.regex.Pattern
 
-class Copy(val inputStream: InputStream)
+class Copy(val source: String) {
+
+    companion object {
+        fun fromInputStream(inputStream: InputStream): Copy {
+            inputStream.use {
+                return Copy(it.bufferedReader().use(BufferedReader::readText))
+            }
+        }
+    }
+}
 
 private fun String.includesCopy(
-    findCopy: (copyId: CopyId) -> InputStream? = {
-        MainExecutionContext.getSystemInterface()!!.findCopy(it)!!.inputStream
+    findCopy: (copyId: CopyId) -> String? = {
+        MainExecutionContext.getSystemInterface()!!.findCopy(it)!!.source
     }
 ): String {
     val matcher = PATTERN.matcher(this)
@@ -19,7 +28,7 @@ private fun String.includesCopy(
     while (matcher.find()) {
         val copyId = matcher.group(1).copyId()
         // println("Processing $copyId")
-        val copy = (findCopy.invoke(copyId))?.preprocess(findCopy)?.let { it.surroundWithPreprocessingAnnotations(copyId) } ?: let {
+        val copy = (findCopy.invoke(copyId))?.includesCopy(findCopy)?.let { it.surroundWithPreprocessingAnnotations(copyId) } ?: let {
             println("Copy ${matcher.group()} not found".yellow())
             matcher.group()
         }
@@ -52,7 +61,7 @@ private fun String.copyId(): CopyId {
     }
 }
 
-fun InputStream.preprocess(findCopy: (copyId: CopyId) -> InputStream?): String {
+fun InputStream.preprocess(findCopy: (copyId: CopyId) -> String?): String {
     return bufferedReader().use(BufferedReader::readText).includesCopy(findCopy)
 }
 

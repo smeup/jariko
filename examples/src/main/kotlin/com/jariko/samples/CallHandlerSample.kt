@@ -58,7 +58,7 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
             val pgmUrl = URL("$endpoint/${copyId.key(SourceProgram.RPGLE)}")
             pgmUrl.openStream().use {
                 println("Loading $copyId from $pgmUrl")
-                Copy(it)
+                Copy.fromInputStream(it)
             }
         }.onFailure {
             println(it.message)

@@ -2,6 +2,7 @@ package com.smeup.rpgparser.utils
 
 import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.encodeToByteArray
@@ -49,7 +50,10 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
                         this.muteSupport = muteSupport
                     }.parseAndProduceAst(it)
                 }.onFailure {
-                    println("Compilation skipped because of following ast creating error: ${it.message}".yellow())
+                    println("Compilation skipped because of following ast creating error".yellow())
+                    val errStream = ByteArrayOutputStream()
+                    it.printStackTrace(PrintStream(errStream))
+                    println(String(errStream.toByteArray()).yellow())
                     return CompilationResult(file, null, null, it)
                 }
                 when (format) {
@@ -75,6 +79,7 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
  * @param format Compiled file format. Default Format.BIN
  * @param muteSupport Enable muteSupport. Default false
  * @param force If true skip check last modified version and src will be always compiled
+ * @param systemInterface callback function for system interface creating
  * */
 @JvmOverloads
 fun compile(
@@ -82,25 +87,30 @@ fun compile(
     compiledProgramsDir: File,
     format: Format = Format.BIN,
     muteSupport: Boolean = false,
-    force: Boolean = true
+    force: Boolean = true,
+    systemInterface: (dir: File) -> SystemInterface = { dir ->
+        JavaSystemInterface().apply { rpgSystem.addProgramFinder(DirRpgProgramFinder(dir)) } }
 ): Collection<CompilationResult> {
-    val systemInterface = JavaSystemInterface()
     // In MainExecutionContext to avoid warning on idProvider reset
     val compilationResult = mutableListOf<CompilationResult>()
     if (src.isFile) {
-        systemInterface.rpgSystem.addProgramFinder(DirRpgProgramFinder(src.parentFile))
+        val systemInterface = systemInterface.invoke(src.parentFile)
         MainExecutionContext.execute(systemInterface = systemInterface) {
+            it.executionProgramName = src.name
             compilationResult.add(compileFile(src, compiledProgramsDir, format, muteSupport, force))
         }
-    } else {
-        systemInterface.rpgSystem.addProgramFinder(DirRpgProgramFinder(src.absoluteFile))
+    } else if (src.exists()) {
+        val systemInterface = systemInterface.invoke(src.absoluteFile)
         src.listFiles { file ->
             file.name.endsWith(".rpgle")
         }?.forEach { file ->
             MainExecutionContext.execute(systemInterface = systemInterface) {
+                it.executionProgramName = file.name
                 compilationResult.add(compileFile(file, compiledProgramsDir, format, muteSupport, force))
             }
         }
+    } else {
+        println("$src not exists".yellow())
     }
     return compilationResult
 }

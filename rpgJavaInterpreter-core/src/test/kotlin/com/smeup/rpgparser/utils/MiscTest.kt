@@ -159,9 +159,9 @@ class MiscTest {
             // simulate copy £JAX_PD1 include £JAX_PD2
             if (it.member == "£JAX_PD1") {
                 ("      /COPY QILEGEN,£JAX_PD2\n" +
-                        "      AFTER QILEGEN,£PDS AND ADDING $1$2$3").byteInputStream()
+                        "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
             } else {
-                "      HELLO I AM COPY ${it.file},${it.member}".byteInputStream()
+                "      HELLO I AM COPY ${it.file},${it.member}"
             }
         }
         println(included)

@@ -3,6 +3,7 @@
 
 package com.smeup.rpgparser
 
+import com.andreapivetta.kolor.yellow
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
@@ -139,14 +140,13 @@ fun assertCanBeParsed(exampleName: String, withMuteSupport: Boolean = false, pri
 }
 
 private class TestJavaSystemInterface : JavaSystemInterface() {
-    private var currentProgram: String? = null
 
     override fun findCopy(copyId: CopyId): Copy? {
 
-        return MainExecutionContext.getExecutionProgramName().let {
+        return getExecutionProgramNameWithNoExtension().let {
             // println("Finding copy: $copyId for program: $it")
-            if (it.equals("") || it.matches(Regex("JD_001.*|JD_002|JD_003|JD_000.*"))) {
-                // println("Returning null copy just for avoid test units regression".yellow())
+            if (it == "" || it.matches(Regex("JD_001.*|JD_002|JD_003|JD_000.*"))) {
+                println("Returning null copy for program: $it just to avoid test units regression".yellow())
                 null
             } else {
                 // println("Delegating superclass")
@@ -487,29 +487,28 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
 }
 
 fun compileAllMutes(verbose: Boolean = true, dirs: List<String>, format: Format = Format.BIN) {
-
+    println("Deleting $testCompiledDir")
+    testCompiledDir.deleteRecursively()
+    testCompiledDir.mkdirs()
     dirs.forEach { it ->
         val muteSupport = it != "performance-ast"
         val srcDir = File(rpgTestSrcDir, it)
         println("Compiling dir ${srcDir.absolutePath} with muteSupport: $muteSupport")
 
-        val compiled = compile(srcDir, testCompiledDir, muteSupport = muteSupport, format = format)
+        val compiled = compile(
+            src = srcDir,
+            compiledProgramsDir = testCompiledDir,
+            muteSupport = muteSupport,
+            format = format,
+            systemInterface = { dir ->
+                TestJavaSystemInterface().apply {
+                    rpgSystem.addProgramFinder(DirRpgProgramFinder(dir))
+                }
+            }
+        )
+        // now error are displayed during the compilation
         if (compiled.any { it.error != null }) {
-            compiled.filter {
-                it.error != null
-            }.forEach { result ->
-                System.err.println("Compiling error on: ${result.srcFile}")
-                result.error!!.printStackTrace()
-            }
             error("Compilation error view logs")
-        }
-        if (verbose) {
-            compiled.filter {
-                it.parsingError != null
-            }.forEach { result ->
-                System.err.println("Parsing error on ${result.srcFile}: ${result.parsingError}")
-                result.parsingError!!.printStackTrace()
-            }
         }
     }
 }

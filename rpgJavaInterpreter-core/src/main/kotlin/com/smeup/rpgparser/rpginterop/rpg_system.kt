@@ -83,7 +83,7 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
             it.exists()
         }
         return file?.let {
-            Copy(FileInputStream(file.absoluteFile))
+            Copy.fromInputStream(FileInputStream(file.absoluteFile))
         }
     }
 
