@@ -4,7 +4,6 @@ import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
-import java.lang.RuntimeException
 
 /**
  * This is a very limited interpreter used at compile time, mainly
@@ -148,7 +147,7 @@ open class BaseCompileTimeInterpreter(
                     if (delegatedCompileTimeInterpreter != null) {
                         return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression)
                     } else {
-                        throw RuntimeException(e)
+                        throw expression.error(cause = e)
                     }
                 }
             }

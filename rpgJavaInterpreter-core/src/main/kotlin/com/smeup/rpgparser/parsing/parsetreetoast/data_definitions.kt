@@ -158,7 +158,7 @@ internal fun RpgParser.DspecContext.toAst(
     }
 
     val baseType = when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
-        null -> TODO()
+        null -> todo(conf = conf)
         "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
             /* TODO should be packed? */
             NumberType(elementSize!! - decimalPositions, decimalPositions)

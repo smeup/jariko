@@ -26,9 +26,7 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.apache.commons.io.input.BOMInputStream
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStream
+import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.collections.HashMap
@@ -59,13 +57,18 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
 
     fun dumpError(): String {
-        val srcError = src.insLineNumber(5) {
-            // for now return al lines
-            // linesInError.contains(it)
-            true
-        }
-        return "${errors.dumpError()}\n********* SRC ${getExecutionProgramNameWithNoExtension()}\n$srcError"
+        return "${errors.dumpError()}\n${src.dumpSource()}"
     }
+}
+
+private fun String.dumpSource(): String {
+    val header = "********* SRC ${getExecutionProgramNameWithNoExtension()}"
+    val src = this.insLineNumber(5) {
+        // for now return al lines
+        // linesInError.contains(it)
+        true
+    }
+    return "$header\n$src"
 }
 
 typealias RpgLexerResult = ParsingResult<List<Token>>
@@ -308,25 +311,31 @@ class RpgParserFacade {
         require(result.correct) {
             "${result.dumpError()}"
         }
-        val compilationUnit: CompilationUnit
-        MainExecutionContext.log(AstLogStart(executionProgramName))
-        val elapsed = measureTimeMillis {
-            compilationUnit = result.root!!.rContext.toAst(
-                MainExecutionContext.getConfiguration().options?.toAstConfiguration ?: ToAstConfiguration()
-            ).apply {
-                if (muteSupport) {
-                    val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
-                    if (muteVerbose) {
-                        val sorted = resolved.sortedWith(compareBy { it.muteLine })
-                        sorted.forEach {
-                            println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+        return kotlin.runCatching {
+            val compilationUnit: CompilationUnit
+            MainExecutionContext.log(AstLogStart(executionProgramName))
+            val elapsed = measureTimeMillis {
+                compilationUnit = result.root!!.rContext.toAst(
+                    MainExecutionContext.getConfiguration().options?.toAstConfiguration ?: ToAstConfiguration()
+                ).apply {
+                    if (muteSupport) {
+                        val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
+                        if (muteVerbose) {
+                            val sorted = resolved.sortedWith(compareBy { it.muteLine })
+                            sorted.forEach {
+                                println("Mute annotation at line ${it.muteLine} attached to statement ${it.statementLine}")
+                            }
                         }
                     }
                 }
             }
-        }
-        MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
-        return compilationUnit
+            MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
+            compilationUnit
+        }.onFailure {
+            val sw = StringWriter()
+            it.printStackTrace(PrintWriter(sw))
+            error("$sw\n${result.src.dumpSource()}")
+        }.getOrThrow()
     }
 
     fun parseAndProduceAst(
@@ -433,7 +442,7 @@ fun getExecutionProgramNameWithNoExtension(): String {
 
 private fun List<Error>.dumpError(): String {
     return StringBuilder().let { sb ->
-        val groupedByLine = this.groupBy {
+        val groupedByLine = this.filter { it.message != "Error node found" }.groupBy {
             it.position?.start?.line
         }
         groupedByLine.forEach { errorEntry ->

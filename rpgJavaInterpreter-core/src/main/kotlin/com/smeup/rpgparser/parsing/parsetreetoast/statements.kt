@@ -14,7 +14,7 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     return when {
         this.cspec_fixed() != null -> this.cspec_fixed().toAst(conf)
         this.block() != null -> this.block().toAst(conf)
-        else -> TODO(this.text.toString())
+        else -> todo(conf = conf)
     }
 }
 

@@ -1,7 +1,7 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.AbstractTest
-import org.junit.Ignore
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -209,6 +209,6 @@ open class ToAstSmokeTest : AbstractTest() {
 
     @Test @Ignore
     fun buildAstForLOSER_PR() {
-        assertASTCanBeProduced("LOSER_PR")
+        assertASTCanBeProduced("LOSER_PR", considerPosition = true)
     }
 }
