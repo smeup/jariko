@@ -74,7 +74,7 @@
      D £UIBPW          S           2000    VARYING
      D £UIBSW          S           2000    VARYING
      D £UibPR_long     S          32766    VARYING
-     D £UIB_C_3F       C                   x'3F'
+     D £UIB_C_3F       C                   CONST(x'3F')
       * Carattere sostitutivo per il 3F. Viene valorizzato nela £JAX_INZ tramite richiamo del B£UT67
       * Qui viene inizializzato a 3F per far emergere casi in cui non sia stata fatta la £JAX_INZ
      D £UIB_S_3F       S              1    INZ(x'3F')

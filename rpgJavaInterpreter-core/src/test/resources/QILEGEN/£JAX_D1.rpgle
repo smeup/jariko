@@ -208,27 +208,27 @@ Cod ce*   Descrizione                         -
      D £JaxMBf         S                   DIM(100) LIKE(£JaxDSMsg)             Schiera buffer msg
      D £JaxMBfI        S              4  0 INZ                                  Contatore messaggi
      D £JaxDSMsg       DS                                                       DS Messaggi
-     D £JaxMLiv                      02    INZ                                  . livello (00-99)
-     D £JaxMTxt                     198    INZ                                  . testo
+     D £JaxMLiv                      02                                         . livello (00-99)
+     D £JaxMTxt                     198                                         . testo
       * . Tipo messaggio (I=INFO, C=CONF, Q=QUEST)
-     D £JaxMTyp                      01    INZ                                  . tipo messaggio
-     D £JaxMT1                       02    INZ                                  . tipo oggetto 1
-     D £JaxMP1                       10    INZ                                  . param. oggetto 1
-     D £JaxMK1                       15    INZ                                  . codice oggetto 1
-     D £JaxMT2                       02    INZ                                  . tipo oggetto 2
-     D £JaxMP2                       10    INZ                                  . param. oggetto 2
-     D £JaxMK2                       15    INZ                                  . codice oggetto 2
+     D £JaxMTyp                      01                                         . tipo messaggio
+     D £JaxMT1                       02                                         . tipo oggetto 1
+     D £JaxMP1                       10                                         . param. oggetto 1
+     D £JaxMK1                       15                                         . codice oggetto 1
+     D £JaxMT2                       02                                         . tipo oggetto 2
+     D £JaxMP2                       10                                         . param. oggetto 2
+     D £JaxMK2                       15                                         . codice oggetto 2
       * . Modalità V2MSMOD
       * .. TN = Notifica Temporanea (a scomparsa)
       * .. PN = Notifica Permanente (non a scomparsa)
       * .. PM = Messaggio Permanente (modale)
       * .. HH = Messaggio nascosto (non viene emesso)
-     D £JaxMMod                      02    INZ
+     D £JaxMMod                      02
       * . Gravità  V2MSGRA
       * .. INFO
       * .. WARNING
       * .. ERROR
-     D £JaxMGra                      10    INZ
+     D £JaxMGra                      10
       * Testo completo (secondo livello)
      D £JaxMTx2        S          20000    VARYING
       * Variabili
@@ -247,22 +247,22 @@ Cod ce*   Descrizione                         -
      D  £JaxDSGNCt                    1                                         Tipo control.V2A£FOC
      D  £JaxDSGMul                    1                                         Multiplo     V2SI/NO
       * COSTANTI
-     D £Jax_LvlInf     C                   '00'                                 Liv. msg. info
-     D £Jax_LvlWrn     C                   '40'                                 Liv. msg. warning
-     D £Jax_LvlErr     C                   '70'                                 Liv. msg. errore
-     D £JaxMaxLen      C                   '30000'
-     D £JaxMaxStr      C                   '*HI'
-     D £Jax_GraInf     C                   'INFO'                               msg. info
-     D £Jax_GraWrn     C                   'WARNING'                            msg. warning
-     D £Jax_GraErr     C                   'ERROR'                              msg. errore
-     D £Jax_ModHH      C                   'HH'                                 Messaggio nascosto
-     D £Jax_ModTN      C                   'TN'                                 Notifica temporanea
-     D £Jax_ModPN      C                   'PN'                                 Notifica permanente
-     D £Jax_ModPM      C                   'PM'                                 Messaggio permanente
+     D £Jax_LvlInf     C                   CONST('00')                            Liv. msg. info
+     D £Jax_LvlWrn     C                   CONST('40')                            Liv. msg. warning
+     D £Jax_LvlErr     C                   CONST('70')                            Liv. msg. errore
+     D £JaxMaxLen      C                   CONST('30000')
+     D £JaxMaxStr      C                   CONST('XX')
+     D £Jax_GraInf     C                   CONST('INFO')                           msg. info
+     D £Jax_GraWrn     C                   CONST('WARNING')                        msg. warning
+     D £Jax_GraErr     C                   CONST('ERROR')                          msg. errore
+     D £Jax_ModHH      C                   CONST('HH')                             Messaggio nascosto
+     D £Jax_ModTN      C                   CONST('TN')                             Notifica temporanea
+     D £Jax_ModPN      C                   CONST('PN')                             Notifica permanente
+     D £Jax_ModPM      C                   CONST('PM')                             Messaggio permanente
       * Messaggi in sezione
       * . Permanente modale in sezione
-     D £Jax_ModPT      C                   'PT'
+     D £Jax_ModPT      C                   CONST('PT')
       * . Permanente in sezione (da chiudere)
-     D £Jax_ModPS      C                   'PS'
+     D £Jax_ModPS      C                   CONST('PS')
       * . Temporaneo in sezione (a scomparsa)
-     D £Jax_ModTS      C                   'TS'
+     D £Jax_ModTS      C                   CONST('TS')

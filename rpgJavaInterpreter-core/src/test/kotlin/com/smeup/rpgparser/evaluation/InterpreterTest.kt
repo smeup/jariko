@@ -1382,12 +1382,13 @@ Test 6
 
     @Test
     fun executeFREE_HELLO() {
-        executePgmWithStringArgs(
-            programName = "FREE_HELLO",
-            emptyList()
-        )
-//        File("c:/temp/r.xml").bufferedWriter().use {
-//            it.write(assertCanBeParsedResult("FREE_HELLO", false).toTreeString())
-//        }
+        assertEquals(
+            expected = "Hello world, Hello world in Chinese: 你好世界, number1 * number2 = 15".split(Regex(", ")),
+            actual = outputOf("FREE_HELLO"))
+    }
+
+    @Test @Ignore
+    fun executeLOSER_PR() {
+        executePgm("LOSER_PR")
     }
 }

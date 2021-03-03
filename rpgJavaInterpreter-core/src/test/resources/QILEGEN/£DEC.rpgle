@@ -96,7 +96,7 @@
      C                   MOVEL     £PDSNP        £DECAM
 1e   C                   ENDIF
       *
-1    C     £DECR4        IFEQ      *BLANKS
+1    C     £DECR4        IFEQ      'XX'
      C                   MOVEL     £DECCD        £DECRS            1
 2    C     £DECRS        IFEQ      '%'
      C                   MOVE      £DECCD        £DECRD           14
@@ -126,14 +126,14 @@
 1e   C                   ENDIF
      C*
 1    C     £DECRS        IFEQ      '%'
-     C                   MOVEL     *ON           *IN36
-     C                   MOVEL     *ON           £DEC36
+     C                   MOVEL     1             *IN36
+     C                   MOVEL     1             £DEC36
 1e   C                   ENDIF
      C*
      C* Lancio funzioni su oggetto
-1    C     £DECR4        IFNE      *BLANKS
+1    C     £DECR4        IFNE      'XX'
      C     £DECRS        OREQ      '%'
-     C     *IN35         ANDEQ     *OFF
+     C     'XX'          ANDEQ     'XX'
      C*
 2   >C                   IF        ££B£2J = '1'
     >C                   CALL      'B£DEC5'                             37

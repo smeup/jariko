@@ -126,13 +126,13 @@ abstract class AbstractTest {
         } else {
             "$programName.rpgle"
         }
-        val resource = javaClass.getResource("/$resourceName")
+        val resource = AbstractTest::class.java.getResource("/$resourceName")
         require(resource != null) {
             "Cannot find resource $resourceName"
         }
-        val programFinders = listOf(DirRpgProgramFinder(directory = File(resource.path).parentFile.parentFile))
+        val programFinders = listOf(DirRpgProgramFinder(directory = File(resource.path).parentFile))
         val jariko = getProgram(
-            nameOrSource = programName,
+            nameOrSource = programName.substringAfterLast("/", programName),
             systemInterface = systemInterface,
             programFinders = programFinders
         )

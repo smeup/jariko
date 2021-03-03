@@ -77,21 +77,21 @@
       * . . Elimino Coda Server/Client
      C                   EVAL      £SBM='DLTDTAQ DTAQ(SMEUPUIDQ/'+              COSTANTE
      C                             %TRIM(£JaxSC)+')'                            COSTANTE
-3    C                   MONITOR
+3    C*                   MONITOR
      C                   CALL      'QCMDEXC'
      C                   PARM                    £SBM            256
      C                   PARM      256           $LGH             15 5
-3x   C                   ON-ERROR  *ALL
-3e   C                   ENDMON
+3x   C*                   ON-ERROR  *ALL
+3e   C*                   ENDMON
       * . . Elimino Coda Client/Server
      C                   EVAL      £SBM='DLTDTAQ DTAQ(SMEUPUIDQ/'+              COSTANTE
      C                             %TRIM(£JaxRC)+')'                            COSTANTE
-3    C                   MONITOR
+3    C*                   MONITOR
      C                   CALL      'QCMDEXC'
      C                   PARM                    £SBM            256
      C                   PARM      256           $LGH             15 5
-3x   C                   ON-ERROR  *ALL
-3e   C                   ENDMON
+3x   C*                   ON-ERROR  *ALL
+3e   C*                   ENDMON
       * Se non è scattato il timeout, non c'è stato errore di ricezione e
       * non è arrivato il messaggio di chiusura
 2x   C                   ELSE

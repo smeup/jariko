@@ -57,7 +57,7 @@
       *
 1e  >C                   ENDIF
       *
-1   >C   37              DO
+1   >C   37              DO        37
     >C                   CALL      'B£GGP0  '
     >C                   PARM      £K04PG        £GGPNP           10
     >C                   PARM      *BLANKS       £GGPTP           10

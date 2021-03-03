@@ -70,22 +70,26 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
     // Second pass, everything, I mean everything
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
-            when {
-                it.dspec() != null -> {
-                    it.dspec()
-                        .toAst(conf, knownDataDefinitions.values.toList())
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+            kotlin.runCatching {
+                when {
+                    it.dspec() != null -> {
+                        it.dspec()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    it.dcl_c() != null -> {
+                        it.dcl_c()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                    }
+                    else -> null
                 }
-                it.dcl_c() != null -> {
-                    it.dcl_c()
-                        .toAst(conf, knownDataDefinitions.values.toList())
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                }
-                it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
-                    DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
-                }
-                else -> null
-            }
+            }.onFailure { error ->
+                it.error("Error on dataDefinitionProviders creation", error, conf)
+            }.getOrThrow()
         })
     return dataDefinitionProviders.map { it.toDataDefinition() }
 }
@@ -1114,14 +1118,29 @@ fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): N
     val pref = message?.let {
         "$message at"
     } ?: "Error at"
-    TODO("$pref ${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
+    TODO("$pref ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
 }
 
-fun ParserRuleContext.error(message: String, cause: Throwable, conf: ToAstConfiguration): Nothing {
+fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, conf: ToAstConfiguration): Nothing {
+    val pref = message?.let {
+        "$message at: "
+    } ?: "Error at: "
     throw IllegalStateException(
-        "$message at ${this.text} at: ${toPosition(conf.considerPosition)} ${this.javaClass.name}",
+        "$pref${toPosition(conf.considerPosition)} ${this.javaClass.name}",
         cause
     )
+}
+
+/**
+ * Run a block. In case of error throws an error encapsulating useful information
+ * like node position
+ */
+fun <T : ParserRuleContext, R> T.runParserRuleContext(conf: ToAstConfiguration, block: (T) -> R): R {
+    return kotlin.runCatching {
+        block.invoke(this)
+    }.onFailure {
+        this.error(it.message, it, conf)
+    }.getOrThrow()
 }
 
 fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {

@@ -543,7 +543,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                 descend = descend,
                 position = this.toPosition(conf.considerPosition))
     } catch (e: Exception) {
-        throw RuntimeException("Problem arose converting to AST field ${this.name}", e)
+        this.error("Problem arose converting to AST field", e, conf = conf)
     }
 }
 
