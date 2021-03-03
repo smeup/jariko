@@ -62,7 +62,15 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
 }
 
 private fun String.dumpSource(): String {
-    val header = "********* SRC ${getExecutionProgramNameWithNoExtension()}"
+    // execution program name could be the program itself
+    val programName = getExecutionProgramNameWithNoExtension().let {
+        if (it.lines().isNotEmpty()) {
+            "PROGRAM NAME NOT SET"
+        } else {
+            it
+        }
+    }
+    val header = "********* SRC $programName"
     val src = this.insLineNumber(5) {
         // for now return al lines
         // linesInError.contains(it)
@@ -332,9 +340,7 @@ class RpgParserFacade {
             MainExecutionContext.log(AstLogEnd(executionProgramName, elapsed))
             compilationUnit
         }.onFailure {
-            val sw = StringWriter()
-            it.printStackTrace(PrintWriter(sw))
-            error("$sw\n${result.src.dumpSource()}")
+            throw AstCreatingException(result.src, it)
         }.getOrThrow()
     }
 
@@ -459,3 +465,13 @@ private fun List<Error>.dumpError(): String {
 private fun List<Error>.getLineNumbers(): Set<Int?> {
     return this.groupBy { error: Error -> error.position?.start?.line }.keys
 }
+
+class AstCreatingException(val src: String, cause: Throwable) :
+    IllegalStateException(
+        src.let {
+            val sw = StringWriter()
+            cause.printStackTrace(PrintWriter(sw))
+            "$sw\n${src.dumpSource()}"
+        },
+        cause
+    )

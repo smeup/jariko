@@ -99,7 +99,7 @@ private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
     if (put(dataDefinition.name, dataDefinition) != null)
-        throw IllegalArgumentException("${dataDefinition.name} has been defined twice")
+        dataDefinition.error("${dataDefinition.name} has been defined twice")
 }
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
@@ -1113,20 +1113,20 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
 fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): Nothing {
     val pref = message?.let {
         "$message at"
-    } ?: ""
+    } ?: "Error at"
     TODO("$pref ${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
 }
 
 fun ParserRuleContext.error(message: String, cause: Throwable, conf: ToAstConfiguration): Nothing {
     throw IllegalStateException(
-        "$message at ${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}",
+        "$message at ${this.text} at: ${toPosition(conf.considerPosition)} ${this.javaClass.name}",
         cause
     )
 }
 
 fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
     throw IllegalStateException(
-        message?.let { "$message at Position: ${this.position}" } ?: "Position: ${this.position}",
+        message?.let { "$message at: ${this.position}" } ?: "Error at: ${this.position}",
         cause?.let { cause } ?: null
     )
 }
@@ -1134,6 +1134,6 @@ fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
 fun Node.todo(message: String? = null): Nothing {
     val pref = message?.let {
         "$message at "
-    } ?: ""
+    } ?: "Error at "
     TODO("${pref}Position: ${this.position}")
 }
