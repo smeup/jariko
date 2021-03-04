@@ -28,8 +28,7 @@
      D $TIMMS          S             10  0
      C                   EXSR      F_CERCA
       *
-      * TIMEOUT(500)
-    MU* TIMEOUT(700)
+    MU* TIMEOUT(500)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test CERCA
