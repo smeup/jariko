@@ -24,7 +24,6 @@
      D TXT             S            100    DIM(10) PERRCD(1) CTDATA             _NOTXT
      C                   EXSR      F_CALL
       *
-    MU* Type="NOXMI"
     MU* TIMEOUT(7500)
      C                   SETON                                        LR
       *---------------------------------------------------------------------

@@ -26,8 +26,8 @@
       * Display message
      C                   EVAL      $MSG=%trim(TXT(1))+' '+
      C                             %TRIM(%EDITC($TIMMS:'Q'))+'ms'
-     C     $MSG          DSPLY     Â£PDSSU
-    MU* TIMEOUT(83)
+     C     $MSG          DSPLY     £PDSSU
+    MU* TIMEOUT(100)
       *
      C                   SETON                                        LR
       *---------------------------------------------------------------

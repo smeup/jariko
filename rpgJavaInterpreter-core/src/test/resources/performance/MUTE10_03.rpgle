@@ -28,8 +28,8 @@
      D $TIMMS          S             10  0
      C                   EXSR      F_CERCA
       *
-    MU* Type="NOXMI"
-    MU* TIMEOUT(500)
+      * TIMEOUT(500)
+    MU* TIMEOUT(700)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test CERCA
