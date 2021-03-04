@@ -6,7 +6,6 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.utils.ComparisonOperator
-import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
@@ -277,7 +276,7 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                         if (!(this.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
                             onOff = true
                         }
-                        val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toInt()
+                        val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toIndicatorKey()
                         val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
                         it.continuedIndicators.put(indicator, continuedIndicator)
                     }
@@ -291,7 +290,7 @@ internal fun Cspec_fixedContext.toIndicatorCondition(conf: ToAstConfiguration): 
         null
     } else {
         try {
-            IndicatorCondition(this.indicators.text.asInt(), " " != this.indicatorsOff.text)
+            IndicatorCondition(this.indicators.text.toIndicatorKey(), " " != this.indicatorsOff.text)
         } catch (e: NumberFormatException) {
             TODO("Non numeric indicators: ${this.indicators.text} - ${toPosition(conf.considerPosition).atLine()}")
         }
@@ -361,15 +360,15 @@ private fun annidatedReferenceExpression(
     // FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
     //        in the grammar
     if (text.toUpperCase() == "*IN") {
-        return PredefinedGlobalIndicatorExpr(position)
+        return GlobalIndicatorExpr(position)
     }
     if (text.toUpperCase().startsWith("*IN(") && text.endsWith(")")) {
         val index = text.toUpperCase().removePrefix("*IN(").removeSuffix(")").toInt()
-        return PredefinedIndicatorExpr(index, position)
+        return IndicatorExpr(index, position)
     }
     if (text.toUpperCase().startsWith("*IN")) {
         val index = text.toUpperCase().removePrefix("*IN").toInt()
-        return PredefinedIndicatorExpr(index, position)
+        return IndicatorExpr(index, position)
     }
     var expr: Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
@@ -564,13 +563,7 @@ internal fun indicators(cspecs: Cspec_fixed_standard_partsContext, considerPosit
             .filter { !it.isNullOrBlank() }
             .map(String::toUpperCase)
             .map {
-                if (it.isInt()) {
-                    PredefinedIndicatorExpr(it.toInt(), cspecs.toPosition(considerPosition))
-                } else {
-                    DataWrapUpIndicatorExpr(
-                        DataWrapUpChoice.valueOf(it.toUpperCase()), cspecs.toPosition(considerPosition)
-                    )
-                }
+                IndicatorExpr(it.toIndicatorKey(), cspecs.toPosition(considerPosition))
             }
             .toList()
 }
@@ -940,11 +933,11 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
             ReferenceByName(this.getFieldName()),
             toPosition(conf.considerPosition)
         )
-        is IndicatorTargetContext -> PredefinedIndicatorExpr(
+        is IndicatorTargetContext -> IndicatorExpr(
             this.indic.text.indicatorIndex()!!,
             toPosition(conf.considerPosition)
         )
-        is GlobalIndicatorTargetContext -> PredefinedGlobalIndicatorExpr(
+        is GlobalIndicatorTargetContext -> GlobalIndicatorExpr(
             toPosition(conf.considerPosition)
         )
         else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")

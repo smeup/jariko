@@ -315,7 +315,10 @@ SPLAT_FILE: '*'[fF][iI][lL][eE];
 SPLAT_GETIN: '*'[gG][eE][tT][iI][nN];
 SPLAT_HIVAL: '*'[hH][iI][vV][aA][lL];
 SPLAT_INIT: '*'[iI][nN][iI][tT];
-SPLAT_INDICATOR: ('*'[iI][nN][0-9][0-9] | '*'[iI][nN]'('[0-9][0-9]')');
+SPLAT_INDICATOR : 	( '*' [iI] [nN] [0-9] [0-9]
+					| '*' [iI] [nN] [lL] [rR]
+					| '*' [iI] [nN] [rR] [tT]
+					| '*' [iI] [nN] '(' [0-9] [0-9] ')' );
 SPLAT_INZSR: '*'[iI][nN][zZ][sS][rR];
 SPLAT_IN: '*'[iI][nN];
 SPLAT_INPUT: '*'[iI][nN][pP][uU][tT];

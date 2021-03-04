@@ -10,7 +10,7 @@ interface InterpreterCore {
     val status: InterpreterStatus
     val interpretationContext: InterpretationContext
     val systemInterface: SystemInterface
-    val predefinedIndicators: HashMap<IndicatorKey, BooleanValue>
+    val indicators: HashMap<IndicatorKey, BooleanValue>
     val klists: HashMap<String, List<String>>
     val globalSymbolTable: ISymbolTable
     val localizationContext: LocalizationContext
@@ -32,7 +32,7 @@ interface InterpreterCore {
 
     operator fun get(data: AbstractDataDefinition): Value
     operator fun get(dataName: String): Value
-    fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue)
+    fun setIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue)
     fun eval(expression: Expression): Value
     fun execute(statements: List<Statement>)
     fun dbFile(name: String, statement: Statement): EnrichedDBFile

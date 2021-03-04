@@ -277,7 +277,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
-    override fun eval(expression: PredefinedIndicatorExpr) = interpreterStatus.indicator(expression.index)
+    override fun eval(expression: IndicatorExpr) = interpreterStatus.indicator(expression.index)
     override fun eval(expression: FunctionCall): Value {
         val functionToCall = expression.function.name
         val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
@@ -474,11 +474,8 @@ class ExpressionEvaluation(
     override fun eval(expression: AssignmentExpr) =
         throw RuntimeException("AssignmentExpr should be handled by the interpreter: $expression")
 
-    override fun eval(expression: PredefinedGlobalIndicatorExpr) =
+    override fun eval(expression: GlobalIndicatorExpr) =
         throw RuntimeException("PredefinedGlobalIndicatorExpr should be handled by the interpreter: $expression")
-
-    override fun eval(expression: DataWrapUpIndicatorExpr) =
-        throw RuntimeException("DataWrapUpIndicatorExpr should be handled by the interpreter: $expression")
 
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")
