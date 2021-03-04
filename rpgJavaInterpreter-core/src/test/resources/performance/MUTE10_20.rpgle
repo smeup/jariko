@@ -25,8 +25,8 @@
       * Main
      C                   EXSR      EXECUTE
       *
-    MU* Type="NOXMI"
-    MU* TIMEOUT(25)
+      * TIMEOUT(25)
+    MU* TIMEOUT(50)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test su statement diversi

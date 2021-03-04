@@ -28,7 +28,6 @@
      D $TIMMS          S             10  0
      C                   EXSR      F_CERCA
       *
-    MU* Type="NOXMI"
     MU* TIMEOUT(500)
      C                   SETON                                        LR
       *---------------------------------------------------------------------
