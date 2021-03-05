@@ -25,7 +25,6 @@
       * Main
      C                   EXSR      EXECUTE
       *
-    MU* Type="NOXMI"
     MU* TIMEOUT(30)
      C                   SETON                                        LR
       *---------------------------------------------------------------------

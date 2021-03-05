@@ -101,7 +101,7 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
 
 private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfiguration): Expression {
     return when {
-        this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
+        this.text.indicatorIndex() != null -> IndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
         this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
     }
@@ -154,9 +154,23 @@ internal fun String.indicatorIndex(): Int? {
     val uCaseIndicatorString = this.toUpperCase()
     return when {
         uCaseIndicatorString.startsWith("*IN(") && this.endsWith(")") ->
-            uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")").toIntOrNull()
+            uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")").toIndicatorKey()
         uCaseIndicatorString.startsWith("*IN") ->
-            this.substring("*IN".length).toIntOrNull()
+            this.substring("*IN".length).toIndicatorKey()
+        else -> null
+    }
+}
+
+internal fun String.dataWrapUpChoice(): DataWrapUpChoice? {
+    val indicator = when {
+        this.toUpperCase().startsWith("*IN(") && this.endsWith(")") ->
+            this.toUpperCase().removePrefix("*IN(").removeSuffix(")")
+        this.toUpperCase().startsWith("*IN") -> this.substring("*IN".length)
+        else -> null
+    }
+    return when (indicator) {
+        "LR" -> DataWrapUpChoice.LR
+        "RT" -> DataWrapUpChoice.RT
         else -> null
     }
 }

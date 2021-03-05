@@ -32,12 +32,6 @@ enum class AssignmentOperator(val text: String) {
     EXP_ASSIGNMENT("**=");
 }
 
-typealias IndicatorKey = Int
-@Serializable
-data class IndicatorCondition(val key: IndicatorKey, val negate: Boolean)
-@Serializable
-data class ContinuedIndicator(val key: IndicatorKey, val negate: Boolean, val level: String)
-
 @Serializable
 abstract class Statement(
     @Transient override val position: Position? = null,
@@ -65,7 +59,7 @@ abstract class Statement(
     open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
 
     var indicatorCondition: IndicatorCondition? = null
-    var continuedIndicators: HashMap<Int, ContinuedIndicator> = HashMap<Int, ContinuedIndicator>()
+    var continuedIndicators: HashMap<IndicatorKey, ContinuedIndicator> = HashMap<IndicatorKey, ContinuedIndicator>()
 
     @Throws(ControlFlowException::class, IllegalArgumentException::class, NotImplementedError::class, RuntimeException::class)
     abstract fun execute(interpreter: InterpreterCore)
@@ -653,7 +647,7 @@ data class CallStmt(
                 if (errorIndicator == null) {
                     throw e
                 }
-                interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
+                interpreter.indicators[errorIndicator] = BooleanValue.TRUE
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
@@ -758,8 +752,7 @@ data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpres
     override fun execute(interpreter: InterpreterCore) {
         indicators.forEach {
             when (it) {
-                is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.dataWrapUpChoice = it.dataWrapUpChoice
-                is PredefinedIndicatorExpr -> interpreter.predefinedIndicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
+                is IndicatorExpr -> interpreter.indicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
                 else -> TODO()
             }
         }
@@ -843,7 +836,7 @@ data class ClearStmt(
                     )
                 }
             }
-            is PredefinedIndicatorExpr -> {
+            is IndicatorExpr -> {
                 val value = interpreter.assign(value, BlanksRefExpr())
                 interpreter.log {
                     ClearStatemenExecutionLog(
@@ -911,9 +904,9 @@ data class CompStmt(
 ) : Statement(position), WithRightIndicators by rightIndicators {
     override fun execute(interpreter: InterpreterCore) {
         when (interpreter.compareExpressions(left, right, interpreter.localizationContext.charset)) {
-            GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-            SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-            else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+            SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+            else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
         }
     }
 }
@@ -1268,9 +1261,9 @@ data class CabStmt(
     override fun execute(interpreter: InterpreterCore) {
         val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.localizationContext.charset)
         when (comparisonResult.comparison) {
-            GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-            SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-            else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+            SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+            else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
         }
         if (comparisonResult.isVerified) throw GotoException(tag)
     }
@@ -1436,9 +1429,9 @@ data class ScanStmt(
             if (index >= 0) occurrences.add(IntValue((index + startPosition).toLong()))
         } while (index >= 0)
         if (occurrences.isEmpty()) {
-            interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+            interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
         } else {
-            interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             if (target.type().isArray()) {
                 val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
                 interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
