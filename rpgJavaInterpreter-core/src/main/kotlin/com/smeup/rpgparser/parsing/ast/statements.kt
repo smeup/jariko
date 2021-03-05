@@ -8,7 +8,6 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
-import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
@@ -32,44 +31,6 @@ enum class AssignmentOperator(val text: String) {
     DIVIDE_ASSIGNMENT("/="),
     EXP_ASSIGNMENT("**=");
 }
-
-typealias IndicatorKey = Int
-
-enum class IndicatorType(val range: IntRange) {
-    Predefined(1..99),
-    LR(100..100),
-    RT(101..101);
-
-    companion object {
-
-        val STATELESS_INDICATORS: List<IndicatorKey> by lazy {
-            arrayListOf<IndicatorKey>().apply {
-                values().filter { indicatorType ->
-                    indicatorType.range.last > 99
-                }.map { indicatorType ->
-                    indicatorType.range.forEach {
-                        add(it)
-                    }
-                }
-            }
-        }
-    }
-}
-
-fun String.toIndicatorKey(): IndicatorKey {
-    return when {
-        this.isInt() -> this.let {
-            require(IndicatorType.Predefined.range.contains(it.toInt()))
-            it.toInt()
-        }
-        else -> IndicatorType.valueOf(this).range.first
-    }
-}
-
-@Serializable
-data class IndicatorCondition(val key: IndicatorKey, val negate: Boolean)
-@Serializable
-data class ContinuedIndicator(val key: IndicatorKey, val negate: Boolean, val level: String)
 
 @Serializable
 abstract class Statement(

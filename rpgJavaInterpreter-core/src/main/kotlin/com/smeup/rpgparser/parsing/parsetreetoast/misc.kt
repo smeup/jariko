@@ -253,7 +253,7 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                         val continuedIndicators = this.cspec_continuedIndicators()
                         // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
                         for (i in 0 until continuedIndicators.size) {
-                            val indicator = continuedIndicators[i].indicators.children[0].toString().toInt()
+                            val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
                             var onOff = false
                             if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
                                 onOff = true
