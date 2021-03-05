@@ -37,7 +37,7 @@ interface Evaluator {
     fun eval(expression: SubstExpr): Value
     fun eval(expression: LenExpr): Value
     fun eval(expression: OffRefExpr): BooleanValue
-    fun eval(expression: PredefinedIndicatorExpr): BooleanValue
+    fun eval(expression: IndicatorExpr): BooleanValue
     fun eval(expression: FunctionCall): Value
     fun eval(expression: TimeStampExpr): Value
     fun eval(expression: EditcExpr): Value
@@ -58,6 +58,5 @@ interface Evaluator {
     fun eval(expression: ReplaceExpr): Value
     fun eval(expression: SqrtExpr): Value
     fun eval(expression: AssignmentExpr): Value
-    fun eval(expression: PredefinedGlobalIndicatorExpr): Value
-    fun eval(expression: DataWrapUpIndicatorExpr): Value
+    fun eval(expression: GlobalIndicatorExpr): Value
 }

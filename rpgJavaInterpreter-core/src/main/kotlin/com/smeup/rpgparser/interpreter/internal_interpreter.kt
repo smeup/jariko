@@ -25,18 +25,18 @@ object InterpreterConfiguration {
     var enableRuntimeChecksOnAssignement = false
 }
 
-val ALL_PREDEFINED_INDEXES = 1..99
+val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
 private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
-    val predefinedIndicators: HashMap<IndicatorKey, BooleanValue>,
+    val indicators: HashMap<IndicatorKey, BooleanValue>,
     val lrIndicator: () -> Boolean
 ) {
     var lastFound = false
     var lastDBFile: DBFile? = null
-    fun indicator(key: IndicatorKey) = predefinedIndicators[key] ?: BooleanValue.FALSE
+    fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable.get(abstractDataDefinition)
 }
 
@@ -45,7 +45,7 @@ class InternalInterpreter(
     override val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
     override val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
-    override val predefinedIndicators = HashMap<IndicatorKey, BooleanValue>()
+    override val indicators = HashMap<IndicatorKey, BooleanValue>()
 
     override var interpretationContext: InterpretationContext = DummyInterpretationContext
 
@@ -57,7 +57,7 @@ class InternalInterpreter(
 
     private var lrIndicator = false
 
-    override val status = InterpreterStatus(globalSymbolTable, predefinedIndicators, { lrIndicator })
+    override val status = InterpreterStatus(globalSymbolTable, indicators, { lrIndicator })
 
     private val dbFileMap = DBFileMap()
 
@@ -481,15 +481,15 @@ class InternalInterpreter(
             { eval(expression).asInt().value }
         }
 
-    override fun setPredefinedIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue) {
+    override fun setIndicators(statement: WithRightIndicators, hi: BooleanValue, lo: BooleanValue, eq: BooleanValue) {
         statement.hi?.let {
-            predefinedIndicators[it] = hi
+            indicators[it] = hi
         }
         statement.lo?.let {
-            predefinedIndicators[it] = lo
+            indicators[it] = lo
         }
         statement.eq?.let {
-            predefinedIndicators[it] = eq
+            indicators[it] = eq
         }
     }
 
@@ -672,22 +672,22 @@ class InternalInterpreter(
                 container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
                 return value
             }
-            is PredefinedIndicatorExpr -> {
+            is IndicatorExpr -> {
                 val coercedValue = coerce(value, BooleanType)
-                predefinedIndicators[target.index] = coercedValue.asBoolean()
+                indicators[target.index] = coercedValue.asBoolean()
                 return coercedValue
             }
-            is PredefinedGlobalIndicatorExpr -> {
+            is GlobalIndicatorExpr -> {
                 return if (value.assignableTo(BooleanType)) {
                     val coercedValue = coerce(value, BooleanType)
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        predefinedIndicators[index] = coercedValue.asBoolean()
+                        indicators[index] = coercedValue.asBoolean()
                     }
                     coercedValue
                 } else {
                     val coercedValue = coerce(value, ArrayType(BooleanType, 100)).asArray()
                     for (index in ALL_PREDEFINED_INDEXES) {
-                        predefinedIndicators[index] = coercedValue.getElement(index).asBoolean()
+                        indicators[index] = coercedValue.getElement(index).asBoolean()
                     }
                     coercedValue
                 }
@@ -827,11 +827,15 @@ class InternalInterpreter(
     }
 
     private fun isExitingInRTMode(): Boolean {
-        val exitRT = if (interpretationContext.dataWrapUpChoice != null) {
-            interpretationContext.dataWrapUpChoice == DataWrapUpChoice.RT
-        } else {
-            false
-        }
+
+        // LR indicator 'ON' means stateless, doesn't matter if RT is 'ON' too, LR wins!
+        // RT indicator 'ON' means statefull (ONLY if LR indicator is 'OFF', as described above)
+
+        val isLROn = indicators[IndicatorType.LR.name.toIndicatorKey()]?.value
+        val isRTOn = indicators[IndicatorType.RT.name.toIndicatorKey()]?.value ?: false
+
+        val exitRT = isRTOn && (isLROn == null || !isLROn)
+
         return MainExecutionContext.getConfiguration()?.jarikoCallback?.exitInRT?.invoke(
             interpretationContext.currentProgramName) ?: exitRT
     }
@@ -847,5 +851,12 @@ class InternalInterpreter(
         if (!exitingRT) {
             globalSymbolTable.clear()
         }
+        indicators.clearStatelessIndicators()
+    }
+}
+
+fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
+    IndicatorType.STATELESS_INDICATORS.forEach {
+        this.remove(it)
     }
 }
