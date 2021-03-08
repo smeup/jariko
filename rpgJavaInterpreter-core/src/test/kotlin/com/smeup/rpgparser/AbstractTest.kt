@@ -9,7 +9,6 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
-import com.smeup.rpgparser.rpginterop.RpgSystem
 import java.io.File
 import kotlin.test.BeforeTest
 
@@ -25,7 +24,6 @@ abstract class AbstractTest {
     fun beforeTest() {
         // I don't like but until I won't be able to refactor the test units through
         // the unification of the SytemInterfaces I need to use this workaround
-        RpgSystem.SINGLETON_RPG_SYSTEM = SingletonRpgSystem
         SingletonRpgSystem.reset()
     }
 

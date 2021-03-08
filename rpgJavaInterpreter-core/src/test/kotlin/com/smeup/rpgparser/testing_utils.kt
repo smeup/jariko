@@ -542,6 +542,10 @@ private class CompileAllMutes : CliktCommand(
  * */
 object SingletonRpgSystem : RpgSystem() {
 
+    init {
+        SINGLETON_RPG_SYSTEM = this
+    }
+
     fun reset() {
         programFinders.clear()
     }

@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.SingletonRpgSystem
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.SystemInterface
@@ -21,7 +22,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import com.smeup.rpgparser.execution.main as runnerMain
 
-class RunnerTest {
+class RunnerTest : AbstractTest() {
     private val folder by lazy {
         val dir = File(System.getProperty("java.io.tmpdir"), "rpg-test")
         if (!dir.exists()) {
