@@ -123,9 +123,9 @@ fun getProgram(
             systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
         }
     } else {
-        // for compatibility with other system interfaces using SingletonRpgSystem
-        SingletonRpgSystem.addProgramFinders(programFinders)
-        SingletonRpgSystem.log(systemInterface.getAllLogHandlers())
+        // for compatibility with other system interfaces using singleton instance
+        RpgSystem?.SINGLETON_RPG_SYSTEM?.addProgramFinders(programFinders)
+        RpgSystem?.SINGLETON_RPG_SYSTEM?.log(systemInterface.getAllLogHandlers())
     }
 
     return CommandLineProgram(nameOrSource, systemInterface)

@@ -27,7 +27,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
-import com.smeup.rpgparser.rpginterop.SingletonRpgSystem
+import com.smeup.rpgparser.rpginterop.RpgSystem
 import com.smeup.rpgparser.utils.Format
 import com.smeup.rpgparser.utils.compile
 import com.strumenta.kolasu.model.ReferenceByName
@@ -534,6 +534,16 @@ private class CompileAllMutes : CliktCommand(
 
     override fun run() {
         compileAllMutes(dirs = dirs.split(",").map { it.trim() }, format = Format.valueOf(format))
+    }
+}
+
+/**
+ * Introduced only for compatibility with test cases that used still RpgSystem as singleton object
+ * */
+object SingletonRpgSystem : RpgSystem() {
+
+    fun reset() {
+        programFinders.clear()
     }
 }
 

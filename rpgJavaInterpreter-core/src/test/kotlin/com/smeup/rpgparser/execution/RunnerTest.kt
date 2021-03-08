@@ -1,12 +1,12 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.rpgparser.SingletonRpgSystem
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
-import com.smeup.rpgparser.rpginterop.SingletonRpgSystem
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.junit.Test

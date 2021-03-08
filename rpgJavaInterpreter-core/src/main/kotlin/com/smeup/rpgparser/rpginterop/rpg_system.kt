@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.rpginterop
 
-import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.interpreter.InterpreterLogHandler
 import com.smeup.rpgparser.interpreter.RpgProgram
 import com.smeup.rpgparser.interpreter.RpgProgramFinderLogEntry
@@ -110,38 +109,13 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     }
 }
 
-private fun String.printStackTrace() {
-    println("$this at:".yellow())
-    Thread.currentThread().stackTrace.filter {
-        it.className.startsWith("com.smeup.")
-    }.forEach {
-        println("${it.className}.${it.methodName}".yellow())
-    }
-}
-
-/**
- * Introduced only for compatibility with test cases that used still RpgSystem as singleton object
- * */
-object SingletonRpgSystem : RpgSystem() {
-
-    override fun getProgram(programName: String): RpgProgram {
-        ("Check stacktrace because in production environment the use of SingletonRpgSystem will be deprecated").printStackTrace()
-        return super.getProgram(programName)
-    }
-
-    override fun getCopy(id: CopyId): Copy {
-        ("Check stacktrace because in production environment the use of SingletonRpgSystem will be deprecated").printStackTrace()
-        return super.getCopy(id)
-    }
-
-    fun reset() {
-        programFinders.clear()
-    }
-}
-
 open class RpgSystem {
 
     internal val programFinders = mutableSetOf<RpgProgramFinder>()
+
+    companion object {
+        var SINGLETON_RPG_SYSTEM: RpgSystem? = null
+    }
 
     @Synchronized
     fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {
@@ -161,9 +135,12 @@ open class RpgSystem {
                 return program
             }
         }
-        if (this != SingletonRpgSystem && SingletonRpgSystem.programFinders.isNotEmpty()) {
-            return SingletonRpgSystem.getProgram(programName)
+        SINGLETON_RPG_SYSTEM?.let {
+            if (this != it && it.programFinders.isNotEmpty()) {
+                return it.getProgram(programName)
+            }
         }
+
         throw RuntimeException("Program $programName not found")
     }
 
@@ -175,10 +152,12 @@ open class RpgSystem {
                 return copy
             }
         }
-        // very bad but is needed for compatibility
-        if (this != SingletonRpgSystem && SingletonRpgSystem.programFinders.isNotEmpty()) {
-            return SingletonRpgSystem.getCopy(id)
+        SINGLETON_RPG_SYSTEM?.let {
+            if (this != it && it.programFinders.isNotEmpty()) {
+                return it.getCopy(id)
+            }
         }
+
         throw RuntimeException("Cannot retrieve copy $id from: $programFinders")
     }
 
