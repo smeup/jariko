@@ -340,9 +340,23 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     var printOutput = false
 
     override fun findProgram(name: String): Program? {
-        return programs[name] ?: kotlin.runCatching {
-            SingletonRpgSystem.getProgram(name)
-        }.getOrNull()
+        // I can't use getOrPut because SingletonRpgSystem.getProgram(name) could return null.
+        // This implementation is a little bit mess but I don't matter because this is just a test interface never used
+        // in real environment, moreover in the future I would remove it
+        val program = programs[name]
+        return if (program == null) {
+            val foundProgram = kotlin.runCatching {
+                SingletonRpgSystem.getProgram(name)
+            }.getOrNull()
+            if (foundProgram != null) {
+                programs[name] = foundProgram
+                foundProgram
+            } else {
+                null
+            }
+        } else {
+            program
+        }
     }
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String) = functions[name]
     override fun findCopy(copyId: CopyId): Copy? {
