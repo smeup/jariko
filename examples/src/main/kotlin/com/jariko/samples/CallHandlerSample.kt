@@ -8,6 +8,9 @@ import com.smeup.rpgparser.interpreter.IntValue
 import com.smeup.rpgparser.interpreter.RpgProgram
 import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.parsing.ast.Api
+import com.smeup.rpgparser.parsing.ast.ApiDescriptor
+import com.smeup.rpgparser.parsing.ast.ApiId
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
@@ -64,6 +67,14 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
             println(it.message)
         }.onSuccess {
         }.getOrNull()
+    }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApi(apiId: ApiId): Api? {
+        TODO("Not yet implemented")
     }
 }
 

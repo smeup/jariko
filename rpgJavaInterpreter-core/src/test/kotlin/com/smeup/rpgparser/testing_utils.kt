@@ -16,10 +16,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmMockProgram
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.DataRefExpr
-import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
-import com.smeup.rpgparser.parsing.ast.Statement
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.*
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
@@ -364,6 +361,14 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
         executedAnnotationInternal[line] = annotation
     }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApi(apiId: ApiId): Api {
+        TODO("Not yet implemented")
+    }
 }
 
 fun execute(
@@ -452,6 +457,14 @@ class DummyProgramFinder(private val path: String) : RpgProgramFinder {
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApi(apiId: ApiId): Api? {
         TODO("Not yet implemented")
     }
 }

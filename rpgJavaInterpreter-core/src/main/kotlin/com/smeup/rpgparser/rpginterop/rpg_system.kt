@@ -1,10 +1,11 @@
 package com.smeup.rpgparser.rpginterop
 
+import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.interpreter.InterpreterLogHandler
 import com.smeup.rpgparser.interpreter.RpgProgram
 import com.smeup.rpgparser.interpreter.RpgProgramFinderLogEntry
 import com.smeup.rpgparser.interpreter.log
-import com.smeup.rpgparser.parsing.ast.SourceProgram
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.key
@@ -16,6 +17,10 @@ interface RpgProgramFinder {
     fun findRpgProgram(nameOrSource: String): RpgProgram?
 
     fun findCopy(copyId: CopyId): Copy?
+
+    fun findApiDescriptor(apiId: ApiId): ApiDescriptor?
+
+    fun findApi(apiId: ApiId): Api?
 }
 
 class SourceProgramFinder : RpgProgramFinder {
@@ -31,6 +36,14 @@ class SourceProgramFinder : RpgProgramFinder {
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApi(apiId: ApiId): Api? {
         TODO("Not yet implemented")
     }
 }
@@ -107,6 +120,32 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
         val path = if (directory == null) "" else directory.absolutePath.toString()
         return "directory: $path "
     }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
+        val rpgleFile = apiId.toFileApiDescriptor(directory, SourceProgram.RPGLE)
+        val binaryFile = apiId.toFileApiDescriptor(directory, SourceProgram.BINARY)
+        val file = rpgleFile.takeIf {
+            it.exists()
+        } ?: binaryFile.takeIf {
+            it.exists()
+        }
+        return file?.let {
+            val extension = file.name.substringAfterLast(".")
+            Api.loadApiDescriptor(file.inputStream(), SourceProgram.getByExtension(extension))
+        }
+    }
+
+    override fun findApi(apiId: ApiId): Api? {
+        val file = apiId.toFile(directory, SourceProgram.RPGLE).takeIf {
+            it.exists()
+        } ?: apiId.toFile(directory, SourceProgram.BINARY).takeIf {
+            it.exists()
+        }
+        return file?.let {
+            val extension = file.name.substringAfterLast(".")
+            Api.loadApi(file.inputStream(), SourceProgram.getByExtension(extension))
+        }
+    }
 }
 
 open class RpgSystem {
@@ -140,7 +179,6 @@ open class RpgSystem {
                 return it.getProgram(programName)
             }
         }
-
         throw RuntimeException("Program $programName not found")
     }
 
@@ -157,7 +195,6 @@ open class RpgSystem {
                 return it.getCopy(id)
             }
         }
-
         throw RuntimeException("Cannot retrieve copy $id from: $programFinders")
     }
 
@@ -167,6 +204,42 @@ open class RpgSystem {
             logHandlers.log(RpgProgramFinderLogEntry(it.toString()))
         }
     }
+
+    fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
+        programFinders.forEach {
+            val apiDescriptor = it.findApiDescriptor(apiId)
+            if (apiDescriptor != null) {
+                return apiDescriptor
+            }
+        }
+        SINGLETON_RPG_SYSTEM?.let {
+            if (this != it && it.programFinders.isNotEmpty()) {
+                return it.findApiDescriptor(apiId)
+            }
+        }
+        return ApiDescriptor().apply {
+            println("ApiDescriptor for $apiId not found, returning default implementation".yellow())
+        }
+    }
+
+    fun loadApi(apiId: ApiId): Api {
+        programFinders.forEach {
+            val api = it.findApi(apiId)
+            if (api != null) {
+                return api
+            }
+        }
+        SINGLETON_RPG_SYSTEM?.let {
+            if (this != it && it.programFinders.isNotEmpty()) {
+                return it.loadApi(apiId)
+            }
+        }
+        throw RuntimeException("Api $apiId not found")
+    }
 }
 
 private fun CopyId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))
+
+private fun ApiId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))
+
+private fun ApiId.toFileApiDescriptor(dir: File?, sourceProgram: SourceProgram) = File(dir, this.apiDescriptorKey(sourceProgram))

@@ -1844,6 +1844,7 @@ directive: DIRECTIVE
 		| DIR_SET
 		| DIR_RESTORE
 		| dir_copy
+		| dir_api
 		| dir_include 
 		| dir_eof
 		| dir_define
@@ -1861,6 +1862,12 @@ dir_copy: (DIR_COPY
 			| (DIR_Slash? (copyText DIR_Slash)+ copyText)
 		   )
 		  );
+dir_api: (DIR_API
+           (
+            (((library=copyText DIR_Slash)? file=copyText)? member=copyText)
+            | (DIR_Slash? (copyText DIR_Slash)+ copyText)
+           )
+          );
 dir_include: (DIR_INCLUDE 
 		   (
 			(((library=copyText DIR_Slash)? file=copyText)? member=copyText)

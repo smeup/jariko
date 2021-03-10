@@ -133,7 +133,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         subroutines,
         compileTimeArrays,
         directives,
-        position = this.toPosition(conf.considerPosition)
+        position = this.toPosition(conf.considerPosition),
+        apiDescriptors = this.statement().toApiDescriptors(conf)
     )
 }
 

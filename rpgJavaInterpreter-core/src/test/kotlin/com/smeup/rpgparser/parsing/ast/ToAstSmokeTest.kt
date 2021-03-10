@@ -210,4 +210,9 @@ open class ToAstSmokeTest : AbstractTest() {
     fun buildAstForLOSER_PR() {
         assertASTCanBeProduced("LOSER_PR", considerPosition = true)
     }
+
+    @Test
+    fun buildAstForAPI1PGM() {
+        assertASTCanBeProduced("API1PGM", considerPosition = true)
+    }
 }

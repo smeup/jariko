@@ -10,6 +10,9 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
+import com.smeup.rpgparser.parsing.ast.Api
+import com.smeup.rpgparser.parsing.ast.ApiDescriptor
+import com.smeup.rpgparser.parsing.ast.ApiId
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
@@ -101,6 +104,14 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApi(apiId: ApiId): Api? {
         TODO("Not yet implemented")
     }
 }
