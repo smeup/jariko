@@ -5,6 +5,8 @@ import com.smeup.rpgparser.execution.RunnerKt;
 import com.smeup.rpgparser.interpreter.RpgProgram;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
 import com.smeup.rpgparser.parsing.ast.SourceProgram;
+import com.smeup.rpgparser.parsing.facade.Copy;
+import com.smeup.rpgparser.parsing.facade.CopyId;
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +48,12 @@ public class ProgramFinderSample {
                 throw new RuntimeException(e);
             }
         }
+
+        @Nullable
+        @Override
+        public Copy findCopy(@NotNull CopyId copyId) {
+            return null;
+        }
     }
 
     private static class SrcProgramFinder implements RpgProgramFinder {
@@ -66,6 +74,12 @@ public class ProgramFinderSample {
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Nullable
+        @Override
+        public Copy findCopy(@NotNull CopyId copyId) {
+            return null;
         }
     }
 

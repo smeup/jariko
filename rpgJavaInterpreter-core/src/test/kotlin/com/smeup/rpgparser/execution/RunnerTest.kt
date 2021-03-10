@@ -1,12 +1,13 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.SingletonRpgSystem
 import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
-import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.junit.Test
@@ -21,7 +22,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import com.smeup.rpgparser.execution.main as runnerMain
 
-class RunnerTest {
+class RunnerTest : AbstractTest() {
     private val folder by lazy {
         val dir = File(System.getProperty("java.io.tmpdir"), "rpg-test")
         if (!dir.exists()) {
@@ -71,7 +72,7 @@ class RunnerTest {
     fun executeExample() {
         val logFile = createLogFile()
         val configurationFile = createConfigurationFile(logFile)
-        RpgSystem.addProgramFinder(ResourceProgramFinder("/logging/"))
+        SingletonRpgSystem.addProgramFinder(ResourceProgramFinder("/logging/"))
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "TEST_06", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
         assertContain(logs, "TEST_06\t44\tPERF\tENDFOR J")
@@ -89,7 +90,7 @@ class RunnerTest {
     fun executeExampleWithCall() {
         val logFile = createLogFile()
         val configurationFile = createConfigurationFile(logFile)
-        RpgSystem.addProgramFinder(ResourceProgramFinder("/"))
+        SingletonRpgSystem.addProgramFinder(ResourceProgramFinder("/"))
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "CALCFIBCA5", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
 

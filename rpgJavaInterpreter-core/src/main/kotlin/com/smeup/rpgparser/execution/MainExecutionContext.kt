@@ -6,7 +6,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Execution context allows to propagate, in simple and safe mode, some useful informations, that could be
+ * Execution context allows to propagate, in simple and safe mode, some useful information, that could be
  * used in all phase of program execution.
  * @see MainExecutionContext#execute
  *
@@ -124,6 +124,11 @@ object MainExecutionContext {
      * Get DB File Factory
      */
     fun getDBFileFactory(): DBFileFactory? = context.get()?.dbFileFactory
+
+    /***
+     * Get system interface
+     */
+    fun getSystemInterface(): SystemInterface? = context.get()?.systemInterface
 }
 
 data class Context(

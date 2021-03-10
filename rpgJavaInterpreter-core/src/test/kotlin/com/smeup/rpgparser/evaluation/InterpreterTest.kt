@@ -8,6 +8,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.AstCreatingException
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
@@ -32,7 +33,7 @@ open class InterpreterTest : AbstractTest() {
         """.trimMargin()
 
         val program = getProgram(source, systemInterface)
-        assertFailsWith(IllegalArgumentException::class) {
+        assertFailsWith(AstCreatingException::class) {
             program.singleCall(listOf())
         }
     }
@@ -1381,12 +1382,13 @@ Test 6
 
     @Test
     fun executeFREE_HELLO() {
-        executePgmWithStringArgs(
-            programName = "FREE_HELLO",
-            emptyList()
-        )
-//        File("c:/temp/r.xml").bufferedWriter().use {
-//            it.write(assertCanBeParsedResult("FREE_HELLO", false).toTreeString())
-//        }
+        assertEquals(
+            expected = "Hello world, Hello world in Chinese: 你好世界, number1 * number2 = 15".split(Regex(", ")),
+            actual = outputOf("FREE_HELLO"))
+    }
+
+    @Test @Ignore
+    fun executeLOSER_PR() {
+        executePgm("LOSER_PR")
     }
 }

@@ -1,4 +1,4 @@
-﻿      *      PERSONALIZZAZIONE A£LING
+      *      PERSONALIZZAZIONE A£LING
      D A£1$DS          DS           100
       * N° 03 - Suffisso exit ambiti V3 SA£TR00_    1    5
      D  T$A£1F                 6      6

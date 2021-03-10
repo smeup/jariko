@@ -9,6 +9,9 @@ import com.smeup.rpgparser.interpreter.RpgProgram
 import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.SourceProgram
+import com.smeup.rpgparser.parsing.facade.Copy
+import com.smeup.rpgparser.parsing.facade.CopyId
+import com.smeup.rpgparser.parsing.facade.key
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
@@ -45,7 +48,23 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
         }.onFailure {
             println(it.message)
         }.onSuccess {
-        }.getOrNull() }
+        }.getOrNull()
+    }
+
+    override fun findCopy(copyId: CopyId): Copy? {
+    // runCatching is wanted because endpoint could not have my program
+        return runCatching {
+            // use of source program and not bin is just because this is an example
+            val pgmUrl = URL("$endpoint/${copyId.key(SourceProgram.RPGLE)}")
+            pgmUrl.openStream().use {
+                println("Loading $copyId from $pgmUrl")
+                Copy.fromInputStream(it)
+            }
+        }.onFailure {
+            println(it.message)
+        }.onSuccess {
+        }.getOrNull()
+    }
 }
 
 fun execJariko() {

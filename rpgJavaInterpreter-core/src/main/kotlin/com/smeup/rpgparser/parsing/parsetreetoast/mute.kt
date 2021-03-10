@@ -148,10 +148,14 @@ fun CompilationUnit.injectMuteAnnotation(mutes: MutesImmutableMap): List<MuteAnn
     // Process the main body statements
     // There is an issue when annotations appear just above the first statement
     // so we want to expand the research area to cover preceding annotations
-    resolved.addAll(injectMuteAnnotationToStatements(this.main.stmts,
-            expandStartLineWhenNeeded(this.main.stmts.position()!!.start.line, mutes),
-            this.main.stmts.position()!!.end.line,
+    // In a mute with no statements, as can happens for program with only
+    // D SPEC, the function stmts.position() returns null and than this fragments raises error
+    this.main.stmts.position()?.let { position ->
+        resolved.addAll(injectMuteAnnotationToStatements(this.main.stmts,
+            expandStartLineWhenNeeded(position.start.line, mutes),
+            position.end.line,
             mutes))
+    }
     // Process subroutines body statements
     this.subroutines.forEach {
         resolved.addAll(injectMuteAnnotationToStatements(it.stmts,

@@ -158,7 +158,7 @@ internal fun RpgParser.DspecContext.toAst(
     }
 
     val baseType = when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
-        null -> TODO()
+        null -> todo(conf = conf)
         "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
             /* TODO should be packed? */
             NumberType(elementSize!! - decimalPositions, decimalPositions)
@@ -543,7 +543,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                 descend = descend,
                 position = this.toPosition(conf.considerPosition))
     } catch (e: Exception) {
-        throw RuntimeException("Problem arose converting to AST field ${this.name}", e)
+        this.error("Problem arose converting to AST field", e, conf = conf)
     }
 }
 

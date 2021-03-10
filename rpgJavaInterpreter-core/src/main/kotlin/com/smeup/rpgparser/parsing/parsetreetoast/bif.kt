@@ -36,7 +36,7 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
             this.bif_rem() != null -> this.bif_rem().toAst(conf)
             this.bif_replace() != null -> this.bif_replace().toAst(conf)
             this.bif_sqrt() != null -> this.bif_sqrt().toAst(conf)
-            else -> TODO()
+            else -> todo(conf = conf)
         }
     }
 }
@@ -147,7 +147,7 @@ internal fun RpgParser.DurationCodeContext.toAst(conf: ToAstConfiguration = ToAs
     when {
         SPLAT_MSECONDS() != null || SPLAT_MS() != null -> DurationInMSecs
         SPLAT_DAYS() != null || SPLAT_D() != null -> DurationInDays
-        else -> TODO("Implement ${this.text}")
+        else -> todo(conf = conf)
     }
 
 internal fun RpgParser.Bif_substContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubstExpr {

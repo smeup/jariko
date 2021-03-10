@@ -53,7 +53,7 @@ abstract class RpgFacade<P> (
             // Issue is due to the reusing of id generator in the AST creation, for which, if I create AST outside MainExecutionContext
             // is never reinitialized and it creates an id number (keyid associated to variable) greater than maximum allowed by experimental symbol table
             if (rpgProgram == null) {
-                rpgProgram = RpgSystem.getProgram(programName)
+                rpgProgram = systemInterface.findProgram(programName) as RpgProgram
             }
             val initialValues = toInitialValues(rpgProgram!!, params)
             programInterpreter.execute(rpgProgram!!, initialValues)

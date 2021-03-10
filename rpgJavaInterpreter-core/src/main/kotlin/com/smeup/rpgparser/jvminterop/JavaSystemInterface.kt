@@ -3,6 +3,8 @@ package com.smeup.rpgparser.jvminterop
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.facade.Copy
+import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.rpginterop.RpgSystem
 import java.io.PrintStream
 import java.util.*
@@ -12,7 +14,9 @@ import kotlin.reflect.full.isSubclassOf
 open class JavaSystemInterface(
     private val outputStream: PrintStream,
     private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
-    var loggingConfiguration: LoggingConfiguration? = null
+    private val copySource: (copyId: CopyId) -> Copy? = { null },
+    var loggingConfiguration: LoggingConfiguration? = null,
+    val rpgSystem: RpgSystem = RpgSystem()
 ) : SystemInterface {
 
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
@@ -23,7 +27,8 @@ open class JavaSystemInterface(
     }
 
     // For calls from Java programs
-    constructor (os: PrintStream) : this(os, RpgSystem::getProgram)
+    private constructor (os: PrintStream, rpgSystem: RpgSystem) : this(os, rpgSystem::getProgram, { copyId -> rpgSystem.getCopy(copyId) }, rpgSystem = rpgSystem)
+    constructor (os: PrintStream) : this(os, RpgSystem())
     constructor() : this(System.out)
 
     private val consoleOutputList = LinkedList<String>()
@@ -37,6 +42,7 @@ open class JavaSystemInterface(
 
     private val javaInteropPackages = LinkedList<String>()
     private val programs = HashMap<String, Program?>()
+    private val copies = HashMap<CopyId, Copy?>()
 
     fun addJavaInteropPackage(packageName: String) {
         javaInteropPackages.add(packageName)
@@ -50,6 +56,12 @@ open class JavaSystemInterface(
     override fun findProgram(name: String): Program? {
         return programs.computeIfAbsent(name) {
             findInPackages(name) ?: findInFileSystem(name)
+        }
+    }
+
+    override fun findCopy(copyId: CopyId): Copy? {
+        return copies.computeIfAbsent(copyId) {
+            copySource.invoke(copyId)
         }
     }
 
