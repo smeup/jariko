@@ -64,7 +64,7 @@ abstract class AbstractDataDefinition(
     }
 
     fun canBeAssigned(value: Value): Boolean {
-        return type.canBeAssigned(value)
+        return type.canBeAssigned(value) == true
     }
 }
 

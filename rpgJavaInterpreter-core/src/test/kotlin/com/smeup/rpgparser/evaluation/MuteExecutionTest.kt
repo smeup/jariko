@@ -1,10 +1,7 @@
 @file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.ExtendedCollectorSystemInterface
-import com.smeup.rpgparser.assertNrOfMutesAre
-import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -225,6 +222,17 @@ open class MuteExecutionTest : AbstractTest() {
     @Test
     fun executeMUTE13_10B3() {
         assertMuteExecutionSucceded("mute/MUTE13_10B3", 5)
+    }
+
+    @Test
+    @Ignore
+    fun executeMUTE12_08() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_08", 16)
+    }
+
+    @Test
+    fun executeMUTE12_08B() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_08B", 5)
     }
 
     private fun assertMuteExecutionSucceded(
