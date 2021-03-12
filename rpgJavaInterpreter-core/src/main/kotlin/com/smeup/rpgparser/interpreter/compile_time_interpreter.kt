@@ -14,7 +14,7 @@ import com.smeup.rpgparser.utils.asInt
 interface CompileTimeInterpreter {
     fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value
     fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration): Int
-    fun evaluateTypeOf(rContext: RpgParser.RContext, expression: Expression, cond: ToAstConfiguration): Type
+    fun evaluateTypeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration): Type
     fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int
 }
 
