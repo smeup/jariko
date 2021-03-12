@@ -65,7 +65,20 @@ fun InputStream.preprocess(findCopy: (copyId: CopyId) -> String?): String {
     return bufferedReader().use(BufferedReader::readText).includesCopy(findCopy)
 }
 
-data class CopyId(val library: String?, val file: String?, val member: String)
+data class CopyId(val library: String?, val file: String?, val member: String) {
+
+    override fun toString(): String {
+        return StringBuffer().apply {
+            if (library != null) {
+                append("$library/")
+            }
+            if (file != null) {
+                append("$file,")
+            }
+            append(member)
+        }.toString()
+    }
+}
 
 /**
  * Get key related receiver, format is as follows:

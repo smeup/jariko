@@ -113,7 +113,7 @@ open class JavaSystemInterface(
 
     override fun findApi(apiId: ApiId): Api {
         return apis.computeIfAbsent(apiId) {
-            rpgSystem.loadApi(apiId)
+            rpgSystem.findApi(apiId)
         }
     }
 }

@@ -62,9 +62,13 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
 }
 
 private fun String.dumpSource(): String {
-    // execution program name could be the program itself
-    val programName = getExecutionProgramNameWithNoExtension().let {
-        if (it.lines().isNotEmpty()) {
+    val parsingProgramName = if (MainExecutionContext.getParsingProgramNameStack().isNotEmpty()) {
+        MainExecutionContext.getParsingProgramNameStack().peek()
+    } else {
+        getExecutionProgramNameWithNoExtension()
+    }
+    val programName = parsingProgramName.let {
+        if (it.lines().size > 1) {
             "PROGRAM NAME NOT SET"
         } else {
             it
@@ -348,7 +352,8 @@ class RpgParserFacade {
         inputStream: InputStream,
         sourceProgram: SourceProgram? = SourceProgram.RPGLE
     ): CompilationUnit {
-        return if (sourceProgram?.extension == SourceProgram.RPGLE.extension) {
+        MainExecutionContext.getParsingProgramNameStack().push(executionProgramName)
+        val cu = if (sourceProgram?.extension == SourceProgram.RPGLE.extension) {
             (tryToLoadCompilationUnit() ?: createAst(inputStream)).apply {
                 MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
             }
@@ -357,6 +362,8 @@ class RpgParserFacade {
                 MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
             }
         }
+        MainExecutionContext.getParsingProgramNameStack().pop()
+        return cu
     }
 
     fun parseExpression(inputStream: InputStream, longLines: Boolean = true, printTree: Boolean = false): ParsingResult<ExpressionContext> {

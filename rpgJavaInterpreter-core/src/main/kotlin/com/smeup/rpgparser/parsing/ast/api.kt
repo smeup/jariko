@@ -1,27 +1,48 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 import java.io.InputStream
 
 @Serializable
-data class ApiId(val library: String?, val file: String?, val member: String)
+data class ApiId(override val position: Position?, val library: String?, val file: String?, val member: String) : Node(position = position) {
 
-/**
- * Loading API policy.
- * Always - The API will always be loaded
- * IfNeededStatic - The API will be loaded only if program declares to require une of the features exposed by the ApiDescriptor
- * (for example in main program we have a EXSR MYSUBROUTINE statement)
- * IfNeededJustInTime - The API will be loaded only if main program require ApiFeatures (for example before to
- * EXSR MYSUBROUTINE jariko load API just-in-time)
- * */
-enum class LoadApiPolicy {
-    Always,
-    IfNeededStatic,
-    IfNeededJustInTime
+    override fun toString(): String {
+        return StringBuffer().apply {
+            if (library != null) {
+                append("$library/")
+            }
+            if (file != null) {
+                append("$file,")
+            }
+            append(member)
+        }.toString()
+    }
 }
 
 /**
+ * Loading API policy.
+ * */
+enum class LoadApiPolicy {
+    /**
+     * The API will always be loaded
+     * */
+    Static,
+    /**
+     * The API will be loaded only if program declares to require at least one of the features exposed by the ApiDescriptor
+     * (for example in main program we have a EXSR MYSUBROUTINE statement)
+     * */
+    Dynamic,
+    /**
+     * Like Dynamic but just during program execution
+     * */
+    JustInTime
+}
+
+/**
+ *
  * Exposes the API features.
  * */
 @Serializable
@@ -29,7 +50,7 @@ data class ApiDescriptor(
     /**
      * Api declares how jariko should be load itself.
      * */
-    val loadApiPolicy: LoadApiPolicy = LoadApiPolicy.Always,
+    val loadApiPolicy: LoadApiPolicy = LoadApiPolicy.Static,
     /**
      * Api declares to expose these variable names
      * */
@@ -100,15 +121,15 @@ internal class ApiRegistry {
     ): ApiId? {
         return apiDescriptors.filter { apiDescriptor ->
             filterByVariables?.let {
-                apiDescriptor.value?.variables?.intersect(it)?.isNotEmpty() ?: false
+                apiDescriptor.value.variables?.intersect(it)?.isNotEmpty() ?: false
             } ?: true
         }.filter { apiDescriptor ->
             filterBySubroutines?.let {
-                apiDescriptor.value?.subroutines?.intersect(it)?.isNotEmpty() ?: false
+                apiDescriptor.value.subroutines?.intersect(it)?.isNotEmpty() ?: false
             } ?: true
         }.filter { apiDescriptor ->
             filterByProcedures?.let {
-                apiDescriptor.value?.procedures?.intersect(it)?.isNotEmpty() ?: false
+                apiDescriptor.value.procedures?.intersect(it)?.isNotEmpty() ?: false
             } ?: true
         }.keys.firstOrNull()
     }

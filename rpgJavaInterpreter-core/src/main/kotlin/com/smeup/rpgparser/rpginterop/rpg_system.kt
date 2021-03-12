@@ -218,11 +218,11 @@ open class RpgSystem {
             }
         }
         return ApiDescriptor().apply {
-            println("ApiDescriptor for $apiId not found, returning default implementation".yellow())
+            println("ApiDescriptor for $apiId not found, returning $this".yellow())
         }
     }
 
-    fun loadApi(apiId: ApiId): Api {
+    fun findApi(apiId: ApiId): Api {
         programFinders.forEach {
             val api = it.findApi(apiId)
             if (api != null) {
@@ -231,7 +231,7 @@ open class RpgSystem {
         }
         SINGLETON_RPG_SYSTEM?.let {
             if (this != it && it.programFinders.isNotEmpty()) {
-                return it.loadApi(apiId)
+                return it.findApi(apiId)
             }
         }
         throw RuntimeException("Api $apiId not found")

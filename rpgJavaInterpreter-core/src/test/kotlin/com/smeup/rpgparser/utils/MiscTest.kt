@@ -136,23 +136,23 @@ class MiscTest {
       /COPY QILEGEN,£JAX_PD1            
         """
         val expected = """
-********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£INIZH, parent=null)
+********** PREPROCESSOR COPYSTART QILEGEN,£INIZH
       HELLO I AM COPY QILEGEN,£INIZH
-********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£INIZH, parent=null)     
+********** PREPROCESSOR COPYEND QILEGEN,£INIZH     
       *---------------------------------------------------------------
-********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£TABB£1DS, parent=null)
+********** PREPROCESSOR COPYSTART QILEGEN,£TABB£1DS
       HELLO I AM COPY QILEGEN,£TABB£1DS
-********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£TABB£1DS, parent=null)     
-********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£PDS, parent=null)
+********** PREPROCESSOR COPYEND QILEGEN,£TABB£1DS     
+********** PREPROCESSOR COPYSTART QILEGEN,£PDS
       HELLO I AM COPY QILEGEN,£PDS
-********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£PDS, parent=null)     
+********** PREPROCESSOR COPYEND QILEGEN,£PDS     
       AFTER QILEGEN,£PDS   
-********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£JAX_PD1, parent=null)
-********** PREPROCESSOR COPYSTART CopyId(library=null, file=QILEGEN, member=£JAX_PD2, parent=null)
+********** PREPROCESSOR COPYSTART QILEGEN,£JAX_PD1
+********** PREPROCESSOR COPYSTART QILEGEN,£JAX_PD2
       HELLO I AM COPY QILEGEN,£JAX_PD2
-********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£JAX_PD2, parent=null)
+********** PREPROCESSOR COPYEND QILEGEN,£JAX_PD2
       AFTER QILEGEN,£PDS AND ADDING ${'$'}1${'$'}2${'$'}3
-********** PREPROCESSOR COPYEND CopyId(library=null, file=QILEGEN, member=£JAX_PD1, parent=null)  
+********** PREPROCESSOR COPYEND QILEGEN,£JAX_PD1   
         """
         val included = src.byteInputStream().preprocess {
             // recursive test

@@ -212,7 +212,10 @@ open class ToAstSmokeTest : AbstractTest() {
     }
 
     @Test
-    fun buildAstForAPI1PGM() {
-        assertASTCanBeProduced("API1PGM", considerPosition = true)
+    fun buildAstForAPIPGM1() {
+        assertASTCanBeProduced("APIPGM1", considerPosition = true).apply {
+            assertEquals(4, this.dataDefinitions.size)
+            assertEquals(1, this.subroutines.size)
+        }
     }
 }
