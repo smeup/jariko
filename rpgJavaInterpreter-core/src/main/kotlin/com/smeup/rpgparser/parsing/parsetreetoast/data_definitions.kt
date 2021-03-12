@@ -196,7 +196,7 @@ internal fun RpgParser.DspecContext.toAst(
         }
     }
 
-    val type = if (dim != null && like != null) {
+    val type = if (dim != null) {
         var compileTimeRecordsPerLine: Int? = null
         if (compileTimeArray) {
             if (elementsPerLineExpression != null) {
