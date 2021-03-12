@@ -55,7 +55,7 @@ internal fun CompilationUnit.postProcess(): CompilationUnit {
     apiDescriptors?.let { apiDescriptors ->
         apiDescriptors.forEach { apiEntry ->
             compilationUnit = when (apiEntry.value.loadApiPolicy) {
-                LoadApiPolicy.Always -> compilationUnit.includeApi(apiEntry.key)
+                LoadApiPolicy.Static -> compilationUnit.includeApi(apiEntry.key)
                 else -> apiEntry.key.todo()
             }
         }
