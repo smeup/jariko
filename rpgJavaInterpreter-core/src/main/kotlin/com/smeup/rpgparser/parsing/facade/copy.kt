@@ -2,10 +2,13 @@ package com.smeup.rpgparser.parsing.facade
 
 import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.PreprocessingLogEnd
+import com.smeup.rpgparser.interpreter.PreprocessingLogStart
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import java.io.BufferedReader
 import java.io.InputStream
 import java.util.regex.Pattern
+import kotlin.system.measureTimeMillis
 
 class Copy(val source: String) {
 
@@ -28,7 +31,7 @@ private fun String.includesCopy(
     while (matcher.find()) {
         val copyId = matcher.group(1).copyId()
         // println("Processing $copyId")
-        val copy = (findCopy.invoke(copyId))?.includesCopy(findCopy)?.let { it.surroundWithPreprocessingAnnotations(copyId) } ?: let {
+        val copy = (findCopy.invoke(copyId))?.includesCopy(findCopy)?.surroundWithPreprocessingAnnotations(copyId) ?: let {
             println("Copy ${matcher.group()} not found".yellow())
             matcher.group()
         }
@@ -62,7 +65,21 @@ private fun String.copyId(): CopyId {
 }
 
 fun InputStream.preprocess(findCopy: (copyId: CopyId) -> String?): String {
-    return bufferedReader().use(BufferedReader::readText).includesCopy(findCopy)
+    val programName = getExecutionProgramNameWithNoExtension()
+    MainExecutionContext.log(PreprocessingLogStart(programName = programName))
+    val preprocessed: String
+    measureTimeMillis {
+        preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(findCopy)
+    }.apply {
+        MainExecutionContext.log(
+            PreprocessingLogEnd(
+                programName = programName,
+                elapsed = this,
+                programSouce = preprocessed
+            )
+        )
+    }
+    return preprocessed
 }
 
 data class CopyId(val library: String?, val file: String?, val member: String) {
@@ -94,7 +111,7 @@ fun CopyId.key(sourceProgram: SourceProgram): String {
     } ?: "$member.${sourceProgram.extension}"
     return library?.let {
         "$library/$key"
-    } ?: "$key"
+    } ?: key
 }
 
 private fun String.surroundWithPreprocessingAnnotations(copyId: CopyId): String {
