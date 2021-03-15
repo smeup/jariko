@@ -14,9 +14,9 @@
       * 'N01' (on D spec.)
      D N03             S                   LIKE(N01B)
       *
-      * Declaration of DS with an array, used to define 'FLD_DER' derived
-      * field.
-     D MYDS            DS
+      * Declaration of DS (unnamed) with the array 'FLD', used to define the
+      * 'FLD_DER' as derived field of same ArrayType.
+     D                 DS
      D FLD                            7    DIM(10)
      D  SUBFLD01                      5    OVERLAY(FLD:1)
      D  SUBFLD02                      2    OVERLAY(FLD:*NEXT)
