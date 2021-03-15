@@ -150,6 +150,7 @@ internal fun RpgParser.DspecContext.toAst(
             varying = true
         }
     }
+
     val elementSize = when {
         like != null -> {
             compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
@@ -157,16 +158,18 @@ internal fun RpgParser.DspecContext.toAst(
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
 
-    val baseType = if (like != null) {
-        compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
-    } else {
+    val baseType =
         when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
             null -> todo(conf = conf)
             "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
                 /* TODO should be packed? */
                 NumberType(elementSize!! - decimalPositions, decimalPositions)
             } else {
-                StringType(elementSize!!, varying)
+                if (like != null) {
+                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
+                } else {
+                    StringType(elementSize!!, varying)
+                }
             }
             "A" -> StringType(elementSize!!, varying)
             "N" -> BooleanType
@@ -193,7 +196,6 @@ internal fun RpgParser.DspecContext.toAst(
                 NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
             }
             else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
-        }
     }
 
     val type = if (dim != null) {
@@ -206,8 +208,13 @@ internal fun RpgParser.DspecContext.toAst(
             }
             require(compileTimeRecordsPerLine > 0)
         }
-        ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
-            it.ascend = ascend
+
+        if (!baseType.isArray()) {
+            ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
+                it.ascend = ascend
+            }
+        } else {
+            baseType
         }
     } else {
         baseType
