@@ -231,7 +231,7 @@ open class MuteExecutionTest : AbstractTest() {
 
     @Test
     fun executeMUTE12_08B() {
-        assertMuteExecutionSucceded("data/ds/MUTE12_08B", 7)
+        assertMuteExecutionSucceded("data/ds/MUTE12_08B", 8)
     }
 
     private fun assertMuteExecutionSucceded(

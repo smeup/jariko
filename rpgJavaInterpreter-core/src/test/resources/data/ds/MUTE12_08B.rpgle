@@ -21,11 +21,22 @@
      D  SUBFLD01                      5    OVERLAY(FLD:1)
      D  SUBFLD02                      2    OVERLAY(FLD:*NEXT)
       *
-      * Standalone 'FLD_DER' derived from field 'FLD' of 'MYDS'
+      * Standalone 'FLD_DER' derived from field 'FLD' of unnamed DS
      D FLD_DER         S                   LIKE(FLD) DIM(%ELEM(FLD))
       *
+      * Declaration of DS (MYDS) with three fields. The 2nd one is
+      * used to define a field with *LIKE DEFINE specs
+     D MYDS            DS
+     D FLD01                         10S 0
+     D FLD02                          3
+     D FLD03                          5S 0
+      *
      V*=====================================================================
+     C     *LIKE         DEFINE    FLD02         FLD02_B
      C                   Z-ADD     0             N02               1 0
+      *
+    MU* VAL1(FLD02_B) VAL2('AAA') COMP(EQ)
+     C                   EVAL      FLD02_B='AAA'
       *
     MU* VAL1(N01B) VAL2(9) COMP(EQ)
      C                   EVAL      N01B=9
