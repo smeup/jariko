@@ -24,6 +24,7 @@
       * Standalone 'FLD_DER' derived from field 'FLD' of 'MYDS'
      D FLD_DER         S                   LIKE(FLD) DIM(%ELEM(FLD))
       *
+     V*=====================================================================
      C                   Z-ADD     0             N02               1 0
       *
     MU* VAL1(N01B) VAL2(9) COMP(EQ)

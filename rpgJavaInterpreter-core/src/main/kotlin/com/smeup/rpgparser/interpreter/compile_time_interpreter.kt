@@ -112,10 +112,7 @@ open class BaseCompileTimeInterpreter(
             }
             val field = it.fields.find { it.name == declName }
             if (field != null) {
-                if (field.declaredArrayInLine != null) {
-                    return (field.elementSize() /*/ field.declaredArrayInLine!!*/).toInt()
-                }
-                return field.elementSize().toInt()
+                return (field.elementSize() /*/ field.declaredArrayInLine!!*/).toInt()
             }
         }
         rContext.statement()
@@ -188,9 +185,6 @@ open class BaseCompileTimeInterpreter(
             }
             val field = it.fields.find { it.name == declName }
             if (field != null) {
-                if (field.declaredArrayInLine != null) {
-                    return field.type
-                }
                 return field.type
             }
         }

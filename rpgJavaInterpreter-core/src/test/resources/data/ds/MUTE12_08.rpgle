@@ -12,11 +12,13 @@
      V*=====================================================================
      D DS01            DS
      D N01                           10S 0
-     D N02                           10P 0
+     D***> N02                           10P 0
+     D N02                           10  0
      D N03                           10  0
       *
      D N04             S             10S 0
-     D N05             S             10P 0
+     D***> N05             S             10P 0
+     D N05             S             10  0
      D N06             S             10  0
       *
      D NN08            S                   LIKE(N01)
@@ -45,54 +47,69 @@
      C     *LIKE         DEFINE    N07           NN07
       *
      C                   CLEAR                   N07              10 0
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN01=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN01:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN02=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN02:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN03=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN03:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN04=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN04:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN05=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN05:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN06=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN06:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN07=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN07:'Z')
-
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN08=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN08:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN09=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN09:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN10=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN10:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN11=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN11:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN12=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN12:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN13=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN13:'Z')
-    MU* VAL1(XXSTR) VAL2(        10) COMP(EQ)
+      *
      C                   EVAL      NN16=10
+    MU* VAL1(XXSTR) VAL2('        10') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN16:'Z')
-    MU* VAL1(XXSTR) VAL2(10        ) COMP(EQ)
+      *
      C                   EVAL      NN17='10'
+    MU* VAL1(XXSTR) VAL2('10        ') COMP(EQ)
      C                   EVAL      XXSTR=NN17
-    MU* VAL1(XXSTR) VAL2(      10  ) COMP(EQ)
+      *
      C                   EVAL      NN18=10
+    MU* VAL1(XXSTR) VAL2('      10  ') COMP(EQ)
      C                   EVAL      XXSTR=%EDITC(NN18:'Z')
       *
      C                   SETON                                        LR

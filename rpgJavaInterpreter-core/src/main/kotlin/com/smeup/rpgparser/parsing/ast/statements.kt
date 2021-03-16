@@ -859,18 +859,31 @@ data class DefineStmt(
 ) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         val containingCU = this.ancestor(CompilationUnit::class.java)
-                ?: throw IllegalStateException("Not contained in a CU")
-        val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+            ?: return emptyList()
+
+        var originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+        // If definition was not found as a 'standalone' 'D spec' declaration,
+        // maybe it can be found as a sub-field of DS in 'D specs' declarations
+        containingCU.dataDefinitions.forEach {
+            it.fields.forEach {
+                if (it.name == originalName) {
+                    return listOf(InStatementDataDefinition(newVarName, it.type, position))
+                }
+            }
+        }
+
         if (originalDataDefinition != null) {
             return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
             val inStatementDataDefinition =
-                    containingCU.main.stmts
-                            .filterIsInstance(StatementThatCanDefineData::class.java)
-                            .asSequence()
-                            .map(StatementThatCanDefineData::dataDefinition)
-                            .flatten()
-                            .find { it.name == originalName }
+                containingCU.main.stmts
+                    .filterIsInstance(StatementThatCanDefineData::class.java)
+                    .filter { it != this }
+                    .asSequence()
+                    .map(StatementThatCanDefineData::dataDefinition)
+                    .flatten()
+                    .find { it.name == originalName } ?: return emptyList()
+
             return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition!!.type, position))
         }
     }
