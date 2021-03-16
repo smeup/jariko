@@ -8,7 +8,6 @@ import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import org.junit.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -95,7 +94,6 @@ open class DataDefinitionTest : AbstractTest() {
     }
 
     @test
-    @Ignore
     fun likeAndDimClauseParsing() {
         val cu = parseFragmentToCompilationUnit(
                 "D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))",

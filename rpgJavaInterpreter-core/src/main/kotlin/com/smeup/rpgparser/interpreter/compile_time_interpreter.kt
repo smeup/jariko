@@ -32,6 +32,10 @@ class InjectableCompileTimeInterpreter(
         return mockedDecls[declName]?.elementSize() ?: super.evaluateElementSizeOf(rContext, declName, conf)
     }
 
+    override fun evaluateTypeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Type {
+        return mockedDecls[declName] ?: super.evaluateTypeOf(rContext, declName, conf)
+    }
+
     private val mockedDecls = HashMap<String, Type>()
 
     fun overrideDecl(name: String, type: Type) {
