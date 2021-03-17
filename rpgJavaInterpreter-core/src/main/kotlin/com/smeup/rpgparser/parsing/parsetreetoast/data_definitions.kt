@@ -150,47 +150,54 @@ internal fun RpgParser.DspecContext.toAst(
             varying = true
         }
     }
+
     val elementSize = when {
         like != null -> {
-            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!)
+            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
         }
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
 
-    val baseType = when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
-        null -> todo(conf = conf)
-        "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
-            /* TODO should be packed? */
-            NumberType(elementSize!! - decimalPositions, decimalPositions)
-        } else {
-            StringType(elementSize!!, varying)
-        }
-        "A" -> StringType(elementSize!!, varying)
-        "N" -> BooleanType
-        "Z" -> TimeStampType
-        /* TODO should be zoned? */
-        RpgType.ZONED.rpgType -> {
-            /* Zoned Type */
-            NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
-        }
-        RpgType.PACKED.rpgType -> {
-            /* Packed Type */
-            NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
-        }
-        RpgType.BINARY.rpgType -> {
-            /* Binary */
-            NumberType(elementSize!!, 0, RpgType.BINARY.rpgType)
-        }
-        RpgType.INTEGER.rpgType -> {
-            /* Integer Type */
-            NumberType(elementSize!!, 0, RpgType.INTEGER.rpgType)
-        }
-        RpgType.UNSIGNED.rpgType -> {
-            /* Unsigned Type */
-            NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
-        }
-        else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
+    val baseType =
+        when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
+            null -> todo(conf = conf)
+            "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
+                /* TODO should be packed? */
+                NumberType(elementSize!! - decimalPositions, decimalPositions)
+            } else {
+                if (like != null) {
+                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
+                } else {
+                    StringType(elementSize!!, varying)
+                }
+            }
+            "A" -> StringType(elementSize!!, varying)
+            "N" -> BooleanType
+            "Z" -> TimeStampType
+            /* TODO should be zoned? */
+            RpgType.ZONED.rpgType -> {
+                /* Zoned Type */
+                NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
+            }
+            RpgType.PACKED.rpgType -> {
+                /* Packed Type */
+                NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
+            }
+            RpgType.BINARY.rpgType -> {
+                /* Binary */
+                NumberType(elementSize!!, 0, RpgType.BINARY.rpgType)
+            }
+            RpgType.INTEGER.rpgType -> {
+                /* Integer Type */
+                NumberType(elementSize!!, 0, RpgType.INTEGER.rpgType)
+            }
+            RpgType.UNSIGNED.rpgType -> {
+                /* Unsigned Type */
+                NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
+            }
+            else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
     }
+
     val type = if (dim != null) {
         var compileTimeRecordsPerLine: Int? = null
         if (compileTimeArray) {
@@ -201,8 +208,13 @@ internal fun RpgParser.DspecContext.toAst(
             }
             require(compileTimeRecordsPerLine > 0)
         }
-        ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
-            it.ascend = ascend
+
+        if (!baseType.isArray()) {
+            ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
+                it.ascend = ascend
+            }
+        } else {
+            baseType
         }
     } else {
         baseType
@@ -730,16 +742,6 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
             val correspondingFieldDefinition = dataDefinition.fields.find { it.name == fieldInfo.name }!!
             correspondingFieldDefinition.overlayTarget = fieldInfo.overlayInfo!!.targetFieldName
             dataDefinition.setOverlayOn(correspondingFieldDefinition)
-//            val overlayTarget = fieldInfo.overlayInfo!!.targetFieldName
-//            if (overlayTarget == dataDefinition.name) {
-//                correspondingFieldDefinition.overlayingOn = { dataDefinition }
-//            } else {
-//                correspondingFieldDefinition.overlayingOn = {
-//                    dataDefinition.fields.find { fieldDefinition ->
-//                        fieldDefinition.name == overlayTarget
-//                    }
-//                }
-//            }
         }
     }
     dataDefinition.fields.forEach { it.parent = dataDefinition }
