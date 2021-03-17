@@ -105,7 +105,7 @@ class ExpressionEvaluation(
                     StringValue(s)
                 }
             }
-            left is IntValue && right is IntValue -> IntValue(left.value + right.value)
+            left is IntValue && right is IntValue -> (left + right)
             left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.plus(right.bigDecimal))
             else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
         }
@@ -115,7 +115,7 @@ class ExpressionEvaluation(
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
         return when {
-            left is IntValue && right is IntValue -> IntValue(left.value - right.value)
+            left is IntValue && right is IntValue -> (left - right)
             left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.minus(right.bigDecimal))
             else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
         }
@@ -125,7 +125,7 @@ class ExpressionEvaluation(
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
         return when {
-            left is IntValue && right is IntValue -> IntValue(left.value * right.value)
+            left is IntValue && right is IntValue -> (left * right)
             left is NumberValue && right is NumberValue -> {
                 DecimalValue(left.bigDecimal.multiply(right.bigDecimal))
             }

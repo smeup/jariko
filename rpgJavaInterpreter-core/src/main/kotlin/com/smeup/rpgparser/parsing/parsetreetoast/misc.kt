@@ -96,7 +96,7 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
     knownDataDefinitions: MutableMap<String, DataDefinition>
 ): DataDefinitionHolder {
-    knownDataDefinitions.addIfNotPresent(this)
+        knownDataDefinitions.addIfNotPresent(this)
     return DataDefinitionHolder(this)
 }
 
@@ -113,7 +113,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
                     else -> null
                 }
             }
-    val dataDefinitions = getDataDefinitions(conf)
+    var dataDefinitions = getDataDefinitions(conf)
 
     val mainStmts = this.statement().mapNotNull {
         when {
@@ -123,9 +123,11 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
             else -> null
         }
     }
+
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+
     return CompilationUnit(
         fileDefinitions,
         dataDefinitions,
