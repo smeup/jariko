@@ -43,11 +43,11 @@ class InjectableCompileTimeInterpreter(
     }
 }
 
-class NotFoundAtCompileTimeException(val declName: String) : RuntimeException("Unable to calculate element size of $declName")
+class NotFoundAtCompileTimeException(declName: String) : RuntimeException("Unable to calculate element size of $declName")
 
 open class BaseCompileTimeInterpreter(
-    val knownDataDefinitions: List<DataDefinition>,
-    val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
+    private val knownDataDefinitions: List<DataDefinition>,
+    private val delegatedCompileTimeInterpreter: CompileTimeInterpreter? = null
 ) : CompileTimeInterpreter {
 
     override fun evaluate(rContext: RpgParser.RContext, expression: Expression): Value {
@@ -112,12 +112,10 @@ open class BaseCompileTimeInterpreter(
     open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Int {
         knownDataDefinitions.forEach {
             if (it.name == declName) {
-                return it.elementSize().toInt()
+                return it.elementSize()
             }
             val field = it.fields.find { it.name == declName }
-            if (field != null) {
-                return (field.elementSize() /*/ field.declaredArrayInLine!!*/).toInt()
-            }
+            if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
         rContext.statement()
                 .forEach {
@@ -133,7 +131,7 @@ open class BaseCompileTimeInterpreter(
                             val dataDefinition = (it.cspec_fixed().cspec_fixed_standard().toAst(conf) as StatementThatCanDefineData).dataDefinition()
                             dataDefinition.forEach {
                                 if (it.name.asValue().value == declName) {
-                                    return it.type.size.toInt()
+                                    return it.type.size
                                 }
                             }
                         }
@@ -157,7 +155,7 @@ open class BaseCompileTimeInterpreter(
                     if (delegatedCompileTimeInterpreter != null) {
                         return delegatedCompileTimeInterpreter.evaluateElementSizeOf(rContext, expression, conf)
                     } else {
-                        throw RuntimeException(e)
+                        throw expression.error(cause = e)
                     }
                 }
             }

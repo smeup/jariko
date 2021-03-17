@@ -64,7 +64,7 @@ abstract class AbstractDataDefinition(
     }
 
     fun canBeAssigned(value: Value): Boolean {
-        return type.canBeAssigned(value) == true
+        return type.canBeAssigned(value)
     }
 }
 
@@ -285,12 +285,16 @@ data class FieldDefinition(
         }
 
     override fun elementSize(): Int {
-        return if (container.type is ArrayType) {
-            super.elementSize()
-        } else if (this.declaredArrayInLine != null) {
-            super.elementSize()
-        } else {
-            size
+        return when {
+            container.type is ArrayType -> {
+                super.elementSize()
+            }
+            this.declaredArrayInLine != null -> {
+                super.elementSize()
+            }
+            else -> {
+                size
+            }
         }
     }
 
@@ -470,7 +474,7 @@ fun decodeBinary(value: String, size: Int): BigDecimal {
 
 fun decodeInteger(value: String, size: Int): BigDecimal {
     if (size == 1) {
-        var number: Int = 0x0000000
+        var number = 0x0000000
         number += (value[0].toByte())
         return BigDecimal(number.toString())
     }
@@ -556,7 +560,7 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
 fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
-    var buffer = IntArray(inChars.size)
+    val buffer = IntArray(inChars.size)
 
     // read the sign
     val sign = inValue.signum()
@@ -606,7 +610,7 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
 fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
-    var buffer = IntArray(inChars.size / 2 + 1)
+    val buffer = IntArray(inChars.size / 2 + 1)
 
     // read the sign
     val sign = inValue.signum()
@@ -620,7 +624,7 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     while (inPosition < inChars.size - 1) {
         firstNibble = ((inChars[inPosition++].toInt()) and 0x000F) shl 4
         secondNibble = (inChars[inPosition++].toInt()) and 0x000F
-        buffer[offset++] = (firstNibble + secondNibble).toInt()
+        buffer[offset++] = (firstNibble + secondNibble)
     }
 
     // place last digit and sign nibble
@@ -630,9 +634,9 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
         (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
     }
     if (sign != -1) {
-        buffer[offset] = (firstNibble + 0x000F).toInt()
+        buffer[offset] = (firstNibble + 0x000F)
     } else {
-        buffer[offset] = (firstNibble + 0x000D).toInt()
+        buffer[offset] = (firstNibble + 0x000D)
     }
 
     var s = ""
@@ -649,25 +653,25 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
         buffer[i] = value[i].toInt()
     }
 
-    var sign: String = ""
-    var number: String = ""
-    var nibble = ((buffer[buffer.size - 1]).toInt() and 0x0F)
+    var sign = ""
+    var number = ""
+    var nibble = ((buffer[buffer.size - 1]) and 0x0F)
     if (nibble == 0x0B || nibble == 0x0D) {
         sign = "-"
     }
 
     var offset = 0
     while (offset < (buffer.size - 1)) {
-        nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
+        nibble = (buffer[offset] and 0xFF).ushr(4)
         number += Character.toString((nibble or 0x30).toChar())
-        nibble = buffer[offset].toInt() and 0x0F or 0x30
+        nibble = buffer[offset] and 0x0F or 0x30
         number += Character.toString((nibble or 0x30).toChar())
 
         offset++
     }
 
     // read last digit
-    nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
+    nibble = (buffer[offset] and 0xFF).ushr(4)
     if (nibble <= 9) {
         number += Character.toString((nibble or 0x30).toChar())
     }
