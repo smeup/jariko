@@ -775,7 +775,7 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
         val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
 
         val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() }).first().data_structure_name.identifier().free_identifier().idOrKeyword().ID().text
-        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName } ?: throw RuntimeException("Data definition $likeDsName not found")
+        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName } ?: this.error("Data definition $likeDsName not found", conf = conf)
 
         val dataDefinition = DataDefinition(
                 this.name,
