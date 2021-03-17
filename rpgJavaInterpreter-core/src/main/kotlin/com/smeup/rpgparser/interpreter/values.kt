@@ -228,11 +228,9 @@ fun sortA(value: Value, charset: Charset) {
 
 @Serializable
 data class IntValue(val value: Long) : NumberValue() {
-    override val bigDecimal: BigDecimal
-        get() = BigDecimal(value)
-
+    override val bigDecimal: BigDecimal by lazy { BigDecimal(value) }
     override fun negate(): NumberValue = IntValue(-value)
-    override fun increment(amount: Long): NumberValue = IntValue(value + amount)
+    override fun increment(amount: Long): NumberValue = this + IntValue(amount)
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
@@ -313,6 +311,12 @@ data class IntValue(val value: Long) : NumberValue() {
     override fun asString(): StringValue {
         return StringValue(render())
     }
+
+    operator fun plus(other: IntValue) = IntValue(this.bigDecimal.plus(other.bigDecimal).longValueExact())
+
+    operator fun minus(other: IntValue) = IntValue(this.bigDecimal.minus(other.bigDecimal).longValueExact())
+
+    operator fun times(other: IntValue) = IntValue(this.bigDecimal.times(other.bigDecimal).longValueExact())
 }
 
 @Serializable
