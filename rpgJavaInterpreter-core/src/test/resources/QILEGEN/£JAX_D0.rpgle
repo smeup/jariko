@@ -25,7 +25,7 @@
      D £JaxMCR         S              5  0 INZ(25001)
       *
       * tempo di attesa sulla coda (Waiting Time):
-     D £JaxWE          S              5P 0 INZ
+     D £JaxWT          S                   LIKE(£JaxWE)
       *
       * Dati ricevuti (non PING o messaggi di chiusura)
      D £JaxDtRc        S              1
