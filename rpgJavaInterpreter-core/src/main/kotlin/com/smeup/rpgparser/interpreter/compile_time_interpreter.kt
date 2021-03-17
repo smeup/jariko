@@ -128,11 +128,16 @@ open class BaseCompileTimeInterpreter(
                             }
                         }
                         it.cspec_fixed() != null -> {
-                            val dataDefinition = (it.cspec_fixed().cspec_fixed_standard().toAst(conf) as StatementThatCanDefineData).dataDefinition()
-                            dataDefinition.forEach {
-                                if (it.name.asValue().value == declName) {
-                                    return it.type.size
+                            val statement = it.cspec_fixed().cspec_fixed_standard().toAst(conf)
+                            if(statement is StatementThatCanDefineData){
+                                val dataDefinition = (statement as StatementThatCanDefineData).dataDefinition()
+                                dataDefinition.forEach {
+                                    if (it.name.asValue().value == declName) {
+                                        return it.type.size
+                                    }
                                 }
+                            }else{
+                                print(it.cspec_fixed().toString())
                             }
                         }
                         it.dcl_ds() != null -> {
