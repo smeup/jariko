@@ -2,12 +2,11 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.ast.AssignableExpression
-import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.parsing.ast.IntLiteral
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
+import java.math.BigDecimal
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
@@ -541,7 +540,16 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
         var initializationValue: Expression? = null
         var hasInitValue = this.keyword().find { it.keyword_inz() != null }
         if (hasInitValue != null) {
-            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+            if (hasInitValue.keyword_inz().simpleExpression() != null) {
+                initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+            } else {
+                // TODO handle the 'Z' type (timestamp) initialization
+                initializationValue = if (null != this.toTypeInfo().decimalPositions) {
+                    RealLiteral(BigDecimal.ZERO, position = toPosition())
+                } else {
+                    StringLiteral("", position = toPosition())
+                }
+            }
         }
 
         val arraySizeDeclared = this.arraySizeDeclared()
