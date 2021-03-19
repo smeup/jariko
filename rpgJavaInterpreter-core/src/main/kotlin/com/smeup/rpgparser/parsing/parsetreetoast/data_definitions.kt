@@ -543,7 +543,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
             if (hasInitValue.keyword_inz().simpleExpression() != null) {
                 initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
             } else {
-                // TODO handle the 'Z' type (timestamp) initialization
+                // TODO handle initializations for any other variables type (es. 'Z' for timestamp)
                 initializationValue = if (null != this.toTypeInfo().decimalPositions) {
                     RealLiteral(BigDecimal.ZERO, position = toPosition())
                 } else {
