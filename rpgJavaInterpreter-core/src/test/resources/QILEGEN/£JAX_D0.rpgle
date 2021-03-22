@@ -25,7 +25,7 @@
      D £JaxMCR         S              5  0 INZ(25001)
       *
       * tempo di attesa sulla coda (Waiting Time):
-     D £JaxWT          S              5  0
+     D £JaxWT          S                   LIKE(£JaxWE)
       *
       * Dati ricevuti (non PING o messaggi di chiusura)
      D £JaxDtRc        S              1
@@ -56,9 +56,9 @@
      D £JaxLLb                        5  0 INZ
      D £JaxLLc                        5  0 INZ
      D £JaxLBu                      140    INZ
-     D £JaxLSi                         Z   INZ
-     D £JaxLSt                         Z   INZ
-     D £JaxLEt                         Z   INZ
+     D***> £JaxLSi                         Z   INZ
+     D***> £JaxLSt                         Z   INZ
+     D***> £JaxLEt                         Z   INZ
      D £JaxLAt                       10  0 INZ
      D £JaxLCo                       40    INZ
       * Non riportare campo INPUT in Attributo Funzione dell'Header XML
