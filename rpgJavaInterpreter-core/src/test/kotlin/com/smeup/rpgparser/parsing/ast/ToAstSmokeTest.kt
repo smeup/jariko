@@ -1,14 +1,6 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.interpreter.RpgProgram
-import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.facade.Copy
-import com.smeup.rpgparser.parsing.facade.CopyId
-import com.smeup.rpgparser.parsing.facade.RpgParserFacade
-import com.smeup.rpgparser.rpginterop.RpgProgramFinder
-import kotlin.system.measureTimeMillis
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -230,80 +222,5 @@ open class ToAstSmokeTest : AbstractTest() {
             assertEquals(4, this.dataDefinitions.size)
             assertEquals(1, this.subroutines.size)
         }
-    }
-
-    @Test
-    fun testLoadAPIOverhead() {
-        val millis = measureTimeMillis {
-            repeat(3) {
-                val totalApis = 1000
-                // Every API contains a subroutine named nnn
-                val apiTemplate = """
-|    C     nnn           BEGSR
-|    C                   ENDSR
-        """.trimIndent()
-                val templateUsingApiDirective = """
-|     /API APInnn
-|    C                   EXSR      nnn     
-        """.trimIndent()
-
-                val templateUsingApiInline = """
-|    C                   EXSR      nnn     
-        """.trimIndent()
-
-                val programUsingApiDirective = StringBuffer()
-                val programUsingApiInline = StringBuffer()
-                // this maps contains moduleName to moduleSource
-                val apis = mutableMapOf<String, String>().apply {
-                    repeat(totalApis) {
-                        // create APInnn
-                        val subroutineName = it.toString().padStart(3, '0')
-                        val apiSource = apiTemplate.replace("nnn", subroutineName)
-                        val apiName = "API$subroutineName"
-                        this[apiName] = apiSource
-
-                        // Include API directive to programUsingApiDirective
-                        programUsingApiDirective.append(templateUsingApiDirective.replace("nnn", subroutineName)).append("\n")
-
-                        // Include API inline in programUsingApiInline
-                        programUsingApiInline.append(templateUsingApiInline.replace("nnn", subroutineName)).append("\n")
-                        programUsingApiInline.append(apiSource).append("\n")
-                    }
-                }
-
-                val memoryProgramFinder = object : RpgProgramFinder {
-                    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
-                        TODO("Not yet implemented")
-                    }
-
-                    override fun findCopy(copyId: CopyId): Copy? {
-                        TODO("Not yet implemented")
-                    }
-
-                    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
-                        return ApiDescriptor()
-                    }
-
-                    override fun findApi(apiId: ApiId): Api {
-                        return Api.loadApi(apis[apiId.member]!!.byteInputStream(), sourceProgram = SourceProgram.RPGLE)
-                    }
-                }
-                val si = JavaSystemInterface().apply {
-                    rpgSystem.addProgramFinder(memoryProgramFinder)
-                    // loggingConfiguration = consoleLoggingConfiguration(PARSING_LOGGER)
-                }
-                MainExecutionContext.execute(systemInterface = si) {
-//                    it.executionProgramName = "APIINCL"
-//                    RpgParserFacade().parseAndProduceAst(programUsingApiDirective.toString().byteInputStream()).apply {
-//                        assertEquals(totalApis, this.subroutines.size)
-//                    }
-                    it.executionProgramName = "APIINLN"
-                    RpgParserFacade().parseAndProduceAst(programUsingApiInline.toString().byteInputStream()).apply {
-                        assertEquals(totalApis, this.subroutines.size)
-                    }
-                }
-            }
-        }
-        println("Millis: $millis")
     }
 }

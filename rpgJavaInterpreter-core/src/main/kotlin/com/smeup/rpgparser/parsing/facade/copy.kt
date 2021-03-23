@@ -31,22 +31,21 @@ private fun String.includesCopy(
     while (matcher.find()) {
         val copyId = matcher.group(1).copyId()
         // println("Processing $copyId")
-        val copy = (findCopy.invoke(copyId))?.includesCopy(findCopy)?.surroundWithPreprocessingAnnotations(copyId) ?: let {
-            println("Copy ${matcher.group()} not found".yellow())
-            matcher.group()
-        }
         kotlin.runCatching {
+            val copy = (findCopy.invoke(copyId))?.includesCopy(findCopy)?.surroundWithPreprocessingAnnotations(copyId) ?: let {
+                println("Copy ${matcher.group()} not found".yellow())
+                matcher.group()
+            }
             matcher.appendReplacement(sb, copy.replace("$", "\\$"))
         }.onFailure {
-            println("Error on inclusion copy: $copy")
-            throw it
+            throw IllegalStateException("Error on inclusion copy: ${matcher.group(0)}\nsource:\n$this", it)
         }
     }
     matcher.appendTail(sb)
     return sb.toString()
 }
 
-private val PATTERN = Pattern.compile("\\s{5}(?:H|I|\\s)/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+)", Pattern.CASE_INSENSITIVE)
+private val PATTERN = Pattern.compile(".{4}\\s(?:H|I|\\s)/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+)", Pattern.CASE_INSENSITIVE)
 
 private fun String.copyId(): CopyId {
     return when {
