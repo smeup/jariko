@@ -164,6 +164,12 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executePROCEDURE1() {
+        assertASTCanBeProduced("mute/PROCEDURE1", printTree = true)
+        //assertMuteExecutionSucceded("mute/PROCEDURE1", 1)
+    }
+
+    @Test
     fun executeMUTE13_22_SetOn_SetOff() {
         assertMuteExecutionSucceded("mute/MUTE13_22", 9)
     }
