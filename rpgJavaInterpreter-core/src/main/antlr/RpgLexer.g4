@@ -75,6 +75,7 @@ DIR_SPACE: {_input.LA(-1)=='/'}? [sS][pP][aA][cC][eE];
 DIR_SET: {_input.LA(-1)=='/'}?  [sS][eE][tT];
 DIR_RESTORE: {_input.LA(-1)=='/'}? [rR][eE][sS][tT][oO][rR][eE];
 DIR_COPY: {_input.LA(-1)=='/'}? [cC][oO][pP][yY];
+DIR_API: {_input.LA(-1)=='/'}? [aA][pP][iI];
 DIR_INCLUDE: {_input.LA(-1)=='/'}? [iI][nN][cC][lL][uU][dD][eE];
 DIR_EOF: {_input.LA(-1)=='/'}? [eE][oO][fF];
 DIR_DEFINE: {_input.LA(-1)=='/'}? ([dD][eE][fF][iI][nN][eE]);

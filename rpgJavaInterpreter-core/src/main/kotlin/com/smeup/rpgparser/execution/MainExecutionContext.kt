@@ -19,6 +19,7 @@ object MainExecutionContext {
     private val noContextAttributes: MutableMap<String, Any> by lazy { mutableMapOf<String, Any>() }
     private val noConfiguration: Configuration by lazy { Configuration() }
     private val noProgramStack: Stack<RpgProgram> by lazy { Stack<RpgProgram>() }
+    private val noParsingProgramNameStack: Stack<String> by lazy { Stack<String>() }
     //
 
     /**
@@ -129,6 +130,11 @@ object MainExecutionContext {
      * Get system interface
      */
     fun getSystemInterface(): SystemInterface? = context.get()?.systemInterface
+
+    /**
+     * Get source parsing stack.
+     * */
+    fun getParsingProgramNameStack() = context.get()?.parsingProgramNameStack ?: noParsingProgramNameStack
 }
 
 data class Context(
@@ -139,6 +145,7 @@ data class Context(
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
     var executionProgramName: String? = null,
+    val parsingProgramNameStack: Stack<String> = Stack<String>(),
     val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
         DBFileFactory(it.nativeAccessConfig)
     }

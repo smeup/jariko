@@ -9,6 +9,7 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.PARSING_LOGGER
 import com.smeup.rpgparser.logging.fileLoggingConfiguration
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.junit.Test
 import org.junit.experimental.categories.Category
 import java.io.File
@@ -36,6 +37,8 @@ open class MutePerformanceAstTest : AbstractTest() {
         println("Creating AST for: $file")
         val configuration = Configuration()
         configuration.options = Options(false, getTestCompileDir())
+        // this way i enable copy looking for
+        si.rpgSystem.addProgramFinder(DirRpgProgramFinder(file.parentFile))
         MainExecutionContext.execute(systemInterface = si, configuration = configuration) { it ->
             it.executionProgramName = file.name
             val rpgParserFacade = RpgParserFacade()

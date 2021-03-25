@@ -357,7 +357,7 @@ class AssignmentLogEntry(programName: String, val data: AbstractDataDefinition, 
         return "assigning to $data value $value"
     }
     override fun renderData(channel: String, filename: String, sep: String): String {
-        val pvalue = if (previous == null) "N/D" else "${previous.render()}"
+        val pvalue = if (previous == null) "N/D" else previous.render()
         val data = "${data.name} = ${pvalue}${sep}${value.render()}"
 
         return renderHeader(channel, filename, "", sep) + data
@@ -598,7 +598,7 @@ class CompStatementExecutionLog(programName: String, val statement: CompStmt, va
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        var data = "COMP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}${statement.hi}${sep}LO${sep}${statement.lo}${sep}EQ${sep}${statement.eq}"
+        val data = "COMP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}${statement.hi}${sep}LO${sep}${statement.lo}${sep}EQ${sep}${statement.eq}"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
@@ -609,7 +609,7 @@ class LookupStatementExecutionLog(programName: String, val statement: LookupStmt
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        var data = "LOOKUP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
+        val data = "LOOKUP${sep}FACTOR1${sep}${statement.left.render()}${sep}FACTOR2${sep}${statement.right.render()}${sep}HI${sep}$hi${sep}LO${sep}$lo${sep}EQ${sep}$eq"
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
 }
@@ -673,6 +673,40 @@ class RpgLoadLogEnd(programName: String, val elapsed: Long, private val programS
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         val data = "RPGLOAD END${sep}$filename"
+
+        return renderHeader(channel, filename, "$lines", sep) + data
+    }
+}
+
+class PreprocessingLogStart(programName: String) : LogEntry(programName) {
+    override fun toString(): String {
+        return "preprop start $programName"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "PREPROP START$sep"
+
+        return renderHeader(channel, filename, "", sep) + data
+    }
+}
+
+class PreprocessingLogEnd(programName: String, val elapsed: Long, private val programSouce: String) : LogEntry(programName) {
+
+    private val lines: Int by lazy {
+        programSouce.lines().size
+    }
+
+    override fun toString(): String {
+        return "preprop $programName"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "PREPROP END $filename${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, "$lines", sep) + data
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "PREPROP END${sep}$filename"
 
         return renderHeader(channel, filename, "$lines", sep) + data
     }

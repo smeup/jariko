@@ -171,5 +171,13 @@ fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit
 
 enum class SourceProgram(val extension: String) {
     RPGLE("rpgle"),
-    BINARY("bin"),
+    BINARY("bin");
+
+    companion object {
+        fun getByExtension(extension: String): SourceProgram {
+            return values().first {
+                it.extension == extension
+            }
+        }
+    }
 }
