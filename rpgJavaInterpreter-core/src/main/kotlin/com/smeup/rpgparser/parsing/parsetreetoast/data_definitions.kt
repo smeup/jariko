@@ -419,7 +419,7 @@ fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
     )
 }
 
-internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeDeclared: Int?): Type? {
+internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeDeclared: Int?, conf: ToAstConfiguration): Type? {
     val rpgCodeType = DATA_TYPE()?.text?.trim() ?: RpgType.ZONED.rpgType
     val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
     val isPackEven = keyword().any { it.keyword_packeven() != null }
@@ -495,7 +495,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
             CharacterType(precision!!)
         }
         "N" -> BooleanType
-        else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = ToAstConfiguration())
+        else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = conf)
     }
 }
 
@@ -556,7 +556,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
         return FieldInfo(this.name, overlayInfo = overlayInfo,
                 explicitStartOffset = this.explicitStartOffset(),
                 explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-                explicitElementType = this.calculateExplicitElementType(arraySizeDeclared),
+                explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf),
                 arraySizeDeclared = this.arraySizeDeclared(),
                 arraySizeDeclaredOnThisField = this.arraySizeDeclared(),
                 initializationValue = initializationValue,
