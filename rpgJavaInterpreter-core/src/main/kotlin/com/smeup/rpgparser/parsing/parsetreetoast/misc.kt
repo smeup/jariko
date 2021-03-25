@@ -168,18 +168,33 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 }
 
 internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ProcedureUnit {
-    return ProcedureUnit(
+    var procedureUnit = ProcedureUnit(
         this.beginProcedure().psBegin().ps_name().text,
-        toPosition(conf.considerPosition),
-    ).apply{
-        this.fileDefinitions = emptyList<FileDefinition>()
-        this.fileDefinitions = emptyList<DataDefinition>(),
-        this.main = MainBody(emptyList(), null),
-        this.subroutines = emptyList<Subroutine>(),
-        this.compileTimeArrays = emptyList<CompileTimeArray>(),
-        this.directives = emptyList<Directive>(),
-        this.procedures = emptyList<ProcedureUnit>()
+        toPosition(conf.considerPosition)
+    )
+
+    // FileDefinitions
+
+    // MainBody (list of Statements)
+    val mainStmts = this.subprocedurestatement().mapNotNull {
+        when {
+            it.statement().cspec_fixed() != null -> it.statement().cspec_fixed().toAst(conf)
+            it.statement().block() != null -> it.statement().block().toAst(conf)
+            it.statement().free() != null -> it.statement().free().toAst(conf)
+            else -> null
+        }
     }
+    procedureUnit.main.stmts.toMutableList().addAll(mainStmts)
+
+    // Subroutines
+
+    // CompileTimeArrays
+
+    // Directives
+
+    // Procedures
+
+    return procedureUnit
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
