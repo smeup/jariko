@@ -9,19 +9,23 @@ import com.strumenta.kolasu.model.Derived
 import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.Contextual
+import com.smeup.rpgparser.parsing.ast.CompilationUnit as CompilationUnit
+import kotlinx.serialization.Serializable as Serializable
+
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
 // to its main components
 @Serializable
-data class CompilationUnit(
+open class CompilationUnit(
     val fileDefinitions: List<FileDefinition>,
     val dataDefinitions: List<DataDefinition>,
     val main: MainBody,
     val subroutines: List<Subroutine>,
     val compileTimeArrays: List<CompileTimeArray>,
     val directives: List<Directive>,
-    override val position: Position?
+    override val position: Position?,
+    val procedures: List<@Contextual ProcedureUnit>
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()
@@ -32,8 +36,9 @@ data class CompilationUnit(
 
     companion object {
         fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
-                emptyList(),
-                null)
+            emptyList(),
+            null,
+            emptyList())
     }
 
     val entryPlist: PlistStmt?
@@ -126,6 +131,9 @@ data class CompilationUnit(
     fun hasFileDefinition(name: String) = fileDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
     fun getFileDefinition(name: String) = fileDefinitions.first { it.name.equals(name, ignoreCase = true) }
+
+    fun getProcedure(name: String) = procedures.firstOrNull() { it.name.equals(name, ignoreCase = true) }
+        ?: throw IllegalArgumentException("Procedure $name not found")
 }
 
 @Serializable
@@ -147,3 +155,17 @@ enum class DataWrapUpChoice {
 
 // A PList is a list of parameters
 fun List<Statement>.plist(): PlistStmt? = this.asSequence().mapNotNull { it as? PlistStmt }.firstOrNull { it.isEntry }
+
+class ProcedureUnit(
+    val name: String,
+    override val position: Position?
+) : CompilationUnit(
+    fileDefinitions = emptyList(),
+    dataDefinitions = emptyList(),
+    main = MainBody(emptyList(), null),
+    subroutines = emptyList(),
+    compileTimeArrays = emptyList(),
+    directives = emptyList(),
+    position = null,
+    procedures = emptyList()
+)

@@ -127,6 +127,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+    val procedures = this.procedure().map { it.toAst(conf) } ?: emptyList()
 
     return CompilationUnit(
         fileDefinitions,
@@ -135,7 +136,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         subroutines,
         compileTimeArrays,
         directives,
-        position = this.toPosition(conf.considerPosition)
+        position = this.toPosition(conf.considerPosition),
+        procedures
     )
 }
 
@@ -163,6 +165,21 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
         this.endsr().csENDSR().factor1.text,
         toPosition(conf.considerPosition)
     )
+}
+
+internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ProcedureUnit {
+    return ProcedureUnit(
+        this.beginProcedure().psBegin().ps_name().text,
+        toPosition(conf.considerPosition),
+    ).apply{
+        this.fileDefinitions = emptyList<FileDefinition>()
+        this.fileDefinitions = emptyList<DataDefinition>(),
+        this.main = MainBody(emptyList(), null),
+        this.subroutines = emptyList<Subroutine>(),
+        this.compileTimeArrays = emptyList<CompileTimeArray>(),
+        this.directives = emptyList<Directive>(),
+        this.procedures = emptyList<ProcedureUnit>()
+    }
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
