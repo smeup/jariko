@@ -97,9 +97,12 @@
      D £JaxLLb                        5  0 INZ
      D £JaxLLc                        5  0 INZ
      D £JaxLBu                      140    INZ
-     D £JaxLSi                         Z   INZ
-     D £JaxLSt                         Z   INZ
-     D £JaxLEt                         Z   INZ
+     D***> £JaxLSi                         Z   INZ
+     D***> £JaxLSt                         Z   INZ
+     D***> £JaxLEt                         Z   INZ
+     D £JaxLSi                       10  0 INZ
+     D £JaxLSt                       10  0 INZ
+     D £JaxLEt                       10  0 INZ
      D £JaxLAt                       10  0 INZ
      D £JaxLCo                       40    INZ
       * Non riportare campo INPUT in Attributo Funzione dell'Header XML

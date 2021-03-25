@@ -495,7 +495,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
             CharacterType(precision!!)
         }
         "N" -> BooleanType
-        else -> TODO("Support RPG code type '$rpgCodeType', field $name")
+        else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = ToAstConfiguration())
     }
 }
 
