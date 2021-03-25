@@ -160,12 +160,12 @@ class ProcedureUnit(
     val name: String,
     override val position: Position?
 ) : CompilationUnit(
-    fileDefinitions = emptyList(),
-    dataDefinitions = emptyList(),
-    main = MainBody(emptyList(), null),
-    subroutines = emptyList(),
-    compileTimeArrays = emptyList(),
-    directives = emptyList(),
+    fileDefinitions = mutableListOf(),
+    dataDefinitions = mutableListOf(),
+    main = MainBody(mutableListOf(), null),
+    subroutines = mutableListOf(),
+    compileTimeArrays = mutableListOf(),
+    directives = mutableListOf(),
     position = null,
-    procedures = emptyList()
+    procedures = mutableListOf()
 )

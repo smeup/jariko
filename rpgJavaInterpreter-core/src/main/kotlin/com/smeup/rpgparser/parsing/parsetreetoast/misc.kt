@@ -173,7 +173,7 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
         toPosition(conf.considerPosition)
     )
 
-    // FileDefinitions
+    // TODO FileDefinitions
 
     // MainBody (list of Statements)
     val mainStmts = this.subprocedurestatement().mapNotNull {
@@ -184,15 +184,15 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
             else -> null
         }
     }
-    procedureUnit.main.stmts.toMutableList().addAll(mainStmts)
+    (procedureUnit.main.stmts as ArrayList).addAll(mainStmts)
 
-    // Subroutines
+    // TODO Subroutines
 
-    // CompileTimeArrays
+    // TODO CompileTimeArrays
 
-    // Directives
+    // TODO Directives
 
-    // Procedures
+    // TODO Procedures
 
     return procedureUnit
 }
