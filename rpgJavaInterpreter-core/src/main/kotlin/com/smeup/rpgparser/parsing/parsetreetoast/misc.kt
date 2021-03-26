@@ -339,6 +339,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csEXSR() != null -> this.csEXSR().toAst(conf)
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
         this.csCALL() != null -> this.csCALL().toAst(conf)
+        this.csCALLP() != null -> this.csCALLP().toAst(conf)
         this.csSETON() != null -> this.csSETON().toAst(conf)
         this.csSETOFF() != null -> this.csSETOFF().toAst(conf)
         this.csPLIST() != null -> this.csPLIST().toAst(conf)
@@ -1013,6 +1014,22 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     return CallStmt(
         functionCalled,
         this.csPARM().map { it.toAst(conf) },
+        this.cspec_fixed_standard_parts().lo.asIndex(),
+        toPosition(conf.considerPosition)
+    )
+}
+
+internal fun CsCALLPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallPStmt {
+    val position = this.toPosition(true)
+    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1) {
+        "Missing factor 1 in callp statement at line ${position.line()}"
+    }
+    var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
+    var functionCalled: Expression?
+    functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
+
+    return CallPStmt(
+        functionCalled,
         this.cspec_fixed_standard_parts().lo.asIndex(),
         toPosition(conf.considerPosition)
     )

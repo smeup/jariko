@@ -11,3 +11,13 @@ abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<Func
     Function {
     override fun params() = params
 }
+
+class RpgFunction : Function {
+    override fun params(): List<FunctionParam> {
+        TODO("Not yet implemented")
+    }
+
+    override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
+        TODO("Not yet implemented")
+    }
+}
