@@ -137,8 +137,9 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         compileTimeArrays,
         directives,
         position = this.toPosition(conf.considerPosition),
+        apiDescriptors = this.statement().toApiDescriptors(conf),
         procedures
-    )
+    ).postProcess()
 }
 
 private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
@@ -526,7 +527,7 @@ fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration
     return factor2?.content?.toAst(conf)
 }
 
-fun Cspec_fixed_standard_partsContext.resultExpression(conf: ToAstConfiguration): Expression? {
+fun Cspec_fixed_standard_partsContext.resultExpression(conf: ToAstConfiguration): Expression {
     if (result?.symbolicConstants() != null) {
         return result.symbolicConstants().toAst()
     }
@@ -813,7 +814,7 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
-    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     return MultStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
 }
@@ -823,7 +824,7 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
-    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
 }
@@ -1009,7 +1010,7 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1) {
         "Missing factor 1 in call statement at line ${position.line()}"
     }
-    var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
+    val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
     var functionCalled: Expression?
     functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
     return CallStmt(
@@ -1192,7 +1193,7 @@ fun <T : ParserRuleContext, R> T.runParserRuleContext(conf: ToAstConfiguration, 
 fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
     throw IllegalStateException(
         message?.let { "$message at: ${this.position}" } ?: "Error at: ${this.position}",
-        cause?.let { cause } ?: null
+        cause?.let { cause }
     )
 }
 
@@ -1201,4 +1202,16 @@ fun Node.todo(message: String? = null): Nothing {
         "$message at "
     } ?: "Error at "
     TODO("${pref}Position: ${this.position}")
+}
+
+/**
+ * Run a block related AST node. In case of error throws an error encapsulating useful information
+ * like node position
+ */
+fun <T : Node, R> T.runNode(block: (T) -> R): R {
+    return kotlin.runCatching {
+        block.invoke(this)
+    }.onFailure {
+        this.error(it.message, it)
+    }.getOrThrow()
 }

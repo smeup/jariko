@@ -1046,7 +1046,7 @@ Test 6
 
     @Test
     fun executeZADDERR() {
-        assertFailsWith(IllegalArgumentException::class) {
+        assertFailsWith(IllegalStateException::class) {
             execute("ZADDERR", emptyMap())
         }
     }
@@ -1400,5 +1400,11 @@ Test 6
     @Test
     fun executePROCEDURE_B() {
         executePgm("PROCEDURE_B")
+    }
+
+    fun executeAPIPGM1() {
+        assertEquals(
+            expected = "100".split(Regex(", ")),
+            actual = outputOf("APIPGM1"))
     }
 }

@@ -71,6 +71,8 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
             when (logEntry) {
                 is RpgLoadLogStart -> logger.info(render(logEntry))
                 is RpgLoadLogEnd -> logger.info(render(logEntry))
+                is PreprocessingLogStart -> logger.info(render(logEntry))
+                is PreprocessingLogEnd -> logger.info(render(logEntry))
                 is LexerLogStart -> logger.info(render(logEntry))
                 is LexerLogEnd -> logger.info(render(logEntry))
                 is ParserLogStart -> logger.info(render(logEntry))
@@ -215,6 +217,7 @@ class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), 
         if (logger.isInfoEnabled) {
             when (logEntry) {
                 is RpgLoadLogEnd -> logger.info(render(logEntry))
+                is PreprocessingLogEnd -> logger.info(render(logEntry))
                 is LexerLogEnd -> logger.info(render(logEntry))
                 is ParserLogEnd -> logger.info(render(logEntry))
                 is RContextLogEnd -> logger.info(render(logEntry))

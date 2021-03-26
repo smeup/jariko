@@ -210,4 +210,17 @@ open class ToAstSmokeTest : AbstractTest() {
     fun buildAstForLOSER_PR() {
         assertASTCanBeProduced("LOSER_PR", considerPosition = true)
     }
+
+    @Test
+    fun buildAstForLOSER_PR_FULL() {
+        assertASTCanBeProduced("LOSER_PR_FULL", considerPosition = true)
+    }
+
+    @Test
+    fun buildAstForAPIPGM1() {
+        assertASTCanBeProduced("APIPGM1", considerPosition = true).apply {
+            assertEquals(4, this.dataDefinitions.size)
+            assertEquals(1, this.subroutines.size)
+        }
+    }
 }

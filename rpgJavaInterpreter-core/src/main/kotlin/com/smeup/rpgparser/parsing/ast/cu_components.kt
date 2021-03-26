@@ -25,6 +25,7 @@ open class CompilationUnit(
     val compileTimeArrays: List<CompileTimeArray>,
     val directives: List<Directive>,
     override val position: Position?,
+    val apiDescriptors: Map<ApiId, ApiDescriptor>? = null,
     val procedures: List<@Contextual ProcedureUnit>
 ) : Node(position) {
 
@@ -37,6 +38,7 @@ open class CompilationUnit(
     companion object {
         fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
             emptyList(),
+            null,
             null,
             emptyList())
     }

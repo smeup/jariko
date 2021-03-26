@@ -2,6 +2,9 @@ package com.smeup.rpgparser.jvminterop
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.parsing.ast.Api
+import com.smeup.rpgparser.parsing.ast.ApiDescriptor
+import com.smeup.rpgparser.parsing.ast.ApiId
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
@@ -43,6 +46,8 @@ open class JavaSystemInterface(
     private val javaInteropPackages = LinkedList<String>()
     private val programs = HashMap<String, Program?>()
     private val copies = HashMap<CopyId, Copy?>()
+    private val apiDescriptors = HashMap<ApiId, ApiDescriptor>()
+    private val apis = HashMap<ApiId, Api>()
 
     fun addJavaInteropPackage(packageName: String) {
         javaInteropPackages.add(packageName)
@@ -98,5 +103,17 @@ open class JavaSystemInterface(
 
     override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
         return executedAnnotationInternal
+    }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
+        return apiDescriptors.computeIfAbsent(apiId) {
+            rpgSystem.findApiDescriptor(apiId)
+        }
+    }
+
+    override fun findApi(apiId: ApiId): Api {
+        return apis.computeIfAbsent(apiId) {
+            rpgSystem.findApi(apiId)
+        }
     }
 }

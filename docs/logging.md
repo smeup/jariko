@@ -214,6 +214,7 @@ The parsing channel measures the parsing time needed to build AST.
 The log records are generated at the end of each phase related to parsing.
 
 ```
+12:36:33    MUTEXX        182 PARS PREPROP END MUTEXX          165 ms
 12:36:33    MUTEXX        182 PARS RPGLOAD END MUTEXX          127 ms
 12:36:33    MUTEXX            PARS LEXER END MUTEXX            236 ms
 12:36:34    MUTEXX            PARS PARSER END MUTEXX           674 ms
