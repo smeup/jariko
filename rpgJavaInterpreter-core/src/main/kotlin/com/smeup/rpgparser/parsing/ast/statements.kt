@@ -677,66 +677,6 @@ data class CallPStmt(
         require(program != null) {
             "Line: ${this.position.line()} - Program $programToCall cannot be found"
         }
-
-        /*val params = this.params.mapIndexed { index, it ->
-            if (it.dataDefinition != null) {
-                if (it.dataDefinition.initializationValue != null) {
-                    if (!interpreter.exists(it.param.name)) {
-                        interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
-                    } else {
-                        interpreter.assign(
-                            interpreter.dataDefinitionByName(it.param.name)!!,
-                            interpreter.eval(it.dataDefinition.initializationValue)
-                        )
-                    }
-                } else {
-                    if (!interpreter.exists(it.param.name)) {
-                        interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
-                    }
-                }
-            }
-            require(program.params().size > index) {
-                "Line: ${this.position.line()} - Parameter nr. ${index + 1} can't be found"
-            }
-            program.params()[index].name to interpreter[it.param.name]
-        }.toMap(LinkedHashMap())
-*/
-
-       /* val paramValuesAtTheEnd =
-            try {
-                interpreter.systemInterface.registerProgramExecutionStart(program, params)
-                kotlin.run {
-                    val callProgramHandler = MainExecutionContext.getConfiguration().options?.callProgramHandler
-                    // call program.execute only if callProgramHandler.handleCall do nothing
-                    callProgramHandler?.handleCall?.invoke(programToCall, interpreter.systemInterface, params)
-                        ?: program.execute(interpreter.systemInterface, params)
-                }.apply {
-                    interpreter.log {
-                        CallPEndLogEntry(
-                            interpreter.interpretationContext.currentProgramName,
-                            callStatement,
-                            System.currentTimeMillis() - startTime
-                        )
-                    }
-                }
-            } catch (e: Exception) { // TODO Catch a more specific exception?
-                interpreter.log {
-                    CallPEndLogEntry(
-                        interpreter.interpretationContext.currentProgramName,
-                        callStatement,
-                        System.currentTimeMillis() - startTime
-                    )
-                }
-                if (errorIndicator == null) {
-                    throw e
-                }
-                interpreter.indicators[errorIndicator] = BooleanValue.TRUE
-                null
-            }
-        paramValuesAtTheEnd?.forEachIndexed { index, value ->
-            interpreter.assign(this.params[index].param.referred!!, value)
-        }
-        */
     }
 }
 
