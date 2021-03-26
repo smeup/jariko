@@ -1,17 +1,17 @@
       *---------------------------------------------------------------
       * A very simple procedure call
       *---------------------------------------------------------------
-     D MSG             S             50
+     D* MSG             S             50
      DCALL1            PR
       *---------------------------------------------------------------
       * Main
       *---------------------------------------------------------------
-     C                   EVAL       MSG='Calling "CALLED" program'
-     C     MSG           DSPLY
-     C                   CALL      'CALLED'
+     C*                   EVAL       MSG='Calling "CALLED" program'
+     C*     MSG           DSPLY
+     C*                   CALL      'CALLED'
       *
-     C                   EVAL       MSG='Calling "CALL1" procedure'
-     C     MSG           DSPLY
+     C*                   EVAL       MSG='Calling "CALL1" procedure'
+     C*     MSG           DSPLY
      C                   CALLP     CALL1()
       *
      C                   SETON                                        LR

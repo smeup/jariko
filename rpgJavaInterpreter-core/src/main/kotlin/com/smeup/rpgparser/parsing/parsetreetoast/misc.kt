@@ -319,6 +319,8 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                         it.continuedIndicators.put(indicator, continuedIndicator)
                     }
                 }
+        this.cspec_fixed_x2() != null ->
+            this.cspec_fixed_x2().toAst()
         else -> todo(conf = conf)
     }
 }
@@ -339,7 +341,6 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csEXSR() != null -> this.csEXSR().toAst(conf)
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
         this.csCALL() != null -> this.csCALL().toAst(conf)
-        this.csCALLP() != null -> this.csCALLP().toAst(conf)
         this.csSETON() != null -> this.csSETON().toAst(conf)
         this.csSETOFF() != null -> this.csSETOFF().toAst(conf)
         this.csPLIST() != null -> this.csPLIST().toAst(conf)
@@ -1019,19 +1020,20 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     )
 }
 
-internal fun CsCALLPContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallPStmt {
-    val position = this.toPosition(true)
-    require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1) {
-        "Missing factor 1 in callp statement at line ${position.line()}"
+internal fun Cspec_fixed_x2Context.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallPStmt {
+    val position = toPosition(conf.considerPosition)
+    require(this.c_free().expression().function().functionName() != null) {
+        "Missing functionName in callp statement at line ${position.line()}"
     }
-    var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
-    var functionCalled: Expression?
-    functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
+
+    val literal = this.c_free().expression().literal()
+    val functionCalled: Expression = literal?.toAst(conf) ?: this.c_free().expression().toAst(conf)
+    val errorIndicator: IndicatorKey? = null
 
     return CallPStmt(
         functionCalled,
-        this.cspec_fixed_standard_parts().lo.asIndex(),
-        toPosition(conf.considerPosition)
+        errorIndicator,
+        position
     )
 }
 
