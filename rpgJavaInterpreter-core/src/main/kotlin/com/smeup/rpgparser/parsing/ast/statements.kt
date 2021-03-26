@@ -662,10 +662,9 @@ data class CallPStmt(
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+
     override fun dataDefinition(): List<InStatementDataDefinition> {
-        return params.mapNotNull() {
-            it.dataDefinition
-        }
+        return emptyList()
     }
 
     override fun execute(interpreter: InterpreterCore) {
@@ -679,7 +678,7 @@ data class CallPStmt(
             "Line: ${this.position.line()} - Program $programToCall cannot be found"
         }
 
-        val params = this.params.mapIndexed { index, it ->
+        /*val params = this.params.mapIndexed { index, it ->
             if (it.dataDefinition != null) {
                 if (it.dataDefinition.initializationValue != null) {
                     if (!interpreter.exists(it.param.name)) {
@@ -701,8 +700,9 @@ data class CallPStmt(
             }
             program.params()[index].name to interpreter[it.param.name]
         }.toMap(LinkedHashMap())
+*/
 
-        val paramValuesAtTheEnd =
+       /* val paramValuesAtTheEnd =
             try {
                 interpreter.systemInterface.registerProgramExecutionStart(program, params)
                 kotlin.run {
@@ -736,6 +736,7 @@ data class CallPStmt(
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
             interpreter.assign(this.params[index].param.referred!!, value)
         }
+        */
     }
 }
 
