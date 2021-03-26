@@ -170,19 +170,6 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 }
 
 internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
-    var procedureUnit = CompilationUnit(
-        this.beginProcedure().psBegin().ps_name().text,
-        emptyList(),
-        emptyList(),
-        MainBody(emptyList(), null),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        toPosition(conf.considerPosition),
-        null,
-        emptyList()
-    )
-
     // TODO FileDefinitions
 
     // MainBody (list of Statements)
@@ -194,7 +181,6 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
             else -> null
         }
     }
-    (procedureUnit.main.stmts as ArrayList).addAll(mainStmts)
 
     // TODO Subroutines
 
@@ -203,6 +189,19 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     // TODO Directives
 
     // TODO Procedures
+
+    var procedureUnit = CompilationUnit(
+        this.beginProcedure().psBegin().ps_name().text,
+        mutableListOf(),
+        mutableListOf(),
+        MainBody(mainStmts, null),
+        mutableListOf(),
+        mutableListOf(),
+        mutableListOf(),
+        toPosition(conf.considerPosition),
+        null,
+        mutableListOf()
+    )
 
     return procedureUnit
 }

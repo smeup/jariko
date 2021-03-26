@@ -1399,7 +1399,6 @@ Test 6
     }
 
     @Test
-    @Ignore
     fun executePROCEDURE_B() {
         executePgm("PROCEDURE_B")
     }
