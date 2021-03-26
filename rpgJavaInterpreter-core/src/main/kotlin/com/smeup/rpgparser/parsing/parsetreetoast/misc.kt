@@ -130,6 +130,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val procedures = this.procedure().map { it.toAst(conf) } ?: emptyList()
 
     return CompilationUnit(
+        "",
         fileDefinitions,
         dataDefinitions,
         MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
@@ -168,10 +169,18 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     )
 }
 
-internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ProcedureUnit {
-    var procedureUnit = ProcedureUnit(
+internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+    var procedureUnit = CompilationUnit(
         this.beginProcedure().psBegin().ps_name().text,
-        toPosition(conf.considerPosition)
+        emptyList(),
+        emptyList(),
+        MainBody(emptyList(), null),
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        toPosition(conf.considerPosition),
+        null,
+        emptyList()
     )
 
     // TODO FileDefinitions

@@ -35,8 +35,9 @@ internal fun List<RpgParser.StatementContext>.toApiDescriptors(conf: ToAstConfig
 private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
     return apiId.runNode {
         MainExecutionContext.setExecutionProgramName(apiId.toString())
-        val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).validate()q
+        val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).validate()
         this.copy(
+            "",
             fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
             dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
             subroutines = this.subroutines.include(api.compilationUnit.subroutines),
