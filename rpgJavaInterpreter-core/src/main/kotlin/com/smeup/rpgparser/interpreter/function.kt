@@ -12,12 +12,17 @@ abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<Func
     override fun params() = params
 }
 
-class RpgFunction : Function {
+class RpgFunction(val name: String = "<UNNAMED FUNCTION>") : Function {
     override fun params(): List<FunctionParam> {
         TODO("Not yet implemented")
     }
 
     override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
-        TODO("Not yet implemented")
+        val changedInitialValue: List<Value> = emptyList()
+        val interpreter = InternalInterpreter(systemInterface)
+        // TODO retrieve name "CALL1" from PROCEDURE_B program
+        // interpreter.execute(systemInterface.findProgram(this.name), emptyMap(), false)
+        println("Hello world!")
+        return changedInitialValue[0]
     }
 }

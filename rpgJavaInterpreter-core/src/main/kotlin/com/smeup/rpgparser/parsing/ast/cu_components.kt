@@ -17,7 +17,6 @@ import kotlinx.serialization.Serializable as Serializable
 // to its main components
 @Serializable
 data class CompilationUnit(
-    val name: String?,
     val fileDefinitions: List<FileDefinition>,
     val dataDefinitions: List<DataDefinition>,
     val main: MainBody,
@@ -26,7 +25,8 @@ data class CompilationUnit(
     val directives: List<Directive>,
     override val position: Position?,
     val apiDescriptors: Map<ApiId, ApiDescriptor>? = null,
-    val procedures: List<CompilationUnit>
+    val procedures: List<CompilationUnit>? = null,
+    val name: String? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()
@@ -36,7 +36,7 @@ data class CompilationUnit(
     }
 
     companion object {
-        fun empty() = CompilationUnit("", emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
+        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
             emptyList(),
             null,
             null,

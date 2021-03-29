@@ -669,14 +669,10 @@ data class CallPStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.log { CallPExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
-        val startTime = System.currentTimeMillis()
         val callStatement = this
-        val programToCall = interpreter.eval(expression).asString().value
-        MainExecutionContext.setExecutionProgramName(programToCall)
-        val program = interpreter.systemInterface.findProgram(programToCall)
-        require(program != null) {
-            "Line: ${this.position.line()} - Program $programToCall cannot be found"
-        }
+        val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
+        val functionCall = callStatement.expression as FunctionCall
+        expressionEvaluation.eval(functionCall)
     }
 }
 

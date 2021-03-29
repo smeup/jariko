@@ -115,6 +115,18 @@ object MainExecutionContext {
     }
 
     /**
+     * @return Execution function name
+     */
+    fun getExecutionFunctionName() = context.get()?.executionFunctionName ?: ""
+
+    /**
+     * Set execution function name
+     */
+    fun setExecutionFunctionName(executionFunctionName: String) {
+        context.get()?.executionFunctionName = executionFunctionName
+    }
+
+    /**
      * Logs entries
      */
     fun log(logEntry: LogEntry) {
@@ -145,6 +157,7 @@ data class Context(
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
     var executionProgramName: String? = null,
+    var executionFunctionName: String? = null,
     val parsingProgramNameStack: Stack<String> = Stack<String>(),
     val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
         DBFileFactory(it.nativeAccessConfig)
