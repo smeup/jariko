@@ -26,8 +26,9 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
     }
 
     override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
-        // println("Hello world")
-        val interpreter = InternalInterpreter(systemInterface)
+        val interpreter: InternalInterpreter by lazy {
+            InternalInterpreter(systemInterface)
+        }
         interpreter.execute(this.compilationUnit, emptyMap(), false)
         return VoidValue
     }
