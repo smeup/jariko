@@ -19,8 +19,8 @@ class RpgFunction(val name: String = "<UNNAMED FUNCTION>") : Function {
 
     override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
         val changedInitialValue: List<Value> = emptyList()
-        val interpreter = InternalInterpreter(systemInterface)
-        // TODO retrieve name "CALL1" from PROCEDURE_B program
+        // TODO retrieve name "CALL1" from PROCEDURE_B program... CompilationUnit needed...
+        //val interpreter = InternalInterpreter(systemInterface)
         // interpreter.execute(systemInterface.findProgram(this.name), emptyMap(), false)
         println("Hello world!")
         return changedInitialValue[0]
