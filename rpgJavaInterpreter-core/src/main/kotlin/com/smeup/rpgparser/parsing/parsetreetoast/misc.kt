@@ -189,20 +189,18 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 
     // TODO Procedures
 
-    var procedureUnit = CompilationUnit(
-        mutableListOf(),
-        mutableListOf(),
-        MainBody(mainStmts, null),
-        mutableListOf(),
-        mutableListOf(),
-        mutableListOf(),
-        toPosition(conf.considerPosition),
-        null,
-        mutableListOf(),
-        this.beginProcedure().psBegin().ps_name().text,
+    return CompilationUnit(
+        fileDefinitions = mutableListOf(),
+        dataDefinitions = mutableListOf(),
+        main = MainBody(mainStmts, null),
+        subroutines = mutableListOf(),
+        compileTimeArrays = mutableListOf(),
+        directives = mutableListOf(),
+        position = toPosition(conf.considerPosition),
+        apiDescriptors = null,
+        procedures = null,
+        name = this.beginProcedure().psBegin().ps_name().text
     )
-
-    return procedureUnit
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {

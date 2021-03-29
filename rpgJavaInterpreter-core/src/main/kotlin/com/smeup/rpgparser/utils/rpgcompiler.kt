@@ -67,6 +67,8 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
         }
         return CompilationResult(file, compiledFile)
     }.onFailure {
+        System.err.println("Error during AST serializing")
+        it.printStackTrace()
         return CompilationResult(file, null, it)
     }
     error("Something went wrong")
