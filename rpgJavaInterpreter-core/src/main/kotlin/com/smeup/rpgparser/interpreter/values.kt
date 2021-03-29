@@ -943,7 +943,7 @@ fun Boolean.asValue() = BooleanValue(this)
 fun areEquals(value1: Value, value2: Value): Boolean {
     return when {
         value1 is DecimalValue && value2 is IntValue ||
-            value1 is IntValue && value2 is DecimalValue -> {
+                value1 is IntValue && value2 is DecimalValue -> {
             value1.asInt() == value2.asInt()
         }
 
@@ -986,5 +986,21 @@ fun areEquals(value1: Value, value2: Value): Boolean {
             value1.asArray().getElement(1) == value2
         }
         else -> value1 == value2
+    }
+}
+
+@Serializable
+object VoidValue : Value {
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun copy(): Value {
+        TODO("Not yet implemented")
     }
 }

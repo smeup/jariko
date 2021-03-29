@@ -1,5 +1,8 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
+
 data class FunctionParam(val name: String, val type: Type)
 
 interface Function {
@@ -12,17 +15,32 @@ abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<Func
     override fun params() = params
 }
 
-class RpgFunction(val name: String = "<UNNAMED FUNCTION>") : Function {
+/**
+ * This class models a generic function, "generic" because could be a procedure if return a VoidValue else
+ * a function if return something else.
+ * */
+class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
+
     override fun params(): List<FunctionParam> {
-        TODO("Not yet implemented")
+        return emptyList()
     }
 
     override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
-        val changedInitialValue: List<Value> = emptyList()
-        // TODO retrieve name "CALL1" from PROCEDURE_B program... CompilationUnit needed...
-        // val interpreter = InternalInterpreter(systemInterface)
-        // interpreter.execute(systemInterface.findProgram(this.name), emptyMap(), false)
-        println("Hello world!")
-        return changedInitialValue[0]
+        println("Hello world")
+        return VoidValue
+    }
+
+    companion object {
+        /**
+         * Create an RpgFunction instance achieved by current program
+         * @param name Funtion name
+         * */
+        fun fromCurrentProgram(name: String): RpgFunction {
+            return RpgFunction(
+                compilationUnit = MainExecutionContext.getProgramStack().peek().cu.procedures!!.first {
+                    it.name == name
+                }
+            )
+        }
     }
 }

@@ -48,6 +48,7 @@ open class JavaSystemInterface(
     private val copies = HashMap<CopyId, Copy?>()
     private val apiDescriptors = HashMap<ApiId, ApiDescriptor>()
     private val apis = HashMap<ApiId, Api>()
+    private val functions = HashMap<String, Function>()
 
     fun addJavaInteropPackage(packageName: String) {
         javaInteropPackages.add(packageName)
@@ -94,7 +95,9 @@ open class JavaSystemInterface(
     }
 
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
-        return RpgFunction(name)
+        return functions.computeIfAbsent(name) {
+            RpgFunction.fromCurrentProgram(name)
+        }
     }
 
     override fun addExecutedAnnotation(line: Int, annotation: MuteAnnotationExecuted) {
