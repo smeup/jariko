@@ -37,7 +37,6 @@ private fun CompilationUnit.includeApi(apiId: ApiId): CompilationUnit {
         MainExecutionContext.setExecutionProgramName(apiId.toString())
         val api = MainExecutionContext.getSystemInterface()!!.findApi(apiId).validate()
         this.copy(
-            "",
             fileDefinitions = this.fileDefinitions.include(api.compilationUnit.fileDefinitions),
             dataDefinitions = this.dataDefinitions.include(api.compilationUnit.dataDefinitions),
             subroutines = this.subroutines.include(api.compilationUnit.subroutines),
