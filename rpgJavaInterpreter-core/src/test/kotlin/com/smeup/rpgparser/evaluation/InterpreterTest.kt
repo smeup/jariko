@@ -1398,7 +1398,6 @@ Test 6
     }
 
     @Test
-    @Ignore
     fun executePROCEDURE_B() {
         // assertASTCanBeProduced( exampleName = "PROCEDURE_B", printTree = true)
         executePgm("PROCEDURE_B")
