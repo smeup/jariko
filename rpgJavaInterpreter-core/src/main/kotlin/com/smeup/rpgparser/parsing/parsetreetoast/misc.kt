@@ -171,6 +171,9 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
     // TODO FileDefinitions
 
+    // DataDefinitions
+    var dataDefinitions = getDataDefinitions(conf)
+
     // MainBody (list of Statements)
     val mainStmts = this.subprocedurestatement().mapNotNull {
         when {
@@ -191,7 +194,7 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 
     return CompilationUnit(
         fileDefinitions = mutableListOf(),
-        dataDefinitions = mutableListOf(),
+        dataDefinitions,
         main = MainBody(mainStmts, null),
         subroutines = mutableListOf(),
         compileTimeArrays = mutableListOf(),
@@ -201,6 +204,57 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
         procedures = null,
         name = this.beginProcedure().psBegin().ps_name().text
     )
+}
+
+private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
+    // We need to calculate first all the data definitions which do not contain the LIKE DS directives
+    // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
+    // after them
+    val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
+    val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
+
+    // First pass ignore exception and all the know definitions
+    dataDefinitionProviders.addAll(this.subprocedurestatement()
+        .mapNotNull {
+            when {
+                it.statement().dcl_ds() != null -> {
+                    try {
+                        it.statement().dcl_ds()
+                            .toAst(conf)
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+                else -> null
+            }
+        })
+
+    // Second pass, everything, I mean everything
+    dataDefinitionProviders.addAll(this.subprocedurestatement()
+        .mapNotNull {
+            kotlin.runCatching {
+                when {
+                    it.statement().dspec() != null -> {
+                        it.statement().dspec()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    it.statement().dcl_c() != null -> {
+                        it.statement().dcl_c()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
+                        DataDefinitionCalculator(it.statement().dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                    }
+                    else -> null
+                }
+            }.onFailure { error ->
+                it.error("Error on dataDefinitionProviders creation", error, conf)
+            }.getOrThrow()
+        })
+    return dataDefinitionProviders.map { it.toDataDefinition() }
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {

@@ -26,21 +26,19 @@ fun CompilationUnit.allStatements(): List<Statement> {
 }
 
 private fun Node.resolveDataRefs(cu: CompilationUnit) {
-    runNode {
-        this.specificProcess(DataRefExpr::class.java) { dre ->
-            if (!dre.variable.resolved) {
+    this.specificProcess(DataRefExpr::class.java) { dre ->
+        if (!dre.variable.resolved) {
 
-                if (dre.variable.name.contains('.')) {
-                    val ds = dre.variable.name.substring(0, dre.variable.name.indexOf("."))
+            if (dre.variable.name.contains('.')) {
+                val ds = dre.variable.name.substring(0, dre.variable.name.indexOf("."))
 
-                    val fieldName = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
+                val fieldName = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
 
-                    val resField = cu.allDataDefinitions.find { it.name.equals(fieldName, true) }
-                    dre.variable.referred = resField
-                } else {
-                    require(dre.variable.tryToResolve(cu.allDataDefinitions, caseInsensitive = true)) {
-                        "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
-                    }
+                val resField = cu.allDataDefinitions.find { it.name.equals(fieldName, true) }
+                dre.variable.referred = resField
+            } else {
+                require(dre.variable.tryToResolve(cu.allDataDefinitions, caseInsensitive = true)) {
+                    "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
                 }
             }
         }

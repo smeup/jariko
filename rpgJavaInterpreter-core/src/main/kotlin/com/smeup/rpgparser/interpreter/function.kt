@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 
 data class FunctionParam(val name: String, val type: Type)
 
@@ -31,6 +32,10 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         }
         interpreter.execute(this.compilationUnit, emptyMap(), false)
         return VoidValue
+    }
+
+    init {
+        compilationUnit.resolveAndValidate()
     }
 
     companion object {
