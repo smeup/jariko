@@ -24,7 +24,8 @@ data class CompilationUnit(
     // This way we say to not consider these nodes as part of compilation unit, this annotation is
     // necessary to avoid that during data references resolving, are considered expression declared within procedures as well.
     @property:Link val procedures: List<CompilationUnit>? = null,
-    val name: String? = null
+    val name: String? = null,
+    val parmDefinitions: List<DataDefinition>? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()

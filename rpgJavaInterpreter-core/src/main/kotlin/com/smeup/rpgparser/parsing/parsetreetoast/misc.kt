@@ -174,6 +174,9 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     // DataDefinitions
     var dataDefinitions = getDataDefinitions(conf)
 
+    // Parameters
+    var parmDefinitions = getParmDefinitions(dataDefinitions)
+
     // MainBody (list of Statements)
     val mainStmts = this.subprocedurestatement().mapNotNull {
         when {
@@ -202,8 +205,22 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
         position = toPosition(conf.considerPosition),
         apiDescriptors = null,
         procedures = null,
-        name = this.beginProcedure().psBegin().ps_name().text
+        name = this.beginProcedure().psBegin().ps_name().text,
+        parmDefinitions
+
     )
+}
+
+private fun ProcedureContext.getParmDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
+    val parmDefinitions: MutableList<DataDefinition> = LinkedList()
+    dataDefinitions.forEach() {
+        this.dcl_pi().pi_parm_fixed().forEach { dataDefinition ->
+            if (it.name == dataDefinition.parm_fixed().ds_name().text) {
+                parmDefinitions.add(it)
+            }
+        }
+    }
+    return parmDefinitions
 }
 
 private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
@@ -247,6 +264,24 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                     }
                     it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
                         DataDefinitionCalculator(it.statement().dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                    }
+                    else -> null
+                }
+            }.onFailure { error ->
+                it.error("Error on dataDefinitionProviders creation", error, conf)
+            }.getOrThrow()
+        })
+
+    // PROCEDURE PARAMETERS
+    // Second pass, everything, I mean everything
+    dataDefinitionProviders.addAll(this.dcl_pi().pi_parm_fixed()
+        .mapNotNull {
+            kotlin.runCatching {
+                when {
+                    it.parm_fixed() != null -> {
+                        it.parm_fixed()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     }
                     else -> null
                 }

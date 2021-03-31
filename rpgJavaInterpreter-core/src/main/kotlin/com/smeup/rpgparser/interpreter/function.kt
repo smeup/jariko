@@ -30,7 +30,15 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         val interpreter: InternalInterpreter by lazy {
             InternalInterpreter(systemInterface)
         }
-        interpreter.execute(this.compilationUnit, emptyMap(), false)
+
+        var parms = mutableMapOf<String, Value>()
+        repeat(params.size) {
+            var parmName = this.compilationUnit.parmDefinitions!!.get(it).name
+            var parmValue = params[it]
+            parms.put(parmName, parmValue)
+        }
+
+        interpreter.execute(this.compilationUnit, parms, false)
         return VoidValue
     }
 

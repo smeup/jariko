@@ -1404,6 +1404,12 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_C() {
+        // assertASTCanBeProduced( exampleName = "PROCEDURE_C", printTree = true)
+        executePgm("PROCEDURE_C")
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
