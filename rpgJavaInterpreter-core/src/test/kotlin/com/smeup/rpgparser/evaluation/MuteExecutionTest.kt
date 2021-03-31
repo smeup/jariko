@@ -1,11 +1,13 @@
 @file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.*
+import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.ExtendedCollectorSystemInterface
+import com.smeup.rpgparser.assertNrOfMutesAre
+import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import org.junit.Test
 import kotlin.test.*
 
 open class MuteExecutionTest : AbstractTest() {
@@ -239,16 +241,33 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("data/ds/MUTE12_01B", 14)
     }
 
+    @Test @Ignore
+    fun executeMUTE12_09() {
+        assertMuteExecutionSucceded("overlay/MUTE12_09")
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_26() {
+        assertMuteExecutionSucceded("mute/MUTE13_26")
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_27() {
+        assertMuteExecutionSucceded("mute/MUTE13_27")
+    }
+
     private fun assertMuteExecutionSucceded(
         exampleName: String,
-        nrOfMuteAssertions: Int,
+        // if null ignores mutes number assertions check
+        nrOfMuteAssertions: Int? = null,
         parameters: Map<String, Value> = emptyMap()
     ) {
         val cu = assertASTCanBeProduced(exampleName, true, withMuteSupport = true)
         cu.resolveAndValidate()
-        cu.assertNrOfMutesAre(nrOfMuteAssertions)
+        nrOfMuteAssertions?.let { cu.assertNrOfMutesAre(it) }
+
         val interpreter = execute(cu, parameters)
-        assertEquals(nrOfMuteAssertions, interpreter.systemInterface.getExecutedAnnotation().size)
+        nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.systemInterface.getExecutedAnnotation().size) }
         interpreter.systemInterface.getExecutedAnnotation().forEach {
             assertTrue(it.value.succeeded(), "Mute assertion failed: ${it.value.headerDescription()}")
         }
