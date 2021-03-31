@@ -5,12 +5,8 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.strumenta.kolasu.model.Derived
-import com.strumenta.kolasu.model.Named
-import com.strumenta.kolasu.model.Node
-import com.strumenta.kolasu.model.Position
-import com.smeup.rpgparser.parsing.ast.CompilationUnit as CompilationUnit
-import kotlinx.serialization.Serializable as Serializable
+import com.strumenta.kolasu.model.*
+import kotlinx.serialization.Serializable
 
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
@@ -25,7 +21,9 @@ data class CompilationUnit(
     val directives: List<Directive>,
     override val position: Position?,
     val apiDescriptors: Map<ApiId, ApiDescriptor>? = null,
-    val procedures: List<CompilationUnit>? = null,
+    // This way we say to not consider these nodes as part of compilation unit, this annotation is
+    // necessary to avoid that during data references resolving, are considered expression declared within procedures as well.
+    @property:Link val procedures: List<CompilationUnit>? = null,
     val name: String? = null
 ) : Node(position) {
 

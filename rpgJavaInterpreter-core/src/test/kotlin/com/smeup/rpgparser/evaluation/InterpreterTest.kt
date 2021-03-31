@@ -1403,6 +1403,7 @@ Test 6
         executePgm("PROCEDURE_B")
     }
 
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
