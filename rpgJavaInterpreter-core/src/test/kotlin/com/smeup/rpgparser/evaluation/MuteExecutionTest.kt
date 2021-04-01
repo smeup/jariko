@@ -241,8 +241,8 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("data/ds/MUTE12_01B", 14)
     }
 
-    @Test @Ignore
-    fun executeMUTE12_09() {
+    @Test
+    open fun executeMUTE12_09() {
         assertMuteExecutionSucceded("overlay/MUTE12_09")
     }
 

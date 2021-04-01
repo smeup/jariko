@@ -1398,4 +1398,12 @@ Test 6
             expected = "100".split(Regex(", ")),
             actual = outputOf("APIPGM1"))
     }
+
+    @Test
+    open fun executeDSOVERL() {
+        assertEquals(
+            expected = "AAAA,BBBB".split(","),
+            actual = outputOf("DSOVERL")
+        )
+    }
 }
