@@ -6,9 +6,11 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 
 data class FunctionParam(val name: String, val type: Type)
 
+data class FunctionValue(val variableName: String? = null, val value: Value)
+
 interface Function {
     fun params(): List<FunctionParam>
-    fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value
+    fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value
 }
 
 abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<FunctionParam>) :
@@ -30,15 +32,23 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         return plistParams
     }
 
-    override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
+    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
         val interpreter: InternalInterpreter by lazy {
             InternalInterpreter(systemInterface)
         }
 
         var parameters = mutableMapOf<String, Value>()
-        this.params().forEachIndexed { i, e -> parameters[e.name] = params[i] }
+        // this.params().forEachIndexed { i, _ -> parameters[params[i].variableName.toString()] = params[i].value }
+        this.params().forEachIndexed { i, _ ->
+            parameters[params[i].variableName.toString()] = params[i].value
+        }
 
         interpreter.execute(this.compilationUnit, parameters, false)
+
+        this.params().forEachIndexed { i, e ->
+            // symbolTable[??????????] = interpreter.globalSymbolTable[this.params()[i].name]
+        }
+
         return VoidValue
     }
 

@@ -669,10 +669,10 @@ data class CallPStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.log { CallPExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
-        val callStatement = this
         val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
-        val functionCall = callStatement.expression as FunctionCall
-        val eval = expressionEvaluation.eval(functionCall)
+        // TODO avoid explicit cast
+        val functionCall = this.expression as FunctionCall
+        expressionEvaluation.eval(functionCall)
     }
 }
 
