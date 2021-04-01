@@ -48,7 +48,8 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         this.params().forEachIndexed { i, e ->
             var a = parameters.keys.toList()[i]
             var p = e.name
-            // symbolTable[a] = interpreter.globalSymbolTable[p]
+            // 'a' must be an "AbstractDataDefinition"
+            // symbolTable.set(a, interpreter.globalSymbolTable[p])
         }
 
         return VoidValue
