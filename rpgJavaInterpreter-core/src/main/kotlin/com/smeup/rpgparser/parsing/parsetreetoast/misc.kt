@@ -174,8 +174,8 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     // DataDefinitions
     var dataDefinitions = getDataDefinitions(conf)
 
-    // Parameters
-    var parmDefinitions = getParmDefinitions(dataDefinitions)
+    // Procedure Parameters DataDefinitions
+    var proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
 
     // MainBody (list of Statements)
     val mainStmts = this.subprocedurestatement().mapNotNull {
@@ -206,21 +206,24 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
         apiDescriptors = null,
         procedures = null,
         name = this.beginProcedure().psBegin().ps_name().text,
-        parmDefinitions
-
+        proceduresParamsDataDefinitions
     )
 }
 
-private fun ProcedureContext.getParmDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
-    val parmDefinitions: MutableList<DataDefinition> = LinkedList()
-    dataDefinitions.forEach() {
-        this.dcl_pi().pi_parm_fixed().forEach { dataDefinition ->
-            if (it.name == dataDefinition.parm_fixed().ds_name().text) {
-                parmDefinitions.add(it)
-            }
+private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
+    val proceduresParamsDataDefinitions: MutableList<DataDefinition> = LinkedList()
+
+    // Get parmDefinition matching from parent's CompilationUnit dataDefinition
+    dataDefinitions.forEach { dataDefinition ->
+        (this.parent as RContext).dcl_pr().forEach { dcl_prContext ->
+            dcl_prContext.parm_fixed()
+                .asSequence()
+                .filter { it.ds_name().text == dataDefinition.name }
+                .forEach { _ -> proceduresParamsDataDefinitions.add(dataDefinition) }
         }
     }
-    return parmDefinitions
+
+    return proceduresParamsDataDefinitions
 }
 
 private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {

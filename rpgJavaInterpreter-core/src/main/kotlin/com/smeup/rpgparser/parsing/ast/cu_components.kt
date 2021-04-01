@@ -25,7 +25,10 @@ data class CompilationUnit(
     // necessary to avoid that during data references resolving, are considered expression declared within procedures as well.
     @property:Link val procedures: List<CompilationUnit>? = null,
     val name: String? = null,
-    val parmDefinitions: List<DataDefinition>? = null
+    // TODO: Related to 'ProceduresParamsDataDefinitions' a refactor is required, but now:
+    // - if 'CompilationUnit' is an 'RpgProgram' this list is empty.
+    // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
+    val proceduresParamsDataDefinitions: List<DataDefinition>? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()

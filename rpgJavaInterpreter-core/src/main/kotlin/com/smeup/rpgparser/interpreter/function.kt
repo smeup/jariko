@@ -23,7 +23,11 @@ abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<Func
 class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
 
     override fun params(): List<FunctionParam> {
-        return emptyList()
+        var plistParams = mutableListOf<FunctionParam>()
+        this.compilationUnit.proceduresParamsDataDefinitions!!.forEach {
+            plistParams.add(FunctionParam(it.name, it.type))
+        }
+        return plistParams
     }
 
     override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
@@ -31,14 +35,10 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
             InternalInterpreter(systemInterface)
         }
 
-        var parms = mutableMapOf<String, Value>()
-        repeat(params.size) {
-            var parmName = this.compilationUnit.parmDefinitions!!.get(it).name
-            var parmValue = params[it]
-            parms.put(parmName, parmValue)
-        }
+        var parameters = mutableMapOf<String, Value>()
+        this.params().forEachIndexed { i, e -> parameters[e.name] = params[i] }
 
-        interpreter.execute(this.compilationUnit, parms, false)
+        interpreter.execute(this.compilationUnit, parameters, false)
         return VoidValue
     }
 

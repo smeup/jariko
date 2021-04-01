@@ -1410,6 +1410,12 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_E() {
+        // assertASTCanBeProduced( exampleName = "PROCEDURE_E", printTree = true)
+        executePgm("PROCEDURE_E")
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),

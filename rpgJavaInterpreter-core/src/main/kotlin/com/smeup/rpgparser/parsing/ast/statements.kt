@@ -672,7 +672,7 @@ data class CallPStmt(
         val callStatement = this
         val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
         val functionCall = callStatement.expression as FunctionCall
-        expressionEvaluation.eval(functionCall)
+        val eval = expressionEvaluation.eval(functionCall)
     }
 }
 
