@@ -38,15 +38,17 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         }
 
         var parameters = mutableMapOf<String, Value>()
-        // this.params().forEachIndexed { i, _ -> parameters[params[i].variableName.toString()] = params[i].value }
         this.params().forEachIndexed { i, _ ->
             parameters[params[i].variableName.toString()] = params[i].value
         }
 
         interpreter.execute(this.compilationUnit, parameters, false)
 
+        // TODO Update value of caller parameter (due to call by reference)
         this.params().forEachIndexed { i, e ->
-            // symbolTable[??????????] = interpreter.globalSymbolTable[this.params()[i].name]
+            var a = parameters.keys.toList()[i]
+            var p = e.name
+            // symbolTable[a] = interpreter.globalSymbolTable[p]
         }
 
         return VoidValue
