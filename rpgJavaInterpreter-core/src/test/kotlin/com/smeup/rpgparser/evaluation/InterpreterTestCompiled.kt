@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.evaluation
 
+import com.smeup.rpgparser.execution.defaultProgramFinders
 import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.interpreter.RpgProgram
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -17,9 +18,14 @@ import kotlin.test.assertEquals
 
 private class BinProgramFinder : RpgProgramFinder {
 
-    override fun findRpgProgram(nameOrSource: String): RpgProgram {
+    override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         val f = File(testCompiledDir, "$nameOrSource.bin")
-        return RpgProgram.fromInputStream(f.inputStream(), nameOrSource, SourceProgram.BINARY)
+        return if (f.exists()) {
+            println("Loading $f")
+            RpgProgram.fromInputStream(f.inputStream(), nameOrSource, SourceProgram.BINARY)
+        } else {
+            null
+        }
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
@@ -43,7 +49,8 @@ class InterpreterTestCompiled : InterpreterTest() {
     override fun executeDSOVERL() {
         val si = JavaSystemInterface()
         // test compiled version using a customized programfinder
-        getProgram("DSOVERL", si, listOf(BinProgramFinder())).singleCall(emptyList())
+        val programFinder = mutableListOf(BinProgramFinder()) + defaultProgramFinders
+        getProgram("DSOVERL", si, programFinder).singleCall(emptyList())
         assertEquals(
             expected = "AAAA,BBBB".split(","),
             actual = si.consoleOutput
