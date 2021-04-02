@@ -4,7 +4,11 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 
-data class FunctionParam(val name: String, val type: Type)
+enum class ParamPassedBy {
+    Reference, Value
+}
+
+data class FunctionParam(val name: String, val type: Type, val paramPassedBy: ParamPassedBy = ParamPassedBy.Reference)
 
 data class FunctionValue(val variableName: String? = null, val value: Value)
 
@@ -25,32 +29,36 @@ abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<Func
 class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
 
     override fun params(): List<FunctionParam> {
-        var plistParams = mutableListOf<FunctionParam>()
+        val arguments = mutableListOf<FunctionParam>()
         this.compilationUnit.proceduresParamsDataDefinitions!!.forEach {
-            plistParams.add(FunctionParam(it.name, it.type))
+            arguments.add(FunctionParam(it.name, it.type))
         }
-        return plistParams
+        return arguments
     }
 
     override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
         val interpreter: InternalInterpreter by lazy {
             InternalInterpreter(systemInterface)
         }
-
-        var parameters = mutableMapOf<String, Value>()
-        this.params().forEachIndexed { i, _ ->
-            parameters[params[i].variableName.toString()] = params[i].value
+        // arguments are parameters expected by function
+        val arguments = this.params()
+        // values passed to function in format argumentName to argumentValue
+        // every argumentName will be a variable scoped function
+        val argumentNameToValue = mutableMapOf<String, Value>()
+        arguments.forEachIndexed { index, functionParam ->
+            argumentNameToValue[functionParam.name] = params[index].value
         }
 
-        interpreter.execute(this.compilationUnit, parameters, false)
+        interpreter.execute(this.compilationUnit, argumentNameToValue, false)
 
-        // TODO Update value of caller parameter (due to call by reference)
-        this.params().forEachIndexed { i, e ->
-            var a = parameters.keys.toList()[i]
-            var p = e.name
-            // symbolTable[a] = interpreter.globalSymbolTable[p]
+        params.forEachIndexed { index, functionValue ->
+            // if passed param contains variable name and parameter is passed by reference
+            functionValue.variableName?.let { variableName ->
+                if (arguments[index].paramPassedBy == ParamPassedBy.Reference) {
+                    symbolTable[symbolTable.dataDefinitionByName(variableName)!!] = interpreter[arguments[index].name]
+                }
+            }
         }
-
         return VoidValue
     }
 
@@ -60,8 +68,8 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
 
     companion object {
         /**
-         * Create an RpgFunction instance achieved by current program
-         * @param name Funtion name
+         * Create a RpgFunction instance achieved by current program
+         * @param name Function name
          * */
         fun fromCurrentProgram(name: String): RpgFunction {
             return RpgFunction(

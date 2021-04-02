@@ -9,7 +9,9 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
-import com.strumenta.kolasu.model.*
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
@@ -113,7 +115,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
                     else -> null
                 }
             }
-    var dataDefinitions = getDataDefinitions(conf)
+    val dataDefinitions = getDataDefinitions(conf)
 
     val mainStmts = this.statement().mapNotNull {
         when {
@@ -127,7 +129,11 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
-    val procedures = this.procedure().map { it.toAst(conf) } ?: emptyList()
+    // if we have no procedures, the property procedure must be null because we decided it must be optional
+    val procedures = this.procedure().map { it.toAst(conf) }.let {
+        if (it.isEmpty()) null
+        else it
+    }
 
     return CompilationUnit(
         fileDefinitions,
@@ -172,10 +178,10 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     // TODO FileDefinitions
 
     // DataDefinitions
-    var dataDefinitions = getDataDefinitions(conf)
+    val dataDefinitions = getDataDefinitions(conf)
 
     // Procedure Parameters DataDefinitions
-    var proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
+    val proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
 
     // MainBody (list of Statements)
     val mainStmts = this.subprocedurestatement().mapNotNull {
@@ -652,15 +658,6 @@ private fun dataType(len: Int, decimals: Int?): Type =
         NumberType(len - decimals, decimals)
     }
 
-internal fun Token.asLong(): Long? {
-    val tokenString = this.text.trim()
-    return if (tokenString.isNotBlank()) {
-        tokenString.toLongOrNull()
-    } else {
-        null
-    }
-}
-
 internal fun Token.asInt(): Int? {
     val tokenString = this.text.trim()
     return if (tokenString.isNotBlank()) {
@@ -1082,14 +1079,6 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     }
 }
 
-fun Token.toPosition(considerPosition: Boolean): Position? {
-    return if (considerPosition) {
-        Position(this.startPoint, this.endPoint)
-    } else {
-        null
-    }
-}
-
 internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
     return when {
         this.EQUAL() != null -> NORMAL_ASSIGNMENT
@@ -1108,7 +1097,7 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         "Missing factor 1 in call statement at line ${position.line()}"
     }
     val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
-    var functionCalled: Expression?
+    val functionCalled: Expression?
     functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
     return CallStmt(
         functionCalled,

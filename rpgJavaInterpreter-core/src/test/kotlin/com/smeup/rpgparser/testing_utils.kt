@@ -358,7 +358,10 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
             program
         }
     }
-    override fun findFunction(globalSymbolTable: ISymbolTable, name: String) = functions[name]
+    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
+        // this way I enable function searching also within compilation unit
+        return functions[name] ?: RpgFunction.fromCurrentProgram(name)
+    }
     override fun findCopy(copyId: CopyId): Copy? {
         TODO("Not yet implemented")
     }
@@ -437,7 +440,22 @@ fun execute(
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
     cu.resolveAndValidate()
     si.addExtraLogHandlers(logHandlers)
-    return execute(cu, initialValues, si)
+    return if (cu.procedures == null) {
+        execute(cu, initialValues, si)
+    } else {
+        // if we have some procedures we have to push in programstack current program
+        // see RpgFunction.fromCurrentProgram
+        MainExecutionContext.execute(systemInterface = si) { mainExecutionContext ->
+            mainExecutionContext.programStack.push(rpgProgram(programName).apply {
+                // setup activationGroup is mandatory
+                // view InternalInterpreter.getActivationGroupAssignedName
+                activationGroup = ActivationGroup(NamedActivationGroup("dummy"), "dummy")
+            })
+            val interpreter = execute(cu, initialValues, si)
+            mainExecutionContext.programStack.pop()
+            interpreter
+        }
+    }
 }
 
 fun rpgProgram(name: String): RpgProgram {
@@ -498,7 +516,7 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
         return nameToMockPrograms[name] ?: super.findProgram(name) ?: findWithFinders(name)
     }
 
-    private fun findWithFinders(name: String): Program? {
+    private fun findWithFinders(name: String): Program {
         return rpgPrograms.getOrPut(name) {
             find(name)
         }
@@ -513,7 +531,7 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
     }
 }
 
-fun compileAllMutes(verbose: Boolean = true, dirs: List<String>, format: Format = Format.BIN) {
+fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN) {
     println("Deleting $testCompiledDir")
     testCompiledDir.deleteRecursively()
     testCompiledDir.mkdirs()

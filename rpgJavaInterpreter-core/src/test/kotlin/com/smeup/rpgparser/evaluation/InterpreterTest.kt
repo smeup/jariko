@@ -1412,7 +1412,10 @@ Test 6
     @Test
     fun executePROCEDURE_E() {
         // assertASTCanBeProduced( exampleName = "PROCEDURE_E", printTree = true)
-        executePgm("PROCEDURE_E")
+        assertEquals(
+            expected = "11,22".split(Regex(",")),
+            actual = outputOf("PROCEDURE_E")
+        )
     }
 
     @Test
