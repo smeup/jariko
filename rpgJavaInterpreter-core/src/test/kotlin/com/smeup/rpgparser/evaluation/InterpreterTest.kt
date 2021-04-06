@@ -1399,29 +1399,41 @@ Test 6
 
     @Test
     fun executePROCEDURE_B() {
-        // assertASTCanBeProduced( exampleName = "PROCEDURE_B", printTree = true)
         executePgm("PROCEDURE_B")
     }
 
     @Test
     fun executePROCEDURE_C() {
-        // assertASTCanBeProduced( exampleName = "PROCEDURE_C", printTree = true)
         executePgm("PROCEDURE_C")
     }
 
     @Test
     fun executePROCEDURE_D() {
-        // assertASTCanBeProduced( exampleName = "PROCEDURE_D", printTree = true)
         executePgm("PROCEDURE_D")
     }
 
     @Test
     fun executePROCEDURE_E() {
-        // assertASTCanBeProduced( exampleName = "PROCEDURE_E", printTree = true)
         assertEquals(
             expected = "11,22".split(Regex(",")),
             actual = outputOf("PROCEDURE_E")
         )
+    }
+
+    @Test
+    fun executePROCEDURE_F() {
+        executePgm("PROCEDURE_F")
+    }
+
+    @Test
+    fun executePROCEDURE_G() {
+        executePgm("PROCEDURE_G")
+    }
+
+    @Test
+    @Ignore
+    fun executePROCEDURE_H() {
+        executePgm("PROCEDURE_H")
     }
 
     @Test
