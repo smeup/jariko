@@ -7,6 +7,9 @@ import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.*
 
 const val PAD_CHAR = ' '
@@ -73,7 +76,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value 
             "Cannot concatenate $value to $other"
         }
         val stringBuilder = StringBuilder()
-        val stringValue = stringBuilder.append(value.toString()).append(other.value.toString()).toString()
+        val stringValue = stringBuilder.append(value).append(other.value).toString()
         return StringValue(stringValue)
     }
 
@@ -216,7 +219,7 @@ fun sortA(value: Value, charset: Charset) {
                         // consisting of the array to be sorted followed by the subfield to be used as
                         // a key for the sort.
                         // Swap
-                        var tmp = value.getElement(j + 1)
+                        val tmp = value.getElement(j + 1)
                         value.setElement(j + 1, value.getElement(j))
                         value.setElement(j, tmp)
                     }
@@ -292,7 +295,7 @@ data class IntValue(val value: Long) : NumberValue() {
         fun sequenceOfNines(length: Int): IntValue {
             require(length >= 1)
             val ed = "9".repeat(length)
-            return IntValue("$ed".toLong())
+            return IntValue(ed.toLong())
         }
     }
 
@@ -435,6 +438,11 @@ data class CharacterValue(val value: Array<Char>) : Value {
 
 @Serializable
 data class TimeStampValue(@Contextual val value: Date) : Value {
+
+    val localDate: LocalDate by lazy {
+        Instant.ofEpochMilli(value.time).atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
     override fun assignableTo(expectedType: Type): Boolean {
         return expectedType is TimeStampType
     }
@@ -710,8 +718,8 @@ class ProjectedArrayValue(
         require(index >= 1)
         require(index <= arrayLength())
         require(value.assignableTo((field.type as ArrayType).element)) { "Assigning to field $field incompatible value $value" }
-        val startIndex = (this.startOffset + this.step * (index - 1)).toInt()
-        val endIndex = (startIndex + this.field.elementSize()).toInt()
+        val startIndex = (this.startOffset + this.step * (index - 1))
+        val endIndex = (startIndex + this.field.elementSize())
         container.setSubstring(startIndex, endIndex, coerce(value, StringType(this.field.elementSize())) as StringValue)
     }
 
@@ -722,8 +730,8 @@ class ProjectedArrayValue(
         }
         require(index <= arrayLength())
 
-        val startIndex = (this.startOffset + this.step * (index - 1)).toInt()
-        val endIndex = (startIndex + this.field.elementSize()).toInt()
+        val startIndex = (this.startOffset + this.step * (index - 1))
+        val endIndex = (startIndex + this.field.elementSize())
         val substringValue = container.getSubstring(startIndex, endIndex)
 
         return coerce(substringValue, (this.field.type as ArrayType).element)
@@ -757,7 +765,7 @@ fun String.asValue() = StringValue(this)
 private const val FORMAT_DATE_ISO = "yyyy-MM-dd-HH.mm.ss.SSS"
 
 fun String.asIsoDate(): Date {
-    var dateString = if (length >= FORMAT_DATE_ISO.length) {
+    val dateString = if (length >= FORMAT_DATE_ISO.length) {
         this.take(FORMAT_DATE_ISO.length)
     } else {
         // TODO

@@ -222,7 +222,7 @@ class RpgParserFacade {
     private fun preprocess(text: String): String {
         var s = text
         var level = 0
-        var end = s.lastIndexOf("COMP")
+        val end = s.lastIndexOf("COMP")
 
         s.forEachIndexed { i, c ->
             if (i < end) {
@@ -261,7 +261,7 @@ class RpgParserFacade {
                         token1.type == COMMENT_SPEC_FIXED && token1.text == "U*" &&
                         token2.type == COMMENTS_TEXT) {
                         // Please note the leading spaces added to the token
-                        var preproc = preprocess(token2.text)
+                        val preproc = preprocess(token2.text)
                         mutes[token2.line] = parseMute("".padStart(8) + preproc, errors)
                     }
                 }
@@ -308,10 +308,14 @@ class RpgParserFacade {
                 null
             }
         }?.apply {
-            dataDefinitions.forEach { dataDefinition ->
-                dataDefinition.fields.forEach { fieldDefinition ->
-                    dataDefinition.setOverlayOn(fieldDefinition)
-                }
+            afterLoadAst()
+        }
+    }
+
+    private fun CompilationUnit.afterLoadAst() {
+        dataDefinitions.forEach { dataDefinition ->
+            dataDefinition.fields.forEach { fieldDefinition ->
+                dataDefinition.setOverlayOn(fieldDefinition)
             }
         }
     }
@@ -321,7 +325,7 @@ class RpgParserFacade {
     ): CompilationUnit {
         val result = parse(inputStream)
         require(result.correct) {
-            "${result.dumpError()}"
+            result.dumpError()
         }
         return kotlin.runCatching {
             val compilationUnit: CompilationUnit
@@ -359,6 +363,7 @@ class RpgParserFacade {
             }
         } else {
             inputStream.readBytes().createCompilationUnit().apply {
+                afterLoadAst()
                 MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
             }
         }

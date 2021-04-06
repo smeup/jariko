@@ -119,7 +119,9 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
 
     val mainStmts = this.statement().mapNotNull {
         when {
-            it.cspec_fixed() != null -> it.cspec_fixed().toAst(conf)
+            it.cspec_fixed() != null -> it.cspec_fixed().runParserRuleContext(conf) { context ->
+                context.toAst(conf)
+            }
             it.block() != null -> it.block().toAst(conf)
             it.free() != null -> it.free().toAst(conf)
             else -> null
@@ -748,6 +750,11 @@ private fun String.toDuration(): DurationCode =
     when (toUpperCase()) {
         "*D", "*DAYS" -> DurationInDays
         "*MS", "*MSECONDS" -> DurationInMSecs
+        "*S", "*SECONDS" -> DurationInSecs
+        "*MN", "*MINUTES" -> DurationInMinutes
+        "*H", "*HOURS" -> DurationInHours
+        "*M", "*MONTHS" -> DurationInMonths
+        "*Y", "*YEARS" -> DurationInYears
         else -> TODO("Implement conversion to DurationCode for $this")
     }
 

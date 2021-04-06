@@ -313,16 +313,44 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: DiffExpr): Value {
-        // TODO expression.durationCode
         val v1 = expression.value1.evalWith(this)
         val v2 = expression.value2.evalWith(this)
         return when (expression.durationCode) {
-            is DurationInMSecs -> DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
-            is DurationInDays -> DecimalValue(BigDecimal(
+            is DurationInMSecs -> IntValue(
+                ChronoUnit.MICROS.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            )
+            is DurationInDays -> IntValue(
                 ChronoUnit.DAYS.between(
                     v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
                 )
-            ))
+            )
+            is DurationInSecs -> IntValue(
+                ChronoUnit.SECONDS.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            )
+            is DurationInMinutes -> IntValue(
+                ChronoUnit.MINUTES.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            )
+            is DurationInHours -> IntValue(
+                ChronoUnit.HOURS.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            )
+            is DurationInMonths -> IntValue(
+                ChronoUnit.MONTHS.between(
+                    v2.asTimeStamp().localDate, v1.asTimeStamp().localDate
+                )
+            )
+            is DurationInYears -> IntValue(
+                ChronoUnit.YEARS.between(
+                    v2.asTimeStamp().localDate, v1.asTimeStamp().localDate
+                )
+            )
         }
     }
 
