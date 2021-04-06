@@ -1410,6 +1410,12 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_D() {
+        // assertASTCanBeProduced( exampleName = "PROCEDURE_D", printTree = true)
+        executePgm("PROCEDURE_D")
+    }
+
+    @Test
     fun executePROCEDURE_E() {
         // assertASTCanBeProduced( exampleName = "PROCEDURE_E", printTree = true)
         assertEquals(

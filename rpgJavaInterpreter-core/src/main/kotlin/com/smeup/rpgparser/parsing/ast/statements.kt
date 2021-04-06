@@ -764,7 +764,10 @@ data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpres
 data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val returnValue = expression?.let { interpreter.eval(expression) }
-        throw ReturnException(returnValue)
+        // The  'RETURN' statement without a return value (not allowed into procedures!), leave program.
+        if (null == returnValue) {
+            throw ReturnException(returnValue)
+        }
     }
 }
 

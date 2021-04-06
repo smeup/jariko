@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.ReturnStmt
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 
 enum class ParamPassedBy {
@@ -59,6 +60,15 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
                 }
             }
         }
+
+        // If something to return to caller by 'RETURN' statement
+        this.compilationUnit.main.stmts.asReversed().forEach {
+            if (it is ReturnStmt) {
+                val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
+                return@execute it.expression!!.evalWith(expressionEvaluation as Evaluator)
+            }
+        }
+
         return VoidValue
     }
 
