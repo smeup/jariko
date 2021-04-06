@@ -15,7 +15,6 @@ import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -212,27 +211,9 @@ data class SubDurStmt(
     override fun execute(interpreter: InterpreterCore) {
         when (target) {
             is DataRefExpr -> {
-                // TODO: partial implementation just for *MS  and *D - Add more cases
-                val minuend = if (factor1 == null) {
-                    interpreter.eval(target)
-                } else {
-                    interpreter.eval(factor1)
-                }
-                val subtrahend = interpreter.eval(factor2)
-                when (durationCode) {
-                    DurationInMSecs -> {
-                        val newValue =
-                            (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
-                        interpreter.assign(target, IntValue(newValue))
-                    }
-                    DurationInDays -> {
-                        val newValue =
-                            ChronoUnit.DAYS.between(
-                                subtrahend.asTimeStamp().value.toInstant(), minuend.asTimeStamp().value.toInstant()
-                            )
-                        interpreter.assign(target, IntValue(newValue))
-                    }
-                }
+                val minuend = factor1 ?: target
+                val subtrahend = factor2
+                interpreter.assign(target, interpreter.eval(DiffExpr(minuend, subtrahend, durationCode)))
             }
             else -> throw UnsupportedOperationException("Data reference required: $this")
         }
@@ -861,7 +842,7 @@ data class DefineStmt(
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
 
-        var originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+        val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
         // If definition was not found as a 'standalone' 'D spec' declaration,
         // maybe it can be found as a sub-field of DS in 'D specs' declarations
         containingCU.dataDefinitions.forEach {
@@ -884,7 +865,7 @@ data class DefineStmt(
                     .flatten()
                     .find { it.name == originalName } ?: return emptyList()
 
-            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition!!.type, position))
+            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
 
@@ -1373,7 +1354,7 @@ data class CatStmt(val left: Expression?, val right: Expression, val target: Ass
         val factor2 = interpreter.eval(right)
         var result = interpreter.eval(target)
         val resultLen = result.asString().length()
-        var concatenatedFactors: Value
+        val concatenatedFactors: Value
 
         if (null != left) {
             val factor1 = interpreter.eval(left)

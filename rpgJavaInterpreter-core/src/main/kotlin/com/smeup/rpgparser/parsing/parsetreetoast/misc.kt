@@ -113,11 +113,13 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
                     else -> null
                 }
             }
-    var dataDefinitions = getDataDefinitions(conf)
+    val dataDefinitions = getDataDefinitions(conf)
 
     val mainStmts = this.statement().mapNotNull {
         when {
-            it.cspec_fixed() != null -> it.cspec_fixed().toAst(conf)
+            it.cspec_fixed() != null -> it.cspec_fixed().runParserRuleContext(conf) { context ->
+                context.toAst(conf)
+            }
             it.block() != null -> it.block().toAst(conf)
             it.free() != null -> it.free().toAst(conf)
             else -> null
@@ -620,6 +622,11 @@ private fun String.toDuration(): DurationCode =
     when (toUpperCase()) {
         "*D", "*DAYS" -> DurationInDays
         "*MS", "*MSECONDS" -> DurationInMSecs
+        "*S", "*SECONDS" -> DurationInSecs
+        "*MN", "*MINUTES" -> DurationInMinutes
+        "*H", "*HOURS" -> DurationInHours
+        "*M", "*MONTHS" -> DurationInMonths
+        "*Y", "*YEARS" -> DurationInYears
         else -> TODO("Implement conversion to DurationCode for $this")
     }
 
@@ -977,7 +984,7 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         "Missing factor 1 in call statement at line ${position.line()}"
     }
     val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
-    var functionCalled: Expression?
+    val functionCalled: Expression?
     functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
     return CallStmt(
         functionCalled,
