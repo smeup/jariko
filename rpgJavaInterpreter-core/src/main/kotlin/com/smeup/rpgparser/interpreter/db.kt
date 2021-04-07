@@ -3,6 +3,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.dbnative.model.Field
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
