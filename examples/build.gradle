@@ -19,8 +19,8 @@ buildscript {
 }
 
 dependencies {
-  compile project(":rpgJavaInterpreter-core")
-  testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion".toString()
-  testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion".toString()
-  testCompile 'junit:junit:4.12'
+    implementation project(":rpgJavaInterpreter-core")
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion".toString()
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion".toString()
+    testCompile 'junit:junit:4.12'
 }
