@@ -1404,12 +1404,25 @@ Test 6
 
     @Test
     fun executePROCEDURE_C() {
-        executePgm("PROCEDURE_C")
+        assertEquals(
+            expected = listOf("p received must be 11, is:11",
+                "q received must be 22, is:22",
+                "r received must be 0, is:0",
+                "r=p+q must be 33, is:33",
+                "s=q*2 must be 44, is:44",
+                "c was *zeros, now must be 33, is:33",
+                "d was *zeros, now must be 44, is:44"
+            ),
+            actual = outputOf("PROCEDURE_C")
+        )
     }
 
     @Test
     fun executePROCEDURE_D() {
-        executePgm("PROCEDURE_D")
+        assertEquals(
+            expected = "33".split(Regex(",")),
+            actual = outputOf("PROCEDURE_D")
+        )
     }
 
     @Test
@@ -1422,18 +1435,32 @@ Test 6
 
     @Test
     fun executePROCEDURE_F() {
-        executePgm("PROCEDURE_F")
+        assertEquals(
+            expected = "99".split(Regex(",")),
+            actual = outputOf("PROCEDURE_F")
+        )
     }
 
     @Test
     fun executePROCEDURE_G() {
-        executePgm("PROCEDURE_G")
+        assertEquals(
+            expected = "99,55".split(Regex(",")),
+            actual = outputOf("PROCEDURE_G")
+        )
     }
 
     @Test
-    @Ignore
     fun executePROCEDURE_H() {
-        executePgm("PROCEDURE_H")
+        assertEquals(
+            expected = listOf("11",
+                "22",
+                "33",
+                "0",
+                "33",
+                "22",
+                "121"),
+            actual = outputOf("PROCEDURE_H")
+        )
     }
 
     @Test
