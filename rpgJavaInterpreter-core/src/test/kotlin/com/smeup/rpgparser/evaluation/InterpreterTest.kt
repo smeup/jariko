@@ -1464,6 +1464,31 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_I() {
+        assertEquals(
+            expected = listOf("1",
+                "4"
+            ),
+            actual = outputOf("PROCEDURE_I")
+        )
+    }
+
+    @Test
+    @Ignore
+    // TODO ignored until 'subroutines' support implementation
+    fun executePROCEDURE_J() {
+        // assertASTCanBeProduced(exampleName = "PROCEDURE_J", printTree = true)
+        assertEquals(
+            expected = listOf("1",
+                "4",
+                "9",
+                "-16"
+            ),
+            actual = outputOf("PROCEDURE_J")
+        )
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
