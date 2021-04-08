@@ -222,11 +222,16 @@ private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions:
     val proceduresParamsDataDefinitions: MutableList<DataDefinition> = LinkedList()
 
     // Get parmDefinition matching from parent's CompilationUnit dataDefinition
+    // Be carefull to filter for 'Parameter Name' and 'Procedure Name', due to avoid
+    // same variable name conflict.
     dataDefinitions.forEach { dataDefinition ->
         (this.parent as RContext).dcl_pr().forEach { dcl_prContext ->
             dcl_prContext.parm_fixed()
                 .asSequence()
-                .filter { it.ds_name().text == dataDefinition.name }
+                .filter {
+                    it.ds_name().text == dataDefinition.name &&
+                            this.beginProcedure().psBegin().ps_name().text == dcl_prContext.prBegin().ds_name().NAME().toString()
+                }
                 .forEach { _ -> proceduresParamsDataDefinitions.add(dataDefinition) }
         }
     }

@@ -1489,6 +1489,34 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_K() {
+        assertEquals(
+            expected = listOf("69.12",
+                ".59",
+                "12345          54321",
+                "73.00",
+                "1",
+                "69.12",
+                ".59",
+                "12345          54321",
+                "73.00",
+                "1"
+            ),
+            actual = outputOf("PROCEDURE_K")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_X() {
+        assertEquals(
+            expected = listOf("2.24",
+                "3.36"
+            ),
+            actual = outputOf("PROCEDURE_X")
+        )
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
