@@ -132,7 +132,10 @@ class InternalInterpreter(
                     }
                     AssignmentLogEntry(this.interpretationContext.currentProgramName, data, value, previous)
                 }
-                globalSymbolTable[data] = coerce(value, data.type)
+                // deny reassignment if data is a constant
+                globalSymbolTable.set(data, coerce(value, data.type))?.let {
+                    if (data.const) error("${data.name} is a const and cannot be assigned")
+                }
             }
         }
     }

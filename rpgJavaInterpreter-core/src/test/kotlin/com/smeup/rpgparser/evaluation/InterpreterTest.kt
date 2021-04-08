@@ -19,6 +19,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 open class InterpreterTest : AbstractTest() {
 
@@ -251,6 +252,37 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeDCONST() {
         assertEquals(listOf("60"), outputOf("DCONST"))
+    }
+
+    // this test tries to assign in different ways a constant and
+    // it expects that assignment fails
+    @Test
+    fun executeDCONST_assignments() {
+        val eval = """
+     Dy                C                   CONST(30)
+     C                   Eval      y = 12            
+        """
+        val move = """
+     Dx                C                   CONST(30)
+     Dy                C                   CONST(30)
+     C                   move      x             y            
+        """
+        val add = """
+     Dy                C                   CONST(30)
+     C                   add       1             y    
+        """
+        listOf(eval, move, add).forEach { source ->
+            kotlin.runCatching {
+                println("Executing:$source")
+                getProgram(nameOrSource = source).singleCall(emptyList())
+            }.onSuccess {
+                fail(message = "Program:\n$source\ndid not have to be executed properly.")
+            }.onFailure {
+                assert(it.message!!.indexOf("is a const and cannot be assigned") != -1) {
+                    "Exception message doesn't contain expected message but contains:\n${it.message}"
+                }
+            }
+        }
     }
 
     @Test
