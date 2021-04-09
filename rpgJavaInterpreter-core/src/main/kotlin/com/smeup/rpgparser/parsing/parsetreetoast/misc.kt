@@ -187,15 +187,24 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 
     // MainBody (list of Statements)
     val mainStmts = this.subprocedurestatement().mapNotNull {
-        when {
-            it.statement().cspec_fixed() != null -> it.statement().cspec_fixed().toAst(conf)
-            it.statement().block() != null -> it.statement().block().toAst(conf)
-            it.statement().free() != null -> it.statement().free().toAst(conf)
-            else -> null
+        if (null != it.statement()) {
+            when {
+                it.statement().cspec_fixed() != null -> it.statement().cspec_fixed().toAst(conf)
+                it.statement().block() != null -> it.statement().block().toAst(conf)
+                it.statement().free() != null -> it.statement().free().toAst(conf)
+                else -> null
+            }
+        } else {
+            null
         }
     }
 
-    // TODO Subroutines
+    val subroutines = this.subprocedurestatement().mapNotNull {
+        when {
+            it.subroutine() != null -> it.subroutine().toAst(conf)
+            else -> null
+        }
+    }
 
     // TODO CompileTimeArrays
 
@@ -207,7 +216,7 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
         fileDefinitions = mutableListOf(),
         dataDefinitions,
         main = MainBody(mainStmts, null),
-        subroutines = mutableListOf(),
+        subroutines,
         compileTimeArrays = mutableListOf(),
         directives = mutableListOf(),
         position = toPosition(conf.considerPosition),
@@ -249,17 +258,21 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.subprocedurestatement()
         .mapNotNull {
-            when {
-                it.statement().dcl_ds() != null -> {
-                    try {
-                        it.statement().dcl_ds()
-                            .toAst(conf)
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    } catch (e: Exception) {
-                        null
+            if (null != it.statement()) {
+                when {
+                    it.statement().dcl_ds() != null -> {
+                        try {
+                            it.statement().dcl_ds()
+                                .toAst(conf)
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        } catch (e: Exception) {
+                            null
+                        }
                     }
+                    else -> null
                 }
-                else -> null
+            } else {
+                null
             }
         })
 
@@ -267,21 +280,27 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
     dataDefinitionProviders.addAll(this.subprocedurestatement()
         .mapNotNull {
             kotlin.runCatching {
-                when {
-                    it.statement().dspec() != null -> {
-                        it.statement().dspec()
-                            .toAst(conf, knownDataDefinitions.values.toList())
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                if (null != it.statement()) {
+                    when {
+                        it.statement().dspec() != null -> {
+                            it.statement().dspec()
+                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        }
+                        it.statement().dcl_c() != null -> {
+                            it.statement().dcl_c()
+                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        }
+                        it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
+                            DataDefinitionCalculator(
+                                it.statement().dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders)
+                            )
+                        }
+                        else -> null
                     }
-                    it.statement().dcl_c() != null -> {
-                        it.statement().dcl_c()
-                            .toAst(conf, knownDataDefinitions.values.toList())
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    }
-                    it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
-                        DataDefinitionCalculator(it.statement().dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
-                    }
-                    else -> null
+                } else {
+                    null
                 }
             }.onFailure { error ->
                 it.error("Error on dataDefinitionProviders creation", error, conf)

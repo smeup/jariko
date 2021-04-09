@@ -1474,15 +1474,14 @@ Test 6
     }
 
     @Test
-    @Ignore
-    // TODO ignored until 'subroutines' support implementation
     fun executePROCEDURE_J() {
-        // assertASTCanBeProduced(exampleName = "PROCEDURE_J", printTree = true)
         assertEquals(
             expected = listOf("1",
                 "4",
                 "9",
-                "-16"
+                "16-",
+                "16-",
+                "16-"
             ),
             actual = outputOf("PROCEDURE_J")
         )
@@ -1507,12 +1506,37 @@ Test 6
     }
 
     @Test
-    fun executePROCEDURE_X() {
+    @Ignore
+    fun executePROCEDURE_L() {
+        // assertASTCanBeProduced(exampleName = "PROCEDURE_L", printTree = true)
+        assertEquals(
+            expected = listOf("0.99",
+                "1.11",
+                "9.99"
+            ),
+            actual = outputOf("PROCEDURE_L")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_M() {
         assertEquals(
             expected = listOf("2.24",
                 "3.36"
             ),
-            actual = outputOf("PROCEDURE_X")
+            actual = outputOf("PROCEDURE_M")
+        )
+    }
+
+    @Test
+    @Ignore
+    // TODO ignored until 'DS as parameter' will be supported (maybe never?)
+    fun executePROCEDURE_N() {
+        assertEquals(
+            expected = listOf("10.2",
+                "ABCDE"
+            ),
+            actual = outputOf("PROCEDURE_N")
         )
     }
 

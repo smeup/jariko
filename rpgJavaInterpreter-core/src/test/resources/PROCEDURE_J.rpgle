@@ -24,6 +24,20 @@
       * Must be 16-
      C     a             DSPLY
       *
+      * Subroutine 1 (same name of one into procedure) but never called
+     C     SUBR_1        BEGSR
+     C                   EVAL      a=99
+     C                   ENDSR
+      * Must be 16- again
+     C     a             DSPLY
+      *
+      * Subroutine 2 (same name of one into procedure) but never called
+     C     SUBR_2        BEGSR
+     C                   EVAL      a=88
+     C                   ENDSR
+      * Must be 16- again
+     C     a             DSPLY
+      *
      C                   SETON                                        LR
       *---------------------------------------------------------------
      PCALL1            B
