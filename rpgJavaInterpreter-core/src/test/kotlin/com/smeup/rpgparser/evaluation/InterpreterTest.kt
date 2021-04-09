@@ -1478,7 +1478,9 @@ Test 6
         assertEquals(
             expected = listOf("1",
                 "4",
+                "8",
                 "9",
+                "27",
                 "16-",
                 "16-",
                 "16-"
