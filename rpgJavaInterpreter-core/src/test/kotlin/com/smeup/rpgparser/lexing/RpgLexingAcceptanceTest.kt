@@ -13,7 +13,7 @@ class RpgLexingAcceptanceTest {
     @Category(AcceptanceTest::class)
     fun lexAllDataExamples() {
         var failures = 0
-        processFilesInDirectory("src/test/resources/data", 12) { rpgFile ->
+        processFilesInDirectory("src/test/resources/data", 15) { rpgFile ->
             try {
                 assertCanBeLexed(rpgFile)
             } catch (e: AssertionError) {

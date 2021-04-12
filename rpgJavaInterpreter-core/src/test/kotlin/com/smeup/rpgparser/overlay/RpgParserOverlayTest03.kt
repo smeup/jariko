@@ -7,7 +7,6 @@ import com.smeup.rpgparser.interpreter.InternalInterpreter
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
-import com.smeup.rpgparser.rpginterop.RpgSystem
 import org.junit.Test
 import java.io.File
 
@@ -30,11 +29,12 @@ open class RpgParserOverlayTest03 : AbstractTest() {
 
     @Test
     fun parseMUTE03_09_runtime() {
-        RpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
         val cu = assertASTCanBeProduced("overlay/MUTE03_09", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
 
-        val interpreter = InternalInterpreter(JavaSystemInterface())
+        val interpreter = InternalInterpreter(JavaSystemInterface().apply {
+            rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/overlay")))
+        })
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.systemInterface.getExecutedAnnotation().toSortedMap()
         var failed: Int = executeAnnotations(annotations)

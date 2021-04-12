@@ -25,8 +25,8 @@ abstract class AbstractDataDefinition(
     // - remove @Transient
     // - recompile ./gradlew compileAllMutes
     // - launch unit test testMUTE16_01
-    @Transient open val key: Int = MainExecutionContext.newId()
-
+    @Transient open val key: Int = MainExecutionContext.newId(),
+    @Transient open val const: Boolean = false
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
@@ -123,9 +123,10 @@ data class DataDefinition(
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
-    override val position: Position? = null
+    override val position: Position? = null,
+    override val const: Boolean = false
 ) :
-            AbstractDataDefinition(name, type, position) {
+            AbstractDataDefinition(name = name, type = type, position = position, const = const) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
@@ -248,9 +249,10 @@ data class FieldDefinition(
     override val position: Position? = null,
 
     // true when the FieldDefinition contains a DIM keyword on its line
-    val declaredArrayInLineOnThisField: Int? = null
+    val declaredArrayInLineOnThisField: Int? = null,
+    override val const: Boolean = false
 ) :
-            AbstractDataDefinition(name, type, position) {
+            AbstractDataDefinition(name = name, type = type, position = position, const = const) {
 
     init {
         require((explicitStartOffset != null) != (calculatedStartOffset != null)) {
@@ -285,12 +287,16 @@ data class FieldDefinition(
         }
 
     override fun elementSize(): Int {
-        return if (container.type is ArrayType) {
-            super.elementSize()
-        } else if (this.declaredArrayInLine != null) {
-            super.elementSize()
-        } else {
-            size
+        return when {
+            container.type is ArrayType -> {
+                super.elementSize()
+            }
+            this.declaredArrayInLine != null -> {
+                super.elementSize()
+            }
+            else -> {
+                size
+            }
         }
     }
 
@@ -363,8 +369,9 @@ class InStatementDataDefinition(
     override val name: String,
     override val type: Type,
     override val position: Position? = null,
-    val initializationValue: Expression? = null
-) : AbstractDataDefinition(name, type, position) {
+    val initializationValue: Expression? = null,
+    override val const: Boolean = false
+) : AbstractDataDefinition(name = name, type = type, position = position, const = const) {
     override fun toString(): String {
         return "InStatementDataDefinition name=$name, type=$type, position=$position"
     }
@@ -470,7 +477,7 @@ fun decodeBinary(value: String, size: Int): BigDecimal {
 
 fun decodeInteger(value: String, size: Int): BigDecimal {
     if (size == 1) {
-        var number: Int = 0x0000000
+        var number = 0x0000000
         number += (value[0].toByte())
         return BigDecimal(number.toString())
     }
@@ -556,7 +563,7 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
 fun encodeToZoned(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
-    var buffer = IntArray(inChars.size)
+    val buffer = IntArray(inChars.size)
 
     // read the sign
     val sign = inValue.signum()
@@ -606,7 +613,7 @@ fun decodeFromZoned(value: String, digits: Int, scale: Int): BigDecimal {
 fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     // get just the digits from BigDecimal, "normalize" away sign, decimal place etc.
     val inChars = inValue.abs().movePointRight(scale).toBigInteger().toString().toCharArray()
-    var buffer = IntArray(inChars.size / 2 + 1)
+    val buffer = IntArray(inChars.size / 2 + 1)
 
     // read the sign
     val sign = inValue.signum()
@@ -620,7 +627,7 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
     while (inPosition < inChars.size - 1) {
         firstNibble = ((inChars[inPosition++].toInt()) and 0x000F) shl 4
         secondNibble = (inChars[inPosition++].toInt()) and 0x000F
-        buffer[offset++] = (firstNibble + secondNibble).toInt()
+        buffer[offset++] = (firstNibble + secondNibble)
     }
 
     // place last digit and sign nibble
@@ -630,9 +637,9 @@ fun encodeToDS(inValue: BigDecimal, digits: Int, scale: Int): String {
         (inChars[inChars.size - 1].toInt()) and 0x000F shl 4
     }
     if (sign != -1) {
-        buffer[offset] = (firstNibble + 0x000F).toInt()
+        buffer[offset] = (firstNibble + 0x000F)
     } else {
-        buffer[offset] = (firstNibble + 0x000D).toInt()
+        buffer[offset] = (firstNibble + 0x000D)
     }
 
     var s = ""
@@ -649,25 +656,25 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
         buffer[i] = value[i].toInt()
     }
 
-    var sign: String = ""
-    var number: String = ""
-    var nibble = ((buffer[buffer.size - 1]).toInt() and 0x0F)
+    var sign = ""
+    var number = ""
+    var nibble = ((buffer[buffer.size - 1]) and 0x0F)
     if (nibble == 0x0B || nibble == 0x0D) {
         sign = "-"
     }
 
     var offset = 0
     while (offset < (buffer.size - 1)) {
-        nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
+        nibble = (buffer[offset] and 0xFF).ushr(4)
         number += Character.toString((nibble or 0x30).toChar())
-        nibble = buffer[offset].toInt() and 0x0F or 0x30
+        nibble = buffer[offset] and 0x0F or 0x30
         number += Character.toString((nibble or 0x30).toChar())
 
         offset++
     }
 
     // read last digit
-    nibble = (buffer[offset].toInt() and 0xFF).ushr(4)
+    nibble = (buffer[offset] and 0xFF).ushr(4)
     if (nibble <= 9) {
         number += Character.toString((nibble or 0x30).toChar())
     }

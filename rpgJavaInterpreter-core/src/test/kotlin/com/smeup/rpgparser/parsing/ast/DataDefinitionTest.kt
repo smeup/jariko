@@ -93,7 +93,8 @@ open class DataDefinitionTest : AbstractTest() {
                 ))
     }
 
-    @test fun likeAndDimClauseParsing() {
+    @test
+    fun likeAndDimClauseParsing() {
         val cu = parseFragmentToCompilationUnit(
                 "D U\$SVARSK        S                   LIKE(\$\$SVAR) DIM(%ELEM(\$\$SVAR))",
                 toAstConfiguration = ToAstConfiguration(considerPosition = false,

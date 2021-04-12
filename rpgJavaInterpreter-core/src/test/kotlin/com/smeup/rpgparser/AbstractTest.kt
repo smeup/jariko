@@ -10,6 +10,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
+import kotlin.test.BeforeTest
 
 /**
  * This class must be extended from all test classes in order to automatically manage tests using both version
@@ -18,6 +19,13 @@ import java.io.File
  * (YourTestCompiled : YourTest()) that simply it will override useCompiledVersion method returning true
  * */
 abstract class AbstractTest {
+
+    @BeforeTest
+    fun beforeTest() {
+        // I don't like but until I won't be able to refactor the test units through
+        // the unification of the SytemInterfaces I need to use this workaround
+        SingletonRpgSystem.reset()
+    }
 
     open fun assertASTCanBeProduced(
         exampleName: String,
@@ -117,13 +125,13 @@ abstract class AbstractTest {
         } else {
             "$programName.rpgle"
         }
-        val resource = javaClass.getResource("/$resourceName")
+        val resource = AbstractTest::class.java.getResource("/$resourceName")
         require(resource != null) {
             "Cannot find resource $resourceName"
         }
-        val programFinders = listOf(DirRpgProgramFinder(directory = File(resource.path).parentFile.parentFile))
+        val programFinders = listOf(DirRpgProgramFinder(directory = File(resource.path).parentFile))
         val jariko = getProgram(
-            nameOrSource = programName,
+            nameOrSource = programName.substringAfterLast("/", programName),
             systemInterface = systemInterface,
             programFinders = programFinders
         )

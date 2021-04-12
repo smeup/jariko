@@ -6,14 +6,16 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.file
-import com.smeup.rpgparser.interpreter.RpgProgram
-import com.smeup.rpgparser.interpreter.StringValue
-import com.smeup.rpgparser.interpreter.SystemInterface
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
+import com.smeup.rpgparser.parsing.ast.Api
+import com.smeup.rpgparser.parsing.ast.ApiDescriptor
+import com.smeup.rpgparser.parsing.ast.ApiId
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.Copy
+import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.rpginterop.*
 import org.apache.commons.io.input.BOMInputStream
 import java.io.File
@@ -100,6 +102,18 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     override fun toString(): String {
         return "resource: $path"
     }
+
+    override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApi(apiId: ApiId): Api? {
+        TODO("Not yet implemented")
+    }
 }
 
 val defaultProgramFinders = listOf(
@@ -114,12 +128,16 @@ fun getProgram(
     systemInterface: SystemInterface = JavaSystemInterface(),
     programFinders: List<RpgProgramFinder> = defaultProgramFinders
 ): CommandLineProgram {
-
-    programFinders.forEach {
-        RpgSystem.addProgramFinder(it)
+    if (systemInterface is JavaSystemInterface) {
+        systemInterface.rpgSystem.addProgramFinders(programFinders)
+        programFinders.forEach {
+            systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
+        }
+    } else {
+        // for compatibility with other system interfaces using singleton instance
+        RpgSystem?.SINGLETON_RPG_SYSTEM?.addProgramFinders(programFinders)
+        RpgSystem?.SINGLETON_RPG_SYSTEM?.log(systemInterface.getAllLogHandlers())
     }
-
-    RpgSystem.log(systemInterface.getAllLogHandlers())
 
     return CommandLineProgram(nameOrSource, systemInterface)
 }

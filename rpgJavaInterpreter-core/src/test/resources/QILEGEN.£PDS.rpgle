@@ -1,4 +1,4 @@
-﻿      /IF NOT DEFINED(£PDS)
+      /IF NOT DEFINED(£PDS)
       /DEFINE £PDS
      D* ==============================================================
      D* MODIFICHE Ril.  T Au Descrizione

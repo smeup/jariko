@@ -8,6 +8,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.AstCreatingException
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
@@ -18,6 +19,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 open class InterpreterTest : AbstractTest() {
 
@@ -32,7 +34,7 @@ open class InterpreterTest : AbstractTest() {
         """.trimMargin()
 
         val program = getProgram(source, systemInterface)
-        assertFailsWith(IllegalArgumentException::class) {
+        assertFailsWith(AstCreatingException::class) {
             program.singleCall(listOf())
         }
     }
@@ -250,6 +252,37 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeDCONST() {
         assertEquals(listOf("60"), outputOf("DCONST"))
+    }
+
+    // this test tries to assign in different ways a constant and
+    // it expects that assignment fails
+    @Test
+    fun executeDCONST_assignments() {
+        val eval = """
+     Dy                C                   CONST(30)
+     C                   Eval      y = 12            
+        """
+        val move = """
+     Dx                C                   CONST(30)
+     Dy                C                   CONST(30)
+     C                   move      x             y            
+        """
+        val add = """
+     Dy                C                   CONST(30)
+     C                   add       1             y    
+        """
+        listOf(eval, move, add).forEach { source ->
+            kotlin.runCatching {
+                println("Executing:$source")
+                getProgram(nameOrSource = source).singleCall(emptyList())
+            }.onSuccess {
+                fail(message = "Program:\n$source\ndid not have to be executed properly.")
+            }.onFailure {
+                assert(it.message!!.indexOf("is a const and cannot be assigned") != -1) {
+                    "Exception message doesn't contain expected message but contains:\n${it.message}"
+                }
+            }
+        }
     }
 
     @Test
@@ -1045,7 +1078,7 @@ Test 6
 
     @Test
     fun executeZADDERR() {
-        assertFailsWith(IllegalArgumentException::class) {
+        assertFailsWith(IllegalStateException::class) {
             execute("ZADDERR", emptyMap())
         }
     }
@@ -1381,12 +1414,28 @@ Test 6
 
     @Test
     fun executeFREE_HELLO() {
-        executePgmWithStringArgs(
-            programName = "FREE_HELLO",
-            emptyList()
+        assertEquals(
+            expected = "Hello world, Hello world in Chinese: 你好世界, number1 * number2 = 15".split(Regex(", ")),
+            actual = outputOf("FREE_HELLO"))
+    }
+
+    @Test @Ignore
+    fun executeLOSER_PR() {
+        executePgm("LOSER_PR")
+    }
+
+    @Test
+    fun executeAPIPGM1() {
+        assertEquals(
+            expected = "100".split(Regex(", ")),
+            actual = outputOf("APIPGM1"))
+    }
+
+    @Test
+    open fun executeDSOVERL() {
+        assertEquals(
+            expected = "AAAA,BBBB".split(","),
+            actual = outputOf("DSOVERL")
         )
-//        File("c:/temp/r.xml").bufferedWriter().use {
-//            it.write(assertCanBeParsedResult("FREE_HELLO", false).toTreeString())
-//        }
     }
 }

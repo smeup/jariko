@@ -220,10 +220,10 @@ fun Expression.type(): Type {
             val type = this.array.type().asArray()
             return type.element
         }
-        is PredefinedIndicatorExpr -> {
+        is IndicatorExpr -> {
             return BooleanType
         }
-        is PredefinedGlobalIndicatorExpr -> {
+        is GlobalIndicatorExpr -> {
             return ArrayType(BooleanType, 99)
         }
         is HiValExpr -> {

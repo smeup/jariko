@@ -5,7 +5,6 @@ import com.smeup.rpgparser.jvminterop.Size
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.Param
 import com.smeup.rpgparser.rpginterop.RpgFacade
-import com.smeup.rpgparser.rpginterop.RpgSystem
 import java.io.File
 
 data class VarElement(
@@ -47,9 +46,10 @@ class JD_003(javaSystemInterface: JavaSystemInterface) : RpgFacade<JD_003_params
     }
 }
 
-fun main(args: Array<String>) {
-    RpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
-    val javaSystemInterface = JavaSystemInterface()
+fun main() {
+    val javaSystemInterface = JavaSystemInterface().apply {
+        rpgSystem.addProgramFinder(DirRpgProgramFinder(File("examples/rpg")))
+    }
     javaSystemInterface.addJavaInteropPackage("com.github.rpgjavainterpreter.gatecontroller")
     JD_001(javaSystemInterface).call("https://xxx.myurl.com", "x", "w")
 //    JD_003(javaSystemInterface).call()

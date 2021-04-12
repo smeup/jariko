@@ -2,12 +2,11 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.ast.AssignableExpression
-import com.smeup.rpgparser.parsing.ast.Expression
-import com.smeup.rpgparser.parsing.ast.IntLiteral
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
+import java.math.BigDecimal
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
@@ -150,47 +149,54 @@ internal fun RpgParser.DspecContext.toAst(
             varying = true
         }
     }
+
     val elementSize = when {
         like != null -> {
-            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!)
+            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
         }
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
 
-    val baseType = when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
-        null -> TODO()
-        "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
-            /* TODO should be packed? */
-            NumberType(elementSize!! - decimalPositions, decimalPositions)
-        } else {
-            StringType(elementSize!!, varying)
-        }
-        "A" -> StringType(elementSize!!, varying)
-        "N" -> BooleanType
-        "Z" -> TimeStampType
-        /* TODO should be zoned? */
-        RpgType.ZONED.rpgType -> {
-            /* Zoned Type */
-            NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
-        }
-        RpgType.PACKED.rpgType -> {
-            /* Packed Type */
-            NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
-        }
-        RpgType.BINARY.rpgType -> {
-            /* Binary */
-            NumberType(elementSize!!, 0, RpgType.BINARY.rpgType)
-        }
-        RpgType.INTEGER.rpgType -> {
-            /* Integer Type */
-            NumberType(elementSize!!, 0, RpgType.INTEGER.rpgType)
-        }
-        RpgType.UNSIGNED.rpgType -> {
-            /* Unsigned Type */
-            NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
-        }
-        else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
+    val baseType =
+        when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
+            null -> todo(conf = conf)
+            "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
+                /* TODO should be packed? */
+                NumberType(elementSize!! - decimalPositions, decimalPositions)
+            } else {
+                if (like != null) {
+                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
+                } else {
+                    StringType(elementSize!!, varying)
+                }
+            }
+            "A" -> StringType(elementSize!!, varying)
+            "N" -> BooleanType
+            "Z" -> TimeStampType
+            /* TODO should be zoned? */
+            RpgType.ZONED.rpgType -> {
+                /* Zoned Type */
+                NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
+            }
+            RpgType.PACKED.rpgType -> {
+                /* Packed Type */
+                NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
+            }
+            RpgType.BINARY.rpgType -> {
+                /* Binary */
+                NumberType(elementSize!!, 0, RpgType.BINARY.rpgType)
+            }
+            RpgType.INTEGER.rpgType -> {
+                /* Integer Type */
+                NumberType(elementSize!!, 0, RpgType.INTEGER.rpgType)
+            }
+            RpgType.UNSIGNED.rpgType -> {
+                /* Unsigned Type */
+                NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
+            }
+            else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
     }
+
     val type = if (dim != null) {
         var compileTimeRecordsPerLine: Int? = null
         if (compileTimeArray) {
@@ -201,8 +207,13 @@ internal fun RpgParser.DspecContext.toAst(
             }
             require(compileTimeRecordsPerLine > 0)
         }
-        ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
-            it.ascend = ascend
+
+        if (!baseType.isArray()) {
+            ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
+                it.ascend = ascend
+            }
+        } else {
+            baseType
         }
     } else {
         baseType
@@ -225,7 +236,9 @@ internal fun RpgParser.Dcl_cContext.toAst(
             this.ds_name().text,
             type,
             initializationValue = initializationValueExpression,
-            position = this.toPosition(true))
+            position = this.toPosition(true),
+            const = true
+    )
 }
 
 private val RpgParser.DspecContext.decimalPositions
@@ -408,7 +421,7 @@ fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
     )
 }
 
-internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeDeclared: Int?): Type? {
+internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeDeclared: Int?, conf: ToAstConfiguration): Type? {
     val rpgCodeType = DATA_TYPE()?.text?.trim() ?: RpgType.ZONED.rpgType
     val decimalPositions = if (DECIMAL_POSITIONS().text.isNotBlank()) with(DECIMAL_POSITIONS().text.trim()) { if (isEmpty()) 0 else toInt() } else null
     val isPackEven = keyword().any { it.keyword_packeven() != null }
@@ -484,7 +497,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
             CharacterType(precision!!)
         }
         "N" -> BooleanType
-        else -> TODO("Support RPG code type '$rpgCodeType', field $name")
+        else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = conf)
     }
 }
 
@@ -529,21 +542,30 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
         var initializationValue: Expression? = null
         var hasInitValue = this.keyword().find { it.keyword_inz() != null }
         if (hasInitValue != null) {
-            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+            if (hasInitValue.keyword_inz().simpleExpression() != null) {
+                initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+            } else {
+                // TODO handle initializations for any other variables type (es. 'Z' for timestamp)
+                initializationValue = if (null != this.toTypeInfo().decimalPositions) {
+                    RealLiteral(BigDecimal.ZERO, position = toPosition())
+                } else {
+                    StringLiteral("", position = toPosition())
+                }
+            }
         }
 
         val arraySizeDeclared = this.arraySizeDeclared()
         return FieldInfo(this.name, overlayInfo = overlayInfo,
                 explicitStartOffset = this.explicitStartOffset(),
                 explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-                explicitElementType = this.calculateExplicitElementType(arraySizeDeclared),
+                explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf),
                 arraySizeDeclared = this.arraySizeDeclared(),
                 arraySizeDeclaredOnThisField = this.arraySizeDeclared(),
                 initializationValue = initializationValue,
                 descend = descend,
                 position = this.toPosition(conf.considerPosition))
     } catch (e: Exception) {
-        throw RuntimeException("Problem arose converting to AST field ${this.name}", e)
+        this.error("Problem arose converting to AST field", e, conf = conf)
     }
 }
 
@@ -730,16 +752,6 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
             val correspondingFieldDefinition = dataDefinition.fields.find { it.name == fieldInfo.name }!!
             correspondingFieldDefinition.overlayTarget = fieldInfo.overlayInfo!!.targetFieldName
             dataDefinition.setOverlayOn(correspondingFieldDefinition)
-//            val overlayTarget = fieldInfo.overlayInfo!!.targetFieldName
-//            if (overlayTarget == dataDefinition.name) {
-//                correspondingFieldDefinition.overlayingOn = { dataDefinition }
-//            } else {
-//                correspondingFieldDefinition.overlayingOn = {
-//                    dataDefinition.fields.find { fieldDefinition ->
-//                        fieldDefinition.name == overlayTarget
-//                    }
-//                }
-//            }
         }
     }
     dataDefinition.fields.forEach { it.parent = dataDefinition }
@@ -773,7 +785,7 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
         val referrableDataDefinitions = dataDefinitionProviders.filter { it.isReady() }.map { it.toDataDefinition() }
 
         val likeDsName = (this.keyword().mapNotNull { it.keyword_likeds() }).first().data_structure_name.identifier().free_identifier().idOrKeyword().ID().text
-        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName } ?: throw RuntimeException("Data definition $likeDsName not found")
+        val referredDataDefinition = referrableDataDefinitions.find { it.name == likeDsName } ?: this.error("Data definition $likeDsName not found", conf = conf)
 
         val dataDefinition = DataDefinition(
                 this.name,

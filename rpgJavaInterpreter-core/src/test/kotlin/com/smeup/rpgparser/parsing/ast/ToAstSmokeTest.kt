@@ -168,4 +168,59 @@ open class ToAstSmokeTest : AbstractTest() {
         assertTrue(directive is ActivationGroupDirective)
         return directive
     }
+
+    /**
+     * We need to be able to create AST for sources containing just D specifications
+     * */
+    @Test
+    fun buildAstForMU1DSPEC() {
+        assert(assertASTCanBeProduced("£MU1DSPEC").dataDefinitions.size == 2)
+    }
+
+    /**
+     * We need to be able to create AST for sources containing just C specifications
+     * */
+    @Test
+    fun buildAstForMU1CSPEC() {
+        assert(assertASTCanBeProduced("£MU1CSPEC").subroutines.size == 1)
+    }
+
+    /**
+     * We need to be able to create AST for sources containing /COPY directive and to verify
+     * that the resulting AST contains all AST fragments provided by included copies
+     * */
+    @Test
+    fun buildAstForMU1API() {
+        val cu = assertASTCanBeProduced("£MU1API")
+        assert(cu.dataDefinitions.size == 2)
+    }
+
+    /**
+     * We need to be able to create AST for sources containing /COPY directive and to verify
+     * that the resulting AST contains all AST fragments provided by included copies
+     * */
+    @Test
+    fun buildAstForMU1PGM() {
+        val cu = assertASTCanBeProduced("£MU1PGM", considerPosition = true)
+        assert(cu.subroutines.size == 4)
+        assert(cu.dataDefinitions.size == 2)
+    }
+
+    @Test
+    fun buildAstForLOSER_PR() {
+        assertASTCanBeProduced("LOSER_PR", considerPosition = true)
+    }
+
+    @Test
+    fun buildAstForLOSER_PR_FULL() {
+        assertASTCanBeProduced("LOSER_PR_FULL", considerPosition = true)
+    }
+
+    @Test
+    fun buildAstForAPIPGM1() {
+        assertASTCanBeProduced("APIPGM1", considerPosition = true).apply {
+            assertEquals(4, this.dataDefinitions.size)
+            assertEquals(1, this.subroutines.size)
+        }
+    }
 }

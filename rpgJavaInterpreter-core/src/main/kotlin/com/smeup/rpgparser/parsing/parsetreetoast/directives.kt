@@ -13,7 +13,7 @@ fun RpgParser.Hspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigura
         is RpgParser.SetActGrpContext -> {
             (this.content as RpgParser.SetActGrpContext).hs_actgrp().toAst(conf)
         }
-        else -> TODO("Unexpected ${this.content.text} in H directive")
+        else -> todo(message = "Unexpected ${this.content.text} in H directive", conf)
     }
 
 fun RpgParser.Hs_actgrpContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ActivationGroupDirective {
@@ -41,7 +41,7 @@ fun RpgParser.Hs_parmContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
             val content = this.hs_string().content.map { it.text }.joinToString(separator = "")
             return StringLiteral(content, position = this.toPosition(conf.considerPosition))
         }
-        else -> TODO("Invalid param in decedit directive")
+        else -> todo(message = "Invalid param in decedit directive", conf)
     }
 }
 

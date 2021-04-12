@@ -25,13 +25,13 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
         is DataRefExpr -> {
             moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCore)
         }
-        is PredefinedGlobalIndicatorExpr -> {
+        is GlobalIndicatorExpr -> {
             interpreterCore.assign(target, interpreterCore.eval(valueExpression))
         }
-        is PredefinedIndicatorExpr -> {
+        is IndicatorExpr -> {
             val value = interpreterCore.eval(valueExpression)
             for (index in target.index..ALL_PREDEFINED_INDEXES.last) {
-                interpreterCore.assign(PredefinedIndicatorExpr(index), value)
+                interpreterCore.assign(IndicatorExpr(index), value)
             }
             value
         }

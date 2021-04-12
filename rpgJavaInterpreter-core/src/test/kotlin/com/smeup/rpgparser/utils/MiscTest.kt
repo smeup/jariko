@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.utils
 
+import com.smeup.rpgparser.parsing.facade.preprocess
 import org.apache.commons.io.FileUtils
 import org.junit.Test
 import java.io.File
@@ -121,5 +122,49 @@ class MiscTest {
         compile(src = srcFile, compiledProgramsDir = File(tmpDir), format = Format.JSON, muteSupport = false)
         val expectedJson = File(tmpDir, "$programName.json").apply { deleteOnExit() }
         assertTrue(FileUtils.contentEquals(expectedJson, outJsonFile))
+    }
+
+    @Test
+    fun inputStreamPreprocess() {
+
+        val src = """
+     H/COPY QILEGEN,£INIZH     
+      *---------------------------------------------------------------
+     I/COPY QILEGEN,£TABB£1DS     
+     I/COPY QILEGEN,£PDS     
+      AFTER QILEGEN,£PDS   
+      /COPY QILEGEN,£JAX_PD1            
+        """
+        val expected = """
+********** PREPROCESSOR COPYSTART QILEGEN,£INIZH
+      HELLO I AM COPY QILEGEN,£INIZH
+********** PREPROCESSOR COPYEND QILEGEN,£INIZH     
+      *---------------------------------------------------------------
+********** PREPROCESSOR COPYSTART QILEGEN,£TABB£1DS
+      HELLO I AM COPY QILEGEN,£TABB£1DS
+********** PREPROCESSOR COPYEND QILEGEN,£TABB£1DS     
+********** PREPROCESSOR COPYSTART QILEGEN,£PDS
+      HELLO I AM COPY QILEGEN,£PDS
+********** PREPROCESSOR COPYEND QILEGEN,£PDS     
+      AFTER QILEGEN,£PDS   
+********** PREPROCESSOR COPYSTART QILEGEN,£JAX_PD1
+********** PREPROCESSOR COPYSTART QILEGEN,£JAX_PD2
+      HELLO I AM COPY QILEGEN,£JAX_PD2
+********** PREPROCESSOR COPYEND QILEGEN,£JAX_PD2
+      AFTER QILEGEN,£PDS AND ADDING ${'$'}1${'$'}2${'$'}3
+********** PREPROCESSOR COPYEND QILEGEN,£JAX_PD1   
+        """
+        val included = src.byteInputStream().preprocess {
+            // recursive test
+            // simulate copy £JAX_PD1 include £JAX_PD2
+            if (it.member == "£JAX_PD1") {
+                ("      /COPY QILEGEN,£JAX_PD2\n" +
+                        "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
+            } else {
+                "      HELLO I AM COPY ${it.file},${it.member}"
+            }
+        }
+        println(included)
+        assertEquals(expected.trim(), included.trim())
     }
 }

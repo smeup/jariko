@@ -4,7 +4,12 @@ import com.smeup.rpgparser.execution.CommandLineProgram;
 import com.smeup.rpgparser.execution.RunnerKt;
 import com.smeup.rpgparser.interpreter.RpgProgram;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
+import com.smeup.rpgparser.parsing.ast.Api;
+import com.smeup.rpgparser.parsing.ast.ApiDescriptor;
+import com.smeup.rpgparser.parsing.ast.ApiId;
 import com.smeup.rpgparser.parsing.ast.SourceProgram;
+import com.smeup.rpgparser.parsing.facade.Copy;
+import com.smeup.rpgparser.parsing.facade.CopyId;
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +51,24 @@ public class ProgramFinderSample {
                 throw new RuntimeException(e);
             }
         }
+
+        @Nullable
+        @Override
+        public Copy findCopy(@NotNull CopyId copyId) {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public ApiDescriptor findApiDescriptor(@NotNull ApiId apiId) {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Api findApi(@NotNull ApiId apiId) {
+            return null;
+        }
     }
 
     private static class SrcProgramFinder implements RpgProgramFinder {
@@ -66,6 +89,24 @@ public class ProgramFinderSample {
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Nullable
+        @Override
+        public Copy findCopy(@NotNull CopyId copyId) {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public ApiDescriptor findApiDescriptor(@NotNull ApiId apiId) {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Api findApi(@NotNull ApiId apiId) {
+            return null;
         }
     }
 

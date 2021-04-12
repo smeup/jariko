@@ -14,13 +14,13 @@ sealed class LookupSearchResult {
 object NotFound : LookupSearchResult() {
     override val oneBasedIndex = 1
     override fun setIndicators(interpreterCore: InterpreterCore, statement: LookupStmt) =
-        interpreterCore.setPredefinedIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+        interpreterCore.setIndicators(statement, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
 }
 
 class FoundAtIndex(override val oneBasedIndex: Int, val hi: BooleanValue, val lo: BooleanValue, val eq: BooleanValue) :
     LookupSearchResult() {
     override fun setIndicators(interpreterCore: InterpreterCore, statement: LookupStmt) =
-        interpreterCore.setPredefinedIndicators(statement, hi, lo, eq)
+        interpreterCore.setIndicators(statement, hi, lo, eq)
 }
 
 class ArraySearchingParameters(

@@ -5,7 +5,12 @@ import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.mute.color
+import com.smeup.rpgparser.parsing.ast.Api
+import com.smeup.rpgparser.parsing.ast.ApiDescriptor
+import com.smeup.rpgparser.parsing.ast.ApiId
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
+import com.smeup.rpgparser.parsing.facade.Copy
+import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
 import java.io.PrintStream
@@ -45,7 +50,15 @@ interface SystemInterface {
     fun display(value: String)
     fun findProgram(name: String): Program?
     fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function?
-
+    fun findCopy(copyId: CopyId): Copy?
+    /**
+     * @return API descriptor
+     * */
+    fun findApiDescriptor(apiId: ApiId): ApiDescriptor
+    /**
+     * @return API
+     * */
+    fun findApi(apiId: ApiId): Api
     fun loggingConfiguration(): LoggingConfiguration?
     fun addExtraLogHandlers(logHandlers: List<InterpreterLogHandler>): SystemInterface {
         extraLogHandlers.addAll(logHandlers)
@@ -82,6 +95,10 @@ object DummySystemInterface : SystemInterface {
         return null
     }
 
+    override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
+    }
+
     override fun display(value: String) {
         // doing nothing
     }
@@ -92,6 +109,14 @@ object DummySystemInterface : SystemInterface {
 
     override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
         return executedAnnotationInternal
+    }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApi(apiId: ApiId): Api {
+        TODO("Not yet implemented")
     }
 }
 
@@ -108,6 +133,10 @@ class SimpleSystemInterface(
 
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         return null
+    }
+
+    override fun findCopy(copyId: CopyId): Copy? {
+        TODO("Not yet implemented")
     }
 
     private val programs = java.util.HashMap<String, Program?>()
@@ -140,6 +169,14 @@ class SimpleSystemInterface(
 
     override fun getExecutedAnnotation(): LinkedHashMap<Int, MuteAnnotationExecuted> {
         return executedAnnotationInternal
+    }
+
+    override fun findApiDescriptor(apiId: ApiId): ApiDescriptor {
+        TODO("Not yet implemented")
+    }
+
+    override fun findApi(apiId: ApiId): Api {
+        TODO("Not yet implemented")
     }
 }
 

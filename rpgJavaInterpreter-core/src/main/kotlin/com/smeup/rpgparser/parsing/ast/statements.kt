@@ -15,7 +15,6 @@ import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -31,12 +30,6 @@ enum class AssignmentOperator(val text: String) {
     DIVIDE_ASSIGNMENT("/="),
     EXP_ASSIGNMENT("**=");
 }
-
-typealias IndicatorKey = Int
-@Serializable
-data class IndicatorCondition(val key: IndicatorKey, val negate: Boolean)
-@Serializable
-data class ContinuedIndicator(val key: IndicatorKey, val negate: Boolean, val level: String)
 
 @Serializable
 abstract class Statement(
@@ -65,7 +58,7 @@ abstract class Statement(
     open fun simpleDescription() = "Issue executing ${javaClass.simpleName} at line ${startLine()}."
 
     var indicatorCondition: IndicatorCondition? = null
-    var continuedIndicators: HashMap<Int, ContinuedIndicator> = HashMap<Int, ContinuedIndicator>()
+    var continuedIndicators: HashMap<IndicatorKey, ContinuedIndicator> = HashMap<IndicatorKey, ContinuedIndicator>()
 
     @Throws(ControlFlowException::class, IllegalArgumentException::class, NotImplementedError::class, RuntimeException::class)
     abstract fun execute(interpreter: InterpreterCore)
@@ -218,27 +211,9 @@ data class SubDurStmt(
     override fun execute(interpreter: InterpreterCore) {
         when (target) {
             is DataRefExpr -> {
-                // TODO: partial implementation just for *MS  and *D - Add more cases
-                val minuend = if (factor1 == null) {
-                    interpreter.eval(target)
-                } else {
-                    interpreter.eval(factor1)
-                }
-                val subtrahend = interpreter.eval(factor2)
-                when (durationCode) {
-                    DurationInMSecs -> {
-                        val newValue =
-                            (minuend.asTimeStamp().value.time - subtrahend.asTimeStamp().value.time) * 1000
-                        interpreter.assign(target, IntValue(newValue))
-                    }
-                    DurationInDays -> {
-                        val newValue =
-                            ChronoUnit.DAYS.between(
-                                subtrahend.asTimeStamp().value.toInstant(), minuend.asTimeStamp().value.toInstant()
-                            )
-                        interpreter.assign(target, IntValue(newValue))
-                    }
-                }
+                val minuend = factor1 ?: target
+                val subtrahend = factor2
+                interpreter.assign(target, interpreter.eval(DiffExpr(minuend, subtrahend, durationCode)))
             }
             else -> throw UnsupportedOperationException("Data reference required: $this")
         }
@@ -653,7 +628,7 @@ data class CallStmt(
                 if (errorIndicator == null) {
                     throw e
                 }
-                interpreter.predefinedIndicators[errorIndicator] = BooleanValue.TRUE
+                interpreter.indicators[errorIndicator] = BooleanValue.TRUE
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
@@ -758,8 +733,7 @@ data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpres
     override fun execute(interpreter: InterpreterCore) {
         indicators.forEach {
             when (it) {
-                is DataWrapUpIndicatorExpr -> interpreter.interpretationContext.dataWrapUpChoice = it.dataWrapUpChoice
-                is PredefinedIndicatorExpr -> interpreter.predefinedIndicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
+                is IndicatorExpr -> interpreter.indicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
                 else -> TODO()
             }
         }
@@ -843,7 +817,7 @@ data class ClearStmt(
                     )
                 }
             }
-            is PredefinedIndicatorExpr -> {
+            is IndicatorExpr -> {
                 val value = interpreter.assign(value, BlanksRefExpr())
                 interpreter.log {
                     ClearStatemenExecutionLog(
@@ -866,19 +840,32 @@ data class DefineStmt(
 ) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         val containingCU = this.ancestor(CompilationUnit::class.java)
-                ?: throw IllegalStateException("Not contained in a CU")
+            ?: return emptyList()
+
         val originalDataDefinition = containingCU.dataDefinitions.find { it.name == originalName }
+        // If definition was not found as a 'standalone' 'D spec' declaration,
+        // maybe it can be found as a sub-field of DS in 'D specs' declarations
+        containingCU.dataDefinitions.forEach {
+            it.fields.forEach {
+                if (it.name == originalName) {
+                    return listOf(InStatementDataDefinition(newVarName, it.type, position))
+                }
+            }
+        }
+
         if (originalDataDefinition != null) {
             return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
             val inStatementDataDefinition =
-                    containingCU.main.stmts
-                            .filterIsInstance(StatementThatCanDefineData::class.java)
-                            .asSequence()
-                            .map(StatementThatCanDefineData::dataDefinition)
-                            .flatten()
-                            .find { it.name == originalName }
-            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition!!.type, position))
+                containingCU.main.stmts
+                    .filterIsInstance(StatementThatCanDefineData::class.java)
+                    .filter { it != this }
+                    .asSequence()
+                    .map(StatementThatCanDefineData::dataDefinition)
+                    .flatten()
+                    .find { it.name == originalName } ?: return emptyList()
+
+            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
 
@@ -911,9 +898,9 @@ data class CompStmt(
 ) : Statement(position), WithRightIndicators by rightIndicators {
     override fun execute(interpreter: InterpreterCore) {
         when (interpreter.compareExpressions(left, right, interpreter.localizationContext.charset)) {
-            GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-            SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-            else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+            SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+            else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
         }
     }
 }
@@ -1268,9 +1255,9 @@ data class CabStmt(
     override fun execute(interpreter: InterpreterCore) {
         val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.localizationContext.charset)
         when (comparisonResult.comparison) {
-            GREATER -> interpreter.setPredefinedIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
-            SMALLER -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
-            else -> interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
+            SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
+            else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
         }
         if (comparisonResult.isVerified) throw GotoException(tag)
     }
@@ -1367,7 +1354,7 @@ data class CatStmt(val left: Expression?, val right: Expression, val target: Ass
         val factor2 = interpreter.eval(right)
         var result = interpreter.eval(target)
         val resultLen = result.asString().length()
-        var concatenatedFactors: Value
+        val concatenatedFactors: Value
 
         if (null != left) {
             val factor1 = interpreter.eval(left)
@@ -1436,9 +1423,9 @@ data class ScanStmt(
             if (index >= 0) occurrences.add(IntValue((index + startPosition).toLong()))
         } while (index >= 0)
         if (occurrences.isEmpty()) {
-            interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+            interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
         } else {
-            interpreter.setPredefinedIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
+            interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             if (target.type().isArray()) {
                 val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
                 interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))

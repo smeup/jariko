@@ -35,7 +35,6 @@
      D$MSG             S             52
      C                   EXSR      F_CERCA
       *
-    MU* Type="NOXMI"
     MU* TIMEOUT(9000)
      C                   SETON                                        LR
       *---------------------------------------------------------------------

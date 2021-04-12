@@ -82,7 +82,6 @@ private val modules = SerializersModule {
         subclass(BlanksRefExpr::class)
         subclass(CharExpr::class)
         subclass(DataRefExpr::class)
-        subclass(DataWrapUpIndicatorExpr::class)
         subclass(DecExpr::class)
         subclass(DiffExpr::class)
         subclass(DifferentThanExpr::class)
@@ -115,8 +114,8 @@ private val modules = SerializersModule {
         subclass(OnRefExpr::class)
         subclass(OffRefExpr::class)
         subclass(PlusExpr::class)
-        subclass(PredefinedGlobalIndicatorExpr::class)
-        subclass(PredefinedIndicatorExpr::class)
+        subclass(GlobalIndicatorExpr::class)
+        subclass(IndicatorExpr::class)
         subclass(QualifiedAccessExpr::class)
         subclass(RealLiteral::class)
         subclass(RemExpr::class)
@@ -135,9 +134,8 @@ private val modules = SerializersModule {
     polymorphic(AssignableExpression::class) {
         subclass(ArrayAccessExpr::class)
         subclass(DataRefExpr::class)
-        subclass(DataWrapUpIndicatorExpr::class)
-        subclass(PredefinedGlobalIndicatorExpr::class)
-        subclass(PredefinedIndicatorExpr::class)
+        subclass(GlobalIndicatorExpr::class)
+        subclass(IndicatorExpr::class)
         subclass(QualifiedAccessExpr::class)
         subclass(SubstExpr::class)
     }
@@ -173,5 +171,13 @@ fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit
 
 enum class SourceProgram(val extension: String) {
     RPGLE("rpgle"),
-    BINARY("bin"),
+    BINARY("bin");
+
+    companion object {
+        fun getByExtension(extension: String): SourceProgram {
+            return values().first {
+                it.extension == extension
+            }
+        }
+    }
 }

@@ -105,7 +105,7 @@ class ExpressionEvaluation(
                     StringValue(s)
                 }
             }
-            left is IntValue && right is IntValue -> IntValue(left.value + right.value)
+            left is IntValue && right is IntValue -> (left + right)
             left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.plus(right.bigDecimal))
             else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
         }
@@ -115,7 +115,7 @@ class ExpressionEvaluation(
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
         return when {
-            left is IntValue && right is IntValue -> IntValue(left.value - right.value)
+            left is IntValue && right is IntValue -> (left - right)
             left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.minus(right.bigDecimal))
             else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
         }
@@ -125,7 +125,7 @@ class ExpressionEvaluation(
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
         return when {
-            left is IntValue && right is IntValue -> IntValue(left.value * right.value)
+            left is IntValue && right is IntValue -> (left * right)
             left is NumberValue && right is NumberValue -> {
                 DecimalValue(left.bigDecimal.multiply(right.bigDecimal))
             }
@@ -277,7 +277,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
-    override fun eval(expression: PredefinedIndicatorExpr) = interpreterStatus.indicator(expression.index)
+    override fun eval(expression: IndicatorExpr) = interpreterStatus.indicator(expression.index)
     override fun eval(expression: FunctionCall): Value {
         val functionToCall = expression.function.name
         val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
@@ -307,16 +307,44 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: DiffExpr): Value {
-        // TODO expression.durationCode
         val v1 = expression.value1.evalWith(this)
         val v2 = expression.value2.evalWith(this)
         return when (expression.durationCode) {
-            is DurationInMSecs -> DecimalValue(BigDecimal(v1.asTimeStamp().value.time - v2.asTimeStamp().value.time))
-            is DurationInDays -> DecimalValue(BigDecimal(
+            is DurationInMSecs -> IntValue(
+                ChronoUnit.MICROS.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            )
+            is DurationInDays -> IntValue(
                 ChronoUnit.DAYS.between(
                     v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
                 )
-            ))
+            )
+            is DurationInSecs -> IntValue(
+                ChronoUnit.SECONDS.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            )
+            is DurationInMinutes -> IntValue(
+                ChronoUnit.MINUTES.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            )
+            is DurationInHours -> IntValue(
+                ChronoUnit.HOURS.between(
+                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                )
+            )
+            is DurationInMonths -> IntValue(
+                ChronoUnit.MONTHS.between(
+                    v2.asTimeStamp().localDate, v1.asTimeStamp().localDate
+                )
+            )
+            is DurationInYears -> IntValue(
+                ChronoUnit.YEARS.between(
+                    v2.asTimeStamp().localDate, v1.asTimeStamp().localDate
+                )
+            )
         }
     }
 
@@ -474,11 +502,8 @@ class ExpressionEvaluation(
     override fun eval(expression: AssignmentExpr) =
         throw RuntimeException("AssignmentExpr should be handled by the interpreter: $expression")
 
-    override fun eval(expression: PredefinedGlobalIndicatorExpr) =
+    override fun eval(expression: GlobalIndicatorExpr) =
         throw RuntimeException("PredefinedGlobalIndicatorExpr should be handled by the interpreter: $expression")
-
-    override fun eval(expression: DataWrapUpIndicatorExpr) =
-        throw RuntimeException("DataWrapUpIndicatorExpr should be handled by the interpreter: $expression")
 
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")

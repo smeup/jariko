@@ -75,6 +75,7 @@ DIR_SPACE: {_input.LA(-1)=='/'}? [sS][pP][aA][cC][eE];
 DIR_SET: {_input.LA(-1)=='/'}?  [sS][eE][tT];
 DIR_RESTORE: {_input.LA(-1)=='/'}? [rR][eE][sS][tT][oO][rR][eE];
 DIR_COPY: {_input.LA(-1)=='/'}? [cC][oO][pP][yY];
+DIR_API: {_input.LA(-1)=='/'}? [aA][pP][iI];
 DIR_INCLUDE: {_input.LA(-1)=='/'}? [iI][nN][cC][lL][uU][dD][eE];
 DIR_EOF: {_input.LA(-1)=='/'}? [eE][oO][fF];
 DIR_DEFINE: {_input.LA(-1)=='/'}? ([dD][eE][fF][iI][nN][eE]);
@@ -315,7 +316,9 @@ SPLAT_FILE: '*'[fF][iI][lL][eE];
 SPLAT_GETIN: '*'[gG][eE][tT][iI][nN];
 SPLAT_HIVAL: '*'[hH][iI][vV][aA][lL];
 SPLAT_INIT: '*'[iI][nN][iI][tT];
-SPLAT_INDICATOR: ('*'[iI][nN][0-9][0-9] | '*'[iI][nN]'('[0-9][0-9]')');
+SPLAT_INDICATOR : 	( '*' [iI] [nN] [0-9] [0-9]
+					| '*' [iI] [nN] [a-zA-Z] [a-zA-Z]
+					| '*' [iI] [nN] '(' [0-9] [0-9] ')' );
 SPLAT_INZSR: '*'[iI][nN][zZ][sS][rR];
 SPLAT_IN: '*'[iI][nN];
 SPLAT_INPUT: '*'[iI][nN][pP][uU][tT];

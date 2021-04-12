@@ -1,6 +1,5 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.*
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertStatementCanBeParsed
 import com.smeup.rpgparser.dataRef
@@ -171,13 +170,13 @@ open class StatementsTest : AbstractTest() {
     // TODO select with other
 
     @test fun setOnParsing() {
-        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(LR))), statement("SETON                                        LR"))
-        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(RT))), statement("SETON                                        RT"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(IndicatorExpr(LR))), statement("SETON                                        LR"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(IndicatorExpr(RT))), statement("SETON                                        RT"))
     }
 
     @test fun setOnParsingSecondPlace() {
-        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(LR))), statement("SETON                                          LR"))
-        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(DataWrapUpIndicatorExpr(RT))), statement("SETON                                          RT"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(IndicatorExpr(LR))), statement("SETON                                          LR"))
+        assertEquals(SetStmt(SetStmt.ValueSet.ON, listOf(IndicatorExpr(RT))), statement("SETON                                          RT"))
     }
 
     @test fun clearParsing() {

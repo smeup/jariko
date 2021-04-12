@@ -38,7 +38,6 @@
       * Main
      C                   EXSR      EXECUTE
       *
-    MU* Type="NOXMI"
      C                   SETON                                        LR
       *---------------------------------------------------------------------
     RD* Routine test su statement diversi

@@ -14,7 +14,7 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     return when {
         this.cspec_fixed() != null -> this.cspec_fixed().toAst(conf)
         this.block() != null -> this.block().toAst(conf)
-        else -> TODO(this.text.toString())
+        else -> todo(conf = conf)
     }
 }
 
@@ -32,7 +32,7 @@ internal fun RpgParser.BlockContext.toAst(conf: ToAstConfiguration = ToAstConfig
                     when {
                         factor2 == null -> IntLiteral(1)
                         factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
-                        else -> factor2.content.toAst(conf)
+                        else -> factor2.runParserRuleContext(conf = conf) { factor2 -> factor2.content.toAst(conf) }
                     }
             DoStmt(endLimit,
                 iter,
@@ -158,6 +158,12 @@ internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfi
 }
 
 internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression {
+    if (factor1.content == null) {
+        factor1.error("Factor 1 cannot be null", conf = conf)
+    }
+    if (factor2.content == null) {
+        factor2.error("Factor 2 cannot be null", conf = conf)
+    }
     val left = factor1.content.toAst(conf)
     val right = factor2.content.toAst(conf)
     return when (this) {

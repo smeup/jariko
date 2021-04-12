@@ -8,7 +8,6 @@ import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import org.junit.Test
 import kotlin.test.*
 
 open class MuteExecutionTest : AbstractTest() {
@@ -207,16 +206,68 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("mute/MUTE13_25D", 22)
     }
 
+    @Test
+    fun executeMUTE13_10B() {
+        assertMuteExecutionSucceded("mute/MUTE13_10B", 10)
+    }
+
+    @Test
+    fun executeMUTE13_10C() {
+        assertMuteExecutionSucceded("mute/MUTE13_10C", 4)
+    }
+
+    @Test
+    fun executeMUTE13_10B2() {
+        assertMuteExecutionSucceded("mute/MUTE13_10B2", 4)
+    }
+
+    @Test
+    fun executeMUTE13_10B3() {
+        assertMuteExecutionSucceded("mute/MUTE13_10B3", 5)
+    }
+
+    @Test
+    fun executeMUTE12_08() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_08", 16)
+    }
+
+    @Test
+    fun executeMUTE12_08B() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_08B", 8)
+    }
+
+    @Test
+    fun executeMUTE12_01B() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_01B", 14)
+    }
+
+    @Test
+    open fun executeMUTE12_09() {
+        assertMuteExecutionSucceded("overlay/MUTE12_09")
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_26() {
+        assertMuteExecutionSucceded("mute/MUTE13_26")
+    }
+
+    @Test
+    fun executeMUTE13_27() {
+        assertMuteExecutionSucceded("mute/MUTE13_27")
+    }
+
     private fun assertMuteExecutionSucceded(
         exampleName: String,
-        nrOfMuteAssertions: Int,
+        // if null ignores mutes number assertions check
+        nrOfMuteAssertions: Int? = null,
         parameters: Map<String, Value> = emptyMap()
     ) {
         val cu = assertASTCanBeProduced(exampleName, true, withMuteSupport = true)
         cu.resolveAndValidate()
-        cu.assertNrOfMutesAre(nrOfMuteAssertions)
+        nrOfMuteAssertions?.let { cu.assertNrOfMutesAre(it) }
+
         val interpreter = execute(cu, parameters)
-        assertEquals(nrOfMuteAssertions, interpreter.systemInterface.getExecutedAnnotation().size)
+        nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.systemInterface.getExecutedAnnotation().size) }
         interpreter.systemInterface.getExecutedAnnotation().forEach {
             assertTrue(it.value.succeeded(), "Mute assertion failed: ${it.value.headerDescription()}")
         }

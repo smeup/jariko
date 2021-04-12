@@ -135,7 +135,7 @@ data class DecExpr(
     override val position: Position? = null
 ) : Expression(position) {
     override fun render(): String {
-        return "${this.value.render()}"
+        return this.value.render()
     }
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
@@ -147,9 +147,7 @@ data class IntExpr(
     override val position: Position? = null
 ) :
     Expression(position) {
-    override fun render(): String {
-        return "${this.value.render()}"
-    }
+    override fun render(): String = "${this.value.render()}"
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -158,7 +156,7 @@ data class IntExpr(
 data class SqrtExpr(var value: Expression, override val position: Position? = null) :
         Expression(position) {
     override fun render(): String {
-        return "${this.value.render()}"
+        return this.value.render()
     }
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
@@ -263,11 +261,19 @@ data class ReplaceExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
-// TODO Move and handle different types of duration
-// TODO document what a duration code is
 @Serializable
 sealed class DurationCode
 @Serializable
 object DurationInMSecs : DurationCode()
 @Serializable
 object DurationInDays : DurationCode()
+@Serializable
+object DurationInSecs : DurationCode()
+@Serializable
+object DurationInMinutes : DurationCode()
+@Serializable
+object DurationInHours : DurationCode()
+@Serializable
+object DurationInMonths : DurationCode()
+@Serializable
+object DurationInYears : DurationCode()

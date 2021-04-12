@@ -6,7 +6,6 @@ import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.utils.ComparisonOperator
-import com.smeup.rpgparser.utils.asInt
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
@@ -70,22 +69,26 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
     // Second pass, everything, I mean everything
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
-            when {
-                it.dspec() != null -> {
-                    it.dspec()
-                        .toAst(conf, knownDataDefinitions.values.toList())
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+            kotlin.runCatching {
+                when {
+                    it.dspec() != null -> {
+                        it.dspec()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    it.dcl_c() != null -> {
+                        it.dcl_c()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
+                    }
+                    else -> null
                 }
-                it.dcl_c() != null -> {
-                    it.dcl_c()
-                        .toAst(conf, knownDataDefinitions.values.toList())
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                }
-                it.dcl_ds() != null && it.dcl_ds().useLikeDs() -> {
-                    DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
-                }
-                else -> null
-            }
+            }.onFailure { error ->
+                it.error("Error on dataDefinitionProviders creation", error, conf)
+            }.getOrThrow()
         })
     return dataDefinitionProviders.map { it.toDataDefinition() }
 }
@@ -93,13 +96,13 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
     knownDataDefinitions: MutableMap<String, DataDefinition>
 ): DataDefinitionHolder {
-    knownDataDefinitions.addIfNotPresent(this)
+        knownDataDefinitions.addIfNotPresent(this)
     return DataDefinitionHolder(this)
 }
 
 private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: DataDefinition) {
     if (put(dataDefinition.name, dataDefinition) != null)
-        throw IllegalArgumentException("${dataDefinition.name} has been defined twice")
+        dataDefinition.error("${dataDefinition.name} has been defined twice")
 }
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
@@ -114,15 +117,19 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
 
     val mainStmts = this.statement().mapNotNull {
         when {
-            it.cspec_fixed() != null -> it.cspec_fixed().toAst(conf)
+            it.cspec_fixed() != null -> it.cspec_fixed().runParserRuleContext(conf) { context ->
+                context.toAst(conf)
+            }
             it.block() != null -> it.block().toAst(conf)
             it.free() != null -> it.free().toAst(conf)
             else -> null
         }
     }
+
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+
     return CompilationUnit(
         fileDefinitions,
         dataDefinitions,
@@ -130,14 +137,15 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         subroutines,
         compileTimeArrays,
         directives,
-        position = this.toPosition(conf.considerPosition)
-    )
+        position = this.toPosition(conf.considerPosition),
+        apiDescriptors = this.statement().toApiDescriptors(conf)
+    ).postProcess()
 }
 
-private fun Dcl_dsContext.useLikeDs(): Boolean {
+private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
     val keywordLikeDs = this.keyword_likeds()
     if (keywordLikeDs != null) {
-        TODO()
+        todo(conf = conf)
     }
     return (this.keyword().any { it.keyword_likeds() != null })
 }
@@ -240,7 +248,7 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
             val content: LiteralContext = this.parent.getChild(1) as LiteralContext
             AllExpr(content.toAst(conf), position)
         }
-        else -> TODO("${this.text} - Line ${position?.line()}")
+        else -> todo(conf = conf)
     }
 }
 
@@ -254,7 +262,7 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                         val continuedIndicators = this.cspec_continuedIndicators()
                         // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
                         for (i in 0 until continuedIndicators.size) {
-                            val indicator = continuedIndicators[i].indicators.children[0].toString().toInt()
+                            val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
                             var onOff = false
                             if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
                                 onOff = true
@@ -277,12 +285,12 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                         if (!(this.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
                             onOff = true
                         }
-                        val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toInt()
+                        val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toIndicatorKey()
                         val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
                         it.continuedIndicators.put(indicator, continuedIndicator)
                     }
                 }
-        else -> TODO(this.text.toString())
+        else -> todo(conf = conf)
     }
 }
 
@@ -291,9 +299,9 @@ internal fun Cspec_fixedContext.toIndicatorCondition(conf: ToAstConfiguration): 
         null
     } else {
         try {
-            IndicatorCondition(this.indicators.text.asInt(), " " != this.indicatorsOff.text)
+            IndicatorCondition(this.indicators.text.toIndicatorKey(), " " != this.indicatorsOff.text)
         } catch (e: NumberFormatException) {
-            TODO("Non numeric indicators: ${this.indicators.text} - ${toPosition(conf.considerPosition).atLine()}")
+            error("Non numeric indicators", e, conf)
         }
     }
 
@@ -350,7 +358,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCABGT() != null -> this.csCABGT().toAst(conf)
         this.csXFOOT() != null -> this.csXFOOT().toAst(conf)
         this.csSCAN() != null -> this.csSCAN().toAst(conf)
-        else -> TODO("${this.text} at ${this.toPosition(true)}")
+        else -> todo(conf = conf)
     }
 }
 
@@ -361,15 +369,15 @@ private fun annidatedReferenceExpression(
     // FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
     //        in the grammar
     if (text.toUpperCase() == "*IN") {
-        return PredefinedGlobalIndicatorExpr(position)
+        return GlobalIndicatorExpr(position)
     }
     if (text.toUpperCase().startsWith("*IN(") && text.endsWith(")")) {
         val index = text.toUpperCase().removePrefix("*IN(").removeSuffix(")").toInt()
-        return PredefinedIndicatorExpr(index, position)
+        return IndicatorExpr(index, position)
     }
     if (text.toUpperCase().startsWith("*IN")) {
         val index = text.toUpperCase().removePrefix("*IN").toInt()
-        return PredefinedIndicatorExpr(index, position)
+        return IndicatorExpr(index, position)
     }
     var expr: Expression = text.indexOf("(").let {
         val varName = if (it == -1) text else text.substring(0, it)
@@ -487,11 +495,11 @@ fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration
     return factor2?.content?.toAst(conf)
 }
 
-fun Cspec_fixed_standard_partsContext.resultExpression(conf: ToAstConfiguration): Expression? {
+fun Cspec_fixed_standard_partsContext.resultExpression(conf: ToAstConfiguration): Expression {
     if (result?.symbolicConstants() != null) {
         return result.symbolicConstants().toAst()
     }
-    return result.toAst()
+    return result.toAst(conf)
 }
 
 internal fun Cspec_fixed_standard_partsContext.toDataDefinition(
@@ -564,13 +572,7 @@ internal fun indicators(cspecs: Cspec_fixed_standard_partsContext, considerPosit
             .filter { !it.isNullOrBlank() }
             .map(String::toUpperCase)
             .map {
-                if (it.isInt()) {
-                    PredefinedIndicatorExpr(it.toInt(), cspecs.toPosition(considerPosition))
-                } else {
-                    DataWrapUpIndicatorExpr(
-                        DataWrapUpChoice.valueOf(it.toUpperCase()), cspecs.toPosition(considerPosition)
-                    )
-                }
+                IndicatorExpr(it.toIndicatorKey(), cspecs.toPosition(considerPosition))
             }
             .toList()
 }
@@ -620,6 +622,11 @@ private fun String.toDuration(): DurationCode =
     when (toUpperCase()) {
         "*D", "*DAYS" -> DurationInDays
         "*MS", "*MSECONDS" -> DurationInMSecs
+        "*S", "*SECONDS" -> DurationInSecs
+        "*MN", "*MINUTES" -> DurationInMinutes
+        "*H", "*HOURS" -> DurationInHours
+        "*M", "*MONTHS" -> DurationInMonths
+        "*Y", "*YEARS" -> DurationInYears
         else -> TODO("Implement conversion to DurationCode for $this")
     }
 
@@ -780,7 +787,7 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
-    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     return MultStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
 }
@@ -790,7 +797,7 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
-    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
 }
@@ -940,14 +947,14 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
             ReferenceByName(this.getFieldName()),
             toPosition(conf.considerPosition)
         )
-        is IndicatorTargetContext -> PredefinedIndicatorExpr(
+        is IndicatorTargetContext -> IndicatorExpr(
             this.indic.text.indicatorIndex()!!,
             toPosition(conf.considerPosition)
         )
-        is GlobalIndicatorTargetContext -> PredefinedGlobalIndicatorExpr(
+        is GlobalIndicatorTargetContext -> GlobalIndicatorExpr(
             toPosition(conf.considerPosition)
         )
-        else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
+        else -> todo(conf = conf)
     }
 }
 
@@ -976,8 +983,8 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     require(this.cspec_fixed_standard_parts().factor().factorContent().size == 1) {
         "Missing factor 1 in call statement at line ${position.line()}"
     }
-    var literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
-    var functionCalled: Expression?
+    val literal = this.cspec_fixed_standard_parts().factor().factorContent()[0].literal()
+    val functionCalled: Expression?
     functionCalled = literal?.toAst(conf) ?: this.cspec_fixed_standard_parts().factor2.content.toAst(conf)
     return CallStmt(
         functionCalled,
@@ -1075,7 +1082,7 @@ internal fun FreeContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()):
     return when {
         this.baseExpression().op().op_dsply() != null -> this.baseExpression().op().op_dsply().toAst(conf)
         this.baseExpression().op().op_eval() != null -> this.baseExpression().op().op_eval().toAst(conf)
-        else -> TODO("${this.text} at ${this.toPosition(true)}")
+        else -> todo(conf = conf)
     }
 }
 
@@ -1092,7 +1099,7 @@ internal fun EvalExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigu
     return if (assignmentExpression() != null) {
         assignmentExpression().toAst(conf = conf)
     } else {
-        TODO("${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
+        todo(conf = conf)
     }
 }
 
@@ -1100,7 +1107,7 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
     val target = when {
         this.simpleExpression() != null -> this.simpleExpression().toAst(conf = conf)
         this.expression() != null -> this.expression().toAst(conf = conf)
-        else -> TODO("${this.text} - Position: ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
+        else -> todo(conf = conf)
     }
     require(target is AssignableExpression)
     return EvalStmt(
@@ -1108,4 +1115,59 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
         expression = expression().toAst(conf = conf),
         operator = NORMAL_ASSIGNMENT
     )
+}
+
+fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): Nothing {
+    val pref = message?.let {
+        "$message at"
+    } ?: "Error at"
+    TODO("$pref ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
+}
+
+fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, conf: ToAstConfiguration): Nothing {
+    val pref = message?.let {
+        "$message at: "
+    } ?: "Error at: "
+    throw IllegalStateException(
+        "$pref${toPosition(conf.considerPosition)} ${this.javaClass.name}",
+        cause
+    )
+}
+
+/**
+ * Run a block. In case of error throws an error encapsulating useful information
+ * like node position
+ */
+fun <T : ParserRuleContext, R> T.runParserRuleContext(conf: ToAstConfiguration, block: (T) -> R): R {
+    return kotlin.runCatching {
+        block.invoke(this)
+    }.onFailure {
+        this.error(it.message, it, conf)
+    }.getOrThrow()
+}
+
+fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
+    throw IllegalStateException(
+        message?.let { "$message at: ${this.position}" } ?: "Error at: ${this.position}",
+        cause?.let { cause }
+    )
+}
+
+fun Node.todo(message: String? = null): Nothing {
+    val pref = message?.let {
+        "$message at "
+    } ?: "Error at "
+    TODO("${pref}Position: ${this.position}")
+}
+
+/**
+ * Run a block related AST node. In case of error throws an error encapsulating useful information
+ * like node position
+ */
+fun <T : Node, R> T.runNode(block: (T) -> R): R {
+    return kotlin.runCatching {
+        block.invoke(this)
+    }.onFailure {
+        this.error(it.message, it)
+    }.getOrThrow()
 }

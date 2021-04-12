@@ -8,7 +8,7 @@ import com.strumenta.kolasu.model.ReferenceByName
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.NumberFormat
-import java.util.Locale
+import java.util.*
 
 internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     return when {
@@ -16,7 +16,7 @@ internal fun RpgParser.SimpleExpressionContext.toAst(conf: ToAstConfiguration = 
         this.identifier() != null -> this.identifier().toAst(conf)
         this.bif() != null -> this.bif().toAst(conf)
         this.literal() != null -> this.literal().toAst(conf)
-        else -> TODO(this.javaClass.canonicalName)
+        else -> todo(conf = conf)
     }
 }
 
@@ -35,7 +35,7 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
             this.comparisonOperator().LT() != null -> LessThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
             this.comparisonOperator().LE() != null -> LessEqualThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
             this.comparisonOperator().NE() != null -> DifferentThanExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-            else -> TODO("ComparisonOperator ${this.comparisonOperator().text}")
+            else -> todo(conf = conf)
         }
         this.function() != null -> this.function().toAst(conf)
         this.NOT() != null -> NotExpr(this.expression(0).toAst(conf), toPosition(conf.considerPosition))
@@ -47,7 +47,7 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
         this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
                 && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
-        else -> TODO(this.text.toString())
+        else -> todo(conf = conf)
     }
 }
 
@@ -57,7 +57,7 @@ internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConf
 
 internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): NumberLiteral {
     val position = this.toPosition(conf.considerPosition)
-    require(this.NumberPart().isEmpty(), { "Number not empty $position" })
+    require(this.NumberPart().isEmpty()) { "Number not empty $position" }
     val text = (this.MINUS()?.text ?: "") + this.NUMBER().text
 
     // When assigning a value to a numeric field we could either use
@@ -101,7 +101,7 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
 
 private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfiguration): Expression {
     return when {
-        this.text.indicatorIndex() != null -> PredefinedIndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
+        this.text.indicatorIndex() != null -> IndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
         this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
     }
@@ -146,7 +146,7 @@ internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConf
                 variable = ReferenceByName(this.free_identifier().text),
                 position = toPosition(conf.considerPosition)
         )
-        else -> TODO()
+        else -> todo(conf = conf)
     }
 }
 
@@ -154,9 +154,23 @@ internal fun String.indicatorIndex(): Int? {
     val uCaseIndicatorString = this.toUpperCase()
     return when {
         uCaseIndicatorString.startsWith("*IN(") && this.endsWith(")") ->
-            uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")").toIntOrNull()
+            uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")").toIndicatorKey()
         uCaseIndicatorString.startsWith("*IN") ->
-            this.substring("*IN".length).toIntOrNull()
+            this.substring("*IN".length).toIndicatorKey()
+        else -> null
+    }
+}
+
+internal fun String.dataWrapUpChoice(): DataWrapUpChoice? {
+    val indicator = when {
+        this.toUpperCase().startsWith("*IN(") && this.endsWith(")") ->
+            this.toUpperCase().removePrefix("*IN(").removeSuffix(")")
+        this.toUpperCase().startsWith("*IN") -> this.substring("*IN".length)
+        else -> null
+    }
+    return when (indicator) {
+        "LR" -> DataWrapUpChoice.LR
+        "RT" -> DataWrapUpChoice.RT
         else -> null
     }
 }

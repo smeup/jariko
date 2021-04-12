@@ -21,7 +21,8 @@ data class CompilationUnit(
     val subroutines: List<Subroutine>,
     val compileTimeArrays: List<CompileTimeArray>,
     val directives: List<Directive>,
-    override val position: Position?
+    override val position: Position?,
+    val apiDescriptors: Map<ApiId, ApiDescriptor>? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()

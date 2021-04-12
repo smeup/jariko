@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.execution
 
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.utils.StringOutputStream
 import org.apache.commons.io.input.ReaderInputStream
 import org.junit.Test
@@ -9,7 +10,7 @@ import java.nio.charset.Charset
 import kotlin.test.assertTrue
 import com.smeup.rpgparser.execution.main as runnerMain
 
-class RunnerCliTest {
+class RunnerCliTest : AbstractTest() {
 
     @Test
     fun withNoArgsReplIsStarted() {
