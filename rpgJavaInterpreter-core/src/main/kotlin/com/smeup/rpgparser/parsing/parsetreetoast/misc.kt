@@ -250,10 +250,8 @@ private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions:
                         if (it.keyword_options() != null) {
                             it.keyword_options().identifier().forEach {
                                 val keyword = it.free_identifier().idOrKeyword().ID().toString()
-                                val paramOption = ParamOption.fromKeyword(keyword)
-                                if (null != paramOption) {
-                                    (dataDef.paramOptions as ArrayList).add(paramOption)
-                                }
+                                val paramOption = ParamOption.getByKeyword(keyword)
+                                (dataDef.paramOptions as ArrayList).add(paramOption)
                             }
                         }
                     }

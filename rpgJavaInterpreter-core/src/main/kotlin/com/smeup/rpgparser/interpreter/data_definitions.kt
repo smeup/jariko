@@ -68,13 +68,16 @@ abstract class AbstractDataDefinition(
     }
 }
 
-open class EnumCompanion<T, V>(private val valueMap: Map<T, V>) {
-    fun fromKeyword(type: T) = valueMap[type]
-}
-
-enum class ParamOption(val paramOption: String) {
+enum class ParamOption(val keyword: String) {
     NoPass("*NOPASS");
-    companion object : EnumCompanion<String, ParamOption>(ParamOption.values().associateBy(ParamOption::paramOption))
+
+    companion object {
+        fun getByKeyword(keyword: String): ParamOption {
+            return ParamOption.values().first {
+                it.keyword == keyword
+            }
+        }
+    }
 }
 
 /**
