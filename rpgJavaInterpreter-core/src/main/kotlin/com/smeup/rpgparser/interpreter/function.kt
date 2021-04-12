@@ -3,12 +3,20 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.parsing.parsetreetoast.todo
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
 
 enum class ParamPassedBy {
     Reference, Value
 }
 
-data class FunctionParam(val name: String, val type: Type, val paramPassedBy: ParamPassedBy = ParamPassedBy.Reference)
+data class FunctionParam(
+    val name: String,
+    val type: Type,
+    val paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
+    override val position: Position? = null
+) : Node(position)
 
 data class FunctionValue(val variableName: String? = null, val value: Value)
 
@@ -31,7 +39,7 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
     override fun params(): List<FunctionParam> {
         val arguments = mutableListOf<FunctionParam>()
         this.compilationUnit.proceduresParamsDataDefinitions!!
-            .forEach { arguments.add(FunctionParam(it.name, it.type, it.paramPassedBy)) }
+            .forEach { arguments.add(FunctionParam(it.name, it.type, it.paramPassedBy, it.position)) }
         return arguments
     }
 
@@ -56,7 +64,7 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
                 // Any missing parm must be optional ('*NOPASS' keyword)
                 if (paramsDataDefinition[index].paramOptions.isEmpty() ||
                     !paramsDataDefinition[index].paramOptions.contains(ParamOption.NoPass)) {
-                    throw RuntimeException("Parameter '${paramsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
+                    functionParam.todo("Parameter '${paramsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
                 }
             }
         }
