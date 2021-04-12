@@ -1508,11 +1508,9 @@ Test 6
     }
 
     @Test
-    @Ignore
     fun executePROCEDURE_L() {
-        // assertASTCanBeProduced(exampleName = "PROCEDURE_L", printTree = true)
         assertEquals(
-            expected = listOf("0.99",
+            expected = listOf(".99",
                 "1.11",
                 "9.99"
             ),
@@ -1539,6 +1537,37 @@ Test 6
                 "ABCDE"
             ),
             actual = outputOf("PROCEDURE_N")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_O() {
+        assertEquals(
+            expected = listOf(
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.22",
+                "2.24",
+                "2.26",
+                "2.28",
+                "2.30",
+                "6.14",
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "11.30",
+                "2.22",
+                "2.24",
+                "2.26",
+                "2.28",
+                "2.30"
+            ),
+            actual = outputOf("PROCEDURE_O")
         )
     }
 

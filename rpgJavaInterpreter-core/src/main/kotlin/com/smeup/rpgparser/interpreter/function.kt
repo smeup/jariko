@@ -30,9 +30,8 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
 
     override fun params(): List<FunctionParam> {
         val arguments = mutableListOf<FunctionParam>()
-        this.compilationUnit.proceduresParamsDataDefinitions!!.forEach {
-            arguments.add(FunctionParam(it.name, it.type))
-        }
+        this.compilationUnit.proceduresParamsDataDefinitions!!
+            .forEach { arguments.add(FunctionParam(it.name, it.type, it.paramPassedBy)) }
         return arguments
     }
 
@@ -40,13 +39,26 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         val interpreter: InternalInterpreter by lazy {
             InternalInterpreter(systemInterface)
         }
-        // arguments are parameters expected by function
-        val arguments = this.params()
+
         // values passed to function in format argumentName to argumentValue
         // every argumentName will be a variable scoped function
         val argumentNameToValue = mutableMapOf<String, Value>()
+
+        // arguments are parameters expected by function
+        val arguments = this.params()
+
+        // Params size could be smaller than arguments size, due to any optional parameter ('*NOPASS' keyword)
+        val paramsDataDefinition = this.compilationUnit.proceduresParamsDataDefinitions!!
         arguments.forEachIndexed { index, functionParam ->
-            argumentNameToValue[functionParam.name] = params[index].value
+            if (index < params.size) {
+                argumentNameToValue[functionParam.name] = params[index].value
+            } else {
+                // Any missing parm must be optional ('*NOPASS' keyword)
+                if (paramsDataDefinition[index].paramOptions.isEmpty() ||
+                    !paramsDataDefinition[index].paramOptions.contains(ParamOption.NoPass)) {
+                    throw RuntimeException("Parameter '${paramsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
+                }
+            }
         }
 
         interpreter.execute(this.compilationUnit, argumentNameToValue, false)

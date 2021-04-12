@@ -68,6 +68,15 @@ abstract class AbstractDataDefinition(
     }
 }
 
+open class EnumCompanion<T, V>(private val valueMap: Map<T, V>) {
+    fun fromKeyword(type: T) = valueMap[type]
+}
+
+enum class ParamOption(val paramOption: String) {
+    NoPass("*NOPASS");
+    companion object : EnumCompanion<String, ParamOption>(ParamOption.values().associateBy(ParamOption::paramOption))
+}
+
 /**
  * PREFIX node
  * */
@@ -123,7 +132,9 @@ data class DataDefinition(
     var fields: List<FieldDefinition> = emptyList(),
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
-    override val position: Position? = null
+    override val position: Position? = null,
+    var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
+    var paramOptions: List<ParamOption> = mutableListOf()
 ) :
             AbstractDataDefinition(name, type, position) {
 

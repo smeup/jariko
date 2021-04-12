@@ -19,7 +19,7 @@
      C                   EVAL      PAR1=1,12
      C                   EVAL      RET=0,99
      C                   CALLP     PROCEDURE_01(PAR1:RET)
-      * Must be '0.99'
+      * Must be '.99'
      C                   EVAL      RET_CHAR=%CHAR(RET)
      C     RET_CHAR      DSPLY
       *
@@ -27,7 +27,7 @@
      C                   EVAL      PAR2=1,11
      C                   EVAL      RET=PROCEDURE_02(PAR2)
       * PAR2 Must be '1.11'
-     C                   EVAL      RET_CHAR=%CHAR(RET)
+     C                   EVAL      RET_CHAR=%CHAR(PAR2)
      C     RET_CHAR      DSPLY
       * RET Must be '9.99'
      C                   EVAL      RET_CHAR=%CHAR(RET)

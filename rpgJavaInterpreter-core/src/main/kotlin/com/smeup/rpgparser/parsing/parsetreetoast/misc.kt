@@ -241,7 +241,24 @@ private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions:
                     it.ds_name().text == dataDefinition.name &&
                             this.beginProcedure().psBegin().ps_name().text == dcl_prContext.prBegin().ds_name().NAME().toString()
                 }
-                .forEach { _ -> proceduresParamsDataDefinitions.add(dataDefinition) }
+                .forEach { it ->
+                    val dataDef = dataDefinition.copy()
+                    it.keyword().forEach { it ->
+                        if (it.keyword_value() != null) {
+                            dataDef.paramPassedBy = ParamPassedBy.Value
+                        }
+                        if (it.keyword_options() != null) {
+                            it.keyword_options().identifier().forEach {
+                                val keyword = it.free_identifier().idOrKeyword().ID().toString()
+                                val paramOption = ParamOption.fromKeyword(keyword)
+                                if (null != paramOption) {
+                                    (dataDef.paramOptions as ArrayList).add(paramOption)
+                                }
+                            }
+                        }
+                    }
+                    proceduresParamsDataDefinitions.add(dataDef)
+                }
         }
     }
 
