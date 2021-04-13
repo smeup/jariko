@@ -371,7 +371,9 @@ internal fun RpgParser.Dcl_cContext.toAst(
             this.ds_name().text,
             type,
             initializationValue = initializationValueExpression,
-            position = this.toPosition(true))
+            position = this.toPosition(true),
+            const = true
+    )
 }
 
 private val RpgParser.DspecContext.decimalPositions

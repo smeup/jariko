@@ -25,8 +25,8 @@ abstract class AbstractDataDefinition(
     // - remove @Transient
     // - recompile ./gradlew compileAllMutes
     // - launch unit test testMUTE16_01
-    @Transient open val key: Int = MainExecutionContext.newId()
-
+    @Transient open val key: Int = MainExecutionContext.newId(),
+    @Transient open val const: Boolean = false
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
@@ -136,10 +136,11 @@ data class DataDefinition(
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
     override val position: Position? = null,
+    override val const: Boolean = false,
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
     var paramOptions: List<ParamOption> = mutableListOf()
 ) :
-            AbstractDataDefinition(name, type, position) {
+            AbstractDataDefinition(name = name, type = type, position = position, const = const) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
@@ -262,9 +263,10 @@ data class FieldDefinition(
     override val position: Position? = null,
 
     // true when the FieldDefinition contains a DIM keyword on its line
-    val declaredArrayInLineOnThisField: Int? = null
+    val declaredArrayInLineOnThisField: Int? = null,
+    override val const: Boolean = false
 ) :
-            AbstractDataDefinition(name, type, position) {
+            AbstractDataDefinition(name = name, type = type, position = position, const = const) {
 
     init {
         require((explicitStartOffset != null) != (calculatedStartOffset != null)) {
@@ -381,8 +383,9 @@ class InStatementDataDefinition(
     override val name: String,
     override val type: Type,
     override val position: Position? = null,
-    val initializationValue: Expression? = null
-) : AbstractDataDefinition(name, type, position) {
+    val initializationValue: Expression? = null,
+    override val const: Boolean = false
+) : AbstractDataDefinition(name = name, type = type, position = position, const = const) {
     override fun toString(): String {
         return "InStatementDataDefinition name=$name, type=$type, position=$position"
     }
