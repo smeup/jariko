@@ -1,7 +1,7 @@
       *---------------------------------------------------------------
      D PROCEDURE_01    PR
      D P1                             5  2
-     D P2              C                   CONST(8.9)
+     D P2                             5  2
      D P3                             5  2 VALUE OPTIONS(*NOPASS)
      D P4                             5  2 OPTIONS(*NOPASS)
      D P5                             5  2 OPTIONS(*NOPASS)
@@ -24,7 +24,7 @@
       * Due to '*NOPASS' option, can pass only 3 mandatory parameters
      C                   CALLP     PROCEDURE_01(PAR1_1:PAR1_2:PAR1_3)
       *
-      * Must be '17.8'
+      * Must be '2.04'
      C                   EVAL      RET_CHAR=%CHAR(PAR1_1)
      C     RET_CHAR      DSPLY
       *
@@ -41,7 +41,7 @@
      P PROCEDURE_01    B
      D PROCEDURE_01    PI
      D P1                             5  2
-     D P2              C                   CONST(8.9)
+     D P2                             5  2
      D P3                             5  2 VALUE OPTIONS(*NOPASS)
      D P4                             5  2 OPTIONS(*NOPASS)
      D P5                             5  2 OPTIONS(*NOPASS)

@@ -1604,12 +1604,9 @@ Test 6
     }
 
     @Test
-    @Ignore
-    // TODO ignored until 'CONST' statement with inline 'declaration and assignment' is supported (maybe never?)
-    // inline declaration and assignment: "D P2              C                   CONST(8.9)"
     fun executePROCEDURE_P() {
         assertEquals(
-            expected = listOf("17.8",
+            expected = listOf("2.04",
                 "1.02",
                 "1.03"
             ),
