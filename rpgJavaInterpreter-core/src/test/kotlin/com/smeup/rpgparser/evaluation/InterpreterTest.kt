@@ -1604,6 +1604,31 @@ Test 6
     }
 
     @Test
+    @Ignore
+    // TODO ignored until 'CONST' statement with inline 'declaration and assignment' is supported (maybe never?)
+    // inline declaration and assignment: "D P2              C                   CONST(8.9)"
+    fun executePROCEDURE_P() {
+        assertEquals(
+            expected = listOf("17.8",
+                "1.02",
+                "1.03"
+            ),
+            actual = outputOf("PROCEDURE_P")
+        )
+    }
+
+    @Test
+    @Ignore
+    fun executePROCEDURE_Q() {
+        assertEquals(
+            expected = listOf("5.10",
+                "1.02"
+            ),
+            actual = outputOf("PROCEDURE_Q")
+        )
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),

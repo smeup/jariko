@@ -247,6 +247,9 @@ private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions:
                         if (it.keyword_value() != null) {
                             dataDef.paramPassedBy = ParamPassedBy.Value
                         }
+                        if (it.keyword_const() != null) {
+                            dataDef.const = true
+                        }
                         if (it.keyword_options() != null) {
                             it.keyword_options().identifier().forEach {
                                 val keyword = it.free_identifier().idOrKeyword().ID().toString()
