@@ -14,13 +14,6 @@
      C                   EVAL      PAR1_2=1,02
       *
      C                   CALLP     PROCEDURE_01(PAR1_1:PAR1_2)
-      * Must be '5.10'
-     C                   EVAL      RET_CHAR=%CHAR(PAR1_1)
-     C     RET_CHAR      DSPLY
-      *
-      * Must be origin value of '1.02' instead of '10.20' due to 'CONST' keyword
-     C                   EVAL      RET_CHAR=%CHAR(PAR1_2)
-     C     RET_CHAR      DSPLY
       *
      C                   SETON                                        LR
       *---------------------------------------------------------------
@@ -30,6 +23,7 @@
      D P2                             5  2 CONST
       *
      C                   EVAL      P1=P2*5
+      * THROW RUNTIME EXCEPTION DUE TO NOT ASSIGNABLE 'CONST' VARIABLE
      C                   EVAL      P2=P1*2
       *
      P PROCEDURE_01    E

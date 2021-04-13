@@ -14,6 +14,7 @@ import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import java.lang.RuntimeException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.test.assertEquals
@@ -1615,14 +1616,10 @@ Test 6
     }
 
     @Test
-    @Ignore
     fun executePROCEDURE_Q() {
-        assertEquals(
-            expected = listOf("5.10",
-                "1.02"
-            ),
-            actual = outputOf("PROCEDURE_Q")
-        )
+        assertFailsWith(RuntimeException::class) {
+            execute("PROCEDURE_Q", emptyMap())
+        }
     }
 
     @Test
