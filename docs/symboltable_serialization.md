@@ -1,9 +1,9 @@
 # Abstract
-In this document we are going to present how Jariko allows managing programs memory persistence using as approach the serialization.  
-As everyone knows the symbol table is an object containing the program memory, and generally speaking
+In this document we are going to explain how Jariko uses serialization to manage programs' memory's persistence.  
+The symbol table is an object containing the program memory, and generally speaking
 it is nothing more than a `Map<String, Value>` with String: the variable name, and Value: the value of it.  
-Symbol table has scope program and lives within the program, but when the program dies, if that program runs into an 
-activation group, we need to recover its state, for this reason we have thought about serialization.
+Symbol table has scope program and lives within the program, but when the program dies, if that program finishes with RT indicator, 
+we need to recover its state, for this reason we have thought about serialization.
 
 # Serialization model
 The following chart shows the objects involved with particular relevance to what happens over the time.  
@@ -15,11 +15,11 @@ in the same instance of Jariko.
 
 ## InternalInterpreter
 For each interpreted PGM we have an instance of InternalInterpreter having its own instance of SymbolTable.  
-You can think about the follow calls stack: PGM1 -> PGM2 -> PGMi and as you can guess, PGMi is the current execution program.  
+You can think about the follow calls stack: PGM1 -> PGM2 -> PGMi and as you can guess, PGMi is the program currently executed.  
 
 ## MemorySlice
-This object tells us that the SymbolTable and its own persistence are different things. The MemorySlice is nothing 
-of more complex than an association between the SymbolTable instance and the MemorySliceId.  
+This object tells us that the SymbolTable and its own persistence are different things. The MemorySlice is simply the 
+association between the SymbolTable instance and the MemorySliceId.  
 MemorySliceId is identified just by following properties:
  * Program
  * Activation group  
@@ -31,13 +31,13 @@ This object, behind the scenes, handles serialization and de-serialization mecha
 
 ### Deserialization
 For each SymbolTable belonging to a program running within an activation group, the initialization phase includes:
- * The creation of MemorySlice in which we couple SymbolTable with MemorySliceId
+ * The creation of MemorySlice in which we associate SymbolTable with MemorySliceId
  * The reading from IMemorySliceStorage and retrieving of `Map<String, Value>` containing stored values associated to MemorySliceId
  * The SymbolTable initialization using `Map<String, Value>` returned by the previous step
 
 ### Serialization
 The serialization is triggered only at the end of the main program execution.  
-For each MemorySlice having property `persist=true` (program running into activation group), MemorySlice will be passed to
+For each MemorySlice having property `persist=true` (program finishing with RT indicator), MemorySlice will be passed to
 IMemorySliceStorage, and it will be stored. 
 
 ### IMemorySliceStorage
