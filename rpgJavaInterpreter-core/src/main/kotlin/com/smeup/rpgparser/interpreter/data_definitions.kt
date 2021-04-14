@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -26,13 +42,20 @@ abstract class AbstractDataDefinition(
     // - recompile ./gradlew compileAllMutes
     // - launch unit test testMUTE16_01
     @Transient open val key: Int = MainExecutionContext.newId(),
-    @Transient open val const: Boolean = false
+    /**
+     * true means this is a constant, default false
+     * */
+    @Transient open val const: Boolean = false,
+    /**
+     * This scope. Default Program
+     * */
+    @Transient open val scope: Scope = Scope.Program
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
 
     fun accept(mutes: MutesMap, start: Int, end: Int):
-            MutableList<MuteAnnotationResolved> {
+        MutableList<MuteAnnotationResolved> {
         // List of mutes successfully attached to the  definition
         val mutesAttached = mutableListOf<MuteAnnotationResolved>()
         // Extracts the annotation declared before the statement
@@ -50,8 +73,8 @@ abstract class AbstractDataDefinition(
 
         muteToProcess.forEach { (line, mute) ->
             this.muteAnnotations.add(mute.toAst(
-                    // TODO CodeReview: we could add unit tests to verify we set the correct position for mutes
-                    position = pos(line, this.position!!.start.column, line, this.position!!.end.column))
+                // TODO CodeReview: we could add unit tests to verify we set the correct position for mutes
+                position = pos(line, this.position!!.start.column, line, this.position!!.end.column))
             )
             mutesAttached.add(MuteAnnotationResolved(line, this.position!!.start.line))
         }
@@ -126,7 +149,7 @@ data class DataDefinition(
     override val position: Position? = null,
     override val const: Boolean = false
 ) :
-            AbstractDataDefinition(name = name, type = type, position = position, const = const) {
+    AbstractDataDefinition(name = name, type = type, position = position, const = const) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
@@ -240,8 +263,8 @@ data class FieldDefinition(
     val explicitEndOffset: Int? = null,
     val calculatedStartOffset: Int? = null,
     val calculatedEndOffset: Int? = null,
-        // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
-        // container. We basically duplicate it
+    // In case of using LIKEDS we reuse a FieldDefinition, but specifying a different
+    // container. We basically duplicate it
     @property:Link
     @Transient var overriddenContainer: DataDefinition? = null,
     val initializationValue: Expression? = null,
@@ -252,7 +275,7 @@ data class FieldDefinition(
     val declaredArrayInLineOnThisField: Int? = null,
     override val const: Boolean = false
 ) :
-            AbstractDataDefinition(name = name, type = type, position = position, const = const) {
+    AbstractDataDefinition(name = name, type = type, position = position, const = const) {
 
     init {
         require((explicitStartOffset != null) != (calculatedStartOffset != null)) {
@@ -310,8 +333,8 @@ data class FieldDefinition(
     @Derived
     val container
         get() = overriddenContainer
-                ?: this.parent as? DataDefinition
-                ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
+            ?: this.parent as? DataDefinition
+            ?: throw IllegalStateException("Parent of field ${this.name} was expected to be a DataDefinition, instead it is ${this.parent} (${this.parent?.javaClass})")
 
     /**
      * The start offset is zero based, while in RPG code you could find explicit one-based offsets.
@@ -420,7 +443,7 @@ fun encodeBinary(inValue: BigDecimal, size: Int): String {
         buffer[7] = (llsb and 0x0000FFFF).toByte()
 
         return buffer[7].toChar().toString() + buffer[6].toChar().toString() + buffer[5].toChar().toString() + buffer[4].toChar().toString() +
-        buffer[3].toChar().toString() + buffer[2].toChar().toString() + buffer[1].toChar().toString() + buffer[0].toChar().toString()
+            buffer[3].toChar().toString() + buffer[2].toChar().toString() + buffer[1].toChar().toString() + buffer[0].toChar().toString()
     }
     TODO("encode binary for $size not implemented")
 }
@@ -454,21 +477,21 @@ fun decodeBinary(value: String, size: Int): BigDecimal {
 
     if (size == 4) {
         val number = (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8) +
-                ((value[2].toLong() and 0x00FF) shl 16) +
-                ((value[3].toLong() and 0x00FF) shl 24)
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toInt().toString())
     }
     if (size == 8) {
         val number = (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8) +
-                ((value[2].toLong() and 0x00FF) shl 16) +
-                ((value[3].toLong() and 0x00FF) shl 24) +
-                ((value[4].toLong() and 0x00FF) shl 32) +
-                ((value[5].toLong() and 0x00FF) shl 40) +
-                ((value[6].toLong() and 0x00FF) shl 48) +
-                ((value[7].toLong() and 0x00FF) shl 56)
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24) +
+            ((value[4].toLong() and 0x00FF) shl 32) +
+            ((value[5].toLong() and 0x00FF) shl 40) +
+            ((value[6].toLong() and 0x00FF) shl 48) +
+            ((value[7].toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toInt().toString())
     }
@@ -492,21 +515,21 @@ fun decodeInteger(value: String, size: Int): BigDecimal {
     }
     if (size == 4) {
         val number = (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8) +
-                ((value[2].toLong() and 0x00FF) shl 16) +
-                ((value[3].toLong() and 0x00FF) shl 24)
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toInt().toString())
     }
     if (size == 8) {
         val number = (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8) +
-                ((value[2].toLong() and 0x00FF) shl 16) +
-                ((value[3].toLong() and 0x00FF) shl 24) +
-                ((value[4].toLong() and 0x00FF) shl 32) +
-                ((value[5].toLong() and 0x00FF) shl 40) +
-                ((value[6].toLong() and 0x00FF) shl 48) +
-                ((value[7].toLong() and 0x00FF) shl 56)
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24) +
+            ((value[4].toLong() and 0x00FF) shl 32) +
+            ((value[5].toLong() and 0x00FF) shl 40) +
+            ((value[6].toLong() and 0x00FF) shl 48) +
+            ((value[7].toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toString())
     }
@@ -536,21 +559,21 @@ fun decodeUnsigned(value: String, size: Int): BigDecimal {
     }
     if (size == 4) {
         val number = (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8) +
-                ((value[2].toLong() and 0x00FF) shl 16) +
-                ((value[3].toLong() and 0x00FF) shl 24)
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24)
 
         return BigDecimal(number.toString())
     }
     if (size == 8) {
         val number = (value[0].toLong() and 0x00FF) +
-                ((value[1].toLong() and 0x00FF) shl 8) +
-                ((value[2].toLong() and 0x00FF) shl 16) +
-                ((value[3].toLong() and 0x00FF) shl 24) +
-                ((value[4].toLong() and 0x00FF) shl 32) +
-                ((value[5].toLong() and 0x00FF) shl 40) +
-                ((value[6].toLong() and 0x00FF) shl 48) +
-                ((value[7].toLong() and 0x00FF) shl 56)
+            ((value[1].toLong() and 0x00FF) shl 8) +
+            ((value[2].toLong() and 0x00FF) shl 16) +
+            ((value[3].toLong() and 0x00FF) shl 24) +
+            ((value[4].toLong() and 0x00FF) shl 32) +
+            ((value[5].toLong() and 0x00FF) shl 40) +
+            ((value[6].toLong() and 0x00FF) shl 48) +
+            ((value[7].toLong() and 0x00FF) shl 56)
 
         return BigDecimal(number.toInt().toString())
     }
@@ -693,4 +716,8 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     } catch (e: Exception) {
         number.toBigDecimal()
     }
+}
+
+enum class Scope {
+    Program, Static, Local
 }
