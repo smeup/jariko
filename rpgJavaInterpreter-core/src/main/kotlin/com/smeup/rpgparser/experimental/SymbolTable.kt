@@ -100,6 +100,9 @@ class SymbolTable : ISymbolTable {
     }
 
     private fun setLocal(data: AbstractDataDefinition, value: Value): Value? {
+        require(data.type.canBeAssigned(value)) {
+            "Value $value cannot be assigned to data: $data"
+        }
         names[data.name.toUpperCase()] = data
         return values.put(data.key, Pair(data, value.forType(data.type)))?.second
     }

@@ -189,6 +189,18 @@ data class DataDefinition(
     fun getFieldByName(fieldName: String): FieldDefinition {
         return this.fields.find { it.name == fieldName } ?: throw java.lang.IllegalArgumentException("Field not found $fieldName")
     }
+
+    // I had to reimplement this method because of this error:
+    //    java.lang.StackOverflowError
+    //       at com.smeup.rpgparser.interpreter.DataStructureType.hashCode(typesystem.kt)
+    //       at com.smeup.rpgparser.interpreter.DataDefinition.hashCode(data_definitions.kt)
+    //       at com.smeup.rpgparser.interpreter.FieldDefinition.hashCode(data_definitions.kt)
+    //       on parseMUTE12_01_runtime, parseMUTE12_02_runtime, parseSTRUCT_05 and parseSTRUCT_07 arose
+    // when enabled the standard symbol table
+    // TODO("Require investigation")
+    override fun hashCode() = name.hashCode()
+
+    override fun equals(other: Any?) = other?.let { this.name == (other as AbstractDataDefinition).name } ?: false
 }
 
 fun Type.toDataStructureValue(value: Value): StringValue {
