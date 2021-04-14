@@ -511,6 +511,10 @@ class ExpressionEvaluation(
     override fun eval(expression: GlobalIndicatorExpr) =
         throw RuntimeException("PredefinedGlobalIndicatorExpr should be handled by the interpreter: $expression")
 
+    override fun eval(expression: ParmsExpr): Value {
+        return IntValue(interpreterStatus.params.toLong())
+    }
+
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")
         return when {

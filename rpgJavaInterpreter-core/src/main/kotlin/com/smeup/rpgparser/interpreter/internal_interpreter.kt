@@ -33,7 +33,8 @@ class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
     val lrIndicator: () -> Boolean,
-    var returnValue: Value? = null
+    var returnValue: Value? = null,
+    var params: Int = 0
 ) {
     var lastFound = false
     var lastDBFile: DBFile? = null
@@ -263,6 +264,7 @@ class InternalInterpreter(
     ) {
         configureLogHandlers()
 
+        status.params = initialValues.size
         initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
 
         if (compilationUnit.minTimeOut == null) {

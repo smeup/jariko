@@ -1623,6 +1623,66 @@ Test 6
     }
 
     @Test
+    fun executePARMS() {
+        val rpgProgramName = "PARMS"
+        val cu = assertASTCanBeProduced(rpgProgramName, true)
+        cu.resolveAndValidate()
+        val logHandler = ListLogHandler()
+
+        // PASS NO PARAMETERS
+        var si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, emptyMap(),
+            si, listOf(logHandler))
+        assertEquals(listOf("0"), si.displayed)
+
+        // PASS ONE PARAMETER
+        si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, mapOf("P1" to StringValue("5")),
+            si, listOf(logHandler))
+        assertEquals(listOf("1"), si.displayed)
+
+        // PASS TWO PARAMETERS
+        si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, mapOf("P1" to StringValue("5"),
+            "P2" to StringValue("10")),
+            si, listOf(logHandler))
+        assertEquals(listOf("2"), si.displayed)
+    }
+
+    @Test
+    fun executePROCEDURE_R() {
+        assertEquals(
+            expected = listOf("1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.21",
+                "4.44",
+                "6.69",
+                "2.28",
+                "2.30",
+                "1.01",
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.21",
+                "2.21",
+                "4.44",
+                "6.69",
+                "2.28",
+                "2.30"
+            ),
+            actual = outputOf("PROCEDURE_R")
+        )
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),

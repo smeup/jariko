@@ -131,6 +131,7 @@ private val modules = SerializersModule {
         subclass(TrimlExpr::class)
         subclass(TrimrExpr::class)
         subclass(ZeroExpr::class)
+        subclass(ParmsExpr::class)
     }
     polymorphic(AssignableExpression::class) {
         subclass(ArrayAccessExpr::class)
