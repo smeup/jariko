@@ -27,7 +27,7 @@ MemorySliceId is identified just by following properties:
 In conclusion, we can say that we will have an instance of MemorySlice for each SymbolTable.
 
 ## MemorySliceMgr
-This object, behind the scenes, handles serialization and de-serialization mechanisms.
+This object, under the hood, handles serialization and de-serialization mechanisms.
 
 ### Deserialization
 For each SymbolTable belonging to a program running within an activation group, the initialization phase includes:
