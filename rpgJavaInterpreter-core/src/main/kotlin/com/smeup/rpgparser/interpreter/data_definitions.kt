@@ -91,6 +91,18 @@ abstract class AbstractDataDefinition(
     }
 }
 
+enum class ParamOption(val keyword: String) {
+    NoPass("*NOPASS");
+
+    companion object {
+        fun getByKeyword(keyword: String): ParamOption {
+            return ParamOption.values().first {
+                it.keyword == keyword
+            }
+        }
+    }
+}
+
 /**
  * PREFIX node
  * */
@@ -147,7 +159,9 @@ data class DataDefinition(
     val initializationValue: Expression? = null,
     val inz: Boolean = false,
     override val position: Position? = null,
-    override val const: Boolean = false
+    override var const: Boolean = false,
+    var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
+    var paramOptions: List<ParamOption> = mutableListOf()
 ) :
     AbstractDataDefinition(name = name, type = type, position = position, const = const) {
 

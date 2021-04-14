@@ -5,11 +5,9 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.strumenta.kolasu.model.Derived
-import com.strumenta.kolasu.model.Named
-import com.strumenta.kolasu.model.Node
-import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.*
 import kotlinx.serialization.Serializable
+
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
 // to its main components
@@ -22,7 +20,15 @@ data class CompilationUnit(
     val compileTimeArrays: List<CompileTimeArray>,
     val directives: List<Directive>,
     override val position: Position?,
-    val apiDescriptors: Map<ApiId, ApiDescriptor>? = null
+    val apiDescriptors: Map<ApiId, ApiDescriptor>? = null,
+    // This way we say to not consider these nodes as part of compilation unit, this annotation is
+    // necessary to avoid that during data references resolving, are considered expression declared within procedures as well.
+    @property:Link val procedures: List<CompilationUnit>? = null,
+    val name: String? = null,
+    // TODO: Related to 'ProceduresParamsDataDefinitions' a refactor is required, but now:
+    // - if 'CompilationUnit' is an 'RpgProgram' this list is empty.
+    // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
+    val proceduresParamsDataDefinitions: List<DataDefinition>? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()
@@ -33,8 +39,10 @@ data class CompilationUnit(
 
     companion object {
         fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
-                emptyList(),
-                null)
+            emptyList(),
+            null,
+            null,
+            emptyList())
     }
 
     val entryPlist: PlistStmt?

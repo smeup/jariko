@@ -14,6 +14,7 @@ import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import java.lang.RuntimeException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.test.assertEquals
@@ -1422,6 +1423,263 @@ Test 6
     @Test @Ignore
     fun executeLOSER_PR() {
         executePgm("LOSER_PR")
+    }
+
+    @Test
+    fun executePROCEDURE_A() {
+        executePgm("PROCEDURE_A")
+    }
+
+    @Test
+    fun executePROCEDURE_B() {
+        executePgm("PROCEDURE_B")
+    }
+
+    @Test
+    fun executePROCEDURE_C() {
+        assertEquals(
+            expected = listOf("p received must be 11, is:11",
+                "q received must be 22, is:22",
+                "r received must be 0, is:0",
+                "r=p+q must be 33, is:33",
+                "s=q*2 must be 44, is:44",
+                "c was *zeros, now must be 33, is:33",
+                "d was *zeros, now must be 44, is:44"
+            ),
+            actual = outputOf("PROCEDURE_C")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_D() {
+        assertEquals(
+            expected = "33".split(Regex(",")),
+            actual = outputOf("PROCEDURE_D")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_E() {
+        assertEquals(
+            expected = "11,22".split(Regex(",")),
+            actual = outputOf("PROCEDURE_E")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_F() {
+        assertEquals(
+            expected = "99".split(Regex(",")),
+            actual = outputOf("PROCEDURE_F")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_G() {
+        assertEquals(
+            expected = "99,55".split(Regex(",")),
+            actual = outputOf("PROCEDURE_G")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_H() {
+        assertEquals(
+            expected = listOf("11",
+                "22",
+                "33",
+                "0",
+                "33",
+                "22",
+                "121"),
+            actual = outputOf("PROCEDURE_H")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_I() {
+        assertEquals(
+            expected = listOf("1",
+                "4"
+            ),
+            actual = outputOf("PROCEDURE_I")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_J() {
+        assertEquals(
+            expected = listOf("1",
+                "4",
+                "8",
+                "9",
+                "27",
+                "16-",
+                "16-",
+                "16-"
+            ),
+            actual = outputOf("PROCEDURE_J")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_K() {
+        assertEquals(
+            expected = listOf("69.12",
+                ".59",
+                "12345          54321",
+                "73.00",
+                "1",
+                "69.12",
+                ".59",
+                "12345          54321",
+                "73.00",
+                "1"
+            ),
+            actual = outputOf("PROCEDURE_K")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_L() {
+        assertEquals(
+            expected = listOf(".99",
+                "1.11",
+                "9.99"
+            ),
+            actual = outputOf("PROCEDURE_L")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_M() {
+        assertEquals(
+            expected = listOf("2.24",
+                "3.36"
+            ),
+            actual = outputOf("PROCEDURE_M")
+        )
+    }
+
+    @Test
+    @Ignore
+    // TODO ignored until 'DS as parameter' will be supported (maybe never?)
+    fun executePROCEDURE_N() {
+        assertEquals(
+            expected = listOf("10.2",
+                "ABCDE"
+            ),
+            actual = outputOf("PROCEDURE_N")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_O() {
+        assertEquals(
+            expected = listOf(
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.22",
+                "2.24",
+                "2.26",
+                "2.28",
+                "2.30",
+                "6.14",
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "11.30",
+                "2.22",
+                "2.24",
+                "2.26",
+                "2.28",
+                "2.30"
+            ),
+            actual = outputOf("PROCEDURE_O")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_P() {
+        assertEquals(
+            expected = listOf("2.04",
+                "1.02",
+                "1.03"
+            ),
+            actual = outputOf("PROCEDURE_P")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_Q() {
+        assertFailsWith(RuntimeException::class) {
+            execute("PROCEDURE_Q", emptyMap())
+        }
+    }
+
+    @Test
+    fun executePARMS() {
+        val rpgProgramName = "PARMS"
+        val cu = assertASTCanBeProduced(rpgProgramName, true)
+        cu.resolveAndValidate()
+        val logHandler = ListLogHandler()
+
+        // PASS NO PARAMETERS
+        var si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, emptyMap(),
+            si, listOf(logHandler))
+        assertEquals(listOf("0"), si.displayed)
+
+        // PASS ONE PARAMETER
+        si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, mapOf("P1" to StringValue("5")),
+            si, listOf(logHandler))
+        assertEquals(listOf("1"), si.displayed)
+
+        // PASS TWO PARAMETERS
+        si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, mapOf("P1" to StringValue("5"),
+            "P2" to StringValue("10")),
+            si, listOf(logHandler))
+        assertEquals(listOf("2"), si.displayed)
+    }
+
+    @Test
+    fun executePROCEDURE_R() {
+        assertEquals(
+            expected = listOf("1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.21",
+                "4.44",
+                "6.69",
+                "2.28",
+                "2.30",
+                "1.01",
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.21",
+                "2.21",
+                "4.44",
+                "6.69",
+                "2.28",
+                "2.30"
+            ),
+            actual = outputOf("PROCEDURE_R")
+        )
     }
 
     @Test

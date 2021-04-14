@@ -92,6 +92,141 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     return fileDefinition
 }
 
+private val RpgParser.Parm_fixedContext.decimalPositions
+    get() = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
+
+internal fun RpgParser.Parm_fixedContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: List<DataDefinition>
+): DataDefinition {
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
+
+    //    A Character (Fixed or Variable-length format)
+    //    B Numeric (Binary format)
+    //    C UCS-2 (Fixed or Variable-length format)
+    //    D Date
+    //    F Numeric (Float format)
+    //    G Graphic (Fixed or Variable-length format)
+    //    I Numeric (Integer format)
+    //    N Character (Indicator format)
+    //    O Object
+    //    P Numeric (Packed decimal format)
+    //    S Numeric (Zoned format)
+    //    T Time
+    //    U Numeric (Unsigned format)
+    //    Z Timestamp
+    //    * Basing pointer or procedure pointer
+
+    var like: AssignableExpression? = null
+    var dim: Expression? = null
+    var initializationValue: Expression? = null
+    var elementsPerLineExpression: Expression? = null
+    var compileTimeArray = false
+    var varying = false
+    var ascend: Boolean? = null
+
+    this.keyword().forEach {
+        it.keyword_ascend()?.let {
+            ascend = true
+        }
+        it.keyword_descend()?.let {
+            ascend = false
+        }
+        it.keyword_like()?.let {
+            like = it.simpleExpression().toAst(conf) as AssignableExpression
+        }
+        it.keyword_inz()?.let {
+            initializationValue = it.simpleExpression()?.toAst(conf)
+        }
+        it.keyword_dim()?.let {
+            dim = it.simpleExpression().toAst(conf)
+        }
+        it.keyword_perrcd()?.let {
+            elementsPerLineExpression = it.simpleExpression()?.toAst(conf)
+        }
+        it.keyword_ctdata()?.let {
+            compileTimeArray = true
+        }
+        it.keyword_varying()?.let {
+            varying = true
+        }
+    }
+
+    val elementSize = when {
+        like != null -> {
+            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
+        }
+        else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
+    }
+
+    val baseType =
+        when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
+            null -> todo(conf = conf)
+            "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
+                /* TODO should be packed? */
+                NumberType(elementSize!! - decimalPositions, decimalPositions)
+            } else {
+                if (like != null) {
+                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
+                } else {
+                    StringType(elementSize!!, varying)
+                }
+            }
+            "A" -> StringType(elementSize!!, varying)
+            "N" -> BooleanType
+            "Z" -> TimeStampType
+            /* TODO should be zoned? */
+            RpgType.ZONED.rpgType -> {
+                /* Zoned Type */
+                NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
+            }
+            RpgType.PACKED.rpgType -> {
+                /* Packed Type */
+                NumberType(elementSize!! - decimalPositions, decimalPositions, RpgType.PACKED.rpgType)
+            }
+            RpgType.BINARY.rpgType -> {
+                /* Binary */
+                NumberType(elementSize!!, 0, RpgType.BINARY.rpgType)
+            }
+            RpgType.INTEGER.rpgType -> {
+                /* Integer Type */
+                NumberType(elementSize!!, 0, RpgType.INTEGER.rpgType)
+            }
+            RpgType.UNSIGNED.rpgType -> {
+                /* Unsigned Type */
+                NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
+            }
+            else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
+        }
+
+    val type = if (dim != null) {
+        var compileTimeRecordsPerLine: Int? = null
+        if (compileTimeArray) {
+            if (elementsPerLineExpression != null) {
+                compileTimeRecordsPerLine = compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
+            } else {
+                compileTimeRecordsPerLine = 1
+            }
+            require(compileTimeRecordsPerLine > 0)
+        }
+
+        if (!baseType.isArray()) {
+            ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
+                it.ascend = ascend
+            }
+        } else {
+            baseType
+        }
+    } else {
+        baseType
+    }
+    return DataDefinition(
+        this.ds_name().text,
+        type,
+        initializationValue = initializationValue,
+        position = this.toPosition(true))
+}
+
 internal fun RpgParser.DspecContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: List<DataDefinition>
@@ -739,12 +874,12 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
 
     val dataDefinition = DataDefinition(
-            this.name,
-            type,
-            fields = fieldsList.fields.map { it.toAst(conf) },
-            initializationValue = initializationValue,
-            inz = inz != null,
-            position = this.toPosition(true))
+        this.name,
+        type,
+        fields = fieldsList.fields.map { it.toAst(conf) },
+        initializationValue = initializationValue,
+        inz = inz != null,
+        position = this.toPosition(true))
 
     // set the "overlayingOn" value for all field definitions
     fieldsList.fields.forEach { fieldInfo ->

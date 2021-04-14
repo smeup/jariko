@@ -9,7 +9,9 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
-import com.strumenta.kolasu.model.*
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
@@ -129,6 +131,11 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+    // if we have no procedures, the property procedure must be null because we decided it must be optional
+    val procedures = this.procedure().map { it.toAst(conf) }.let {
+        if (it.isEmpty()) null
+        else it
+    }
 
     return CompilationUnit(
         fileDefinitions,
@@ -138,7 +145,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         compileTimeArrays,
         directives,
         position = this.toPosition(conf.considerPosition),
-        apiDescriptors = this.statement().toApiDescriptors(conf)
+        apiDescriptors = this.statement().toApiDescriptors(conf),
+        procedures
     ).postProcess()
 }
 
@@ -166,6 +174,174 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
         this.endsr().csENDSR().factor1.text,
         toPosition(conf.considerPosition)
     )
+}
+
+internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+    // TODO FileDefinitions
+
+    // DataDefinitions
+    val dataDefinitions = getDataDefinitions(conf)
+
+    // Procedure Parameters DataDefinitions
+    val proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
+
+    // MainBody (list of Statements)
+    val mainStmts = this.subprocedurestatement().mapNotNull {
+        if (null != it.statement()) {
+            when {
+                it.statement().cspec_fixed() != null -> it.statement().cspec_fixed().toAst(conf)
+                it.statement().block() != null -> it.statement().block().toAst(conf)
+                it.statement().free() != null -> it.statement().free().toAst(conf)
+                else -> null
+            }
+        } else {
+            null
+        }
+    }
+
+    val subroutines = this.subprocedurestatement().mapNotNull {
+        when {
+            it.subroutine() != null -> it.subroutine().toAst(conf)
+            else -> null
+        }
+    }
+
+    // TODO CompileTimeArrays
+
+    // TODO Directives
+
+    // TODO Procedures
+
+    return CompilationUnit(
+        fileDefinitions = mutableListOf(),
+        dataDefinitions,
+        main = MainBody(mainStmts, null),
+        subroutines,
+        compileTimeArrays = mutableListOf(),
+        directives = mutableListOf(),
+        position = toPosition(conf.considerPosition),
+        apiDescriptors = null,
+        procedures = null,
+        name = this.beginProcedure().psBegin().ps_name().text,
+        proceduresParamsDataDefinitions
+    )
+}
+
+private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
+    val proceduresParamsDataDefinitions: MutableList<DataDefinition> = LinkedList()
+
+    // Get parmDefinition matching from parent's CompilationUnit dataDefinition
+    // Be carefull to filter for 'Parameter Name' and 'Procedure Name', due to avoid
+    // same variable name conflict.
+    dataDefinitions.forEach { dataDefinition ->
+        (this.parent as RContext).dcl_pr().forEach { dcl_prContext ->
+            dcl_prContext.parm_fixed()
+                .asSequence()
+                .filter {
+                    it.ds_name().text == dataDefinition.name &&
+                            this.beginProcedure().psBegin().ps_name().text == dcl_prContext.prBegin().ds_name().NAME().toString()
+                }
+                .forEach { it ->
+                    it.keyword().forEach { it ->
+                        if (it.keyword_value() != null) {
+                            dataDefinition.paramPassedBy = ParamPassedBy.Value
+                        }
+                        if (it.keyword_const() != null) {
+                            dataDefinition.const = true
+                        }
+                        if (it.keyword_options() != null) {
+                            it.keyword_options().identifier().forEach {
+                                val keyword = it.free_identifier().idOrKeyword().ID().toString()
+                                val paramOption = ParamOption.getByKeyword(keyword)
+                                (dataDefinition.paramOptions as ArrayList).add(paramOption)
+                            }
+                        }
+                    }
+                    proceduresParamsDataDefinitions.add(dataDefinition)
+                }
+        }
+    }
+
+    return proceduresParamsDataDefinitions
+}
+
+private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
+    // We need to calculate first all the data definitions which do not contain the LIKE DS directives
+    // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
+    // after them
+    val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
+    val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
+
+    // First pass ignore exception and all the know definitions
+    dataDefinitionProviders.addAll(this.subprocedurestatement()
+        .mapNotNull {
+            if (null != it.statement()) {
+                when {
+                    it.statement().dcl_ds() != null -> {
+                        try {
+                            it.statement().dcl_ds()
+                                .toAst(conf)
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    else -> null
+                }
+            } else {
+                null
+            }
+        })
+
+    // Second pass, everything, I mean everything
+    dataDefinitionProviders.addAll(this.subprocedurestatement()
+        .mapNotNull {
+            kotlin.runCatching {
+                if (null != it.statement()) {
+                    when {
+                        it.statement().dspec() != null -> {
+                            it.statement().dspec()
+                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        }
+                        it.statement().dcl_c() != null -> {
+                            it.statement().dcl_c()
+                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        }
+                        it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
+                            DataDefinitionCalculator(
+                                it.statement().dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders)
+                            )
+                        }
+                        else -> null
+                    }
+                } else {
+                    null
+                }
+            }.onFailure { error ->
+                it.error("Error on dataDefinitionProviders creation", error, conf)
+            }.getOrThrow()
+        })
+
+    // PROCEDURE PARAMETERS
+    // Second pass, everything, I mean everything
+    dataDefinitionProviders.addAll(this.dcl_pi().pi_parm_fixed()
+        .mapNotNull {
+            kotlin.runCatching {
+                when {
+                    it.parm_fixed() != null -> {
+                        it.parm_fixed()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    else -> null
+                }
+            }.onFailure { error ->
+                it.error("Error on dataDefinitionProviders creation", error, conf)
+            }.getOrThrow()
+        })
+    return dataDefinitionProviders.map { it.toDataDefinition() }
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -290,6 +466,8 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                         it.continuedIndicators.put(indicator, continuedIndicator)
                     }
                 }
+        this.cspec_fixed_x2() != null ->
+            this.cspec_fixed_x2().toAst()
         else -> todo(conf = conf)
     }
 }
@@ -522,15 +700,6 @@ private fun dataType(len: Int, decimals: Int?): Type =
     } else {
         NumberType(len - decimals, decimals)
     }
-
-internal fun Token.asLong(): Long? {
-    val tokenString = this.text.trim()
-    return if (tokenString.isNotBlank()) {
-        tokenString.toLongOrNull()
-    } else {
-        null
-    }
-}
 
 internal fun Token.asInt(): Int? {
     val tokenString = this.text.trim()
@@ -958,14 +1127,6 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     }
 }
 
-fun Token.toPosition(considerPosition: Boolean): Position? {
-    return if (considerPosition) {
-        Position(this.startPoint, this.endPoint)
-    } else {
-        null
-    }
-}
-
 internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
     return when {
         this.EQUAL() != null -> NORMAL_ASSIGNMENT
@@ -991,6 +1152,23 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         this.csPARM().map { it.toAst(conf) },
         this.cspec_fixed_standard_parts().lo.asIndex(),
         toPosition(conf.considerPosition)
+    )
+}
+
+internal fun Cspec_fixed_x2Context.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallPStmt {
+    val position = toPosition(conf.considerPosition)
+    require(this.c_free().expression().function().functionName() != null) {
+        "Missing functionName in callp statement at line ${position.line()}"
+    }
+
+    val literal = this.c_free().expression().literal()
+    val functionCalled: Expression = literal?.toAst(conf) ?: this.c_free().expression().toAst(conf)
+    val errorIndicator: IndicatorKey? = null
+
+    return CallPStmt(
+        functionCalled,
+        errorIndicator,
+        position
     )
 }
 

@@ -32,7 +32,9 @@ private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memo
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
-    val lrIndicator: () -> Boolean
+    val lrIndicator: () -> Boolean,
+    var returnValue: Value? = null,
+    var params: Int = 0
 ) {
     var lastFound = false
     var lastDBFile: DBFile? = null
@@ -262,6 +264,7 @@ class InternalInterpreter(
     ) {
         configureLogHandlers()
 
+        status.params = initialValues.size
         initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
 
         if (compilationUnit.minTimeOut == null) {
@@ -304,7 +307,7 @@ class InternalInterpreter(
                 null
             )
         } catch (e: ReturnException) {
-            // TODO use return value
+            status.returnValue = e.returnValue
         } catch (t: Throwable) {
             MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
                 interpretationContext.currentProgramName,

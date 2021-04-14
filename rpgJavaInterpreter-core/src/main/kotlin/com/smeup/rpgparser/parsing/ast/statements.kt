@@ -638,6 +638,26 @@ data class CallStmt(
 }
 
 @Serializable
+data class CallPStmt(
+    val expression: Expression,
+    val errorIndicator: IndicatorKey? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        return emptyList()
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log { CallPExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
+        val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
+        // TODO avoid explicit cast
+        val functionCall = this.expression as FunctionCall
+        expressionEvaluation.eval(functionCall)
+    }
+}
+
+@Serializable
 data class KListStmt
 private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
     companion object {

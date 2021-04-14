@@ -2,6 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import kotlin.math.ceil
@@ -249,6 +250,13 @@ fun Expression.type(): Type {
                 return NumberType(max(leftType.entireDigits, rightType.entireDigits), max(leftType.decimalDigits, rightType.decimalDigits))
             } else {
                 TODO("We do not know the type of a sum of types $leftType and $rightType")
+            }
+        }
+        is FunctionCall -> {
+            if (this.parent is EvalStmt) {
+                (this.parent as EvalStmt).target.type()
+            } else {
+                todo("Something's gone wrong establishing the ${this.function.name} return type.")
             }
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")

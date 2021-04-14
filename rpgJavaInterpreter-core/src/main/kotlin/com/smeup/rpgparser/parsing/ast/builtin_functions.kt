@@ -201,6 +201,15 @@ data class EofExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %PARMS
+@Serializable
+data class ParmsExpr(
+    var name: String? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %EQUAL
 @Serializable
 data class EqualExpr(

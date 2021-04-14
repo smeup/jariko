@@ -283,7 +283,13 @@ class ExpressionEvaluation(
         val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
             ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
         // TODO check number and types of params
-        val paramsValues = expression.args.map { it.evalWith(this) }
+        val paramsValues = expression.args.map {
+            if (it is DataRefExpr) {
+                FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
+            } else {
+                FunctionValue(value = it.evalWith(this))
+            }
+        }
         return function.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
     }
 
@@ -504,6 +510,10 @@ class ExpressionEvaluation(
 
     override fun eval(expression: GlobalIndicatorExpr) =
         throw RuntimeException("PredefinedGlobalIndicatorExpr should be handled by the interpreter: $expression")
+
+    override fun eval(expression: ParmsExpr): Value {
+        return IntValue(interpreterStatus.params.toLong())
+    }
 
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")
