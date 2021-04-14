@@ -77,7 +77,6 @@ interface ISymbolTable {
      * @return if is empty
      * */
     fun isEmpty(): Boolean
-
 }
 
 fun Value.forType(type: Type): Value {

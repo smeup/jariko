@@ -87,7 +87,9 @@ class SymbolTable : ISymbolTable {
         throw IllegalArgumentException("Cannot find searchedValued for $dataName")
     }
 
-    override fun dataDefinitionByName(dataName: String) = names[dataName.toUpperCase()] ?: (parentSymbolTable as SymbolTable).names[dataName.toUpperCase()]
+    override fun dataDefinitionByName(dataName: String): AbstractDataDefinition? {
+        return names[dataName.toUpperCase()] ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.toUpperCase()] }
+    }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
         return when (data.scope) {

@@ -24,7 +24,7 @@ class SymbolTable : ISymbolTable {
 
     override var parentSymbolTable: ISymbolTable?
         get() = TODO("Not yet implemented")
-        set(value) {parentSymbolTable = value}
+        set(value) { parentSymbolTable = value }
 
     override operator fun get(data: AbstractDataDefinition): Value {
         if (data is FieldDefinition) {
