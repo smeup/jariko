@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -43,9 +59,12 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         return arguments
     }
 
+    private var interpreter: InternalInterpreter? = null
+
     override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
-        val interpreter: InternalInterpreter by lazy {
-            InternalInterpreter(systemInterface)
+
+        if (interpreter == null) {
+            interpreter = InternalInterpreter(systemInterface)
         }
 
         // values passed to function in format argumentName to argumentValue
@@ -69,18 +88,18 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
             }
         }
 
-        interpreter.execute(this.compilationUnit, argumentNameToValue, false)
+        interpreter!!.execute(this.compilationUnit, argumentNameToValue, false)
 
         params.forEachIndexed { index, functionValue ->
             // if passed param contains variable name and parameter is passed by reference
             functionValue.variableName?.let { variableName ->
                 if (arguments[index].paramPassedBy == ParamPassedBy.Reference) {
-                    symbolTable[symbolTable.dataDefinitionByName(variableName)!!] = interpreter[arguments[index].name]
+                    symbolTable[symbolTable.dataDefinitionByName(variableName)!!] = interpreter!![arguments[index].name]
                 }
             }
         }
 
-        return interpreter.status.returnValue ?: VoidValue
+        return interpreter!!.status.returnValue ?: VoidValue
     }
 
     init {
