@@ -1761,6 +1761,7 @@ Test 6
     }
 
     @Test
+    @Ignore
     // TODO ignored until 'XSTR is a const and cannot be assigned' is solved
     fun executeMUTE15_06() {
         executePgm("mute/MUTE15_06")
