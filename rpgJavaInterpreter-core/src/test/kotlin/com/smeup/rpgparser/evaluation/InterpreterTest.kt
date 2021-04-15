@@ -1721,8 +1721,6 @@ Test 6
     }
 
     @Test
-    @Ignore
-    // TODO ignored until 'global scope' for variable '£G43ENR' is implemented
     fun executeMUTE15_01() {
         executePgm("mute/MUTE15_01")
     }
