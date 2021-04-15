@@ -1742,19 +1742,14 @@ Test 6
 
     @Test
     @Ignore
-    // TODO ignored until 'Data definition XXSTR was not found' is solved
+    // TODO ignored until 'Data definition XXSTR was not found' is solved. Problem is related to MUTE15_05A called
+    // from procedure
     fun executeMUTE15_05() {
         executePgm("mute/MUTE15_05")
     }
 
     @Test
     @Ignore
-    // TODO ignored until 'Data definition XXSTR was not found' is solved
-    fun executeMUTE15_05A() {
-        executePgm("mute/MUTE15_05A")
-    }
-
-    @Test
     // TODO ignored until 'XSTR is a const and cannot be assigned' is solved
     fun executeMUTE15_06() {
         executePgm("mute/MUTE15_06")
