@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -163,7 +164,14 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         position = this.toPosition(conf.considerPosition),
         apiDescriptors = this.statement().toApiDescriptors(conf),
         procedures
-    ).postProcess()
+    ).let { compilationUnit ->
+        // for each procedureUnit set compilationUnit as parent
+        // in order to resolve global data references
+        procedures?.onEach { procedureUnit ->
+            procedureUnit.parent = compilationUnit
+        }
+        compilationUnit
+    }.postProcess()
 }
 
 private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
@@ -193,6 +201,10 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 }
 
 internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+
+    val procedureName = this.beginProcedure().psBegin().ps_name().text
+    MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.push(procedureName)
+
     // TODO FileDefinitions
 
     // DataDefinitions
@@ -238,9 +250,9 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
         position = toPosition(conf.considerPosition),
         apiDescriptors = null,
         procedures = null,
-        procedureName = this.beginProcedure().psBegin().ps_name().text,
+        procedureName = procedureName,
         proceduresParamsDataDefinitions
-    )
+    ).apply { MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.pop() }
 }
 
 private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {

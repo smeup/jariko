@@ -25,11 +25,17 @@ interface ISymbolTable {
      * */
     val programSymbolTable: ISymbolTable
         get() {
-            var rootSymbolTable: ISymbolTable = this
-            while (parentSymbolTable != null) {
-                rootSymbolTable = parentSymbolTable!!.programSymbolTable
+            return if (parentSymbolTable == null) {
+                this
+            } else {
+                var currentParent = parentSymbolTable
+                var rootSymbolTable = this
+                while (currentParent != null) {
+                    rootSymbolTable = currentParent
+                    currentParent = currentParent.parentSymbolTable
+                }
+                rootSymbolTable
             }
-            return rootSymbolTable
         }
 
     /**

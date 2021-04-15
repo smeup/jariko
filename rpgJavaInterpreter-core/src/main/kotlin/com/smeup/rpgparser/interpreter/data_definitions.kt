@@ -47,9 +47,22 @@ abstract class AbstractDataDefinition(
      * */
     @Transient open val const: Boolean = false,
     /**
-     * This scope. Default Program
+     * This scope. Default: got by current parsing entity
      * */
-    @Transient open val scope: Scope = Scope.Program
+    val scope: Scope = run {
+        val parsingProgramStack = MainExecutionContext.getParsingProgramStack()
+        val parsingProgram = if (!parsingProgramStack.isEmpty()) {
+            parsingProgramStack.peek()
+        } else null
+        val parsingFunction = parsingProgram?.let {
+            if (!it.parsingFunctionNameStack.isEmpty()) {
+                it.parsingFunctionNameStack.peek()
+            } else null
+        }
+        if (parsingFunction != null) {
+            Scope.Local
+        } else Scope.Program
+    }
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()

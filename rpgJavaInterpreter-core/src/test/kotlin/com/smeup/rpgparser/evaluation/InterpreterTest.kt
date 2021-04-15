@@ -30,7 +30,6 @@ import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
-import java.lang.RuntimeException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.test.assertEquals
@@ -1448,7 +1447,20 @@ Test 6
 
     @Test
     fun executePROCEDURE_B() {
-        executePgm("PROCEDURE_B")
+        assertEquals(
+            expected = listOf(
+                "mainVar set by main",
+                "sameVar set by main",
+                "procVar set by proc",
+                "sameVar just initialized",
+                "sameVar set by proc",
+                "D specs inline init!",
+                "468.95",
+                "mainVar changed by proc",
+                "sameVar set by main"
+            ),
+            actual = outputOf("PROCEDURE_B")
+        )
     }
 
     @Test
