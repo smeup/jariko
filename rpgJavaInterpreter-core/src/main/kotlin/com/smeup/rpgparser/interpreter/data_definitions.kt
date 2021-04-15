@@ -176,7 +176,11 @@ data class DataDefinition(
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
     var paramOptions: List<ParamOption> = mutableListOf()
 ) :
-    AbstractDataDefinition(name = name, type = type, position = position, const = const) {
+    AbstractDataDefinition(
+        name = name.apply { require(this.trim().isNotEmpty()) { "name cannot be empty" } },
+        type = type,
+        position = position,
+        const = const) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()

@@ -62,13 +62,10 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         return arguments
     }
 
-    private var interpreter: InternalInterpreter? = null
-
     override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
 
-        if (interpreter == null) {
-            interpreter = InternalInterpreter(systemInterface)
-            interpreter!!.globalSymbolTable.parentSymbolTable = symbolTable
+        val interpreter = InternalInterpreter(systemInterface).apply {
+            globalSymbolTable.parentSymbolTable = symbolTable
         }
 
         // values passed to function in format argumentName to argumentValue
