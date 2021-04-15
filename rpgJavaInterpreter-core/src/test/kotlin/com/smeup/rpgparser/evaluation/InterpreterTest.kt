@@ -1726,28 +1726,21 @@ Test 6
     }
 
     @Test
-    @Ignore
-    // TODO ignored until 'global scope' for variable 'WKTXT' is implemented
     fun executeMUTE15_02() {
         executePgm("mute/MUTE15_02")
     }
 
     @Test
-    @Ignore
-    // TODO ignored until 2nd procedure call will not throw execption about trying to modify 'CITY' CONST var.
     fun executeMUTE15_03() {
         executePgm("mute/MUTE15_03")
     }
 
     @Test
-    @Ignore
-    // TODO ignored until 2nd procedure call will not throw execption about trying to modify 'SEARCHCONST' CONST var.
     fun executeMUTE15_04() {
         executePgm("mute/MUTE15_04")
     }
 
     @Test
-    @Ignore
     // TODO ignored until 'Data definition XXSTR was not found' is solved
     fun executeMUTE15_05() {
         executePgm("mute/MUTE15_05")
