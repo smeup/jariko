@@ -1714,4 +1714,17 @@ Test 6
     fun executeMUTE15_01() {
         executePgm("mute/MUTE15_01")
     }
+
+    @Test
+    @Ignore
+    // TODO ignored until 'global scope' for variable 'WKTXT' is implemented
+    fun executeMUTE15_02() {
+        executePgm("mute/MUTE15_02")
+    }
+
+    @Test
+    @Ignore
+    fun executeMUTE15_03() {
+        executePgm("mute/MUTE15_03")
+    }
 }

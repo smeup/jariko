@@ -246,19 +246,17 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
     val proceduresParamsDataDefinitions: MutableList<DataDefinition> = LinkedList()
 
-    // Get parmDefinition matching from parent's CompilationUnit dataDefinition
-    // Be carefull to filter for 'Parameter Name' and 'Procedure Name', due to avoid
-    // same variable name conflict.
+    // Get parmDefinition matching from internal (Procedure scope) dataDefinitions and PI parm definition.
     dataDefinitions.forEach { dataDefinition ->
-        (this.parent as RContext).dcl_pr().forEach { dcl_prContext ->
-            dcl_prContext.parm_fixed()
-                .asSequence()
-                .filter {
-                    it.ds_name().text == dataDefinition.name &&
-                            this.beginProcedure().psBegin().ps_name().text == dcl_prContext.prBegin().ds_name().NAME().toString()
-                }
+        this.dcl_pi().pi_parm_fixed()
+            .asSequence()
+            .filter {
+                it.parm_fixed().ds_name().NAME().text == dataDefinition.name
+            }
+            .forEach {
+            it.parm_fixed()
+                .keyword()
                 .forEach { it ->
-                    it.keyword().forEach { it ->
                         if (it.keyword_const() != null) {
                             dataDefinition.const = true
                             dataDefinition.paramPassedBy = ParamPassedBy.Const
@@ -276,7 +274,6 @@ private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions:
                     proceduresParamsDataDefinitions.add(dataDefinition)
                 }
         }
-    }
 
     return proceduresParamsDataDefinitions
 }
