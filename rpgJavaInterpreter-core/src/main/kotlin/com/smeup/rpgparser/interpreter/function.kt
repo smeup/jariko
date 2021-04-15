@@ -68,6 +68,7 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
 
         if (interpreter == null) {
             interpreter = InternalInterpreter(systemInterface)
+            interpreter!!.globalSymbolTable.parentSymbolTable = symbolTable
         }
 
         // values passed to function in format argumentName to argumentValue

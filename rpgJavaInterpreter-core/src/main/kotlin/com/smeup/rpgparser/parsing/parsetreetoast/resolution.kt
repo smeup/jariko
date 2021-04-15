@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.interpreter.DataDefinition
@@ -38,7 +54,13 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
                     val resField = cu.allDataDefinitions.find { it.name.equals(fieldName, true) }
                     dre.variable.referred = resField
                 } else {
-                    require(dre.variable.tryToResolve(cu.allDataDefinitions, caseInsensitive = true)) {
+                    var currentCu: CompilationUnit? = cu
+                    var resolved = false
+                    while (currentCu != null && !resolved) {
+                        resolved = dre.variable.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
+                        currentCu = currentCu.parent?.let { it as CompilationUnit } ?: null
+                    }
+                    require(resolved) {
                         "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
                     }
                 }
