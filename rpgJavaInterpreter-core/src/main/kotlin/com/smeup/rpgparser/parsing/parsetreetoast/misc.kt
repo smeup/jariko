@@ -259,11 +259,11 @@ private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions:
                 }
                 .forEach { it ->
                     it.keyword().forEach { it ->
-                        if (it.keyword_value() != null) {
-                            dataDefinition.paramPassedBy = ParamPassedBy.Value
-                        }
                         if (it.keyword_const() != null) {
                             dataDefinition.const = true
+                            dataDefinition.paramPassedBy = ParamPassedBy.Const
+                        } else if (it.keyword_value() != null) {
+                            dataDefinition.paramPassedBy = ParamPassedBy.Value
                         }
                         if (it.keyword_options() != null) {
                             it.keyword_options().identifier().forEach {

@@ -24,7 +24,10 @@ import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
 
 enum class ParamPassedBy {
-    Reference, Value
+    // Reference: any value change of variable, is reflected to variable parent
+    // Value: a 'copy' of value is created, so any value change will not be reflected to variable parent
+    // Const: like 'Reference' but 'read-only', so any value change will not be reflected to variable parent
+    Reference, Value, Const
 }
 
 data class FunctionParam(
