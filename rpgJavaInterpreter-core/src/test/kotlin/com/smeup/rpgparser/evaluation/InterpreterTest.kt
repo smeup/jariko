@@ -1441,11 +1441,6 @@ Test 6
     }
 
     @Test
-    fun executePROCEDURE_A() {
-        executePgm("PROCEDURE_A")
-    }
-
-    @Test
     fun executePROCEDURE_B() {
         assertEquals(
             expected = listOf(
@@ -1487,14 +1482,6 @@ Test 6
     }
 
     @Test
-    fun executePROCEDURE_E() {
-        assertEquals(
-            expected = "11,22".split(Regex(",")),
-            actual = outputOf("PROCEDURE_E")
-        )
-    }
-
-    @Test
     fun executePROCEDURE_F() {
         assertEquals(
             expected = "99".split(Regex(",")),
@@ -1505,7 +1492,7 @@ Test 6
     @Test
     fun executePROCEDURE_G() {
         assertEquals(
-            expected = "99,55".split(Regex(",")),
+            expected = "99,66".split(Regex(",")),
             actual = outputOf("PROCEDURE_G")
         )
     }
@@ -1731,5 +1718,12 @@ Test 6
             expected = "AAAA,BBBB".split(","),
             actual = outputOf("DSOVERL")
         )
+    }
+
+    @Test
+    @Ignore
+    // TODO ignored until 'global scope' for variable '£G43ENR' is implemented
+    fun executeMUTE15_01() {
+        executePgm("mute/MUTE15_01")
     }
 }

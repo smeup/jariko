@@ -1,4 +1,10 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * ARRAY PARAMETER AS INPUT AND RETURNED
+      * 1. Four parameters are passed to procedure (1st is an array);
+      * 2. Procedure changes values of some array elements;
+      * 3. Check returned array values;
+      *---------------------------------------------------------------
      DCALL1            PR             3  0 DIM(7)
      Dp                               2  0 DIM(3)
      Dq                               2  0

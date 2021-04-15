@@ -1,4 +1,8 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * RIGHT HANDLING OF 'CONST' KEYWORD
+      * ('CONST' means parameter is passed by reference in read-only mode)
+      *---------------------------------------------------------------
      D PROCEDURE_01    PR
      D P1                             5  2
      D P2                             5  2 CONST

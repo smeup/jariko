@@ -1,4 +1,11 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * ARRAY OF 3 ELEMS PASSED AS PARAMETER
+      * 1. For parameters are passed to procedure, 1st is an array;
+      * 2. Procedure execute sum of some array values and return the result;
+      * 3. Check result of returned sum
+      *---------------------------------------------------------------
+      *---------------------------------------------------------------
      DCALL1            PR
      Dp                               2  0 DIM(3)
      Dq                               2  0

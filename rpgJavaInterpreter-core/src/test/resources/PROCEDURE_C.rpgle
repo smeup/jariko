@@ -1,5 +1,10 @@
       *---------------------------------------------------------------
-      * A very simple 'SUM' procedure called by 'CALLP' statement
+      * Tested features:
+      * BASIC 'CALLP' STATEMENT
+      * 1. Four parameters are passed to procedure;
+      * 2. Procedure changes values of 3rd and 4th parameter;
+      * 3. Check changes into procedure will affect 3rd and 4th
+      *    variables of main program, due to 'reference' behaviour;
       *---------------------------------------------------------------
      DCALL1            PR
      Dp                               2  0

@@ -1,4 +1,7 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * DIFFERENT DATA TYPE OF PARAMETERS (CALLP and EVAL both tested)
+      *---------------------------------------------------------------
      D ADD_CALLP       PR
      D A1                            10  2
      D A2                            10  2
