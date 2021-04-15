@@ -335,6 +335,9 @@ class RpgParserFacade {
                 dataDefinition.setOverlayOn(fieldDefinition)
             }
         }
+        procedures?.onEach { procedureUnit ->
+            procedureUnit.parent = this
+        }
     }
 
     private fun createAst(
