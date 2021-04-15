@@ -1727,7 +1727,7 @@ Test 6
 
     @Test
     @Ignore
-    // TODO ignored until 'global scope' for variable 'WKTXT' is implemented
+    // TODO ignored until 'XXTIPO is a const and cannot be assigned' is fixed
     fun executeMUTE15_02() {
         executePgm("mute/MUTE15_02")
     }
