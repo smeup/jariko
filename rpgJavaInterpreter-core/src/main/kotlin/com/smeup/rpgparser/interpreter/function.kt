@@ -114,7 +114,7 @@ class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
         fun fromCurrentProgram(name: String): RpgFunction {
             return RpgFunction(
                 compilationUnit = MainExecutionContext.getProgramStack().peek().cu.procedures!!.first {
-                    it.name == name
+                    it.procedureName == name
                 }
             )
         }

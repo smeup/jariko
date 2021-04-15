@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -24,7 +40,7 @@ data class CompilationUnit(
     // This way we say to not consider these nodes as part of compilation unit, this annotation is
     // necessary to avoid that during data references resolving, are considered expression declared within procedures as well.
     @property:Link val procedures: List<CompilationUnit>? = null,
-    val name: String? = null,
+    val procedureName: String? = null,
     // TODO: Related to 'ProceduresParamsDataDefinitions' a refactor is required, but now:
     // - if 'CompilationUnit' is an 'RpgProgram' this list is empty.
     // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)

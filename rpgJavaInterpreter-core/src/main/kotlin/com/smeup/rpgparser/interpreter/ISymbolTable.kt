@@ -21,7 +21,7 @@ interface ISymbolTable {
     var parentSymbolTable: ISymbolTable?
 
     /**
-     * Get the program symbol table, that is the one without a parent
+     * Get the program symbol table, which is the one without parentSymbolTable
      * */
     val programSymbolTable: ISymbolTable
         get() {
