@@ -1,4 +1,10 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * RIGHT HANDLING OF '*NOPASS' ATTRIBUTES OF 'OPTION' KEYWORD
+      * AND 'VALUE' KEYWORD
+      * ('VALUE' means parameter is passed by value)
+      * ('*NOPASS' means parameter is not mandatory)
+      *---------------------------------------------------------------
      D PROCEDURE_01    PR
      D P1                             5  2
      D P2                             5  2

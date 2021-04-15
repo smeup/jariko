@@ -1,4 +1,11 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * RIGHT HANDLING OF '%PARMS' BUILT-IN FUNCTION (aka 'bif')
+      * The %PARMS get the number of parameters really received, it's a
+      * statement works into procedure and main rpg of course.
+      * It's used to avoid runtime exception trying to use a parameter
+      * value not passed (so not mandatory) by caller program.
+      *---------------------------------------------------------------
      D PROC            PR
      D P1                             5  2
      D P2                             5  2

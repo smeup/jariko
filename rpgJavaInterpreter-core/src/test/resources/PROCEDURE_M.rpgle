@@ -1,4 +1,7 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * PREVENT CONFLICTS IN TWO PROCEDURE WITH SAME PARAMETER NAMES
+      *---------------------------------------------------------------
      D PROCEDURE_01    PR
      D P1                             5  2
      D R1                            10  2

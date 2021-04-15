@@ -1,4 +1,8 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * RIGHT HANDLING OF RECURSIVE CALLING
+      * (a procedure can recursively call itself)
+      *---------------------------------------------------------------
      D PROC            PR
      D P_NCALL                        3  0
       *

@@ -1,4 +1,10 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * RETURN (void) TO 'EXIT' IMMEDIATELY FROM PROCEDURE
+      * 1. One parameter is passed to procedure in two times (two calls);
+      * 2. Accordling to parameter value, return statement can break procedure flow,
+      *    changing, or not, the value passed as parameter;
+      *---------------------------------------------------------------
      DCALL1            PR
      Dp                               2  0
       *---------------------------------------------------------------

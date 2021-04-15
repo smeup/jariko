@@ -1,5 +1,10 @@
       *---------------------------------------------------------------
-      * A very simple 'SUM' procedure called by 'EVAL' statement
+      * Tested features:
+      * BASIC 'EVAL' AND 'RETURN' STATEMENT TO CALL PROCEDURE AND
+      * GET RETURNED VALUE
+      * 1. Two parameters are passed to procedure;
+      * 2. Procedure execute sum of two values and return the result;
+      * 3. Check result of returned sum
       *---------------------------------------------------------------
      DCALL1            PR             2  0
      Dp                               2  0

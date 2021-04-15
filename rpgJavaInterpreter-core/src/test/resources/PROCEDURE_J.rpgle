@@ -1,4 +1,11 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * HANDLING OF SUBROUTINES INTO PROCEDURE
+      * 1. One parameter is passed to procedure several times (several calls);
+      * 2. Accordling to parameter value, some subroutine could be executed,
+      *    or not;
+      * 3. Check changes of parameter related to executed subroutine;
+      *---------------------------------------------------------------
      DCALL1            PR
      Dp                               2  0
       *---------------------------------------------------------------

@@ -1442,11 +1442,6 @@ Test 6
     }
 
     @Test
-    fun executePROCEDURE_A() {
-        executePgm("PROCEDURE_A")
-    }
-
-    @Test
     fun executePROCEDURE_B() {
         executePgm("PROCEDURE_B")
     }
@@ -1475,14 +1470,6 @@ Test 6
     }
 
     @Test
-    fun executePROCEDURE_E() {
-        assertEquals(
-            expected = "11,22".split(Regex(",")),
-            actual = outputOf("PROCEDURE_E")
-        )
-    }
-
-    @Test
     fun executePROCEDURE_F() {
         assertEquals(
             expected = "99".split(Regex(",")),
@@ -1493,7 +1480,7 @@ Test 6
     @Test
     fun executePROCEDURE_G() {
         assertEquals(
-            expected = "99,55".split(Regex(",")),
+            expected = "99,66".split(Regex(",")),
             actual = outputOf("PROCEDURE_G")
         )
     }

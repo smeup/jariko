@@ -1,4 +1,9 @@
       *---------------------------------------------------------------
+      * Tested features:
+      * HANDLING OF 'VALUE' KEYWORD PARAMETER (means parameter passing by value)
+      * 1. One parameter is passed by VALUE, invoking procedure by 'CALLP'
+      *    and 'EVAL' statements ;
+      *---------------------------------------------------------------
      D PROCEDURE_01    PR
      D P1                             5  2
      D R1                            10  2 VALUE
