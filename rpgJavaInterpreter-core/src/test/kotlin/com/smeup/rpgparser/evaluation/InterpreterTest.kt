@@ -1438,4 +1438,11 @@ Test 6
             actual = outputOf("DSOVERL")
         )
     }
+
+    @Test
+    @Ignore
+    // TODO ignored until fix of 'Issue executing CallStmt at line 19. Data definition P2 was not found'
+    fun executeENTRY_A() {
+        assertEquals(listOf("1"), outputOf("ENTRY_A"))
+    }
 }
