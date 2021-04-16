@@ -650,22 +650,22 @@ Test 6
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE1() {
         assertEquals(listOf("33"), outputOf("PROCEDURE1"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE2_callAsFunction() {
         assertEquals(listOf("33"), outputOf("PROCEDURE2"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE3_constExpressionWithTypeCast() {
         assertEquals(listOf("33"), outputOf("PROCEDURE3"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE4_errorModifyingConstParameter() {
         // TODO Define a better exception
         assertFailsWith(Throwable::class) {
@@ -673,12 +673,12 @@ Test 6
         }
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE5_localVarNames() {
         assertEquals(listOf("33"), outputOf("PROCEDURE5"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE6_shadowingOfVars() {
         assertEquals(listOf("25"), outputOf("PROCEDURE6"))
     }
