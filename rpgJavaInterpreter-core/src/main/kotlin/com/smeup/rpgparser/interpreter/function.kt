@@ -53,7 +53,7 @@ abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<Func
  * This class models a generic function, "generic" because could be a procedure if return a VoidValue else
  * a function if return something else.
  * */
-class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
+open class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
 
     override fun params(): List<FunctionParam> {
         val arguments = mutableListOf<FunctionParam>()

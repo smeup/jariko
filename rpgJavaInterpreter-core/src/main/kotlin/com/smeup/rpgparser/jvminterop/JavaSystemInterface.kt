@@ -96,7 +96,26 @@ open class JavaSystemInterface(
 
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         return functions.computeIfAbsent(name) {
-            RpgFunction.fromCurrentProgram(name)
+            findFunctionInPackages(name) ?: RpgFunction.fromCurrentProgram(name)
+        }
+    }
+
+    private fun findFunctionInPackages(programName: String): Function? {
+        return javaInteropPackages.asSequence().map { packageName ->
+            try {
+                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
+                instantiateFunction(javaClass)
+            } catch (e: Throwable) {
+                null
+            }
+        }.filter { it != null }.firstOrNull()
+    }
+
+    open fun instantiateFunction(javaClass: Class<*>): Function? {
+        return if (javaClass.kotlin.isSubclassOf(Program::class)) {
+            javaClass.kotlin.constructors.filter { it.parameters.isEmpty() }.first().call() as Function
+        } else {
+            null
         }
     }
 

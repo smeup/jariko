@@ -1752,4 +1752,13 @@ Test 6
     fun executeMUTE15_06() {
         executePgm("mute/MUTE15_06")
     }
+
+    @Test
+    fun executeDOPED_PROC() {
+        assertEquals(
+            expected = listOf("46"
+            ),
+            actual = outputOf("DOPED_PROC")
+        )
+    }
 }

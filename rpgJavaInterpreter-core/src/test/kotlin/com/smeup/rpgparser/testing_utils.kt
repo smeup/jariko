@@ -53,6 +53,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
+import kotlin.reflect.full.isSubclassOf
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -377,9 +378,41 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
         // this way I enable function searching also within compilation unit
         return functions.computeIfAbsent(name) {
-            RpgFunction.fromCurrentProgram(name)
+            findFunctionInPackages(name) ?: RpgFunction.fromCurrentProgram(name)
         }
     }
+
+    private val javaInteropPackages = LinkedList<String>()
+
+    private fun findFunctionInPackages(programName: String): Function? {
+        val javaSystemInterface = JavaSystemInterface().apply {
+            rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
+        }
+        if (javaInteropPackages.isEmpty()) {
+            javaInteropPackages.add("com.smeup.rpgparser.jvminterop")
+        }
+        return javaInteropPackages.asSequence().map { packageName ->
+            try {
+                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
+                instantiateFunction(javaClass)
+            } catch (e: Throwable) {
+                null
+            }
+        }.filter {
+            it != null
+        }.firstOrNull()
+    }
+
+    open fun instantiateFunction(javaClass: Class<*>): Function? {
+        return if (javaClass.kotlin.isSubclassOf(Function::class)) {
+            javaClass.kotlin.constructors.filter {
+                it.parameters.isEmpty()
+            }.first().call() as Function
+        } else {
+            null
+        }
+    }
+
     override fun findCopy(copyId: CopyId): Copy? {
         TODO("Not yet implemented")
     }
