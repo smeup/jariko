@@ -1,21 +1,58 @@
       *---------------------------------------------------------------
       * Tested features:
-      * CALLP OF A DOPED (NON-RPGLE) PROCEDURE 'JDP_SUM'
+      * EXECUTION OF A 'DOPED' (NON-RPGLE) PROCEDURE 'JDP_CALC'
+      * - If procedure is called by 'CALLP' statement, result will be
+      *   set to 'R1' variable (accordling to 'ParameterPassedBy' policy)
+      * - If procedure is called by 'EVAL' statement, result will be
+      *   set to 'R2' variable.
       *---------------------------------------------------------------
-     D NUM1            S              3  0
-     D NUM2            S              3  0
-     D RES             S              3  0
-      *
-     D RES_CHAR        S             10
+     D N1              S              3  0
+     D N2              S              3  0
+     D OP              S              1
+     D R1              S              3  0
+     D R2              S              3  0
+     D RC              S             10
       *---------------------------------------------------------------
       * Main
       *---------------------------------------------------------------
-     C                   EVAL      NUM1=12
-     C                   EVAL      NUM2=34
-     C                   EVAL      RES=0
-     C                   CALLP     JDP_SUM(NUM1:NUM2:RES)
+      * '+' operator by 'CALLP'
+     C                   EVAL      N1=12
+     C                   EVAL      N2=34
+     C                   EVAL      OP='+'
+     C                   EVAL      R1=0
+     C                   CALLP     JDP_CALC(N1:N2:OP:R1)
       * Must be '46'
-     C                   EVAL      RES_CHAR=%CHAR(RES)
-     C     RES_CHAR      DSPLY
+     C                   EVAL      RC=%CHAR(R1)
+     C     RC            DSPLY
+      *
+      * '-' operator by 'EVAL'
+     C                   EVAL      N1=56
+     C                   EVAL      N2=78
+     C                   EVAL      OP='-'
+     C                   EVAL      R1=0
+     C                   EVAL      R2=JDP_CALC(N1:N2:OP:R1)
+      * Must be '-22'
+     C                   EVAL      RC=%CHAR(R2)
+     C     RC            DSPLY
+      *
+      * '*' operator by 'CALLP'
+     C                   EVAL      N1=7
+     C                   EVAL      N2=8
+     C                   EVAL      OP='*'
+     C                   EVAL      R1=0
+     C                   CALLP     JDP_CALC(N1:N2:OP:R1)
+      * Must be '56'
+     C                   EVAL      RC=%CHAR(R1)
+     C     RC            DSPLY
+      *
+      * '/' operator by 'EVAL'
+     C                   EVAL      N1=30
+     C                   EVAL      N2=6
+     C                   EVAL      OP='/'
+     C                   EVAL      R1=0
+     C                   EVAL      R2=JDP_CALC(N1:N2:OP:R1)
+      * Must be '5'
+     C                   EVAL      RC=%CHAR(R2)
+     C     RC            DSPLY
       *
      C                   SETON                                        LR

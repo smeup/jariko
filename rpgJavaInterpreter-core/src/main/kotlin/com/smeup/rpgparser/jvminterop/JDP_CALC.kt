@@ -18,21 +18,23 @@ package com.smeup.rpgparser.jvminterop
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import java.lang.RuntimeException
 
 /*
-  JDP_SUM - Java Doped Procedure
+  JDP_CALC - Java Doped Procedure
   A sample of a 'doped' procedure, acting like an RPG-procedure
   but its implementation is done in kotlin and not in rpgle."
-  Procedure is called by 'CALLP' statement invoked by rpgle program.
+  Procedure is called by 'CALLP' and or 'EVAL' rpgle statement.
  */
 
-class JDP_SUM() : Function {
+class JDP_CALC() : Function {
 
     override fun params(): List<FunctionParam> {
         val arguments = mutableListOf<FunctionParam>()
-        arguments.add(FunctionParam("NUM1", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Reference))
-        arguments.add(FunctionParam("NUM2", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Reference))
-        arguments.add(FunctionParam("RES", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Reference))
+        arguments.add(FunctionParam("N1", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Value))
+        arguments.add(FunctionParam("N2", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Value))
+        arguments.add(FunctionParam("OP", StringType(length = 1), paramPassedBy = ParamPassedBy.Value))
+        arguments.add(FunctionParam("R1", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Reference))
         return arguments
     }
 
@@ -42,18 +44,33 @@ class JDP_SUM() : Function {
         symbolTable: ISymbolTable
     ): Value {
 
+        var returnValue: IntValue
         val argumentNameToValue = mutableMapOf<String, Value>()
         val arguments = this.params()
 
+        // Create map of 'VariableName, Value'
         arguments.forEachIndexed { index, functionParam ->
             if (index < params.size) {
                 argumentNameToValue[functionParam.name] = params[index].value
             }
         }
 
-        val result = (argumentNameToValue["NUM1"] as IntValue).value + (argumentNameToValue["NUM2"] as IntValue).value
-        argumentNameToValue["RES"] = IntValue(result)
+        // Logic
+        val num1 = argumentNameToValue["N1"] as IntValue
+        val num2 = argumentNameToValue["N2"] as IntValue
+        val operator = argumentNameToValue["OP"] as StringValue
+        val result = when (operator.value) {
+            "+" -> num1.value + num2.value
+            "-" -> num1.value - num2.value
+            "*" -> num1.value * num2.value
+            "/" -> num1.value / num2.value
+            else -> throw RuntimeException("Unsupported math operator: $operator")
+        }
 
+        argumentNameToValue["R1"] = result.asValue()
+        returnValue = result.asValue()
+
+        // Values could/couldn't return due to 'ParamPassedBy' policy
         params.forEachIndexed { index, functionValue ->
             functionValue.variableName?.let { variableName ->
                 if (arguments[index].paramPassedBy == ParamPassedBy.Reference) {
@@ -62,6 +79,6 @@ class JDP_SUM() : Function {
             }
         }
 
-        return VoidValue
+        return returnValue
     }
 }

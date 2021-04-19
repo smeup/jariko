@@ -1756,7 +1756,10 @@ Test 6
     @Test
     fun executeDOPED_PROC() {
         assertEquals(
-            expected = listOf("46"
+            expected = listOf("46",
+                "-22",
+                "56",
+                "5"
             ),
             actual = outputOf("DOPED_PROC")
         )
