@@ -187,11 +187,11 @@
      D LEN_PIPE        S              5  0 INZ(10)
      D LEN_QUADRE      S              5  0 INZ(5)
       * ESADECIMALE DEL CARATTERE TABULAZIONE EBCDIC
-     D C_TAB           C                   X'05'
+     D C_TAB           C                   CONST(X'05')
       * ESADECIMALE DEL CARATTERE CR
-     D C_CR            C                   X'0D'
+     D C_CR            C                   CONST(X'0D')
       * ESADECIMALE DEL CARATTERE LF
-     D C_LF            C                   X'25'
+     D C_LF            C                   CONST(X'25')
       *
      C                   EVAL      $XmlVAL=$XmlSOS
      C                   EVAL      $LEN_XML=%LEN($XMLVAL)
@@ -371,11 +371,11 @@
      D AAA001          S             10    VARYING
      D AAA010          S             01
       * ESADECIMALE DEL CARATTERE TABULAZIONE EBCDIC
-     D C_TAB           C                   X'05'
+     D C_TAB           C                   CONST(X'05')
       * ESADECIMALE DEL CARATTERE CR
-     D C_CR            C                   X'0D'
+     D C_CR            C                   CONST(X'0D')
       * ESADECIMALE DEL CARATTERE LF
-     D C_LF            C                   X'25'
+     D C_LF            C                   CONST(X'25')
       *
      C                   EVAL      $XmlVAL=$XmlSOC
 1    C                   IF        %LEN($XMLVAL)=0
