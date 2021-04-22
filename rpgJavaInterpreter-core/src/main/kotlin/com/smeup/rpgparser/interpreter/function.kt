@@ -17,7 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.strumenta.kolasu.model.Node
@@ -37,16 +37,18 @@ data class FunctionParam(
     override val position: Position? = null
 ) : Node(position)
 
-data class FunctionValue(val variableName: String? = null, val value: Value)
+data class FunctionValue(var variableName: String? = null, var value: Value, val type: Type? = null)
 
 interface Function {
     fun params(): List<FunctionParam>
     fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value
 }
 
-abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<FunctionParam>) :
-    Function {
-    override fun params() = params
+interface JavaFunction : Function {
+    override fun params(): List<FunctionParam> {
+        TODO("Not yet implemented")
+    }
+    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value
 }
 
 /**
@@ -62,7 +64,11 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
         return arguments
     }
 
-    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: List<FunctionValue>,
+        symbolTable: ISymbolTable
+    ): Value {
 
         val interpreter = InternalInterpreter(systemInterface).apply {
             globalSymbolTable.parentSymbolTable = symbolTable
@@ -83,7 +89,8 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
             } else {
                 // Any missing parm must be optional ('*NOPASS' keyword)
                 if (paramsDataDefinition[index].paramOptions.isEmpty() ||
-                    !paramsDataDefinition[index].paramOptions.contains(ParamOption.NoPass)) {
+                    !paramsDataDefinition[index].paramOptions.contains(ParamOption.NoPass)
+                ) {
                     functionParam.todo("Parameter '${paramsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
                 }
             }
@@ -121,3 +128,99 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
         }
     }
 }
+
+class FunctionExecutor {
+    companion object {
+        fun execute(expressionEvaluator: Evaluator, expression: FunctionCall, systemInterface: SystemInterface, symbolTable: ISymbolTable): Value {
+
+            val procedureParmsDataDefinition = mutableListOf<DataDefinition>()
+            var compilationUnit: CompilationUnit
+
+            // If recursive procedure calls
+            if (expression.parent!!.parent!!.parent!!.parent is CompilationUnit) {
+                compilationUnit = (expression.parent!!.parent!!.parent!!.parent as CompilationUnit)
+            } else {
+                compilationUnit = (expression.parent!!.parent!!.parent as CompilationUnit)
+            }
+
+            // If recursive procedure calls
+            if (null != compilationUnit.procedures) {
+                compilationUnit
+                    .procedures
+                    ?.filter {
+                            p -> p.procedureName == expression.function.name
+                    }
+                    ?.forEach {
+                        it.proceduresParamsDataDefinitions?.forEach {
+                            procedureParmsDataDefinition.add(it)
+                        }
+                    }
+            } else {
+                procedureParmsDataDefinition.addAll(compilationUnit.proceduresParamsDataDefinitions!!)
+            }
+
+            // Check number and type of params
+            expression.args.forEachIndexed { index, functionParam ->
+                if (index < procedureParmsDataDefinition.size) {
+                    if (functionParam.type() != procedureParmsDataDefinition[index].type) {
+                        functionParam.todo("Procedure parameter '${procedureParmsDataDefinition[index].name}' of type '${procedureParmsDataDefinition[index].type}' must be as same type of varialble '${(functionParam as DataRefExpr).variable.name}' of type ${functionParam.type()}")
+                    }
+                } else {
+                    // Any missing parm must be optional ('*NOPASS' keyword)
+                    if (procedureParmsDataDefinition[index].paramOptions.isEmpty() ||
+                        !procedureParmsDataDefinition[index].paramOptions.contains(ParamOption.NoPass)
+                    ) {
+                        functionParam.todo("Procedure parameter '${procedureParmsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
+                    }
+                }
+            }
+
+            // Load list of variables name related to parameters passed by Reference
+            val nameOfVariablesPassedByReference = mutableListOf<String>()
+            expression.args.forEachIndexed { index, variable ->
+                if (procedureParmsDataDefinition[index].paramPassedBy == ParamPassedBy.Reference) {
+                    nameOfVariablesPassedByReference.add((variable as DataRefExpr).variable.name)
+                }
+            }
+
+            val functionToCall = expression.function.name
+            val function = systemInterface.findFunction(symbolTable, functionToCall)
+                ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
+            var paramsValues: List<FunctionValue>
+
+            val returnValue = when (function) {
+                is JavaFunction -> {
+                    paramsValues = expression.args.map {
+                        if (it is DataRefExpr) {
+                            FunctionValue(variableName = it.variable.name, value = it.evalWith(expressionEvaluator), type = it.variable.referred!!.type)
+                        } else {
+                            FunctionValue(value = it.evalWith(expressionEvaluator))
+                        }
+                    }
+                    val returnValue = function.execute(systemInterface, paramsValues, symbolTable)
+                    // Set new params values if passing by Reference
+                    paramsValues.forEach {
+                        it.variableName?.let { variableName ->
+                            if (nameOfVariablesPassedByReference.contains(variableName)) {
+                                symbolTable[symbolTable.dataDefinitionByName(variableName)!!] = it.value
+                            }
+                        }
+                    }
+                    returnValue
+                }
+                else -> {
+                        paramsValues = expression.args.map {
+                            if (it is DataRefExpr) {
+                                FunctionValue(variableName = it.variable.name, value = it.evalWith(expressionEvaluator))
+                            } else {
+                                FunctionValue(value = it.evalWith(expressionEvaluator))
+                            }
+                        }
+                        function.execute(systemInterface, paramsValues, symbolTable)
+                    }
+                }
+
+            return returnValue ?: VoidValue
+            }
+        }
+    }

@@ -17,7 +17,6 @@
 package com.smeup.rpgparser.jvminterop
 
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.interpreter.Function
 import java.lang.RuntimeException
 
 /*
@@ -27,16 +26,7 @@ import java.lang.RuntimeException
   Procedure is called by 'CALLP' and or 'EVAL' rpgle statement.
  */
 
-class JDP_CALC() : Function {
-
-    override fun params(): List<FunctionParam> {
-        val arguments = mutableListOf<FunctionParam>()
-        arguments.add(FunctionParam("N1", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Value))
-        arguments.add(FunctionParam("N2", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Value))
-        arguments.add(FunctionParam("OP", StringType(length = 1), paramPassedBy = ParamPassedBy.Value))
-        arguments.add(FunctionParam("R1", NumberType(entireDigits = 3, decimalDigits = 0), paramPassedBy = ParamPassedBy.Reference))
-        return arguments
-    }
+class JDP_CALC() : JavaFunction {
 
     override fun execute(
         systemInterface: SystemInterface,
@@ -44,40 +34,27 @@ class JDP_CALC() : Function {
         symbolTable: ISymbolTable
     ): Value {
 
-        var returnValue: IntValue
-        val argumentNameToValue = mutableMapOf<String, Value>()
-        val arguments = this.params()
+        // Create local variables from received parameters
+        var n1 = params.filter { fv -> fv.variableName == "N1" }.first().value as IntValue
+        var n2 = params.filter { fv -> fv.variableName == "N2" }.first().value as IntValue
+        var op = params.filter { fv -> fv.variableName == "OP" }.first().value as StringValue
 
-        // Create map of 'VariableName, Value'
-        arguments.forEachIndexed { index, functionParam ->
-            if (index < params.size) {
-                argumentNameToValue[functionParam.name] = params[index].value
-            }
-        }
+        // Compute requested operation
+        val returnValue = when (op.value) {
+            "+" -> n1.value + n2.value
+            "-" -> n1.value - n2.value
+            "*" -> n1.value * n2.value
+            "/" -> n1.value / n2.value
+            else -> throw RuntimeException("Unsupported math operator: ${op.value}")
+        }.asValue()
 
-        // Logic
-        val num1 = argumentNameToValue["N1"] as IntValue
-        val num2 = argumentNameToValue["N2"] as IntValue
-        val operator = argumentNameToValue["OP"] as StringValue
-        val result = when (operator.value) {
-            "+" -> num1.value + num2.value
-            "-" -> num1.value - num2.value
-            "*" -> num1.value * num2.value
-            "/" -> num1.value / num2.value
-            else -> throw RuntimeException("Unsupported math operator: $operator")
-        }
-
-        argumentNameToValue["R1"] = result.asValue()
-        returnValue = result.asValue()
-
-        // Values could/couldn't return due to 'ParamPassedBy' policy
-        params.forEachIndexed { index, functionValue ->
-            functionValue.variableName?.let { variableName ->
-                if (arguments[index].paramPassedBy == ParamPassedBy.Reference) {
-                    symbolTable[symbolTable.dataDefinitionByName(variableName)!!] = argumentNameToValue[variableName]!!
-                }
-            }
-        }
+        // Change value of "N1" and "R1" parameter.
+        // This doesn't mean it will affect value of variable in symboltable caller scope,
+        // cause it depends on 'ParamPassedBy' policy (reference, value...)
+        // In this case, only "R1" value will be changed in symboltable cause "N1" is
+        // passed by value
+        params.filter { fv -> fv.variableName == "N1" }.first().value = returnValue
+        params.filter { fv -> fv.variableName == "R1" }.first().value = returnValue
 
         return returnValue
     }

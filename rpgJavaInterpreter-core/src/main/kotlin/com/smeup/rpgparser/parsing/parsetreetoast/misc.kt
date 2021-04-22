@@ -32,6 +32,7 @@ import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
+import kotlin.collections.ArrayList
 
 data class ToAstConfiguration(
     val considerPosition: Boolean = true,
@@ -149,9 +150,91 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
     // if we have no procedures, the property procedure must be null because we decided it must be optional
-    val procedures = this.procedure().map { it.toAst(conf) }.let {
+    var procedures = this.procedure().map { it.toAst(conf) }.let {
         if (it.isEmpty()) null
         else it
+    }
+
+    // If any of the 'non rpgle standard' procedures (only prototype definition 'PR' and missing
+    // the procedure implementation) should be the 'doped java procedure' case.
+    // Needed to create a 'fake procedure' to be able to get 'ProcedureParameterDataDefinition'.
+    // 1. get names of all prototype definitions
+    // 2. match names with related procedure implementation to remove any 'not real fake prototype'
+    // 3. any missing match, will generate a fake procedure
+    val fakePrototypeNames = mutableMapOf<String, ArrayList<DataDefinition>>()
+    this.children.forEach {
+        if (it is Dcl_prContext) {
+            var fakePrototypeName: String = ""
+            var fakePrototypeDataDefinitions: ArrayList<DataDefinition> = arrayListOf<DataDefinition>()
+            (this.children[0] as Dcl_prContext).children.forEachIndexed { index, element ->
+                var fakePrototypeDataDefinition: DataDefinition
+                if (index == 0) {
+                    fakePrototypeName =
+                        (element as PrBeginContext).ds_name().NAME().text
+                } else {
+                    var parmFixed = ((this.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
+                    var paramPassedBy = ParamPassedBy.Reference
+                    var paramOptions = mutableListOf<ParamOption>()
+                    parmFixed
+                        .keyword()
+                        .forEach { it ->
+                        if (it.keyword_const() != null) {
+                            paramPassedBy = ParamPassedBy.Const
+                        } else if (it.keyword_value() != null) {
+                            paramPassedBy = ParamPassedBy.Value
+                        }
+                        if (it.keyword_options() != null) {
+                            it.keyword_options().identifier().forEach {
+                                val keyword = it.free_identifier().idOrKeyword().ID().toString()
+                                val paramOption = ParamOption.getByKeyword(keyword)
+                                if (null != paramOption) {
+                                    (paramOptions as ArrayList).add(paramOption)
+                                }
+                            }
+                        }
+                    }
+                    fakePrototypeDataDefinition =
+                        parmFixed.toAst(conf, dataDefinitions.toList())
+                    fakePrototypeDataDefinition.paramPassedBy = paramPassedBy
+                    fakePrototypeDataDefinition.paramOptions = paramOptions
+                    fakePrototypeDataDefinitions.add(fakePrototypeDataDefinition)
+                }
+            }
+            fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
+        }
+    }
+
+    // Remove any 'fake prototype name' having related RPG procedure implementation
+    // cause it is not 'fake'.
+    if (null != procedures) {
+        procedures.forEach {
+            fakePrototypeNames.remove(it.procedureName)
+        }
+    }
+
+    // Create 'fake procedures' related only to 'fake prototype names'
+    var fakeProcedures = fakePrototypeNames.map {
+            CompilationUnit(
+                fileDefinitions = emptyList(),
+                dataDefinitions = emptyList(),
+                MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
+                subroutines = emptyList(),
+                compileTimeArrays = emptyList(),
+                directives = emptyList(),
+                position = null,
+                apiDescriptors = null,
+                procedures = emptyList(),
+                procedureName = it.key,
+                proceduresParamsDataDefinitions = it.value
+            )
+    }
+
+    // If none of 'rpg procedures', add only any 'fake procuders'.
+    // If any 'rpg procedures' exists, add any 'fake procedures' too.
+    if (null == procedures) {
+        procedures = fakeProcedures
+    } else {
+        (procedures as ArrayList).addAll(fakeProcedures)
     }
 
     return CompilationUnit(
@@ -255,7 +338,7 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     ).apply { MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.pop() }
 }
 
-private fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
+fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
     val proceduresParamsDataDefinitions: MutableList<DataDefinition> = LinkedList()
 
     // Get parmDefinition matching from internal (Procedure scope) dataDefinitions and PI parm definition.

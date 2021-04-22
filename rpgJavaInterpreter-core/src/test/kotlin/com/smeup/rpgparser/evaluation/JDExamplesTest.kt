@@ -2,6 +2,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -14,6 +15,11 @@ import org.junit.Ignore
 import org.junit.Test
 import com.smeup.rpgparser.utils.StringOutputStream
 import java.io.PrintStream
+
+abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<FunctionParam>) :
+    Function {
+    override fun params() = params
+}
 
 open class JDExamplesTest : AbstractTest() {
 

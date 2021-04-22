@@ -279,18 +279,7 @@ class ExpressionEvaluation(
     override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
     override fun eval(expression: IndicatorExpr) = interpreterStatus.indicator(expression.index)
     override fun eval(expression: FunctionCall): Value {
-        val functionToCall = expression.function.name
-        val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
-            ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-        // TODO check number and types of params
-        val paramsValues = expression.args.map {
-            if (it is DataRefExpr) {
-                FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
-            } else {
-                FunctionValue(value = it.evalWith(this))
-            }
-        }
-        return function.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
+        return FunctionExecutor.execute(expressionEvaluator = this, expression = expression, systemInterface = systemInterface, symbolTable = interpreterStatus.symbolTable)
     }
 
     override fun eval(expression: TimeStampExpr): Value {
