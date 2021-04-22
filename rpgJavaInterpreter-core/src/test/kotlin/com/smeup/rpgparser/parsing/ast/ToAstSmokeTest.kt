@@ -257,4 +257,36 @@ open class ToAstSmokeTest : AbstractTest() {
             assertTrue(this.allDataDefinitions.none { it.scope == Scope.Program })
         }
     }
+
+    @Test
+    fun buildAstForJAX_PD1() {
+        assertASTCanBeProduced("QILEGEN/£JAX_PD1", considerPosition = true).apply {
+            assertEquals(expected = 3, actual = this.dataDefinitions.size)
+        }
+    }
+
+    @Test
+    fun buildAstForJAX_PC1() {
+        val procedureNameToParamsSize = mapOf(
+            "P_RxVAL" to 2,
+            "P_RxATT" to 5,
+            "P_RxURL" to 1,
+            "P_RxSOS" to 2,
+            "P_RxSOC" to 2,
+            "P_RxLATE" to 5,
+            "P_RxATV" to 2,
+            "P_RxATP" to 2,
+            "P_RxELE" to 8,
+            "P_RxSPL" to 2
+        )
+        assertASTCanBeProduced("QILEGEN/£JAX_PC1", considerPosition = true).apply {
+            assertEquals(expected = 10, actual = procedures!!.size)
+            procedures!!.forEach { procedureAst ->
+                assertEquals(
+                    expected = procedureNameToParamsSize[procedureAst.procedureName],
+                    actual = procedureAst.proceduresParamsDataDefinitions!!.size
+                )
+            }
+        }
+    }
 }
