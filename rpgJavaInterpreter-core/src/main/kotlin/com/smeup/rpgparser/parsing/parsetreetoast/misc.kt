@@ -32,7 +32,6 @@ import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
-import kotlin.collections.ArrayList
 
 data class ToAstConfiguration(
     val considerPosition: Boolean = true,
@@ -223,7 +222,6 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
                 directives = emptyList(),
                 position = null,
                 apiDescriptors = null,
-                procedures = emptyList(),
                 procedureName = it.key,
                 proceduresParamsDataDefinitions = it.value
             )

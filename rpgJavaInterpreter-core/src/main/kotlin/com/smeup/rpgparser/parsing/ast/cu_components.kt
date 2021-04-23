@@ -42,7 +42,7 @@ data class CompilationUnit(
     @property:Link val procedures: List<CompilationUnit>? = null,
     val procedureName: String? = null,
     // TODO: Related to 'ProceduresParamsDataDefinitions' a refactor is required, but now:
-    // - if 'CompilationUnit' is an 'RpgProgram' this list is empty.
+    // - if 'CompilationUnit' is an 'RpgProgram' this list is null.
     // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
     val proceduresParamsDataDefinitions: List<DataDefinition>? = null
 ) : Node(position) {

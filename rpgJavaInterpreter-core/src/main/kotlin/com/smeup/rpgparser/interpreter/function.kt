@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// todo in general all warning have to be resolved
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.DataRefExpr
+import com.smeup.rpgparser.parsing.ast.FunctionCall
+import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
 import com.strumenta.kolasu.model.Node
@@ -37,6 +40,7 @@ data class FunctionParam(
     override val position: Position? = null
 ) : Node(position)
 
+// todo variableName as var is bad choice, try to gues what could happen if in my JavaFunction I change variableName
 data class FunctionValue(var variableName: String? = null, var value: Value, val type: Type? = null)
 
 interface Function {
@@ -96,7 +100,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
             }
         }
 
-        interpreter!!.execute(this.compilationUnit, argumentNameToValue, false)
+        interpreter.execute(this.compilationUnit, argumentNameToValue, false)
 
         params.forEachIndexed { index, functionValue ->
             // if passed param contains variable name and parameter is passed by reference
@@ -129,14 +133,21 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
     }
 }
 
+// the whole class must be refactored starting from indentation
+// functionCall.args is iterated three times
 class FunctionExecutor {
     companion object {
+        // todo use for expression a name more significant for example functionCall
         fun execute(expressionEvaluator: Evaluator, expression: FunctionCall, systemInterface: SystemInterface, symbolTable: ISymbolTable): Value {
 
             val procedureParmsDataDefinition = mutableListOf<DataDefinition>()
+
+            // todo use name more significant maybe procedureUnit?
             var compilationUnit: CompilationUnit
 
             // If recursive procedure calls
+            // todo it seems hardcoded and anyway is not easy the understanding
+            // todo if concern recursive move this logic in function
             if (expression.parent!!.parent!!.parent!!.parent is CompilationUnit) {
                 compilationUnit = (expression.parent!!.parent!!.parent!!.parent as CompilationUnit)
             } else {
@@ -144,6 +155,7 @@ class FunctionExecutor {
             }
 
             // If recursive procedure calls
+            // todo if concern recursive move this logic in function
             if (null != compilationUnit.procedures) {
                 compilationUnit
                     .procedures
@@ -163,18 +175,21 @@ class FunctionExecutor {
             expression.args.forEachIndexed { index, functionParam ->
                 if (index < procedureParmsDataDefinition.size) {
                     if (functionParam.type() != procedureParmsDataDefinition[index].type) {
-                        functionParam.todo("Procedure parameter '${procedureParmsDataDefinition[index].name}' of type '${procedureParmsDataDefinition[index].type}' must be as same type of varialble '${(functionParam as DataRefExpr).variable.name}' of type ${functionParam.type()}")
+                        // You should use functionParam.error anyway I commented because is not the right way to manage these stuff
+                        // functionParam.todo("Procedure parameter '${procedureParmsDataDefinition[index].name}' of type '${procedureParmsDataDefinition[index].type}' must be as same type of varialble '${(functionParam as DataRefExpr).variable.name}' of type ${functionParam.type()}")
                     }
                 } else {
                     // Any missing parm must be optional ('*NOPASS' keyword)
                     if (procedureParmsDataDefinition[index].paramOptions.isEmpty() ||
                         !procedureParmsDataDefinition[index].paramOptions.contains(ParamOption.NoPass)
                     ) {
-                        functionParam.todo("Procedure parameter '${procedureParmsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
+                        // use error is not a missing implementation
+                        functionParam.error("Procedure parameter '${procedureParmsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
                     }
                 }
             }
 
+            // todo iteration of same collection more time is bad for performances
             // Load list of variables name related to parameters passed by Reference
             val nameOfVariablesPassedByReference = mutableListOf<String>()
             expression.args.forEachIndexed { index, variable ->
@@ -190,15 +205,21 @@ class FunctionExecutor {
 
             val returnValue = when (function) {
                 is JavaFunction -> {
-                    paramsValues = expression.args.map {
-                        if (it is DataRefExpr) {
-                            FunctionValue(variableName = it.variable.name, value = it.evalWith(expressionEvaluator), type = it.variable.referred!!.type)
+
+                    paramsValues = expression.args.mapIndexed { index, expression ->
+                        val value = expression.evalWith(expressionEvaluator)
+                        if (!value.assignableTo(procedureParmsDataDefinition[index].type)) {
+                            expression.error("$value can be assigned to parameter: ${procedureParmsDataDefinition[index].name}")
+                        }
+                        if (expression is DataRefExpr) {
+                            FunctionValue(variableName = expression.variable.name, value = value, type = expression.variable.referred!!.type)
                         } else {
-                            FunctionValue(value = it.evalWith(expressionEvaluator))
+                            FunctionValue(value = value)
                         }
                     }
                     val returnValue = function.execute(systemInterface, paramsValues, symbolTable)
                     // Set new params values if passing by Reference
+                    // todo ok but why global variables handling is not provided for other function?
                     paramsValues.forEach {
                         it.variableName?.let { variableName ->
                             if (nameOfVariablesPassedByReference.contains(variableName)) {
@@ -209,6 +230,8 @@ class FunctionExecutor {
                     returnValue
                 }
                 else -> {
+                    // todo bad indentation
+                    // todo remove duplicated code
                         paramsValues = expression.args.map {
                             if (it is DataRefExpr) {
                                 FunctionValue(variableName = it.variable.name, value = it.evalWith(expressionEvaluator))
@@ -220,7 +243,7 @@ class FunctionExecutor {
                     }
                 }
 
-            return returnValue ?: VoidValue
+                return returnValue ?: VoidValue
             }
         }
     }
