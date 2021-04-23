@@ -385,9 +385,6 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     private val javaInteropPackages = LinkedList<String>()
 
     private fun findFunctionInPackages(programName: String): Function? {
-        val javaSystemInterface = JavaSystemInterface().apply {
-            rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources")))
-        }
         if (javaInteropPackages.isEmpty()) {
             javaInteropPackages.add("com.smeup.rpgparser.jvminterop")
         }
@@ -452,7 +449,7 @@ fun execute(
     si.addExtraLogHandlers(logHandlers)
     val interpreter = InternalInterpreter(si)
     try {
-        interpreter.execute(cu, initialValues)
+            interpreter.execute(cu, initialValues)
     } catch (e: InterruptForDebuggingPurposes) {
         // nothing to do here
     }
@@ -497,7 +494,7 @@ fun execute(
         // if we have some procedures we have to push in programstack current program
         // see RpgFunction.fromCurrentProgram
         MainExecutionContext.execute(systemInterface = si) { mainExecutionContext ->
-            mainExecutionContext.programStack.push(rpgProgram(programName).apply {
+            mainExecutionContext.programStack.push(RpgProgram(cu, programName).apply {
                 // setup activationGroup is mandatory
                 // view InternalInterpreter.getActivationGroupAssignedName
                 activationGroup = ActivationGroup(NamedActivationGroup("dummy"), "dummy")

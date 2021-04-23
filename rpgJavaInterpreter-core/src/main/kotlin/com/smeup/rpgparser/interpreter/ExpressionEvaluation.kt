@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
@@ -279,7 +295,19 @@ class ExpressionEvaluation(
     override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
     override fun eval(expression: IndicatorExpr) = interpreterStatus.indicator(expression.index)
     override fun eval(expression: FunctionCall): Value {
-        return FunctionExecutor.execute(expressionEvaluator = this, expression = expression, systemInterface = systemInterface, symbolTable = interpreterStatus.symbolTable)
+        val functionToCall = expression.function.name
+        val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
+            ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
+        return FunctionWrapper(function = function, functionName = functionToCall, expression).let { functionWrapper ->
+            val paramsValues = expression.args.map {
+                if (it is DataRefExpr) {
+                    FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
+                } else {
+                    FunctionValue(value = it.evalWith(this))
+                }
+            }
+            functionWrapper.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
+        }
     }
 
     override fun eval(expression: TimeStampExpr): Value {

@@ -18,8 +18,6 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.DataRefExpr
-import com.smeup.rpgparser.parsing.ast.FunctionCall
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
@@ -37,11 +35,15 @@ data class FunctionParam(
     val name: String,
     val type: Type,
     val paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
+    val paramOptions: List<ParamOption> = emptyList(),
     override val position: Position? = null
 ) : Node(position)
 
-// todo variableName as var is bad choice, try to gues what could happen if in my JavaFunction I change variableName
-data class FunctionValue(var variableName: String? = null, var value: Value, val type: Type? = null)
+data class FunctionValue(
+    val variableName: String? = null,
+    var value: Value,
+    override val position: Position? = null
+) : Node(position = position)
 
 interface Function {
     fun params(): List<FunctionParam>
@@ -62,10 +64,7 @@ interface JavaFunction : Function {
 open class RpgFunction(private val compilationUnit: CompilationUnit) : Function {
 
     override fun params(): List<FunctionParam> {
-        val arguments = mutableListOf<FunctionParam>()
-        this.compilationUnit.proceduresParamsDataDefinitions!!
-            .forEach { arguments.add(FunctionParam(it.name, it.type, it.paramPassedBy, it.position)) }
-        return arguments
+        return compilationUnit.getFunctionParams()
     }
 
     override fun execute(
@@ -80,38 +79,26 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
 
         // values passed to function in format argumentName to argumentValue
         // every argumentName will be a variable scoped function
-        val argumentNameToValue = mutableMapOf<String, Value>()
+        val functionParamNameToValue = mutableMapOf<String, Value>()
 
         // arguments are parameters expected by function
-        val arguments = this.params()
+        val functionParams = this.params()
 
-        // Params size could be smaller than arguments size, due to any optional parameter ('*NOPASS' keyword)
-        val paramsDataDefinition = this.compilationUnit.proceduresParamsDataDefinitions!!
-        arguments.forEachIndexed { index, functionParam ->
+        functionParams.forEachIndexed { index, functionParam ->
             if (index < params.size) {
-                argumentNameToValue[functionParam.name] = params[index].value
-            } else {
-                // Any missing parm must be optional ('*NOPASS' keyword)
-                if (paramsDataDefinition[index].paramOptions.isEmpty() ||
-                    !paramsDataDefinition[index].paramOptions.contains(ParamOption.NoPass)
-                ) {
-                    functionParam.todo("Parameter '${paramsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
-                }
+                functionParamNameToValue[functionParam.name] = params[index].value
             }
         }
-
-        interpreter.execute(this.compilationUnit, argumentNameToValue, false)
-
+        interpreter.execute(this.compilationUnit, functionParamNameToValue, false)
         params.forEachIndexed { index, functionValue ->
-            // if passed param contains variable name and parameter is passed by reference
-            functionValue.variableName?.let { variableName ->
-                if (arguments[index].paramPassedBy == ParamPassedBy.Reference) {
-                    symbolTable[symbolTable.dataDefinitionByName(variableName)!!] = interpreter!![arguments[index].name]
+            functionValue.variableName?.apply {
+                val functionParam = functionParams[index]
+                if (functionParam.paramPassedBy == ParamPassedBy.Reference) {
+                    functionValue.value = interpreter[functionParam.name]
                 }
             }
         }
-
-        return interpreter!!.status.returnValue ?: VoidValue
+        return interpreter.status.returnValue ?: VoidValue
     }
 
     init {
@@ -133,117 +120,74 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
     }
 }
 
-// the whole class must be refactored starting from indentation
-// functionCall.args is iterated three times
-class FunctionExecutor {
-    companion object {
-        // todo use for expression a name more significant for example functionCall
-        fun execute(expressionEvaluator: Evaluator, expression: FunctionCall, systemInterface: SystemInterface, symbolTable: ISymbolTable): Value {
+class FunctionWrapper(private val function: Function, private val functionName: String, private val functionNode: Node) : Function {
 
-            val procedureParmsDataDefinition = mutableListOf<DataDefinition>()
+    private val expectedParams: List<FunctionParam> by lazy {
+        when (function) {
+            is JavaFunction -> getProcedureUnit(functionName).getFunctionParams()
+            else -> function.params()
+        }
+    }
 
-            // todo use name more significant maybe procedureUnit?
-            var compilationUnit: CompilationUnit
+    override fun params() = expectedParams
 
-            // If recursive procedure calls
-            // todo it seems hardcoded and anyway is not easy the understanding
-            // todo if concern recursive move this logic in function
-            if (expression.parent!!.parent!!.parent!!.parent is CompilationUnit) {
-                compilationUnit = (expression.parent!!.parent!!.parent!!.parent as CompilationUnit)
-            } else {
-                compilationUnit = (expression.parent!!.parent!!.parent as CompilationUnit)
-            }
-
-            // If recursive procedure calls
-            // todo if concern recursive move this logic in function
-            if (null != compilationUnit.procedures) {
-                compilationUnit
-                    .procedures
-                    ?.filter {
-                            p -> p.procedureName == expression.function.name
-                    }
-                    ?.forEach {
-                        it.proceduresParamsDataDefinitions?.forEach {
-                            procedureParmsDataDefinition.add(it)
-                        }
-                    }
-            } else {
-                procedureParmsDataDefinition.addAll(compilationUnit.proceduresParamsDataDefinitions!!)
-            }
-
-            // Check number and type of params
-            expression.args.forEachIndexed { index, functionParam ->
-                if (index < procedureParmsDataDefinition.size) {
-                    if (functionParam.type() != procedureParmsDataDefinition[index].type) {
-                        // You should use functionParam.error anyway I commented because is not the right way to manage these stuff
-                        // functionParam.todo("Procedure parameter '${procedureParmsDataDefinition[index].name}' of type '${procedureParmsDataDefinition[index].type}' must be as same type of varialble '${(functionParam as DataRefExpr).variable.name}' of type ${functionParam.type()}")
-                    }
-                } else {
+    private fun checkParamsSize(params: List<FunctionValue>) {
+        if (params.size > expectedParams.size) {
+            functionNode.error("You are passing to $functionName is ${params.size} but params expected is: $expectedParams")
+        }
+        if (params.size < expectedParams.size) {
+            expectedParams.forEachIndexed { index, functionParam ->
+                if (index >= params.size) {
                     // Any missing parm must be optional ('*NOPASS' keyword)
-                    if (procedureParmsDataDefinition[index].paramOptions.isEmpty() ||
-                        !procedureParmsDataDefinition[index].paramOptions.contains(ParamOption.NoPass)
+                    if (expectedParams[index].paramOptions.isEmpty() ||
+                        !expectedParams[index].paramOptions.contains(ParamOption.NoPass)
                     ) {
-                        // use error is not a missing implementation
-                        functionParam.error("Procedure parameter '${procedureParmsDataDefinition[index].name}' must be defined as optional (use '*NOPASS' keyword)")
+                        functionParam.todo("Parameter '${expectedParams[index].name}' must be defined as optional (use '*NOPASS' keyword)")
                     }
                 }
-            }
-
-            // todo iteration of same collection more time is bad for performances
-            // Load list of variables name related to parameters passed by Reference
-            val nameOfVariablesPassedByReference = mutableListOf<String>()
-            expression.args.forEachIndexed { index, variable ->
-                if (procedureParmsDataDefinition[index].paramPassedBy == ParamPassedBy.Reference) {
-                    nameOfVariablesPassedByReference.add((variable as DataRefExpr).variable.name)
-                }
-            }
-
-            val functionToCall = expression.function.name
-            val function = systemInterface.findFunction(symbolTable, functionToCall)
-                ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-            var paramsValues: List<FunctionValue>
-
-            val returnValue = when (function) {
-                is JavaFunction -> {
-
-                    paramsValues = expression.args.mapIndexed { index, expression ->
-                        val value = expression.evalWith(expressionEvaluator)
-                        if (!value.assignableTo(procedureParmsDataDefinition[index].type)) {
-                            expression.error("$value can be assigned to parameter: ${procedureParmsDataDefinition[index].name}")
-                        }
-                        if (expression is DataRefExpr) {
-                            FunctionValue(variableName = expression.variable.name, value = value, type = expression.variable.referred!!.type)
-                        } else {
-                            FunctionValue(value = value)
-                        }
-                    }
-                    val returnValue = function.execute(systemInterface, paramsValues, symbolTable)
-                    // Set new params values if passing by Reference
-                    // todo ok but why global variables handling is not provided for other function?
-                    paramsValues.forEach {
-                        it.variableName?.let { variableName ->
-                            if (nameOfVariablesPassedByReference.contains(variableName)) {
-                                symbolTable[symbolTable.dataDefinitionByName(variableName)!!] = it.value
-                            }
-                        }
-                    }
-                    returnValue
-                }
-                else -> {
-                    // todo bad indentation
-                    // todo remove duplicated code
-                        paramsValues = expression.args.map {
-                            if (it is DataRefExpr) {
-                                FunctionValue(variableName = it.variable.name, value = it.evalWith(expressionEvaluator))
-                            } else {
-                                FunctionValue(value = it.evalWith(expressionEvaluator))
-                            }
-                        }
-                        function.execute(systemInterface, paramsValues, symbolTable)
-                    }
-                }
-
-                return returnValue ?: VoidValue
             }
         }
     }
+
+    override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+        checkParamsSize(params)
+        params.forEachIndexed { index, functionValue ->
+            if (!functionValue.value.assignableTo(expectedParams[index].type)) {
+                functionValue.error("$functionValue can be assigned to parameter: ${expectedParams[index].name}")
+            }
+        }
+        val previousValues = params.map { it.value }
+        return function.execute(systemInterface, params, symbolTable).apply {
+            params.forEachIndexed { index, functionValue ->
+                functionValue.variableName?.apply {
+                    val functionParam = expectedParams[index]
+                    if (functionParam.paramPassedBy == ParamPassedBy.Reference && functionValue.value != previousValues[index]) {
+                        symbolTable[symbolTable.dataDefinitionByName(this)!!] = functionValue.value
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun CompilationUnit.getFunctionParams(): List<FunctionParam> {
+    val arguments = mutableListOf<FunctionParam>()
+    this.proceduresParamsDataDefinitions!!.forEach {
+        arguments.add(
+            FunctionParam(
+                name = it.name,
+                type = it.type,
+                paramPassedBy = it.paramPassedBy,
+                paramOptions = it.paramOptions,
+                it.position
+            )
+        )
+    }
+    return arguments
+}
+
+private fun getProcedureUnit(functionName: String): CompilationUnit {
+    return MainExecutionContext.getProgramStack().peek().cu.procedures!!.first {
+        it.procedureName == functionName
+    }
+}
