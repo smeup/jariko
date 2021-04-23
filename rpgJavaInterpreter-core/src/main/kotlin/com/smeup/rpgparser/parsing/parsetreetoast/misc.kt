@@ -232,7 +232,9 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     // If none of 'rpg procedures', add only any 'fake procuders'.
     // If any 'rpg procedures' exists, add any 'fake procedures' too.
     if (null == procedures) {
-        procedures = fakeProcedures
+        if (!fakeProcedures.isEmpty()) {
+            procedures = fakeProcedures
+        }
     } else {
         (procedures as ArrayList).addAll(fakeProcedures)
     }
