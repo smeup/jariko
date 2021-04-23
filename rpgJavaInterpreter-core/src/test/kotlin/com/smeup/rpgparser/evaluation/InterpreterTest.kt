@@ -1768,4 +1768,23 @@ Test 6
             actual = outputOf("DOPED_PROC")
         )
     }
+
+    @Test
+    fun executeDOPED_PROC2() {
+        assertFailsWith(RuntimeException::class) {
+            executePgm("DOPED_PROC2")
+        }
+    }
+
+    @Test
+    fun executeDOPED_PROC3() {
+        assertEquals(
+            expected = listOf("12",
+                "46",
+                "56",
+                "99"
+            ),
+            actual = outputOf("DOPED_PROC3")
+        )
+    }
 }

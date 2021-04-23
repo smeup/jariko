@@ -153,7 +153,7 @@ class FunctionWrapper(private val function: Function, private val functionName: 
         checkParamsSize(params)
         params.forEachIndexed { index, functionValue ->
             if (!functionValue.value.assignableTo(expectedParams[index].type)) {
-                functionValue.error("$functionValue can be assigned to parameter: ${expectedParams[index].name}")
+                functionValue.error("$functionValue is not assignable to parameter: ${expectedParams[index].name}")
             }
         }
         val previousValues = params.map { it.value }
