@@ -165,41 +165,43 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         if (it is Dcl_prContext) {
             var fakePrototypeName: String = ""
             var fakePrototypeDataDefinitions: ArrayList<DataDefinition> = arrayListOf<DataDefinition>()
-            (this.children[0] as Dcl_prContext).children.forEachIndexed { index, element ->
-                var fakePrototypeDataDefinition: DataDefinition
-                if (index == 0) {
-                    fakePrototypeName =
-                        (element as PrBeginContext).ds_name().NAME().text
-                } else {
-                    var parmFixed = ((this.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
-                    var paramPassedBy = ParamPassedBy.Reference
-                    var paramOptions = mutableListOf<ParamOption>()
-                    parmFixed
-                        .keyword()
-                        .forEach { it ->
-                        if (it.keyword_const() != null) {
-                            paramPassedBy = ParamPassedBy.Const
-                        } else if (it.keyword_value() != null) {
-                            paramPassedBy = ParamPassedBy.Value
-                        }
-                        if (it.keyword_options() != null) {
-                            it.keyword_options().identifier().forEach {
-                                val keyword = it.free_identifier().idOrKeyword().ID().toString()
-                                val paramOption = ParamOption.getByKeyword(keyword)
-                                if (null != paramOption) {
-                                    (paramOptions as ArrayList).add(paramOption)
+            if (this.children[0] is Dcl_prContext) {
+                (this.children[0] as Dcl_prContext).children.forEachIndexed { index, element ->
+                    var fakePrototypeDataDefinition: DataDefinition
+                    if (index == 0) {
+                        fakePrototypeName =
+                            (element as PrBeginContext).ds_name().NAME().text
+                    } else {
+                        var parmFixed = ((this.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
+                        var paramPassedBy = ParamPassedBy.Reference
+                        var paramOptions = mutableListOf<ParamOption>()
+                        parmFixed
+                            .keyword()
+                            .forEach { it ->
+                                if (it.keyword_const() != null) {
+                                    paramPassedBy = ParamPassedBy.Const
+                                } else if (it.keyword_value() != null) {
+                                    paramPassedBy = ParamPassedBy.Value
+                                }
+                                if (it.keyword_options() != null) {
+                                    it.keyword_options().identifier().forEach {
+                                        val keyword = it.free_identifier().idOrKeyword().ID().toString()
+                                        val paramOption = ParamOption.getByKeyword(keyword)
+                                        if (null != paramOption) {
+                                            (paramOptions as ArrayList).add(paramOption)
+                                        }
+                                    }
                                 }
                             }
-                        }
+                        fakePrototypeDataDefinition =
+                            parmFixed.toAst(conf, dataDefinitions.toList())
+                        fakePrototypeDataDefinition.paramPassedBy = paramPassedBy
+                        fakePrototypeDataDefinition.paramOptions = paramOptions
+                        fakePrototypeDataDefinitions.add(fakePrototypeDataDefinition)
                     }
-                    fakePrototypeDataDefinition =
-                        parmFixed.toAst(conf, dataDefinitions.toList())
-                    fakePrototypeDataDefinition.paramPassedBy = paramPassedBy
-                    fakePrototypeDataDefinition.paramOptions = paramOptions
-                    fakePrototypeDataDefinitions.add(fakePrototypeDataDefinition)
                 }
+                fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
             }
-            fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
         }
     }
 
