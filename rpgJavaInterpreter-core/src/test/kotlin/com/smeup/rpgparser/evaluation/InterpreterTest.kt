@@ -1787,4 +1787,16 @@ Test 6
             actual = outputOf("DOPED_PROC3")
         )
     }
+
+    @Test
+    fun executePERF_PROC_1() {
+        val si = CollectorSystemInterface().apply { printOutput = true }
+        assertStartsWith(outputOf("PERF_PROC_1", si = si), "RPG_SUM : Cycled=100001")
+    }
+
+    @Test
+    fun executePERF_PROC_2() {
+        val si = CollectorSystemInterface().apply { printOutput = true }
+        assertStartsWith(outputOf("PERF_PROC_2", si = si), "JDP_SUM : Cycled=100001")
+    }
 }
