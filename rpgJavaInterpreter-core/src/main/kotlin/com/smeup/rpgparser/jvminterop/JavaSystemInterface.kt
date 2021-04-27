@@ -100,10 +100,10 @@ open class JavaSystemInterface(
         }
     }
 
-    private fun findFunctionInPackages(programName: String): Function? {
+    private fun findFunctionInPackages(functionName: String): Function? {
         return javaInteropPackages.asSequence().map { packageName ->
             try {
-                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
+                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$functionName")
                 instantiateFunction(javaClass)
             } catch (e: Throwable) {
                 null
@@ -112,7 +112,7 @@ open class JavaSystemInterface(
     }
 
     open fun instantiateFunction(javaClass: Class<*>): Function? {
-        return if (javaClass.kotlin.isSubclassOf(Program::class)) {
+        return if (javaClass.kotlin.isSubclassOf(Function::class)) {
             javaClass.kotlin.constructors.filter { it.parameters.isEmpty() }.first().call() as Function
         } else {
             null

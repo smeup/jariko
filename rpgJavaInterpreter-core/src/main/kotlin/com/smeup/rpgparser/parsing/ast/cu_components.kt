@@ -50,15 +50,20 @@ data class CompilationUnit(
     var timeouts = emptyList<MuteTimeoutAnnotation>()
 
     val minTimeOut by lazy {
-        timeouts.minBy { it -> it.timeout }?.timeout
+        timeouts.minByOrNull { it.timeout }?.timeout
     }
 
     companion object {
-        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
-            emptyList(),
-            null,
-            null,
-            emptyList())
+        fun empty() = CompilationUnit(
+            fileDefinitions = emptyList(),
+            dataDefinitions = emptyList(),
+            main = MainBody(stmts = emptyList(), position = null),
+            subroutines = emptyList(),
+            compileTimeArrays = emptyList(),
+            directives = emptyList(),
+            position = null,
+            procedures = emptyList()
+        )
     }
 
     val entryPlist: PlistStmt?
@@ -79,15 +84,15 @@ data class CompilationUnit(
             if (_allDataDefinitions.isEmpty()) {
                 _allDataDefinitions.addAll(dataDefinitions)
                 // Adds DS sub-fields
-                dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
+                dataDefinitions.forEach { it -> it.fields.let { _allDataDefinitions.addAll(it) } }
                 fileDefinitions.forEach {
                     // Create DS from file metadata
-                    val reloadConfig = MainExecutionContext.getConfiguration()?.reloadConfig
+                    val reloadConfig = MainExecutionContext.getConfiguration().reloadConfig
                     require(reloadConfig != null) {
                         "Not found metadata for $it because missing property reloadConfig in configuration"
                     }
                     val metadata = kotlin.runCatching {
-                        reloadConfig.metadataProducer?.invoke(it.name)
+                        reloadConfig.metadataProducer.invoke(it.name)
                     }.onFailure { error ->
                         throw RuntimeException("Not found metadata for $it", error)
                     }.getOrNull()
@@ -128,11 +133,11 @@ data class CompilationUnit(
 
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
-    fun getDataDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
+    fun getDataDefinition(name: String) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
             ?: throw IllegalArgumentException("Data definition $name was not found")
 
-    fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
-            ?: dataDefinitions.mapNotNull { it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
+    fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
+            ?: dataDefinitions.mapNotNull { it -> it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
             ?: throw IllegalArgumentException("Data or field definition $name was not found")
 
     fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name.equals(name, ignoreCase = true) }

@@ -154,6 +154,50 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         else it
     }
 
+    // If none of 'rpg procedures', add only any 'fake procedures'.
+    // If any 'rpg procedures' exists, add any 'fake procedures' too.
+    var fakeProcedures = getFakeProcedures(rContext = this,
+        conf = conf,
+        dataDefinitions = dataDefinitions,
+        mainStmts = mainStmts,
+        procedures = procedures
+    )
+
+    if (null == procedures) {
+        if (!fakeProcedures.isEmpty()) {
+            procedures = fakeProcedures
+        }
+    } else {
+        (procedures as ArrayList).addAll(fakeProcedures)
+    }
+
+    return CompilationUnit(
+        fileDefinitions,
+        dataDefinitions,
+        MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
+        subroutines,
+        compileTimeArrays,
+        directives,
+        position = this.toPosition(conf.considerPosition),
+        apiDescriptors = this.statement().toApiDescriptors(conf),
+        procedures
+    ).let { compilationUnit ->
+        // for each procedureUnit set compilationUnit as parent
+        // in order to resolve global data references
+        procedures?.onEach { procedureUnit ->
+            procedureUnit.parent = compilationUnit
+        }
+        compilationUnit
+    }.postProcess()
+}
+
+private fun getFakeProcedures(
+    rContext: RContext,
+    conf: ToAstConfiguration,
+    dataDefinitions: List<DataDefinition>,
+    mainStmts: List<Statement>,
+    procedures: List<CompilationUnit>?
+): List<CompilationUnit> {
     // If any of the 'non rpgle standard' procedures (only prototype definition 'PR' and missing
     // the procedure implementation) should be the 'doped java procedure' case.
     // Needed to create a 'fake procedure' to be able to get 'ProcedureParameterDataDefinition'.
@@ -161,18 +205,18 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     // 2. match names with related procedure implementation to remove any 'not real fake prototype'
     // 3. any missing match, will generate a fake procedure
     val fakePrototypeNames = mutableMapOf<String, ArrayList<DataDefinition>>()
-    this.children.forEach {
+    rContext.children.forEach {
         if (it is Dcl_prContext) {
             var fakePrototypeName: String = ""
             var fakePrototypeDataDefinitions: ArrayList<DataDefinition> = arrayListOf<DataDefinition>()
-            if (this.children[0] is Dcl_prContext) {
-                (this.children[0] as Dcl_prContext).children.forEachIndexed { index, element ->
+            if (rContext.children[0] is Dcl_prContext) {
+                (rContext.children[0] as Dcl_prContext).children.forEachIndexed { index, element ->
                     var fakePrototypeDataDefinition: DataDefinition
                     if (index == 0) {
                         fakePrototypeName =
                             (element as PrBeginContext).ds_name().NAME().text
                     } else {
-                        var parmFixed = ((this.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
+                        var parmFixed = ((rContext.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
                         var paramPassedBy = ParamPassedBy.Reference
                         var paramOptions = mutableListOf<ParamOption>()
                         parmFixed
@@ -200,63 +244,30 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
                         fakePrototypeDataDefinitions.add(fakePrototypeDataDefinition)
                     }
                 }
-                fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
+                // Add only 'real fake prototype', if any RPG procedure exists yet
+                // the 'fake prototype' with same name mustn't be added.
+                if (null == procedures || (null != procedures && !procedures.contains(fakePrototypeName))) {
+                    fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
+                }
             }
         }
     }
 
-    // Remove any 'fake prototype name' having related RPG procedure implementation
-    // cause it is not 'fake'.
-    if (null != procedures) {
-        procedures.forEach {
-            fakePrototypeNames.remove(it.procedureName)
-        }
-    }
-
     // Create 'fake procedures' related only to 'fake prototype names'
-    var fakeProcedures = fakePrototypeNames.map {
-            CompilationUnit(
-                fileDefinitions = emptyList(),
-                dataDefinitions = emptyList(),
-                MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
-                subroutines = emptyList(),
-                compileTimeArrays = emptyList(),
-                directives = emptyList(),
-                position = null,
-                apiDescriptors = null,
-                procedureName = it.key,
-                proceduresParamsDataDefinitions = it.value
-            )
+    return fakePrototypeNames.map {
+        CompilationUnit(
+            fileDefinitions = emptyList(),
+            dataDefinitions = emptyList(),
+            MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
+            subroutines = emptyList(),
+            compileTimeArrays = emptyList(),
+            directives = emptyList(),
+            position = null,
+            apiDescriptors = null,
+            procedureName = it.key,
+            proceduresParamsDataDefinitions = it.value
+        )
     }
-
-    // If none of 'rpg procedures', add only any 'fake procuders'.
-    // If any 'rpg procedures' exists, add any 'fake procedures' too.
-    if (null == procedures) {
-        if (!fakeProcedures.isEmpty()) {
-            procedures = fakeProcedures
-        }
-    } else {
-        (procedures as ArrayList).addAll(fakeProcedures)
-    }
-
-    return CompilationUnit(
-        fileDefinitions,
-        dataDefinitions,
-        MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
-        subroutines,
-        compileTimeArrays,
-        directives,
-        position = this.toPosition(conf.considerPosition),
-        apiDescriptors = this.statement().toApiDescriptors(conf),
-        procedures
-    ).let { compilationUnit ->
-        // for each procedureUnit set compilationUnit as parent
-        // in order to resolve global data references
-        procedures?.onEach { procedureUnit ->
-            procedureUnit.parent = compilationUnit
-        }
-        compilationUnit
-    }.postProcess()
 }
 
 private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
@@ -1272,7 +1283,7 @@ internal fun Cspec_fixed_x2Context.toAst(conf: ToAstConfiguration = ToAstConfigu
     }
 
     val literal = this.c_free().expression().literal()
-    val functionCalled: Expression = literal?.toAst(conf) ?: this.c_free().expression().toAst(conf)
+    val functionCalled: FunctionCall = (literal?.toAst(conf) ?: this.c_free().expression().toAst(conf)) as FunctionCall
     val errorIndicator: IndicatorKey? = null
 
     return CallPStmt(

@@ -639,7 +639,7 @@ data class CallStmt(
 
 @Serializable
 data class CallPStmt(
-    val expression: Expression,
+    val functionCall: FunctionCall,
     val errorIndicator: IndicatorKey? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
@@ -650,10 +650,35 @@ data class CallPStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.log { CallPExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
-        val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
-        // TODO avoid explicit cast
-        val functionCall = this.expression as FunctionCall
-        expressionEvaluation.eval(functionCall)
+        val startTime = System.currentTimeMillis()
+        val callStatement = this
+        try {
+            kotlin.run {
+                val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
+                expressionEvaluation.eval(functionCall)
+            }.apply {
+                interpreter.log {
+                    CallPEndLogEntry(
+                        interpreter.interpretationContext.currentProgramName,
+                        callStatement,
+                        System.currentTimeMillis() - startTime
+                    )
+                }
+            }
+        } catch (e: Exception) { // TODO Catch a more specific exception?
+            interpreter.log {
+                CallPEndLogEntry(
+                    interpreter.interpretationContext.currentProgramName,
+                    callStatement,
+                    System.currentTimeMillis() - startTime
+                )
+            }
+            if (errorIndicator == null) {
+                throw e
+            }
+            interpreter.indicators[errorIndicator] = BooleanValue.TRUE
+            null
+        }
     }
 }
 

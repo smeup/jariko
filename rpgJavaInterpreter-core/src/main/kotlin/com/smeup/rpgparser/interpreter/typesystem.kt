@@ -256,7 +256,7 @@ fun Expression.type(): Type {
             if (this.parent is EvalStmt) {
                 (this.parent as EvalStmt).target.type()
             } else {
-                todo("Something's gone wrong establishing the ${this.function.name} return type.")
+                todo("Unable to establish FunctionCall '${this.function.name}' return type of which '${this.parent}'.")
             }
         }
         else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
