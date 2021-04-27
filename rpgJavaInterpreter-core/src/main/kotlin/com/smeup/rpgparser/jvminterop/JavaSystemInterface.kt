@@ -1,7 +1,25 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.jvminterop
 
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
+import com.smeup.rpgparser.logging.defaultLoggingConfiguration
+import com.smeup.rpgparser.logging.loadLogConfiguration
 import com.smeup.rpgparser.parsing.ast.Api
 import com.smeup.rpgparser.parsing.ast.ApiDescriptor
 import com.smeup.rpgparser.parsing.ast.ApiId
@@ -9,6 +27,7 @@ import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.rpginterop.RpgSystem
+import java.io.File
 import java.io.PrintStream
 import java.util.*
 import kotlin.reflect.KFunction1
@@ -136,6 +155,14 @@ open class JavaSystemInterface(
     override fun findApi(apiId: ApiId): Api {
         return apis.computeIfAbsent(apiId) {
             rpgSystem.findApi(apiId)
+        }
+    }
+
+    fun useConfigurationFile(configurationFile: File?) {
+        if (configurationFile == null) {
+            this.loggingConfiguration = defaultLoggingConfiguration()
+        } else {
+            this.loggingConfiguration = loadLogConfiguration(configurationFile)
         }
     }
 }
