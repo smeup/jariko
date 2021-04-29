@@ -49,6 +49,7 @@
      C                   PARM                    $XmlATT
      C                   PARM                    $XmlVAL
       *
+     C                   EVAL      VALO=NUMERI+ALFMAX+ALFMIN+SPECIA
      C                   EVAL      $XmlTAG=%TRIM($XmlTAG)
      C                   EVAL      FNDTXT=*OFF
 1    C                   IF        %LEN($XmlTAG)>0

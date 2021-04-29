@@ -106,7 +106,7 @@ fun executeWithMutes(
     path: Path,
     verbose: Boolean = false,
     logConfigurationFile: File?,
-    programFinders: List<RpgProgramFinder> = emptyList(),
+    programFinders: List<RpgProgramFinder> = listOf<RpgProgramFinder>(DirRpgProgramFinder(File("src/test/resources/"))),
     output: PrintStream? = null,
     configuration: Configuration = Configuration(options = Options(muteSupport = true))
 ): ExecutionResult {

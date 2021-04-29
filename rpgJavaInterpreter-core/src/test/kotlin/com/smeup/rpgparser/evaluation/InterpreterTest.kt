@@ -1721,39 +1721,6 @@ Test 6
     }
 
     @Test
-    fun executeMUTE15_01() {
-        executePgm("mute/MUTE15_01")
-    }
-
-    @Test
-    fun executeMUTE15_02() {
-        executePgm("mute/MUTE15_02")
-    }
-
-    @Test
-    fun executeMUTE15_03() {
-        executePgm("mute/MUTE15_03")
-    }
-
-    @Test
-    fun executeMUTE15_04() {
-        executePgm("mute/MUTE15_04")
-    }
-
-    @Test
-    @Ignore
-    // TODO ignored until 'Data definition XXSTR was not found' is solved. Problem is related to MUTE15_05A called
-    // from procedure
-    fun executeMUTE15_05() {
-        executePgm("mute/MUTE15_05")
-    }
-
-    @Test
-    fun executeMUTE15_06() {
-        executePgm("mute/MUTE15_06")
-    }
-
-    @Test
     fun executeDOPED_PROC() {
         assertEquals(
             expected = listOf("46",
@@ -1798,5 +1765,15 @@ Test 6
     fun executePERF_PROC_2() {
         val si = CollectorSystemInterface().apply { printOutput = true }
         assertStartsWith(outputOf("PERF_PROC_2", si = si), "JDP_SUM : Cycled=100001")
+    }
+
+    @Test
+    fun executeJAJAX1C() {
+        assertEquals(
+            expected = listOf("Ahi quanto a dir qual era è cosa dura,esta selva selvaggia",
+                "Lupa"
+            ),
+            actual = outputOf("JAJAX1C")
+        )
     }
 }

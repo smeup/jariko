@@ -48,9 +48,9 @@
      C                   EVAL      $$CODU=P_RxATT(§INPUT:'COD(':'')
     MU* VAL1($$NOME) VAL2('Rossi Mario') COMP(EQ)
      C                   EVAL      $$NOME=P_RxATT(§INPUT:'NOME(':'')
-    MU* VAL1($$CODS) VAL2(20210419) COMP(EQ)
+    MU* VAL1($$DATA) VAL2(20210419) COMP(EQ)
      C                   EVAL      $$DATA=%INT(P_RxATT(§INPUT:'DATA(':''))
-    MU* VAL1($$SEDE) VAL2('ERB') COMP(EQ)
+    MU* VAL1($$CODS) VAL2('ERB') COMP(EQ)
      C                   EVAL      $$CODS=P_RxATT(§INPUT:'CODSEDE(':'')
     MU* VAL1($$SEDE) VAL2('Erbusco') COMP(EQ)
      C                   EVAL      $$SEDE=P_RxATT(§INPUT:'SEDE(':'')
@@ -72,6 +72,6 @@
      C                   ENDSR
       /COPY QILEGEN,£JAX_PC1
 ** CTDATA TXT
-DATA(20210419) MSG(Lorem ipsumdolor sit) COD(ROSMAR) NOME(Rossi Mario) CODSEDE(ERB) SEDE(Erbusco)
+DATA(20210419) MSG(Lorem) COD(ROSMAR) NOME(Rossi Mario) CODSEDE(ERB) SEDE(Erbusco)
 ** CTDATA TXTRES
-Lorem ipsumdolor sit
+Lorem

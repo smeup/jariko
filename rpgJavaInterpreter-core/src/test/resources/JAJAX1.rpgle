@@ -63,6 +63,7 @@
      C                   PARM                    $XmlVAL
      C                   PARM                    $XMLPR
       *
+     C                   EVAL      VALO=NUMERI+ALFMAX+ALFMIN+SPECIA
      C                   EVAL      FNDTXT=*OFF
      C                   EVAL      XmlTAG=%TRIM($XmlTAG)
       *metto in ATTRIC l'attributo passato più "(" (se non già presente)
@@ -92,25 +93,10 @@
 6    C                   SELECT
       *. Inizio
 6x   C                   WHEN      %SUBST(XMLTAG:$X:10)='_$_STXT_$_'
-      * non tolgo i tag (inoltre sbagliava poi il conteggio parentesi
-      *C                   IF        $X+10 <= $M
-      *C                   EVAL      %SUBST(XMLTAG:$X)=%SUBST(XMLTAG:$X+10)
-      *C                   ELSE
-      *C                   EVAL      %SUBST(XMLTAG:$X:10)=''
-      *C                   ENDIF
-      *C                   EVAL      $X=$X-1
-      *C                   EVAL      $M=%LEN(XmlTAG)
      C                   EVAL      $$STXT=*ON
      C                   EVAL      FNDTXT=*ON
       *. Fine
 6x   C                   WHEN      %SUBST(XMLTAG:$X:10)='_$_ETXT_$_'
-      * non tolgo i tag (inoltre sbagliava poi il conteggio parentesi
-      *C                   IF        $X+10 <= $M
-      *C                   EVAL      %SUBST(XMLTAG:$X)=%SUBST(XMLTAG:$X+10)
-      *C                   ELSE
-      *C                   EVAL      %SUBST(XMLTAG:$X:10)=''
-      *C                   ENDIF
-      *C                   EVAL      $M=%LEN(XmlTAG)
      C                   EVAL      $$STXT=*OFF
 6e   C                   ENDSL
 5e   C                   ENDIF
@@ -209,7 +195,6 @@
      C                   CLEAR                   BLKSTR
 3    C                   FOR       $Y=%LEN($XmlVAL)-9 BY 1 DOWNTO 1
      C                   IF        %SUBST($XmlVAL:$Y:10)='_$_ETXT_$_'
-      *C                   EVAL      $XmlVAL=BLKSTR+%SUBST($XmlVAL:01:$Y-1)
      C                   EVAL      $XmlVAL=%SUBST($XmlVAL:01:$Y-1)+BLKSTR
      C                   LEAVE
      C                   ELSE
@@ -243,25 +228,10 @@
 4    C                   SELECT
       *.. Inizio
 4x   C                   WHEN      %SUBST(XMLTAG:$F:10)='_$_STXT_$_'
-      * non tolgo i tag (inoltre sbagliava poi il conteggio parentesi
-      *C                   IF        $F+10 <= $M
-      *C                   EVAL      %SUBST(XMLTAG:$F)=%SUBST(XMLTAG:$F+10)
-      *C                   ELSE
-      *C                   EVAL      %SUBST(XMLTAG:$F)=''
-      *C                   ENDIF
-      *C                   EVAL      $F=$F-1
-      *C                   EVAL      $M=%LEN(%TRIM(XmlTAG))
      C                   EVAL      $$STXT=*ON
      C                   EVAL      FNDTXT=*ON
       *.. Fine
 4x   C                   WHEN      %SUBST(XMLTAG:$F:10)='_$_ETXT_$_'
-      * non tolgo i tag (inoltre sbagliava poi il conteggio parentesi
-      *C                   IF        $F+10 <= $M
-      *C                   EVAL      %SUBST(XMLTAG:$F)=%SUBST(XMLTAG:$F+10)
-      *C                   ELSE
-      *C                   EVAL      %SUBST(XMLTAG:$F)=''
-      *C                   ENDIF
-      *C                   EVAL      $M=%LEN(%TRIM(XmlTAG))
      C                   EVAL      $$STXT=*OFF
 4e   C                   ENDSL
 3e   C                   ENDIF

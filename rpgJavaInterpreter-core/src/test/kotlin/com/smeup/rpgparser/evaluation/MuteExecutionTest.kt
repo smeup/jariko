@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 @file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
@@ -7,7 +23,9 @@ import com.smeup.rpgparser.assertNrOfMutesAre
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
+import com.smeup.rpgparser.mute.executeWithMutes
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import java.io.File
 import kotlin.test.*
 
 open class MuteExecutionTest : AbstractTest() {
@@ -254,6 +272,48 @@ open class MuteExecutionTest : AbstractTest() {
     @Test
     fun executeMUTE13_27() {
         assertMuteExecutionSucceded("mute/MUTE13_27")
+    }
+
+    @Test
+    fun executeMUTE15_01() {
+        executePgm("mute/MUTE15_01")
+    }
+
+    @Test
+    fun executeMUTE15_02() {
+        executePgm("mute/MUTE15_02")
+    }
+
+    @Test
+    fun executeMUTE15_03() {
+        executePgm("mute/MUTE15_03")
+    }
+
+    @Test
+    fun executeMUTE15_04() {
+        executePgm("mute/MUTE15_04")
+    }
+
+    @Test
+    @Ignore
+    // TODO ignored until 'Data definition XXSTR was not found' is solved. Problem is related to MUTE15_05A called
+    // from procedure
+    fun executeMUTE15_05() {
+        executePgm("mute/MUTE15_05")
+    }
+
+    @Test
+    fun executeMUTE15_06() {
+        executePgm("mute/MUTE15_06")
+    }
+
+    @Test
+    fun executeMUTE15_07() {
+        val programName: File = File("mute/MUTE15_07")
+        executeWithMutes(path = programName.toPath(),
+            verbose = true,
+            logConfigurationFile = null,
+            output = System.out)
     }
 
     private fun assertMuteExecutionSucceded(

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
@@ -251,6 +267,19 @@ fun Expression.type(): Type {
             } else {
                 TODO("We do not know the type of a sum of types $leftType and $rightType")
             }
+        }
+        is MinusExpr -> {
+            val leftType = this.left.type()
+            val rightType = this.right.type()
+            if (leftType is NumberType && rightType is NumberType) {
+                return NumberType(max(leftType.entireDigits, rightType.entireDigits), max(leftType.decimalDigits, rightType.decimalDigits))
+            } else {
+                TODO("We do not know the type of a subtraction of types $leftType and $rightType")
+            }
+        }
+        is LenExpr -> {
+            var size = (this.value as DataRefExpr).size().toString().length
+            return NumberType(size, decimalDigits = 0)
         }
         is FunctionCall -> {
             if (this.parent is EvalStmt) {

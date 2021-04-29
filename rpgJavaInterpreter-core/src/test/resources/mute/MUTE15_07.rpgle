@@ -65,4 +65,4 @@
 PR1(Ahi quanto a dir qual era è cosa dura,esta selva selvaggia) PR2(Ed una lupa, che di tutte brame)
 ** CTDATA TXTRES
 Ahi quanto a dir qual era è cosa dura,esta selva selvaggia
-Ed una lupa, che di tutte brameo valor
+Ed una lupa, che di tutte brame
