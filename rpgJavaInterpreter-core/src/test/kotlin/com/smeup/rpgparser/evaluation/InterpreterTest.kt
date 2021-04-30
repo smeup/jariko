@@ -1781,7 +1781,7 @@ Test 6
     fun executeJAJAX1C_2() {
         assertEquals(
             expected = listOf("ERB",
-                "Erbusco",
+                "Erbusco"
             ),
             actual = outputOf("JAJAX1C_2")
         )

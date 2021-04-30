@@ -316,6 +316,33 @@ open class MuteExecutionTest : AbstractTest() {
             output = System.out)
     }
 
+    @Test
+    fun executeMUTE15_09() {
+        val programName: File = File("mute/MUTE15_09")
+        executeWithMutes(path = programName.toPath(),
+            verbose = true,
+            logConfigurationFile = null,
+            output = System.out)
+    }
+
+    @Test
+    fun executeMUTE15_13() {
+        val programName: File = File("mute/MUTE15_13")
+        executeWithMutes(path = programName.toPath(),
+            verbose = true,
+            logConfigurationFile = null,
+            output = System.out)
+    }
+
+    @Test
+    fun executeMUTE15_15() {
+        val programName: File = File("mute/MUTE15_15")
+        executeWithMutes(path = programName.toPath(),
+            verbose = true,
+            logConfigurationFile = null,
+            output = System.out)
+    }
+
     private fun assertMuteExecutionSucceded(
         exampleName: String,
         // if null ignores mutes number assertions check
