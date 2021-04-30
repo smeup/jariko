@@ -64,6 +64,7 @@
      C                   PARM                    $XMLPR
       *
      C                   EVAL      VALO=NUMERI+ALFMAX+ALFMIN+SPECIA
+      *
      C                   EVAL      FNDTXT=*OFF
      C                   EVAL      XmlTAG=%TRIM($XmlTAG)
       *metto in ATTRIC l'attributo passato più "(" (se non già presente)

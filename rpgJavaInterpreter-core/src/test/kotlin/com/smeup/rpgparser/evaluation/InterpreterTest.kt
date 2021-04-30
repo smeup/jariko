@@ -1776,4 +1776,14 @@ Test 6
             actual = outputOf("JAJAX1C")
         )
     }
+
+    @Test
+    fun executeJAJAX1C_2() {
+        assertEquals(
+            expected = listOf("ERB",
+                "Erbusco",
+            ),
+            actual = outputOf("JAJAX1C_2")
+        )
+    }
 }
