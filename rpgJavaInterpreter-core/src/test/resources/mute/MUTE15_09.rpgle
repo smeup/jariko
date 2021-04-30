@@ -37,9 +37,9 @@
       *--------------------------------------------------------------*
      C     FRXATV        BEGSR
       * Recupero il contenuto dalla schiera TXTATV
+     C                   EVAL      $N=1
      C                   EVAL      §INPUT=TXT($N)
      C                   EVAL      £JAXATV=P_RXATV(§INPUT)
-     C                   EVAL      $N=1
 2    C                   DO        5
       *
     MU* VAL1($RESULT) VAL2(TXTRES($N)) COMP(EQ)
