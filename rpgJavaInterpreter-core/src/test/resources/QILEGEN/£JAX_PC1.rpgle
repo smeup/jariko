@@ -69,6 +69,7 @@
      V* 16/10/19  V5R1   PEDSTE Check-out 001116 in SMEDEV
      V* 02/09/20  002113  COMFED Rettifica elaborazione P_RxSPL
      V* 03/09/20  V5R1   BMA Check-out 002113 in SMEDEV
+     V* 30/04/21  JARIKO BMA Rimossa gestione case unsensitive con £G49
      V*===============================================================
       *--------------------------------------------------------------*
     RD* Parser XML risposta (Estrae gli attributo scelto)
@@ -498,7 +499,7 @@
      D UStrO           S          32766    VARYING
      D UStr1           S          30000    VARYING
       *
-     D/INCLUDE QILEGEN,£G49DS
+     D***/INCLUDE QILEGEN,£G49DS
       *
      C                   EVAL      $StrO=$XmlInp
      C                   EVAL      $Str1=$XmlS01
@@ -521,65 +522,65 @@
      C                   EVAL      $LS1=%Len($Str1)
      C                   EVAL      $LS2=%Len($Str2)
       * Se richiesto di non controllare i caratteri maiuscoli/minuscoli
-     C                   IF        $StrCas='1'
+     C***                   IF        $StrCas='1'
       *
-     C                   IF        $LS1<=1024
-     C                   EVAL      £G49FU='CON'
-     C                   EVAL      £G49ME='U_C'
-     C                   EVAL      £G49SI=$STR1
-     C                   EXSR      £G49
-     C                   EVAL      USTR1=£G49SI
-     C                   ELSE
-     C                   EVAL      $StrFix=$STR1
-     C                   CLEAR                   USTR1
-     C                   DO        30            $X                5 0
-     C                   IF        %SUBST($StrFix:(1024*($X-1))+1)=' '
-     C                   LEAVE
-     C                   ENDIF
-     C                   EVAL      £G49FU='CON'
-     C                   EVAL      £G49ME='U_C'
-     C                   IF        $X<30
-     C                   EVAL      £G49SI=%SUBST($StrFix:(1024*($X-1))+1
-     C                             :1024)
-     C                   ELSE
-     C                   EVAL      £G49SI=%SUBST($StrFix:(1024*($X-1))+1
-     C                             :1024)
-     C                   ENDIF
-     C                   EXSR      £G49
-     C                   ENDDO
-     C                   ENDIF
-     C                   EVAL      USTR1=%SUBST(USTR1:1:$LS1)
+     C***                   IF        $LS1<=1024
+     C***                   EVAL      £G49FU='CON'
+     C***                   EVAL      £G49ME='U_C'
+     C***                   EVAL      £G49SI=$STR1
+     C***                   EXSR      £G49
+     C***                   EVAL      USTR1=£G49SI
+     C***                   ELSE
+     C***                   EVAL      $StrFix=$STR1
+     C***                   CLEAR                   USTR1
+     C***                   DO        30            $X                5 0
+     C***                   IF        %SUBST($StrFix:(1024*($X-1))+1)=' '
+     C***                   LEAVE
+     C***                   ENDIF
+     C***                   EVAL      £G49FU='CON'
+     C***                   EVAL      £G49ME='U_C'
+     C***                   IF        $X<30
+     C***                   EVAL      £G49SI=%SUBST($StrFix:(1024*($X-1))+1
+     C***                             :1024)
+     C***                   ELSE
+     C***                   EVAL      £G49SI=%SUBST($StrFix:(1024*($X-1))+1
+     C***                             :1024)
+     C***                   ENDIF
+     C***                   EXSR      £G49
+     C***                   ENDDO
+     C***                   ENDIF
+     C***                   EVAL      USTR1=%SUBST(USTR1:1:$LS1)
       *
-     C                   EVAL      $LSO=%Len($StrO)
-     C                   IF        $LSO<=1024
-     C                   EVAL      £G49FU='CON'
-     C                   EVAL      £G49ME='U_C'
-     C                   EVAL      £G49SI=$STRO
-     C                   EXSR      £G49
-     C                   EVAL      USTRO=£G49SI
-     C                   ELSE
-     C                   EVAL      $StrFix=$STRO
-     C                   CLEAR                   USTRO
-     C                   DO        30            $X                5 0
-     C                   IF        %SUBST($StrFix:(1024*($X-1))+1)=' '
-     C                   LEAVE
-     C                   ENDIF
-     C                   EVAL      £G49FU='CON'
-     C                   EVAL      £G49ME='U_C'
-     C                   IF        $X<30
-     C                   EVAL      £G49SI=%SUBST($StrFix:(1024*($X-1))+1
-     C                             :1024)
-     C                   ELSE
-     C                   EVAL      £G49SI=%SUBST($StrFix:(1024*($X-1))+1
-     C                             :1024)
-     C                   ENDIF
-     C                   EXSR      £G49
-     C                   EVAL      USTRO=USTRO+%SUBST(£G49SI:1:1024)
-     C                   ENDDO
-     C                   ENDIF
-     C                   EVAL      USTRO=%SUBST(USTRO:1:$LSO)
+     C***                   EVAL      $LSO=%Len($StrO)
+     C***                   IF        $LSO<=1024
+     C***                   EVAL      £G49FU='CON'
+     C***                   EVAL      £G49ME='U_C'
+     C***                   EVAL      £G49SI=$STRO
+     C***                   EXSR      £G49
+     C***                   EVAL      USTRO=£G49SI
+     C***                   ELSE
+     C***                   EVAL      $StrFix=$STRO
+     C***                   CLEAR                   USTRO
+     C***                   DO        30            $X                5 0
+     C***                   IF        %SUBST($StrFix:(1024*($X-1))+1)=' '
+     C***                   LEAVE
+     C***                   ENDIF
+     C***                   EVAL      £G49FU='CON'
+     C***                   EVAL      £G49ME='U_C'
+     C***                   IF        $X<30
+     C***                   EVAL      £G49SI=%SUBST($StrFix:(1024*($X-1))+1
+     C***                             :1024)
+     C***                   ELSE
+     C***                   EVAL      £G49SI=%SUBST($StrFix:(1024*($X-1))+1
+     C***                             :1024)
+     C***                   ENDIF
+     C***                   EXSR      £G49
+     C***                   EVAL      USTRO=USTRO+%SUBST(£G49SI:1:1024)
+     C***                   ENDDO
+     C***                   ENDIF
+     C***                   EVAL      USTRO=%SUBST(USTRO:1:$LSO)
       *
-     C                   ENDIF
+     C***                   ENDIF
       *
       *. Ricerco la stringa
 1    C                   DO        *HIVAL
@@ -611,7 +612,7 @@
       *
      C                   RETURN    $StrO
       *
-     D/INCLUDE QILEGEN,£G49
+     D***/INCLUDE QILEGEN,£G49
       *
      P                 E
       *--------------------------------------------------------------*
