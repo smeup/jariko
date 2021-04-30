@@ -317,6 +317,15 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE15_08() {
+        val programName: File = File("mute/MUTE15_08")
+        executeWithMutes(path = programName.toPath(),
+            verbose = true,
+            logConfigurationFile = null,
+            output = System.out)
+    }
+
+    @Test
     fun executeMUTE15_09() {
         val programName: File = File("mute/MUTE15_09")
         executeWithMutes(path = programName.toPath(),

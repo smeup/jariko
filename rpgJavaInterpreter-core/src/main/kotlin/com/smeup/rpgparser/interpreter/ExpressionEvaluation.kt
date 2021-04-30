@@ -230,8 +230,8 @@ class ExpressionEvaluation(
         var startIndex = 0
         if (expression.start != null) {
             startIndex = expression.start.evalWith(this).asInt().value.toInt()
-            if (startIndex == 1) {
-                startIndex = 0
+            if (startIndex > 0) {
+                startIndex -= 1
             }
         }
         val value = expression.value.evalWith(this).asString().value
