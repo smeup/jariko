@@ -975,7 +975,7 @@ Test 6
 
     @Test
     fun executeSCANTEST() {
-        assertEquals(listOf("0", "4"), outputOf("SCANTEST"))
+        assertEquals(listOf("0", "4", "1"), outputOf("SCANTEST"))
     }
 
     @Test
