@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.smeup.rpgparser.mute
 
 import com.github.ajalt.clikt.core.CliktCommand
