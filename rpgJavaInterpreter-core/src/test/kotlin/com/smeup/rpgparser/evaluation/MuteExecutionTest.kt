@@ -23,9 +23,7 @@ import com.smeup.rpgparser.assertNrOfMutesAre
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
-import com.smeup.rpgparser.mute.executeWithMutes
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import java.io.File
 import kotlin.test.*
 
 open class MuteExecutionTest : AbstractTest() {
@@ -309,56 +307,48 @@ open class MuteExecutionTest : AbstractTest() {
 
     @Test
     fun executeMUTE15_07() {
-        val programName: File = File("mute/MUTE15_07")
-        executeWithMutes(path = programName.toPath(),
-            verbose = true,
-            logConfigurationFile = null,
-            output = System.out)
+        executePgm("mute/MUTE15_07")
     }
 
     @Test
     fun executeMUTE15_08() {
-        val programName: File = File("mute/MUTE15_08")
-        executeWithMutes(path = programName.toPath(),
-            verbose = true,
-            logConfigurationFile = null,
-            output = System.out)
+        executePgm("mute/MUTE15_08")
     }
 
     @Test
     fun executeMUTE15_09() {
-        val programName: File = File("mute/MUTE15_09")
-        executeWithMutes(path = programName.toPath(),
-            verbose = true,
-            logConfigurationFile = null,
-            output = System.out)
+        executePgm("mute/MUTE15_09")
+    }
+
+    @Test
+    @Ignore
+    fun executeMUTE15_10() {
+        executePgm("mute/MUTE15_10")
+    }
+
+    @Test
+    fun executeMUTE15_11() {
+        executePgm("mute/MUTE15_11")
     }
 
     @Test
     fun executeMUTE15_12() {
-        val programName: File = File("mute/MUTE15_12")
-        executeWithMutes(path = programName.toPath(),
-            verbose = true,
-            logConfigurationFile = null,
-            output = System.out)
+        executePgm("mute/MUTE15_12")
     }
 
     @Test
     fun executeMUTE15_13() {
-        val programName: File = File("mute/MUTE15_13")
-        executeWithMutes(path = programName.toPath(),
-            verbose = true,
-            logConfigurationFile = null,
-            output = System.out)
+        executePgm("mute/MUTE15_13")
+    }
+
+    @Test
+    fun executeMUTE15_14() {
+        executePgm("mute/MUTE15_14")
     }
 
     @Test
     fun executeMUTE15_15() {
-        val programName: File = File("mute/MUTE15_15")
-        executeWithMutes(path = programName.toPath(),
-            verbose = true,
-            logConfigurationFile = null,
-            output = System.out)
+        executePgm("mute/MUTE15_15")
     }
 
     private fun assertMuteExecutionSucceded(

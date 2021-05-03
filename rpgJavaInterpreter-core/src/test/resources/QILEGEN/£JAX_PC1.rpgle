@@ -495,6 +495,7 @@
      D $LS1            S              5  0
      D $LS2            S              5  0
      D $LSO            S              5  0
+     D $LEN            S              5  0
       *
      D UStrO           S          32766    VARYING
      D UStr1           S          30000    VARYING

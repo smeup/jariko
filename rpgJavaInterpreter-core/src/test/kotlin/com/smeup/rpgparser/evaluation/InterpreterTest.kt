@@ -234,7 +234,15 @@ open class InterpreterTest : AbstractTest() {
 
     @Test
     fun executeLEN() {
-        assertEquals(listOf("Hello World! 23"), outputOf("LEN"))
+        assertEquals(listOf(
+            "Hello World! 23",
+            "%LEN(B_01) is 1",
+            "%LEN(B_02) is 20",
+            "%LEN(B_03) is 0",
+            "%LEN(B_03) is 1",
+            "%LEN(B_03) is 5",
+            "%LEN(B_04) is 0"
+        ), outputOf("LEN"))
     }
 
     @Test
@@ -805,7 +813,7 @@ Test 6
 
     @Test
     fun executeREPLACEBIF() {
-        assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!"),
+        assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!", "%20 ef", "abc%20ef"),
             outputOf("REPLACEBIF"))
     }
 

@@ -35,7 +35,7 @@
     RD*  Test RxURL
       *--------------------------------------------------------------*
      C     FRXURL        BEGSR
-     C                   EVAL      §INPUT=TXT(1)
+     C                   EVAL      §INPUT=%TRIM(TXT(1))
       * Recupero valori all'interno della variabile §INPUT
     MU* VAL1($RESULT) VAL2(TXTRES(1)) COMP(EQ)
      C                   EVAL      $RESULT=P_RxURL(§INPUT)
@@ -57,4 +57,5 @@
 ** CTDATA TXT
 http||:prov@di§unURL£WEBvedere%se sostituisce"correttamente$RXURLR
 ** CTDATA TXTRES
-http%7C%7C:prov@di%C2%A7unURL%C2%A3WEB%20per%20vedere%25se%20sostituisce%22correttamente%24RXURL
+http%7C%7C:prov@di%C2%A7unURL%C2%A3WEBvedere%25se%20sostituisce%22correttamente%24RXURLR
+

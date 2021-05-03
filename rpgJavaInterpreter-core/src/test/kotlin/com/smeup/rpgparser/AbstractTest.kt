@@ -154,7 +154,11 @@ abstract class AbstractTest {
         require(resource != null) {
             "Cannot find resource $resourceName"
         }
-        val programFinders = listOf(DirRpgProgramFinder(directory = File(resource.path).parentFile))
+        val programFinders = listOf(
+            DirRpgProgramFinder(directory = File(resource.path).parentFile),
+            DirRpgProgramFinder(directory = File("src/test/resources/"))
+        )
+
         val jariko = getProgram(
             nameOrSource = programName.substringAfterLast("/", programName),
             systemInterface = systemInterface,

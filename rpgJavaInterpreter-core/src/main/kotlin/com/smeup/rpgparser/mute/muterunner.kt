@@ -105,16 +105,18 @@ fun showSourceAbsolutePath(): Boolean = "true" == System.getProperty("showSource
 fun executeWithMutes(
     path: Path,
     verbose: Boolean = false,
-    logConfigurationFile: File?,
+    logConfigurationFile: File? = null,
     programFinders: List<RpgProgramFinder> = listOf<RpgProgramFinder>(DirRpgProgramFinder(File("src/test/resources/"))),
     output: PrintStream? = null,
-    configuration: Configuration = Configuration(options = Options(muteSupport = true))
+    configuration: Configuration = Configuration(options = Options(muteSupport = true)),
+    loggingConfiguration: LoggingConfiguration? = null
 ): ExecutionResult {
     var failed = 0
     var executed = 0
     val exceptions = LinkedList<Throwable>()
 
     val systemInterface = JavaSystemInterface(os = output ?: System.out).apply {
+        if (logConfigurationFile == null) this.loggingConfiguration = loggingConfiguration
         rpgSystem.addProgramFinders(programFinders)
     }.let {
         it.useConfigurationFile(logConfigurationFile)
