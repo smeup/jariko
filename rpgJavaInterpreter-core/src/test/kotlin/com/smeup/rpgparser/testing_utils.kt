@@ -173,6 +173,7 @@ private class TestJavaSystemInterface : JavaSystemInterface() {
 private fun createJavaSystemInterface(): JavaSystemInterface {
     return TestJavaSystemInterface().apply {
         rpgSystem.addProgramFinder(DirRpgProgramFinder(File(rpgTestSrcDir)))
+        rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/")))
     }
 }
 
@@ -181,7 +182,7 @@ fun assertCanBeParsedResult(
     withMuteSupport: Boolean = false,
     printTree: Boolean = false
 ): RpgParserResult {
-    val result = MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+    val result = MainExecutionContext.execute(systemInterface = createJavaSystemInterface()) {
         it.executionProgramName = exampleName
         RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
