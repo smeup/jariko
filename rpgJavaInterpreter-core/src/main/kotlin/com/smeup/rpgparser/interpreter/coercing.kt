@@ -67,7 +67,18 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.value.length > type.length) {
                 return StringValue(value.value.substring(0, type.length))
             }
-            return StringValue(value.value, type.varying)
+            return when (type.varying) {
+                // If varying, can be empty (length=0)
+                true -> StringValue(value.value, true)
+                // If not varying, cannot be empty but must be sized ad type.length
+                else -> if (value.value.isEmpty()) {
+                    StringValue(" ".repeat(type.length), false)
+                } else {
+                    StringValue(value.value, false)
+                }
+            }
+
+            // return StringValue(value.value, type.varying)
         }
         is ArrayType -> {
             if (type.element is StringType) {

@@ -1365,6 +1365,63 @@ Test 6
 
     @Test
     @Ignore
+    fun executeCLEARARRAY() {
+        assertEquals(
+            listOf(
+                "11111111111AAAAAAAAAAA",
+                "                      ",
+                "                      ",
+                "                      ",
+                "11111111111AAAAAAAAAAA",
+                "22222222222BBBBBBBBBBB",
+                "                      ",
+                "                      ",
+                "                      ",
+                "22222222222BBBBBBBBBBB",
+                "                      ",
+                "                      ",
+                "                      ",
+                "22222222222BBBBBBBBBBB",
+                "00000000000           ",
+                "                      ",
+                "                      ",
+                "22222222222BBBBBBBBBBB",
+                "00000000000           ",
+                "44444444444DDDDDDDDDDD",
+                "                      ",
+                "                      ",
+                "                      ",
+                "                      "
+            ),
+            outputOf("CLEARARRAY"))
+    }
+
+    @Test
+    @Ignore
+    fun executeCLEARARRAY1() {
+        assertEquals(
+            listOf(
+                " ",
+                " ",
+                "A",
+                "B",
+                "C",
+                " ",
+                " ",
+                "A",
+                " ",
+                "C",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+            ),
+            outputOf("CLEARARRAY1"))
+    }
+
+    @Test
+    @Ignore
     fun executeMOVELSTR() {
         assertEquals(
             listOf(

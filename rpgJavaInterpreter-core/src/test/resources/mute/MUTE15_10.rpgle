@@ -45,7 +45,7 @@
      C                   EVAL      $RESULT=P_RxELE('Setup':'POS':01:TXT(1)      COSTANTE
      C                                    :NODINI:NODLEN:Xml_Con)
       *
-    MU* VAL1($RESULT) VAL2(TXT(2)) COMP(EQ)
+    MU* VAL1($RESULT) VAL2(TXT(3)) COMP(EQ)
     MU* VAL1(Xml_Con) VAL2(TXTRES(2)) COMP(EQ)
      C                   EVAL      $RESULT=P_RxELE('Setup':'POS':01:TXT(2)      COSTANTE
      C                                    :NODINI:NODLEN:Xml_Con)
@@ -67,6 +67,7 @@
 ** CTDATA TXT
 <Setup>Prova ricerca per setup</Setup>
 <Set><h1>Prova</h1><Setup>Recupero valore annidato dei tag</Setup></Set>
+<Setup>Recupero valore annidato dei tag</Setup>
 ** CTDATA TXTRES
 Prova ricerca per setup
 Recupero valore annidato dei tag
