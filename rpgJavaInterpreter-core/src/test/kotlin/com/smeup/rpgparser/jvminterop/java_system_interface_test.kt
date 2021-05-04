@@ -37,9 +37,18 @@ class JavaSystemInterfaceTest {
     fun findsFunctionsByName() {
         val javaSystemInterface = createJavaSystemInterface()
         var globalSymbolTable = SymbolTable()
-        val function = javaSystemInterface.findFunction(globalSymbolTable = globalSymbolTable,  "SomeFunction")
+        val function = javaSystemInterface.findFunction(globalSymbolTable = globalSymbolTable, "SomeFunction")
         assertNotNull(function)
         assertTrue(function is SomeFunction)
+    }
+
+    @Test
+    fun findsDopedFunctionsByName() {
+        val javaSystemInterface = createJavaSystemInterface()
+        var globalSymbolTable = SymbolTable()
+        val function = javaSystemInterface.findFunction(globalSymbolTable = globalSymbolTable, "DopedFunction")
+        assertNotNull(function)
+        assertTrue(function is DopedFunction)
     }
 
     @Test
@@ -82,6 +91,16 @@ class SomeFunction() : Function {
         return emptyList()
     }
 
+    override fun execute(
+        systemInterface: SystemInterface,
+        params: List<FunctionValue>,
+        symbolTable: ISymbolTable
+    ): Value {
+        return VoidValue
+    }
+}
+
+class DopedFunction() : JavaFunction {
     override fun execute(
         systemInterface: SystemInterface,
         params: List<FunctionValue>,
