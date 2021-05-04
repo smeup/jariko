@@ -17,8 +17,14 @@
 @file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
-import com.smeup.rpgparser.*
+import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.ExtendedCollectorSystemInterface
+import com.smeup.rpgparser.assertNrOfMutesAre
+import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import kotlin.test.*
@@ -318,9 +324,12 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    @Ignore
     fun executeMUTE15_10() {
-        executePgm("mute/MUTE15_10")
+        val configuration = Configuration().apply {
+            // this way I enable muteSupport and source dump also on execution error
+            options = Options(muteSupport = true, dumpSourceOnExecutionError = true)
+        }
+        executePgm("mute/MUTE15_10", configuration = configuration, systemInterface = JavaSystemInterface())
         // assertCanBeParsedResult(exampleName = "mute/MUTE15_10", printTree = true)
     }
 

@@ -44,7 +44,8 @@ data class CompilationUnit(
     // TODO: Related to 'ProceduresParamsDataDefinitions' a refactor is required, but now:
     // - if 'CompilationUnit' is an 'RpgProgram' this list is null.
     // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
-    val proceduresParamsDataDefinitions: List<DataDefinition>? = null
+    val proceduresParamsDataDefinitions: List<DataDefinition>? = null,
+    val source: String? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()

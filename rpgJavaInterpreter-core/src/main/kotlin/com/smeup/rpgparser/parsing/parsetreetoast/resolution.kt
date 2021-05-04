@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.parsing.parsetreetoast
 
+import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
@@ -169,9 +170,7 @@ private fun CompilationUnit.resolve() {
 
     this.specificProcess(PlistParam::class.java) { pp ->
         if (!pp.param.resolved) {
-            require(pp.param.tryToResolve(this.allDataDefinitions, caseInsensitive = true)) {
-                "Plist Param not resolved: ${pp.param.name} at ${pp.position}"
-            }
+            pp.param.tryToResolveRecursively(position = pp.position, cu = this)
         }
     }
 }
@@ -182,4 +181,17 @@ private fun EqualityExpr.toAssignment(): AssignmentExpr {
             this.right,
             this.position
     )
+}
+
+// try to resolve a Data reference through recursive search in parent compilation unit
+private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(position: Position? = null, cu: CompilationUnit) {
+    var currentCu: CompilationUnit? = cu
+    var resolved = false
+    while (currentCu != null && !resolved) {
+        resolved = this.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
+        currentCu = currentCu.parent?.let { it as CompilationUnit } ?: null
+    }
+    require(resolved) {
+        "Data reference not resolved: ${this.name} at $position"
+    }
 }

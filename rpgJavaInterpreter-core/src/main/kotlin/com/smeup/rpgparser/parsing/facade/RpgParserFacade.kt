@@ -78,7 +78,7 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
     }
 }
 
-private fun String.dumpSource(): String {
+fun String.dumpSource(): String {
     val parsingProgramName = if (MainExecutionContext.getParsingProgramStack().isNotEmpty()) {
         MainExecutionContext.getParsingProgramStack().peek().name
     } else {
@@ -352,7 +352,12 @@ class RpgParserFacade {
             MainExecutionContext.log(AstLogStart(executionProgramName))
             val elapsed = measureTimeMillis {
                 compilationUnit = result.root!!.rContext.toAst(
-                    MainExecutionContext.getConfiguration().options?.toAstConfiguration ?: ToAstConfiguration()
+                    conf = MainExecutionContext.getConfiguration().options?.toAstConfiguration ?: ToAstConfiguration(),
+                    source = if (MainExecutionContext.getConfiguration().options?.dumpSourceOnExecutionError == true) {
+                        result.src
+                    } else {
+                        null
+                    }
                 ).apply {
                     if (muteSupport) {
                         val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)

@@ -124,7 +124,7 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
         dataDefinition.error("${dataDefinition.name} has been defined twice")
 }
 
-fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null): CompilationUnit {
     val fileDefinitions = this.statement()
             .mapNotNull {
                 when {
@@ -180,7 +180,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         directives,
         position = this.toPosition(conf.considerPosition),
         apiDescriptors = this.statement().toApiDescriptors(conf),
-        procedures
+        procedures = procedures,
+        source = source
     ).let { compilationUnit ->
         // for each procedureUnit set compilationUnit as parent
         // in order to resolve global data references
