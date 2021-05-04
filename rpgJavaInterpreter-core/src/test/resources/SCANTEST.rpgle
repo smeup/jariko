@@ -12,4 +12,9 @@
      C                   Eval      Msg  = %CHAR($BRACK)
      C                   dsply                   Msg
      *********************************************************************
+     C                   EVAL      $$SVAR='&lt;Colonna'
+     C                   EVAL      $BRACK=%SCAN('&lt;':$$SVAR:0)
+     C                   Eval      Msg  = %CHAR($BRACK)
+     C                   dsply                   Msg
+     *********************************************************************
      C                   SETON                                          LR

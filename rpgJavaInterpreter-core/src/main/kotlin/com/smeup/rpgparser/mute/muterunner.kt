@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.mute
 
 import com.andreapivetta.kolor.green
@@ -9,14 +25,13 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.types.file
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.execution.Options
-import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.DataWrapUpChoice
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationExecuted
 import com.smeup.rpgparser.parsing.ast.MuteComparisonAnnotationExecuted
+import com.smeup.rpgparser.parsing.ast.NamedActivationGroup
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
 import com.smeup.rpgparser.parsing.facade.RpgParserResult
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
@@ -44,15 +59,15 @@ data class ExecutionResult(
 
     override fun toString(): String {
         return buildString {
-            appendln("------------")
+            appendLine("------------")
             val message =
                 "$file - Total annotation: $resolved, executed: $executed, failed: $failed, exceptions: ${exceptions.size}, syntax errors: ${syntaxErrors.size}"
-            appendln(message.color(success()))
+            appendLine(message.color(success()))
             exceptions.forEach {
-                appendln(it.toExecutionMessage())
+                appendLine(it.toExecutionMessage())
             }
             syntaxErrors.forEach {
-                appendln(it)
+                appendLine(it)
             }
         }.addFileLink()
     }
@@ -91,7 +106,7 @@ fun executeWithMutes(
     path: Path,
     verbose: Boolean = false,
     logConfigurationFile: File?,
-    programFinders: List<RpgProgramFinder> = emptyList(),
+    programFinders: List<RpgProgramFinder> = listOf<RpgProgramFinder>(DirRpgProgramFinder(File("src/test/resources/"))),
     output: PrintStream? = null,
     configuration: Configuration = Configuration(options = Options(muteSupport = true))
 ): ExecutionResult {
@@ -99,10 +114,12 @@ fun executeWithMutes(
     var executed = 0
     val exceptions = LinkedList<Throwable>()
 
-    val systemInterface =
-        SimpleSystemInterface(programFinders = programFinders, output = output).useConfigurationFile(
-            logConfigurationFile
-        )
+    val systemInterface = JavaSystemInterface(os = output ?: System.out).apply {
+        rpgSystem.addProgramFinders(programFinders)
+    }.let {
+        it.useConfigurationFile(logConfigurationFile)
+        it
+    }
     return MainExecutionContext.execute(systemInterface = systemInterface, configuration = configuration) {
         var parserResult: RpgParserResult? = null
         val file = File(path.toString())
@@ -112,7 +129,11 @@ fun executeWithMutes(
                 RpgParserFacade()
                 .parse(file.inputStream())
             if (parserResult.correct) {
-                parserResult.executeMuteAnnotations(verbose, systemInterface, programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
+                parserResult.executeMuteAnnotations(
+                    verbose = verbose,
+                    systemInterface = systemInterface,
+                    mainExecutionContext = it,
+                    programName = file.name.removeSuffix(".rpgle")).forEach { (line, annotation) ->
                     if (verbose || annotation.failed()) {
                         println("Mute annotation at line $line ${annotation.resultAsString()} - ${annotation.headerDescription()} - ${file.linkTo(line)}".color(annotation.succeeded()))
                         if (annotation.failed()) {
@@ -138,7 +159,7 @@ fun executeMuteAnnotations(
     systemInterface: SystemInterface,
     parameters: List<String> = listOf(),
     configuration: Configuration = Configuration()
-): SortedMap<Int, MuteAnnotationExecuted>? {
+): SortedMap<Int, MuteAnnotationExecuted> {
     getProgram(
         nameOrSource = programSrc.name,
         programFinders = listOf(DirRpgProgramFinder(programSrc.parentFile)),
@@ -179,9 +200,12 @@ fun RpgParserResult.executeMuteAnnotations(
     systemInterface: SystemInterface,
     parameters: Map<String, Value> = mapOf(),
     programName: String = "<UNKONWN>",
-    configuration: Configuration = Configuration()
+    configuration: Configuration = Configuration(),
+    mainExecutionContext: Context? = null
 ): SortedMap<Int, MuteAnnotationExecuted> {
     val root = this.root!!
+    // ParsingProgram is necessary during ast creation to achieve procedure name
+    mainExecutionContext?.parsingProgramStack?.push(ParsingProgram(programName))
     val cu = root.rContext.toAst().apply {
         val resolved = this.injectMuteAnnotation(root.muteContexts!!)
 
@@ -193,6 +217,12 @@ fun RpgParserResult.executeMuteAnnotations(
         }
     }
     cu.resolveAndValidate()
+    // Executing RpgProgram is necessary before interpretation to achieve the compilation unit related to procedure
+    mainExecutionContext?.let {
+        it.programStack.push(RpgProgram(cu = cu).apply {
+            activationGroup = ActivationGroup(type = NamedActivationGroup("dummy"), assignedName = "dummy")
+        })
+    }
     val interpreter = InternalInterpreter(systemInterface).apply {
         interpretationContext = object : InterpretationContext {
             private var iDataWrapUpChoice: DataWrapUpChoice? = null
@@ -209,6 +239,10 @@ fun RpgParserResult.executeMuteAnnotations(
         }
     }
     interpreter.execute(cu, parameters)
+    mainExecutionContext?.let {
+        it.parsingProgramStack.pop()
+        it.programStack.pop()
+    }
     return interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
 }
 

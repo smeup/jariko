@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.Evaluator
@@ -91,7 +107,8 @@ data class TrimlExpr(
 @Serializable
 data class SubstExpr(
     var string: Expression,
-    val start: Expression,
+    // i don't know but fix: Error com.strumenta.kolasu.model.ImmutablePropertyException: Cannot mutate property 'start' of node FunctionCall(
+    var start: Expression,
     val length: Expression? = null,
     override val position: Position? = null
 ) :
@@ -196,6 +213,15 @@ data class FoundExpr(
 @Serializable
 data class EofExpr(
     var name: String? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %PARMS
+@Serializable
+data class ParmsExpr(
+    var name: String,
     override val position: Position? = null
 ) : Expression(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
