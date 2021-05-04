@@ -361,7 +361,6 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    @Ignore
     fun executeMUTE15_15() {
         executePgm("mute/MUTE15_15", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
