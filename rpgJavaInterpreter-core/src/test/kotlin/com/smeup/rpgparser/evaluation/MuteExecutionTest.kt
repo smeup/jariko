@@ -281,7 +281,7 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    @Ignore()
+    @Ignore
     // TODO ("Fix: Errors at line: 1 messages: token recognition error at: ''',token recognition error at: ']'")
     // The problem is mutelexer.g4 which is no able to lex this annotation MU* VAL1(RIS1) VAL2('[T1]') COMP(EQ)
     // Maybe it's the presence of square brackets
@@ -329,15 +329,11 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    @Ignore
-    // TODO ("Fix: Issue executing IfStmt at line 416. Program JAJAX0 - Issue executing ClearStmt at line 417. I do not know how to clear ArrayAccessExpr(array=DataRefExpr(variable=Ref(£JSP)[Solved], position=Position(start=Line 417, Column 25, end=Line 417, Column 82)), index=DataRefExpr(variable=Ref(Xml_Liv)[Solved], position=Position(start=Line 417, Column 29, end=Line 417, Column 37)), position=null))
     fun executeMUTE15_10() {
         val configuration = Configuration().apply {
-            // this way I enable muteSupport and source dump also on execution error
-            options = Options(muteSupport = true, dumpSourceOnExecutionError = true)
+            options = Options(muteSupport = true, dumpSourceOnExecutionError = false)
         }
         executePgm("mute/MUTE15_10", configuration = configuration, systemInterface = JavaSystemInterface())
-        // assertCanBeParsedResult(exampleName = "mute/MUTE15_10", printTree = true)
     }
 
     @Test
