@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -5,11 +21,9 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
-import com.strumenta.kolasu.model.Derived
-import com.strumenta.kolasu.model.Named
-import com.strumenta.kolasu.model.Node
-import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.*
 import kotlinx.serialization.Serializable
+
 // This file contains the AST nodes at the highest level:
 // from the CompilationUnit (which represents the whole file)
 // to its main components
@@ -22,19 +36,35 @@ data class CompilationUnit(
     val compileTimeArrays: List<CompileTimeArray>,
     val directives: List<Directive>,
     override val position: Position?,
-    val apiDescriptors: Map<ApiId, ApiDescriptor>? = null
+    val apiDescriptors: Map<ApiId, ApiDescriptor>? = null,
+    // This way we say to not consider these nodes as part of compilation unit, this annotation is
+    // necessary to avoid that during data references resolving, are considered expression declared within procedures as well.
+    @property:Link val procedures: List<CompilationUnit>? = null,
+    val procedureName: String? = null,
+    // TODO: Related to 'ProceduresParamsDataDefinitions' a refactor is required, but now:
+    // - if 'CompilationUnit' is an 'RpgProgram' this list is null.
+    // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
+    val proceduresParamsDataDefinitions: List<DataDefinition>? = null,
+    val source: String? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()
 
     val minTimeOut by lazy {
-        timeouts.minBy { it -> it.timeout }?.timeout
+        timeouts.minByOrNull { it.timeout }?.timeout
     }
 
     companion object {
-        fun empty() = CompilationUnit(emptyList(), emptyList(), MainBody(emptyList(), null), emptyList(), emptyList(),
-                emptyList(),
-                null)
+        fun empty() = CompilationUnit(
+            fileDefinitions = emptyList(),
+            dataDefinitions = emptyList(),
+            main = MainBody(stmts = emptyList(), position = null),
+            subroutines = emptyList(),
+            compileTimeArrays = emptyList(),
+            directives = emptyList(),
+            position = null,
+            procedures = emptyList()
+        )
     }
 
     val entryPlist: PlistStmt?
@@ -55,15 +85,15 @@ data class CompilationUnit(
             if (_allDataDefinitions.isEmpty()) {
                 _allDataDefinitions.addAll(dataDefinitions)
                 // Adds DS sub-fields
-                dataDefinitions.forEach { it.fields.let { _allDataDefinitions.addAll(it) } }
+                dataDefinitions.forEach { it -> it.fields.let { _allDataDefinitions.addAll(it) } }
                 fileDefinitions.forEach {
                     // Create DS from file metadata
-                    val reloadConfig = MainExecutionContext.getConfiguration()?.reloadConfig
+                    val reloadConfig = MainExecutionContext.getConfiguration().reloadConfig
                     require(reloadConfig != null) {
                         "Not found metadata for $it because missing property reloadConfig in configuration"
                     }
                     val metadata = kotlin.runCatching {
-                        reloadConfig.metadataProducer?.invoke(it.name)
+                        reloadConfig.metadataProducer.invoke(it.name)
                     }.onFailure { error ->
                         throw RuntimeException("Not found metadata for $it", error)
                     }.getOrNull()
@@ -104,11 +134,11 @@ data class CompilationUnit(
 
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
-    fun getDataDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
+    fun getDataDefinition(name: String) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
             ?: throw IllegalArgumentException("Data definition $name was not found")
 
-    fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull() { it.name.equals(name, ignoreCase = true) }
-            ?: dataDefinitions.mapNotNull { it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
+    fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
+            ?: dataDefinitions.mapNotNull { it -> it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()
             ?: throw IllegalArgumentException("Data or field definition $name was not found")
 
     fun hasAnyDataDefinition(name: String) = allDataDefinitions.any { it.name.equals(name, ignoreCase = true) }

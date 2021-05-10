@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.DBNativeAccessConfig
@@ -48,13 +64,17 @@ data class ReloadConfig(
  * @param muteVerbose If true increases mute logging granularity
  * @param toAstConfiguration Creating ast configuration
  * @param callProgramHandler If specified allows to override program call handling logic.
+ * @param dumpSourceOnInterpretationError If true, program source is dumped on execution error. Default false.
+ * Setting this property to true causes a little overhead in AST serialization and deserialization due the fact
+ * the source is CompilationUnit property
  * */
 data class Options(
     var muteSupport: Boolean = false,
     var compiledProgramsDir: File? = null,
     var muteVerbose: Boolean = false,
     var toAstConfiguration: ToAstConfiguration = ToAstConfiguration(),
-    var callProgramHandler: CallProgramHandler? = null
+    var callProgramHandler: CallProgramHandler? = null,
+    var dumpSourceOnExecutionError: Boolean? = false
 )
 
 /**

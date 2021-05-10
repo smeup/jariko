@@ -16,4 +16,12 @@
      C                   Eval      Msg  = %REPLACE(toRepl:origin:7:0)
      C     Msg           dsply
      *******************************************************************
+     C                   EVAL      Msg = 'abc ef'
+     C                   Eval      Msg  = %REPLACE('%20':Msg)
+     C     Msg           dsply
+     *******************************************************************
+     C                   EVAL      Msg = 'abc ef'
+     C                   Eval      Msg  = %REPLACE( '%20' : Msg : 4 : 1)
+     C     Msg           dsply
+     *******************************************************************
      C                   SETON                                        LR

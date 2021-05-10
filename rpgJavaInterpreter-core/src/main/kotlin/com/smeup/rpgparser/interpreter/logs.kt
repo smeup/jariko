@@ -80,6 +80,43 @@ class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: 
     }
 }
 
+data class CallPExecutionLogEntry(override val programName: String, val callStmt: CallPStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "calling $callStmt"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "CALLP START${sep}${callStmt.functionCall.render()}"
+
+        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
+    }
+
+    override fun renderResolution(channel: String, filename: String, sep: String): String {
+        val data = "CALLP ${sep}${callStmt.functionCall.render()}"
+
+        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
+    }
+}
+
+class CallPEndLogEntry(programName: String, val callStmt: CallPStmt, val elapsed: Long, val exception: Exception? = null) : LogEntry(programName) {
+    override fun toString(): String {
+        return if (exception == null) {
+            "end of $callStmt"
+        } else {
+            "exception $exception in calling $callStmt"
+        }
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "CALLP END${sep}${callStmt.functionCall.render()}"
+
+        return renderHeader(channel, filename, callStmt.endLine(), sep) + data
+    }
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "CALLP END${sep}${callStmt.functionCall.render()}${sep}$elapsed${sep}ms"
+
+        return renderHeader(channel, filename, callStmt.endLine(), sep) + data
+    }
+}
+
 data class FindProgramLogEntry(override val programName: String) : LogEntry(programName) {
     override fun renderResolution(channel: String, filename: String, sep: String): String {
         return renderHeader(channel, filename, "", sep)

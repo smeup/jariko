@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.dbnative.file.DBFile
@@ -638,6 +654,51 @@ data class CallStmt(
 }
 
 @Serializable
+data class CallPStmt(
+    val functionCall: FunctionCall,
+    val errorIndicator: IndicatorKey? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        return emptyList()
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        interpreter.log { CallPExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
+        val startTime = System.currentTimeMillis()
+        val callStatement = this
+        try {
+            kotlin.run {
+                val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
+                expressionEvaluation.eval(functionCall)
+            }.apply {
+                interpreter.log {
+                    CallPEndLogEntry(
+                        interpreter.interpretationContext.currentProgramName,
+                        callStatement,
+                        System.currentTimeMillis() - startTime
+                    )
+                }
+            }
+        } catch (e: Exception) { // TODO Catch a more specific exception?
+            interpreter.log {
+                CallPEndLogEntry(
+                    interpreter.interpretationContext.currentProgramName,
+                    callStatement,
+                    System.currentTimeMillis() - startTime
+                )
+            }
+            if (errorIndicator == null) {
+                throw e
+            }
+            interpreter.indicators[errorIndicator] = BooleanValue.TRUE
+            null
+        }
+    }
+}
+
+@Serializable
 data class KListStmt
 private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
     companion object {
@@ -824,6 +885,16 @@ data class ClearStmt(
                             interpreter.interpretationContext.currentProgramName,
                             this,
                             value
+                    )
+                }
+            }
+            is ArrayAccessExpr -> {
+                val value = interpreter.assign(value, BlanksRefExpr())
+                interpreter.log {
+                    ClearStatemenExecutionLog(
+                        interpreter.interpretationContext.currentProgramName,
+                        this,
+                        value
                     )
                 }
             }

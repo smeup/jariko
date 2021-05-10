@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
@@ -5,6 +21,7 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
+import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
@@ -32,7 +49,9 @@ private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memo
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
-    val lrIndicator: () -> Boolean
+    val lrIndicator: () -> Boolean,
+    var returnValue: Value? = null,
+    var params: Int = 0
 ) {
     var lastFound = false
     var lastDBFile: DBFile? = null
@@ -260,19 +279,30 @@ class InternalInterpreter(
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
-        configureLogHandlers()
+        kotlin.runCatching {
+            configureLogHandlers()
 
-        initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
+            status.params = initialValues.size
+            initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
 
-        if (compilationUnit.minTimeOut == null) {
-            execute(compilationUnit.main.stmts)
-        } else {
-            val elapsedTime = measureTimeMillis {
+            if (compilationUnit.minTimeOut == null) {
                 execute(compilationUnit.main.stmts)
+            } else {
+                val elapsedTime = measureTimeMillis {
+                    execute(compilationUnit.main.stmts)
+                }
+                if (elapsedTime > compilationUnit.minTimeOut!!) {
+                    throw InterpreterTimeoutException(interpretationContext.currentProgramName, elapsedTime, compilationUnit.minTimeOut!!)
+                }
             }
-            if (elapsedTime > compilationUnit.minTimeOut!!) {
-                throw InterpreterTimeoutException(interpretationContext.currentProgramName, elapsedTime, compilationUnit.minTimeOut!!)
+        }.onFailure {
+            if (!MainExecutionContext.getProgramStack().isEmpty()) {
+                MainExecutionContext.getProgramStack().peek().cu.source?.apply {
+                    System.err.println(it.message)
+                    System.err.println(this.dumpSource())
+                }
             }
+            throw it
         }
     }
 
@@ -304,7 +334,7 @@ class InternalInterpreter(
                 null
             )
         } catch (e: ReturnException) {
-            // TODO use return value
+            status.returnValue = e.returnValue
         } catch (t: Throwable) {
             MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
                 interpretationContext.currentProgramName,

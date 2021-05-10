@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
@@ -218,7 +234,15 @@ open class InterpreterTest : AbstractTest() {
 
     @Test
     fun executeLEN() {
-        assertEquals(listOf("Hello World! 23"), outputOf("LEN"))
+        assertEquals(listOf(
+            "Hello World! 23",
+            "%LEN(B_01) is 1",
+            "%LEN(B_02) is 20",
+            "%LEN(B_03) is 0",
+            "%LEN(B_03) is 1",
+            "%LEN(B_03) is 5",
+            "%LEN(B_04) is 0"
+        ), outputOf("LEN"))
     }
 
     @Test
@@ -634,22 +658,22 @@ Test 6
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE1() {
         assertEquals(listOf("33"), outputOf("PROCEDURE1"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE2_callAsFunction() {
         assertEquals(listOf("33"), outputOf("PROCEDURE2"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE3_constExpressionWithTypeCast() {
         assertEquals(listOf("33"), outputOf("PROCEDURE3"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE4_errorModifyingConstParameter() {
         // TODO Define a better exception
         assertFailsWith(Throwable::class) {
@@ -657,12 +681,12 @@ Test 6
         }
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE5_localVarNames() {
         assertEquals(listOf("33"), outputOf("PROCEDURE5"))
     }
 
-    @Test @Ignore
+    @Test
     fun executePROCEDURE6_shadowingOfVars() {
         assertEquals(listOf("25"), outputOf("PROCEDURE6"))
     }
@@ -789,7 +813,7 @@ Test 6
 
     @Test
     fun executeREPLACEBIF() {
-        assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!"),
+        assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!", "%20 ef", "abc%20ef"),
             outputOf("REPLACEBIF"))
     }
 
@@ -959,7 +983,7 @@ Test 6
 
     @Test
     fun executeSCANTEST() {
-        assertEquals(listOf("0", "4"), outputOf("SCANTEST"))
+        assertEquals(listOf("0", "4", "1"), outputOf("SCANTEST"))
     }
 
     @Test
@@ -1341,6 +1365,63 @@ Test 6
 
     @Test
     @Ignore
+    fun executeCLEARARRAY() {
+        assertEquals(
+            listOf(
+                "11111111111AAAAAAAAAAA",
+                "                      ",
+                "                      ",
+                "                      ",
+                "11111111111AAAAAAAAAAA",
+                "22222222222BBBBBBBBBBB",
+                "                      ",
+                "                      ",
+                "                      ",
+                "22222222222BBBBBBBBBBB",
+                "                      ",
+                "                      ",
+                "                      ",
+                "22222222222BBBBBBBBBBB",
+                "00000000000           ",
+                "                      ",
+                "                      ",
+                "22222222222BBBBBBBBBBB",
+                "00000000000           ",
+                "44444444444DDDDDDDDDDD",
+                "                      ",
+                "                      ",
+                "                      ",
+                "                      "
+            ),
+            outputOf("CLEARARRAY"))
+    }
+
+    @Test
+    @Ignore
+    fun executeCLEARARRAY1() {
+        assertEquals(
+            listOf(
+                " ",
+                " ",
+                "A",
+                "B",
+                "C",
+                " ",
+                " ",
+                "A",
+                " ",
+                "C",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+            ),
+            outputOf("CLEARARRAY1"))
+    }
+
+    @Test
+    @Ignore
     fun executeMOVELSTR() {
         assertEquals(
             listOf(
@@ -1425,6 +1506,271 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_B() {
+        assertEquals(
+            expected = listOf(
+                "mainVar set by main",
+                "sameVar set by main",
+                "procVar set by proc",
+                "sameVar just initialized",
+                "sameVar set by proc",
+                "D specs inline init!",
+                "468.95",
+                "mainVar changed by proc",
+                "sameVar set by main"
+            ),
+            actual = outputOf("PROCEDURE_B")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_C() {
+        assertEquals(
+            expected = listOf("p received must be 11, is:11",
+                "q received must be 22, is:22",
+                "r received must be 0, is:0",
+                "r=p+q must be 33, is:33",
+                "s=q*2 must be 44, is:44",
+                "c was *zeros, now must be 33, is:33",
+                "d was *zeros, now must be 44, is:44"
+            ),
+            actual = outputOf("PROCEDURE_C")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_D() {
+        assertEquals(
+            expected = "33".split(Regex(",")),
+            actual = outputOf("PROCEDURE_D")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_F() {
+        assertEquals(
+            expected = "99".split(Regex(",")),
+            actual = outputOf("PROCEDURE_F")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_G() {
+        assertEquals(
+            expected = "99,66".split(Regex(",")),
+            actual = outputOf("PROCEDURE_G")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_H() {
+        assertEquals(
+            expected = listOf("11",
+                "22",
+                "33",
+                "0",
+                "33",
+                "22",
+                "121"),
+            actual = outputOf("PROCEDURE_H")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_I() {
+        assertEquals(
+            expected = listOf("1",
+                "4"
+            ),
+            actual = outputOf("PROCEDURE_I")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_J() {
+        assertEquals(
+            expected = listOf("1",
+                "4",
+                "8",
+                "9",
+                "27",
+                "16-",
+                "16-",
+                "16-"
+            ),
+            actual = outputOf("PROCEDURE_J")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_K() {
+        assertEquals(
+            expected = listOf("69.12",
+                ".59",
+                "12345          54321",
+                "73.00",
+                "1",
+                "69.12",
+                ".59",
+                "12345          54321",
+                "73.00",
+                "1"
+            ),
+            actual = outputOf("PROCEDURE_K")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_L() {
+        assertEquals(
+            expected = listOf(".99",
+                "1.11",
+                "9.99"
+            ),
+            actual = outputOf("PROCEDURE_L")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_M() {
+        assertEquals(
+            expected = listOf("2.24",
+                "3.36"
+            ),
+            actual = outputOf("PROCEDURE_M")
+        )
+    }
+
+    @Test
+    @Ignore
+    // TODO ignored until 'DS as parameter' will be supported (maybe never?)
+    fun executePROCEDURE_N() {
+        assertEquals(
+            expected = listOf("10.2",
+                "ABCDE"
+            ),
+            actual = outputOf("PROCEDURE_N")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_O() {
+        assertEquals(
+            expected = listOf(
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.22",
+                "2.24",
+                "2.26",
+                "2.28",
+                "2.30",
+                "6.14",
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "11.30",
+                "2.22",
+                "2.24",
+                "2.26",
+                "2.28",
+                "2.30"
+            ),
+            actual = outputOf("PROCEDURE_O")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_P() {
+        assertEquals(
+            expected = listOf("2.04",
+                "1.02",
+                "1.03"
+            ),
+            actual = outputOf("PROCEDURE_P")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_Q() {
+        assertFailsWith(RuntimeException::class) {
+            execute("PROCEDURE_Q", emptyMap())
+        }
+    }
+
+    @Test
+    fun executePARMS() {
+        val rpgProgramName = "PARMS"
+        val cu = assertASTCanBeProduced(rpgProgramName, true)
+        cu.resolveAndValidate()
+        val logHandler = ListLogHandler()
+
+        // PASS NO PARAMETERS
+        var si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, emptyMap(),
+            si, listOf(logHandler))
+        assertEquals(listOf("0"), si.displayed)
+
+        // PASS ONE PARAMETER
+        si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, mapOf("P1" to StringValue("5")),
+            si, listOf(logHandler))
+        assertEquals(listOf("1"), si.displayed)
+
+        // PASS TWO PARAMETERS
+        si = CollectorSystemInterface()
+        si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
+        execute(cu, mapOf("P1" to StringValue("5"),
+            "P2" to StringValue("10")),
+            si, listOf(logHandler))
+        assertEquals(listOf("2"), si.displayed)
+    }
+
+    @Test
+    fun executePROCEDURE_R() {
+        assertEquals(
+            expected = listOf("1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.21",
+                "4.44",
+                "6.69",
+                "2.28",
+                "2.30",
+                "1.01",
+                "1.01",
+                "2.04",
+                "3.09",
+                "1.04",
+                "1.05",
+                "2.21",
+                "2.21",
+                "4.44",
+                "6.69",
+                "2.28",
+                "2.30"
+            ),
+            actual = outputOf("PROCEDURE_R")
+        )
+    }
+
+    @Test
+    fun executePROCEDURE_S() {
+        assertEquals(
+            expected = listOf("10"),
+            actual = outputOf("PROCEDURE_S")
+        )
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
@@ -1436,6 +1782,73 @@ Test 6
         assertEquals(
             expected = "AAAA,BBBB".split(","),
             actual = outputOf("DSOVERL")
+        )
+    }
+
+    @Test
+    fun executeDOPED_PROC() {
+        assertEquals(
+            expected = listOf("46",
+                "12",
+                "-22",
+                "56",
+                "56",
+                "7",
+                "5",
+                "30"
+            ),
+            actual = outputOf("DOPED_PROC")
+        )
+    }
+
+    @Test
+    fun executeDOPED_PROC2() {
+        assertFailsWith(RuntimeException::class) {
+            executePgm("DOPED_PROC2")
+        }
+    }
+
+    @Test
+    fun executeDOPED_PROC3() {
+        assertEquals(
+            expected = listOf("12",
+                "46",
+                "56",
+                "99"
+            ),
+            actual = outputOf("DOPED_PROC3")
+        )
+    }
+
+    @Test
+    fun executePERF_PROC_1() {
+        val si = CollectorSystemInterface().apply { printOutput = true }
+        assertStartsWith(outputOf("PERF_PROC_1", si = si), "RPG_SUM : Cycled=100001")
+    }
+
+    @Test
+    fun executePERF_PROC_2() {
+        val si = CollectorSystemInterface().apply { printOutput = true }
+        assertStartsWith(outputOf("PERF_PROC_2", si = si), "JDP_SUM : Cycled=100001")
+    }
+
+    @Test
+    fun executeJAJAX1C() {
+        assertEquals(
+            expected = listOf("Ahi quanto a dir qual era è cosa dura,esta selva selvaggia",
+                "Lupa"
+            ),
+            actual = outputOf("JAJAX1C")
+        )
+    }
+
+    @Test
+    fun executeJAJAX1C_2() {
+        assertEquals(
+            expected = listOf("ERB",
+                "Erbusco"
+            ),
+            actual = outputOf("JAJAX1C_2")
         )
     }
 }

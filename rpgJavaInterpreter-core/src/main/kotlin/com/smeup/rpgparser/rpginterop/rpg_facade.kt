@@ -1,9 +1,26 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.rpginterop
 
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
+import com.smeup.rpgparser.parsing.facade.dumpSource
 import java.util.*
 import kotlin.collections.LinkedHashMap
 import kotlin.reflect.KClass
@@ -59,7 +76,15 @@ abstract class RpgFacade<P> (
             programInterpreter.execute(rpgProgram!!, initialValues)
             configuration.options?.apply {
                 if (muteSupport) {
-                    systemInterface.assertMutesSucceed(programName)
+                    kotlin.runCatching {
+                        systemInterface.assertMutesSucceed(programName = programName)
+                    }.onFailure { error ->
+                        rpgProgram!!.cu.source?.apply {
+                            System.err.println(error.message)
+                            System.err.println(this.dumpSource())
+                        }
+                        throw error
+                    }
                 }
             }
             toResults(params, initialValues)
@@ -67,7 +92,7 @@ abstract class RpgFacade<P> (
     }
 
     protected open fun toResults(params: P, resultValues: LinkedHashMap<String, Value>): P {
-        val any: Any = params!!
+        params!!
 //        val kclass = any::class
 //        val initialValues = HashMap<String, Value>()
         // TODO This is a fake implementation
@@ -136,7 +161,6 @@ abstract class RpgFacade<P> (
             else -> {
                 val classifier = property.returnType.classifier
                 println((classifier as KClass<*>).qualifiedName == "kotlin.Array")
-                val array = Array<Any>::class
                 TODO("Property $property")
             }
         }

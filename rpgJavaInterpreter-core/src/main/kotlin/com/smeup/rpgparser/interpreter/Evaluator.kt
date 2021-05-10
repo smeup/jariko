@@ -59,4 +59,5 @@ interface Evaluator {
     fun eval(expression: SqrtExpr): Value
     fun eval(expression: AssignmentExpr): Value
     fun eval(expression: GlobalIndicatorExpr): Value
+    fun eval(expression: ParmsExpr): Value
 }

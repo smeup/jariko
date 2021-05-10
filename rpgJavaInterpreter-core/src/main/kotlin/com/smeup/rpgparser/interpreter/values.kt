@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
@@ -154,7 +170,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value 
 
     fun length(varying: Boolean = this.varying): Int {
         if (varying) {
-            if (value.isBlank())
+            if (value.isEmpty())
                 return 0
         }
         return value.length
@@ -795,7 +811,13 @@ fun Type.blank(): Value {
             this.element.blank()
         }
         is DataStructureType -> DataStructValue.blank(this.size)
-        is StringType -> StringValue.blank(this.size)
+        is StringType -> {
+            if (!this.varying) {
+                StringValue.blank(this.size)
+            } else {
+                StringValue.blank(0)
+            }
+        }
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
@@ -951,7 +973,7 @@ fun Boolean.asValue() = BooleanValue(this)
 fun areEquals(value1: Value, value2: Value): Boolean {
     return when {
         value1 is DecimalValue && value2 is IntValue ||
-            value1 is IntValue && value2 is DecimalValue -> {
+                value1 is IntValue && value2 is DecimalValue -> {
             value1.asInt() == value2.asInt()
         }
 
@@ -994,5 +1016,21 @@ fun areEquals(value1: Value, value2: Value): Boolean {
             value1.asArray().getElement(1) == value2
         }
         else -> value1 == value2
+    }
+}
+
+@Serializable
+object VoidValue : Value {
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun copy(): Value {
+        TODO("Not yet implemented")
     }
 }

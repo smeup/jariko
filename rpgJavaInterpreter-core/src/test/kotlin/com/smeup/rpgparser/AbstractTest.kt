@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser
 
 import com.andreapivetta.kolor.yellow
@@ -27,6 +43,15 @@ abstract class AbstractTest {
         SingletonRpgSystem.reset()
     }
 
+    /**
+     * Create ast for exampleName. Let's assume that: testResourceDir is rpgJavaInterpreter-core/src/test/resources
+     * @param exampleName Relative path respect testResourceDir where is located source file-
+     * For example if we you have to assert AST of testResourceDir/MYPGM.rpgle, you are going to specify MYPGM,
+     * elsewhere if you need to test testResourceDir/QILEGEN/MYPGM.rpgle you are going to specify QILEGEN/MYPGM
+     * @param considerPosition If true parsing or ast creation error include also line number, default false
+     * @param withMuteSupport If true are parsed also MUTE annotations, default false
+     * @param printTree If true is dumped on console parse tree in xml format, default false
+     * */
     open fun assertASTCanBeProduced(
         exampleName: String,
         considerPosition: Boolean = false,
@@ -129,7 +154,11 @@ abstract class AbstractTest {
         require(resource != null) {
             "Cannot find resource $resourceName"
         }
-        val programFinders = listOf(DirRpgProgramFinder(directory = File(resource.path).parentFile))
+        val programFinders = listOf(
+            DirRpgProgramFinder(directory = File(resource.path).parentFile),
+            DirRpgProgramFinder(directory = File("src/test/resources/"))
+        )
+
         val jariko = getProgram(
             nameOrSource = programName.substringAfterLast("/", programName),
             systemInterface = systemInterface,
