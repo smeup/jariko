@@ -27,6 +27,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.resizeTo
+import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
 import java.math.MathContext
@@ -49,9 +50,9 @@ private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memo
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
-    val lrIndicator: () -> Boolean,
     var returnValue: Value? = null,
-    var params: Int = 0
+    var params: Int = 0,
+    var inzsrExecuted: Boolean = false
 ) {
     var lastFound = false
     var lastDBFile: DBFile? = null
@@ -74,9 +75,7 @@ class InternalInterpreter(
 
     fun logsEnabled() = logHandlers.isNotEmpty()
 
-    private var lrIndicator = false
-
-    override val status = InterpreterStatus(globalSymbolTable, indicators, { lrIndicator })
+    override val status = InterpreterStatus(globalSymbolTable, indicators)
 
     private val dbFileMap = DBFileMap()
 
@@ -112,7 +111,7 @@ class InternalInterpreter(
                 if (data.declaredArrayInLine != null) {
                     val dataStructValue = get(ds.name) as DataStructValue
                     var startOffset = data.startOffset
-                    var size = data.endOffset - data.startOffset
+                    val size = data.endOffset - data.startOffset
 
                     // for (i in 1..data.declaredArrayInLine!!) {
                     // If the size of the arrays are different
@@ -122,7 +121,7 @@ class InternalInterpreter(
                         val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
                         dataStructValue.setSubstring(startOffset, startOffset + size,
                                 data.type.asArray().element.toDataStructureValue(valueToAssign))
-                        startOffset += data.stepSize.toInt()
+                        startOffset += data.stepSize
                     }
                 } else {
                     when (val containerValue = get(ds.name)) {
@@ -254,7 +253,7 @@ class InternalInterpreter(
         // probably it is an error during the ast processing.
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
-        var lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
+        val lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
         val l: MutableList<Value> =
             compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
                 .map {
@@ -284,7 +283,7 @@ class InternalInterpreter(
 
             status.params = initialValues.size
             initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
-
+            execINZSR(compilationUnit)
             if (compilationUnit.minTimeOut == null) {
                 execute(compilationUnit.main.stmts)
             } else {
@@ -452,7 +451,7 @@ class InternalInterpreter(
     private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
         this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
             val indicator = status.indicator(indicatorKey).value
-            var condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
+            val condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
             val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
             solvedIndicatorCondition
         }
@@ -460,7 +459,7 @@ class InternalInterpreter(
     private fun getMapOfORs(indicatorValues: List<SolvedIndicatorCondition>): ArrayList<ArrayList<Boolean>> {
         val mapOfORs = ArrayList<ArrayList<Boolean>>()
         val reversed = indicatorValues.reversed()
-        var previousOperator: String = ""
+        var previousOperator = ""
         var loops = 0
         var idxOfMapOfANDs = 0
         reversed.forEach { solvedIndicator ->
@@ -545,13 +544,13 @@ class InternalInterpreter(
         }
     }
 
-    override fun dbFile(nameOrFormat: String, statement: Statement): EnrichedDBFile {
+    override fun dbFile(name: String, statement: Statement): EnrichedDBFile {
 
         // Nem could be file name or format name
-        val dbFile = dbFileMap[nameOrFormat]
+        val dbFile = dbFileMap[name]
 
         require(dbFile != null) {
-            "Line: ${statement.position.line()} - File definition $nameOrFormat not found"
+            "Line: ${statement.position.line()} - File definition $name not found"
         }
         status.lastDBFile = dbFile
         return dbFile
@@ -823,7 +822,7 @@ class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return MainExecutionContext.getConfiguration()?.jarikoCallback?.getActivationGroup?.invoke(
+                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup?.invoke(
                     interpretationContext.currentProgramName, associatedActivationGroup)?.assignedName ?: activationGroup
             }
         }
@@ -869,7 +868,7 @@ class InternalInterpreter(
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
-        return MainExecutionContext.getConfiguration()?.jarikoCallback?.exitInRT?.invoke(
+        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT?.invoke(
             interpretationContext.currentProgramName) ?: exitRT
     }
 
@@ -883,8 +882,22 @@ class InternalInterpreter(
         }
         if (!exitingRT) {
             globalSymbolTable.clear()
+            // if I exit in LR have to mark inzsrExecuted to false
+            status.inzsrExecuted = false
         }
         indicators.clearStatelessIndicators()
+    }
+
+    private fun execINZSR(compilationUnit: CompilationUnit) {
+        if (!status.inzsrExecuted) {
+            val name = "*INZSR"
+            status.inzsrExecuted = true
+            compilationUnit.subroutines.firstOrNull { subroutine ->
+                subroutine.name.equals(other = name, ignoreCase = true)
+            }?.let { subroutine ->
+                ExecuteSubroutine(subroutine = ReferenceByName(name, subroutine), position = subroutine.position).execute(this)
+            }
+        }
     }
 }
 

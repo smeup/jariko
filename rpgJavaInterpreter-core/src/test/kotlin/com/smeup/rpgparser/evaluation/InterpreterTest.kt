@@ -1141,7 +1141,7 @@ Test 6
             "SINTAX" to BooleanValue(false),
             "CHKDIG" to BooleanValue(false)
             )
-        assertEquals(outputOf("JCODFISD", parms), emptyList<String>())
+        assertEquals(outputOf("JCODFISD", parms), emptyList())
     }
 
     @Test
@@ -1478,10 +1478,12 @@ Test 6
                                     }
                                 }
                             }
+                            /* no-op */
+                            else -> { }
                         }
                     }
                 },
-                onEnterPgm = { programName: String, symbolTable: ISymbolTable ->
+                onEnterPgm = { _: String, symbolTable: ISymbolTable ->
                     symbolTable[dsDataDefinition!!] = dsValue
                 }
             )
@@ -1849,6 +1851,14 @@ Test 6
                 "Erbusco"
             ),
             actual = outputOf("JAJAX1C_2")
+        )
+    }
+
+    @Test
+    fun executeINZSR() {
+        assertEquals(
+            expected = listOf("HELLO IN RT", "HELLO IN LR", "HELLO IN LR"),
+            actual = outputOf("INZSR")
         )
     }
 }
