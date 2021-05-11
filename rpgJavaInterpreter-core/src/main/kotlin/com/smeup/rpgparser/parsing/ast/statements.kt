@@ -693,7 +693,6 @@ data class CallPStmt(
                 throw e
             }
             interpreter.indicators[errorIndicator] = BooleanValue.TRUE
-            null
         }
     }
 }
