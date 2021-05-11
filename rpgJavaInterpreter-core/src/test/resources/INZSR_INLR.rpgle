@@ -3,6 +3,7 @@
       * HELLO IN LR has to be printed every times this program is called
       *---------------------------------------------------------------
      D  MSG            S             50
+     C                   SETON                                          LR
       *--------------------------------------------------------------*
     RD* Initialization routine
       *--------------------------------------------------------------*
@@ -10,4 +11,3 @@
      C                   EVAL      MSG='HELLO IN LR'
      C                   DSPLY                   MSG
      C                   ENDSR
-     C                   SETON                                          LR
