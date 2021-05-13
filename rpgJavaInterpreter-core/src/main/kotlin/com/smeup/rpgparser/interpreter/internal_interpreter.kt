@@ -60,28 +60,57 @@ class InterpreterStatus(
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable.get(abstractDataDefinition)
 }
 
-class InternalInterpreter(
-    override val systemInterface: SystemInterface,
-    override val localizationContext: LocalizationContext = LocalizationContext()
+open class InternalInterpreter(
+    private val systemInterface: SystemInterface,
+    private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
-    override val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
-    override val indicators = HashMap<IndicatorKey, BooleanValue>()
 
-    override var interpretationContext: InterpretationContext = DummyInterpretationContext
+    override fun getSystemInterface(): SystemInterface {
+        return systemInterface
+    }
 
-    override val klists = HashMap<String, List<String>>()
+    override fun getLocalizationContext(): LocalizationContext {
+        return localizationContext
+    }
+
+    private val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
+    override fun getGlobalSymbolTable(): ISymbolTable {
+        return globalSymbolTable
+    }
+
+    private val indicators = HashMap<IndicatorKey, BooleanValue>()
+    override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {
+        return indicators
+    }
+
+    private var interpretationContext: InterpretationContext = DummyInterpretationContext
+    override fun getInterpretationContext(): InterpretationContext {
+        return interpretationContext
+    }
+
+    fun setInterpretationContext(interpretationContext: InterpretationContext) {
+        this.interpretationContext = interpretationContext
+    }
+
+    private val klists = HashMap<String, List<String>>()
+    override fun getKlists(): HashMap<String, List<String>> {
+        return klists
+    }
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     fun logsEnabled() = logHandlers.isNotEmpty()
 
-    override val status = InterpreterStatus(globalSymbolTable, indicators)
+    private val status = InterpreterStatus(globalSymbolTable, indicators)
+    override fun getStatus(): InterpreterStatus {
+        return status
+    }
 
     private val dbFileMap = DBFileMap()
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
-    override inline fun log(logEntry: () -> LogEntry) {
+    override fun log(logEntry: () -> LogEntry) {
         if (logsEnabled()) doLog(logEntry())
     }
 
@@ -828,7 +857,7 @@ class InternalInterpreter(
         }
     }
 
-    private fun getMemorySliceId(): MemorySliceId? {
+    open fun getMemorySliceId(): MemorySliceId? {
         return getActivationGroupAssignedName()?.let {
             MemorySliceId(activationGroup = it, interpretationContext.currentProgramName)
         }
@@ -837,9 +866,15 @@ class InternalInterpreter(
     // Memory slice context attribute name must to be also string representation of MemorySliceId
     private fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
 
+    /**
+     * @return an instance of MemorySliceMgr, return null to disable serialization/deserialization
+     * of symboltable
+     * */
+    open fun getMemorySliceMgr(): MemorySliceMgr? = MainExecutionContext.getMemorySliceMgr()
+
     private fun afterInitialization(initialValues: Map<String, Value>) {
         getMemorySliceId()?.let { memorySliceId ->
-            MainExecutionContext.getMemorySliceMgr()?.let {
+            getMemorySliceMgr()?.let {
                 MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = it.associate(
                     memorySliceId = memorySliceId,
                     symbolTable = globalSymbolTable,
@@ -852,6 +887,10 @@ class InternalInterpreter(
                 )
             }
         }
+        fireOnEnterPgmCallBackFunction()
+    }
+
+    open fun fireOnEnterPgmCallBackFunction() {
         MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm.invoke(
             interpretationContext.currentProgramName,
             globalSymbolTable

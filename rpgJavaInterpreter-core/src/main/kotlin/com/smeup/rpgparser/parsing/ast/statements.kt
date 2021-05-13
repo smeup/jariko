@@ -101,7 +101,7 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
     override fun execute(interpreter: InterpreterCore) {
         interpreter.log {
             SubroutineExecutionLogStart(
-                    interpreter.interpretationContext.currentProgramName,
+                    interpreter.getInterpretationContext().currentProgramName,
                     subroutine.referred!!
             )
         }
@@ -116,7 +116,7 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
         }
         interpreter.log {
             SubroutineExecutionLogEnd(
-                    interpreter.interpretationContext.currentProgramName,
+                    interpreter.getInterpretationContext().currentProgramName,
                     subroutine.referred!!,
                     elapsed
             )
@@ -153,7 +153,7 @@ data class SelectStmt(
         for (case in this.cases) {
             val result = interpreter.eval(case.condition)
 
-            interpreter.log { SelectCaseExecutionLogEntry(interpreter.interpretationContext.currentProgramName, case, result) }
+            interpreter.log { SelectCaseExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
             if (result.asBoolean().value) {
                 interpreter.execute(case.body)
                 return
@@ -162,7 +162,7 @@ data class SelectStmt(
         if (this.other != null) {
             interpreter.log {
                 SelectOtherExecutionLogEntry(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         this.other!!
                 )
             }
@@ -211,7 +211,7 @@ data class EvalStmt(
             } else {
                 interpreter.assign(target, expression, operator)
             }
-        interpreter.log { EvaluationLogEntry(interpreter.interpretationContext.currentProgramName, this, result) }
+        interpreter.log { EvaluationLogEntry(interpreter.getInterpretationContext().currentProgramName, this, result) }
     }
 }
 
@@ -245,7 +245,7 @@ data class MoveStmt(
     Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
         val value = move(target, expression, interpreter)
-        interpreter.log { MoveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value) }
+        interpreter.log { MoveStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value) }
     }
 }
 
@@ -260,7 +260,7 @@ data class MoveAStmt(
     override fun execute(interpreter: InterpreterCore) {
         val value = movea(operationExtender, target, expression, interpreter)
         interpreter.log {
-            MoveAStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value)
+            MoveAStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value)
         }
     }
 }
@@ -281,7 +281,7 @@ data class MoveLStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val value = movel(operationExtender, target, expression, interpreter)
-        interpreter.log { MoveLStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this, value) }
+        interpreter.log { MoveLStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value) }
     }
 }
 
@@ -301,7 +301,7 @@ abstract class AbstractReadEqualStmt(
         }
         interpreter.log {
             ReadEqualLogStart(
-                programName = interpreter.interpretationContext.currentProgramName,
+                programName = interpreter.getInterpretationContext().currentProgramName,
                 statement = this,
                 logPref = logPref,
                 kList = kList
@@ -317,7 +317,7 @@ abstract class AbstractReadEqualStmt(
         }
         interpreter.log {
             ReadEqualLogEnd(
-                programName = interpreter.interpretationContext.currentProgramName,
+                programName = interpreter.getInterpretationContext().currentProgramName,
                 statement = this,
                 logPref = logPref,
                 result = result,
@@ -338,7 +338,7 @@ abstract class AbstractReadStmt(
     override fun execute(interpreter: InterpreterCore) {
         interpreter.log {
             ReadLogStart(
-                programName = interpreter.interpretationContext.currentProgramName,
+                programName = interpreter.getInterpretationContext().currentProgramName,
                 statement = this,
                 logPref = logPref
             )
@@ -351,7 +351,7 @@ abstract class AbstractReadStmt(
         }
         interpreter.log {
             ReadLogEnd(
-                programName = interpreter.interpretationContext.currentProgramName,
+                programName = interpreter.getInterpretationContext().currentProgramName,
                 this,
                 logPref = logPref,
                 result = result,
@@ -377,7 +377,7 @@ abstract class AbstractStoreStmt(
         val elapsed = measureTimeMillis {
             interpreter.log {
                 StoreLogStart(
-                    programName = interpreter.interpretationContext.currentProgramName,
+                    programName = interpreter.getInterpretationContext().currentProgramName,
                     statement = this,
                     logPref = "$logPref CREATE RECORD"
                 )
@@ -391,7 +391,7 @@ abstract class AbstractStoreStmt(
             }
             interpreter.log {
                 StoreLogStart(
-                    programName = interpreter.interpretationContext.currentProgramName,
+                    programName = interpreter.getInterpretationContext().currentProgramName,
                     statement = this,
                     logPref = "$logPref STORE"
                 )
@@ -400,7 +400,7 @@ abstract class AbstractStoreStmt(
         }
         interpreter.log {
             StoreLogEnd(
-                programName = interpreter.interpretationContext.currentProgramName,
+                programName = interpreter.getInterpretationContext().currentProgramName,
                 statement = this,
                 logPref = logPref,
                 result = result,
@@ -425,18 +425,18 @@ abstract class AbstractSetStmt(
         val kList: List<String> = searchArg.createKList(dbFile.jarikoMetadata, interpreter)
         interpreter.log {
             SetLogStart(
-                programName = interpreter.interpretationContext.currentProgramName,
+                programName = interpreter.getInterpretationContext().currentProgramName,
                 statement = this,
                 kList = kList,
                 logPref = logPref
             )
         }
         val elapsed = measureTimeMillis {
-            interpreter.status.lastFound = set(dbFile, kList)
+            interpreter.getStatus().lastFound = set(dbFile, kList)
         }
         interpreter.log {
             SetLogEnd(
-                programName = interpreter.interpretationContext.currentProgramName,
+                programName = interpreter.getInterpretationContext().currentProgramName,
                 statement = this,
                 logPref = logPref,
                 elapsed = elapsed
@@ -553,7 +553,7 @@ data class CheckStmt(
         }
         val charSet = interpreter.eval(comparatorString).asString().value
         val wrongIndex = wrongCharPosition
-        interpreter.status.lastFound = false
+        interpreter.getStatus().lastFound = false
         if (wrongIndex != null) {
             interpreter.assign(wrongIndex, IntValue.ZERO)
         }
@@ -562,7 +562,7 @@ data class CheckStmt(
                 if (wrongIndex != null) {
                     interpreter.assign(wrongIndex, IntValue((i + start).toLong()))
                 }
-                interpreter.status.lastFound = true
+                interpreter.getStatus().lastFound = true
                 return
             }
         }
@@ -583,12 +583,12 @@ data class CallStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { CallExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
+        interpreter.log { CallExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this) }
         val startTime = System.currentTimeMillis()
         val callStatement = this
         val programToCall = interpreter.eval(expression).asString().value
         MainExecutionContext.setExecutionProgramName(programToCall)
-        val program = interpreter.systemInterface.findProgram(programToCall)
+        val program = interpreter.getSystemInterface().findProgram(programToCall)
         require(program != null) {
             "Line: ${this.position.line()} - Program $programToCall cannot be found"
         }
@@ -618,16 +618,16 @@ data class CallStmt(
 
         val paramValuesAtTheEnd =
             try {
-                interpreter.systemInterface.registerProgramExecutionStart(program, params)
+                interpreter.getSystemInterface().registerProgramExecutionStart(program, params)
                 kotlin.run {
                     val callProgramHandler = MainExecutionContext.getConfiguration().options?.callProgramHandler
                     // call program.execute only if callProgramHandler.handleCall do nothing
-                    callProgramHandler?.handleCall?.invoke(programToCall, interpreter.systemInterface, params)
-                        ?: program.execute(interpreter.systemInterface, params)
+                    callProgramHandler?.handleCall?.invoke(programToCall, interpreter.getSystemInterface(), params)
+                        ?: program.execute(interpreter.getSystemInterface(), params)
                 }.apply {
                     interpreter.log {
                         CallEndLogEntry(
-                            interpreter.interpretationContext.currentProgramName,
+                            interpreter.getInterpretationContext().currentProgramName,
                             callStatement,
                             System.currentTimeMillis() - startTime
                         )
@@ -636,7 +636,7 @@ data class CallStmt(
             } catch (e: Exception) { // TODO Catch a more specific exception?
                 interpreter.log {
                     CallEndLogEntry(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         callStatement,
                         System.currentTimeMillis() - startTime
                     )
@@ -644,7 +644,7 @@ data class CallStmt(
                 if (errorIndicator == null) {
                     throw e
                 }
-                interpreter.indicators[errorIndicator] = BooleanValue.TRUE
+                interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
@@ -665,17 +665,17 @@ data class CallPStmt(
     }
 
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { CallPExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this) }
+        interpreter.log { CallPExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this) }
         val startTime = System.currentTimeMillis()
         val callStatement = this
         try {
             kotlin.run {
-                val expressionEvaluation = ExpressionEvaluation(interpreter.systemInterface, LocalizationContext(), interpreter.status)
+                val expressionEvaluation = ExpressionEvaluation(interpreter.getSystemInterface(), LocalizationContext(), interpreter.getStatus())
                 expressionEvaluation.eval(functionCall)
             }.apply {
                 interpreter.log {
                     CallPEndLogEntry(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         callStatement,
                         System.currentTimeMillis() - startTime
                     )
@@ -684,7 +684,7 @@ data class CallPStmt(
         } catch (e: Exception) { // TODO Catch a more specific exception?
             interpreter.log {
                 CallPEndLogEntry(
-                    interpreter.interpretationContext.currentProgramName,
+                    interpreter.getInterpretationContext().currentProgramName,
                     callStatement,
                     System.currentTimeMillis() - startTime
                 )
@@ -692,7 +692,7 @@ data class CallPStmt(
             if (errorIndicator == null) {
                 throw e
             }
-            interpreter.indicators[errorIndicator] = BooleanValue.TRUE
+            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
         }
     }
 }
@@ -710,7 +710,7 @@ private constructor(val name: String, val fields: List<String>, override val pos
 
     override fun execute(interpreter: InterpreterCore) {
         // TODO Add logging as for PlistStmt
-        interpreter.klists[name] = fields
+        interpreter.getKlists()[name] = fields
     }
 }
 
@@ -751,13 +751,13 @@ data class IfStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val condition = interpreter.eval(condition)
-        interpreter.log { IfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, this, condition) }
+        interpreter.log { IfExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this, condition) }
         if (condition.asBoolean().value) {
             interpreter.execute(this.body)
         } else {
             for (elseIfClause in elseIfClauses) {
                 val c = interpreter.eval(elseIfClause.condition)
-                interpreter.log { ElseIfExecutionLogEntry(interpreter.interpretationContext.currentProgramName, elseIfClause, c) }
+                interpreter.log { ElseIfExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, elseIfClause, c) }
                 if (c.asBoolean().value) {
                     interpreter.execute(elseIfClause.body)
                     return
@@ -766,7 +766,7 @@ data class IfStmt(
             if (elseClause != null) {
                 interpreter.log {
                     ElseExecutionLogEntry(
-                            interpreter.interpretationContext.currentProgramName,
+                            interpreter.getInterpretationContext().currentProgramName,
                             elseClause,
                             condition
                     )
@@ -793,7 +793,7 @@ data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpres
     override fun execute(interpreter: InterpreterCore) {
         indicators.forEach {
             when (it) {
-                is IndicatorExpr -> interpreter.indicators[it.index] = BooleanValue(valueSet == ValueSet.ON)
+                is IndicatorExpr -> interpreter.getIndicators()[it.index] = BooleanValue(valueSet == ValueSet.ON)
                 else -> TODO()
             }
         }
@@ -829,11 +829,11 @@ data class PlistStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         params.forEach {
-            if (interpreter.globalSymbolTable.contains(it.param.name)) {
-                val value = interpreter.globalSymbolTable[it.param.name]
+            if (interpreter.getGlobalSymbolTable().contains(it.param.name)) {
+                val value = interpreter.getGlobalSymbolTable()[it.param.name]
                 interpreter.log {
                     ParamListStatemenExecutionLog(
-                            interpreter.interpretationContext.currentProgramName,
+                            interpreter.getInterpretationContext().currentProgramName,
                             this,
                             it.param.name,
                             value
@@ -871,7 +871,7 @@ data class ClearStmt(
                 val value = interpreter.assign(value, BlanksRefExpr())
                 interpreter.log {
                     ClearStatemenExecutionLog(
-                            interpreter.interpretationContext.currentProgramName,
+                            interpreter.getInterpretationContext().currentProgramName,
                             this,
                             value
                     )
@@ -881,7 +881,7 @@ data class ClearStmt(
                 val value = interpreter.assign(value, BlanksRefExpr())
                 interpreter.log {
                     ClearStatemenExecutionLog(
-                            interpreter.interpretationContext.currentProgramName,
+                            interpreter.getInterpretationContext().currentProgramName,
                             this,
                             value
                     )
@@ -891,7 +891,7 @@ data class ClearStmt(
                 val value = interpreter.assign(value, BlanksRefExpr())
                 interpreter.log {
                     ClearStatemenExecutionLog(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         this,
                         value
                     )
@@ -967,7 +967,7 @@ data class CompStmt(
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators {
     override fun execute(interpreter: InterpreterCore) {
-        when (interpreter.compareExpressions(left, right, interpreter.localizationContext.charset)) {
+        when (interpreter.compareExpressions(left, right, interpreter.getLocalizationContext().charset)) {
             GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
             SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
             else -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
@@ -1114,7 +1114,7 @@ data class DisplayStmt(val factor1: Expression?, val response: Expression?, over
         factor1?.let { values.add(interpreter.eval(it)) }
         response?.let { values.add(interpreter.eval(it)) }
         // TODO: receive input from systemInterface and assign value to response
-        interpreter.systemInterface.display(interpreter.rawRender(values))
+        interpreter.getSystemInterface().display(interpreter.rawRender(values))
     }
 }
 
@@ -1139,7 +1139,7 @@ data class DoStmt(
         if (index == null) {
             var myIterValue = interpreter.eval(startLimit).asInt().value
             try {
-                interpreter.log { DoStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+                interpreter.log { DoStatemenExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
                 while (myIterValue <= endLimit()) {
                     try {
                         interpreter.execute(body)
@@ -1152,7 +1152,7 @@ data class DoStmt(
                 interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
                     DoStatemenExecutionLogEnd(
-                            interpreter.interpretationContext.currentProgramName,
+                            interpreter.getInterpretationContext().currentProgramName,
                             this,
                             elapsed,
                             loopCounter
@@ -1163,7 +1163,7 @@ data class DoStmt(
                 interpreter.log {
                     val elapsed = System.currentTimeMillis() - startTime
                     DoStatemenExecutionLogEnd(
-                            interpreter.interpretationContext.currentProgramName,
+                            interpreter.getInterpretationContext().currentProgramName,
                             this,
                             elapsed,
                             loopCounter
@@ -1199,7 +1199,7 @@ data class DowStmt(
         var loopCounter: Long = 0
         val startTime = System.currentTimeMillis()
         try {
-            interpreter.log { DowStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+            interpreter.log { DowStatemenExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
             while (interpreter.eval(endExpression).asBoolean().value) {
                 interpreter.execute(body)
                 loopCounter++
@@ -1207,7 +1207,7 @@ data class DowStmt(
             interpreter.log {
                 val elapsed = System.currentTimeMillis() - startTime
                 DowStatemenExecutionLogEnd(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         this,
                         elapsed,
                         loopCounter
@@ -1217,7 +1217,7 @@ data class DowStmt(
             interpreter.log {
                 val elapsed = System.currentTimeMillis() - startTime
                 DowStatemenExecutionLogEnd(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         this,
                         elapsed,
                         loopCounter
@@ -1237,7 +1237,7 @@ data class DouStmt(
         var loopCounter: Long = 0
         val startTime = System.currentTimeMillis()
         try {
-            interpreter.log { DouStatemenExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+            interpreter.log { DouStatemenExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
             do {
                 interpreter.execute(body)
                 loopCounter++
@@ -1245,7 +1245,7 @@ data class DouStmt(
             interpreter.log {
                 val elapsed = System.currentTimeMillis() - startTime
                 DouStatemenExecutionLogEnd(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         this,
                         elapsed,
                         loopCounter
@@ -1255,7 +1255,7 @@ data class DouStmt(
             interpreter.log {
                 val elapsed = System.currentTimeMillis() - startTime
                 DouStatemenExecutionLogEnd(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         this,
                         elapsed,
                         loopCounter
@@ -1268,7 +1268,7 @@ data class DouStmt(
 @Serializable
 data class LeaveSrStmt(override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { LeaveSrStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+        interpreter.log { LeaveSrStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this) }
         throw LeaveSrException()
     }
 }
@@ -1276,7 +1276,7 @@ data class LeaveSrStmt(override val position: Position? = null) : Statement(posi
 @Serializable
 data class LeaveStmt(override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { LeaveStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+        interpreter.log { LeaveStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this) }
         throw LeaveException()
     }
 }
@@ -1284,7 +1284,7 @@ data class LeaveStmt(override val position: Position? = null) : Statement(positi
 @Serializable
 data class IterStmt(override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        interpreter.log { IterStatemenExecutionLog(interpreter.interpretationContext.currentProgramName, this) }
+        interpreter.log { IterStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this) }
         throw IterException()
     }
 }
@@ -1323,7 +1323,7 @@ data class CabStmt(
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators {
     override fun execute(interpreter: InterpreterCore) {
-        val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.localizationContext.charset)
+        val comparisonResult = comparison.verify(factor1, factor2, interpreter, interpreter.getLocalizationContext().charset)
         when (comparisonResult.comparison) {
             GREATER -> interpreter.setIndicators(this, BooleanValue.TRUE, BooleanValue.FALSE, BooleanValue.FALSE)
             SMALLER -> interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.TRUE, BooleanValue.FALSE)
@@ -1366,7 +1366,7 @@ data class ForStmt(
         interpreter.eval(init)
         val iterVar = iterDataDefinition()
         try {
-            interpreter.log { ForStatementExecutionLogStart(interpreter.interpretationContext.currentProgramName, this) }
+            interpreter.log { ForStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
             var step = interpreter.eval(byValue).asInt().value
             if (downward) {
                 step *= -1
@@ -1384,7 +1384,7 @@ data class ForStmt(
             interpreter.log {
                 val elapsed = System.currentTimeMillis() - startTime
                 ForStatementExecutionLogEnd(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         this,
                         elapsed,
                         loopCounter
@@ -1395,7 +1395,7 @@ data class ForStmt(
             interpreter.log {
                 val elapsed = System.currentTimeMillis() - startTime
                 ForStatementExecutionLogEnd(
-                        interpreter.interpretationContext.currentProgramName,
+                        interpreter.getInterpretationContext().currentProgramName,
                         this,
                         elapsed,
                         loopCounter
@@ -1412,7 +1412,7 @@ data class ForStmt(
 @Serializable
 data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        sortA(interpreter.eval(target), interpreter.localizationContext.charset)
+        sortA(interpreter.eval(target), interpreter.getLocalizationContext().charset)
     }
 }
 
@@ -1456,7 +1456,7 @@ data class CatStmt(val left: Expression?, val right: Expression, val target: Ass
         }
 
         interpreter.assign(target, result)
-        interpreter.log { CatStatementExecutionLog(interpreter.interpretationContext.currentProgramName, this, interpreter.eval(target)) }
+        interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }
     }
 }
 
@@ -1468,7 +1468,7 @@ data class LookupStmt(
     override val position: Position? = null
 ) : Statement(position), WithRightIndicators by rightIndicators {
     override fun execute(interpreter: InterpreterCore) {
-        lookUp(this, interpreter, interpreter.localizationContext.charset)
+        lookUp(this, interpreter, interpreter.getLocalizationContext().charset)
     }
 }
 

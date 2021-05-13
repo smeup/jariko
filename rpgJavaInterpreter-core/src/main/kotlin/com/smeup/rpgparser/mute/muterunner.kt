@@ -46,6 +46,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
+import kotlin.system.exitProcess
 
 data class ExecutionResult(
     val file: File,
@@ -187,7 +188,7 @@ fun executeMuteAnnotations(
         if (parserResult.correct) {
             parserResult.executeMuteAnnotations(
                 verbose = verbose, systemInterface = systemInterface, parameters = parameters,
-                programName = programName, configuration = configuration
+                programName = programName, mainExecutionContext = it
             )
         } else {
             null
@@ -200,7 +201,6 @@ fun RpgParserResult.executeMuteAnnotations(
     systemInterface: SystemInterface,
     parameters: Map<String, Value> = mapOf(),
     programName: String = "<UNKONWN>",
-    configuration: Configuration = Configuration(),
     mainExecutionContext: Context? = null
 ): SortedMap<Int, MuteAnnotationExecuted> {
     val root = this.root!!
@@ -224,7 +224,7 @@ fun RpgParserResult.executeMuteAnnotations(
         })
     }
     val interpreter = InternalInterpreter(systemInterface).apply {
-        interpretationContext = object : InterpretationContext {
+        setInterpretationContext(object : InterpretationContext {
             private var iDataWrapUpChoice: DataWrapUpChoice? = null
             override val currentProgramName: String
                 get() = programName
@@ -236,14 +236,15 @@ fun RpgParserResult.executeMuteAnnotations(
                 set(value) {
                     iDataWrapUpChoice = value
                 }
-        }
+        })
     }
     interpreter.execute(cu, parameters)
+    interpreter.doSomethingAfterExecution()
     mainExecutionContext?.let {
         it.parsingProgramStack.pop()
         it.programStack.pop()
     }
-    return interpreter.systemInterface.executedAnnotationInternal.toSortedMap()
+    return interpreter.getSystemInterface().executedAnnotationInternal.toSortedMap()
 }
 
 object MuteRunner {
@@ -279,13 +280,13 @@ object MuteRunner {
 const val FAILURE_EXIT_CODE = 1
 
 class MuteRunnerCLI : CliktCommand() {
-    val verbosity by option().switch("--verbose" to true, "-v" to true, "--silent" to false, "-s" to false).default(
+    private val verbosity by option().switch("--verbose" to true, "-v" to true, "--silent" to false, "-s" to false).default(
         false
     )
 
-    val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
+    private val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
 
-    val pathsToProcessArgs by argument(name = "Paths to process").file(
+    private val pathsToProcessArgs by argument(name = "Paths to process").file(
             exists = true,
             folderOkay = true,
             fileOkay = true
@@ -312,7 +313,7 @@ class MuteRunnerCLI : CliktCommand() {
         if (invalidPaths.isNotEmpty()) {
             System.err.println("Unexisting paths found:")
             invalidPaths.forEach { System.err.println(it) }
-            System.exit(FAILURE_EXIT_CODE)
+            exitProcess(FAILURE_EXIT_CODE)
         }
 
         MuteRunner.processPaths(pathsToProcess)
@@ -326,7 +327,7 @@ class MuteRunnerCLI : CliktCommand() {
             println("FAILURE".red())
         }
         if (!MuteRunner.successful) {
-            System.exit(FAILURE_EXIT_CODE)
+            exitProcess(FAILURE_EXIT_CODE)
         }
     }
 }

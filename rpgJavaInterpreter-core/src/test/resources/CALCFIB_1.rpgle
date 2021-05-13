@@ -9,4 +9,4 @@
      C                   parm                    ppdat                          I
       *
      C                   Eval      NBR    = %Dec(ppdat : 8 : 0)
-
+     C                   seton                                        rt

@@ -664,6 +664,12 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE1UsingMemoryStorage() {
+        val configuration = Configuration(memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf()))
+        assertEquals(listOf("33"), outputOf("PROCEDURE1", configuration = configuration))
+    }
+
+    @Test
     fun executePROCEDURE2_callAsFunction() {
         assertEquals(listOf("33"), outputOf("PROCEDURE2"))
     }

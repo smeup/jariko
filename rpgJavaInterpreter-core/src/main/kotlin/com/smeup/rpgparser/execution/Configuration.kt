@@ -64,7 +64,7 @@ data class ReloadConfig(
  * @param muteVerbose If true increases mute logging granularity
  * @param toAstConfiguration Creating ast configuration
  * @param callProgramHandler If specified allows to override program call handling logic.
- * @param dumpSourceOnInterpretationError If true, program source is dumped on execution error. Default false.
+ * @param dumpSourceOnExecutionError If true, program source is dumped on execution error. Default false.
  * Setting this property to true causes a little overhead in AST serialization and deserialization due the fact
  * the source is CompilationUnit property
  * */
