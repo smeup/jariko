@@ -441,7 +441,8 @@ fun execute(
     cu: CompilationUnit,
     initialValues: Map<String, Value>,
     systemInterface: SystemInterface? = null,
-    logHandlers: List<InterpreterLogHandler> = emptyList()
+    logHandlers: List<InterpreterLogHandler> = emptyList(),
+    programName: String = "<UNSPECIFIED>"
 ): InternalInterpreter {
     val si = systemInterface ?: DummySystemInterface
     if (si == DummySystemInterface) {
@@ -450,7 +451,21 @@ fun execute(
     si.addExtraLogHandlers(logHandlers)
     val interpreter = InternalInterpreter(si)
     try {
-            interpreter.execute(cu, initialValues)
+        // create just to pass to interpreter programName
+        val interpretationContext = object : InterpretationContext {
+            override val currentProgramName: String
+                get() = programName
+            override var dataWrapUpChoice: DataWrapUpChoice?
+                get() = null
+                set(value) {}
+
+            override fun shouldReinitialize(): Boolean {
+                return true
+            }
+        }
+        interpreter.setInterpretationContext(interpretationContext)
+        interpreter.execute(cu, initialValues)
+        interpreter.doSomethingAfterExecution()
     } catch (e: InterruptForDebuggingPurposes) {
         // nothing to do here
     }
@@ -469,10 +484,11 @@ fun outputOf(
     initialValues: Map<String, Value> = mapOf(),
     printTree: Boolean = false,
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
-    compiledProgramsDir: File?
+    compiledProgramsDir: File?,
+    configuration: Configuration = Configuration()
 ): List<String> {
     execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si,
-        compiledProgramsDir = compiledProgramsDir)
+        compiledProgramsDir = compiledProgramsDir, configuration = configuration)
     return si.displayed.map(String::trimEnd)
 }
 
@@ -484,7 +500,9 @@ fun execute(
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
     logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE),
     printTree: Boolean = false,
-    compiledProgramsDir: File?
+    compiledProgramsDir: File?,
+    // TODO inject configuration even for program without procedures
+    configuration: Configuration = Configuration()
 ): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
     cu.resolveAndValidate()
@@ -492,15 +510,17 @@ fun execute(
     return if (cu.procedures == null) {
         execute(cu, initialValues, si)
     } else {
-        // if we have some procedures we have to push in programstack current program
-        // see RpgFunction.fromCurrentProgram
-        MainExecutionContext.execute(systemInterface = si) { mainExecutionContext ->
+        // if we have some procedures we have to push in programstack current program see RpgFunction.fromCurrentProgram
+        MainExecutionContext.execute(systemInterface = si, configuration = configuration) { mainExecutionContext ->
+            mainExecutionContext.executionProgramName = programName
             mainExecutionContext.programStack.push(RpgProgram(cu, programName).apply {
                 // setup activationGroup is mandatory
                 // view InternalInterpreter.getActivationGroupAssignedName
-                activationGroup = ActivationGroup(NamedActivationGroup("dummy"), "dummy")
+                activationGroup = ActivationGroup(
+                    type = NamedActivationGroup(configuration.defaultActivationGroupName),
+                    assignedName = configuration.defaultActivationGroupName)
             })
-            val interpreter = execute(cu, initialValues, si)
+            val interpreter = execute(cu, initialValues, si, programName = programName)
             mainExecutionContext.programStack.pop()
             interpreter
         }

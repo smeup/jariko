@@ -71,14 +71,16 @@ abstract class AbstractTest {
         programName: String,
         initialValues: Map<String, Value> = mapOf(),
         printTree: Boolean = false,
-        si: CollectorSystemInterface = ExtendedCollectorSystemInterface()
+        si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
+        configuration: Configuration = Configuration()
     ): List<String> {
         return outputOf(
             programName = programName,
             initialValues = initialValues,
             printTree = printTree,
             si = si,
-            compiledProgramsDir = getTestCompileDir()
+            compiledProgramsDir = getTestCompileDir(),
+            configuration = configuration
         )
     }
 

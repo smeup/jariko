@@ -42,7 +42,7 @@ open class MuteExecutionTest : AbstractTest() {
         cu.resolveAndValidate()
         cu.assertNrOfMutesAre(5)
         val interpreter = execute(cu, emptyMap())
-        assertEquals(5, interpreter.systemInterface.getExecutedAnnotation().size)
+        assertEquals(5, interpreter.getSystemInterface().getExecutedAnnotation().size)
     }
 
     @Test
@@ -94,8 +94,8 @@ open class MuteExecutionTest : AbstractTest() {
         cu.resolveAndValidate()
         cu.assertNrOfMutesAre(1)
         val interpreter = execute(cu, emptyMap())
-        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
-        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertEquals(1, interpreter.getSystemInterface().getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.getSystemInterface().getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
         assertTrue(muteAnnotationExecuted.headerDescription().startsWith("This code should not be executed"))
     }
@@ -106,8 +106,8 @@ open class MuteExecutionTest : AbstractTest() {
         cu.resolveAndValidate()
         cu.assertNrOfMutesAre(1)
         val interpreter = execute(cu, emptyMap())
-        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
-        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertEquals(1, interpreter.getSystemInterface().getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.getSystemInterface().getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
         assertTrue(muteAnnotationExecuted.headerDescription().startsWith("Failure message"))
     }
@@ -117,8 +117,8 @@ open class MuteExecutionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_WRONG_USAGE", true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = execute(cu, emptyMap())
-        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
-        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertEquals(1, interpreter.getSystemInterface().getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.getSystemInterface().getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
     }
 
@@ -127,7 +127,7 @@ open class MuteExecutionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_CORRECT_USAGE", true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = execute(cu, emptyMap())
-        assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
+        assertEquals(0, interpreter.getSystemInterface().getExecutedAnnotation().size)
     }
 
     @Test
@@ -135,7 +135,7 @@ open class MuteExecutionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_AND_STATEMENTS_BEFORE_ENDIF", true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = execute(cu, emptyMap())
-        assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
+        assertEquals(0, interpreter.getSystemInterface().getExecutedAnnotation().size)
     }
 
     @Test
@@ -372,8 +372,8 @@ open class MuteExecutionTest : AbstractTest() {
         nrOfMuteAssertions?.let { cu.assertNrOfMutesAre(it) }
 
         val interpreter = execute(cu, parameters)
-        nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.systemInterface.getExecutedAnnotation().size) }
-        interpreter.systemInterface.getExecutedAnnotation().forEach {
+        nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.getSystemInterface().getExecutedAnnotation().size) }
+        interpreter.getSystemInterface().getExecutedAnnotation().forEach {
             assertTrue(it.value.succeeded(), "Mute assertion failed: ${it.value.headerDescription()}")
         }
     }
