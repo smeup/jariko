@@ -343,7 +343,9 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
-open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+open class CollectorSystemInterface(
+    var loggingConfiguration: LoggingConfiguration? = null
+) : SystemInterface {
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
         LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()

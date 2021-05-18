@@ -850,7 +850,14 @@ data class PlistParam(
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Node(position)
+) : Node(position), StatementThatCanDefineData {
+    override fun dataDefinition(): List<InStatementDataDefinition> {
+        if (dataDefinition != null) {
+            return listOf(dataDefinition)
+        }
+        return emptyList()
+    }
+}
 
 @Serializable
 data class ClearStmt(
