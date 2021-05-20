@@ -343,7 +343,10 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
-open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+open class CollectorSystemInterface(
+    var loggingConfiguration: LoggingConfiguration? = null,
+    private val copySource: (copyId: CopyId) -> Copy? = { null }
+) : SystemInterface {
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
         LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
@@ -354,6 +357,7 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
 
     val displayed = LinkedList<String>()
     val programs = HashMap<String, Program>()
+    private val copies = HashMap<CopyId, Copy?>()
     val functions = HashMap<String, Function>()
     var printOutput = false
 
@@ -412,7 +416,9 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
-        TODO("Not yet implemented")
+        return copies.computeIfAbsent(copyId) {
+            copySource.invoke(copyId)
+        }
     }
 
     override fun display(value: String) {
@@ -507,11 +513,8 @@ fun execute(
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
     cu.resolveAndValidate()
     si.addExtraLogHandlers(logHandlers)
-    return if (cu.procedures == null) {
-        execute(cu, initialValues, si)
-    } else {
         // if we have some procedures we have to push in programstack current program see RpgFunction.fromCurrentProgram
-        MainExecutionContext.execute(systemInterface = si, configuration = configuration) { mainExecutionContext ->
+    return MainExecutionContext.execute(systemInterface = si, configuration = configuration) { mainExecutionContext ->
             mainExecutionContext.executionProgramName = programName
             mainExecutionContext.programStack.push(RpgProgram(cu, programName).apply {
                 // setup activationGroup is mandatory
@@ -524,7 +527,6 @@ fun execute(
             mainExecutionContext.programStack.pop()
             interpreter
         }
-    }
 }
 
 fun rpgProgram(name: String): RpgProgram {

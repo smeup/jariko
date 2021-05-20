@@ -1867,4 +1867,24 @@ Test 6
             actual = outputOf("INZSR")
         )
     }
+
+    @Test
+    fun executePGM_A() {
+        val configuration = Configuration(
+            memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        )
+        assertEquals(
+            listOf("Echo P1: INZ",
+                "Echo P2:",
+                "Echo P1: INZ",
+                "Echo P2:"),
+            outputOf("PGM_A", configuration = configuration))
+
+        assertEquals(
+            listOf("Echo P1: INZ",
+                "Echo P2:",
+                "Echo P1: INZ",
+                "Echo P2:"),
+            outputOf("PGM_A", configuration = configuration))
+    }
 }

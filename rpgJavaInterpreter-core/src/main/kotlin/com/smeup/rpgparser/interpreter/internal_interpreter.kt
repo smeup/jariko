@@ -238,7 +238,12 @@ open class InternalInterpreter(
                         when {
                             it.name in initialValues -> initialValues[it.name]
                                 ?: throw RuntimeException("Initial values for ${it.name} not found")
-                            else -> null
+                            else ->
+                            if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
+                                it.type.blank()
+                            } else {
+                                null
+                            }
                         }
                     } else {
                         // TODO check this during the process of revision of DB access
