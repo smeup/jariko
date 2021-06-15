@@ -17,9 +17,7 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.JarikoCallback
-import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
@@ -30,6 +28,7 @@ import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.experimental.categories.Category
+import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.test.assertEquals
@@ -1886,5 +1885,79 @@ Test 6
                 "Echo P1: INZ",
                 "Echo P2:"),
             outputOf("PGM_A", configuration = configuration))
+    }
+
+    // CALL_DIVIDE calls DIVIDE and it expects a regular execution
+    @Test
+    fun executeCALL_DIVIDE_Ok() {
+        val params = CommandLineParms(
+            mapOf(
+                "A" to DecimalValue(BigDecimal.valueOf(10)),
+                "B" to DecimalValue(BigDecimal.valueOf(10)),
+                "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
+                "CATCHERR" to IntValue(0)
+            )
+        )
+        val result = executePgm(programName = "CALL_DIVIDE", params = params)
+        // 10/10 = 1
+        assertEquals(
+            expected = BigDecimal.valueOf(1).toDouble(),
+            actual = result!!.namedParams!!["RESULT"]!!.asDecimal().value.toDouble()
+        )
+    }
+
+    // CALL_DIVIDE calls DIVIDE forcing an error
+    // In this case CALL_DIVIDE program doesn't must handle any error
+    @Test
+    fun executeCALL_DIVIDE_ErrIndicatorNo() {
+        val si = JavaSystemInterface()
+        val paramsKo = CommandLineParms(
+            mapOf(
+                "A" to DecimalValue(BigDecimal.valueOf(10)),
+                // Forcing error
+                "B" to DecimalValue(BigDecimal.valueOf(0)),
+                "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
+                "CATCHERR" to IntValue(0)
+            )
+        )
+        assertFailsWith<java.lang.RuntimeException> {
+            executePgm(
+                programName = "CALL_DIVIDE",
+                params = paramsKo,
+                systemInterface = si
+            )
+        }
+        // DSPLY must be executed just once
+        assertEquals(1, si.consoleOutput.size)
+    }
+
+    // CALL_DIVIDE calls DIVIDE forcing an error
+    // In this case CALL_DIVIDE program should handle the error
+    @Test
+    fun executeCALL_DIVIDE_ErrIndicatorYes() {
+        // I create JavaSystemInterface to access to the console
+        // I create Configuration and set muteSupport to true because
+        // CALL_DIVIDE.rpgle contains a mute annotation
+        val systemInterface = JavaSystemInterface()
+        val configuration = Configuration(options = Options(muteSupport = true))
+        val paramsKo = CommandLineParms(
+            mapOf(
+                "A" to DecimalValue(BigDecimal.valueOf(10)),
+                // Forcing error
+                "B" to DecimalValue(BigDecimal.valueOf(0)),
+                "RESULT" to DecimalValue(BigDecimal.valueOf(0)),
+                // Pass to 1 to handle error (view CALL_DIVIDE.rpgle implementation)
+                "CATCHERR" to IntValue(1)
+            )
+        )
+        executePgm(
+            programName = "CALL_DIVIDE",
+            params = paramsKo,
+            systemInterface = systemInterface,
+            configuration = configuration
+        )
+
+        // DSPLY must be executed twice
+        assertEquals(2, systemInterface.consoleOutput.size)
     }
 }
