@@ -2172,7 +2172,8 @@ bif: bif_abs
       | bif_xfoot
       | bif_xlate
       | bif_xml
-      | bif_years;
+      | bif_years
+      | bif_split;
       
       
 optargs: (OPEN_PAREN (expression (COLON expression)*)? CLOSE_PAREN)?;
@@ -2269,6 +2270,7 @@ bif_xfoot: BIF_XFOOT OPEN_PAREN arrayexpression=expression CLOSE_PAREN;
 bif_xlate: BIF_XLATE OPEN_PAREN from=expression COLON to=expression COLON string=expression (COLON startpos=expression)? CLOSE_PAREN;
 bif_xml: BIF_XML OPEN_PAREN xmldocument=expression (COLON options=expression)? CLOSE_PAREN;
 bif_years: BIF_YEARS OPEN_PAREN numberexpression=expression CLOSE_PAREN;
+bif_split: BIF_SPLIT OPEN_PAREN string=expression (COLON regexp=expression)? CLOSE_PAREN;
 
 bif_code: BIF_ABS
 	  | BIF_ADDR

@@ -543,4 +543,11 @@ class ExpressionEvaluation(
             else -> result
         }
     }
+
+    override fun eval(expression: SplitExpr): Value {
+        val regexp = evalAsString(expression.regexp)
+        val value = evalAsString(expression.value)
+        return StringValue(value.split(Regex(regexp)).joinToString(separator = " "))
+    }
+
 }

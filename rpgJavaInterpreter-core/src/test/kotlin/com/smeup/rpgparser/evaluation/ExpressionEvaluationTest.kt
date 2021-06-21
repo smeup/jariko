@@ -51,6 +51,13 @@ open class ExpressionEvaluationTest {
                         mapOf(dataDefinition to IntValue(11))))
     }
 
+    @Test
+    fun evaluateSplitExpr() {
+        val splitExpr = SplitExpr(value = StringLiteral("My;name;is;Marco"), regexp = StringLiteral(";"))
+        val result = interpret(splitExpr)
+        assertEquals("My name is Marco", result.asString().value)
+    }
+
     private fun interpret(expr: Expression, initializations: Map<AbstractDataDefinition, Value> = mapOf()): Value {
         val systemInterface = DummySystemInterface
         val interpreter = InternalInterpreter(systemInterface)

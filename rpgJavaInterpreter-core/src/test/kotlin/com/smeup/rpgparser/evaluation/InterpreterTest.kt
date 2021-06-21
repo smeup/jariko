@@ -1960,4 +1960,12 @@ Test 6
         // DSPLY must be executed twice
         assertEquals(2, systemInterface.consoleOutput.size)
     }
+
+    @Test
+    fun executeSPLIT() {
+        assertEquals(
+            expected = listOf("My Name Is Marco"),
+            outputOf(programName = "SPLIT")
+        )
+    }
 }

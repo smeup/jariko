@@ -272,6 +272,7 @@ BIF_XFOOT: '%'[xX][fF][oO][oO][tT];
 BIF_XLATE: '%'[xX][lL][aA][tT][eE];
 BIF_XML: '%'[xX][mM][lL];
 BIF_YEARS: '%'[yY][eE][aA][rR][sS];
+BIF_SPLIT: '%'[sS][pP][lL][iI][tT];
 
 // Symbolic Constants
 SPLAT_ALL: '*'[aA][lL][lL];

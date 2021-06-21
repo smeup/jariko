@@ -37,6 +37,7 @@ internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfigur
             this.bif_replace() != null -> this.bif_replace().toAst(conf)
             this.bif_sqrt() != null -> this.bif_sqrt().toAst(conf)
             this.bif_parms() != null -> this.bif_parms().toAst(conf)
+            this.bif_split() != null -> this.bif_split().toAst(conf)
             else -> todo(conf = conf)
         }
     }
@@ -207,5 +208,12 @@ internal fun RpgParser.Bif_lookupContext.toAst(conf: ToAstConfiguration = ToAstC
 internal fun RpgParser.Bif_parmsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ParmsExpr {
     return ParmsExpr(
         this.text,
+        toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.Bif_splitContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SplitExpr {
+    return SplitExpr(
+        this.string.toAst(conf),
+        this.regexp.toAst(conf),
         toPosition(conf.considerPosition))
 }

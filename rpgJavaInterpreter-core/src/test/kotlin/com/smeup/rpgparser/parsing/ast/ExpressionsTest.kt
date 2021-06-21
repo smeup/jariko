@@ -144,4 +144,20 @@ class ExpressionsTest {
     @test fun parseIndicatorsInParenthesis() {
         assertExpressionCanBeParsed("X=*IN(01)")
     }
+
+    @test fun splitExprParsingValueAsDataRef() {
+        assertEquals(SplitExpr(
+            value = dataRef("myString"), regexp = StringLiteral(";")),
+            expression("%split(myString : ';')")
+        )
+    }
+
+    @test fun splitExprParsingValueAsStringLiteral() {
+        assertEquals(SplitExpr(
+            value = StringLiteral("myString"), regexp = StringLiteral(";")),
+            expression("%split('myString' : ';')")
+        )
+    }
+
+
 }

@@ -287,6 +287,19 @@ data class ReplaceExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %SPLIT
+@Serializable
+data class SplitExpr(
+    var value: Expression,
+    val regexp: Expression,
+    override val position: Position? = null
+) : Expression(position) {
+    override fun render(): String {
+        return "%SPLIT(${this.value.render()} ${regexp.render()})"
+    }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 @Serializable
 sealed class DurationCode
 @Serializable
