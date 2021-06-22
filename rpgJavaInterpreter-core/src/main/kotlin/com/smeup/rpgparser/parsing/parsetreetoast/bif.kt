@@ -213,7 +213,7 @@ internal fun RpgParser.Bif_parmsContext.toAst(conf: ToAstConfiguration = ToAstCo
 
 internal fun RpgParser.Bif_splitContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SplitExpr {
     return SplitExpr(
-        this.string.toAst(conf),
+        this.value.toAst(conf),
         this.regexp.toAst(conf),
         toPosition(conf.considerPosition))
 }
