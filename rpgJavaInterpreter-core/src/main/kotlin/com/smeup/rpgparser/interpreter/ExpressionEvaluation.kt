@@ -549,5 +549,4 @@ class ExpressionEvaluation(
         val value = evalAsString(expression.value)
         return StringValue(value.split(Regex(regexp)).joinToString(separator = " "))
     }
-
 }
