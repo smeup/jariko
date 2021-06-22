@@ -1964,7 +1964,7 @@ Test 6
     @Test
     fun executeSPLIT() {
         assertEquals(
-            expected = listOf("My Name Is Marco"),
+            expected = listOf("Hello World"),
             outputOf(programName = "SPLIT")
         )
     }
