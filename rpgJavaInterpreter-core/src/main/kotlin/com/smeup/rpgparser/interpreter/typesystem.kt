@@ -183,7 +183,7 @@ data class NumberType(val entireDigits: Int, val decimalDigits: Int, val rpgType
     val decimal: Boolean
         get() = !integer
     val numberOfDigits: Int
-        get() = entireDigits + decimalDigits
+        get() = entireDigits
 
     override fun canBeAssigned(type: Type): Boolean {
         if (type is NumberType) {
