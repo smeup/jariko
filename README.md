@@ -93,6 +93,16 @@ In this example CALC_VAT, standing for "calculate vat" does not exist in RPG, bu
 
 All information for developers is to be found in the [Development guide](docs/development.md).
 
+### Features
+
+The following list shows all the features implemented:  
+- [Operation Code](docs/operation_code.md)  
+- [Built in Function](docs/built_in_function.md)  
+- [Procedure](docs/procedure.md)   
+- [/COPY](docs/copy.md)  
+- [/API](docs/api.md)   
+- [AST Serialization](docs/ast_serialization.md)
+
 ## Logging
 
 The project supports configurable logging, described in a [separate document](docs/logging.md).

@@ -1,0 +1,66 @@
+# Built in function
+
+In this document, we are going to show which **Built in function** are implemented or not in Jariko.
+
+| Built in function| Support |
+| ------ | ------ |
+| TRIM | Full |
+| SUBST | Full |
+| EDITC | Full |
+| TRIMR | Full |
+| SCAN | Full |
+| ELEM | Partial |
+| LEN | Full |
+| FOUND | Partial |
+| EOF | Partial |
+| EDITW | Full |
+| LOOKUP | Full |
+| INT | Full |
+| OPEN | None |
+| ABS | Full |
+| CHAR | Full |
+| SUBARR | None |
+| DEC | Full |
+| XLATE | Full |
+| SIZE | None |
+| REPLACE | Full |
+| ADDR | None |
+| ERROR | None |
+| EQUAL | Partial |
+| REALLOC | None |
+| ALLOC | None |
+| REM | Full |
+| TRIML | Full |
+| CHECK | None |
+| STR | None |
+| DATE | None |
+| XFOOT | None |
+| BITAND | None |
+| DECH | None |
+| INTH | None |
+| PARMS | None |
+| TIMESTAMP | Partial |
+| CHECKR | None |
+| DIFF | Partial |
+| LOOKUPGE | None |
+| LOOKUPGT | None |
+| DIV | None |
+| MSECONDS | None |
+| SUBDT | None |
+| UCS2 | None |
+| LOOKUPLT | None |
+| SQRT | Full |
+| LOOKUPLE | None |
+| PADDR | None |
+| SECONDS | None |
+| STATUS | None |
+| BITOR | None |
+| BITXOR | None |
+| TIME | None |
+| BITNOT | None |
+| DAYS | None |
+| EDITFLT | None |
+| UNS | None |
+| HANDLER | None |
+| OCCUR | None |
+| XML | None |
