@@ -9,7 +9,7 @@
      D*  Programma finalizzato ai test sulle /API: Programma
      D*  che chiama la COPY MUTE18_02A
      V* ==============================================================
-      /API MUTE,MUTE18_02A
+      /API mute,MUTE18_02A
       * Calcolo Area triangolo
      C                   EVAL      b = 10
      C                   EVAL      h = 3

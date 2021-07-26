@@ -10,7 +10,7 @@
      D*  che chiama la COPY MUTE18_04A
      V* ==============================================================
       *
-      /API MUTE,MUTE18_04A
+      /API mute,MUTE18_04A
       * Variabile
      C                   EVAL      A=25
      C                   EVAL      B=18

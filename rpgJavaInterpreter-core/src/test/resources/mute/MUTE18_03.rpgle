@@ -12,7 +12,7 @@
       * Schiera per test
      D TXT             S            100    DIM(2) CTDATA PERRCD(1)
       *
-      /API MUTE,MUTE18_03A
+      /API mute,MUTE18_03A
       * Variabile
      C                   EVAL      TEMP=36
       * Eseguo subroutine in API

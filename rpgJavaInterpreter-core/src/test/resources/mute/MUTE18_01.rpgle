@@ -11,7 +11,7 @@
       * Schiera per test
      D TXT             S            100    DIM(2) CTDATA PERRCD(1)
       *
-      /API MUTE,MUTE18_01A
+      /API mute,MUTE18_01A
       * Definizione Stringhe
      C                   EVAL      S1 = 'Prova di '
      C                   EVAL      S2 = 'concatenam'
