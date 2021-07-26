@@ -1,4 +1,4 @@
-# Operation Code
+# Operation Codes
 
 In this document, we are going to show which **Operation Codes** are implemented or not in Jariko.
 

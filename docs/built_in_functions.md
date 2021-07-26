@@ -1,4 +1,4 @@
-# Built in function
+# Built in functions
 
 In this document, we are going to show which **Built in functions** are implemented or not in Jariko.
 
