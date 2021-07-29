@@ -4,6 +4,8 @@
      V* ==============================================================
      V* 23/07/21  003076  BUSFIO Creazione mute
      V* 26/07/21  003076  BUSFIO Rinominato mute
+     V* 26/07/21  V5R1    BMA    Check-out 003076 in SMEDEV
+     V* 29/07/21  003090  BUSFIO Modificato mute
      V* ==============================================================
      D*  OBIETTIVO
      D*  Programma finalizzato ai test sulle /API: Programma
@@ -12,9 +14,9 @@
       *
       /API mute,MUTE18_04A
       * Variabile
-     C                   EVAL      A=25
-     C                   EVAL      B=18
-     C                   EVAL      C=43
+     C                   EVAL      VALUES(1)=25
+     C                   EVAL      VALUES(2)=18
+     C                   EVAL      VALUES(3)=43
       * Eseguo subroutine in API
     MU* VAL1(RESULT) VAL2(18) COMP(EQ)
      C                   EXSR      CHKMIN
