@@ -1,4 +1,4 @@
-#/ API
+# /API
 
 In this document, we are going to explain the implementation of **/API feature**.
 

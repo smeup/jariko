@@ -1,4 +1,4 @@
-#/COPY
+# /COPY
 
 In this document, we are going to explain the implementation of **/COPY directive**.
 
