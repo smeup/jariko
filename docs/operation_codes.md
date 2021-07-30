@@ -1,8 +1,8 @@
 # Operation Codes
 
-In this document, we are going to show which **Operation Codes** are implemented or not in Jariko.
+In this document, we are going to list which **Operation Codes** are so far implemented in Jariko.
 
-| Operation Codes | Support |
+| Operation Code | Support |
 | ------ | ------ |
 | EVAL | Full |
 | MOVEL | Partial |

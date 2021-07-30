@@ -98,7 +98,7 @@ All information for developers is to be found in the [Development guide](docs/de
 The following list shows all the implemented features:  
 - [Operation Codes](docs/operation_codes.md)  
 - [Built in Functions](docs/built_in_functions.md)  
-- [Procedure](docs/procedure.md)   
+- [Subprocedures](docs/subprocedures.md)   
 - [/COPY](docs/copy.md)  
 - [/API](docs/api.md)   
 - [AST Serialization](docs/ast_serialization.md)
