@@ -3,7 +3,7 @@
 In this document, we are going to explain the implementation of **subprocedures**.
 The technique used is to consider a subprocedure as a small program in a larger program.
 
-Thus we used the same logic of statements and variables thet Jariko made available for program interpretation: `InternalInterpreter`.   
+Thus we used the same logic of statements and variables that Jariko made available for program interpretation: `InternalInterpreter`.   
 This allowed the creation of a new feature without introducing regressions.   
 Advantages of using subprocedures:  
 * Subprocedures can define their own local variables
