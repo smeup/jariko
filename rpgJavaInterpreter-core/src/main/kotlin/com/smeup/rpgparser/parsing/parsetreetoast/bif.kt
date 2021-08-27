@@ -201,6 +201,8 @@ internal fun RpgParser.Bif_lookupContext.toAst(conf: ToAstConfiguration = ToAstC
     return LookupExpr(
             this.bif_lookupargs().arg.toAst(conf),
             this.bif_lookupargs().array.toAst(conf),
+            this.bif_lookupargs().startindex?.toAst(conf),
+            this.bif_lookupargs().numberelements?.toAst(conf),
             toPosition(conf.considerPosition))
 }
 
