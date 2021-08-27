@@ -144,8 +144,7 @@ class RunnerTest : AbstractTest() {
             handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
                 if (programName == "TRANSLATE") {
                     listOf(
-                        StringValue(value = "Ciao!!!", varying = false
-                        )
+                        StringValue(value = "Ciao!!!", varying = false)
                     )
                 } else {
                     null
