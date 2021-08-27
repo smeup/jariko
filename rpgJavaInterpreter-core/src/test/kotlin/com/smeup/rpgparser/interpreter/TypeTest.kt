@@ -119,10 +119,9 @@ class TypeTest : AbstractTest() {
 
     @Test
     fun strings() {
-        // Variable 'NUM' is defined as '1' integer digit and '0' decimal digit.
-        // Due to its definition, 'NUM' variable can store values from -9 to 9.
-        // This test shows how numeric variable declaration doesn't work properly cause,
-        // cause the 'NUM' variable can store 9999 value.
+        // Variable 'STR' is defined as '2' bytes length.
+        // Due to its definition, 'STR' variable can store values of size of '2' bytes.
+        // This test shows how string variable works properly.
         val myProgram = """
      H ACTGRP('MyAct')
      D STR             S              2  
