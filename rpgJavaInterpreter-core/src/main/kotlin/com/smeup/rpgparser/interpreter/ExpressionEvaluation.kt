@@ -157,9 +157,22 @@ class ExpressionEvaluation(
     override fun eval(expression: LookupExpr): Value {
         val searchValued = expression.searchedValued.evalWith(this)
         val array = expression.array.evalWith(this) as ArrayValue
-        val index = array.elements().indexOfFirst {
+        var index = array.elements().indexOfFirst {
             areEquals(it, searchValued)
         }
+        // If 'start' and/or 'length' specified (both optional)
+        // Start: is the index of array element to start search
+        // Length: is the limit number of elements to search forward
+        var start = expression.start?.evalWith(this)?.asInt()
+        start = start?.minus(1.asValue()) ?: 0.asValue()
+
+        val arrayElements = expression.array.type().numberOfElements().asValue()
+        val length = expression.length?.evalWith(this)?.asInt() ?: arrayElements
+
+        val lowerLimit = start.value
+        val upperLimit = start.plus(length).value - 1
+        if (lowerLimit > index || upperLimit < index) index = -1
+
         return if (index == -1) 0.asValue() else (index + 1).asValue()
     }
 
