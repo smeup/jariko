@@ -10,10 +10,10 @@
      D*  OBIETTIVO
      D*  Programma finalizzato funzionamento del codice operativo SORTA
      V*=====================================================================
-     D TXT             S             20    CTDATA PERRCD(1)  DIM(05)             _NOTXT
+     D TXT             S             20    CTDATA PERRCD(1)  DIM(06)             _NOTXT
       * Struttura DS
      D                 DS
-     D §TAB                          14    DIM(06) INZ
+     D §TAB                          14    DIM(07) INZ
      D  §CODI                         2    OVERLAY(§TAB:1)                      Codice
      D  §FILE                         8    OVERLAY(§TAB:*NEXT)                  Nome file
      D  §TIME                         4    OVERLAY(§TAB:*NEXT)                  Tempo
@@ -42,12 +42,19 @@
     MU* VAL1($$TIME) VAL2('    ') COMP(EQ)
      C                   EVAL      $$TIME=§TIME(01)
       *
-    MU* VAL1($$COD) VAL2('01') COMP(EQ)
+    MU* VAL1($$COD) VAL2('A1') COMP(EQ)
      C                   EVAL      $$COD=§CODI(02)
     MU* VAL1($$FILENAME) VAL2('VERAPG0F') COMP(EQ)
      C                   EVAL      $$FILENAME=§FILE(02)
-    MU* VAL1($$TIME) VAL2('1473') COMP(EQ)
+    MU* VAL1($$TIME) VAL2('9999') COMP(EQ)
      C                   EVAL      $$TIME=§TIME(02)
+      *
+    MU* VAL1($$COD) VAL2('01') COMP(EQ)
+     C                   EVAL      $$COD=§CODI(03)
+    MU* VAL1($$FILENAME) VAL2('VERAPG0F') COMP(EQ)
+     C                   EVAL      $$FILENAME=§FILE(03)
+    MU* VAL1($$TIME) VAL2('1473') COMP(EQ)
+     C                   EVAL      $$TIME=§TIME(03)
       *
       * Riordino per FILE
      C                   SORTA     §FILE
@@ -66,6 +73,13 @@
     MU* VAL1($$TIME) VAL2(' 974') COMP(EQ)
      C                   EVAL      $$TIME=§TIME(02)
       *
+    MU* VAL1($$COD) VAL2('A1') COMP(EQ)
+     C                   EVAL      $$COD=§CODI(05)
+    MU* VAL1($$FILENAME) VAL2('VERAPG0F') COMP(EQ)
+     C                   EVAL      $$FILENAME=§FILE(05)
+    MU* VAL1($$TIME) VAL2('9999') COMP(EQ)
+     C                   EVAL      $$TIME=§TIME(05)
+      *
       * Riordino per TIME
      C                   SORTA     §TIME
       *
@@ -83,6 +97,13 @@
     MU* VAL1($$TIME) VAL2(' 848') COMP(EQ)
      C                   EVAL      $$TIME=§TIME(02)
       *
+    MU* VAL1($$COD) VAL2('A1') COMP(EQ)
+     C                   EVAL      $$COD=§CODI(07)
+    MU* VAL1($$FILENAME) VAL2('VERAPG0F') COMP(EQ)
+     C                   EVAL      $$FILENAME=§FILE(07)
+    MU* VAL1($$TIME) VAL2('9999') COMP(EQ)
+     C                   EVAL      $$TIME=§TIME(07)
+      *
      C                   SETON                                        LR
       *---------------------------------------------------------------
 ** TXT
@@ -91,3 +112,4 @@
 03BRARTI0F1569
 01VERAPG0F1473
 04BRARTI0F 848
+A1VERAPG0F9999
