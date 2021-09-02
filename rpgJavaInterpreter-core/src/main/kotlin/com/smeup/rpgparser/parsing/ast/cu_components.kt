@@ -154,6 +154,13 @@ data class CompilationUnit(
         return compileTimeArrays.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: firstCompileTimeArray()
     }
 
+    fun compileTimeArray(index: Int): CompileTimeArray {
+        require(compileTimeArrays.isNotEmpty()) {
+            "CompileTimeArrays is empty"
+        }
+        return compileTimeArrays[index]
+    }
+
     fun hasFileDefinition(name: String) = fileDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
     fun getFileDefinition(name: String) = fileDefinitions.first { it.name.equals(name, ignoreCase = true) }

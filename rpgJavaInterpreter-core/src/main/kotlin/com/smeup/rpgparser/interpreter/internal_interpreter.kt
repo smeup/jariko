@@ -199,6 +199,7 @@ open class InternalInterpreter(
             dbFileMap.add(it)
         }
 
+        var index: Int = 0
         // Assigning initial values received from outside and consider INZ clauses
         // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
         // circumstances is correct reinitialization
@@ -219,7 +220,7 @@ open class InternalInterpreter(
                         }
                         it.initializationValue != null -> eval(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
-                            compilationUnit.compileTimeArray(it.name),
+                            compilationUnit.compileTimeArray(index++),
                             (it.type as ArrayType)
                         )
                         else -> blankValue(it)
@@ -253,10 +254,10 @@ open class InternalInterpreter(
                 // Fix issue on CTDATA
                 val ctdata = compilationUnit.compileTimeArray(it.name)
                 if (ctdata.name == it.name) {
-                    val xx = toArrayValue(
+                    value = toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
                             (it.type as ArrayType))
-                    set(it, xx)
+                    set(it, value)
                 }
 
                 if (value != null) {
