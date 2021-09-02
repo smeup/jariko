@@ -281,6 +281,11 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE13_30() {
+        assertMuteExecutionSucceded("mute/MUTE13_30")
+    }
+
+    @Test
     fun executeMUTE15_01() {
         executePgm("mute/MUTE15_01", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
