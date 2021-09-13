@@ -1960,4 +1960,9 @@ Test 6
         // DSPLY must be executed twice
         assertEquals(2, systemInterface.consoleOutput.size)
     }
+
+    @Test
+    fun executeCOPY_INTO_COMMENTS() {
+        assertEquals(listOf("Success!"), outputOf("COPY_INTO_COMMENTS"))
+    }
 }
