@@ -131,7 +131,7 @@ class RunnerTest : AbstractTest() {
          * N.B. program with name "TRANSLATE" MUST exist, cause is needed to create implementation of Program
          *
          */
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -144,10 +144,7 @@ class RunnerTest : AbstractTest() {
             handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
                 if (programName == "TRANSLATE") {
                     listOf(
-                        StringValue(
-                            URL("https://run.mocky.io/v3/c4e203a5-9511-49f0-bc00-78dff4c4ebc7").readText(),
-                            false
-                        )
+                        StringValue(value = "Ciao!!!", varying = false)
                     )
                 } else {
                     null
@@ -158,7 +155,7 @@ class RunnerTest : AbstractTest() {
         configuration.options?.callProgramHandler = callProgramHandler
         result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
-        assertEquals("Ciao!", result.parmsList[0].trim())
+        assertEquals("Ciao!!!", result.parmsList[0].trim())
     }
 
     @Test
@@ -175,7 +172,7 @@ class RunnerTest : AbstractTest() {
          * a 'custom implementation handleCall" is executed, ad simply return "CUSTOM_PGM" string.
          *
          */
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -222,7 +219,7 @@ class RunnerTest : AbstractTest() {
         if (null == System.getenv("JARIKO_X_API_KEY")) {
             return
         }
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -272,7 +269,7 @@ class RunnerTest : AbstractTest() {
         val response = StringBuilder()
         BufferedReader(
             InputStreamReader(con.inputStream, "utf-8")).use { br ->
-            var responseLine: String? = null
+            var responseLine: String?
             while (br.readLine().also { responseLine = it } != null) {
                 response.append(responseLine!!.trim { it <= ' ' })
             }

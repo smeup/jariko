@@ -280,7 +280,14 @@ private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
-    fun cName(s: String) = s.substringAfter("CTDATA ").replace("\\s".toRegex(), "")
+
+        fun cName(s: String) =
+            if (s.contains("**CTDATA")) {
+                s.substringAfter("**CTDATA ").replace("\\s".toRegex(), "")
+            } else {
+                s.replace(s, "")
+            }
+
     return CompileTimeArray(
         cName(this.endSourceHead().text), // TODO: change grammar to get **CTDATA name
         this.endSourceLine().map { it.endSourceLineText().text },
