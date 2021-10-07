@@ -89,7 +89,10 @@ class SymbolTable : ISymbolTable {
     }
 
     private fun setLocal(data: AbstractDataDefinition, value: Value): Value? {
-        require(!(data !in this && data.name in this)) {
+        // replaced "data.name in this" with "data.name in names" because I must search for local name
+        // whereas "data.name in this" search for name also in parent symbol table
+        // remember that this function set a local scope variable
+        require(!(data !in this && data.name in names)) {
             "This data definition would conflict with an existing data definition with the same name. This data definition: $data. Existing data definition: ${this[data.name]}"
         }
         require(data.type.canBeAssigned(value)) {
