@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.text.SimpleDateFormat
 
 //-----------------
@@ -43,7 +59,7 @@ dependencies {
 
     compile 'commons-io:commons-io:2.6'
     compile 'com.github.ajalt:clikt:2.1.0'
-    api 'com.github.smeup:reload:-SNAPSHOT'
+    api 'com.github.smeup:reload:development-SNAPSHOT'
 
     compile 'com.github.ziggy42:kolor:0.0.2'
 
@@ -134,7 +150,6 @@ task testCore(type: Test) {
 }
 
 test {
-    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     testLogging {
         events "failed"
     }
@@ -147,7 +162,6 @@ test {
 //gradlew testPerformance -DexportCsvFile="/some/file.csv"
 task testPerformance(type: Test) {
     systemProperty 'exportCsvFile', System.getProperty('exportCsvFile')
-    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     maxHeapSize = "2048m"
     testLogging {
         events "passed", "skipped", "failed"
@@ -157,8 +171,18 @@ task testPerformance(type: Test) {
     }
 }
 
+//gradlew testDBPerformance -DjrkCsvOutputDir="/home/.../myCsvResults" -DjrkConfigurationFile="/home/.../jrkDBConfigurations/as400-db-configurations.properties"
+task testDBPerformance(type: Test) {
+    maxHeapSize = "2048m"
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+    useJUnit {
+        includeCategories 'com.smeup.rpgparser.DBPerformanceTest'
+    }
+}
+
 task testAll(type: Test) {
-    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     testLogging {
         events "passed", "skipped", "failed"
         showStandardStreams true
@@ -210,7 +234,6 @@ task runMutes(type: JavaExec) {
 }
 
 task profileRpgProgram(type: JavaExec) {
-    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     String usage = """Usage:
 >./gradlew $name -PrpgProgram=rpg_program_path [-PcompiledProgramDir=compiled_program_dir] [-PlogConfigurationFile=log_conf_file]
 - rpg_program_path is RPG program relative or absoulte path.
@@ -272,7 +295,6 @@ for further informations."""
 }
 
 task profileMainClass (type: JavaExec) {
-    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
     String usage = """Usage:
 >./gradlew $name -PmainClass=main_class
 Remember that for kotlin main_class (.kt source file extension) you need to append the suffix Kt in the class name. 
@@ -322,6 +344,18 @@ task compilePerformanceMutes(type: JavaExec) {
     main="com.smeup.rpgparser.TestingUtils"
     classpath = sourceSets.test.runtimeClasspath
     args "-dirs", "performance,performance-ast"
+}
+
+tasks.withType(Test) {
+    // Default system properties passed to jariko for Test type tasks
+    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
+    systemProperty 'reloadConfigurationFile', System.getProperty('reloadConfigurationFile')
+}
+
+tasks.withType(JavaExec) {
+    // Default system properties passed to jariko for JavaExec type tasks
+    systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
+    systemProperty 'reloadConfigurationFile', System.getProperty('reloadConfigurationFile')
 }
 
 check.dependsOn compileAllMutes,runMutes

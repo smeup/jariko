@@ -62,6 +62,7 @@ import kotlin.test.fail
 class Dummy
 
 interface PerformanceTest
+interface DBPerformanceTest
 
 val testCompiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bin").apply {
     if (!this.exists()) {
