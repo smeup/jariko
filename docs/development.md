@@ -5,7 +5,23 @@ This document contains information for developers who want to contribute to the 
 
 ## How to compile the code
 
-The project uses gradle and a gradle wrapper is included. That means that you can simply execute `./gradlew` (on Mac/Linux) or `gradlew.bat` (on Windows) to run it.
+The project uses gradle and a gradle wrapper is included. That means that you can simply execute `./gradlew` (on Mac/Linux) or `gradlew.bat` (on Windows) to run it.  
+
+There are a few parameters that can be used in order to customize gradle execution tasks, it follows the list and a brief explanation
+when the names are not exhaustive:
+ * org.gradle.jvmargs
+ * FlightRecorderOptions - Used if you want to profile with JFR
+ * kotlinVersion
+ * serializationVersion - Kotlin serialization apis version
+ * jvmVersion
+ * reloadVersion - Allows to customize reload version used by jariko
+
+Default values of these parameters are in `gradle.properties` file.
+
+For example if you want to execute all tests with a specific reload version you can type:  
+```
+./gradlew -PreloadVersion=yourVersion test
+```
 
 The project contains an ANTLR grammar from which a parser in Java is generated. To generate it run:
 
@@ -79,6 +95,31 @@ If you want to force the execution of all checks:
  com.esotericsoftware.kryo.KryoException: Buffer underflow
  ```
  _try to clean the .gradle directory_)
+
+### Tests regarding db native access
+
+Jariko uses the [reload library](https://github.com/smeup/reload).  
+Since reload needs a configuration that provides, per file or files group, the jdbc settings, 
+you can pass these information through system property `jrkReloadConfig`.  
+The value of this property is the path of a json file, and the payload is like this:  
+ ```
+ {
+    "connectionConfigs": [
+        {
+            "fileName": "*",
+            "url": "jdbc:as400://servername/MY_LIB",
+            "user": "MY_USER",
+            "password": "MY_PASSWORD",
+            "driver": "com.ibm.as400.access.AS400JDBCDriver"
+        }
+    ]
+}
+ ```
+This configuration says to reload that all files are:
+ * located on as400 server servername: jdbc:as400://servername
+ * in library: MY_USER
+ * and the user used for the jdbc connection will be: MY_USER
+ 
  
 ## Profiling
 

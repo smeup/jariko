@@ -35,7 +35,7 @@ private val json = Json {
  * @param connectionConfigs List of connection config.
  * */
 @Serializable
-internal data class SimpleReloadConfig(val metadataPath: String, val connectionConfigs: List<ConnectionConfig>) {
+internal data class SimpleReloadConfig(var metadataPath: String? = null, val connectionConfigs: List<ConnectionConfig>) {
 
     internal fun getMetadata(dbFile: String): FileMetadata {
         val metadataFile = File(metadataPath, "$dbFile.json")

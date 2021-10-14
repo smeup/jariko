@@ -185,7 +185,9 @@ abstract class AbstractTest {
             require(File(reloadConfigurationFile).exists()) {
                 "jrkReloadConfig: ${File(reloadConfigurationFile)} doesn't exist"
             }
-            SimpleReloadConfig.createInstance(File(reloadConfigurationFile).inputStream())
+            SimpleReloadConfig.createInstance(File(reloadConfigurationFile).inputStream()).apply {
+                metadataPath = metadataPath ?: javaClass.getResource("/db/metadata")!!.path
+            }
         } ?: let {
             val url: String? = System.getenv("JRK_TEST_DB_URL")
             val user: String? = System.getenv("JRK_TEST_DB_USR")
