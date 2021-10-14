@@ -59,7 +59,7 @@ dependencies {
 
     compile 'commons-io:commons-io:2.6'
     compile 'com.github.ajalt:clikt:2.1.0'
-    api 'com.github.smeup:reload:development-SNAPSHOT'
+    api "com.github.smeup:reload:$reloadVersion"
 
     compile 'com.github.ziggy42:kolor:0.0.2'
 
@@ -173,6 +173,8 @@ task testPerformance(type: Test) {
 
 //gradlew testDBPerformance -DjrkCsvOutputDir="/home/.../myCsvResults" -DjrkConfigurationFile="/home/.../jrkDBConfigurations/as400-db-configurations.properties"
 task testDBPerformance(type: Test) {
+    systemProperty 'jrkCsvOutputDir', System.getProperty('jrkCsvOutputDir', System.getProperty("java.io.tmpdir"))
+    systemProperty 'jrkEXEC_MUTErepeat', System.getProperty('jrkEXEC_MUTErepeat', '1')
     maxHeapSize = "2048m"
     testLogging {
         events "passed", "skipped", "failed"
@@ -349,13 +351,13 @@ task compilePerformanceMutes(type: JavaExec) {
 tasks.withType(Test) {
     // Default system properties passed to jariko for Test type tasks
     systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
-    systemProperty 'reloadConfigurationFile', System.getProperty('reloadConfigurationFile')
+    systemProperty 'jrkReloadConfig', System.getProperty('jrkReloadConfig')
 }
 
 tasks.withType(JavaExec) {
     // Default system properties passed to jariko for JavaExec type tasks
     systemProperty 'featuresFactory', System.getProperty('featuresFactory', 'default')
-    systemProperty 'reloadConfigurationFile', System.getProperty('reloadConfigurationFile')
+    systemProperty 'jrkReloadConfig', System.getProperty('jrkReloadConfig')
 }
 
 check.dependsOn compileAllMutes,runMutes

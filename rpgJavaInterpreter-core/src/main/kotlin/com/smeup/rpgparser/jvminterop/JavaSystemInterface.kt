@@ -30,6 +30,7 @@ import com.smeup.rpgparser.rpginterop.RpgSystem
 import java.io.File
 import java.io.PrintStream
 import java.util.*
+import kotlin.String
 import kotlin.reflect.KFunction1
 import kotlin.reflect.full.isSubclassOf
 
@@ -58,6 +59,17 @@ open class JavaSystemInterface(
     val consoleOutput: List<String>
         get() = consoleOutputList.map(String::trimEnd)
 
+    /**
+     * Captures messages displayed through DSPLY bif.
+     * The default implementation accumulates the messages in `consoleOutput` property and
+     * print them in the standard output.
+     * I suggest to reimplement this behaviour to avoid memory drain caused by displayed messages accumulation
+     * */
+    var onDisplay: (message: String, outputStream: PrintStream) -> Unit = { message, outputStream ->
+        consoleOutputList.add(message)
+        outputStream.println(message)
+    }
+
     fun clearConsole() {
         consoleOutputList.clear()
     }
@@ -74,8 +86,7 @@ open class JavaSystemInterface(
     }
 
     override fun display(value: String) {
-        consoleOutputList.add(value)
-        outputStream.println(value)
+        onDisplay.invoke(value, outputStream)
     }
 
     override fun findProgram(name: String): Program? {

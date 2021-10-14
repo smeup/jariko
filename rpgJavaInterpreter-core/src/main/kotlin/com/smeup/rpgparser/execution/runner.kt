@@ -184,7 +184,7 @@ object RunnerCLI : CliktCommand() {
     private val compiledProgramsDir by option("-cpd", "--compiled-programs-dir").file(exists = true, readable = true)
     private val programName by argument("program name")
     private val programArgs by argument().multiple(required = false)
-    private val reloadConfigurationFile by option("-rcf", "--reload-configuration-file").file(exists = true, readable = true)
+    private val reloadConfigurationFile by option("-rc", "--reload-config").file(exists = true, readable = true)
 
     override fun run() {
         val allProgramFinders = defaultProgramFinders +

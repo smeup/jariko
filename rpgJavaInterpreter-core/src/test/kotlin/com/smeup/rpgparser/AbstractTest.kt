@@ -178,12 +178,12 @@ abstract class AbstractTest {
     }
 
     private fun createSimpleReloadConfig(): SimpleReloadConfig? {
-        val reloadConfigurationFile = System.getProperty("reloadConfigurationFile")?.takeIf {
+        val reloadConfigurationFile = System.getProperty("jrkReloadConfig")?.takeIf {
             it.isNotEmpty()
         }
         return reloadConfigurationFile?.let {
             require(File(reloadConfigurationFile).exists()) {
-                "reloadConfigurationFile: ${File(reloadConfigurationFile)} doesn't exist"
+                "jrkReloadConfig: ${File(reloadConfigurationFile)} doesn't exist"
             }
             SimpleReloadConfig.createInstance(File(reloadConfigurationFile).inputStream())
         } ?: let {
@@ -236,7 +236,32 @@ abstract class AbstractTest {
      * - JRK_TEST_DB_PWD - DB password
      * - JRK_TEST_DB_URL - DB connection string
      * - JRK_TEST_DB_DRIVER - DB driver
-     * or if it is passed the following system property: reloadConfigurationFile
+     * or if it is passed the following system property: `jrkReloadConfig`.
+     *
+     * Example of Reload configuration format is as follows:
+     * ```
+     * {
+     *    "metadataPath": "<path_to_file_metadata>",
+     *    "connectionConfigs": [
+     *        {
+     *            "fileName": "*",
+     *            "url": "jdbc:as400://srvlab01.smeup.com/UP_PRR",
+     *            "user": "user",
+     *            "password": "password",
+     *            "driver": "com.ibm.as400.access.AS400JDBCDriver"
+     *        },
+     *        {
+     *            "fileName": "CUSTOM_FILE",
+     *            "url": "jdbc:as400://srvlab01.smeup.com/CUSTOM",
+     *            "user": "user",
+     *            "password": "password",
+     *            "driver": "com.ibm.as400.access.AS400JDBCDriver"
+     *        }
+     *    ]
+     * }
+     * ```
+     * In this example we suppose that all files will be searched in the UP_PRR library while CUSTOM_FILE
+     * will be searched in the CUSTOM library
      * */
     fun testIfReloadConfig(unitTest: (reloadConfig: ReloadConfig) -> Unit) {
         createReloadConfig()?.let {
