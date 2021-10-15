@@ -1,5 +1,5 @@
 {
-    "name":"VERAPG0L",
+    "name":"VERAPG3L",
     "tableName": "VERAPG0F",
     "recordFormat": "VERAPGR",
     "fields": [
@@ -575,7 +575,9 @@
         }
     ],
     "accessFields": [
-        "V£IDOJ"
+        "V£CDC",
+        "V£DATA",
+        "V£NOME"
     ]
 }
 
