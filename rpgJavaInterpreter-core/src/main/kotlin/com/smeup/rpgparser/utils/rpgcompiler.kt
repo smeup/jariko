@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.utils
 
 import com.andreapivetta.kolor.yellow
@@ -23,7 +39,7 @@ data class CompilationOption(val format: Format = Format.BIN, val muteSupport: B
  * @param srcFile Source file
  * @param compiledFile Compiled file
  * @param error Compilation error
- * @param parseError Parsing error
+ * @param parsingError Parsing error
  * */
 data class CompilationResult(
     val srcFile: File,
@@ -118,11 +134,13 @@ fun compile(
 }
 
 /**
- * Compile programs
+ * Compile program
  * @param src Source (rpgle content) as inputstream
  * @param out Output (compiled source) as outpustream
  * @param format Compiled file format. Default Format.BIN
  * @param muteSupport Support for mute programs. Default false
+ * @param programFinders The program finders. This parameter is necessary in case of compiled program
+ * that contains a copy directive.
  * */
 @JvmOverloads
 fun compile(
@@ -132,23 +150,43 @@ fun compile(
     muteSupport: Boolean? = false,
     programFinders: List<RpgProgramFinder>? = null
 ) {
-
     // Compilation within MainExecutionContext should ensure comparability among rpgle program compiled in
     // different times
     MainExecutionContext.execute(systemInterface = JavaSystemInterface().apply {
         programFinders?.let { rpgSystem.addProgramFinders(it) }
     }) {
-        println("Compiling inputstream to outputstream... ")
-        var cu: CompilationUnit? = null
-        cu = RpgParserFacade().apply {
-            this.muteSupport = muteSupport!!
-        }.parseAndProduceAst(src)
-
-        when (format) {
-            Format.BIN -> out.use { it.write(cu!!.encodeToByteArray()) }
-            Format.JSON -> out.use { it.write(cu!!.encodeToString().toByteArray(Charsets.UTF_8)) }
-        }
-
-        println("... done.")
+        doCompilationAtRuntime(src = src, out = out, format = format, muteSupport = muteSupport)
     }
+}
+
+/**
+ * Compile program at runtime.
+ * This method is available only if called during execution, for example because
+ * you needs to serialize a called program before its loading
+ * @param src Source (rpgle content) as inputstream
+ * @param out Output (compiled source) as outpustream
+ * @param format Compiled file format. Default Format.BIN
+ * @param muteSupport Support for mute programs. Default false
+ * */
+@JvmOverloads
+fun doCompilationAtRuntime(
+    src: InputStream,
+    out: OutputStream,
+    format: Format? = Format.BIN,
+    muteSupport: Boolean? = false
+) {
+    require(MainExecutionContext.isCreated()) {
+        "This method can be used just for runtime compilations"
+    }
+    println("Compiling inputstream to outputstream... ")
+    var cu: CompilationUnit? = null
+    cu = RpgParserFacade().apply {
+        this.muteSupport = muteSupport!!
+    }.parseAndProduceAst(src)
+
+    when (format) {
+        Format.BIN -> out.use { it.write(cu!!.encodeToByteArray()) }
+        Format.JSON -> out.use { it.write(cu!!.encodeToString().toByteArray(Charsets.UTF_8)) }
+    }
+    println("... done.")
 }
