@@ -1,7 +1,27 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.utils
 
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.Options
+import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.parsing.facade.preprocess
 import org.apache.commons.io.FileUtils
+import org.junit.Assert
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -166,5 +186,34 @@ class MiscTest {
         }
         println(included)
         assertEquals(expected.trim(), included.trim())
+    }
+
+    @Test
+    fun dumpSrcOnError() {
+        val pgm = """
+     D MSG             S             20   
+     C                   EVAL      MSG = 'Hi guy how are you?'
+     C     ERR           DSPLY
+        """
+        val configuration = Configuration()
+        configuration.options = Options()
+        configuration.options!!.dumpSourceOnExecutionError = true
+        kotlin.runCatching {
+            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+        }.onFailure {
+            // Exception message must contain src code
+            Assert.assertTrue(it.message!!.indexOf("D MSG             S             20") > 0)
+        }.onSuccess {
+            Assert.fail()
+        }
+        configuration.options!!.dumpSourceOnExecutionError = false
+        kotlin.runCatching {
+            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+        }.onFailure {
+            // Exception message doesn't must contain src code
+            Assert.assertTrue(it.message!!.indexOf("D MSG             S             20") < 0)
+        }.onSuccess {
+            Assert.fail()
+        }
     }
 }
