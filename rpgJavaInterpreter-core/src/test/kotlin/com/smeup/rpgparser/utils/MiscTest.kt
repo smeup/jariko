@@ -189,7 +189,7 @@ class MiscTest {
     }
 
     @Test
-    fun dumpSrcOnError() {
+    fun dumpSrcOnAstResolvingError() {
         val pgm = """
      D MSG             S             20   
      C                   EVAL      MSG = 'Hi guy how are you?'
@@ -206,12 +206,42 @@ class MiscTest {
         }.onSuccess {
             Assert.fail()
         }
-        configuration.options!!.dumpSourceOnExecutionError = false
+    }
+
+    @Test
+    fun dumpSrcOnParsingError() {
+        val pgm = """
+       MSG             S             20   
+     C                   EVAL      MSG = 'Hi guy how are you?'
+     C     MSG           DSPLY
+        """
+        val configuration = Configuration()
+        configuration.options = Options()
+        configuration.options!!.dumpSourceOnExecutionError = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
-            // Exception message doesn't must contain src code
-            Assert.assertTrue(it.message!!.indexOf("D MSG             S             20") < 0)
+            // Exception message must contain src code
+            Assert.assertTrue(it.message!!.indexOf("MSG             S             20") > 0)
+        }.onSuccess {
+            Assert.fail()
+        }
+    }
+
+    @Test
+    fun dumpSrcOnRuntimeError() {
+        val pgm = """
+     D VAR             S              5  0   
+     C                   EVAL      VAR = 0/0
+        """
+        val configuration = Configuration()
+        configuration.options = Options()
+        configuration.options!!.dumpSourceOnExecutionError = true
+        kotlin.runCatching {
+            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+        }.onFailure {
+            // Exception message must contain src code
+            Assert.assertTrue(it.message!!.indexOf("D VAR             S              5  0 ") > 0)
         }.onSuccess {
             Assert.fail()
         }
