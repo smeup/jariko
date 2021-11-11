@@ -108,4 +108,4 @@
      C                   EVAL      N1=%LEN(LOG1)
       *
     MU* Type="NOXMI"
-     C                   SETON                                        LR
+     C                   SETON                                        RT

@@ -46,7 +46,7 @@ abstract class AbstractTest {
     /**
      * Create ast for exampleName. Let's assume that: testResourceDir is rpgJavaInterpreter-core/src/test/resources
      * @param exampleName Relative path respect testResourceDir where is located source file-
-     * For example if we you have to assert AST of testResourceDir/MYPGM.rpgle, you are going to specify MYPGM,
+     * For example if we have to assert AST of testResourceDir/MYPGM.rpgle, you are going to specify MYPGM,
      * elsewhere if you need to test testResourceDir/QILEGEN/MYPGM.rpgle you are going to specify QILEGEN/MYPGM
      * @param considerPosition If true parsing or ast creation error include also line number, default false
      * @param withMuteSupport If true are parsed also MUTE annotations, default false
@@ -71,14 +71,16 @@ abstract class AbstractTest {
         programName: String,
         initialValues: Map<String, Value> = mapOf(),
         printTree: Boolean = false,
-        si: CollectorSystemInterface = ExtendedCollectorSystemInterface()
+        si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
+        configuration: Configuration = Configuration()
     ): List<String> {
         return outputOf(
             programName = programName,
             initialValues = initialValues,
             printTree = printTree,
             si = si,
-            compiledProgramsDir = getTestCompileDir()
+            compiledProgramsDir = getTestCompileDir(),
+            configuration = configuration
         )
     }
 
@@ -175,34 +177,55 @@ abstract class AbstractTest {
         }
     }
 
-    private fun createConnectionConfig(): ConnectionConfig? {
-        val url: String? = System.getenv("JRK_TEST_DB_URL")
-        val user: String? = System.getenv("JRK_TEST_DB_USR")
-        val password: String? = System.getenv("JRK_TEST_DB_PWD")
-        val driver: String? = System.getenv("JRK_TEST_DB_DRIVER")
-        return if (url != null && user != null && password != null && driver != null) {
-            ConnectionConfig(
-                fileName = "*",
-                url = url,
-                user = user,
-                password = password,
-                driver = driver
-            )
-        } else {
-            null
+    private fun createSimpleReloadConfig(): SimpleReloadConfig? {
+        val reloadConfigurationFile = System.getProperty("jrkReloadConfig")?.takeIf {
+            it.isNotEmpty()
+        }
+        return reloadConfigurationFile?.let {
+            require(File(reloadConfigurationFile).exists()) {
+                "jrkReloadConfig: ${File(reloadConfigurationFile)} doesn't exist"
+            }
+            SimpleReloadConfig.createInstance(File(reloadConfigurationFile).inputStream()).apply {
+                metadataPath = metadataPath ?: javaClass.getResource("/db/metadata")!!.path
+            }
+        } ?: let {
+            val url: String? = System.getenv("JRK_TEST_DB_URL")
+            val user: String? = System.getenv("JRK_TEST_DB_USR")
+            val password: String? = System.getenv("JRK_TEST_DB_PWD")
+            val driver: String? = System.getenv("JRK_TEST_DB_DRIVER")
+            return if (url != null && user != null && password != null && driver != null) {
+                SimpleReloadConfig(
+                    metadataPath = javaClass.getResource("/db/metadata")!!.path,
+                    connectionConfigs = listOf(
+                        com.smeup.rpgparser.execution.ConnectionConfig(
+                            fileName = "*",
+                            url = url,
+                            driver = driver,
+                            user = user,
+                            password = password
+                        )
+                    )
+                )
+            } else {
+                null
+            }
         }
     }
 
-    fun createReloadConfig(): ReloadConfig? {
-        return createConnectionConfig()?.let {
+    private fun createReloadConfig(): ReloadConfig? {
+        return createSimpleReloadConfig()?.let { simpleReloadConfig ->
             ReloadConfig(
-                nativeAccessConfig = DBNativeAccessConfig(listOf(it)),
+                nativeAccessConfig = DBNativeAccessConfig(simpleReloadConfig.connectionConfigs.map {
+                    ConnectionConfig(
+                        fileName = it.fileName,
+                        url = it.url,
+                        driver = it.driver,
+                        user = it.user,
+                        password = it.password
+                    )
+                }),
                 metadataProducer = { dbFile ->
-                    val resource = javaClass.getResource("/db/metadata/$dbFile.json")
-                    require(resource != null) {
-                        "Cannot find /db/metadata/$dbFile.json in test resources"
-                    }
-                    FileMetadata.createInstance(resource.openStream())
+                    simpleReloadConfig.getMetadata(dbFile)
                 }
             )
         }
@@ -210,11 +233,37 @@ abstract class AbstractTest {
 
     /**
      * Executes unitTest only if ReloadConfig is available.
-     * ReloadConfig is available only if all of the following environment variable are set:
+     * ReloadConfig is available only if the following environment variable are set:
      * - JRK_TEST_DB_USR - DB user
      * - JRK_TEST_DB_PWD - DB password
      * - JRK_TEST_DB_URL - DB connection string
      * - JRK_TEST_DB_DRIVER - DB driver
+     * or if it is passed the following system property: `jrkReloadConfig`.
+     *
+     * Example of Reload configuration format is as follows:
+     * ```
+     * {
+     *    "metadataPath": "<path_to_file_metadata>",
+     *    "connectionConfigs": [
+     *        {
+     *            "fileName": "*",
+     *            "url": "jdbc:as400://srvlab01.smeup.com/UP_PRR",
+     *            "user": "user",
+     *            "password": "password",
+     *            "driver": "com.ibm.as400.access.AS400JDBCDriver"
+     *        },
+     *        {
+     *            "fileName": "CUSTOM_FILE",
+     *            "url": "jdbc:as400://srvlab01.smeup.com/CUSTOM",
+     *            "user": "user",
+     *            "password": "password",
+     *            "driver": "com.ibm.as400.access.AS400JDBCDriver"
+     *        }
+     *    ]
+     * }
+     * ```
+     * In this example we suppose that all files will be searched in the UP_PRR library while CUSTOM_FILE
+     * will be searched in the CUSTOM library
      * */
     fun testIfReloadConfig(unitTest: (reloadConfig: ReloadConfig) -> Unit) {
         createReloadConfig()?.let {

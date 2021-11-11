@@ -31,6 +31,8 @@ import kotlinx.serialization.Serializable
 data class LookupExpr(
     var searchedValued: Expression,
     val array: Expression,
+    val start: Expression? = null,
+    val length: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)

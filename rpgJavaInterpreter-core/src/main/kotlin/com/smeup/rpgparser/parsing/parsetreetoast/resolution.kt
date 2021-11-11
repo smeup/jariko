@@ -20,6 +20,7 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.facade.AstCreatingException
 import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.model.*
 import com.strumenta.kolasu.validation.Error
@@ -97,8 +98,14 @@ fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
  *
  */
 fun CompilationUnit.resolveAndValidate(raiseException: Boolean = true): List<Error> {
-    this.resolve()
-    return this.validate(raiseException)
+    kotlin.runCatching {
+        this.resolve()
+        return this.validate(raiseException)
+    }.onFailure {
+        this.source?.let { source ->
+            throw AstCreatingException(source, it)
+        }
+    }.getOrThrow()
 }
 
 class SemanticErrorsException(val errors: List<Error>) : RuntimeException("Semantic errors found: $errors")

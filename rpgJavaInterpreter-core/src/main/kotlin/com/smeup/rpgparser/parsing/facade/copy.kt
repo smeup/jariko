@@ -29,6 +29,8 @@ private fun String.includesCopy(
     val matcher = PATTERN.matcher(this)
     val sb = StringBuffer()
     while (matcher.find()) {
+        // Skip commented line
+        if (null != matcher.group(2)) continue
         val copyId = matcher.group(1).copyId()
         // println("Processing $copyId")
         kotlin.runCatching {
@@ -45,8 +47,7 @@ private fun String.includesCopy(
     return sb.toString()
 }
 
-private val PATTERN = Pattern.compile(".{4}\\s(?:H|I|\\s)/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+)", Pattern.CASE_INSENSITIVE)
-
+private val PATTERN = Pattern.compile("(?:.{4}\\s(?:H|I|\\s)/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+))|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
 private fun String.copyId(): CopyId {
     return when {
         this.contains('/') -> {

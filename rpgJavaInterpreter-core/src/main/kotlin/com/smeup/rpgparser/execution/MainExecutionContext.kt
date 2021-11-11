@@ -163,6 +163,11 @@ object MainExecutionContext {
      * Get source parsing stack.
      * */
     fun getParsingProgramStack() = context.get()?.parsingProgramStack ?: noParsingProgramStack
+
+    /**
+     * @return true if context is already created
+     * */
+    fun isCreated() = context.get() != null
 }
 
 data class Context(

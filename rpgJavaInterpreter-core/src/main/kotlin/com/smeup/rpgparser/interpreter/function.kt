@@ -73,8 +73,10 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
         symbolTable: ISymbolTable
     ): Value {
 
-        val interpreter = InternalInterpreter(systemInterface).apply {
-            globalSymbolTable.parentSymbolTable = symbolTable
+        val interpreter = FunctionInterpreter(
+            systemInterface = systemInterface,
+            procedureName = compilationUnit.procedureName).apply {
+            getGlobalSymbolTable().parentSymbolTable = symbolTable
         }
 
         // values passed to function in format argumentName to argumentValue
@@ -98,7 +100,8 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
                 }
             }
         }
-        return interpreter.status.returnValue ?: VoidValue
+        interpreter.doSomethingAfterExecution()
+        return interpreter.getStatus().returnValue ?: VoidValue
     }
 
     init {
@@ -189,5 +192,19 @@ fun CompilationUnit.getFunctionParams(): List<FunctionParam> {
 private fun getProcedureUnit(functionName: String): CompilationUnit {
     return MainExecutionContext.getProgramStack().peek().cu.procedures!!.first {
         it.procedureName == functionName
+    }
+}
+
+private class FunctionInterpreter(systemInterface: SystemInterface, private val procedureName: String?) : InternalInterpreter(systemInterface = systemInterface) {
+
+    override fun getMemorySliceId(): MemorySliceId? {
+        val memorySliceId = super.getMemorySliceId()
+        return memorySliceId?.copy(programName = "${memorySliceId.programName}.$procedureName")
+    }
+
+    override fun getMemorySliceMgr(): MemorySliceMgr? = null
+
+    override fun fireOnEnterPgmCallBackFunction() {
+        // here I do nothing because I am not a program
     }
 }

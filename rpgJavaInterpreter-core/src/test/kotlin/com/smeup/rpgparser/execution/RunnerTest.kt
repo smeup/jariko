@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.AbstractTest
@@ -94,7 +110,8 @@ class RunnerTest : AbstractTest() {
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "CALCFIBCA5", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
 
-        assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat = N/D\t10")
+        // assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat = N/D\t10")
+        assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat =         \t10")
         assertContain(logs, "CALCFIB\t\tDATA\tppdat = N/D\t10")
     }
 
@@ -114,7 +131,7 @@ class RunnerTest : AbstractTest() {
          * N.B. program with name "TRANSLATE" MUST exist, cause is needed to create implementation of Program
          *
          */
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -127,10 +144,7 @@ class RunnerTest : AbstractTest() {
             handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
                 if (programName == "TRANSLATE") {
                     listOf(
-                        StringValue(
-                            URL("https://run.mocky.io/v3/c4e203a5-9511-49f0-bc00-78dff4c4ebc7").readText(),
-                            false
-                        )
+                        StringValue(value = "Ciao!!!", varying = false)
                     )
                 } else {
                     null
@@ -141,7 +155,7 @@ class RunnerTest : AbstractTest() {
         configuration.options?.callProgramHandler = callProgramHandler
         result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
-        assertEquals("Ciao!", result.parmsList[0].trim())
+        assertEquals("Ciao!!!", result.parmsList[0].trim())
     }
 
     @Test
@@ -158,7 +172,7 @@ class RunnerTest : AbstractTest() {
          * a 'custom implementation handleCall" is executed, ad simply return "CUSTOM_PGM" string.
          *
          */
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -205,7 +219,7 @@ class RunnerTest : AbstractTest() {
         if (null == System.getenv("JARIKO_X_API_KEY")) {
             return
         }
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -255,7 +269,7 @@ class RunnerTest : AbstractTest() {
         val response = StringBuilder()
         BufferedReader(
             InputStreamReader(con.inputStream, "utf-8")).use { br ->
-            var responseLine: String? = null
+            var responseLine: String?
             while (br.readLine().also { responseLine = it } != null) {
                 response.append(responseLine!!.trim { it <= ' ' })
             }

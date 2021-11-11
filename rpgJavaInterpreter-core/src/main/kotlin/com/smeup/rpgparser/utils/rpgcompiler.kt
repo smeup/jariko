@@ -1,6 +1,23 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.utils
 
 import com.andreapivetta.kolor.yellow
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.SystemInterface
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -23,7 +40,7 @@ data class CompilationOption(val format: Format = Format.BIN, val muteSupport: B
  * @param srcFile Source file
  * @param compiledFile Compiled file
  * @param error Compilation error
- * @param parseError Parsing error
+ * @param parsingError Parsing error
  * */
 data class CompilationResult(
     val srcFile: File,
@@ -43,6 +60,12 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
             )
         )
         if (force || !compiledFile.exists() || compiledFile.lastModified() < file.lastModified()) {
+            // I need to delete compiledFile because, in case of configuration.options.compiledProgramsDir
+            // being set and compiledFile already exist, binary file is not rebuilt
+            if (compiledFile.exists()) {
+                println("Deleting $compiledFile")
+                require(compiledFile.delete()) { "Cannot delete $compiledFile" }
+            }
             FileInputStream(file).use {
                 var cu: CompilationUnit? = null
                 runCatching {
@@ -82,6 +105,9 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
  * @param muteSupport Enable muteSupport. Default false
  * @param force If true skip check last modified version and src will be always compiled
  * @param systemInterface callback function for system interface creating
+ * @param configuration Could be useful to pass this parameter in order to enable a few of advanced settings. For
+ * example, you can pass an option to enable the source dump in case of error, this feature for default is not
+ * enabled for performances reason.
  * */
 @JvmOverloads
 fun compile(
@@ -91,13 +117,14 @@ fun compile(
     muteSupport: Boolean = false,
     force: Boolean = true,
     systemInterface: (dir: File) -> SystemInterface = { dir ->
-        JavaSystemInterface().apply { rpgSystem.addProgramFinder(DirRpgProgramFinder(dir)) } }
+        JavaSystemInterface().apply { rpgSystem.addProgramFinder(DirRpgProgramFinder(dir)) } },
+    configuration: Configuration = Configuration()
 ): Collection<CompilationResult> {
     // In MainExecutionContext to avoid warning on idProvider reset
     val compilationResult = mutableListOf<CompilationResult>()
     if (src.isFile) {
         val systemInterface = systemInterface.invoke(src.parentFile)
-        MainExecutionContext.execute(systemInterface = systemInterface) {
+        MainExecutionContext.execute(systemInterface = systemInterface, configuration = configuration) {
             it.executionProgramName = src.name
             compilationResult.add(compileFile(src, compiledProgramsDir, format, muteSupport, force))
         }
@@ -106,7 +133,7 @@ fun compile(
         src.listFiles { file ->
             file.name.endsWith(".rpgle")
         }?.forEach { file ->
-            MainExecutionContext.execute(systemInterface = systemInterface) {
+            MainExecutionContext.execute(systemInterface = systemInterface, configuration = configuration) {
                 it.executionProgramName = file.name
                 compilationResult.add(compileFile(file, compiledProgramsDir, format, muteSupport, force))
             }
@@ -118,11 +145,28 @@ fun compile(
 }
 
 /**
- * Compile programs
+ * Compile a src file or directory in compiledProgramsDir. This method hides all parameters that generally
+ * are not useful in production environments.
+ * @param src Source file or dir
+ * @param compiledProgramsDir The programs will be compiled in this directory
+ * @param configuration Could be useful to pass this parameter in order to enable a few of advanced settings. For
+ * example, you can pass an option to enable the source dump in case of error, this feature for default is not
+ * enabled for performances reason.
+ * */
+@JvmOverloads
+fun compile(src: File, compiledProgramsDir: File, configuration: Configuration): Collection<CompilationResult> {
+    return compile(src = src, compiledProgramsDir = compiledProgramsDir,
+        format = Format.BIN, configuration = configuration)
+}
+
+/**
+ * Compile program
  * @param src Source (rpgle content) as inputstream
  * @param out Output (compiled source) as outpustream
  * @param format Compiled file format. Default Format.BIN
  * @param muteSupport Support for mute programs. Default false
+ * @param programFinders The program finders. This parameter is necessary in case of compiled program
+ * that contains a copy directive.
  * */
 @JvmOverloads
 fun compile(
@@ -130,25 +174,46 @@ fun compile(
     out: OutputStream,
     format: Format? = Format.BIN,
     muteSupport: Boolean? = false,
-    programFinders: List<RpgProgramFinder>? = null
+    programFinders: List<RpgProgramFinder>? = null,
+    configuration: Configuration = Configuration()
 ) {
-
     // Compilation within MainExecutionContext should ensure comparability among rpgle program compiled in
     // different times
     MainExecutionContext.execute(systemInterface = JavaSystemInterface().apply {
         programFinders?.let { rpgSystem.addProgramFinders(it) }
-    }) {
-        println("Compiling inputstream to outputstream... ")
-        var cu: CompilationUnit? = null
-        cu = RpgParserFacade().apply {
-            this.muteSupport = muteSupport!!
-        }.parseAndProduceAst(src)
-
-        when (format) {
-            Format.BIN -> out.use { it.write(cu!!.encodeToByteArray()) }
-            Format.JSON -> out.use { it.write(cu!!.encodeToString().toByteArray(Charsets.UTF_8)) }
-        }
-
-        println("... done.")
+    }, configuration = configuration) {
+        doCompilationAtRuntime(src = src, out = out, format = format, muteSupport = muteSupport)
     }
+}
+
+/**
+ * Compile program at runtime.
+ * This method is available only if called during execution, for example because
+ * you needs to serialize a called program before its loading
+ * @param src Source (rpgle content) as inputstream
+ * @param out Output (compiled source) as outpustream
+ * @param format Compiled file format. Default Format.BIN
+ * @param muteSupport Support for mute programs. Default false
+ * */
+@JvmOverloads
+fun doCompilationAtRuntime(
+    src: InputStream,
+    out: OutputStream,
+    format: Format? = Format.BIN,
+    muteSupport: Boolean? = false
+) {
+    require(MainExecutionContext.isCreated()) {
+        "This method can be used just for runtime compilations"
+    }
+    println("Compiling inputstream to outputstream... ")
+    var cu: CompilationUnit? = null
+    cu = RpgParserFacade().apply {
+        this.muteSupport = muteSupport!!
+    }.parseAndProduceAst(src)
+
+    when (format) {
+        Format.BIN -> out.use { it.write(cu!!.encodeToByteArray()) }
+        Format.JSON -> out.use { it.write(cu!!.encodeToString().toByteArray(Charsets.UTF_8)) }
+    }
+    println("... done.")
 }
