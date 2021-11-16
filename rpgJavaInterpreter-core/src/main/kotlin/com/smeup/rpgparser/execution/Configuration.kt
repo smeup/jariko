@@ -19,7 +19,9 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.ast.Statement
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
+import com.strumenta.kolasu.model.Position
 import java.io.File
 
 const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
@@ -96,7 +98,9 @@ data class JarikoCallback(
     var exitInRT: (programName: String) -> Boolean? = { null },
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
-    var afterAstCreation: (ast: CompilationUnit) -> Unit = { }
+    var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
+    var onEnterStatement: (positon: Position?) -> Unit = {_: Position? -> } ,
+
 )
 
 /**

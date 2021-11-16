@@ -199,7 +199,7 @@ open class InternalInterpreter(
             dbFileMap.add(it)
         }
 
-        var index: Int = 0
+        var index = 0
         // Assigning initial values received from outside and consider INZ clauses
         // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
         // circumstances is correct reinitialization
@@ -383,6 +383,7 @@ open class InternalInterpreter(
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
+                MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(statement.position)
                 statement.execute(this)
             }
         } catch (e: ControlFlowException) {
@@ -857,7 +858,7 @@ open class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup?.invoke(
+                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup.invoke(
                     interpretationContext.currentProgramName, associatedActivationGroup)?.assignedName ?: activationGroup
             }
         }
@@ -913,7 +914,7 @@ open class InternalInterpreter(
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
-        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT?.invoke(
+        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT.invoke(
             interpretationContext.currentProgramName) ?: exitRT
     }
 
