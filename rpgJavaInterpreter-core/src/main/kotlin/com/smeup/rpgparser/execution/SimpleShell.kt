@@ -18,15 +18,12 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.utils.measureAndPrint
 import java.io.BufferedReader
-import java.io.InputStream
 import java.io.InputStreamReader
 
 // TODO describe what this program does
 // TODO support option to add element to rpg program finders
 object SimpleShell {
     private val exitCommands = hashSetOf("exit", "quit", "signoff", "off")
-
-    var inputStream: InputStream = System.`in`
 
     private val interactiveCommands = setOf("play", "run")
 
@@ -46,11 +43,11 @@ You can type (@<rpgle_file_path> <args>|play|stop|exit):
  - help this help message
 rpg>
 """
-    private const val INTERACTIVE_MODE_MSG = "Interactive mode on, write or copy your code and then type run to execute program or stop if you want to return to console"
+    private const val INTERACTIVE_MODE_MSG = "Interactive mode on, write or copy your code and then type run or / to execute program or stop if you want to return to console"
 
     fun repl(r: (programName: String, programArgs: List<String>) -> Unit) {
         var commandLine: String
-        val console = BufferedReader(InputStreamReader(inputStream))
+        val console = BufferedReader(System.console()?.reader() ?: InputStreamReader(System.`in`))
         var interactiveMode: Boolean? = null
         val content = StringBuilder()
         println()
@@ -102,7 +99,7 @@ rpg>
                             print("rpg>")
                         }
                     } else {
-                        if (commandLine == "run") {
+                        if (commandLine == "run" || commandLine == "/") {
                             if (content.isEmpty()) {
                                 println("Type or paste your code")
                             } else {
