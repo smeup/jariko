@@ -57,9 +57,11 @@ subprojects {
         jcenter()
     }
 
-    project.group   = "com.github.rpgjavainterpreter"
-    // Since I don't know if it is necessary, for now I comment
-    // project.version = "0.2"
+    // Restore project.group when forked version integrated
+    // project.group   = "com.github.rpgjavainterpreter"
+    project.group   = "com.github.lanarimarco.jariko"
+    // Uncomment only to install jariko into the local mvn repo
+    project.version = "feature~dap-SNAPSHOT"
 }
 
 

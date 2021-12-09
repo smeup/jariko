@@ -362,22 +362,13 @@ open class InternalInterpreter(
                     if (i < 0 || i >= statements.size) throw e
                 }
             }
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
-                interpretationContext.currentProgramName,
-                globalSymbolTable,
-                null
-            )
         } catch (e: ReturnException) {
             status.returnValue = e.returnValue
-        } catch (t: Throwable) {
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
-                interpretationContext.currentProgramName,
-                globalSymbolTable,
-                t
-            )
-            throw t
         }
     }
+
+    @Deprecated(message = "No longer used")
+    open fun fireOnEnterPgmCallBackFunction() {}
 
     private fun executeWithMute(statement: Statement) {
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
@@ -894,14 +885,6 @@ open class InternalInterpreter(
                 )
             }
         }
-        fireOnEnterPgmCallBackFunction()
-    }
-
-    open fun fireOnEnterPgmCallBackFunction() {
-        MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm.invoke(
-            interpretationContext.currentProgramName,
-            globalSymbolTable
-        )
     }
 
     private fun isExitingInRTMode(): Boolean {
