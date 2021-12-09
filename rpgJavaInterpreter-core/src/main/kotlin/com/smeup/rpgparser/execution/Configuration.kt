@@ -19,7 +19,6 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.ast.Statement
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.strumenta.kolasu.model.Position
 import java.io.File
@@ -88,7 +87,7 @@ data class Options(
  * activation group associated to the program.
  * @param exitInRT If specified, it overrides the exit mode established in program. Default null (nei seton rt od lr mode)
  * @param onEnterPgm It is invoked on program enter after symboltable initialization.
- * @param onExitPgm It is invoked on program exit
+ * @param onExitPgm It is invoked on program exit. In case of error it is no longer called, then even error parameter is no longer significant
  * @param afterAstCreation It is invoked after ast creation
  * */
 data class JarikoCallback(
@@ -99,8 +98,7 @@ data class JarikoCallback(
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
     var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
-    var onEnterStatement: (positon: Position?) -> Unit = {_: Position? -> } ,
-
+    var onEnterStatement: (position: Position?) -> Unit = { _: Position? -> }
 )
 
 /**
