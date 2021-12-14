@@ -299,8 +299,5 @@ class DOPEDPGM() : Program {
     override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
         error("Forced error")
         return emptyList()
-
     }
-
-
 }
