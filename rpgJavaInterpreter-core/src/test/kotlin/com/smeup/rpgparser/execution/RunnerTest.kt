@@ -18,9 +18,7 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.SingletonRpgSystem
-import com.smeup.rpgparser.interpreter.StringValue
-import com.smeup.rpgparser.interpreter.SystemInterface
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
@@ -161,7 +159,7 @@ class RunnerTest : AbstractTest() {
     @Test
     fun testCallProgramHandler_2() {
         /*
-         * This test check the 'dual CallStmt behaviour' as follow:
+         * This test check the 'dual CallStmt behaviour' as follows:
          *
          * The main rpgle program 'CALL_STMT.rpgle' execute a loop of 4 iterations calling 'ECHO_PGM' program.
          *
@@ -169,7 +167,7 @@ class RunnerTest : AbstractTest() {
          * the ECHO_PGM.rpgle program is called.
          *
          * Behaviour 2: If loop counter is odd, the 'CallStmt' works as the 'extended implementation of CALL', so
-         * a 'custom implementation handleCall" is executed, ad simply return "CUSTOM_PGM" string.
+         * a 'custom implementation handleCall' is executed, ad simply return "CUSTOM_PGM" string.
          *
          */
         val systemInterface: SystemInterface = JavaSystemInterface()
@@ -201,7 +199,7 @@ class RunnerTest : AbstractTest() {
     @Test
     fun testCallProgramHandler_3() {
         /*
-         * This test check the 'dual CallStmt behaviour' as follow:
+         * This test check the 'dual CallStmt behaviour' as follows:
          *
          * Behaviour 1: The main rpgle program 'TST_001.rpgle' execute a call to 'ECHO_PGM.rpgle'.
          * This first call is a normal rpg CALL.
@@ -276,5 +274,30 @@ class RunnerTest : AbstractTest() {
         }
         println(response.toString())
         return response.toString()
+    }
+
+    /**
+     * If a doped program raises an error, this one must be propagated to the caller
+     * */
+    @Test(expected = java.lang.RuntimeException::class)
+    fun raisedErrorMustBePropagated() {
+        // just to clear warnings
+        DOPEDPGM()
+        val pgm = """
+     C                   CALL      'DOPEDPGM'            
+        """
+        val systemInterface = JavaSystemInterface().apply {
+            addJavaInteropPackage("com.smeup.rpgparser.execution")
+        }
+        getProgram(nameOrSource = pgm, systemInterface).singleCall(parms = emptyList())
+    }
+}
+
+class DOPEDPGM() : Program {
+    override fun params(): List<ProgramParam> = emptyList()
+
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+        error("Forced error")
+        return emptyList()
     }
 }
