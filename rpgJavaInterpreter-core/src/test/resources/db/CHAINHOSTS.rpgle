@@ -17,7 +17,7 @@
      C     *entry        plist
      C                   parm                    ipToFind
       * Reads records from file
-     C     ipToFind      chain     qhosts
+     C     ipToFind      chain     QATOCHOST
      C                   if        %found
      c                   eval      result = hostnme1
      c                   else

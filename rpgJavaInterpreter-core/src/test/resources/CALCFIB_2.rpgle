@@ -10,7 +10,7 @@
       *
      C                   Eval      NBR    = %Dec(ppdat : 8 : 0)
      C                   EXSR      FIB
-     C                   seton                                        lr
+     C                   seton                                        rt
       *--------------------------------------------------------------*
      C     FIB           BEGSR
      C                   SELECT

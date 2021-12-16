@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
@@ -5,11 +21,13 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
+import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.resizeTo
+import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
 import java.math.MathContext
@@ -32,7 +50,9 @@ private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memo
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
-    val lrIndicator: () -> Boolean
+    var returnValue: Value? = null,
+    var params: Int = 0,
+    var inzsrExecuted: Boolean = false
 ) {
     var lastFound = false
     var lastDBFile: DBFile? = null
@@ -40,30 +60,57 @@ class InterpreterStatus(
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable.get(abstractDataDefinition)
 }
 
-class InternalInterpreter(
-    override val systemInterface: SystemInterface,
-    override val localizationContext: LocalizationContext = LocalizationContext()
+open class InternalInterpreter(
+    private val systemInterface: SystemInterface,
+    private val localizationContext: LocalizationContext = LocalizationContext()
 ) : InterpreterCore {
-    override val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
-    override val indicators = HashMap<IndicatorKey, BooleanValue>()
 
-    override var interpretationContext: InterpretationContext = DummyInterpretationContext
+    override fun getSystemInterface(): SystemInterface {
+        return systemInterface
+    }
 
-    override val klists = HashMap<String, List<String>>()
+    override fun getLocalizationContext(): LocalizationContext {
+        return localizationContext
+    }
+
+    private val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
+    override fun getGlobalSymbolTable(): ISymbolTable {
+        return globalSymbolTable
+    }
+
+    private val indicators = HashMap<IndicatorKey, BooleanValue>()
+    override fun getIndicators(): HashMap<IndicatorKey, BooleanValue> {
+        return indicators
+    }
+
+    private var interpretationContext: InterpretationContext = DummyInterpretationContext
+    override fun getInterpretationContext(): InterpretationContext {
+        return interpretationContext
+    }
+
+    fun setInterpretationContext(interpretationContext: InterpretationContext) {
+        this.interpretationContext = interpretationContext
+    }
+
+    private val klists = HashMap<String, List<String>>()
+    override fun getKlists(): HashMap<String, List<String>> {
+        return klists
+    }
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
     fun logsEnabled() = logHandlers.isNotEmpty()
 
-    private var lrIndicator = false
-
-    override val status = InterpreterStatus(globalSymbolTable, indicators, { lrIndicator })
+    private val status = InterpreterStatus(globalSymbolTable, indicators)
+    override fun getStatus(): InterpreterStatus {
+        return status
+    }
 
     private val dbFileMap = DBFileMap()
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
-    override inline fun log(logEntry: () -> LogEntry) {
+    override fun log(logEntry: () -> LogEntry) {
         if (logsEnabled()) doLog(logEntry())
     }
 
@@ -93,7 +140,7 @@ class InternalInterpreter(
                 if (data.declaredArrayInLine != null) {
                     val dataStructValue = get(ds.name) as DataStructValue
                     var startOffset = data.startOffset
-                    var size = data.endOffset - data.startOffset
+                    val size = data.endOffset - data.startOffset
 
                     // for (i in 1..data.declaredArrayInLine!!) {
                     // If the size of the arrays are different
@@ -103,7 +150,7 @@ class InternalInterpreter(
                         val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
                         dataStructValue.setSubstring(startOffset, startOffset + size,
                                 data.type.asArray().element.toDataStructureValue(valueToAssign))
-                        startOffset += data.stepSize.toInt()
+                        startOffset += data.stepSize
                     }
                 } else {
                     when (val containerValue = get(ds.name)) {
@@ -152,6 +199,7 @@ class InternalInterpreter(
             dbFileMap.add(it)
         }
 
+        var index: Int = 0
         // Assigning initial values received from outside and consider INZ clauses
         // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
         // circumstances is correct reinitialization
@@ -172,7 +220,7 @@ class InternalInterpreter(
                         }
                         it.initializationValue != null -> eval(it.initializationValue)
                         it.isCompileTimeArray() -> toArrayValue(
-                            compilationUnit.compileTimeArray(it.name),
+                            compilationUnit.compileTimeArray(index++),
                             (it.type as ArrayType)
                         )
                         else -> blankValue(it)
@@ -191,7 +239,12 @@ class InternalInterpreter(
                         when {
                             it.name in initialValues -> initialValues[it.name]
                                 ?: throw RuntimeException("Initial values for ${it.name} not found")
-                            else -> null
+                            else ->
+                            if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
+                                it.type.blank()
+                            } else {
+                                null
+                            }
                         }
                     } else {
                         // TODO check this during the process of revision of DB access
@@ -201,10 +254,10 @@ class InternalInterpreter(
                 // Fix issue on CTDATA
                 val ctdata = compilationUnit.compileTimeArray(it.name)
                 if (ctdata.name == it.name) {
-                    val xx = toArrayValue(
+                    value = toArrayValue(
                             compilationUnit.compileTimeArray(it.name),
                             (it.type as ArrayType))
-                    set(it, xx)
+                    set(it, value)
                 }
 
                 if (value != null) {
@@ -235,7 +288,7 @@ class InternalInterpreter(
         // probably it is an error during the ast processing.
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
-        var lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
+        val lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
         val l: MutableList<Value> =
             compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
                 .map {
@@ -260,19 +313,30 @@ class InternalInterpreter(
         initialValues: Map<String, Value>,
         reinitialization: Boolean = true
     ) {
-        configureLogHandlers()
+        kotlin.runCatching {
+            configureLogHandlers()
 
-        initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
-
-        if (compilationUnit.minTimeOut == null) {
-            execute(compilationUnit.main.stmts)
-        } else {
-            val elapsedTime = measureTimeMillis {
+            status.params = initialValues.size
+            initialize(compilationUnit, caseInsensitiveMap(initialValues), reinitialization)
+            execINZSR(compilationUnit)
+            if (compilationUnit.minTimeOut == null) {
                 execute(compilationUnit.main.stmts)
+            } else {
+                val elapsedTime = measureTimeMillis {
+                    execute(compilationUnit.main.stmts)
+                }
+                if (elapsedTime > compilationUnit.minTimeOut!!) {
+                    throw InterpreterTimeoutException(interpretationContext.currentProgramName, elapsedTime, compilationUnit.minTimeOut!!)
+                }
             }
-            if (elapsedTime > compilationUnit.minTimeOut!!) {
-                throw InterpreterTimeoutException(interpretationContext.currentProgramName, elapsedTime, compilationUnit.minTimeOut!!)
+        }.onFailure {
+            if (!MainExecutionContext.getProgramStack().isEmpty()) {
+                MainExecutionContext.getProgramStack().peek().cu.source?.apply {
+                    System.err.println(it.message)
+                    System.err.println(this.dumpSource())
+                }
             }
+            throw it
         }
     }
 
@@ -304,7 +368,7 @@ class InternalInterpreter(
                 null
             )
         } catch (e: ReturnException) {
-            // TODO use return value
+            status.returnValue = e.returnValue
         } catch (t: Throwable) {
             MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
                 interpretationContext.currentProgramName,
@@ -422,7 +486,7 @@ class InternalInterpreter(
     private fun Statement.solveIndicatorValues(): List<SolvedIndicatorCondition> =
         this.continuedIndicators.map { (indicatorKey, continuedIndicator) ->
             val indicator = status.indicator(indicatorKey).value
-            var condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
+            val condition: Boolean = if (continuedIndicator.negate) !indicator else indicator
             val solvedIndicatorCondition = SolvedIndicatorCondition(indicatorKey, condition, continuedIndicator.level)
             solvedIndicatorCondition
         }
@@ -430,7 +494,7 @@ class InternalInterpreter(
     private fun getMapOfORs(indicatorValues: List<SolvedIndicatorCondition>): ArrayList<ArrayList<Boolean>> {
         val mapOfORs = ArrayList<ArrayList<Boolean>>()
         val reversed = indicatorValues.reversed()
-        var previousOperator: String = ""
+        var previousOperator = ""
         var loops = 0
         var idxOfMapOfANDs = 0
         reversed.forEach { solvedIndicator ->
@@ -515,13 +579,13 @@ class InternalInterpreter(
         }
     }
 
-    override fun dbFile(nameOrFormat: String, statement: Statement): EnrichedDBFile {
+    override fun dbFile(name: String, statement: Statement): EnrichedDBFile {
 
         // Nem could be file name or format name
-        val dbFile = dbFileMap[nameOrFormat]
+        val dbFile = dbFileMap[name]
 
         require(dbFile != null) {
-            "Line: ${statement.position.line()} - File definition $nameOrFormat not found"
+            "Line: ${statement.position.line()} - File definition $name not found"
         }
         status.lastDBFile = dbFile
         return dbFile
@@ -793,13 +857,13 @@ class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return MainExecutionContext.getConfiguration()?.jarikoCallback?.getActivationGroup?.invoke(
+                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup?.invoke(
                     interpretationContext.currentProgramName, associatedActivationGroup)?.assignedName ?: activationGroup
             }
         }
     }
 
-    private fun getMemorySliceId(): MemorySliceId? {
+    open fun getMemorySliceId(): MemorySliceId? {
         return getActivationGroupAssignedName()?.let {
             MemorySliceId(activationGroup = it, interpretationContext.currentProgramName)
         }
@@ -808,9 +872,15 @@ class InternalInterpreter(
     // Memory slice context attribute name must to be also string representation of MemorySliceId
     private fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
 
+    /**
+     * @return an instance of MemorySliceMgr, return null to disable serialization/deserialization
+     * of symboltable
+     * */
+    open fun getMemorySliceMgr(): MemorySliceMgr? = MainExecutionContext.getMemorySliceMgr()
+
     private fun afterInitialization(initialValues: Map<String, Value>) {
         getMemorySliceId()?.let { memorySliceId ->
-            MainExecutionContext.getMemorySliceMgr()?.let {
+            getMemorySliceMgr()?.let {
                 MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = it.associate(
                     memorySliceId = memorySliceId,
                     symbolTable = globalSymbolTable,
@@ -823,6 +893,10 @@ class InternalInterpreter(
                 )
             }
         }
+        fireOnEnterPgmCallBackFunction()
+    }
+
+    open fun fireOnEnterPgmCallBackFunction() {
         MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm.invoke(
             interpretationContext.currentProgramName,
             globalSymbolTable
@@ -839,7 +913,7 @@ class InternalInterpreter(
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
-        return MainExecutionContext.getConfiguration()?.jarikoCallback?.exitInRT?.invoke(
+        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT?.invoke(
             interpretationContext.currentProgramName) ?: exitRT
     }
 
@@ -853,8 +927,22 @@ class InternalInterpreter(
         }
         if (!exitingRT) {
             globalSymbolTable.clear()
+            // if I exit in LR have to mark inzsrExecuted to false
+            status.inzsrExecuted = false
         }
         indicators.clearStatelessIndicators()
+    }
+
+    private fun execINZSR(compilationUnit: CompilationUnit) {
+        if (!status.inzsrExecuted) {
+            val name = "*INZSR"
+            status.inzsrExecuted = true
+            compilationUnit.subroutines.firstOrNull { subroutine ->
+                subroutine.name.equals(other = name, ignoreCase = true)
+            }?.let { subroutine ->
+                ExecuteSubroutine(subroutine = ReferenceByName(name, subroutine), position = subroutine.position).execute(this)
+            }
+        }
     }
 }
 

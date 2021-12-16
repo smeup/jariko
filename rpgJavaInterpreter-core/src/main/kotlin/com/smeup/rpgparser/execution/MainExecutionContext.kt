@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.manager.DBFileFactory
@@ -19,7 +35,7 @@ object MainExecutionContext {
     private val noContextAttributes: MutableMap<String, Any> by lazy { mutableMapOf<String, Any>() }
     private val noConfiguration: Configuration by lazy { Configuration() }
     private val noProgramStack: Stack<RpgProgram> by lazy { Stack<RpgProgram>() }
-    private val noParsingProgramNameStack: Stack<String> by lazy { Stack<String>() }
+    private val noParsingProgramStack: Stack<ParsingProgram> by lazy { Stack<ParsingProgram>() }
     //
 
     /**
@@ -115,6 +131,18 @@ object MainExecutionContext {
     }
 
     /**
+     * @return Execution function name
+     */
+    fun getExecutionFunctionName() = context.get()?.executionFunctionName ?: ""
+
+    /**
+     * Set execution function name
+     */
+    fun setExecutionFunctionName(executionFunctionName: String) {
+        context.get()?.executionFunctionName = executionFunctionName
+    }
+
+    /**
      * Logs entries
      */
     fun log(logEntry: LogEntry) {
@@ -134,7 +162,12 @@ object MainExecutionContext {
     /**
      * Get source parsing stack.
      * */
-    fun getParsingProgramNameStack() = context.get()?.parsingProgramNameStack ?: noParsingProgramNameStack
+    fun getParsingProgramStack() = context.get()?.parsingProgramStack ?: noParsingProgramStack
+
+    /**
+     * @return true if context is already created
+     * */
+    fun isCreated() = context.get() != null
 }
 
 data class Context(
@@ -145,7 +178,8 @@ data class Context(
     val programStack: Stack<RpgProgram> = Stack<RpgProgram>(),
     val systemInterface: SystemInterface,
     var executionProgramName: String? = null,
-    val parsingProgramNameStack: Stack<String> = Stack<String>(),
+    var executionFunctionName: String? = null,
+    val parsingProgramStack: Stack<ParsingProgram> = Stack<ParsingProgram>(),
     val dbFileFactory: DBFileFactory? = configuration.reloadConfig?.let {
         DBFileFactory(it.nativeAccessConfig)
     }
@@ -158,4 +192,8 @@ data class Context(
     fun log(logEntry: LogEntry) {
         logHandlers.log(logEntry)
     }
+}
+
+data class ParsingProgram(val name: String) {
+    val parsingFunctionNameStack = Stack<String>()
 }

@@ -1,7 +1,24 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -14,6 +31,11 @@ import org.junit.Ignore
 import org.junit.Test
 import com.smeup.rpgparser.utils.StringOutputStream
 import java.io.PrintStream
+
+abstract class JvmFunction(val name: String = "<UNNAMED>", val params: List<FunctionParam>) :
+    Function {
+    override fun params() = params
+}
 
 open class JDExamplesTest : AbstractTest() {
 
@@ -556,20 +578,20 @@ open class JDExamplesTest : AbstractTest() {
                 FunctionParam("pos", StringType(50)),
                 FunctionParam("index", NumberType(2, 0)),
                 FunctionParam("xml", StringType(5000)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
-                assertEquals("Auto", params[0].asString().value)
-                assertEquals("POS", params[1].asString().value)
-                assertEquals(1, params[2].asInt().value)
-                assertEquals("<myxml></myxml>", params[3].asString().value)
+            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+                assertEquals("Auto", params[0].value.asString().value)
+                assertEquals("POS", params[1].value.asString().value)
+                assertEquals(1, params[2].value.asInt().value)
+                assertEquals("<myxml></myxml>", params[3].value.asString().value)
                 return StringValue("<riga Targa=\"ZZ000AA\"/>")
             }
         }
         si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
                 FunctionParam("Element", StringType(500)),
                 FunctionParam("AttributeName", StringType(50)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
-                assertEquals("<riga Targa=\"ZZ000AA\"/>", params[0].asString().value)
-                assertEquals("Targa", params[1].asString().value)
+            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
+                assertEquals("<riga Targa=\"ZZ000AA\"/>", params[0].value.asString().value)
+                assertEquals("Targa", params[1].value.asString().value)
                 return StringValue("ZZ000AA")
             }
         }
@@ -625,14 +647,14 @@ open class JDExamplesTest : AbstractTest() {
                 FunctionParam("pos", StringType(50)),
                 FunctionParam("index", NumberType(2, 0)),
                 FunctionParam("xml", StringType(5000)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
                 return StringValue("<Auto Targa=\"AB123XX\"/>")
             }
         }
         si.functions["P_RxVAL"] = object : JvmFunction("P_RxELE", listOf(
                 FunctionParam("Element", StringType(500)),
                 FunctionParam("AttributeName", StringType(50)))) {
-            override fun execute(systemInterface: SystemInterface, params: List<Value>, symbolTable: ISymbolTable): Value {
+            override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
                 return StringValue("AB123XX")
             }
         }

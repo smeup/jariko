@@ -1,7 +1,24 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.utils.EBCDICComparator
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
@@ -154,7 +171,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value 
 
     fun length(varying: Boolean = this.varying): Int {
         if (varying) {
-            if (value.isBlank())
+            if (value.isEmpty())
                 return 0
         }
         return value.length
@@ -205,8 +222,8 @@ fun sortA(value: Value, charset: Charset) {
             val n = value.arrayLength
             val multiplier = if (value.field.descend) 1 else -1
             // the good old Bubble Sort
-            for (i in 1..(value.arrayLength - 1)) {
-                for (j in 1..(n - i - 1)) {
+            /*for (i in 1..(value.arrayLength - 1)) {
+                for (j in 1..(n - i)) {
                     val compared =
                         if (strings) {
                             value.getElement(j).asString().compare(value.getElement(j + 1).asString(), charset, value.field.descend)
@@ -224,7 +241,51 @@ fun sortA(value: Value, charset: Charset) {
                         value.setElement(j, tmp)
                     }
                 }
+            }*/
+
+            val numOfElements = value.arrayLength
+            val totalLengthOfAllElements = value.container.len
+            val elementSize = totalLengthOfAllElements / numOfElements
+
+            // Extract from each array element, its 'key' value (the subfield) to order by, then
+            // store the key into 'keysToBeOrderedBy'
+            var keysToBeOrderedBy = Array(numOfElements) { _ -> "" }
+            var startElement = 0
+            var endElement = elementSize
+            (0 until numOfElements).forEach { i ->
+                value.container.value.substring(startElement, endElement).apply { keysToBeOrderedBy[i] = this }
+                startElement += elementSize
+                endElement += elementSize
             }
+
+            // Create a TreeMap with order direction (ascend/descend) needed to
+            // store ordered elements.
+            val comparator = EBCDICComparator(value.field.descend)
+            val orderedElements: MutableMap<String, MutableList<String>> = TreeMap(comparator)
+
+            // Array to ordered Treemap
+            keysToBeOrderedBy.indices.forEachIndexed { _, i ->
+                with(
+                    orderedElements,
+                    fun MutableMap<String, MutableList<String>>.() {
+                        var add = computeIfAbsent(
+                            keysToBeOrderedBy[i].substring(
+                                value.field.calculatedStartOffset!!.toInt(),
+                                value.field.calculatedEndOffset!!.toInt()
+                            )
+                        ) { ArrayList() }.add(keysToBeOrderedBy[i])
+                    }
+                )
+            }
+
+            // Set container value with reordered elements
+            var containerValue = ""
+            orderedElements.forEach { (_: String?, v: List<String>) ->
+                v.forEach { s ->
+                    containerValue += s
+                }
+            }
+            value.container.value = containerValue
         }
     }
 }
@@ -795,7 +856,13 @@ fun Type.blank(): Value {
             this.element.blank()
         }
         is DataStructureType -> DataStructValue.blank(this.size)
-        is StringType -> StringValue.blank(this.size)
+        is StringType -> {
+            if (!this.varying) {
+                StringValue.blank(this.size)
+            } else {
+                StringValue.blank(0)
+            }
+        }
         is NumberType -> IntValue(0)
         is BooleanType -> BooleanValue.FALSE
         is TimeStampType -> TimeStampValue.LOVAL
@@ -951,7 +1018,7 @@ fun Boolean.asValue() = BooleanValue(this)
 fun areEquals(value1: Value, value2: Value): Boolean {
     return when {
         value1 is DecimalValue && value2 is IntValue ||
-            value1 is IntValue && value2 is DecimalValue -> {
+                value1 is IntValue && value2 is DecimalValue -> {
             value1.asInt() == value2.asInt()
         }
 
@@ -994,5 +1061,21 @@ fun areEquals(value1: Value, value2: Value): Boolean {
             value1.asArray().getElement(1) == value2
         }
         else -> value1 == value2
+    }
+}
+
+@Serializable
+object VoidValue : Value {
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun copy(): Value {
+        TODO("Not yet implemented")
     }
 }

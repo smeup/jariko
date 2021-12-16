@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
@@ -141,9 +157,22 @@ class ExpressionEvaluation(
     override fun eval(expression: LookupExpr): Value {
         val searchValued = expression.searchedValued.evalWith(this)
         val array = expression.array.evalWith(this) as ArrayValue
-        val index = array.elements().indexOfFirst {
+        var index = array.elements().indexOfFirst {
             areEquals(it, searchValued)
         }
+        // If 'start' and/or 'length' specified (both optional)
+        // Start: is the index of array element to start search
+        // Length: is the limit number of elements to search forward
+        var start = expression.start?.evalWith(this)?.asInt()
+        start = start?.minus(1.asValue()) ?: 0.asValue()
+
+        val arrayElements = expression.array.type().numberOfElements().asValue()
+        val length = expression.length?.evalWith(this)?.asInt() ?: arrayElements
+
+        val lowerLimit = start.value
+        val upperLimit = start.plus(length).value - 1
+        if (lowerLimit > index || upperLimit < index) index = -1
+
         return if (index == -1) 0.asValue() else (index + 1).asValue()
     }
 
@@ -214,6 +243,9 @@ class ExpressionEvaluation(
         var startIndex = 0
         if (expression.start != null) {
             startIndex = expression.start.evalWith(this).asInt().value.toInt()
+            if (startIndex > 0) {
+                startIndex -= 1
+            }
         }
         val value = expression.value.evalWith(this).asString().value
         val source = expression.source.evalWith(this).asString().value
@@ -282,9 +314,16 @@ class ExpressionEvaluation(
         val functionToCall = expression.function.name
         val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)
             ?: throw RuntimeException("Function $functionToCall cannot be found (${expression.position.line()})")
-        // TODO check number and types of params
-        val paramsValues = expression.args.map { it.evalWith(this) }
-        return function.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
+        return FunctionWrapper(function = function, functionName = functionToCall, expression).let { functionWrapper ->
+            val paramsValues = expression.args.map {
+                if (it is DataRefExpr) {
+                    FunctionValue(variableName = it.variable.name, value = it.evalWith(this))
+                } else {
+                    FunctionValue(value = it.evalWith(this))
+                }
+            }
+            functionWrapper.execute(systemInterface, paramsValues, interpreterStatus.symbolTable)
+        }
     }
 
     override fun eval(expression: TimeStampExpr): Value {
@@ -504,6 +543,10 @@ class ExpressionEvaluation(
 
     override fun eval(expression: GlobalIndicatorExpr) =
         throw RuntimeException("PredefinedGlobalIndicatorExpr should be handled by the interpreter: $expression")
+
+    override fun eval(expression: ParmsExpr): Value {
+        return IntValue(interpreterStatus.params.toLong())
+    }
 
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")

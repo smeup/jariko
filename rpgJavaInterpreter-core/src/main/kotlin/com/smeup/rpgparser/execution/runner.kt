@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.execution
 
 import com.github.ajalt.clikt.core.CliktCommand
@@ -6,6 +22,8 @@ import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.file
+import com.smeup.dbnative.ConnectionConfig
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
@@ -104,7 +122,8 @@ class ResourceProgramFinder(val path: String) : RpgProgramFinder {
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
-        TODO("Not yet implemented")
+        // this program finder cannot know how to find a copy
+        return null
     }
 
     override fun findApiDescriptor(apiId: ApiId): ApiDescriptor? {
@@ -159,34 +178,62 @@ fun executePgmWithStringArgs(
 }
 
 object RunnerCLI : CliktCommand() {
-    val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
-    val programsSearchDirs by option("-psd").split(",")
-    val compiledProgramDir by option("-cpd", "--compiled-program-dir").file(exists = true, readable = true)
-    val programName by argument("program name")
-    val programArgs by argument().multiple(required = false)
+    private val logConfigurationFile by option("-lc", "--log-configuration").file(exists = true, readable = true)
+    private val programsSearchDirs by option("-psd", "--programs-search-dirs").split(",")
+    private val copySearchDirs by option("-csd", "--copies-search-dirs").split(",")
+    private val compiledProgramsDir by option("-cpd", "--compiled-programs-dir").file(exists = true, readable = true)
+    private val programArgs by argument().multiple(required = false)
+    private val reloadConfigurationFile by option("-rc", "--reload-config").file(exists = true, readable = true)
 
     override fun run() {
-        val allProgramFinders = defaultProgramFinders + (programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())
+        val programName = if (programArgs.isNotEmpty()) programArgs[0] else null
+        if (programName != null) {
+            val args = if (programArgs.size > 1) programArgs.subList(1, programArgs.size) else emptyList()
+            exec(programName, args)
+        } else {
+            SimpleShell.repl { programName, programArgs ->
+                exec(programName, programArgs)
+            }
+        }
+    }
+
+    private fun exec(programName: String, programArgs: List<String>) {
+        val allProgramFinders = defaultProgramFinders +
+            ((programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())) +
+            ((copySearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList()))
         val configuration = Configuration()
-        configuration.options?.compiledProgramsDir = compiledProgramDir
+        configuration.options?.compiledProgramsDir = compiledProgramsDir
+
+        // 'Reload' database configurations from properties file passed as cli argument
+        reloadConfigurationFile?.let { loadReloadConfig(it, configuration) }
         executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders,
-        configuration = configuration)
+            configuration = configuration)
     }
 }
 
-fun startShell() {
-    SimpleShell.repl { programName, programArgs ->
-        executePgmWithStringArgs(programName, programArgs)
-    }
+private fun loadReloadConfig(reloadConfigurationFile: File, configuration: Configuration) {
+
+    val simpleReloadConfig = SimpleReloadConfig.createInstance(reloadConfigurationFile.inputStream())
+    val dbNativeAccessConfig = DBNativeAccessConfig(simpleReloadConfig.connectionConfigs.map {
+        ConnectionConfig(
+            fileName = it.fileName,
+            url = it.url,
+            user = it.user,
+            password = it.password,
+            driver = it.driver,
+            impl = it.impl
+        )
+    })
+    val reloadConfig = ReloadConfig(
+        nativeAccessConfig = dbNativeAccessConfig,
+        metadataProducer = { dbFile -> simpleReloadConfig.getMetadata(dbFile) }
+    )
+    configuration.reloadConfig = reloadConfig
 }
 
 /**
  * This program can be used to either launch an RPG program or the shell.
  */
 fun main(args: Array<String>) {
-    if (args.isEmpty()) {
-        startShell()
-    } else {
-        RunnerCLI.main(args)
-    }
+    RunnerCLI.main(args)
 }

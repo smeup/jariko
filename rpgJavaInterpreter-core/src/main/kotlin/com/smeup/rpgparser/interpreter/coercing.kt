@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
@@ -51,7 +67,18 @@ private fun coerceString(value: StringValue, type: Type): Value {
             if (value.value.length > type.length) {
                 return StringValue(value.value.substring(0, type.length))
             }
-            return StringValue(value.value, type.varying)
+            return when (type.varying) {
+                // If varying, can be empty (length=0)
+                true -> StringValue(value.value, true)
+                // If not varying, cannot be empty but must be sized ad type.length
+                else -> if (value.value.isEmpty()) {
+                    StringValue(" ".repeat(type.length), false)
+                } else {
+                    StringValue(value.value, false)
+                }
+            }
+
+            // return StringValue(value.value, type.varying)
         }
         is ArrayType -> {
             if (type.element is StringType) {
@@ -198,6 +225,12 @@ fun coerce(value: Value, type: Type): Value {
                     if (value.charsToRepeat == "1") BooleanValue.TRUE else BooleanValue.FALSE
                 }
                 else -> TODO("Converting $value to $type")
+            }
+        }
+        is IntValue -> {
+            when (type) {
+                is StringType -> StringValue(value.value.toString(), varying = type.varying)
+                else -> value
             }
         }
         else -> value

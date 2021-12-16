@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 @file:Suppress("DEPRECATION")
 @file:JvmName("TestingUtils")
 
@@ -37,6 +53,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
+import kotlin.reflect.full.isSubclassOf
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -45,6 +62,7 @@ import kotlin.test.fail
 class Dummy
 
 interface PerformanceTest
+interface DBPerformanceTest
 
 val testCompiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bin").apply {
     if (!this.exists()) {
@@ -156,6 +174,7 @@ private class TestJavaSystemInterface : JavaSystemInterface() {
 private fun createJavaSystemInterface(): JavaSystemInterface {
     return TestJavaSystemInterface().apply {
         rpgSystem.addProgramFinder(DirRpgProgramFinder(File(rpgTestSrcDir)))
+        rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/")))
     }
 }
 
@@ -164,7 +183,7 @@ fun assertCanBeParsedResult(
     withMuteSupport: Boolean = false,
     printTree: Boolean = false
 ): RpgParserResult {
-    val result = MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+    val result = MainExecutionContext.execute(systemInterface = createJavaSystemInterface()) {
         it.executionProgramName = exampleName
         RpgParserFacade()
             .apply { this.muteSupport = withMuteSupport }
@@ -325,7 +344,10 @@ fun assertToken(expectedTokenType: Int, expectedTokenText: String, token: Token,
 
 fun dataRef(name: String) = DataRefExpr(ReferenceByName(name))
 
-open class CollectorSystemInterface(var loggingConfiguration: LoggingConfiguration? = null) : SystemInterface {
+open class CollectorSystemInterface(
+    var loggingConfiguration: LoggingConfiguration? = null,
+    private val copySource: (copyId: CopyId) -> Copy? = { null }
+) : SystemInterface {
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> =
         LinkedHashMap<Int, MuteAnnotationExecuted>()
     override var extraLogHandlers: MutableList<InterpreterLogHandler> = mutableListOf()
@@ -336,6 +358,7 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
 
     val displayed = LinkedList<String>()
     val programs = HashMap<String, Program>()
+    private val copies = HashMap<CopyId, Copy?>()
     val functions = HashMap<String, Function>()
     var printOutput = false
 
@@ -358,9 +381,45 @@ open class CollectorSystemInterface(var loggingConfiguration: LoggingConfigurati
             program
         }
     }
-    override fun findFunction(globalSymbolTable: ISymbolTable, name: String) = functions[name]
+    override fun findFunction(globalSymbolTable: ISymbolTable, name: String): Function? {
+        // this way I enable function searching also within compilation unit
+        return functions.computeIfAbsent(name) {
+            findFunctionInPackages(name) ?: RpgFunction.fromCurrentProgram(name)
+        }
+    }
+
+    private val javaInteropPackages = LinkedList<String>()
+
+    private fun findFunctionInPackages(programName: String): Function? {
+        if (javaInteropPackages.isEmpty()) {
+            javaInteropPackages.add("com.smeup.rpgparser.jvminterop")
+        }
+        return javaInteropPackages.asSequence().map { packageName ->
+            try {
+                val javaClass = this.javaClass.classLoader.loadClass("$packageName.$programName")
+                instantiateFunction(javaClass)
+            } catch (e: Throwable) {
+                null
+            }
+        }.filter {
+            it != null
+        }.firstOrNull()
+    }
+
+    open fun instantiateFunction(javaClass: Class<*>): Function? {
+        return if (javaClass.kotlin.isSubclassOf(Function::class)) {
+            javaClass.kotlin.constructors.filter {
+                it.parameters.isEmpty()
+            }.first().call() as Function
+        } else {
+            null
+        }
+    }
+
     override fun findCopy(copyId: CopyId): Copy? {
-        TODO("Not yet implemented")
+        return copies.computeIfAbsent(copyId) {
+            copySource.invoke(copyId)
+        }
     }
 
     override fun display(value: String) {
@@ -389,7 +448,8 @@ fun execute(
     cu: CompilationUnit,
     initialValues: Map<String, Value>,
     systemInterface: SystemInterface? = null,
-    logHandlers: List<InterpreterLogHandler> = emptyList()
+    logHandlers: List<InterpreterLogHandler> = emptyList(),
+    programName: String = "<UNSPECIFIED>"
 ): InternalInterpreter {
     val si = systemInterface ?: DummySystemInterface
     if (si == DummySystemInterface) {
@@ -398,7 +458,21 @@ fun execute(
     si.addExtraLogHandlers(logHandlers)
     val interpreter = InternalInterpreter(si)
     try {
+        // create just to pass to interpreter programName
+        val interpretationContext = object : InterpretationContext {
+            override val currentProgramName: String
+                get() = programName
+            override var dataWrapUpChoice: DataWrapUpChoice?
+                get() = null
+                set(value) {}
+
+            override fun shouldReinitialize(): Boolean {
+                return true
+            }
+        }
+        interpreter.setInterpretationContext(interpretationContext)
         interpreter.execute(cu, initialValues)
+        interpreter.doSomethingAfterExecution()
     } catch (e: InterruptForDebuggingPurposes) {
         // nothing to do here
     }
@@ -417,10 +491,11 @@ fun outputOf(
     initialValues: Map<String, Value> = mapOf(),
     printTree: Boolean = false,
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
-    compiledProgramsDir: File?
+    compiledProgramsDir: File?,
+    configuration: Configuration = Configuration()
 ): List<String> {
     execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si,
-        compiledProgramsDir = compiledProgramsDir)
+        compiledProgramsDir = compiledProgramsDir, configuration = configuration)
     return si.displayed.map(String::trimEnd)
 }
 
@@ -432,12 +507,27 @@ fun execute(
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
     logHandlers: List<InterpreterLogHandler> = SimpleLogHandler.fromFlag(TRACE),
     printTree: Boolean = false,
-    compiledProgramsDir: File?
+    compiledProgramsDir: File?,
+    // TODO inject configuration even for program without procedures
+    configuration: Configuration = Configuration()
 ): InternalInterpreter {
     val cu = assertASTCanBeProduced(programName, true, printTree = printTree, compiledProgramsDir = compiledProgramsDir)
     cu.resolveAndValidate()
     si.addExtraLogHandlers(logHandlers)
-    return execute(cu, initialValues, si)
+        // if we have some procedures we have to push in programstack current program see RpgFunction.fromCurrentProgram
+    return MainExecutionContext.execute(systemInterface = si, configuration = configuration) { mainExecutionContext ->
+            mainExecutionContext.executionProgramName = programName
+            mainExecutionContext.programStack.push(RpgProgram(cu, programName).apply {
+                // setup activationGroup is mandatory
+                // view InternalInterpreter.getActivationGroupAssignedName
+                activationGroup = ActivationGroup(
+                    type = NamedActivationGroup(configuration.defaultActivationGroupName),
+                    assignedName = configuration.defaultActivationGroupName)
+            })
+            val interpreter = execute(cu, initialValues, si, programName = programName)
+            mainExecutionContext.programStack.pop()
+            interpreter
+        }
 }
 
 fun rpgProgram(name: String): RpgProgram {
@@ -498,7 +588,7 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
         return nameToMockPrograms[name] ?: super.findProgram(name) ?: findWithFinders(name)
     }
 
-    private fun findWithFinders(name: String): Program? {
+    private fun findWithFinders(name: String): Program {
         return rpgPrograms.getOrPut(name) {
             find(name)
         }
@@ -513,7 +603,7 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
     }
 }
 
-fun compileAllMutes(verbose: Boolean = true, dirs: List<String>, format: Format = Format.BIN) {
+fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN) {
     println("Deleting $testCompiledDir")
     testCompiledDir.deleteRecursively()
     testCompiledDir.mkdirs()

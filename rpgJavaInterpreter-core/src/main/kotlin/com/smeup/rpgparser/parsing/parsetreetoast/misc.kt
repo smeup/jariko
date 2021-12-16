@@ -1,6 +1,23 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -9,7 +26,9 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
 import com.strumenta.kolasu.mapping.toPosition
-import com.strumenta.kolasu.model.*
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.ReferenceByName
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
@@ -105,7 +124,7 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
         dataDefinition.error("${dataDefinition.name} has been defined twice")
 }
 
-fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null): CompilationUnit {
     val fileDefinitions = this.statement()
             .mapNotNull {
                 when {
@@ -129,6 +148,28 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
     val subroutines = this.subroutine().map { it.toAst(conf) }
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
     val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+    // if we have no procedures, the property procedure must be null because we decided it must be optional
+    var procedures = this.procedure().map { it.toAst(conf) }.let {
+        if (it.isEmpty()) null
+        else it
+    }
+
+    // If none of 'rpg procedures', add only any 'fake procedures'.
+    // If any 'rpg procedures' exists, add any 'fake procedures' too.
+    var fakeProcedures = getFakeProcedures(rContext = this,
+        conf = conf,
+        dataDefinitions = dataDefinitions,
+        mainStmts = mainStmts,
+        procedures = procedures
+    )
+
+    if (null == procedures) {
+        if (!fakeProcedures.isEmpty()) {
+            procedures = fakeProcedures
+        }
+    } else {
+        (procedures as ArrayList).addAll(fakeProcedures)
+    }
 
     return CompilationUnit(
         fileDefinitions,
@@ -138,8 +179,96 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Compilation
         compileTimeArrays,
         directives,
         position = this.toPosition(conf.considerPosition),
-        apiDescriptors = this.statement().toApiDescriptors(conf)
-    ).postProcess()
+        apiDescriptors = this.statement().toApiDescriptors(conf),
+        procedures = procedures,
+        source = source
+    ).let { compilationUnit ->
+        // for each procedureUnit set compilationUnit as parent
+        // in order to resolve global data references
+        procedures?.onEach { procedureUnit ->
+            procedureUnit.parent = compilationUnit
+        }
+        compilationUnit
+    }.postProcess()
+}
+
+private fun getFakeProcedures(
+    rContext: RContext,
+    conf: ToAstConfiguration,
+    dataDefinitions: List<DataDefinition>,
+    mainStmts: List<Statement>,
+    procedures: List<CompilationUnit>?
+): List<CompilationUnit> {
+    // If any of the 'non rpgle standard' procedures (only prototype definition 'PR' and missing
+    // the procedure implementation) should be the 'doped java procedure' case.
+    // Needed to create a 'fake procedure' to be able to get 'ProcedureParameterDataDefinition'.
+    // 1. get names of all prototype definitions
+    // 2. match names with related procedure implementation to remove any 'not real fake prototype'
+    // 3. any missing match, will generate a fake procedure
+    val fakePrototypeNames = mutableMapOf<String, ArrayList<DataDefinition>>()
+    rContext.children.forEach {
+        if (it is Dcl_prContext) {
+            var fakePrototypeName: String = ""
+            var fakePrototypeDataDefinitions: ArrayList<DataDefinition> = arrayListOf<DataDefinition>()
+            if (rContext.children[0] is Dcl_prContext) {
+                (rContext.children[0] as Dcl_prContext).children.forEachIndexed { index, element ->
+                    var fakePrototypeDataDefinition: DataDefinition
+                    if (index == 0) {
+                        fakePrototypeName =
+                            (element as PrBeginContext).ds_name().NAME().text
+                    } else {
+                        var parmFixed = ((rContext.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
+                        var paramPassedBy = ParamPassedBy.Reference
+                        var paramOptions = mutableListOf<ParamOption>()
+                        parmFixed
+                            .keyword()
+                            .forEach { it ->
+                                if (it.keyword_const() != null) {
+                                    paramPassedBy = ParamPassedBy.Const
+                                } else if (it.keyword_value() != null) {
+                                    paramPassedBy = ParamPassedBy.Value
+                                }
+                                if (it.keyword_options() != null) {
+                                    it.keyword_options().identifier().forEach {
+                                        val keyword = it.free_identifier().idOrKeyword().ID().toString()
+                                        val paramOption = ParamOption.getByKeyword(keyword)
+                                        if (null != paramOption) {
+                                            (paramOptions as ArrayList).add(paramOption)
+                                        }
+                                    }
+                                }
+                            }
+                        fakePrototypeDataDefinition =
+                            parmFixed.toAst(conf, dataDefinitions.toList())
+                        fakePrototypeDataDefinition.paramPassedBy = paramPassedBy
+                        fakePrototypeDataDefinition.paramOptions = paramOptions
+                        fakePrototypeDataDefinitions.add(fakePrototypeDataDefinition)
+                    }
+                }
+                // Add only 'real fake prototype', if any RPG procedure exists yet
+                // the 'fake prototype' with same name mustn't be added.
+                if (null == procedures || (null != procedures && !procedures.contains(fakePrototypeName))) {
+                    fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
+                }
+            }
+        }
+    }
+
+    // Create 'fake procedures' related only to 'fake prototype names'
+    return fakePrototypeNames.map {
+        CompilationUnit(
+            fileDefinitions = emptyList(),
+            dataDefinitions = emptyList(),
+            MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
+            subroutines = emptyList(),
+            compileTimeArrays = emptyList(),
+            directives = emptyList(),
+            position = null,
+            apiDescriptors = null,
+            procedureName = it.key,
+            proceduresParamsDataDefinitions = it.value
+        )
+    }
 }
 
 private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
@@ -151,7 +280,14 @@ private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
-    fun cName(s: String) = s.substringAfter("CTDATA ").replace("\\s".toRegex(), "")
+
+        fun cName(s: String) =
+            if (s.contains("**CTDATA")) {
+                s.substringAfter("**CTDATA ").replace("\\s".toRegex(), "")
+            } else {
+                s.replace(s, "")
+            }
+
     return CompileTimeArray(
         cName(this.endSourceHead().text), // TODO: change grammar to get **CTDATA name
         this.endSourceLine().map { it.endSourceLineText().text },
@@ -166,6 +302,175 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
         this.endsr().csENDSR().factor1.text,
         toPosition(conf.considerPosition)
     )
+}
+
+internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+
+    val procedureName = this.beginProcedure().psBegin().ps_name().text
+    MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.push(procedureName)
+
+    // TODO FileDefinitions
+
+    // DataDefinitions
+    val dataDefinitions = getDataDefinitions(conf)
+
+    // Procedure Parameters DataDefinitions
+    val proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
+
+    // MainBody (list of Statements)
+    val mainStmts = this.subprocedurestatement().mapNotNull {
+        if (null != it.statement()) {
+            when {
+                it.statement().cspec_fixed() != null -> it.statement().cspec_fixed().toAst(conf)
+                it.statement().block() != null -> it.statement().block().toAst(conf)
+                it.statement().free() != null -> it.statement().free().toAst(conf)
+                else -> null
+            }
+        } else {
+            null
+        }
+    }
+
+    val subroutines = this.subprocedurestatement().mapNotNull {
+        when {
+            it.subroutine() != null -> it.subroutine().toAst(conf)
+            else -> null
+        }
+    }
+
+    // TODO CompileTimeArrays
+
+    // TODO Directives
+
+    // TODO Procedures
+
+    return CompilationUnit(
+        fileDefinitions = mutableListOf(),
+        dataDefinitions,
+        main = MainBody(mainStmts, null),
+        subroutines,
+        compileTimeArrays = mutableListOf(),
+        directives = mutableListOf(),
+        position = toPosition(conf.considerPosition),
+        apiDescriptors = null,
+        procedures = null,
+        procedureName = procedureName,
+        proceduresParamsDataDefinitions
+    ).apply { MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.pop() }
+}
+
+fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<DataDefinition>): List<DataDefinition> {
+    val proceduresParamsDataDefinitions: MutableList<DataDefinition> = LinkedList()
+
+    // Get parmDefinition matching from internal (Procedure scope) dataDefinitions and PI parm definition.
+    dataDefinitions.forEach { dataDefinition ->
+        this.dcl_pi().pi_parm_fixed()
+            .asSequence()
+            .filter {
+                it.parm_fixed().ds_name().NAME().text == dataDefinition.name
+            }
+            .forEach {
+            it.parm_fixed()
+                .keyword()
+                .forEach { it ->
+                        if (it.keyword_const() != null) {
+                            dataDefinition.const = true
+                            dataDefinition.paramPassedBy = ParamPassedBy.Const
+                        } else if (it.keyword_value() != null) {
+                            dataDefinition.paramPassedBy = ParamPassedBy.Value
+                        }
+                        if (it.keyword_options() != null) {
+                            it.keyword_options().identifier().forEach {
+                                val keyword = it.free_identifier().idOrKeyword().ID().toString()
+                                val paramOption = ParamOption.getByKeyword(keyword)
+                                (dataDefinition.paramOptions as ArrayList).add(paramOption)
+                            }
+                        }
+                    }
+                    proceduresParamsDataDefinitions.add(dataDefinition)
+                }
+        }
+
+    return proceduresParamsDataDefinitions
+}
+
+private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
+    // We need to calculate first all the data definitions which do not contain the LIKE DS directives
+    // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
+    // after them
+    val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
+    val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
+
+    // First pass ignore exception and all the know definitions
+    dataDefinitionProviders.addAll(this.subprocedurestatement()
+        .mapNotNull {
+            if (null != it.statement()) {
+                when {
+                    it.statement().dcl_ds() != null -> {
+                        try {
+                            it.statement().dcl_ds()
+                                .toAst(conf)
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    else -> null
+                }
+            } else {
+                null
+            }
+        })
+
+    // Second pass, everything, I mean everything
+    dataDefinitionProviders.addAll(this.subprocedurestatement()
+        .mapNotNull {
+            kotlin.runCatching {
+                if (null != it.statement()) {
+                    when {
+                        it.statement().dspec() != null -> {
+                            it.statement().dspec()
+                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        }
+                        it.statement().dcl_c() != null -> {
+                            it.statement().dcl_c()
+                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        }
+                        it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
+                            DataDefinitionCalculator(
+                                it.statement().dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders)
+                            )
+                        }
+                        else -> null
+                    }
+                } else {
+                    null
+                }
+            }.onFailure { error ->
+                it.error("Error on dataDefinitionProviders creation", error, conf)
+            }.getOrThrow()
+        })
+
+    // PROCEDURE PARAMETERS
+    // Second pass, everything, I mean everything
+    dataDefinitionProviders.addAll(this.dcl_pi().pi_parm_fixed()
+        .mapNotNull {
+            kotlin.runCatching {
+                when {
+                    it.parm_fixed() != null -> {
+                        it.parm_fixed()
+                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    }
+                    else -> null
+                }
+            }.onFailure { error ->
+                it.error("Error on dataDefinitionProviders creation", error, conf)
+            }.getOrThrow()
+        })
+    return dataDefinitionProviders.map { it.toDataDefinition() }
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
@@ -290,6 +595,8 @@ internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
                         it.continuedIndicators.put(indicator, continuedIndicator)
                     }
                 }
+        this.cspec_fixed_x2() != null ->
+            this.cspec_fixed_x2().toAst()
         else -> todo(conf = conf)
     }
 }
@@ -522,15 +829,6 @@ private fun dataType(len: Int, decimals: Int?): Type =
     } else {
         NumberType(len - decimals, decimals)
     }
-
-internal fun Token.asLong(): Long? {
-    val tokenString = this.text.trim()
-    return if (tokenString.isNotBlank()) {
-        tokenString.toLongOrNull()
-    } else {
-        null
-    }
-}
 
 internal fun Token.asInt(): Int? {
     val tokenString = this.text.trim()
@@ -958,14 +1256,6 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     }
 }
 
-fun Token.toPosition(considerPosition: Boolean): Position? {
-    return if (considerPosition) {
-        Position(this.startPoint, this.endPoint)
-    } else {
-        null
-    }
-}
-
 internal fun AssignmentOperatorIncludingEqualContext.toAssignmentOperator(): AssignmentOperator {
     return when {
         this.EQUAL() != null -> NORMAL_ASSIGNMENT
@@ -991,6 +1281,23 @@ internal fun CsCALLContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
         this.csPARM().map { it.toAst(conf) },
         this.cspec_fixed_standard_parts().lo.asIndex(),
         toPosition(conf.considerPosition)
+    )
+}
+
+internal fun Cspec_fixed_x2Context.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CallPStmt {
+    val position = toPosition(conf.considerPosition)
+    require(this.c_free().expression().function().functionName() != null) {
+        "Missing functionName in callp statement at line ${position.line()}"
+    }
+
+    val literal = this.c_free().expression().literal()
+    val functionCalled: FunctionCall = (literal?.toAst(conf) ?: this.c_free().expression().toAst(conf)) as FunctionCall
+    val errorIndicator: IndicatorKey? = null
+
+    return CallPStmt(
+        functionCalled,
+        errorIndicator,
+        position
     )
 }
 

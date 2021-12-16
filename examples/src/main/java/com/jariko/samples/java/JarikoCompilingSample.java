@@ -1,7 +1,24 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.jariko.samples.java;
 
 import com.smeup.rpgparser.execution.CommandLineProgram;
 import com.smeup.rpgparser.execution.Configuration;
+import com.smeup.rpgparser.execution.Options;
 import com.smeup.rpgparser.execution.RunnerKt;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder;
@@ -23,11 +40,14 @@ public class JarikoCompilingSample {
         if (!compiledProgramsDir.exists()) {
             compiledProgramsDir.mkdirs();
         }
-        // Compile all programms in srcDir
-        System.out.println("Compiled programs: " + RpgcompilerKt.compile(srcDir, compiledProgramsDir));
         Configuration configuration = new Configuration();
         // Set where Jariko should search for compiled programs
         configuration.getOptions().setCompiledProgramsDir(compiledProgramsDir);
+        // With this setting, even in case of compiled files, we will be able
+        // to find the errors easily because errors and source will be dumped together
+        configuration.getOptions().setDumpSourceOnExecutionError(true);
+        // Compile all programs in srcDir
+        System.out.println("Compiled programs: " + RpgcompilerKt.compile(srcDir, compiledProgramsDir, configuration));
         JavaSystemInterface javaSystemInterface = new JavaSystemInterface();
         javaSystemInterface.addJavaInteropPackage("com.jariko.samples.java");
         List<RpgProgramFinder> programFinders = Arrays.asList(new DirRpgProgramFinder(srcDir));
@@ -45,13 +65,16 @@ public class JarikoCompilingSample {
             InputStream inputStream = new FileInputStream(src);
             // delete on exit just because we are writing a test
             out.deleteOnExit();
-            // Here compile
+            Configuration configuration = new Configuration();
+            configuration.setOptions(new Options());
+            configuration.getOptions().setDumpSourceOnExecutionError(true);
+            // Compile
             RpgcompilerKt.compile(inputStream, new FileOutputStream(out));
-
-            // trying execution
+            // Execution
             List<RpgProgramFinder> programFinders = Arrays.asList(new DirRpgProgramFinder(out.getParentFile()));
-            CommandLineProgram jariko = RunnerKt.getProgram("fibonacci", new JavaSystemInterface(), programFinders);
-            jariko.singleCall(Arrays.asList("12"));
+            CommandLineProgram jariko = RunnerKt.getProgram("fibonacci", new JavaSystemInterface(),
+                    programFinders);
+            jariko.singleCall(Arrays.asList("12"), configuration);
         }
         catch (FileNotFoundException e) {
             throw new RuntimeException(e);

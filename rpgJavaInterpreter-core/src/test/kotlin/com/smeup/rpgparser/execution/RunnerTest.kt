@@ -1,10 +1,24 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.SingletonRpgSystem
-import com.smeup.rpgparser.interpreter.StringValue
-import com.smeup.rpgparser.interpreter.SystemInterface
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
@@ -94,7 +108,8 @@ class RunnerTest : AbstractTest() {
         runnerMain(arrayOf("--log-configuration", configurationFile.absolutePath, "CALCFIBCA5", "AA", "'ABCD'", "1**"))
         val logs = FileUtils.readLines(logFile, Charset.defaultCharset())
 
-        assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat = N/D\t10")
+        // assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat = N/D\t10")
+        assertContain(logs, "CALCFIBCA5\t\tDATA\tppdat =         \t10")
         assertContain(logs, "CALCFIB\t\tDATA\tppdat = N/D\t10")
     }
 
@@ -114,7 +129,7 @@ class RunnerTest : AbstractTest() {
          * N.B. program with name "TRANSLATE" MUST exist, cause is needed to create implementation of Program
          *
          */
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -127,10 +142,7 @@ class RunnerTest : AbstractTest() {
             handleCall = { programName: String, _: SystemInterface, _: LinkedHashMap<String, Value> ->
                 if (programName == "TRANSLATE") {
                     listOf(
-                        StringValue(
-                            URL("https://run.mocky.io/v3/c4e203a5-9511-49f0-bc00-78dff4c4ebc7").readText(),
-                            false
-                        )
+                        StringValue(value = "Ciao!!!", varying = false)
                     )
                 } else {
                     null
@@ -141,13 +153,13 @@ class RunnerTest : AbstractTest() {
         configuration.options?.callProgramHandler = callProgramHandler
         result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
-        assertEquals("Ciao!", result.parmsList[0].trim())
+        assertEquals("Ciao!!!", result.parmsList[0].trim())
     }
 
     @Test
     fun testCallProgramHandler_2() {
         /*
-         * This test check the 'dual CallStmt behaviour' as follow:
+         * This test check the 'dual CallStmt behaviour' as follows:
          *
          * The main rpgle program 'CALL_STMT.rpgle' execute a loop of 4 iterations calling 'ECHO_PGM' program.
          *
@@ -155,10 +167,10 @@ class RunnerTest : AbstractTest() {
          * the ECHO_PGM.rpgle program is called.
          *
          * Behaviour 2: If loop counter is odd, the 'CallStmt' works as the 'extended implementation of CALL', so
-         * a 'custom implementation handleCall" is executed, ad simply return "CUSTOM_PGM" string.
+         * a 'custom implementation handleCall' is executed, ad simply return "CUSTOM_PGM" string.
          *
          */
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -187,7 +199,7 @@ class RunnerTest : AbstractTest() {
     @Test
     fun testCallProgramHandler_3() {
         /*
-         * This test check the 'dual CallStmt behaviour' as follow:
+         * This test check the 'dual CallStmt behaviour' as follows:
          *
          * Behaviour 1: The main rpgle program 'TST_001.rpgle' execute a call to 'ECHO_PGM.rpgle'.
          * This first call is a normal rpg CALL.
@@ -205,7 +217,7 @@ class RunnerTest : AbstractTest() {
         if (null == System.getenv("JARIKO_X_API_KEY")) {
             return
         }
-        var systemInterface: SystemInterface = JavaSystemInterface()
+        val systemInterface: SystemInterface = JavaSystemInterface()
         val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(File("src/test/resources/")))
         val configuration = Configuration()
 
@@ -255,12 +267,37 @@ class RunnerTest : AbstractTest() {
         val response = StringBuilder()
         BufferedReader(
             InputStreamReader(con.inputStream, "utf-8")).use { br ->
-            var responseLine: String? = null
+            var responseLine: String?
             while (br.readLine().also { responseLine = it } != null) {
                 response.append(responseLine!!.trim { it <= ' ' })
             }
         }
         println(response.toString())
         return response.toString()
+    }
+
+    /**
+     * If a doped program raises an error, this one must be propagated to the caller
+     * */
+    @Test(expected = java.lang.RuntimeException::class)
+    fun raisedErrorMustBePropagated() {
+        // just to clear warnings
+        DOPEDPGM()
+        val pgm = """
+     C                   CALL      'DOPEDPGM'            
+        """
+        val systemInterface = JavaSystemInterface().apply {
+            addJavaInteropPackage("com.smeup.rpgparser.execution")
+        }
+        getProgram(nameOrSource = pgm, systemInterface).singleCall(parms = emptyList())
+    }
+}
+
+class DOPEDPGM() : Program {
+    override fun params(): List<ProgramParam> = emptyList()
+
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+        error("Forced error")
+        return emptyList()
     }
 }

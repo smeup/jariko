@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
@@ -6,8 +22,9 @@ import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.DataStructValue
+import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.logging.STATEMENT_LOGGER
+import com.smeup.rpgparser.logging.PERFORMANCE_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import org.junit.Rule
 import org.junit.Test
@@ -20,7 +37,7 @@ import kotlin.test.assertEquals
  * */
 open class MiscDBTest : AbstractTest() {
 
-    private val consoleLoggers = arrayOf(STATEMENT_LOGGER)
+    private val consoleLoggers = arrayOf(PERFORMANCE_LOGGER)
 
     @Rule
     @JvmField
@@ -28,15 +45,16 @@ open class MiscDBTest : AbstractTest() {
 
     private fun testMute(
         programName: String,
+        params: CommandLineParms = CommandLineParms(emptyMap()),
         vararg consoleLoggers: String = this.consoleLoggers
     ) {
-
         testIfReloadConfig { reloadConfig ->
             val si = JavaSystemInterface().apply {
                 loggingConfiguration = consoleLoggingConfiguration(*consoleLoggers)
             }
             executePgm(
                 programName = programName,
+                params = params,
                 configuration = Configuration(reloadConfig = reloadConfig, options = Options(muteSupport = true)),
                 systemInterface = si
             )
@@ -56,7 +74,7 @@ open class MiscDBTest : AbstractTest() {
                     // performance logging in console
                     // loggingConfiguration = consoleLoggingConfiguration(PERFORMANCE_LOGGER)
                 },
-                params = CommandLineParms() { compilationUnit ->
+                params = CommandLineParms { compilationUnit ->
                     // extracting by compilationUnit data structure information needed for assertions
                     val dsName = "£UIBDS"
                     // get dataDefinition
@@ -132,5 +150,239 @@ open class MiscDBTest : AbstractTest() {
     @Test
     fun testMUTE16_09() {
         testMute("db/MUTE16_09")
+    }
+
+    @Test
+    open fun testMUTE19_01() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_01", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_02() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_02", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_03() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_03", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_04() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_04", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_05() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_05", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_06() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_06", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_23() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_23", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_24() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_24", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_25() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_25", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_26() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_26", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_27() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_27", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_30() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_30", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_31() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_31", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_32() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_32", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_33() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_33", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_34() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_34", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_35() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_35", params = params)
+    }
+
+    @Test
+    open fun testMUTE19_36() {
+        val params = CommandLineParms(
+            mapOf(
+                "MU_TIME" to StringValue("SI"),
+                "MU_TSNAME" to StringValue(""),
+                "MU_FLNAME" to StringValue(""),
+                "MU_TPOPER" to StringValue(""),
+                "MU_FAIL" to StringValue("")
+            ))
+        testMute(programName = "db/MUTE19_36", params = params)
     }
 }

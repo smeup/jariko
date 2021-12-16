@@ -957,6 +957,7 @@ cspec_fixed_standard:
 	| csCABGT
 	| csCALL
 	| csCALLB
+	| csCALLP
 	//| csCASEQ
 	//| csCASNE
 	//| csCASLE
@@ -1187,7 +1188,8 @@ csCALLB:
 	csPARM*;
 csCALLP:
 	operation=OP_CALLP
-	operationExtender=cs_operationExtender? 
+	operationExtender=cs_operationExtender?
+	cspec_fixed_standard_parts
 	fixedexpression=c_free (C_FREE_NEWLINE | EOF);
 csCASEQ:
 	operation=OP_CASEQ

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 @file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
@@ -5,7 +21,10 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.ExtendedCollectorSystemInterface
 import com.smeup.rpgparser.assertNrOfMutesAre
 import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import kotlin.test.*
@@ -23,7 +42,7 @@ open class MuteExecutionTest : AbstractTest() {
         cu.resolveAndValidate()
         cu.assertNrOfMutesAre(5)
         val interpreter = execute(cu, emptyMap())
-        assertEquals(5, interpreter.systemInterface.getExecutedAnnotation().size)
+        assertEquals(5, interpreter.getSystemInterface().getExecutedAnnotation().size)
     }
 
     @Test
@@ -75,8 +94,8 @@ open class MuteExecutionTest : AbstractTest() {
         cu.resolveAndValidate()
         cu.assertNrOfMutesAre(1)
         val interpreter = execute(cu, emptyMap())
-        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
-        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertEquals(1, interpreter.getSystemInterface().getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.getSystemInterface().getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
         assertTrue(muteAnnotationExecuted.headerDescription().startsWith("This code should not be executed"))
     }
@@ -87,8 +106,8 @@ open class MuteExecutionTest : AbstractTest() {
         cu.resolveAndValidate()
         cu.assertNrOfMutesAre(1)
         val interpreter = execute(cu, emptyMap())
-        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
-        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertEquals(1, interpreter.getSystemInterface().getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.getSystemInterface().getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
         assertTrue(muteAnnotationExecuted.headerDescription().startsWith("Failure message"))
     }
@@ -98,8 +117,8 @@ open class MuteExecutionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_WRONG_USAGE", true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = execute(cu, emptyMap())
-        assertEquals(1, interpreter.systemInterface.getExecutedAnnotation().size)
-        val muteAnnotationExecuted = interpreter.systemInterface.getExecutedAnnotation().values.first()
+        assertEquals(1, interpreter.getSystemInterface().getExecutedAnnotation().size)
+        val muteAnnotationExecuted = interpreter.getSystemInterface().getExecutedAnnotation().values.first()
         assertFalse(muteAnnotationExecuted.succeeded())
     }
 
@@ -108,7 +127,7 @@ open class MuteExecutionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_NO_STATEMENTS_BEFORE_ENDIF_CORRECT_USAGE", true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = execute(cu, emptyMap())
-        assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
+        assertEquals(0, interpreter.getSystemInterface().getExecutedAnnotation().size)
     }
 
     @Test
@@ -116,7 +135,7 @@ open class MuteExecutionTest : AbstractTest() {
         val cu = assertASTCanBeProduced("mute/SIMPLE_MUTE_FAIL_WITH_IF_AND_STATEMENTS_BEFORE_ENDIF", true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = execute(cu, emptyMap())
-        assertEquals(0, interpreter.systemInterface.getExecutedAnnotation().size)
+        assertEquals(0, interpreter.getSystemInterface().getExecutedAnnotation().size)
     }
 
     @Test
@@ -246,6 +265,26 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("overlay/MUTE12_09")
     }
 
+    @Test
+    fun executeMUTE12_11() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_11", 12)
+    }
+
+    @Test
+    fun executeMUTE12_12() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_12", 4)
+    }
+
+    @Test
+    fun executeMUTE12_13() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_13", 4)
+    }
+
+    @Test
+    fun executeMUTE12_14() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_14", 4)
+    }
+
     @Test @Ignore
     fun executeMUTE13_26() {
         assertMuteExecutionSucceded("mute/MUTE13_26")
@@ -254,6 +293,122 @@ open class MuteExecutionTest : AbstractTest() {
     @Test
     fun executeMUTE13_27() {
         assertMuteExecutionSucceded("mute/MUTE13_27")
+    }
+
+    @Test
+    fun executeMUTE13_28() {
+        assertMuteExecutionSucceded("mute/MUTE13_28")
+    }
+
+    @Test
+    fun executeMUTE13_30() {
+        assertMuteExecutionSucceded("mute/MUTE13_30")
+    }
+
+    @Test
+    fun executeMUTE15_01() {
+        executePgm("mute/MUTE15_01", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    @Ignore
+    // TODO ("Fix: Errors at line: 1 messages: token recognition error at: ''',token recognition error at: ']'")
+    // The problem is mutelexer.g4 which is no able to lex this annotation MU* VAL1(RIS1) VAL2('[T1]') COMP(EQ)
+    // Maybe it's the presence of square brackets
+    fun executeMUTE15_02() {
+        executePgm("mute/MUTE15_02", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_03() {
+        executePgm("mute/MUTE15_03", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    @Ignore
+    // TODO ("Fix: Mute annotation at line 33 failed - ELEM = "5" - Left value 0  - right value 5 - Line 34")
+    fun executeMUTE15_04() {
+        executePgm("mute/MUTE15_04", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    @Ignore
+    // TODO ("Fix: Issue executing ExecuteSubroutine at line 17. Program MUTE15_05 - Issue executing EvalStmt at line 27. Program <UNSPECIFIED> - Issue executing CallStmt at line 48. Data definition XXSTR was not found")
+    fun executeMUTE15_05() {
+        executePgm("mute/MUTE15_05", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_06() {
+        executePgm("mute/MUTE15_06", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_07() {
+        executePgm("mute/MUTE15_07", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_08() {
+        executePgm("mute/MUTE15_08", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_09() {
+        executePgm("mute/MUTE15_09", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_10() {
+        val configuration = Configuration().apply {
+            options = Options(muteSupport = true, dumpSourceOnExecutionError = false)
+        }
+        executePgm("mute/MUTE15_10", configuration = configuration, systemInterface = JavaSystemInterface())
+    }
+
+    @Test
+    fun executeMUTE15_11() {
+        executePgm("mute/MUTE15_11", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_12() {
+        executePgm("mute/MUTE15_12", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_13() {
+        executePgm("mute/MUTE15_13", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_14() {
+        executePgm("mute/MUTE15_14", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE15_15() {
+        executePgm("mute/MUTE15_15", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE18_01() {
+        executePgm("mute/MUTE18_01", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE18_02() {
+        executePgm("mute/MUTE18_02", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE18_03() {
+        executePgm("mute/MUTE18_03", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE18_04() {
+        executePgm("mute/MUTE18_04", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
 
     private fun assertMuteExecutionSucceded(
@@ -267,8 +422,8 @@ open class MuteExecutionTest : AbstractTest() {
         nrOfMuteAssertions?.let { cu.assertNrOfMutesAre(it) }
 
         val interpreter = execute(cu, parameters)
-        nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.systemInterface.getExecutedAnnotation().size) }
-        interpreter.systemInterface.getExecutedAnnotation().forEach {
+        nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.getSystemInterface().getExecutedAnnotation().size) }
+        interpreter.getSystemInterface().getExecutedAnnotation().forEach {
             assertTrue(it.value.succeeded(), "Mute assertion failed: ${it.value.headerDescription()}")
         }
     }

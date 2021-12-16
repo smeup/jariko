@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.Record
@@ -75,6 +91,43 @@ class CallEndLogEntry(programName: String, val callStmt: CallStmt, val elapsed: 
     }
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
         val data = "CALL END${sep}${callStmt.expression.render()}${sep}$elapsed${sep}ms"
+
+        return renderHeader(channel, filename, callStmt.endLine(), sep) + data
+    }
+}
+
+data class CallPExecutionLogEntry(override val programName: String, val callStmt: CallPStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "calling $callStmt"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "CALLP START${sep}${callStmt.functionCall.render()}"
+
+        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
+    }
+
+    override fun renderResolution(channel: String, filename: String, sep: String): String {
+        val data = "CALLP ${sep}${callStmt.functionCall.render()}"
+
+        return renderHeader(channel, filename, callStmt.startLine(), sep) + data
+    }
+}
+
+class CallPEndLogEntry(programName: String, val callStmt: CallPStmt, val elapsed: Long, val exception: Exception? = null) : LogEntry(programName) {
+    override fun toString(): String {
+        return if (exception == null) {
+            "end of $callStmt"
+        } else {
+            "exception $exception in calling $callStmt"
+        }
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "CALLP END${sep}${callStmt.functionCall.render()}"
+
+        return renderHeader(channel, filename, callStmt.endLine(), sep) + data
+    }
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "CALLP END${sep}${callStmt.functionCall.render()}${sep}$elapsed${sep}ms"
 
         return renderHeader(channel, filename, callStmt.endLine(), sep) + data
     }
