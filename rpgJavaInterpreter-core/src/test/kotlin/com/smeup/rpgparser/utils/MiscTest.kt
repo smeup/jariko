@@ -19,6 +19,8 @@ package com.smeup.rpgparser.utils
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.parsing.facade.CopyId
+import com.smeup.rpgparser.parsing.facade.CopyBlock
 import com.smeup.rpgparser.parsing.facade.preprocess
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
@@ -174,16 +176,29 @@ class MiscTest {
       AFTER QILEGEN,£PDS AND ADDING ${'$'}1${'$'}2${'$'}3
 ********** PREPROCESSOR COPYEND QILEGEN,£JAX_PD1   
         """
-        val included = src.byteInputStream().preprocess {
+        val copyBlocks = listOf(
+            CopyBlock(copyId = CopyId(library = null, file = "QILEGEN", member = "£INIZH"), start = 2, end = 5),
+            CopyBlock(copyId = CopyId(library = null, file = "QILEGEN", member = "£TABB£1DS"), start = 6, end = 9),
+            CopyBlock(copyId = CopyId(library = null, file = "QILEGEN", member = "£PDS"), start = 9, end = 12),
+            CopyBlock(copyId = CopyId(library = null, file = "QILEGEN", member = "£JAX_PD1"), start = 13, end = 19),
+            CopyBlock(copyId = CopyId(library = null, file = "QILEGEN", member = "£JAX_PD2"), start = 14, end = 17)
+        )
+        val included = src.byteInputStream().preprocess(
             // recursive test
             // simulate copy £JAX_PD1 include £JAX_PD2
-            if (it.member == "£JAX_PD1") {
-                ("      /COPY QILEGEN,£JAX_PD2\n" +
-                        "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
-            } else {
-                "      HELLO I AM COPY ${it.file},${it.member}"
+            findCopy = { copyId ->
+                if (copyId.member == "£JAX_PD1") {
+                    ("      /COPY QILEGEN,£JAX_PD2\n" +
+                            "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
+                } else {
+                    "      HELLO I AM COPY ${copyId.file},${copyId.member}"
+                }
+            },
+            includedCopy = { copyBlock ->
+                println("copyBlock: $copyBlock")
+                Assert.assertTrue(copyBlocks.contains(copyBlock))
             }
-        }
+        )
         println(included)
         assertEquals(expected.trim(), included.trim())
     }

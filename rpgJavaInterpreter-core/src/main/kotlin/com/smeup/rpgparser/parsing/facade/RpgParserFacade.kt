@@ -291,9 +291,11 @@ class RpgParserFacade {
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
         val errors = LinkedList<Error>()
-        val code = inputStream.preprocess {
-            MainExecutionContext.getSystemInterface()?.findCopy(it)?.source
-        }
+        val copyBlocks = mutableListOf<CopyBlock>()
+        val code = inputStream.preprocess(
+            findCopy = { copyId -> MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source },
+            includedCopy = { copyBlock ->  copyBlocks + copyBlock}
+        )
 //        println("After preprocess code")
 //        println(code)
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)

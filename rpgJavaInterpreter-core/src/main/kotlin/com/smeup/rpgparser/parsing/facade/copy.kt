@@ -24,21 +24,34 @@ class Copy(val source: String) {
 private fun String.includesCopy(
     findCopy: (copyId: CopyId) -> String? = {
         MainExecutionContext.getSystemInterface()!!.findCopy(it)!!.source
-    }
+    },
+    includedCopy: (copyBlock: CopyBlock) -> Unit = { _: CopyBlock -> },
+    currentLine: Int = 0
 ): String {
     val matcher = PATTERN.matcher(this)
     val sb = StringBuffer()
+    var addedLines = 0
     while (matcher.find()) {
         // Skip commented line
         if (null != matcher.group(2)) continue
         val copyId = matcher.group(1).copyId()
         // println("Processing $copyId")
         kotlin.runCatching {
-            val copy = (findCopy.invoke(copyId))?.includesCopy(findCopy)?.surroundWithPreprocessingAnnotations(copyId) ?: let {
+            val copyStartLine = this.substring(0, matcher.start(1)).lines().size + currentLine + addedLines
+            val copy = (findCopy.invoke(copyId))?.includesCopy(
+                findCopy = findCopy,
+                includedCopy = includedCopy,
+                currentLine = copyStartLine
+            )?.surroundWithPreprocessingAnnotations(copyId)?.apply {
+            } ?: let {
                 println("Copy ${matcher.group()} not found".yellow())
                 matcher.group()
             }
-            matcher.appendReplacement(sb, copy.replace("$", "\\$"))
+            val copyContent = copy.replace("$", "\\$")
+            val copyEndLine = copyStartLine + copyContent.lines().size
+            includedCopy.invoke(CopyBlock(copyId, copyStartLine, copyEndLine))
+            addedLines += copyContent.lines().size - 1
+            matcher.appendReplacement(sb, copyContent)
         }.onFailure {
             throw IllegalStateException("Error on inclusion copy: ${matcher.group(0)}\nsource:\n$this", it)
         }
@@ -64,12 +77,15 @@ private fun String.copyId(): CopyId {
     }
 }
 
-fun InputStream.preprocess(findCopy: (copyId: CopyId) -> String?): String {
+internal fun InputStream.preprocess(
+    findCopy: (copyId: CopyId) -> String?,
+    includedCopy: (copyBlock: CopyBlock) -> Unit = { _: CopyBlock -> }
+): String {
     val programName = getExecutionProgramNameWithNoExtension()
     MainExecutionContext.log(PreprocessingLogStart(programName = programName))
     val preprocessed: String
     measureTimeMillis {
-        preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(findCopy)
+        preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(findCopy = findCopy, includedCopy = includedCopy)
     }.apply {
         MainExecutionContext.log(
             PreprocessingLogEnd(
@@ -96,6 +112,14 @@ data class CopyId(val library: String?, val file: String?, val member: String) {
         }.toString()
     }
 }
+
+/**
+ * Copy block. This object is used to identify a copy inside the main program.
+ * @param copyId The copy identifier
+ * @param start The first line of the copy (inclusive)
+ * @param end The end line of the copy (exclusive)
+ * */
+data class CopyBlock(val copyId: CopyId, val start: Int, val end: Int)
 
 /**
  * Get key related receiver, format is as follows:

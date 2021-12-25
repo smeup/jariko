@@ -19,6 +19,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.strumenta.kolasu.model.Position
 import java.io.File
@@ -89,6 +90,9 @@ data class Options(
  * @param onEnterPgm It is invoked on program enter after symboltable initialization.
  * @param onExitPgm It is invoked on program exit. In case of error it is no longer called, then even error parameter is no longer significant
  * @param afterAstCreation It is invoked after ast creation
+ * @param onEnterStatement It is invoked before statement execution. Parameter position is the statement source line
+ * @param onEnterCopy It is invoked on copy enter.
+ * @param onExitCopy It is invoked on copy exit.
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
@@ -98,7 +102,9 @@ data class JarikoCallback(
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
     var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
-    var onEnterStatement: (position: Position?) -> Unit = { _: Position? -> }
+    var onEnterStatement: (position: Position?) -> Unit = { },
+    var onEnterCopy: (copyId: CopyId) -> Unit = { },
+    var onExitCopy: (copyId: CopyId) -> Unit = { }
 )
 
 /**
