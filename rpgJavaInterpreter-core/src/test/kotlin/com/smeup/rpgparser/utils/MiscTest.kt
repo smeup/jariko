@@ -261,4 +261,17 @@ class MiscTest {
             Assert.fail()
         }
     }
+
+    @Test
+    fun copyBlockContains() {
+        val copyBlock1 = CopyBlock(CopyId(member = "1"), start = 1, end = 5)
+        val copyBlock2 = CopyBlock(CopyId(member = "2"), start = 10, end = 20)
+        val copyBlock3 = CopyBlock(CopyId(member = "2.1"), start = 11, end = 14)
+        Assert.assertFalse(copyBlock1.contains(copyBlock2))
+        Assert.assertFalse(copyBlock1.contains(copyBlock3))
+        Assert.assertFalse(copyBlock2.contains(copyBlock1))
+        Assert.assertTrue(copyBlock2.contains(copyBlock3))
+        Assert.assertFalse(copyBlock3.contains(copyBlock1))
+        Assert.assertFalse(copyBlock3.contains(copyBlock2))
+    }
 }

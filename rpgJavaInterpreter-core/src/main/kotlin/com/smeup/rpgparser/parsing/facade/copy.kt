@@ -5,6 +5,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.PreprocessingLogEnd
 import com.smeup.rpgparser.interpreter.PreprocessingLogStart
 import com.smeup.rpgparser.parsing.ast.SourceProgram
+import kotlinx.serialization.Serializable
 import java.io.BufferedReader
 import java.io.InputStream
 import java.util.regex.Pattern
@@ -98,7 +99,8 @@ internal fun InputStream.preprocess(
     return preprocessed
 }
 
-data class CopyId(val library: String?, val file: String?, val member: String) {
+@Serializable
+data class CopyId(val library: String? = null, val file: String? = null, val member: String) {
 
     override fun toString(): String {
         return StringBuffer().apply {
@@ -119,7 +121,29 @@ data class CopyId(val library: String?, val file: String?, val member: String) {
  * @param start The first line of the copy (inclusive)
  * @param end The end line of the copy (exclusive)
  * */
-data class CopyBlock(val copyId: CopyId, val start: Int, val end: Int)
+@Serializable
+data class CopyBlock(val copyId: CopyId, val start: Int, val end: Int) {
+
+    /**
+     * @return true if copyBlock passed by parameter is inside this
+     * */
+    fun contains(copyBlock: CopyBlock) = copyBlock.start > this.start && copyBlock.end < this.end
+}
+
+@Serializable
+class CopyBlocks {
+    private val copyBlocks = mutableListOf<CopyBlock>()
+
+    fun add(copyBlock: CopyBlock) {
+        copyBlocks.add(copyBlock)
+    }
+
+    internal fun getCopyBlockContaining(line: Int): CopyBlock? {
+        return copyBlocks?.filter {
+                copyBlock -> line >= copyBlock.start && line < copyBlock.end
+        }?.minByOrNull { copyBlock -> copyBlock.end - copyBlock.start }
+    }
+}
 
 /**
  * Get key related receiver, format is as follows:

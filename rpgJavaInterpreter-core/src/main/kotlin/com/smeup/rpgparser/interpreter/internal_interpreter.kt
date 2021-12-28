@@ -21,12 +21,14 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
+import com.smeup.rpgparser.parsing.facade.CopyBlock
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.resizeTo
+import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
@@ -46,6 +48,8 @@ object InterpreterConfiguration {
 val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
 private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
+private const val COPY_BLOCK_ATTRIBUTE = "com.smeup.rpgparser.interpreter.copyBlock"
+typealias RelativePosition = Pair<Position, CopyBlock?>
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
@@ -374,7 +378,9 @@ open class InternalInterpreter(
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
-                MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(statement.position)
+                statement.position?.relative()?.let {
+                    MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second?.copyId)
+                }
                 statement.execute(this)
             }
         } catch (e: ControlFlowException) {
@@ -399,6 +405,21 @@ open class InternalInterpreter(
                     statement.position.line()
                 )
             }
+        }
+    }
+
+    // converts the absolute position to relative position taking in account that position could be inside a copy
+    private fun Position.relative(): RelativePosition {
+        return if (MainExecutionContext.getProgramStack().empty()) {
+            RelativePosition(first = this, second = null)
+        } else {
+            val containingCopyBlock =
+                MainExecutionContext.getProgramStack().peek().cu.copyBlocks?.getCopyBlockContaining(this.start.line)
+            val relatedCopyStartLine = containingCopyBlock?.let { it -> this.start.line - it.start } ?: this.start.line
+            RelativePosition(
+                first = this.copy(start = this.start.copy(line = relatedCopyStartLine), end = this.end.copy()),
+                second = containingCopyBlock
+            )
         }
     }
 

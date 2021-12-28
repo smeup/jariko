@@ -67,7 +67,8 @@ fun List<Error>.firstLine(): String {
 
 data class ParseTrees(
     val rContext: RContext,
-    val muteContexts: MutesImmutableMap? = null
+    val muteContexts: MutesImmutableMap? = null,
+    val copyBlocks: CopyBlocks? = null
 )
 
 class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser, val src: String) : ParsingResult<ParseTrees>(errors, root) {
@@ -291,10 +292,10 @@ class RpgParserFacade {
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
         val errors = LinkedList<Error>()
-        val copyBlocks = mutableListOf<CopyBlock>()
+        val copyBlocks = CopyBlocks()
         val code = inputStream.preprocess(
             findCopy = { copyId -> MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source },
-            includedCopy = { copyBlock ->  copyBlocks + copyBlock}
+            includedCopy = { copyBlock -> copyBlocks.add(copyBlock) }
         )
 //        println("After preprocess code")
 //        println(code)
@@ -310,7 +311,7 @@ class RpgParserFacade {
             mutes = findMutes(code, errors)
         }
         verifyParseTree(parser, errors, root)
-        parserResult = RpgParserResult(errors, ParseTrees(root, mutes), parser, code)
+        parserResult = RpgParserResult(errors, ParseTrees(rContext = root, muteContexts = mutes, copyBlocks = copyBlocks), parser, code)
         return parserResult
     }
 
@@ -359,7 +360,8 @@ class RpgParserFacade {
                         result.src
                     } else {
                         null
-                    }
+                    },
+                    copyBlocks = result.root.copyBlocks
                 ).apply {
                     if (muteSupport) {
                         val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
