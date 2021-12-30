@@ -19,9 +19,8 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.facade.CopyId
+import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
-import com.strumenta.kolasu.model.Position
 import java.io.File
 
 const val DEFAULT_ACTIVATION_GROUP_NAME: String = "*DFTACTGRP"
@@ -67,6 +66,7 @@ data class ReloadConfig(
  * @param toAstConfiguration Creating ast configuration
  * @param callProgramHandler If specified allows to override program call handling logic.
  * @param dumpSourceOnExecutionError If true, program source is dumped on execution error. Default false.
+ * @param addDebuggingInformation If true add debugging information, for example program source will be dumped in case of errors.
  * Setting this property to true causes a little overhead in AST serialization and deserialization due the fact
  * the source is CompilationUnit property
  * */
@@ -76,8 +76,13 @@ data class Options(
     var muteVerbose: Boolean = false,
     var toAstConfiguration: ToAstConfiguration = ToAstConfiguration(),
     var callProgramHandler: CallProgramHandler? = null,
-    var dumpSourceOnExecutionError: Boolean? = false
-)
+    @Deprecated(replaceWith = ReplaceWith(expression = "addDebuggingInformation"), message = "This property will be deleted in the next releases")
+    var dumpSourceOnExecutionError: Boolean? = false,
+    var addDebuggingInformation: Boolean? = false
+) {
+    internal fun mustDumpSource() = dumpSourceOnExecutionError == true || addDebuggingInformation == true
+    internal fun mustDumpCreateCopyBlocks() = dumpSourceOnExecutionError == true || addDebuggingInformation == true
+}
 
 /**
  * Sometimes we have to gain control of Jariko, this is the right place.
@@ -91,7 +96,8 @@ data class Options(
  * @param onExitPgm It is invoked on program exit. In case of error it is no longer called, then even error parameter is no longer significant
  * @param afterAstCreation It is invoked after ast creation
  * @param onEnterStatement It is invoked before statement execution.
- * Parameter position is the statement source line, and copyId when not null is the copy reference
+ * **This callback will be called only if [Options.addDebuggingInformation] is set to true**.
+ * See [JarikoCallback.onEnterStatement] for further information
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
@@ -101,7 +107,14 @@ data class JarikoCallback(
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
     var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
-    var onEnterStatement: (position: Position, copyId: CopyId?) -> Unit = { _: Position, _: CopyId? -> }
+    /**
+     * @param lineNumber is the absolute position of the statement in the post-processed program.
+     * In case of programs with copy, the absolute position usually is different from the position of the statement
+     * inside the source.
+     * The position of the statement inside the source is accessible through sourceReference parameter.
+     * @param sourceReference The source type where the statement is
+     * */
+    var onEnterStatement: (lineNumber: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> }
 )
 
 /**

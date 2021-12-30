@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
@@ -7,7 +23,8 @@ import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
-import com.strumenta.kolasu.model.Position
+import com.smeup.rpgparser.parsing.facade.SourceReference
+import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import org.junit.Assert
 import kotlin.test.Test
 
@@ -21,7 +38,8 @@ class JarikoCallbackTest : AbstractTest() {
         val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
         var enteredTimes = 0
         executePgm(systemInterface = systemInterface, programName = "HELLO", configuration = Configuration().apply {
-            jarikoCallback.onEnterStatement = { position: Position?, _: CopyId? -> enteredTimes++ }
+            jarikoCallback.onEnterStatement = { _: Int, _: SourceReference -> enteredTimes++ }
+            options = Options().apply { addDebuggingInformation = true }
         })
         Assert.assertEquals(3, enteredTimes)
     }
@@ -38,7 +56,7 @@ class JarikoCallbackTest : AbstractTest() {
                 enteredTimes[programName] = enteredTimes[programName]!! + 1
             }
             jarikoCallback.onExitPgm = {
-                    programName: String, symbolTable: ISymbolTable, error: Throwable? ->
+                    programName: String, symbolTable: ISymbolTable, _: Throwable? ->
                 println("onExitPgm - programName: $programName, symbolTable: $symbolTable")
                 exitedTimes[programName] = exitedTimes[programName]!! + 1
             }
@@ -52,41 +70,53 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun onEnterStatementWithCopyBlock() {
         val pgm = """
-     D Msg             S             30      
-     C                   EVAL      Msg = 'Include COPY1'
-     C      Msg          DSPLY
-     I/COPY COPY1
-     C                   EVAL      Msg = 'Include COPY2'
-     C      Msg          DSPLY
-     I/COPY COPY2     
-     C                   EVAL      Msg = 'Exit from COPY2'
-     C      Msg          DSPLY
-        """
+2    D Msg             S             30      
+3    C                   EVAL      Msg = 'Include COPY1'
+4    C      Msg          DSPLY
+5    I/COPY COPY1
+6    C                   EVAL      Msg = 'Include COPY2'
+7    C      Msg          DSPLY
+8    I/COPY COPY2     
+9    C                   EVAL      Msg = 'Exit from COPY2'
+10   C      Msg          DSPLY
+        """.trimEnd()
         val copy1 = """
-     D Msg1            S             30
-     C                   EVAL      Msg1 = 'I AM COPY1'
-     C      Msg1         DSPLY
+2    D Msg1            S             30
+3    C                   EVAL      Msg1 = 'I AM COPY1'
+4    C      Msg1         DSPLY
         """
         val copy2 = """
-     D Msg2            S             30
-     C                   EVAL      Msg2 = 'I AM COPY2'
-     C      Msg2         DSPLY
-     C                   EVAL      Msg2 = 'Include COPY21'
-     C      Msg2         DSPLY
-      /COPY COPY21     
+2    D Msg2            S             30
+3    C                   EVAL      Msg2 = 'I AM COPY2'
+4    C      Msg2         DSPLY
+5    C                   EVAL      Msg2 = 'Include COPY21'
+6    C      Msg2         DSPLY
+7     /COPY COPY21     
+8    C      Msg2         EVAL      Msg2 = 'After COPY21'
+9    C      Msg2         DSPLY
+10   C                   EVAL      Msg2 = 'Include COPY22'
+11   C      Msg2         DSPLY
+12    /COPY COPY22     
         """
         val copy21 = """
-     D Msg21           S             30
-     C                   EVAL      Msg21 = 'I AM COPY21'
-     C      Msg21        DSPLY
+2    D Msg21           S             30
+3    C                   EVAL      Msg21 = 'I AM COPY21'
+4    C      Msg21        DSPLY
+        """
+        val copy22 = """
+2    D Msg22           S             30
+3    C                   EVAL      Msg21 = 'I AM COPY22'
+4    C      Msg22        DSPLY
         """
         val id1 = CopyId(member = "COPY1")
         val id2 = CopyId(member = "COPY2")
         val id21 = CopyId(member = "COPY21")
+        val id22 = CopyId(member = "COPY22")
         val copyDefinitions = mapOf(
             id1 to copy1,
             id2 to copy2,
-            id21 to copy21
+            id21 to copy21,
+            id22 to copy22
         )
         val systemInterface = object : JavaSystemInterface() {
             override fun findCopy(copyId: CopyId): Copy? {
@@ -96,33 +126,30 @@ class JarikoCallbackTest : AbstractTest() {
                 println(value)
             }
         }
-        lateinit var postprocessed: String
-        // statements per copy
-        val statements = HashMap<CopyId?, Int>().apply {
-            put(null, 6)
-            put(id1, 2)
-            put(id2, 4)
-            put(id21, 2)
-        }
+        lateinit var postProcessed: String
         val configuration = Configuration().apply {
-            options = Options().apply { dumpSourceOnExecutionError = true }
+            options = Options().apply { addDebuggingInformation = true }
             jarikoCallback = JarikoCallback().apply {
-                afterAstCreation = { ast -> postprocessed = ast.source!! }
-                onEnterStatement = { position: Position?, copyId: CopyId? ->
-                    println("copyId: $copyId, line: ${position!!.start.line}")
-                    val src = copyId?.let { copyDefinitions[copyId] } ?: postprocessed
-                    val code = src.lines()[position!!.start.line - 1]
-                    println("code: $code")
-                    // for each statement remove statement for that copy
-                    // test has succeeded if statements become empty
-                    statements[copyId] = statements[copyId]!! - 1
-                    if (statements[copyId]!! == 0) {
-                        statements.remove(copyId)
+                afterAstCreation = { ast -> postProcessed = ast.source!! }
+                onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
+                    if (sourceReference.sourceReferenceType == SourceReferenceType.Copy) {
+                        println("Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
+                    } else {
+                        println("Program - relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
                     }
+                    val src = when (sourceReference.sourceReferenceType) {
+                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId)]
+                        SourceReferenceType.Program -> pgm
+                    }
+                    require(src != null)
+                    val relativeStatement = src.lines()[sourceReference.lineNumber - 1]
+                    println("relativeStatement: $relativeStatement")
+                    val absoluteStatement = postProcessed.lines()[lineNumber - 1]
+                    println("absoluteStatement: $absoluteStatement")
+                    Assert.assertEquals(absoluteStatement, relativeStatement)
                 }
             }
         }
         executePgm(programName = pgm, systemInterface = systemInterface, configuration = configuration)
-        Assert.assertTrue(statements.isEmpty())
     }
 }

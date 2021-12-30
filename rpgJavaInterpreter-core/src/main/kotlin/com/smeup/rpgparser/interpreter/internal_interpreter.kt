@@ -21,7 +21,8 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
-import com.smeup.rpgparser.parsing.facade.CopyBlock
+import com.smeup.rpgparser.parsing.facade.SourceReference
+import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -48,8 +49,8 @@ object InterpreterConfiguration {
 val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
 private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
-private const val COPY_BLOCK_ATTRIBUTE = "com.smeup.rpgparser.interpreter.copyBlock"
-typealias RelativePosition = Pair<Position, CopyBlock?>
+
+typealias StatementReference = Pair<Int, SourceReference>
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
@@ -378,8 +379,10 @@ open class InternalInterpreter(
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
-                statement.position?.relative()?.let {
-                    MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second?.copyId)
+                if (MainExecutionContext.getConfiguration().options?.mustDumpCreateCopyBlocks() == true) {
+                    statement.position?.relative()?.let {
+                        MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
+                    }
                 }
                 statement.execute(this)
             }
@@ -408,17 +411,25 @@ open class InternalInterpreter(
         }
     }
 
-    // converts the absolute position to relative position taking in account that position could be inside a copy
-    private fun Position.relative(): RelativePosition {
+    private fun Position.relative(): StatementReference {
         return if (MainExecutionContext.getProgramStack().empty()) {
-            RelativePosition(first = this, second = null)
+            StatementReference(
+                first = this.start.line,
+                second = SourceReference(
+                    sourceReferenceType = SourceReferenceType.Program,
+                    sourceId = "UNKNOWN",
+                    lineNumber = this.start.line)
+            )
         } else {
-            val containingCopyBlock =
-                MainExecutionContext.getProgramStack().peek().cu.copyBlocks?.getCopyBlockContaining(this.start.line)
-            val relatedCopyStartLine = containingCopyBlock?.let { it -> this.start.line - it.start } ?: this.start.line
-            RelativePosition(
-                first = this.copy(start = this.start.copy(line = relatedCopyStartLine), end = this.end.copy()),
-                second = containingCopyBlock
+            val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks
+            val copyBlock = copyBlocks?.getCopyBlock(this.start.line)
+            StatementReference(
+                first = this.start.line,
+                second = SourceReference(
+                    sourceReferenceType = copyBlock?.let { SourceReferenceType.Copy } ?: SourceReferenceType.Program,
+                    sourceId = copyBlock?.copyId?.toString() ?: MainExecutionContext.getExecutionProgramName(),
+                    lineNumber = copyBlocks?.relativeLine(this.start.line)?.first ?: 0
+                )
             )
         }
     }
