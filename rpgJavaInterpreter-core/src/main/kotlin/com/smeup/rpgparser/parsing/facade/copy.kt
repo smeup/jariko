@@ -237,7 +237,7 @@ class CopyBlocks {
      * @param absoluteLine Line in the post-processed program coordinates
      * @return relative line
      * */
-    internal fun relativeLine(absoluteLine: Int): RelativeLine {
+    fun relativeLine(absoluteLine: Int): RelativeLine {
         require(absoluteLine >= 0) { "absoluteLine must be greater than 0" }
         val copyBlock = getCopyBlock(absoluteLine)
         val relativeLine = copyBlock?.let { block ->
