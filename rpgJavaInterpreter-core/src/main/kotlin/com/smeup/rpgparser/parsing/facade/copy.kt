@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.facade
 
 import com.andreapivetta.kolor.yellow
@@ -185,7 +201,7 @@ data class CopyBlock(val copyId: CopyId, val start: Int, var end: Int) {
  *
  * */
 @Serializable
-class CopyBlocks {
+class CopyBlocks : Iterable<CopyBlock> {
 
     private val copyBlocks = mutableListOf<CopyBlock>()
 
@@ -196,6 +212,13 @@ class CopyBlocks {
         val list = mutableListOf<CopyBlock>()
         copyBlocks.forEach { copyBlock -> if (list.none { it.contains(copyBlock) }) list.add(copyBlock) }
         list
+    }
+
+    /**
+     * Returns an iterator over the elements of this object.
+     */
+    override fun iterator(): Iterator<CopyBlock> {
+        return copyBlocks.iterator()
     }
 
     internal fun onStartCopyBlock(copyId: CopyId, start: Int) {
@@ -253,6 +276,27 @@ class CopyBlocks {
         } ?: (absoluteLine - (getCopyBlocksBefore(absoluteLine)
             .sumOf { it.end - it.start - 1 }))
         return RelativeLine(first = relativeLine, second = copyBlock)
+    }
+
+    /**
+     * Allows observing the copy blocks transitions. Parameters from and to are inclusive.
+     * @param from Start from absolute line
+     * @param to End to absolute line
+     * */
+    fun observeTransitions(
+        from: Int,
+        to: Int,
+        onEnter: (copyBlock: CopyBlock) -> Unit,
+        onExit: (copyBlock: CopyBlock) -> Unit
+    ) {
+        copyBlocks.forEach { copyBlock ->
+            if (copyBlock.start in from..to) {
+                onEnter.invoke(copyBlock)
+            }
+            if (copyBlock.end in from..to) {
+                onExit.invoke(copyBlock)
+            }
+        }
     }
 
     private fun getChildren(copyBlock: CopyBlock) = copyBlocks.filter { it.parent == copyBlock }

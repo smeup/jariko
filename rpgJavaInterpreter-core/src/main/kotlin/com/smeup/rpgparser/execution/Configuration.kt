@@ -19,6 +19,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import java.io.File
@@ -81,7 +82,8 @@ data class Options(
     var addDebuggingInformation: Boolean? = false
 ) {
     internal fun mustDumpSource() = dumpSourceOnExecutionError == true || addDebuggingInformation == true
-    internal fun mustDumpCreateCopyBlocks() = dumpSourceOnExecutionError == true || addDebuggingInformation == true
+    internal fun mustCreateCopyBlocks() = addDebuggingInformation == true
+    internal fun mustInvokeOnStatementCallback() = addDebuggingInformation == true
 }
 
 /**
@@ -95,6 +97,10 @@ data class Options(
  * @param onEnterPgm It is invoked on program enter after symboltable initialization.
  * @param onExitPgm It is invoked on program exit. In case of error it is no longer called, then even error parameter is no longer significant
  * @param afterAstCreation It is invoked after ast creation
+ * @param onEnterCopy It is invoked on copy enter.
+ * **This callback will be called only if [Options.addDebuggingInformation] is set to true**.
+ * @param onEnterCopy It is invoked on copy exit.
+ * **This callback will be called only if [Options.addDebuggingInformation] is set to true**.
  * @param onEnterStatement It is invoked before statement execution.
  * **This callback will be called only if [Options.addDebuggingInformation] is set to true**.
  * See [JarikoCallback.onEnterStatement] for further information
@@ -107,6 +113,8 @@ data class JarikoCallback(
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
     var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
+    var onEnterCopy: (copyId: CopyId) -> Unit = { },
+    var onExitCopy: (copyId: CopyId) -> Unit = { },
     /**
      * @param lineNumber is the absolute position of the statement in the post-processed program.
      * In case of programs with copy, the absolute position usually is different from the position of the statement

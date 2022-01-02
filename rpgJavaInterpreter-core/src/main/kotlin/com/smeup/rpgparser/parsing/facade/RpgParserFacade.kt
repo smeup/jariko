@@ -291,7 +291,7 @@ class RpgParserFacade {
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
         val errors = LinkedList<Error>()
-        val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options?.mustDumpCreateCopyBlocks() == true) CopyBlocks() else null
+        val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) CopyBlocks() else null
         val code = inputStream.preprocess(
             findCopy = { copyId -> MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source },
             onStartInclusion = { copyId, start -> copyBlocks?.onStartCopyBlock(copyId = copyId, start = start) },

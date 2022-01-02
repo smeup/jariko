@@ -49,6 +49,7 @@ object InterpreterConfiguration {
 val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
 private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
+private const val PREV_STMT_EXEC_LINE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.prevStmtExecLine"
 
 typealias StatementReference = Pair<Int, SourceReference>
 
@@ -379,7 +380,8 @@ open class InternalInterpreter(
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
-                if (MainExecutionContext.getConfiguration().options?.mustDumpCreateCopyBlocks() == true) {
+                statement.position?.let { fireCopyObservingCallback(it.start.line) }
+                if (MainExecutionContext.getConfiguration().options?.mustInvokeOnStatementCallback() == true) {
                     statement.position?.relative()?.let {
                         MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
                     }
@@ -431,6 +433,21 @@ open class InternalInterpreter(
                     lineNumber = copyBlocks?.relativeLine(this.start.line)?.first ?: 0
                 )
             )
+        }
+    }
+
+    private fun fireCopyObservingCallback(currentStatementLine: Int) {
+        if (!MainExecutionContext.getProgramStack().empty() &&
+            MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) {
+            val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
+            val previousStatementLine = (MainExecutionContext.getAttributes()[PREV_STMT_EXEC_LINE_ATTRIBUTE] ?: 1) as Int
+            copyBlocks.observeTransitions(
+                from = previousStatementLine,
+                to = currentStatementLine,
+                onEnter = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(copyBlock.copyId) },
+                onExit = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(copyBlock.copyId) }
+            )
+            MainExecutionContext.getAttributes()[PREV_STMT_EXEC_LINE_ATTRIBUTE] = currentStatementLine
         }
     }
 

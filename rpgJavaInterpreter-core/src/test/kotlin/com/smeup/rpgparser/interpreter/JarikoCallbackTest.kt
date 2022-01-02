@@ -69,6 +69,66 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun onEnterStatementWithCopyBlock() {
+
+        lateinit var copyDefinitions: Map<CopyId, String>
+        lateinit var pgm: String
+        lateinit var postProcessed: String
+        val configuration = Configuration().apply {
+            options = Options().apply { addDebuggingInformation = true }
+            jarikoCallback = JarikoCallback().apply {
+                afterAstCreation = { ast -> postProcessed = ast.source!! }
+                onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
+                    if (sourceReference.sourceReferenceType == SourceReferenceType.Copy) {
+                        println("Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
+                    } else {
+                        println("Program - relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
+                    }
+                    val src = when (sourceReference.sourceReferenceType) {
+                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId)]
+                        SourceReferenceType.Program -> pgm
+                    }
+                    require(src != null)
+                    val relativeStatement = src.lines()[sourceReference.lineNumber - 1]
+                    println("relativeStatement: $relativeStatement")
+                    val absoluteStatement = postProcessed.lines()[lineNumber - 1]
+                    println("absoluteStatement: $absoluteStatement")
+                    Assert.assertEquals(absoluteStatement, relativeStatement)
+                }
+            }
+        }
+        executeInlinePgmContainingCopy(configuration = configuration, consumeSources = { myPgm, myCopyDefinitions ->
+            pgm = myPgm
+            copyDefinitions = myCopyDefinitions
+        })
+    }
+
+    @Test
+    fun copyLifeCycle() {
+        val copiesWillEnter = mutableSetOf<CopyId>()
+        val copiesDidEnter = mutableSetOf<CopyId>()
+        val copiesWillExit = mutableSetOf<CopyId>()
+        val copiesDidExit = mutableSetOf<CopyId>()
+        val configuration = Configuration().apply {
+            options = Options().apply { addDebuggingInformation = true }
+            jarikoCallback = JarikoCallback().apply {
+                onEnterCopy = { copyId -> copiesDidEnter.add(copyId) }
+                onExitCopy = { copyId -> copiesDidExit.add(copyId) }
+            }
+        }
+        executeInlinePgmContainingCopy(configuration, consumeSources = { _, copyDefinitions ->
+            copyDefinitions.keys.forEach { copyId ->
+                copiesWillEnter.add(copyId)
+                copiesWillExit.add(copyId)
+            }
+        })
+        Assert.assertEquals(copiesWillEnter, copiesDidEnter)
+        Assert.assertEquals(copiesWillExit, copiesDidExit)
+    }
+
+    private fun executeInlinePgmContainingCopy(
+        configuration: Configuration,
+        consumeSources: (pgm: String, copyDefinitions: Map<CopyId, String>) -> Unit
+    ) {
         val pgm = """
 2    D Msg             S             30      
 3    C                   EVAL      Msg = 'Include COPY1'
@@ -108,46 +168,19 @@ class JarikoCallbackTest : AbstractTest() {
 3    C                   EVAL      Msg21 = 'I AM COPY22'
 4    C      Msg22        DSPLY
         """
-        val id1 = CopyId(member = "COPY1")
-        val id2 = CopyId(member = "COPY2")
-        val id21 = CopyId(member = "COPY21")
-        val id22 = CopyId(member = "COPY22")
         val copyDefinitions = mapOf(
-            id1 to copy1,
-            id2 to copy2,
-            id21 to copy21,
-            id22 to copy22
+            CopyId(member = "COPY1") to copy1,
+            CopyId(member = "COPY2") to copy2,
+            CopyId(member = "COPY21") to copy21,
+            CopyId(member = "COPY22") to copy22
         )
+        consumeSources.invoke(pgm, copyDefinitions)
         val systemInterface = object : JavaSystemInterface() {
             override fun findCopy(copyId: CopyId): Copy? {
                 return copyDefinitions[copyId]?.let { Copy.fromInputStream(it.byteInputStream(charset("UTF-8"))) }
             }
             override fun display(value: String) {
                 println(value)
-            }
-        }
-        lateinit var postProcessed: String
-        val configuration = Configuration().apply {
-            options = Options().apply { addDebuggingInformation = true }
-            jarikoCallback = JarikoCallback().apply {
-                afterAstCreation = { ast -> postProcessed = ast.source!! }
-                onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
-                    if (sourceReference.sourceReferenceType == SourceReferenceType.Copy) {
-                        println("Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
-                    } else {
-                        println("Program - relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
-                    }
-                    val src = when (sourceReference.sourceReferenceType) {
-                        SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId)]
-                        SourceReferenceType.Program -> pgm
-                    }
-                    require(src != null)
-                    val relativeStatement = src.lines()[sourceReference.lineNumber - 1]
-                    println("relativeStatement: $relativeStatement")
-                    val absoluteStatement = postProcessed.lines()[lineNumber - 1]
-                    println("absoluteStatement: $absoluteStatement")
-                    Assert.assertEquals(absoluteStatement, relativeStatement)
-                }
             }
         }
         executePgm(programName = pgm, systemInterface = systemInterface, configuration = configuration)

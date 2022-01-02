@@ -188,4 +188,71 @@ class CopyTest {
             } else println("skip")
         }
     }
+
+    @Test
+    fun copyBlocksObserveTransitions() {
+        MainExecutionContext.execute(systemInterface = JavaSystemInterface()) {
+            it.executionProgramName = "PGM"
+            val copyBlocks = CopyBlocks()
+            val cpy1 = CopyBlock(CopyId(member = "CPY1"), start = 4, end = 6)
+            val cpy2 = CopyBlock(CopyId(member = "CPY2"), start = 9, end = 12)
+            val cpy21 = CopyBlock(CopyId(member = "CPY21"), start = 10, end = 11)
+            copyBlocks.onStartCopyBlock(cpy1.copyId, cpy1.start)
+            copyBlocks.onEndCopyBlock(cpy1.end)
+            copyBlocks.onStartCopyBlock(cpy2.copyId, cpy2.start)
+            copyBlocks.onStartCopyBlock(cpy21.copyId, cpy21.start)
+            copyBlocks.onEndCopyBlock(cpy21.end)
+            copyBlocks.onEndCopyBlock(cpy2.end)
+            for (to in 1..3) {
+                copyBlocks.observeTransitions(
+                    from = 1,
+                    to = to,
+                    onEnter = { Assert.fail() },
+                    onExit = { Assert.fail() }
+                )
+            }
+            var expectedEnteredBlocks: MutableList<CopyBlock>
+            var expectedExitedBlocks: MutableList<CopyBlock>
+            expectedEnteredBlocks = mutableListOf(cpy1)
+            for (to in 4..5) {
+                copyBlocks.observeTransitions(
+                    from = 1,
+                    to = to,
+                    onEnter = { copyBlock -> expectedEnteredBlocks.remove(copyBlock) },
+                    onExit = { Assert.fail() }
+                )
+                Assert.assertEquals(0, expectedEnteredBlocks.size)
+            }
+            for (to in 6..8) {
+                expectedEnteredBlocks = mutableListOf(cpy1)
+                expectedExitedBlocks = mutableListOf(cpy1)
+                copyBlocks.observeTransitions(
+                    from = 1,
+                    to = to,
+                    onEnter = { copyBlock -> expectedEnteredBlocks.remove(copyBlock) },
+                    onExit = { copyBlock -> expectedExitedBlocks.remove(copyBlock) }
+                )
+                Assert.assertEquals(0, expectedEnteredBlocks.size)
+                Assert.assertEquals(0, expectedExitedBlocks.size)
+            }
+            for (to in 9..12) {
+                expectedEnteredBlocks = if (to == 9) mutableListOf(cpy1, cpy2) else mutableListOf(cpy1, cpy2, cpy21)
+                expectedExitedBlocks = when (to) {
+                    9 -> mutableListOf(cpy1)
+                    10 -> mutableListOf(cpy1)
+                    11 -> mutableListOf(cpy1, cpy21)
+                    12 -> mutableListOf(cpy1, cpy21, cpy2)
+                    else -> error(message = "$to does not manage")
+                }
+                copyBlocks.observeTransitions(
+                    from = 1,
+                    to = to,
+                    onEnter = { copyBlock -> expectedEnteredBlocks.remove(copyBlock) },
+                    onExit = { copyBlock -> expectedExitedBlocks.remove(copyBlock) }
+                )
+                Assert.assertEquals(0, expectedEnteredBlocks.size)
+                Assert.assertEquals(0, expectedExitedBlocks.size)
+            }
+        }
+    }
 }
