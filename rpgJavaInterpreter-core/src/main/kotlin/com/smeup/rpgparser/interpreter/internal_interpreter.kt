@@ -429,7 +429,7 @@ open class InternalInterpreter(
                 first = this.start.line,
                 second = SourceReference(
                     sourceReferenceType = copyBlock?.let { SourceReferenceType.Copy } ?: SourceReferenceType.Program,
-                    sourceId = copyBlock?.copyId?.toString() ?: MainExecutionContext.getExecutionProgramName(),
+                    sourceId = copyBlock?.copyId?.toString() ?: MainExecutionContext.getProgramStack().peek().name,
                     lineNumber = copyBlocks?.relativeLine(this.start.line)?.first ?: 0
                 )
             )

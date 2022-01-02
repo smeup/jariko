@@ -45,6 +45,21 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun onEnterStatementWithCall() {
+        val expectedEnteredTimes = mapOf("CAL01" to 5, "CAL02" to 4)
+        val actualEnteredTimes = mutableMapOf("CAL01" to 0, "CAL02" to 0)
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        executePgm(systemInterface = systemInterface, programName = "CAL01", configuration = Configuration().apply {
+            jarikoCallback.onEnterStatement = { _: Int, sourceReference: SourceReference ->
+                println(sourceReference)
+                actualEnteredTimes[sourceReference.sourceId] = actualEnteredTimes[sourceReference.sourceId]!! + 1
+            }
+            options = Options().apply { addDebuggingInformation = true }
+        })
+        Assert.assertEquals(expectedEnteredTimes, actualEnteredTimes)
+    }
+
+    @Test
     fun programLifeCycle() {
         val enteredTimes = mutableMapOf("CAL04" to 0, "CAL02" to 0)
         val exitedTimes = mutableMapOf("CAL04" to 0, "CAL02" to 0)
