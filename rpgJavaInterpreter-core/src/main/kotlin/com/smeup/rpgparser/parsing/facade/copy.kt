@@ -221,6 +221,8 @@ class CopyBlocks : Iterable<CopyBlock> {
         return copyBlocks.iterator()
     }
 
+    operator fun get(index: Int) = copyBlocks[index]
+
     internal fun onStartCopyBlock(copyId: CopyId, start: Int) {
         val copyBlock = CopyBlock(copyId, start = start, end = 0)
         if (!blocksStack.empty()) {
@@ -290,10 +292,10 @@ class CopyBlocks : Iterable<CopyBlock> {
         onExit: (copyBlock: CopyBlock) -> Unit
     ) {
         copyBlocks.forEach { copyBlock ->
-            if (copyBlock.start in from..to) {
+            if (copyBlock.start in from + 1..to) {
                 onEnter.invoke(copyBlock)
             }
-            if (copyBlock.end in from..to) {
+            if (copyBlock.end in from + 1..to) {
                 onExit.invoke(copyBlock)
             }
         }

@@ -118,7 +118,7 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
-    fun copyLifeCycle() {
+    fun copyLifeCycleWithInlinePgm() {
         val copiesWillEnter = mutableSetOf<CopyId>()
         val copiesDidEnter = mutableSetOf<CopyId>()
         val copiesWillExit = mutableSetOf<CopyId>()
@@ -138,6 +138,22 @@ class JarikoCallbackTest : AbstractTest() {
         })
         Assert.assertEquals(copiesWillEnter, copiesDidEnter)
         Assert.assertEquals(copiesWillExit, copiesDidExit)
+    }
+
+    @Test
+    fun copyLifeCycle() {
+        var entered = 0
+        var exited = 0
+        val configuration = Configuration().apply {
+            options = Options().apply { addDebuggingInformation = true }
+            jarikoCallback = JarikoCallback().apply {
+                onEnterCopy = { entered++ }
+                onExitCopy = { exited++ }
+            }
+        }
+        executePgm(programName = "TSTCPY01", configuration = configuration)
+        Assert.assertEquals(1, entered)
+        Assert.assertEquals(1, exited)
     }
 
     private fun executeInlinePgmContainingCopy(
