@@ -57,8 +57,13 @@ subprojects {
         jcenter()
     }
 
-    project.group   = "com.github.rpgjavainterpreter"
-    project.version = "1.1.0-SNAPSHOT"
+    // project.group and project.version are used to identify jariko maven coordinates
+    // If you have a project depending on jariko and you want to test
+    // some jariko feature without waiting for jitpack.io, you can type:
+    // ./gradlew install
+    // This task will install jariko artifacts into your local maven repository
+    project.group = "com.github.smeup.jariko"
+    project.version = "develop-SNAPSHOT"
 }
 
 
