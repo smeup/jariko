@@ -436,18 +436,23 @@ open class InternalInterpreter(
         }
     }
 
+    // I use a chain of names, so I am sure that this attribute name depends on program stack too
+    private fun prevStmtAttributeMame(): String {
+        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }}"
+    }
+
     private fun fireCopyObservingCallback(currentStatementLine: Int) {
         if (!MainExecutionContext.getProgramStack().empty() &&
             MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) {
             val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
-            val previousStatementLine = (MainExecutionContext.getAttributes()[PREV_STMT_EXEC_LINE_ATTRIBUTE] ?: 1) as Int
+            val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 1) as Int
             copyBlocks.observeTransitions(
                 from = previousStatementLine,
                 to = currentStatementLine,
                 onEnter = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(copyBlock.copyId) },
                 onExit = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(copyBlock.copyId) }
             )
-            MainExecutionContext.getAttributes()[PREV_STMT_EXEC_LINE_ATTRIBUTE] = currentStatementLine
+            MainExecutionContext.getAttributes()[prevStmtAttributeMame()] = currentStatementLine
         }
     }
 

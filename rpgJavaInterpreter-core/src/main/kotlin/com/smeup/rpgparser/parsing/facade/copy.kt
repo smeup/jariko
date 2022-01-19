@@ -207,6 +207,8 @@ class CopyBlocks : Iterable<CopyBlock> {
 
     private val copyBlocks = mutableListOf<CopyBlock>()
 
+    private val revertOrderedCopyBlocks = mutableListOf<CopyBlock>()
+
     @Transient
     private var blocksStack = Stack<CopyBlock>()
 
@@ -238,6 +240,8 @@ class CopyBlocks : Iterable<CopyBlock> {
         copyBlock.end = end
         copyBlocks.add(copyBlock)
         copyBlocks.sortBy { it.start }
+        revertOrderedCopyBlocks.add(copyBlock)
+        revertOrderedCopyBlocks.sortBy { -it.start }
     }
 
     /**
@@ -297,6 +301,8 @@ class CopyBlocks : Iterable<CopyBlock> {
             if (copyBlock.start in from + 1..to) {
                 onEnter.invoke(copyBlock)
             }
+        }
+        revertOrderedCopyBlocks.forEach { copyBlock ->
             if (copyBlock.end in from + 1..to) {
                 onExit.invoke(copyBlock)
             }

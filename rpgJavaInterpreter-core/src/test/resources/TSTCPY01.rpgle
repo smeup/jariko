@@ -8,4 +8,5 @@
      C     MSG           DSPLY
      I/COPY QILEGEN,TSTCPY01
      C                   EVAL      MSG='Copy included'
+     C                   CALL      'CAL01'
      C     MSG           DSPLY

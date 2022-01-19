@@ -123,13 +123,25 @@ class JarikoCallbackTest : AbstractTest() {
         val copiesDidEnter = mutableSetOf<CopyId>()
         val copiesWillExit = mutableSetOf<CopyId>()
         val copiesDidExit = mutableSetOf<CopyId>()
+        val enterSequence = mutableListOf<String>()
+        val exitSequence = mutableListOf<String>()
         val configuration = Configuration().apply {
             options = Options().apply { addDebuggingInformation = true }
             jarikoCallback = JarikoCallback().apply {
-                onEnterCopy = { copyId -> copiesDidEnter.add(copyId) }
-                onExitCopy = { copyId -> copiesDidExit.add(copyId) }
+                onEnterCopy = { copyId ->
+                    println("entering $copyId")
+                    enterSequence.add(copyId.member)
+                    copiesDidEnter.add(copyId)
+                }
+                onExitCopy = { copyId ->
+                    println("exiting $copyId")
+                    exitSequence.add(copyId.member)
+                    copiesDidExit.add(copyId)
+                }
             }
         }
+        val expectedEnterSequence = listOf("COPY1", "COPY2", "COPY21", "COPY22")
+        val expectedExitSequence = listOf("COPY1", "COPY21", "COPY22", "COPY2")
         executeInlinePgmContainingCopy(configuration, consumeSources = { _, copyDefinitions ->
             copyDefinitions.keys.forEach { copyId ->
                 copiesWillEnter.add(copyId)
@@ -138,6 +150,8 @@ class JarikoCallbackTest : AbstractTest() {
         })
         Assert.assertEquals(copiesWillEnter, copiesDidEnter)
         Assert.assertEquals(copiesWillExit, copiesDidExit)
+        Assert.assertEquals(expectedEnterSequence, enterSequence)
+        Assert.assertEquals(expectedExitSequence, exitSequence)
     }
 
     @Test
@@ -147,8 +161,14 @@ class JarikoCallbackTest : AbstractTest() {
         val configuration = Configuration().apply {
             options = Options().apply { addDebuggingInformation = true }
             jarikoCallback = JarikoCallback().apply {
-                onEnterCopy = { entered++ }
-                onExitCopy = { exited++ }
+                onEnterCopy = {
+                    println("Entering $it")
+                    entered++
+                }
+                onExitCopy = {
+                    println("Exiting $it")
+                    exited++
+                }
             }
         }
         executePgm(programName = "TSTCPY01", configuration = configuration)
@@ -205,13 +225,14 @@ class JarikoCallbackTest : AbstractTest() {
             CopyId(member = "COPY21") to copy21,
             CopyId(member = "COPY22") to copy22
         )
+
         consumeSources.invoke(pgm, copyDefinitions)
         val systemInterface = object : JavaSystemInterface() {
             override fun findCopy(copyId: CopyId): Copy? {
                 return copyDefinitions[copyId]?.let { Copy.fromInputStream(it.byteInputStream(charset("UTF-8"))) }
             }
             override fun display(value: String) {
-                println(value)
+                // println(value)
             }
         }
         executePgm(programName = pgm, systemInterface = systemInterface, configuration = configuration)
