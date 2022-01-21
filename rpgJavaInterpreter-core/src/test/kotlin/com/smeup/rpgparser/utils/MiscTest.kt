@@ -200,7 +200,7 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.addDebuggingInformation = true
+        configuration.options!!.debuggingInformation = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
@@ -220,7 +220,7 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.addDebuggingInformation = true
+        configuration.options!!.debuggingInformation = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
@@ -239,7 +239,7 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.addDebuggingInformation = true
+        configuration.options!!.debuggingInformation = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {

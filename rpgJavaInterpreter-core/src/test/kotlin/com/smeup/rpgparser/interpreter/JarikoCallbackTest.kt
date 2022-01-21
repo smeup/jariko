@@ -39,7 +39,7 @@ class JarikoCallbackTest : AbstractTest() {
         var enteredTimes = 0
         executePgm(systemInterface = systemInterface, programName = "HELLO", configuration = Configuration().apply {
             jarikoCallback.onEnterStatement = { _: Int, _: SourceReference -> enteredTimes++ }
-            options = Options().apply { addDebuggingInformation = true }
+            options = Options().apply { debuggingInformation = true }
         })
         Assert.assertEquals(3, enteredTimes)
     }
@@ -54,7 +54,7 @@ class JarikoCallbackTest : AbstractTest() {
                 println(sourceReference)
                 actualEnteredTimes[sourceReference.sourceId] = actualEnteredTimes[sourceReference.sourceId]!! + 1
             }
-            options = Options().apply { addDebuggingInformation = true }
+            options = Options().apply { debuggingInformation = true }
         })
         Assert.assertEquals(expectedEnteredTimes, actualEnteredTimes)
     }
@@ -89,7 +89,7 @@ class JarikoCallbackTest : AbstractTest() {
         lateinit var pgm: String
         lateinit var postProcessed: String
         val configuration = Configuration().apply {
-            options = Options().apply { addDebuggingInformation = true }
+            options = Options().apply { debuggingInformation = true }
             jarikoCallback = JarikoCallback().apply {
                 afterAstCreation = { ast -> postProcessed = ast.source!! }
                 onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
@@ -126,7 +126,7 @@ class JarikoCallbackTest : AbstractTest() {
         val enterSequence = mutableListOf<String>()
         val exitSequence = mutableListOf<String>()
         val configuration = Configuration().apply {
-            options = Options().apply { addDebuggingInformation = true }
+            options = Options().apply { debuggingInformation = true }
             jarikoCallback = JarikoCallback().apply {
                 onEnterCopy = { copyId ->
                     println("entering $copyId")
@@ -159,7 +159,7 @@ class JarikoCallbackTest : AbstractTest() {
         var entered = 0
         var exited = 0
         val configuration = Configuration().apply {
-            options = Options().apply { addDebuggingInformation = true }
+            options = Options().apply { debuggingInformation = true }
             jarikoCallback = JarikoCallback().apply {
                 onEnterCopy = {
                     println("Entering $it")
