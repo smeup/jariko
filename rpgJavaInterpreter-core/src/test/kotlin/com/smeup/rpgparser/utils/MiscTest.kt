@@ -19,6 +19,7 @@ package com.smeup.rpgparser.utils
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.preprocess
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
@@ -174,16 +175,18 @@ class MiscTest {
       AFTER QILEGEN,£PDS AND ADDING ${'$'}1${'$'}2${'$'}3
 ********** PREPROCESSOR COPYEND QILEGEN,£JAX_PD1   
         """
-        val included = src.byteInputStream().preprocess {
+        val included = src.byteInputStream().preprocess(
             // recursive test
             // simulate copy £JAX_PD1 include £JAX_PD2
-            if (it.member == "£JAX_PD1") {
-                ("      /COPY QILEGEN,£JAX_PD2\n" +
-                        "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
-            } else {
-                "      HELLO I AM COPY ${it.file},${it.member}"
+            findCopy = { copyId: CopyId ->
+                if (copyId.member == "£JAX_PD1") {
+                    ("      /COPY QILEGEN,£JAX_PD2\n" +
+                            "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
+                } else {
+                    "      HELLO I AM COPY ${copyId.file},${copyId.member}"
+                }
             }
-        }
+        )
         println(included)
         assertEquals(expected.trim(), included.trim())
     }
@@ -197,7 +200,7 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.dumpSourceOnExecutionError = true
+        configuration.options!!.debuggingInformation = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
@@ -217,7 +220,7 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.dumpSourceOnExecutionError = true
+        configuration.options!!.debuggingInformation = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
@@ -236,7 +239,7 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.dumpSourceOnExecutionError = true
+        configuration.options!!.debuggingInformation = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {

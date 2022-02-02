@@ -21,12 +21,15 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
+import com.smeup.rpgparser.parsing.facade.SourceReference
+import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.resizeTo
+import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
@@ -46,6 +49,9 @@ object InterpreterConfiguration {
 val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
 private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
+private const val PREV_STMT_EXEC_LINE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.prevStmtExecLine"
+
+typealias StatementReference = Pair<Int, SourceReference>
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
@@ -199,7 +205,7 @@ open class InternalInterpreter(
             dbFileMap.add(it)
         }
 
-        var index: Int = 0
+        var index = 0
         // Assigning initial values received from outside and consider INZ clauses
         // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
         // circumstances is correct reinitialization
@@ -362,27 +368,24 @@ open class InternalInterpreter(
                     if (i < 0 || i >= statements.size) throw e
                 }
             }
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
-                interpretationContext.currentProgramName,
-                globalSymbolTable,
-                null
-            )
         } catch (e: ReturnException) {
             status.returnValue = e.returnValue
-        } catch (t: Throwable) {
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
-                interpretationContext.currentProgramName,
-                globalSymbolTable,
-                t
-            )
-            throw t
         }
     }
+
+    @Deprecated(message = "No longer used")
+    open fun fireOnEnterPgmCallBackFunction() {}
 
     private fun executeWithMute(statement: Statement) {
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
+                statement.position?.let { fireCopyObservingCallback(it.start.line) }
+                if (MainExecutionContext.getConfiguration().options?.mustInvokeOnStatementCallback() == true) {
+                    statement.position?.relative()?.let {
+                        MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
+                    }
+                }
                 statement.execute(this)
             }
         } catch (e: ControlFlowException) {
@@ -407,6 +410,49 @@ open class InternalInterpreter(
                     statement.position.line()
                 )
             }
+        }
+    }
+
+    private fun Position.relative(): StatementReference {
+        return if (MainExecutionContext.getProgramStack().empty()) {
+            StatementReference(
+                first = this.start.line,
+                second = SourceReference(
+                    sourceReferenceType = SourceReferenceType.Program,
+                    sourceId = "UNKNOWN",
+                    lineNumber = this.start.line)
+            )
+        } else {
+            val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks
+            val copyBlock = copyBlocks?.getCopyBlock(this.start.line)
+            StatementReference(
+                first = this.start.line,
+                second = SourceReference(
+                    sourceReferenceType = copyBlock?.let { SourceReferenceType.Copy } ?: SourceReferenceType.Program,
+                    sourceId = copyBlock?.copyId?.toString() ?: MainExecutionContext.getProgramStack().peek().name,
+                    lineNumber = copyBlocks?.relativeLine(this.start.line)?.first ?: 0
+                )
+            )
+        }
+    }
+
+    // I use a chain of names, so I am sure that this attribute name depends on program stack too
+    private fun prevStmtAttributeMame(): String {
+        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }}"
+    }
+
+    private fun fireCopyObservingCallback(currentStatementLine: Int) {
+        if (!MainExecutionContext.getProgramStack().empty() &&
+            MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) {
+            val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
+            val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 1) as Int
+            copyBlocks.observeTransitions(
+                from = previousStatementLine,
+                to = currentStatementLine,
+                onEnter = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(copyBlock.copyId) },
+                onExit = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(copyBlock.copyId) }
+            )
+            MainExecutionContext.getAttributes()[prevStmtAttributeMame()] = currentStatementLine
         }
     }
 
@@ -857,7 +903,7 @@ open class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup?.invoke(
+                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup.invoke(
                     interpretationContext.currentProgramName, associatedActivationGroup)?.assignedName ?: activationGroup
             }
         }
@@ -893,14 +939,6 @@ open class InternalInterpreter(
                 )
             }
         }
-        fireOnEnterPgmCallBackFunction()
-    }
-
-    open fun fireOnEnterPgmCallBackFunction() {
-        MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm.invoke(
-            interpretationContext.currentProgramName,
-            globalSymbolTable
-        )
     }
 
     private fun isExitingInRTMode(): Boolean {
@@ -913,7 +951,7 @@ open class InternalInterpreter(
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
-        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT?.invoke(
+        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT.invoke(
             interpretationContext.currentProgramName) ?: exitRT
     }
 

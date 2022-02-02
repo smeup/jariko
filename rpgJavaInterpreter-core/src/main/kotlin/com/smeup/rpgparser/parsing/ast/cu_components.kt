@@ -21,6 +21,7 @@ import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.Serializable
 
@@ -45,7 +46,8 @@ data class CompilationUnit(
     // - if 'CompilationUnit' is an 'RpgProgram' this list is null.
     // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
     val proceduresParamsDataDefinitions: List<DataDefinition>? = null,
-    val source: String? = null
+    val source: String? = null,
+    val copyBlocks: CopyBlocks? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()

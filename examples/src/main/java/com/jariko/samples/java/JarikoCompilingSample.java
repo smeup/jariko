@@ -45,7 +45,7 @@ public class JarikoCompilingSample {
         configuration.getOptions().setCompiledProgramsDir(compiledProgramsDir);
         // With this setting, even in case of compiled files, we will be able
         // to find the errors easily because errors and source will be dumped together
-        configuration.getOptions().setDumpSourceOnExecutionError(true);
+        configuration.getOptions().setDebuggingInformation(true);
         // Compile all programs in srcDir
         System.out.println("Compiled programs: " + RpgcompilerKt.compile(srcDir, compiledProgramsDir, configuration));
         JavaSystemInterface javaSystemInterface = new JavaSystemInterface();
@@ -67,7 +67,7 @@ public class JarikoCompilingSample {
             out.deleteOnExit();
             Configuration configuration = new Configuration();
             configuration.setOptions(new Options());
-            configuration.getOptions().setDumpSourceOnExecutionError(true);
+            configuration.getOptions().setDebuggingInformation(true);
             // Compile
             RpgcompilerKt.compile(inputStream, new FileOutputStream(out));
             // Execution

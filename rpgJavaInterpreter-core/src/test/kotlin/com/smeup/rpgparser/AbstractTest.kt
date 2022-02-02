@@ -25,6 +25,7 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.SourceProgramFinder
 import java.io.File
 import kotlin.test.BeforeTest
 
@@ -136,7 +137,8 @@ abstract class AbstractTest {
     /**
      * Execute a PGM
      * @param programName Name or relative path followed by name. Example performance/MUTE10_01 to execute a PGM
-     * in test/resources/performance/MUTE10_01.rpgle
+     * in test/resources/performance/MUTE10_01.rpgle. If this parameter contains at least a line feed it is considered
+     * an inline program
      * @param params If needed, an instance of params to pass to the program. Default empty params
      * @param configuration If needed, you can pass an instance of configuration. Default empty configuration
      * @param systemInterface If needed, you can pass an instance of SystemInterface. Default JavaSystemInterface
@@ -153,16 +155,18 @@ abstract class AbstractTest {
             "$programName.rpgle"
         }
         val resource = AbstractTest::class.java.getResource("/$resourceName")
-        require(resource != null) {
-            "Cannot find resource $resourceName"
+        val inlinePgm = programName.indexOf('\n') >= 0
+        if (!inlinePgm) {
+            require(resource != null) {
+                "Cannot find resource $resourceName"
+            }
         }
-        val programFinders = listOf(
-            DirRpgProgramFinder(directory = File(resource.path).parentFile),
-            DirRpgProgramFinder(directory = File("src/test/resources/"))
-        )
-
+        val programFinders = mutableListOf<RpgProgramFinder>()
+        if (resource != null) programFinders.add(DirRpgProgramFinder(directory = File(resource.path).parentFile))
+        programFinders.add(DirRpgProgramFinder(directory = File("src/test/resources/")))
+        if (inlinePgm) programFinders.add(SourceProgramFinder())
         val jariko = getProgram(
-            nameOrSource = programName.substringAfterLast("/", programName),
+            nameOrSource = if (inlinePgm) programName else programName.substringAfterLast("/", programName),
             systemInterface = systemInterface,
             programFinders = programFinders
         )

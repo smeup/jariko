@@ -19,6 +19,8 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.CopyId
+import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import java.io.File
 
@@ -65,6 +67,7 @@ data class ReloadConfig(
  * @param toAstConfiguration Creating ast configuration
  * @param callProgramHandler If specified allows to override program call handling logic.
  * @param dumpSourceOnExecutionError If true, program source is dumped on execution error. Default false.
+ * @param debuggingInformation If true add debugging information, for example program source will be dumped in case of errors.
  * Setting this property to true causes a little overhead in AST serialization and deserialization due the fact
  * the source is CompilationUnit property
  * */
@@ -74,8 +77,14 @@ data class Options(
     var muteVerbose: Boolean = false,
     var toAstConfiguration: ToAstConfiguration = ToAstConfiguration(),
     var callProgramHandler: CallProgramHandler? = null,
-    var dumpSourceOnExecutionError: Boolean? = false
-)
+    @Deprecated(replaceWith = ReplaceWith(expression = "debuggingInformation"), message = "This property will be deleted in the next releases")
+    var dumpSourceOnExecutionError: Boolean? = false,
+    var debuggingInformation: Boolean? = false
+) {
+    internal fun mustDumpSource() = dumpSourceOnExecutionError == true || debuggingInformation == true
+    internal fun mustCreateCopyBlocks() = debuggingInformation == true
+    internal fun mustInvokeOnStatementCallback() = debuggingInformation == true
+}
 
 /**
  * Sometimes we have to gain control of Jariko, this is the right place.
@@ -86,8 +95,15 @@ data class Options(
  * activation group associated to the program.
  * @param exitInRT If specified, it overrides the exit mode established in program. Default null (nei seton rt od lr mode)
  * @param onEnterPgm It is invoked on program enter after symboltable initialization.
- * @param onExitPgm It is invoked on program exit
+ * @param onExitPgm It is invoked on program exit. In case of error it is no longer called, then even error parameter is no longer significant
  * @param afterAstCreation It is invoked after ast creation
+ * @param onEnterCopy It is invoked on copy enter.
+ * **This callback will be called only if [Options.debuggingInformation] is set to true**.
+ * @param onEnterCopy It is invoked on copy exit.
+ * **This callback will be called only if [Options.debuggingInformation] is set to true**.
+ * @param onEnterStatement It is invoked before statement execution.
+ * **This callback will be called only if [Options.debuggingInformation] is set to true**.
+ * See [JarikoCallback.onEnterStatement] for further information
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
@@ -96,7 +112,17 @@ data class JarikoCallback(
     var exitInRT: (programName: String) -> Boolean? = { null },
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
-    var afterAstCreation: (ast: CompilationUnit) -> Unit = { }
+    var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
+    var onEnterCopy: (copyId: CopyId) -> Unit = { },
+    var onExitCopy: (copyId: CopyId) -> Unit = { },
+    /**
+     * @param lineNumber is the absolute position of the statement in the post-processed program.
+     * In case of programs with copy, the absolute position usually is different from the position of the statement
+     * inside the source.
+     * The position of the statement inside the source is accessible through sourceReference parameter.
+     * @param sourceReference The source type where the statement is
+     * */
+    var onEnterStatement: (lineNumber: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> }
 )
 
 /**

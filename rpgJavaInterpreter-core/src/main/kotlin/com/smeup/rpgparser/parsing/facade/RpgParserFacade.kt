@@ -46,7 +46,6 @@ import org.apache.commons.io.input.BOMInputStream
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 import kotlin.system.measureTimeMillis
@@ -67,7 +66,8 @@ fun List<Error>.firstLine(): String {
 
 data class ParseTrees(
     val rContext: RContext,
-    val muteContexts: MutesImmutableMap? = null
+    val muteContexts: MutesImmutableMap? = null,
+    val copyBlocks: CopyBlocks? = null
 )
 
 class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser, val src: String) : ParsingResult<ParseTrees>(errors, root) {
@@ -291,11 +291,12 @@ class RpgParserFacade {
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
         val errors = LinkedList<Error>()
-        val code = inputStream.preprocess {
-            MainExecutionContext.getSystemInterface()?.findCopy(it)?.source
-        }
-//        println("After preprocess code")
-//        println(code)
+        val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) CopyBlocks() else null
+        val code = inputStream.preprocess(
+            findCopy = { copyId -> MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source },
+            onStartInclusion = { copyId, start -> copyBlocks?.onStartCopyBlock(copyId = copyId, start = start) },
+            onEndInclusion = { end -> copyBlocks?.onEndCopyBlock(end = end) }
+        )
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
         val root: RContext
         MainExecutionContext.log(RContextLogStart(executionProgramName))
@@ -308,7 +309,7 @@ class RpgParserFacade {
             mutes = findMutes(code, errors)
         }
         verifyParseTree(parser, errors, root)
-        parserResult = RpgParserResult(errors, ParseTrees(root, mutes), parser, code)
+        parserResult = RpgParserResult(errors, ParseTrees(rContext = root, muteContexts = mutes, copyBlocks = copyBlocks), parser, code)
         return parserResult
     }
 
@@ -353,11 +354,12 @@ class RpgParserFacade {
             val elapsed = measureTimeMillis {
                 compilationUnit = result.root!!.rContext.toAst(
                     conf = MainExecutionContext.getConfiguration().options?.toAstConfiguration ?: ToAstConfiguration(),
-                    source = if (MainExecutionContext.getConfiguration().options?.dumpSourceOnExecutionError == true) {
+                    source = if (MainExecutionContext.getConfiguration().options?.mustDumpSource() == true) {
                         result.src
                     } else {
                         null
-                    }
+                    },
+                    copyBlocks = result.root.copyBlocks
                 ).apply {
                     if (muteSupport) {
                         val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
@@ -512,3 +514,15 @@ class AstCreatingException(val src: String, cause: Throwable) :
         },
         cause
     )
+
+enum class SourceReferenceType {
+    Program, Copy
+}
+
+/**
+ * Models a source reference related to a statement
+ * @param sourceReferenceType The type of the source
+ * @param sourceId The id of the source
+ * @param lineNumber of the statement inside the source
+ * */
+data class SourceReference(val sourceReferenceType: SourceReferenceType, val sourceId: String, val lineNumber: Int)
