@@ -36,7 +36,6 @@ import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.system.measureTimeMillis
 
 object InterpreterConfiguration {
@@ -445,9 +444,9 @@ open class InternalInterpreter(
         if (!MainExecutionContext.getProgramStack().empty() &&
             MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) {
             val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
-            val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 1) as Int
+            val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
             copyBlocks.observeTransitions(
-                from = previousStatementLine,
+                from = previousStatementLine + 1,
                 to = currentStatementLine,
                 onEnter = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(copyBlock.copyId) },
                 onExit = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(copyBlock.copyId) }

@@ -269,8 +269,8 @@ class CopyTest {
         entered = 0
         exited = 0
         copyBlocks.observeTransitions(
-            from = 3,
-            to = 4,
+            from = 4,
+            to = 5,
             onEnter = { copyBlock ->
                 entered++
                 enteredCopyBlock = copyBlock
@@ -280,19 +280,11 @@ class CopyTest {
         Assert.assertEquals(1, entered)
         Assert.assertEquals(cpy1, enteredCopyBlock)
 
-        copyBlocks.observeTransitions(
-            from = 4,
-            to = 5,
-            onEnter = { Assert.fail() },
-            onExit = { Assert.fail() }
-        )
-        Assert.assertEquals(1, entered)
-
-        exited = 0
+        entered = 0
         exited = 0
         copyBlocks.observeTransitions(
-            from = 5,
-            to = 6,
+            from = 6,
+            to = 7,
             onEnter = { Assert.fail() },
             onExit = { copyBlock ->
                 exited++
@@ -301,13 +293,6 @@ class CopyTest {
         )
         Assert.assertEquals(1, exited)
         Assert.assertEquals(cpy1, exitedCopyBlock)
-
-        copyBlocks.observeTransitions(
-            from = 6,
-            to = 7,
-            onEnter = { Assert.fail() },
-            onExit = { Assert.fail() }
-        )
 
         copyBlocks.observeTransitions(
             from = 7,
@@ -331,37 +316,31 @@ class CopyTest {
         Assert.assertEquals(cpy2, enteredCopyBlock!!)
 
         entered = 0
+        exited = 0
         enteredCopyBlock = null
+        exitedCopyBlock = null
         copyBlocks.observeTransitions(
-            from = 9,
-            to = 10,
+            from = 10,
+            to = 11,
             onEnter = { copyBlock ->
                 entered++
                 enteredCopyBlock = copyBlock
             },
-            onExit = { Assert.fail() }
-        )
-        Assert.assertEquals(1, entered)
-        Assert.assertEquals(cpy21, enteredCopyBlock!!)
-
-        exited = 0
-        copyBlocks.observeTransitions(
-            from = 10,
-            to = 11,
-            onEnter = { Assert.fail() },
             onExit = { copyBlock ->
                 exited++
                 exitedCopyBlock = copyBlock
             }
         )
+        Assert.assertEquals(1, entered)
         Assert.assertEquals(1, exited)
+        Assert.assertEquals(cpy21, enteredCopyBlock!!)
         Assert.assertEquals(cpy21, exitedCopyBlock!!)
 
         exited = 0
         exitedCopyBlock = null
         copyBlocks.observeTransitions(
-            from = 11,
-            to = 12,
+            from = 12,
+            to = 13,
             onEnter = { Assert.fail() },
             onExit = { copyBlock ->
                 exited++
@@ -372,10 +351,30 @@ class CopyTest {
         Assert.assertEquals(cpy2, exitedCopyBlock!!)
 
         copyBlocks.observeTransitions(
-            from = 13,
-            to = 13,
+            from = 14,
+            to = 15,
             onEnter = { Assert.fail() },
             onExit = { Assert.fail() }
+        )
+    }
+
+    @Test
+    fun copyBlocksObserveBackardTransitions() {
+        val copyBlocks = createCopyBlocks()
+        val cpy1 = copyBlocks[0]
+        val cpy2 = copyBlocks[1]
+        val cpy21 = copyBlocks[2]
+        copyBlocks.observeTransitions(
+            from = 12,
+            to = 4,
+            onEnter = { copyBlock -> Assert.assertEquals(cpy1, copyBlock) },
+            onExit = { Assert.fail() }
+        )
+        copyBlocks.observeTransitions(
+            from = 11,
+            to = 10,
+            onEnter = { println("onEnter $it") },
+            onExit = { println("onExit $it") }
         )
     }
 
