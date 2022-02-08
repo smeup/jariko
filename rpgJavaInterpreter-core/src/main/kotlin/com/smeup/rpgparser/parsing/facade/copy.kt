@@ -298,14 +298,26 @@ class CopyBlocks : Iterable<CopyBlock> {
         onExit: (copyBlock: CopyBlock) -> Unit
     ) {
 
-        val myFrom = if (from <= to) from else 1
-        for (line in myFrom..to) {
-            copyBlocks.forEach { copyBlock ->
-                if (line == copyBlock.start) {
-                    onEnter.invoke(copyBlock)
+        if (from <= to) {
+            for (line in from..to) {
+                copyBlocks.forEach { copyBlock ->
+                    if (line == copyBlock.start) {
+                        onEnter.invoke(copyBlock)
+                    }
+                    if (line == copyBlock.end) {
+                        onExit.invoke(copyBlock)
+                    }
                 }
-                if (line == copyBlock.end) {
-                    onExit.invoke(copyBlock)
+            }
+        } else {
+            for (line in from downTo to) {
+                revertOrderedCopyBlocks.forEach { copyBlock ->
+                    if (line == copyBlock.end - 1) {
+                        onEnter.invoke(copyBlock)
+                    }
+                    if (line == copyBlock.start - 1) {
+                        onExit.invoke(copyBlock)
+                    }
                 }
             }
         }

@@ -23,6 +23,7 @@ import com.smeup.rpgparser.parsing.facade.*
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
+import java.util.*
 
 class CopyTest {
 
@@ -359,23 +360,57 @@ class CopyTest {
     }
 
     @Test
-    fun copyBlocksObserveBackardTransitions() {
+    fun copyBlocksObserveBackwardTransitions() {
         val copyBlocks = createCopyBlocks()
         val cpy1 = copyBlocks[0]
         val cpy2 = copyBlocks[1]
         val cpy21 = copyBlocks[2]
+        val entered = mutableListOf<CopyBlock>()
+        val exited = mutableListOf<CopyBlock>()
         copyBlocks.observeTransitions(
             from = 12,
             to = 4,
-            onEnter = { copyBlock -> Assert.assertEquals(cpy1, copyBlock) },
-            onExit = { Assert.fail() }
+            onEnter = { copyBlock -> entered.add(copyBlock) },
+            onExit = { copyBlock -> exited.add(copyBlock) }
         )
+        Assert.assertEquals("expectedEntered", listOf(cpy2, cpy21, cpy1), entered)
+        Assert.assertEquals("expectedExited", listOf(cpy21, cpy2), exited)
+        entered.clear()
+        exited.clear()
         copyBlocks.observeTransitions(
             from = 11,
             to = 10,
-            onEnter = { println("onEnter $it") },
-            onExit = { println("onExit $it") }
+            onEnter = { copyBlock -> entered.add(copyBlock) },
+            onExit = { copyBlock -> exited.add(copyBlock) }
         )
+        Assert.assertEquals("expectedEntered", listOf(cpy2, cpy21), entered)
+        Assert.assertEquals("expectedExited", listOf<CopyBlock>(), exited)
+        entered.clear()
+        exited.clear()
+    }
+
+    @Test
+    fun copyBlocksObserveForwardAndBackwardTransitions() {
+        // The copies crossed when instruction pointer go ahead must be the same of when it goes behind
+        val copyBlocks = createCopyBlocks()
+        val onEnterForward = mutableListOf<CopyBlock>()
+        val onExitForward = mutableListOf<CopyBlock>()
+        copyBlocks.observeTransitions(
+            from = 4,
+            to = 12,
+            onEnter = { copyBlock -> onEnterForward.add(copyBlock) },
+            onExit = { copyBlock -> onExitForward.add(copyBlock) }
+        )
+        // The sense of this test is that If going ahead I will exit from cpy1 cpy21 and cpy2, returning to back I will
+        // enter into cpy2 cpy21 and cpy1.
+        copyBlocks.observeTransitions(
+            from = 11,
+            to = 3,
+            onEnter = { copyBlock -> onExitForward.remove(copyBlock) },
+            onExit = { copyBlock -> onEnterForward.remove(copyBlock) }
+        )
+        Assert.assertEquals(0, onEnterForward.size)
+        Assert.assertEquals(0, onExitForward.size)
     }
 
     private fun createCopyBlocks(): CopyBlocks {
