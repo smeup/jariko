@@ -172,8 +172,8 @@ class JarikoCallbackTest : AbstractTest() {
             }
         }
         executePgm(programName = "TSTCPY01", configuration = configuration)
-        Assert.assertEquals(1, entered)
-        Assert.assertEquals(1, exited)
+        Assert.assertEquals(2, entered)
+        Assert.assertEquals(2, exited)
     }
 
     private fun executeInlinePgmContainingCopy(
