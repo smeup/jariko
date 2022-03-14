@@ -104,6 +104,8 @@ data class Options(
  * @param onEnterStatement It is invoked before statement execution.
  * **This callback will be called only if [Options.debuggingInformation] is set to true**.
  * See [JarikoCallback.onEnterStatement] for further information
+ * @param onEnterFunction It is invoked on function enter after symboltable initialization.
+ * @param onExitFunction It is invoked on function exit, only if the function does not throw any error
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
@@ -122,7 +124,11 @@ data class JarikoCallback(
      * The position of the statement inside the source is accessible through sourceReference parameter.
      * @param sourceReference The source type where the statement is
      * */
-    var onEnterStatement: (lineNumber: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> }
+    var onEnterStatement: (lineNumber: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> },
+    var onEnterFunction: (functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable)
+    -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable -> },
+    var onExitFunction: (functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable, returnValue: Value)
+    -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable, _: Value -> }
 )
 
 /**

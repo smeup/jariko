@@ -160,6 +160,7 @@ class FunctionWrapper(private val function: Function, private val functionName: 
             }
         }
         val previousValues = params.map { it.value }
+        MainExecutionContext.getConfiguration().jarikoCallback.onEnterFunction(functionName, params, symbolTable)
         return function.execute(systemInterface, params, symbolTable).apply {
             params.forEachIndexed { index, functionValue ->
                 functionValue.variableName?.apply {
@@ -169,6 +170,7 @@ class FunctionWrapper(private val function: Function, private val functionName: 
                     }
                 }
             }
+            MainExecutionContext.getConfiguration().jarikoCallback.onExitFunction(functionName, params, symbolTable, this)
         }
     }
 }
