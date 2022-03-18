@@ -127,8 +127,7 @@ data class JarikoCallback(
     var onEnterStatement: (lineNumber: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> },
     var onEnterFunction: (functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable)
     -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable -> },
-    var onExitFunction: (functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable, returnValue: Value)
-    -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable, _: Value -> }
+    var onExitFunction: (functionName: String, returnValue: Value) -> Unit = { _: String, _: Value -> }
 )
 
 /**

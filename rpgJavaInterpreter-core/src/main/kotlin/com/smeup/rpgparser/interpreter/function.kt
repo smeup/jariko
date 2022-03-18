@@ -91,6 +91,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
                 functionParamNameToValue[functionParam.name] = params[index].value
             }
         }
+        MainExecutionContext.getConfiguration().jarikoCallback.onEnterFunction(compilationUnit.procedureName!!, params, interpreter.getGlobalSymbolTable())
         interpreter.execute(this.compilationUnit, functionParamNameToValue, false)
         params.forEachIndexed { index, functionValue ->
             functionValue.variableName?.apply {
@@ -101,7 +102,9 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
             }
         }
         interpreter.doSomethingAfterExecution()
-        return interpreter.getStatus().returnValue ?: VoidValue
+        return (interpreter.getStatus().returnValue ?: VoidValue).apply {
+            MainExecutionContext.getConfiguration().jarikoCallback.onExitFunction(compilationUnit.procedureName!!, this)
+        }
     }
 
     init {
@@ -160,7 +163,6 @@ class FunctionWrapper(private val function: Function, private val functionName: 
             }
         }
         val previousValues = params.map { it.value }
-        MainExecutionContext.getConfiguration().jarikoCallback.onEnterFunction(functionName, params, symbolTable)
         return function.execute(systemInterface, params, symbolTable).apply {
             params.forEachIndexed { index, functionValue ->
                 functionValue.variableName?.apply {
@@ -170,7 +172,6 @@ class FunctionWrapper(private val function: Function, private val functionName: 
                     }
                 }
             }
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitFunction(functionName, params, symbolTable, this)
         }
     }
 }

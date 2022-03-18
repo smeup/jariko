@@ -65,7 +65,7 @@ class SourceProgramFinder : RpgProgramFinder {
     }
 }
 
-class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
+open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 
     init {
         directory?.let { require(it.exists()) { "The specified directory should exist: ${directory.path} -> ${directory.absolutePath}" } }

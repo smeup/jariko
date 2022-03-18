@@ -237,4 +237,51 @@ class JarikoCallbackTest : AbstractTest() {
         }
         executePgm(programName = pgm, systemInterface = systemInterface, configuration = configuration)
     }
+
+    @Test
+    fun procedure1CallBackTest() {
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        var enteredTimes = 0
+        var exitedTimes = 0
+        val functionParams = mutableListOf<FunctionValue>()
+        executePgm(systemInterface = systemInterface, programName = "PROCEDURE1", configuration = Configuration().apply {
+            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable ->
+                enteredTimes++
+                functionParams.addAll(params)
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(11, params[0].value.asInt().value)
+                Assert.assertEquals(22, params[1].value.asInt().value)
+                Assert.assertEquals(ZeroValue, params[2].value)
+            }
+            jarikoCallback.onExitFunction = { functionName: String, returnValue: Value ->
+                exitedTimes++
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(33, functionParams[2].value.asInt().value)
+            }
+        })
+        Assert.assertEquals(enteredTimes, exitedTimes)
+    }
+
+    @Test
+    fun procedure2CallBackTest() {
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        var enteredTimes = 0
+        var exitedTimes = 0
+        val functionParams = mutableListOf<FunctionValue>()
+        executePgm(systemInterface = systemInterface, programName = "PROCEDURE2", configuration = Configuration().apply {
+            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable ->
+                enteredTimes++
+                functionParams.addAll(params)
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(11, params[0].value.asInt().value)
+                Assert.assertEquals(22, params[1].value.asInt().value)
+            }
+            jarikoCallback.onExitFunction = { functionName: String, returnValue: Value ->
+                exitedTimes++
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(33, returnValue.asInt().value)
+            }
+        })
+        Assert.assertEquals(enteredTimes, exitedTimes)
+    }
 }
