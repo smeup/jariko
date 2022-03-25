@@ -65,16 +65,21 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
 }
 
 class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)), systemInterface) {
-    override fun toInitialValues(rpgProgram: RpgProgram, params: CommandLineParms): LinkedHashMap<String, Value> {
+
+    override fun toInitialValues(program: Program, params: CommandLineParms): LinkedHashMap<String, Value> {
         val result = LinkedHashMap<String, Value> ()
-        val producedNamedParams = params.namedParamsProducer.invoke(rpgProgram.cu)
+        // che cu is available only if the first program is not doped
+        val producedNamedParams = when (program) {
+            is RpgProgram -> params.namedParamsProducer.invoke(program.cu)
+            else -> null
+        }
         if (producedNamedParams != null) {
             result.putAll(producedNamedParams)
         } else if (params.namedParams != null) {
             result.putAll(params.namedParams)
         } else {
             val values = params.parmsList.map { parameter -> StringValue(parameter) }
-            val zipped = rpgProgram.params()
+            val zipped = program.params()
                 .map { dataDefinition -> dataDefinition.name }
                 .zip(values)
             zipped.forEach {
