@@ -106,6 +106,7 @@ data class Options(
  * See [JarikoCallback.onEnterStatement] for further information
  * @param onEnterFunction It is invoked on function enter after symboltable initialization.
  * @param onExitFunction It is invoked on function exit, only if the function does not throw any error
+ * @param onError It is invoked in case of error
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
@@ -127,7 +128,8 @@ data class JarikoCallback(
     var onEnterStatement: (lineNumber: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> },
     var onEnterFunction: (functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable)
     -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable -> },
-    var onExitFunction: (functionName: String, returnValue: Value) -> Unit = { _: String, _: Value -> }
+    var onExitFunction: (functionName: String, returnValue: Value) -> Unit = { _: String, _: Value -> },
+    var onError: (errorEvent: ErrorEvent) -> Unit = { _: ErrorEvent -> }
 )
 
 /**
@@ -137,3 +139,9 @@ data class JarikoCallback(
 data class CallProgramHandler(
     val handleCall: (programName: String, systemInterface: SystemInterface, params: LinkedHashMap<String, Value>) -> List<Value>?
 )
+
+data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSource, val sourceReference: SourceReference?)
+
+enum class ErrorEventSource {
+    parser, interpreter
+}

@@ -17,12 +17,16 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.execution.ErrorEvent
+import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
+import com.smeup.rpgparser.parsing.facade.adaptInFunctionOf
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
+import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
@@ -157,7 +161,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
 
     // If none of 'rpg procedures', add only any 'fake procedures'.
     // If any 'rpg procedures' exists, add any 'fake procedures' too.
-    var fakeProcedures = getFakeProcedures(rContext = this,
+    val fakeProcedures = getFakeProcedures(rContext = this,
         conf = conf,
         dataDefinitions = dataDefinitions,
         mainStmts = mainStmts,
@@ -210,18 +214,18 @@ private fun getFakeProcedures(
     val fakePrototypeNames = mutableMapOf<String, ArrayList<DataDefinition>>()
     rContext.children.forEach {
         if (it is Dcl_prContext) {
-            var fakePrototypeName: String = ""
-            var fakePrototypeDataDefinitions: ArrayList<DataDefinition> = arrayListOf<DataDefinition>()
+            var fakePrototypeName = ""
+            val fakePrototypeDataDefinitions: ArrayList<DataDefinition> = arrayListOf<DataDefinition>()
             if (rContext.children[0] is Dcl_prContext) {
                 (rContext.children[0] as Dcl_prContext).children.forEachIndexed { index, element ->
-                    var fakePrototypeDataDefinition: DataDefinition
+                    val fakePrototypeDataDefinition: DataDefinition
                     if (index == 0) {
                         fakePrototypeName =
                             (element as PrBeginContext).ds_name().NAME().text
                     } else {
-                        var parmFixed = ((rContext.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
+                        val parmFixed = ((rContext.children[0] as Dcl_prContext).children[index] as Parm_fixedContext)
                         var paramPassedBy = ParamPassedBy.Reference
-                        var paramOptions = mutableListOf<ParamOption>()
+                        val paramOptions = mutableListOf<ParamOption>()
                         parmFixed
                             .keyword()
                             .forEach { it ->
@@ -1430,17 +1434,20 @@ fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): N
     val pref = message?.let {
         "$message at"
     } ?: "Error at"
-    TODO("$pref ${toPosition(conf.considerPosition)} ${this.javaClass.name}")
+    val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
+    val message = "$pref $position ${this.javaClass.name}"
+    throw todo(message).fireErrorEvent { position }
 }
 
 fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, conf: ToAstConfiguration): Nothing {
     val pref = message?.let {
         "$message at: "
     } ?: "Error at: "
+    val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
     throw IllegalStateException(
-        "$pref${toPosition(conf.considerPosition)} ${this.javaClass.name}",
+        "$pref$position ${this.javaClass.name}",
         cause
-    )
+    ).fireErrorEvent { position }
 }
 
 /**
@@ -1456,17 +1463,19 @@ fun <T : ParserRuleContext, R> T.runParserRuleContext(conf: ToAstConfiguration, 
 }
 
 fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
+    val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
     throw IllegalStateException(
-        message?.let { "$message at: ${this.position}" } ?: "Error at: ${this.position}",
+        message?.let { "$message at: $position" } ?: "Error at: $position",
         cause?.let { cause }
-    )
+    ).fireErrorEvent { position }
 }
 
 fun Node.todo(message: String? = null): Nothing {
     val pref = message?.let {
         "$message at "
     } ?: "Error at "
-    TODO("${pref}Position: ${this.position}")
+    val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
+    throw todo("${pref}Position: $position").fireErrorEvent { position }
 }
 
 /**
@@ -1479,4 +1488,24 @@ fun <T : Node, R> T.runNode(block: (T) -> R): R {
     }.onFailure {
         this.error(it.message, it)
     }.getOrThrow()
+}
+
+private typealias ProgramNameToCopyBlocks = Pair<String?, CopyBlocks?>
+
+private fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
+    val programName = if (MainExecutionContext.getParsingProgramStack().empty()) null else MainExecutionContext.getParsingProgramStack().peek().name
+    val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks } ?: null
+    return ProgramNameToCopyBlocks(programName, copyBlocks)
+}
+
+private fun Throwable.fireErrorEvent(positionSupplier: () -> Position?): Throwable {
+    val programNameToCopyBlocks = getProgramNameToCopyBlocks()
+    val sourceReference = positionSupplier.invoke()?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
+    val errorEvent = ErrorEvent(this, ErrorEventSource.parser, sourceReference)
+    MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
+    return this
+}
+
+private fun todo(message: String): IllegalStateException {
+    return IllegalStateException("An operation is not implemented: ")
 }

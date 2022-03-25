@@ -1,6 +1,9 @@
-      * This program force a division by zero error
+     V* ==============================================================
+     D* This program call a copy containing error
+     V* ==============================================================
      D x               S              8  0
      D n               S              8  0
+     I/COPY QILEGEN,ERROR01
      C                   EVAL      x = 1 / n
      C                   SETON                                        LR
       *--------------------------------------------------------------*

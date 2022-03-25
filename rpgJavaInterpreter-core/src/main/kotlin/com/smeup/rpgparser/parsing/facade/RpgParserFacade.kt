@@ -21,6 +21,8 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.RpgLexer
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.RpgParser.*
+import com.smeup.rpgparser.execution.ErrorEvent
+import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.ParsingProgram
 import com.smeup.rpgparser.interpreter.*
@@ -75,6 +77,10 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
 
     fun dumpError(): String {
         return "${errors.dumpError()}\n${src.dumpSource()}"
+    }
+
+    internal fun fireErrorEvents() {
+        errors.fireErrorEvents()
     }
 }
 
@@ -297,6 +303,9 @@ class RpgParserFacade {
             onStartInclusion = { copyId, start -> copyBlocks?.onStartCopyBlock(copyId = copyId, start = start) },
             onEndInclusion = { end -> copyBlocks?.onEndCopyBlock(end = end) }
         )
+        if (!MainExecutionContext.getParsingProgramStack().empty()) {
+            MainExecutionContext.getParsingProgramStack().peek().copyBlocks = copyBlocks
+        }
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
         val root: RContext
         MainExecutionContext.log(RContextLogStart(executionProgramName))
@@ -309,7 +318,7 @@ class RpgParserFacade {
             mutes = findMutes(code, errors)
         }
         verifyParseTree(parser, errors, root)
-        parserResult = RpgParserResult(errors, ParseTrees(rContext = root, muteContexts = mutes, copyBlocks = copyBlocks), parser, code)
+        parserResult = RpgParserResult(errors.adaptInFunctionOf(copyBlocks), ParseTrees(rContext = root, muteContexts = mutes, copyBlocks = copyBlocks), parser, code)
         return parserResult
     }
 
@@ -346,6 +355,7 @@ class RpgParserFacade {
     ): CompilationUnit {
         val result = parse(inputStream)
         require(result.correct) {
+            result.fireErrorEvents()
             result.dumpError()
         }
         return kotlin.runCatching {
@@ -359,7 +369,7 @@ class RpgParserFacade {
                     } else {
                         null
                     },
-                    copyBlocks = result.root.copyBlocks
+                    copyBlocks = if (MainExecutionContext.getParsingProgramStack().empty()) null else MainExecutionContext.getParsingProgramStack().peek().copyBlocks
                 ).apply {
                     if (muteSupport) {
                         val resolved = this.injectMuteAnnotation(result.root.muteContexts!!)
@@ -485,19 +495,54 @@ fun getExecutionProgramNameWithNoExtension(): String {
     }
 }
 
+private fun List<Error>.groupByLine() = this.filter { it.message != "Error node found" }.groupBy {
+    it.position?.start?.line
+}
+
+private typealias ErrorAtLine = Pair<Int?, String>
+
+private fun Map.Entry<Int?, List<Error>>.toErrorAtLine(): ErrorAtLine {
+    val messages = this.value.distinctBy { it.message }.joinToString(",") {
+        it.message
+    }
+    return ErrorAtLine(this.key, messages)
+}
+
 private fun List<Error>.dumpError(): String {
     return StringBuilder().let { sb ->
-        val groupedByLine = this.filter { it.message != "Error node found" }.groupBy {
-            it.position?.start?.line
-        }
-        groupedByLine.forEach { errorEntry ->
-            val line = "Errors at line: ${errorEntry.key}"
-            val messages = errorEntry.value.distinctBy { it.message }.joinToString(",") {
-                it.message
-            }
+        this.groupByLine().forEach { errorEntry ->
+            val errorAtLine = errorEntry.toErrorAtLine()
+            val line = "Errors at line: ${errorAtLine.first}"
+            val messages = errorAtLine.second
             sb.append(line).append(" messages: $messages\n")
         }
         sb.toString()
+    }
+}
+
+private fun List<Error>.adaptInFunctionOf(copyBlocks: CopyBlocks?): List<Error> {
+    return copyBlocks?.let {
+        this.map { error ->
+            error.copy(position = error.position?.adaptInFunctionOf(copyBlocks))
+        }
+    } ?: this
+}
+
+private fun List<Error>.fireErrorEvents() {
+    val programName = if (MainExecutionContext.getParsingProgramStack().empty()) {
+        null
+    } else {
+        MainExecutionContext.getParsingProgramStack().peek().name
+    }
+    val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks }
+    groupByLine().forEach { errorEntry ->
+        ErrorEvent(
+            error = IllegalStateException(errorEntry.value[0].message),
+            errorEventSource = ErrorEventSource.parser,
+            sourceReference = errorEntry.value[0].position?.relative(programName, copyBlocks)?.second
+        ).apply {
+            MainExecutionContext.getConfiguration().jarikoCallback.onError(this)
+        }
     }
 }
 
@@ -523,6 +568,37 @@ enum class SourceReferenceType {
  * Models a source reference related to a statement
  * @param sourceReferenceType The type of the source
  * @param sourceId The id of the source
- * @param lineNumber of the statement inside the source
+ * @param position The position of the statement inside the source
  * */
-data class SourceReference(val sourceReferenceType: SourceReferenceType, val sourceId: String, val lineNumber: Int)
+data class SourceReference(val sourceReferenceType: SourceReferenceType, val sourceId: String, val position: Position) {
+
+    val lineNumber = position.start.line
+}
+
+fun Position.relative(programName: String?, copyBlocks: CopyBlocks?): StatementReference {
+    return if (programName == null) {
+        StatementReference(
+            first = this.start.line,
+            second = SourceReference(
+                sourceReferenceType = SourceReferenceType.Program,
+                sourceId = "UNKNOWN",
+                position = Position(Point(this.start.line, this.start.column), Point(this.end.line, this.end.column))
+            )
+        )
+    } else {
+        val copyBlock = copyBlocks?.getCopyBlock(this.start.line)
+        StatementReference(
+            first = this.start.line,
+            second = SourceReference(
+                sourceReferenceType = copyBlock?.let { SourceReferenceType.Copy } ?: SourceReferenceType.Program,
+                sourceId = copyBlock?.copyId?.toString() ?: programName,
+                position = this.adaptInFunctionOf(copyBlocks)
+            )
+        )
+    }
+}
+
+fun Position.adaptInFunctionOf(copyBlocks: CopyBlocks?) = Position(
+    Point(copyBlocks?.relativeLine(this.start.line)?.first ?: this.start.line, this.start.column),
+    Point(copyBlocks?.relativeLine(this.end.line)?.first ?: this.end.line, this.end.column)
+)

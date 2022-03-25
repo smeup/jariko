@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -283,5 +284,43 @@ class JarikoCallbackTest : AbstractTest() {
             }
         })
         Assert.assertEquals(enteredTimes, exitedTimes)
+    }
+
+    @Test
+    fun executeERROR01CallBackTest() {
+        val pgm = "ERROR01"
+        executePgmCallBackTest(pgm, SourceReferenceType.Program, pgm, listOf(4))
+    }
+
+    @Test
+    fun executeERROR02CallBackTest() {
+        val pgm = "ERROR02"
+        executePgmCallBackTest(pgm, SourceReferenceType.Program, pgm, listOf(6, 7))
+    }
+    @Test
+    fun executeERROR03CallBackTest() {
+        val pgm = "ERROR03"
+        executePgmCallBackTest(pgm, SourceReferenceType.Program, pgm, listOf(4, 5))
+    }
+
+    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
+        var errorEvents = mutableListOf<ErrorEvent>()
+        runCatching {
+            val configuration = Configuration().apply {
+                jarikoCallback.onError = { errorEvent ->
+                    println("executePgmCallBackTest - $errorEvent")
+                    errorEvents.add(errorEvent)
+                }
+                options = Options(debuggingInformation = true)
+            }
+            executePgm(pgm, configuration = configuration)
+        }.onSuccess {
+            Assert.fail("Program must exit with error")
+        }.onFailure {
+            println(it.message)
+            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
+            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
+            Assert.assertEquals(lines, errorEvents.map { errorEvent -> errorEvent.sourceReference!!.position.start.line })
+        }
     }
 }
