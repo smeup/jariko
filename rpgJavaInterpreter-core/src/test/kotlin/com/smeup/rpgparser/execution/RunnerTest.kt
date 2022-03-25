@@ -24,10 +24,12 @@ import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
+import org.junit.Assert
 import org.junit.Test
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.math.BigDecimal
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.Charset
@@ -248,8 +250,8 @@ class RunnerTest : AbstractTest() {
         val url = URL("https://jariko.smeup.cloud")
         val con: HttpURLConnection = url.openConnection() as HttpURLConnection
         con.requestMethod = "POST"
-        val x_api_key = System.getenv("JARIKO_X_API_KEY")
-        con.setRequestProperty("x-api-key", x_api_key)
+        val xApiKey = System.getenv("JARIKO_X_API_KEY")
+        con.setRequestProperty("x-api-key", xApiKey)
         con.setRequestProperty("Content-Type", "application/json; utf-8")
         con.setRequestProperty("Accept", "application/json")
         con.doOutput = true
@@ -291,13 +293,48 @@ class RunnerTest : AbstractTest() {
         }
         getProgram(nameOrSource = pgm, systemInterface).singleCall(parms = emptyList())
     }
+
+    /**
+     * Tests the right execution of program even although the first program is doped
+     * */
+    @Test
+    fun firstPgmAsDoped() {
+        MYDOPED()
+        val systemInterface = JavaSystemInterface().apply {
+            addJavaInteropPackage("com.smeup.rpgparser.execution")
+        }
+        val expected = listOf("HELLO", "20.24")
+        val actual = getProgram(nameOrSource = "MYDOPED", systemInterface = systemInterface)
+            .singleCall(parms = listOf("hello", "10.12"))!!.parmsList
+        Assert.assertEquals(expected, actual)
+    }
 }
 
-class DOPEDPGM() : Program {
+class DOPEDPGM : Program {
+
     override fun params(): List<ProgramParam> = emptyList()
 
     override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
         error("Forced error")
-        return emptyList()
+    }
+}
+
+class MYDOPED : Program {
+
+    override fun params() = listOf(
+        ProgramParam("s1", StringType(10, false)),
+        ProgramParam("n1", NumberType(5, 2))
+    )
+
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+        systemInterface.display(params.toString())
+        return params.values.mapIndexed { index, value ->
+            when (index) {
+                0 -> StringValue(value.asString().value.toUpperCase(), true)
+                1 -> DecimalValue(coerce(value, NumberType(5, 2))
+                    .asDecimal().value.multiply(BigDecimal.valueOf(2)))
+                else -> throw IllegalArgumentException("index not handled")
+            }
+        }
     }
 }
