@@ -586,11 +586,11 @@ data class CallStmt(
         interpreter.log { CallExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this) }
         val startTime = System.currentTimeMillis()
         val callStatement = this
-        val programToCall = interpreter.eval(expression).asString().value
+        val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
         val program = interpreter.getSystemInterface().findProgram(programToCall)
         require(program != null) {
-            "Line: ${this.position.line()} - Program $programToCall cannot be found"
+            "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
         }
 
         val params = this.params.mapIndexed { index, it ->
