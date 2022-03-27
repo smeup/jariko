@@ -246,7 +246,7 @@ class JarikoCallbackTest : AbstractTest() {
         var exitedTimes = 0
         val functionParams = mutableListOf<FunctionValue>()
         executePgm(systemInterface = systemInterface, programName = "PROCEDURE1", configuration = Configuration().apply {
-            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable ->
+            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
                 enteredTimes++
                 functionParams.addAll(params)
                 Assert.assertEquals("CALL1", functionName)
@@ -254,7 +254,7 @@ class JarikoCallbackTest : AbstractTest() {
                 Assert.assertEquals(22, params[1].value.asInt().value)
                 Assert.assertEquals(ZeroValue, params[2].value)
             }
-            jarikoCallback.onExitFunction = { functionName: String, returnValue: Value ->
+            jarikoCallback.onExitFunction = { functionName: String, _: Value ->
                 exitedTimes++
                 Assert.assertEquals("CALL1", functionName)
                 Assert.assertEquals(33, functionParams[2].value.asInt().value)
@@ -270,7 +270,7 @@ class JarikoCallbackTest : AbstractTest() {
         var exitedTimes = 0
         val functionParams = mutableListOf<FunctionValue>()
         executePgm(systemInterface = systemInterface, programName = "PROCEDURE2", configuration = Configuration().apply {
-            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable ->
+            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
                 enteredTimes++
                 functionParams.addAll(params)
                 Assert.assertEquals("CALL1", functionName)
@@ -288,27 +288,25 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR01CallBackTest() {
-        val pgm = "ERROR01"
-        executePgmCallBackTest(pgm, SourceReferenceType.Program, pgm, listOf(4))
+        executePgmCallBackTest("ERROR01", SourceReferenceType.Program, "ERROR01", listOf(4))
     }
 
     @Test
     fun executeERROR02CallBackTest() {
-        val pgm = "ERROR02"
-        executePgmCallBackTest(pgm, SourceReferenceType.Program, pgm, listOf(6, 7))
+        executePgmCallBackTest("ERROR02", SourceReferenceType.Program, "ERROR02", listOf(6, 7))
     }
     @Test
     fun executeERROR03CallBackTest() {
-        val pgm = "ERROR03"
-        executePgmCallBackTest(pgm, SourceReferenceType.Program, pgm, listOf(4, 5))
+        // listOf(7, 7) is not an error because we have an error event duplicated, but for now is not a problem
+        executePgmCallBackTest("ERROR03", SourceReferenceType.Copy, "QILEGEN,ERROR01", listOf(7, 7))
     }
 
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
-        var errorEvents = mutableListOf<ErrorEvent>()
+        val errorEvents = mutableListOf<ErrorEvent>()
         runCatching {
             val configuration = Configuration().apply {
                 jarikoCallback.onError = { errorEvent ->
-                    println("executePgmCallBackTest - $errorEvent")
+                    println(errorEvent)
                     errorEvents.add(errorEvent)
                 }
                 options = Options(debuggingInformation = true)

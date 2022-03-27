@@ -538,7 +538,8 @@ private fun List<Error>.fireErrorEvents() {
     groupByLine().forEach { errorEntry ->
         ErrorEvent(
             error = IllegalStateException(errorEntry.value[0].message),
-            errorEventSource = ErrorEventSource.parser,
+            errorEventSource = ErrorEventSource.Parser,
+            lineNumber = errorEntry.value[0].position?.start?.line,
             sourceReference = errorEntry.value[0].position?.relative(programName, copyBlocks)?.second
         ).apply {
             MainExecutionContext.getConfiguration().jarikoCallback.onError(this)

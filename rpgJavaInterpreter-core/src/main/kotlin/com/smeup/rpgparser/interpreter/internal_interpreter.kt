@@ -415,7 +415,7 @@ open class InternalInterpreter(
     }
 
     private fun Throwable.fireErrorEvent(position: Position?): Throwable {
-        val errorEvent = ErrorEvent(this, ErrorEventSource.interpreter, position?.relative()?.second)
+        val errorEvent = ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
         MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
         return this
     }

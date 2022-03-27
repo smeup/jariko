@@ -238,9 +238,7 @@ private fun getFakeProcedures(
                                     it.keyword_options().identifier().forEach {
                                         val keyword = it.free_identifier().idOrKeyword().ID().toString()
                                         val paramOption = ParamOption.getByKeyword(keyword)
-                                        if (null != paramOption) {
-                                            (paramOptions as ArrayList).add(paramOption)
-                                        }
+                                        (paramOptions as ArrayList).add(paramOption)
                                     }
                                 }
                             }
@@ -253,7 +251,7 @@ private fun getFakeProcedures(
                 }
                 // Add only 'real fake prototype', if any RPG procedure exists yet
                 // the 'fake prototype' with same name mustn't be added.
-                if (null == procedures || (null != procedures && !procedures.contains(fakePrototypeName))) {
+                if (null == procedures || (!procedures.contains(fakePrototypeName))) {
                     fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
                 }
             }
@@ -1435,8 +1433,8 @@ fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): N
         "$message at"
     } ?: "Error at"
     val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    val message = "$pref $position ${this.javaClass.name}"
-    throw todo(message).fireErrorEvent { position }
+    val myMessage = "$pref $position ${this.javaClass.name}"
+    throw notImplementOperationException(myMessage).fireErrorEvent { toPosition(conf.considerPosition) }
 }
 
 fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, conf: ToAstConfiguration): Nothing {
@@ -1447,7 +1445,7 @@ fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, c
     throw IllegalStateException(
         "$pref$position ${this.javaClass.name}",
         cause
-    ).fireErrorEvent { position }
+    ).fireErrorEvent { toPosition(conf.considerPosition) }
 }
 
 /**
@@ -1467,7 +1465,7 @@ fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
     throw IllegalStateException(
         message?.let { "$message at: $position" } ?: "Error at: $position",
         cause?.let { cause }
-    ).fireErrorEvent { position }
+    ).fireErrorEvent { this.position }
 }
 
 fun Node.todo(message: String? = null): Nothing {
@@ -1475,7 +1473,7 @@ fun Node.todo(message: String? = null): Nothing {
         "$message at "
     } ?: "Error at "
     val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    throw todo("${pref}Position: $position").fireErrorEvent { position }
+    throw notImplementOperationException("${pref}Position: $position").fireErrorEvent { this.position }
 }
 
 /**
@@ -1501,11 +1499,16 @@ private fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
 private fun Throwable.fireErrorEvent(positionSupplier: () -> Position?): Throwable {
     val programNameToCopyBlocks = getProgramNameToCopyBlocks()
     val sourceReference = positionSupplier.invoke()?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
-    val errorEvent = ErrorEvent(this, ErrorEventSource.parser, sourceReference)
+    val errorEvent = ErrorEvent(
+        error = this,
+        errorEventSource = ErrorEventSource.Parser,
+        lineNumber = positionSupplier.invoke()?.start?.line,
+        sourceReference = sourceReference
+    )
     MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
     return this
 }
 
-private fun todo(message: String): IllegalStateException {
+private fun notImplementOperationException(message: String): IllegalStateException {
     return IllegalStateException("An operation is not implemented: ")
 }
