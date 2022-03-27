@@ -569,31 +569,33 @@ enum class SourceReferenceType {
  * Models a source reference related to a statement
  * @param sourceReferenceType The type of the source
  * @param sourceId The id of the source
+ * @param lineNumber of the statement inside the source
  * @param position The position of the statement inside the source
  * */
-data class SourceReference(val sourceReferenceType: SourceReferenceType, val sourceId: String, val position: Position) {
-
-    val lineNumber = position.start.line
-}
+data class SourceReference @JvmOverloads constructor (val sourceReferenceType: SourceReferenceType, val sourceId: String, val lineNumber: Int, val position: Position? = null)
 
 fun Position.relative(programName: String?, copyBlocks: CopyBlocks?): StatementReference {
     return if (programName == null) {
+        val position = Position(Point(this.start.line, this.start.column), Point(this.end.line, this.end.column))
         StatementReference(
             first = this.start.line,
             second = SourceReference(
                 sourceReferenceType = SourceReferenceType.Program,
                 sourceId = "UNKNOWN",
-                position = Position(Point(this.start.line, this.start.column), Point(this.end.line, this.end.column))
+                lineNumber = position.start.line,
+                position = position
             )
         )
     } else {
         val copyBlock = copyBlocks?.getCopyBlock(this.start.line)
+        val position = this.adaptInFunctionOf(copyBlocks)
         StatementReference(
             first = this.start.line,
             second = SourceReference(
                 sourceReferenceType = copyBlock?.let { SourceReferenceType.Copy } ?: SourceReferenceType.Program,
                 sourceId = copyBlock?.copyId?.toString() ?: programName,
-                position = this.adaptInFunctionOf(copyBlocks)
+                lineNumber = position.start.line,
+                position = position
             )
         )
     }

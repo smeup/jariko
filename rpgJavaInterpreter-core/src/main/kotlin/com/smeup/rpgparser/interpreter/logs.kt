@@ -633,7 +633,7 @@ fun Position?.atLine() = this?.relative()?.second?.renderStartLine()?.let { "lin
 fun Node?.startLine() = this?.position?.relative()?.second?.renderStartLine().asNonNullString()
 fun Node?.endLine() = this?.position?.relative()?.second?.renderEndLine().asNonNullString()
 fun SourceReference.renderStartLine() = "${this.lineNumber}"
-fun SourceReference.renderEndLine() = "${this.position.end.line}"
+fun SourceReference.renderEndLine() = "${this.position?.end?.line}"
 class CatStatementExecutionLog(programName: String, val statement: CatStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "CAT"
