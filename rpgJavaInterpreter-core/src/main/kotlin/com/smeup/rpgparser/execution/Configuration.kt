@@ -119,13 +119,13 @@ data class JarikoCallback(
     var onEnterCopy: (copyId: CopyId) -> Unit = { },
     var onExitCopy: (copyId: CopyId) -> Unit = { },
     /**
-     * lineNumber is the absolute position of the statement in the post-processed program.
+     * absoluteLine is the absolute position of the statement in the post-processed program.
      * In case of programs with copy, the absolute position usually is different from the position of the statement
      * inside the source.
      * The position of the statement inside the source is accessible through sourceReference parameter.
      * sourceReference The source type where the statement is
      * */
-    var onEnterStatement: (lineNumber: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> },
+    var onEnterStatement: (absoluteLine: Int, sourceReference: SourceReference) -> Unit = { _: Int, _: SourceReference -> },
     var onEnterFunction: (functionName: String, params: List<FunctionValue>, symbolTable: ISymbolTable)
     -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable -> },
     var onExitFunction: (functionName: String, returnValue: Value) -> Unit = { _: String, _: Value -> },
@@ -146,9 +146,9 @@ data class CallProgramHandler(
  * This class models an error event
  * @param error The error
  * @param errorEventSource The source of event
- * @param lineNumber The line number of post processed file from which the error was thrown
+ * @param absoluteLine The line number of post processed file from which the error was thrown
  * */
-data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSource, val lineNumber: Int?, val sourceReference: SourceReference?)
+data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSource, val absoluteLine: Int?, val sourceReference: SourceReference?)
 
 enum class ErrorEventSource {
     Parser, Interpreter

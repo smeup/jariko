@@ -76,7 +76,7 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
 
     fun dumpError(): String {
-        return "${errors.dumpError()}\n${src.dumpSource()}"
+        return "${errors.dumpError(root!!.copyBlocks)}\n${src.dumpSource()}"
     }
 
     internal fun fireErrorEvents() {
@@ -318,7 +318,7 @@ class RpgParserFacade {
             mutes = findMutes(code, errors)
         }
         verifyParseTree(parser, errors, root)
-        parserResult = RpgParserResult(errors.adaptInFunctionOf(copyBlocks), ParseTrees(rContext = root, muteContexts = mutes, copyBlocks = copyBlocks), parser, code)
+        parserResult = RpgParserResult(errors, ParseTrees(rContext = root, muteContexts = mutes, copyBlocks = copyBlocks), parser, code)
         return parserResult
     }
 
@@ -508,9 +508,9 @@ private fun Map.Entry<Int?, List<Error>>.toErrorAtLine(): ErrorAtLine {
     return ErrorAtLine(this.key, messages)
 }
 
-private fun List<Error>.dumpError(): String {
+private fun List<Error>.dumpError(copyBlocks: CopyBlocks?): String {
     return StringBuilder().let { sb ->
-        this.groupByLine().forEach { errorEntry ->
+        adaptInFunctionOf(copyBlocks).groupByLine().forEach { errorEntry ->
             val errorAtLine = errorEntry.toErrorAtLine()
             val line = "Errors at line: ${errorAtLine.first}"
             val messages = errorAtLine.second
@@ -539,7 +539,7 @@ private fun List<Error>.fireErrorEvents() {
         ErrorEvent(
             error = IllegalStateException(errorEntry.value[0].message),
             errorEventSource = ErrorEventSource.Parser,
-            lineNumber = errorEntry.value[0].position?.start?.line,
+            absoluteLine = errorEntry.value[0].position?.start?.line,
             sourceReference = errorEntry.value[0].position?.relative(programName, copyBlocks)?.second
         ).apply {
             MainExecutionContext.getConfiguration().jarikoCallback.onError(this)
@@ -569,10 +569,10 @@ enum class SourceReferenceType {
  * Models a source reference related to a statement
  * @param sourceReferenceType The type of the source
  * @param sourceId The id of the source
- * @param lineNumber of the statement inside the source
+ * @param relativeLine of the statement inside the source
  * @param position The position of the statement inside the source
  * */
-data class SourceReference @JvmOverloads constructor (val sourceReferenceType: SourceReferenceType, val sourceId: String, val lineNumber: Int, val position: Position? = null)
+data class SourceReference @JvmOverloads constructor (val sourceReferenceType: SourceReferenceType, val sourceId: String, val relativeLine: Int, val position: Position? = null)
 
 fun Position.relative(programName: String?, copyBlocks: CopyBlocks?): StatementReference {
     return if (programName == null) {
@@ -582,7 +582,7 @@ fun Position.relative(programName: String?, copyBlocks: CopyBlocks?): StatementR
             second = SourceReference(
                 sourceReferenceType = SourceReferenceType.Program,
                 sourceId = "UNKNOWN",
-                lineNumber = position.start.line,
+                relativeLine = position.start.line,
                 position = position
             )
         )
@@ -594,7 +594,7 @@ fun Position.relative(programName: String?, copyBlocks: CopyBlocks?): StatementR
             second = SourceReference(
                 sourceReferenceType = copyBlock?.let { SourceReferenceType.Copy } ?: SourceReferenceType.Program,
                 sourceId = copyBlock?.copyId?.toString() ?: programName,
-                lineNumber = position.start.line,
+                relativeLine = position.start.line,
                 position = position
             )
         )

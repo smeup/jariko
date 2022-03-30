@@ -91,12 +91,14 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
 
         // InputStream from '.rpgle' program
         if (nameOrSource.endsWith(SourceProgram.RPGLE.extension) && file.exists()) {
-            return RpgProgram.fromInputStream(FileInputStream(file.apply { notifyFound() }), nameOrSource, SourceProgram.RPGLE)
+            file.notifyFound()
+            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.RPGLE)
         }
 
         // InputStream from '.bin' program
         if (nameOrSource.endsWith(SourceProgram.BINARY.extension) && file.exists()) {
-            return RpgProgram.fromInputStream(FileInputStream(file.apply { notifyFound() }), nameOrSource, SourceProgram.BINARY)
+            file.notifyFound()
+            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.BINARY)
         }
 
         // No extension, should be '.rpgle' or '.bin'
@@ -104,11 +106,13 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
             !nameOrSource.endsWith(SourceProgram.BINARY.extension)) {
             var anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.RPGLE.extension}")
             if (anonymouosFile.exists()) {
-                return RpgProgram.fromInputStream(FileInputStream(anonymouosFile.apply { notifyFound() }), nameOrSource, SourceProgram.RPGLE)
+                anonymouosFile.notifyFound()
+                return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.RPGLE)
             } else {
                 anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.BINARY.extension}")
                 if (anonymouosFile.exists()) {
-                    return RpgProgram.fromInputStream(FileInputStream(anonymouosFile.apply { notifyFound() }), nameOrSource, SourceProgram.BINARY)
+                    anonymouosFile.notifyFound()
+                    return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.BINARY)
                 } else {
                     return null
                 }

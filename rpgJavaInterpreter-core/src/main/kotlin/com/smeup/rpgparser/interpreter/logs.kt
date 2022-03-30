@@ -19,7 +19,6 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
-import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.utils.asNonNullString
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
@@ -632,7 +631,7 @@ fun Position?.line() = this?.relative()?.second?.renderStartLine().asNonNullStri
 fun Position?.atLine() = this?.relative()?.second?.renderStartLine()?.let { "line $it " } ?: ""
 fun Node?.startLine() = this?.position?.relative()?.second?.renderStartLine().asNonNullString()
 fun Node?.endLine() = this?.position?.relative()?.second?.renderEndLine().asNonNullString()
-fun SourceReference.renderStartLine() = "${this.lineNumber}"
+fun SourceReference.renderStartLine() = "${this.relativeLine}"
 fun SourceReference.renderEndLine() = "${this.position?.end?.line}"
 class CatStatementExecutionLog(programName: String, val statement: CatStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {

@@ -95,16 +95,16 @@ class JarikoCallbackTest : AbstractTest() {
                 afterAstCreation = { ast -> postProcessed = ast.source!! }
                 onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
                     if (sourceReference.sourceReferenceType == SourceReferenceType.Copy) {
-                        println("Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
+                        println("Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
                     } else {
-                        println("Program - relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
+                        println("Program - relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
                     }
                     val src = when (sourceReference.sourceReferenceType) {
                         SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId)]
                         SourceReferenceType.Program -> pgm
                     }
                     require(src != null)
-                    val relativeStatement = src.lines()[sourceReference.lineNumber - 1]
+                    val relativeStatement = src.lines()[sourceReference.relativeLine - 1]
                     println("relativeStatement: $relativeStatement")
                     val absoluteStatement = postProcessed.lines()[lineNumber - 1]
                     println("absoluteStatement: $absoluteStatement")
@@ -295,10 +295,16 @@ class JarikoCallbackTest : AbstractTest() {
     fun executeERROR02CallBackTest() {
         executePgmCallBackTest("ERROR02", SourceReferenceType.Program, "ERROR02", listOf(6, 7))
     }
+
     @Test
     fun executeERROR03CallBackTest() {
         // listOf(7, 7) is not an error because we have an error event duplicated, but for now is not a problem
         executePgmCallBackTest("ERROR03", SourceReferenceType.Copy, "QILEGEN,ERROR01", listOf(7, 7))
+    }
+
+    @Test
+    fun executeERROR04CallBackTest() {
+        executePgmCallBackTest("ERROR04", SourceReferenceType.Copy, "QILEGEN,ERROR02", listOf(5))
     }
 
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
@@ -318,7 +324,7 @@ class JarikoCallbackTest : AbstractTest() {
             println(it.message)
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
-            Assert.assertEquals(lines, errorEvents.map { errorEvent -> errorEvent.sourceReference!!.lineNumber })
+            Assert.assertEquals(lines, errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine })
         }
     }
 }

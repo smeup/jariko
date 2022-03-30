@@ -1502,7 +1502,7 @@ private fun Throwable.fireErrorEvent(positionSupplier: () -> Position?): Throwab
     val errorEvent = ErrorEvent(
         error = this,
         errorEventSource = ErrorEventSource.Parser,
-        lineNumber = positionSupplier.invoke()?.start?.line,
+        absoluteLine = positionSupplier.invoke()?.start?.line,
         sourceReference = sourceReference
     )
     MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
