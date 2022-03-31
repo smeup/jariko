@@ -288,23 +288,33 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR01CallBackTest() {
+        // Runtime error in program
         executePgmCallBackTest("ERROR01", SourceReferenceType.Program, "ERROR01", listOf(4))
     }
 
     @Test
     fun executeERROR02CallBackTest() {
+        // Syntax error in program
         executePgmCallBackTest("ERROR02", SourceReferenceType.Program, "ERROR02", listOf(6, 7))
     }
 
     @Test
     fun executeERROR03CallBackTest() {
+        // Invalid opcode in cpy
         // listOf(7, 7) is not an error because we have an error event duplicated, but for now is not a problem
-        executePgmCallBackTest("ERROR03", SourceReferenceType.Copy, "QILEGEN,ERROR01", listOf(7, 7))
+        executePgmCallBackTest("ERROR03", SourceReferenceType.Copy, "QILEGEN,CPERR01", listOf(7, 7))
     }
 
     @Test
     fun executeERROR04CallBackTest() {
-        executePgmCallBackTest("ERROR04", SourceReferenceType.Copy, "QILEGEN,ERROR02", listOf(5))
+        // Syntax error in cpy
+        executePgmCallBackTest("ERROR04", SourceReferenceType.Copy, "QILEGEN,CPERR02", listOf(5))
+    }
+
+    @Test
+    fun executeERROR05CallBackTest() {
+        // Validating AST in copy
+        executePgmCallBackTest("ERROR05", SourceReferenceType.Copy, "QILEGEN,CPERR03", listOf(5))
     }
 
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {

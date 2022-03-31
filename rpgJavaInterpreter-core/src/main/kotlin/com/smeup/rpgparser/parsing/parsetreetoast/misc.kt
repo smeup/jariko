@@ -1434,7 +1434,7 @@ fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): N
     } ?: "Error at"
     val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
     val myMessage = "$pref $position ${this.javaClass.name}"
-    throw notImplementOperationException(myMessage).fireErrorEvent { toPosition(conf.considerPosition) }
+    throw notImplementOperationException(myMessage).fireErrorEvent(toPosition(conf.considerPosition))
 }
 
 fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, conf: ToAstConfiguration): Nothing {
@@ -1445,7 +1445,7 @@ fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, c
     throw IllegalStateException(
         "$pref$position ${this.javaClass.name}",
         cause
-    ).fireErrorEvent { toPosition(conf.considerPosition) }
+    ).fireErrorEvent(toPosition(conf.considerPosition))
 }
 
 /**
@@ -1462,10 +1462,16 @@ fun <T : ParserRuleContext, R> T.runParserRuleContext(conf: ToAstConfiguration, 
 
 fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
     val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    throw IllegalStateException(
+    IllegalStateException(
         message?.let { "$message at: $position" } ?: "Error at: $position",
         cause?.let { cause }
-    ).fireErrorEvent { this.position }
+    ).let { error ->
+        if (this is CompilationUnit) {
+            throw error
+        } else {
+            throw error.fireErrorEvent(this.position)
+        }
+    }
 }
 
 fun Node.todo(message: String? = null): Nothing {
@@ -1473,7 +1479,13 @@ fun Node.todo(message: String? = null): Nothing {
         "$message at "
     } ?: "Error at "
     val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    throw notImplementOperationException("${pref}Position: $position").fireErrorEvent { this.position }
+    notImplementOperationException("${pref}Position: $position").let { error ->
+        if (this is CompilationUnit) {
+            throw error
+        } else {
+            throw error.fireErrorEvent(this.position)
+        }
+    }
 }
 
 /**
@@ -1496,13 +1508,13 @@ private fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
     return ProgramNameToCopyBlocks(programName, copyBlocks)
 }
 
-private fun Throwable.fireErrorEvent(positionSupplier: () -> Position?): Throwable {
+private fun Throwable.fireErrorEvent(position: Position?): Throwable {
     val programNameToCopyBlocks = getProgramNameToCopyBlocks()
-    val sourceReference = positionSupplier.invoke()?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
+    val sourceReference = position?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
     val errorEvent = ErrorEvent(
         error = this,
         errorEventSource = ErrorEventSource.Parser,
-        absoluteLine = positionSupplier.invoke()?.start?.line,
+        absoluteLine = position?.start?.line,
         sourceReference = sourceReference
     )
     MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
