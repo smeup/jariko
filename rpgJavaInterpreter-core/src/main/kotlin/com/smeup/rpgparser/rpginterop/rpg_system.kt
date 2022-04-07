@@ -28,6 +28,7 @@ import com.smeup.rpgparser.parsing.facade.key
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
+import java.nio.file.Path
 
 interface RpgProgramFinder {
     fun findRpgProgram(nameOrSource: String): RpgProgram?
@@ -65,25 +66,38 @@ class SourceProgramFinder : RpgProgramFinder {
     }
 }
 
-class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
+open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
+
+    private var foundProgram: (path: Path) -> Unit = { _: Path -> }
 
     init {
         directory?.let { require(it.exists()) { "The specified directory should exist: ${directory.path} -> ${directory.absolutePath}" } }
     }
 
+    /**
+     * Called when this finder found a program
+     * */
+    open fun foundProgram(foundProgram: (path: Path) -> Unit) {
+        this.foundProgram = foundProgram
+    }
+
+    private fun File.notifyFound() = foundProgram.invoke(this.toPath())
+
     override fun findRpgProgram(nameOrSource: String): RpgProgram? {
         // TODO
         // refactor to avoid code duplication and a better handle of
-        // new SourceProgram exetensions
+        // new SourceProgram extensions
         val file = File(prefix() + nameAndSuffix(nameOrSource))
 
         // InputStream from '.rpgle' program
         if (nameOrSource.endsWith(SourceProgram.RPGLE.extension) && file.exists()) {
+            file.notifyFound()
             return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.RPGLE)
         }
 
         // InputStream from '.bin' program
         if (nameOrSource.endsWith(SourceProgram.BINARY.extension) && file.exists()) {
+            file.notifyFound()
             return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.BINARY)
         }
 
@@ -92,10 +106,12 @@ class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
             !nameOrSource.endsWith(SourceProgram.BINARY.extension)) {
             var anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.RPGLE.extension}")
             if (anonymouosFile.exists()) {
+                anonymouosFile.notifyFound()
                 return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.RPGLE)
             } else {
                 anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.BINARY.extension}")
                 if (anonymouosFile.exists()) {
+                    anonymouosFile.notifyFound()
                     return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.BINARY)
                 } else {
                     return null

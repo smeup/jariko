@@ -16,6 +16,8 @@
 
 package com.smeup.rpgparser.parsing.parsetreetoast
 
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.execution.ParsingProgram
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.type
@@ -62,8 +64,8 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
                         resolved = dre.variable.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
                         currentCu = currentCu.parent?.let { it as CompilationUnit } ?: null
                     }
-                    require(resolved) {
-                        "Data reference not resolved: ${dre.variable.name} at ${dre.position}"
+                    if (!resolved) {
+                        dre.error("Data reference not resolved: ${dre.variable.name}")
                     }
                 }
             }
@@ -99,8 +101,13 @@ fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
  */
 fun CompilationUnit.resolveAndValidate(raiseException: Boolean = true): List<Error> {
     kotlin.runCatching {
+        val parsingProgram = ParsingProgram(MainExecutionContext.getExecutionProgramName())
+        parsingProgram.copyBlocks = this.copyBlocks
+        MainExecutionContext.getParsingProgramStack().push(parsingProgram)
         this.resolve()
-        return this.validate(raiseException)
+        return this.validate(raiseException).apply {
+            MainExecutionContext.getParsingProgramStack().pop()
+        }
     }.onFailure {
         this.source?.let { source ->
             throw AstCreatingException(source, it)

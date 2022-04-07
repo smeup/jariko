@@ -91,6 +91,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
                 functionParamNameToValue[functionParam.name] = params[index].value
             }
         }
+        MainExecutionContext.getConfiguration().jarikoCallback.onEnterFunction(compilationUnit.procedureName!!, params, interpreter.getGlobalSymbolTable())
         interpreter.execute(this.compilationUnit, functionParamNameToValue, false)
         params.forEachIndexed { index, functionValue ->
             functionValue.variableName?.apply {
@@ -101,7 +102,9 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
             }
         }
         interpreter.doSomethingAfterExecution()
-        return interpreter.getStatus().returnValue ?: VoidValue
+        return (interpreter.getStatus().returnValue ?: VoidValue).apply {
+            MainExecutionContext.getConfiguration().jarikoCallback.onExitFunction(compilationUnit.procedureName!!, this)
+        }
     }
 
     init {
