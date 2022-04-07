@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.JarikoCallback
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -94,16 +95,16 @@ class JarikoCallbackTest : AbstractTest() {
                 afterAstCreation = { ast -> postProcessed = ast.source!! }
                 onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
                     if (sourceReference.sourceReferenceType == SourceReferenceType.Copy) {
-                        println("Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
+                        println("Copy - copyId: ${sourceReference.sourceId}, relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
                     } else {
-                        println("Program - relativeLineNumber: ${sourceReference.lineNumber}, lineNumber: $lineNumber")
+                        println("Program - relativeLineNumber: ${sourceReference.relativeLine}, lineNumber: $lineNumber")
                     }
                     val src = when (sourceReference.sourceReferenceType) {
                         SourceReferenceType.Copy -> copyDefinitions[CopyId(member = sourceReference.sourceId)]
                         SourceReferenceType.Program -> pgm
                     }
                     require(src != null)
-                    val relativeStatement = src.lines()[sourceReference.lineNumber - 1]
+                    val relativeStatement = src.lines()[sourceReference.relativeLine - 1]
                     println("relativeStatement: $relativeStatement")
                     val absoluteStatement = postProcessed.lines()[lineNumber - 1]
                     println("absoluteStatement: $absoluteStatement")
@@ -236,5 +237,104 @@ class JarikoCallbackTest : AbstractTest() {
             }
         }
         executePgm(programName = pgm, systemInterface = systemInterface, configuration = configuration)
+    }
+
+    @Test
+    fun procedure1CallBackTest() {
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        var enteredTimes = 0
+        var exitedTimes = 0
+        val functionParams = mutableListOf<FunctionValue>()
+        executePgm(systemInterface = systemInterface, programName = "PROCEDURE1", configuration = Configuration().apply {
+            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
+                enteredTimes++
+                functionParams.addAll(params)
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(11, params[0].value.asInt().value)
+                Assert.assertEquals(22, params[1].value.asInt().value)
+                Assert.assertEquals(ZeroValue, params[2].value)
+            }
+            jarikoCallback.onExitFunction = { functionName: String, _: Value ->
+                exitedTimes++
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(33, functionParams[2].value.asInt().value)
+            }
+        })
+        Assert.assertEquals(enteredTimes, exitedTimes)
+    }
+
+    @Test
+    fun procedure2CallBackTest() {
+        val systemInterface = JavaSystemInterface().apply { onDisplay = { _, _ -> run {} } }
+        var enteredTimes = 0
+        var exitedTimes = 0
+        val functionParams = mutableListOf<FunctionValue>()
+        executePgm(systemInterface = systemInterface, programName = "PROCEDURE2", configuration = Configuration().apply {
+            jarikoCallback.onEnterFunction = { functionName: String, params: List<FunctionValue>, _: ISymbolTable ->
+                enteredTimes++
+                functionParams.addAll(params)
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(11, params[0].value.asInt().value)
+                Assert.assertEquals(22, params[1].value.asInt().value)
+            }
+            jarikoCallback.onExitFunction = { functionName: String, returnValue: Value ->
+                exitedTimes++
+                Assert.assertEquals("CALL1", functionName)
+                Assert.assertEquals(33, returnValue.asInt().value)
+            }
+        })
+        Assert.assertEquals(enteredTimes, exitedTimes)
+    }
+
+    @Test
+    fun executeERROR01CallBackTest() {
+        // Runtime error in program
+        executePgmCallBackTest("ERROR01", SourceReferenceType.Program, "ERROR01", listOf(4))
+    }
+
+    @Test
+    fun executeERROR02CallBackTest() {
+        // Syntax error in program
+        executePgmCallBackTest("ERROR02", SourceReferenceType.Program, "ERROR02", listOf(6, 7))
+    }
+
+    @Test
+    fun executeERROR03CallBackTest() {
+        // Invalid opcode in cpy
+        // listOf(7, 7) is not an error because we have an error event duplicated, but for now is not a problem
+        executePgmCallBackTest("ERROR03", SourceReferenceType.Copy, "QILEGEN,CPERR01", listOf(7, 7))
+    }
+
+    @Test
+    fun executeERROR04CallBackTest() {
+        // Syntax error in cpy
+        executePgmCallBackTest("ERROR04", SourceReferenceType.Copy, "QILEGEN,CPERR02", listOf(5))
+    }
+
+    @Test
+    fun executeERROR05CallBackTest() {
+        // Validating AST in copy
+        executePgmCallBackTest("ERROR05", SourceReferenceType.Copy, "QILEGEN,CPERR03", listOf(5))
+    }
+
+    private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
+        val errorEvents = mutableListOf<ErrorEvent>()
+        runCatching {
+            val configuration = Configuration().apply {
+                jarikoCallback.onError = { errorEvent ->
+                    println(errorEvent)
+                    errorEvents.add(errorEvent)
+                }
+                options = Options(debuggingInformation = true)
+            }
+            executePgm(pgm, configuration = configuration)
+        }.onSuccess {
+            Assert.fail("Program must exit with error")
+        }.onFailure {
+            println(it.message)
+            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
+            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
+            Assert.assertEquals(lines, errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine })
+        }
     }
 }
