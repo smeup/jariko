@@ -297,14 +297,28 @@ class CopyBlocks : Iterable<CopyBlock> {
         onEnter: (copyBlock: CopyBlock) -> Unit,
         onExit: (copyBlock: CopyBlock) -> Unit
     ) {
-        copyBlocks.forEach { copyBlock ->
-            if (copyBlock.start in from + 1..to) {
-                onEnter.invoke(copyBlock)
+
+        if (from <= to) {
+            for (line in from..to) {
+                copyBlocks.forEach { copyBlock ->
+                    if (line == copyBlock.start) {
+                        onEnter.invoke(copyBlock)
+                    }
+                    if (line == copyBlock.end) {
+                        onExit.invoke(copyBlock)
+                    }
+                }
             }
-        }
-        revertOrderedCopyBlocks.forEach { copyBlock ->
-            if (copyBlock.end in from + 1..to) {
-                onExit.invoke(copyBlock)
+        } else {
+            for (line in from downTo to) {
+                revertOrderedCopyBlocks.forEach { copyBlock ->
+                    if (line == copyBlock.end - 1) {
+                        onEnter.invoke(copyBlock)
+                    }
+                    if (line == copyBlock.start - 1) {
+                        onExit.invoke(copyBlock)
+                    }
+                }
             }
         }
     }
