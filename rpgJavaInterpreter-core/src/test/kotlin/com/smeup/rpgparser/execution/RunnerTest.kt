@@ -256,8 +256,8 @@ class RunnerTest : AbstractTest() {
         con.setRequestProperty("Accept", "application/json")
         con.doOutput = true
         val jsonInputString = "{\n" +
-                " \"program-name\": \"$theProgram\",\n" +
-                " \"program-params\": [\n" +
+                " \"name\": \"$theProgram\",\n" +
+                " \"parameters\": [\n" +
                 " \"$inputParams                                                                                           \"\n" +
                 " ]\n" +
                 "}"
