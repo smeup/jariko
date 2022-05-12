@@ -68,7 +68,7 @@ data class ReloadConfig(
  * @param callProgramHandler If specified allows to override program call handling logic.
  * @param dumpSourceOnExecutionError If true, program source is dumped on execution error. Default false.
  * @param debuggingInformation If true, adds debugging information. Default false.
- * This propertty is necessary to enable some features useful when jariko must be debugged, for example some callback functions
+ * This property is necessary to enable some features useful when jariko must be debugged, for example some callback functions
  * such as onEnter and onExit copies or statements, just for performance reasons, will be invoked only when this property
  * is true.
  * */
