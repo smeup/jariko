@@ -76,7 +76,11 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
 
     fun dumpError(): String {
-        return "${errors.dumpError(root!!.copyBlocks)}\n${src.dumpSource()}"
+        return if (MainExecutionContext.getConfiguration().options?.mustDumpSource() == true) {
+            "${errors.dumpError(root!!.copyBlocks)}\n${src.dumpSource()}"
+        } else {
+            errors.dumpError(root!!.copyBlocks)
+        }
     }
 
     internal fun fireErrorEvents() {

@@ -90,7 +90,10 @@ class JarikoCallbackTest : AbstractTest() {
         lateinit var pgm: String
         lateinit var postProcessed: String
         val configuration = Configuration().apply {
-            options = Options().apply { debuggingInformation = true }
+            options = Options().apply {
+                debuggingInformation = true
+                dumpSourceOnExecutionError = true
+            }
             jarikoCallback = JarikoCallback().apply {
                 afterAstCreation = { ast -> postProcessed = ast.source!! }
                 onEnterStatement = { lineNumber: Int, sourceReference: SourceReference ->
