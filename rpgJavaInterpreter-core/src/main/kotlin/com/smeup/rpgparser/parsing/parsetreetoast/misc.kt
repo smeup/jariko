@@ -307,9 +307,20 @@ internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 }
 
 internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Subroutine {
+    val caughtErrors = mutableListOf<Throwable>()
+    val statements = this.statement().mapNotNull {
+        kotlin.runCatching {
+            it.toAst(conf)
+        }.onFailure {
+            caughtErrors.add(it)
+        }.getOrNull()
+    }
+    if (caughtErrors.isNotEmpty()) {
+        throw caughtErrors[0]
+    }
     return Subroutine(
         this.begsr().csBEGSR().factor1.text,
-        this.statement().map { it.toAst(conf) },
+        statements,
         this.endsr().csENDSR().factor1.text,
         toPosition(conf.considerPosition)
     )

@@ -69,7 +69,7 @@ private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
 }
 
 fun RpgParser.Dcl_dsContext.elementSizeOf(fieldsList: FieldsList = this.calculateFieldInfos()): Int {
-    var toPosition = if (this.nameIsInFirstLine) {
+    val toPosition = if (this.nameIsInFirstLine) {
         this.TO_POSITION().text
     } else {
         val header = this.parm_fixed().first()
@@ -87,9 +87,7 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
         Prefix(
             prefix = prefixContexts[0].prefix.text,
-            numCharsReplaced = prefixContexts[0].nbr_of_char_replaced?.let {
-                it.text.toInt()
-            }
+            numCharsReplaced = prefixContexts[0].nbr_of_char_replaced?.text?.toInt()
         )
     } else {
         null
@@ -381,7 +379,7 @@ internal fun RpgParser.Dcl_cContext.toAst(
     knownDataDefinitions: List<DataDefinition>
 ): DataDefinition {
     // TODO: check more examples of const declaration
-    var initializationValueExpression: Expression = this.keyword_const().simpleExpression().toAst(conf)
+    val initializationValueExpression: Expression = this.keyword_const().simpleExpression().toAst(conf)
     val type = initializationValueExpression.type()
     return DataDefinition(
             this.ds_name().text,
@@ -438,13 +436,13 @@ internal fun RpgParser.Dcl_dsContext.type(
                 if (it.explicitStartOffset != null && it.explicitEndOffset != null) {
                     it.endOffset!!
                 } else {
-                    it.startOffset!! + (it.elementSize!! * it.arraySizeDeclared!!).toInt()
+                    it.startOffset!! + (it.elementSize!! * it.arraySizeDeclared!!)
                 }
             }
         } else {
             0
         }
-    }.max()
+    }.maxOrNull()
     val elementSize = explicitSize
             ?: calculatedElementSize
             ?: throw IllegalStateException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
@@ -499,7 +497,7 @@ data class FieldInfo(
     // of the array
     val endOffsetIncludingAllElement: Int?
         get() = if (endOffset == null) null else if (this.arraySizeDeclared == null) endOffset!! else {
-            (startOffset!! + (elementSize!! * arraySizeDeclared!!)).toInt()
+            (startOffset!! + (elementSize!! * arraySizeDeclared!!))
         }
 
     var calculatedElementSize: Int? = null
@@ -562,8 +560,8 @@ data class TypeInfo(
 )
 
 fun RpgParser.Parm_fixedContext.toTypeInfo(): TypeInfo {
-    val fp = this.FROM_POSITION()
-    val foo = this.TO_POSITION()
+    this.FROM_POSITION()
+    this.TO_POSITION()
     return TypeInfo(
             stringCode = DATA_TYPE()?.text?.trim(),
             integerPositions = if (TO_POSITION().text.isNotBlank()) TO_POSITION().text.trim().toInt() else null,
@@ -616,12 +614,12 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
                 // FROM/TO positions.
 
                 // if the PACKEVEN keyword is specified, the numberOfDigits is 2(N-1).
-                val numberOfDigits = if (explicitElementSize == null) precision!! else 2 * (elementSize!! - 1)
+                val numberOfDigits = if (explicitElementSize == null) precision!! else 2 * (elementSize - 1)
 
-                NumberType(numberOfDigits!! - decimalPositions!!, decimalPositions, rpgCodeType)
+                NumberType(numberOfDigits - decimalPositions!!, decimalPositions, rpgCodeType)
             } else {
                 // If the PACKEVEN keyword is not specified, the numberOfDigits is 2N - 1;
-                val numberOfDigits = if (explicitElementSize == null) precision else 2 * elementSize!! - 1
+                val numberOfDigits = if (explicitElementSize == null) precision else 2 * elementSize - 1
                 NumberType(numberOfDigits!! - decimalPositions!!, decimalPositions, rpgCodeType)
             }
         }
@@ -632,7 +630,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
                 2 -> NumberType(5, 0, rpgCodeType)
                 4 -> NumberType(10, 0, rpgCodeType)
                 8 -> NumberType(19, 0, rpgCodeType)
-                else -> NumberType(elementSize - decimalPositions!!, decimalPositions!!, rpgCodeType)
+                else -> NumberType(elementSize - decimalPositions!!, decimalPositions, rpgCodeType)
             }
         }
         RpgType.BINARY.rpgType -> {
@@ -653,8 +651,17 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
 }
 
 fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
-    val fieldsList = FieldsList(this.parm_fixed().map { it.toFieldInfo() })
-
+    val caughtErrors = mutableListOf<Throwable>()
+    val fieldsList = FieldsList(this.parm_fixed().mapNotNull {
+        kotlin.runCatching {
+            it.toFieldInfo()
+        }.onFailure {
+            caughtErrors.add(it)
+        }.getOrNull()
+    })
+    if (caughtErrors.isNotEmpty()) {
+        throw caughtErrors[0]
+    }
     // The first field, if does not use the overlay directive, starts at offset 0
     if (fieldsList.fields.isNotEmpty()) {
         if (fieldsList.fields.first().overlayInfo == null) {
@@ -681,7 +688,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
         val descend = this.keyword().find { it.keyword_descend() != null } != null
 
         if (overlay != null) {
-            val fieldName = this.name
+            this.name
             val pos = overlay.keyword_overlay().pos
             val nameExpr = overlay.keyword_overlay().name
             val targetFieldName = nameExpr.identifier().text
@@ -691,7 +698,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
         }
 
         var initializationValue: Expression? = null
-        var hasInitValue = this.keyword().find { it.keyword_inz() != null }
+        val hasInitValue = this.keyword().find { it.keyword_inz() != null }
         if (hasInitValue != null) {
             if (hasInitValue.keyword_inz().simpleExpression() != null) {
                 initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
@@ -752,7 +759,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                     // D SSFLD                        600
                     // D  OBJTYPE                      30    OVERLAY(SSFLD:*NEXT)
                     // D  OBJTP                        02    OVERLAY(OBJTYPE:1)
-                    val targetFieldDefinition = fields.find { it.name == currFieldInfo.overlayInfo!!.targetFieldName }
+                    val targetFieldDefinition: FieldInfo = fields.find { it.name == currFieldInfo.overlayInfo.targetFieldName }
                             ?: throw RuntimeException("Target of overlay not found: ${currFieldInfo.overlayInfo.targetFieldName}")
 
                     // We should consider that on overlay which does overlay of a field which is an array
@@ -784,7 +791,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                         currFieldInfo.startOffset = targetFieldDefinition.startOffset!! + extraOffset
                     }
                     if (currFieldInfo.endOffset == null && currFieldInfo.elementSize != null) {
-                        currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!).toInt()
+                        currFieldInfo.endOffset = (currFieldInfo.startOffset!! + currFieldInfo.elementSize!!)
                     }
                     val elementSize = currFieldInfo.toAst().type.elementSize()
                     sizeSoFar[targetFieldDefinition.name] = sizeSoFar.getOrDefault(targetFieldDefinition.name, 0) + elementSize
@@ -818,7 +825,7 @@ class FieldsList(val fields: List<FieldInfo>) {
                     }
                     it.startOffset = extraOffset.toInt()
                     if (it.endOffset == null && it.elementSize != null) {
-                        it.endOffset = (it.startOffset!! + it.elementSize!!).toInt()
+                        it.endOffset = (it.startOffset!! + it.elementSize!!)
                     }
                     sizeSoFar[it.overlayInfo.targetFieldName] = it.endOffset!!
                 }
@@ -833,14 +840,14 @@ class FieldsList(val fields: List<FieldInfo>) {
                 check(overlayingFields.isNotEmpty()) { "I cannot calculate the size of ${it.name} from the overlaying fields as there are none" }
                 val overlayingFieldsWithoutEndOffset = overlayingFields.filter { it.endOffset == null }
                 check(overlayingFieldsWithoutEndOffset.isEmpty()) { "I cannot calculate the size of ${it.name} because it should be determined by the fields overlaying on it, but for some I do not know the end offset. They are: ${overlayingFieldsWithoutEndOffset.joinToString(separator = ", ") { it.name }}" }
-                val lastOffset = overlayingFields.map { it.endOffset!! }.max()!!
+                val lastOffset = overlayingFields.map { it.endOffset!! }.maxOrNull()!!
                 it.calculatedElementSize = lastOffset
 
                 if (it.explicitElementType == null) {
                     it.calculatedElementType = StringType(it.calculatedElementSize!!, false)
                 }
                 if (it.endOffset == null) {
-                    it.endOffset = (it.startOffset!! + it.elementType.size).toInt()
+                    it.endOffset = (it.startOffset!! + it.elementType.size)
                 }
             }
         }
@@ -879,7 +886,7 @@ class FieldsList(val fields: List<FieldInfo>) {
 }
 
 internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
-    var initializationValue: Expression? = null
+    val initializationValue: Expression? = null
     val size = this.declaredSize()
 
     // Calculating information about the DS and its fields is full of interdependecies
@@ -901,7 +908,7 @@ internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfi
     fieldsList.fields.forEach { fieldInfo ->
         if (fieldInfo.overlayInfo != null) {
             val correspondingFieldDefinition = dataDefinition.fields.find { it.name == fieldInfo.name }!!
-            correspondingFieldDefinition.overlayTarget = fieldInfo.overlayInfo!!.targetFieldName
+            correspondingFieldDefinition.overlayTarget = fieldInfo.overlayInfo.targetFieldName
             dataDefinition.setOverlayOn(correspondingFieldDefinition)
         }
     }
@@ -927,7 +934,7 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
 ):
         () -> DataDefinition {
     return {
-        val size = if (this.TO_POSITION().text.trim().isNotEmpty()) {
+        if (this.TO_POSITION().text.trim().isNotEmpty()) {
             this.TO_POSITION().text.asInt()
         } else {
             null

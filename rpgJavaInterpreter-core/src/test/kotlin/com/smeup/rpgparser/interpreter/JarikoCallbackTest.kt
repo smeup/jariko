@@ -323,7 +323,13 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR06CallBackTest() {
         // Compile time errors
-        executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 7, 8, 8, 9, 9))
+        executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 7, 8, 8, 11, 11, 12, 12, 13, 13))
+    }
+
+    @Test
+    fun executeERROR07CallBackTest() {
+        // Compile time errors
+        executePgmCallBackTest("ERROR07", SourceReferenceType.Program, "ERROR07", listOf(7, 10))
     }
 
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
