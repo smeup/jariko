@@ -553,14 +553,17 @@ private fun List<Error>.fireErrorEvents() {
 
 class AstCreatingException(val src: String, cause: Throwable) :
     IllegalStateException(
+    src.let {
+        val sw = StringWriter()
+        cause.printStackTrace(PrintWriter(sw))
+        sw.flush()
         if (MainExecutionContext.getConfiguration().options?.mustDumpSource() == true) {
-            src.let {
-                val sw = StringWriter()
-                cause.printStackTrace(PrintWriter(sw))
-                "$sw\n${src.dumpSource()}"
-            }
-        } else cause.message
-    )
+            "$sw\n${src.dumpSource()}"
+        } else {
+            "$sw"
+        }
+    }
+)
 
 enum class SourceReferenceType {
     Program, Copy
