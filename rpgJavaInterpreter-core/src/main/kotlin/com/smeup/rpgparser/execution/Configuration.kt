@@ -62,7 +62,9 @@ data class ReloadConfig(
 /**
  * Options object
  * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
- * @param compiledProgramsDir If specified Jariko searches compiled program in this directory
+ * @param compiledProgramsDir If specified Jariko searches compiled program in this directory.
+ * This property should be used just for debug, because in production environment, in which the compiled programs
+ * could find in different path, it is preferable to use a program finder for every path
  * @param muteVerbose If true increases mute logging granularity
  * @param toAstConfiguration Creating ast configuration
  * @param callProgramHandler If specified allows to override program call handling logic.
