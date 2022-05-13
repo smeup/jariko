@@ -551,18 +551,15 @@ private fun List<Error>.fireErrorEvents() {
     }
 }
 
-private fun List<Error>.getLineNumbers(): Set<Int?> {
-    return this.groupBy { error: Error -> error.position?.start?.line }.keys
-}
-
 class AstCreatingException(val src: String, cause: Throwable) :
     IllegalStateException(
-        src.let {
-            val sw = StringWriter()
-            cause.printStackTrace(PrintWriter(sw))
-            "$sw\n${src.dumpSource()}"
-        },
-        cause
+        if (MainExecutionContext.getConfiguration().options?.mustDumpSource() == true) {
+            src.let {
+                val sw = StringWriter()
+                cause.printStackTrace(PrintWriter(sw))
+                "$sw\n${src.dumpSource()}"
+            }
+        } else cause.message
     )
 
 enum class SourceReferenceType {
