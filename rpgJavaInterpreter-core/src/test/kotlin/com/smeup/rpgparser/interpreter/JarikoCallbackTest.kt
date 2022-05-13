@@ -320,6 +320,12 @@ class JarikoCallbackTest : AbstractTest() {
         executePgmCallBackTest("ERROR05", SourceReferenceType.Copy, "QILEGEN,CPERR03", listOf(5))
     }
 
+    @Test
+    fun executeERROR06CallBackTest() {
+        // Compile time errors
+        executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 7, 8, 8, 9, 9))
+    }
+
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
         val errorEvents = mutableListOf<ErrorEvent>()
         runCatching {
@@ -334,7 +340,7 @@ class JarikoCallbackTest : AbstractTest() {
         }.onSuccess {
             Assert.fail("Program must exit with error")
         }.onFailure {
-            println(it.message)
+            println(it.stackTraceToString())
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             Assert.assertEquals(lines, errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine })

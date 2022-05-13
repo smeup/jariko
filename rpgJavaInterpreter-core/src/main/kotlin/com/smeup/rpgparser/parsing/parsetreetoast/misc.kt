@@ -91,6 +91,7 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
         })
 
     // Second pass, everything, I mean everything
+    val caughtErrors = mutableListOf<Throwable>()
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
             kotlin.runCatching {
@@ -111,9 +112,15 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                     else -> null
                 }
             }.onFailure { error ->
-                it.error("Error on dataDefinitionProviders creation", error, conf)
-            }.getOrThrow()
-        })
+                kotlin.runCatching {
+                    it.error("Error on dataDefinitionProviders creation", error, conf)
+                }.onFailure {
+                    caughtErrors.add(it)
+                }
+            }.getOrNull()
+        }
+    )
+    if (caughtErrors.isNotEmpty()) throw caughtErrors[0]
     return dataDefinitionProviders.map { it.toDataDefinition() }
 }
 
@@ -376,15 +383,15 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
             .forEach {
             it.parm_fixed()
                 .keyword()
-                .forEach { it ->
-                        if (it.keyword_const() != null) {
+                .forEach { keywordContext ->
+                        if (keywordContext.keyword_const() != null) {
                             dataDefinition.const = true
                             dataDefinition.paramPassedBy = ParamPassedBy.Const
-                        } else if (it.keyword_value() != null) {
+                        } else if (keywordContext.keyword_value() != null) {
                             dataDefinition.paramPassedBy = ParamPassedBy.Value
                         }
-                        if (it.keyword_options() != null) {
-                            it.keyword_options().identifier().forEach {
+                        if (keywordContext.keyword_options() != null) {
+                            keywordContext.keyword_options().identifier().forEach {
                                 val keyword = it.free_identifier().idOrKeyword().ID().toString()
                                 val paramOption = ParamOption.getByKeyword(keyword)
                                 (dataDefinition.paramOptions as ArrayList).add(paramOption)
@@ -1504,7 +1511,7 @@ private typealias ProgramNameToCopyBlocks = Pair<String?, CopyBlocks?>
 
 private fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
     val programName = if (MainExecutionContext.getParsingProgramStack().empty()) null else MainExecutionContext.getParsingProgramStack().peek().name
-    val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks } ?: null
+    val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks }
     return ProgramNameToCopyBlocks(programName, copyBlocks)
 }
 
@@ -1522,5 +1529,5 @@ private fun Throwable.fireErrorEvent(position: Position?): Throwable {
 }
 
 private fun notImplementOperationException(message: String): IllegalStateException {
-    return IllegalStateException("An operation is not implemented: ")
+    return IllegalStateException("An operation is not implemented: $message")
 }
