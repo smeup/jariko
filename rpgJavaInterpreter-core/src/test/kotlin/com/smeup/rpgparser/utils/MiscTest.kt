@@ -24,7 +24,9 @@ import com.smeup.rpgparser.parsing.facade.preprocess
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
 import org.junit.Test
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -217,12 +219,22 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.debuggingInformation = true
+        configuration.options!!.dumpSourceOnExecutionError = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
             // Exception message must contain src code
             Assert.assertTrue(it.message!!.indexOf("D MSG             S             20") > 0)
+        }.onSuccess {
+            Assert.fail()
+        }
+        // restore default
+        configuration.options = Options()
+        kotlin.runCatching {
+            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+        }.onFailure {
+            // Exception message does not must contain src code
+            Assert.assertFalse(it.message!!.indexOf("D MSG             S             20") > 0)
         }.onSuccess {
             Assert.fail()
         }
@@ -237,12 +249,22 @@ class MiscTest {
         """
         val configuration = Configuration()
         configuration.options = Options()
-        configuration.options!!.debuggingInformation = true
+        configuration.options!!.dumpSourceOnExecutionError = true
         kotlin.runCatching {
             getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
         }.onFailure {
             // Exception message must contain src code
             Assert.assertTrue(it.message!!.indexOf("MSG             S             20") > 0)
+        }.onSuccess {
+            Assert.fail()
+        }
+        // restore default options
+        configuration.options = Options()
+        kotlin.runCatching {
+            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+        }.onFailure {
+            // Exception message does not must contain src code
+            Assert.assertFalse(it.message!!.indexOf("MSG             S             20") > 0)
         }.onSuccess {
             Assert.fail()
         }
@@ -255,15 +277,44 @@ class MiscTest {
      C                   EVAL      VAR = 0/0
         """
         val configuration = Configuration()
-        configuration.options = Options()
-        configuration.options!!.debuggingInformation = true
-        kotlin.runCatching {
-            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
-        }.onFailure {
-            // Exception message must contain src code
-            Assert.assertTrue(it.message!!.indexOf("D VAR             S              5  0 ") > 0)
-        }.onSuccess {
-            Assert.fail()
+        val defaultErr = System.err
+        var err: ByteArrayOutputStream
+        var ps: PrintStream
+        try {
+            err = ByteArrayOutputStream()
+            ps = PrintStream(err)
+            println("Redirecting stderr")
+            System.setErr(ps)
+            configuration.options = Options()
+            configuration.options!!.dumpSourceOnExecutionError = true
+            kotlin.runCatching {
+                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+            }.onFailure {
+                ps.flush()
+                // Error stream must contain src
+                Assert.assertTrue(err.toString().indexOf("2    D VAR             S              5  0   ") > 0)
+            }.onSuccess {
+                Assert.fail()
+            }
+            // reset stream
+            err = ByteArrayOutputStream()
+            ps = PrintStream(err)
+            System.setErr(ps)
+            // restore default options
+            configuration.options = Options()
+            kotlin.runCatching {
+                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+            }.onFailure {
+                ps.flush()
+                // Error stream must not contain src
+                Assert.assertFalse(err.toString().indexOf("2    D VAR             S              5  0   ") > 0)
+            }.onSuccess {
+                Assert.fail()
+            }
+        } finally {
+            println("Restoring stderr")
+            System.setErr(defaultErr)
+            System.err.println("Stderr restored")
         }
     }
 }

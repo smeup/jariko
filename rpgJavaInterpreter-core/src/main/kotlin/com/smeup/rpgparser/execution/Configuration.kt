@@ -69,9 +69,10 @@ data class ReloadConfig(
  * @param toAstConfiguration Creating ast configuration
  * @param callProgramHandler If specified allows to override program call handling logic.
  * @param dumpSourceOnExecutionError If true, program source is dumped on execution error. Default false.
- * @param debuggingInformation If true add debugging information, for example program source will be dumped in case of errors.
- * Setting this property to true causes a little overhead in AST serialization and deserialization due the fact
- * the source is CompilationUnit property
+ * @param debuggingInformation If true, adds debugging information. Default false.
+ * This property is necessary to enable some features useful when jariko must be debugged, for example some callback functions
+ * such as onEnter and onExit copies or statements, just for performance reasons, will be invoked only when this property
+ * is true.
  * */
 data class Options(
     var muteSupport: Boolean = false,
@@ -79,11 +80,10 @@ data class Options(
     var muteVerbose: Boolean = false,
     var toAstConfiguration: ToAstConfiguration = ToAstConfiguration(),
     var callProgramHandler: CallProgramHandler? = null,
-    @Deprecated(replaceWith = ReplaceWith(expression = "debuggingInformation"), message = "This property will be deleted in the next releases")
     var dumpSourceOnExecutionError: Boolean? = false,
     var debuggingInformation: Boolean? = false
 ) {
-    internal fun mustDumpSource() = dumpSourceOnExecutionError == true || debuggingInformation == true
+    internal fun mustDumpSource() = dumpSourceOnExecutionError == true
     internal fun mustCreateCopyBlocks() = debuggingInformation == true
     internal fun mustInvokeOnStatementCallback() = debuggingInformation == true
 }
