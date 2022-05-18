@@ -1,7 +1,6 @@
      V* ==============================================================
-     D* Operaton not implemented inside subroutine
-     D* This program contains three errors in D specifications
-     D* Jariko must fire an ErrorEvent for each error
+     D* Operations at line 6 and 9 are not implemented
+     D*
      V* ==============================================================
      C     IMP0          BEGSR
      C/EXEC SQL
