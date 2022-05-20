@@ -48,7 +48,6 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
     runNode {
         this.specificProcess(DataRefExpr::class.java) { dre ->
             if (!dre.variable.resolved) {
-
                 if (dre.variable.name.contains('.')) {
                     dre.variable.name.substring(0, dre.variable.name.indexOf("."))
 
@@ -64,7 +63,7 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
                         currentCu = currentCu.parent?.let { it as CompilationUnit }
                     }
                     if (!resolved) {
-                        dre.error("Data reference not resolved: ${dre.variable.name}")
+                        kotlin.runCatching { dre.error("Data reference not resolved: ${dre.variable.name}") }
                     }
                 }
             }
@@ -102,6 +101,7 @@ fun CompilationUnit.resolveAndValidate(): List<Error> {
         parsingProgram.copyBlocks = this.copyBlocks
         MainExecutionContext.getParsingProgramStack().push(parsingProgram)
         this.resolve()
+        checkAstCreationErrors(AstHandlingPhase.Resolution)
         return this.validate().apply {
             MainExecutionContext.getParsingProgramStack().pop()
         }
@@ -144,8 +144,12 @@ private fun CompilationUnit.resolve() {
 
     this.specificProcess(ExecuteSubroutine::class.java) { esr ->
         if (!esr.subroutine.resolved) {
-            require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
-                "Subroutine call not resolved: ${esr.subroutine.name}"
+            esr.runNode {
+                kotlin.runCatching {
+                    require(esr.subroutine.tryToResolve(this.subroutines, caseInsensitive = true)) {
+                        "Subroutine call not resolved: ${esr.subroutine.name}"
+                    }
+                }
             }
         }
     }
@@ -154,11 +158,15 @@ private fun CompilationUnit.resolve() {
             if (qae.container is DataRefExpr) {
                 val dataRef = qae.container
                 val dataDefinition = dataRef.variable.referred!! as DataDefinition
-                require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
-                    "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"
+                qae.runNode {
+                    kotlin.runCatching {
+                        require(qae.field.tryToResolve(dataDefinition.fields, caseInsensitive = true)) {
+                            "Field access not resolved: ${qae.field.name} in data definition ${dataDefinition.name}"
+                        }
+                    }
                 }
             } else {
-                TODO()
+                qae.todo()
             }
         }
     }

@@ -31,8 +31,10 @@ open class ParseTreeToAstError(message: String, cause: Throwable? = null) : Ille
     constructor(message: String) : this(message = message, cause = null)
 }
 
+class AstResolutionError(message: String, cause: Throwable? = null) : ParseTreeToAstError(message, cause)
+
 internal fun Throwable.fireErrorEvent(position: Position?): Throwable {
-    getParseTreeToAstErrors().add(this)
+    getAstCreationErrors().add(this)
     val programNameToCopyBlocks = getProgramNameToCopyBlocks()
     val sourceReference = position?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
     val errorEvent = ErrorEvent(
@@ -49,15 +51,15 @@ internal fun notImplementOperationException(message: String): IllegalStateExcept
     return ParseTreeToAstError("An operation is not implemented: $message")
 }
 
-internal fun getParseTreeToAstErrors() = MainExecutionContext.getAttributes()
-    .getOrPut("com.smeup.rpgparser.parsing.parsetreetoast.parseTreeToAstErrors") { mutableListOf<Throwable>() } as MutableList<Throwable>
+internal fun getAstCreationErrors() = MainExecutionContext.getAttributes()
+    .getOrPut("com.smeup.rpgparser.parsing.parsetreetoast.getAstCreationErrors") { mutableListOf<Throwable>() } as MutableList<Throwable>
 
 internal fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
     val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    if (cause != null && cause is ParseTreeToAstError) {
+    if (cause != null && cause is AstResolutionError) {
         cause
     } else {
-        IllegalStateException(
+        AstResolutionError(
             message?.let { "$message at: $position" } ?: "Error at: $position",
             cause?.let { cause }
         )
@@ -106,4 +108,12 @@ internal fun ParserRuleContext.error(message: String? = null, cause: Throwable? 
             cause
         )
     }.fireErrorEvent(toPosition(conf.considerPosition))
+}
+
+internal fun checkAstCreationErrors(phase: AstHandlingPhase) {
+    if (getAstCreationErrors().isNotEmpty()) {
+        if (MainExecutionContext.getConfiguration().options?.toAstConfiguration?.afterPhaseErrorContinue?.invoke(phase) != true) {
+            throw getAstCreationErrors()[0]
+        }
+    }
 }

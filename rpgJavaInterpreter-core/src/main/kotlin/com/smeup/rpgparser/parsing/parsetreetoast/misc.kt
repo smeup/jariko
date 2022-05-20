@@ -34,9 +34,25 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
 
+enum class AstHandlingPhase {
+    FileDefinitionsCreation,
+    DataDefinitionsCreation,
+    MainStatementsCreation,
+    SubroutinesCreation,
+    CompileTimeArraysCreation,
+    DirectivesCreation,
+    ProceduresCreation,
+    Resolution
+}
+
 data class ToAstConfiguration(
     val considerPosition: Boolean = true,
-    val compileTimeInterpreter: CompileTimeInterpreter = CommonCompileTimeInterpreter
+    val compileTimeInterpreter: CompileTimeInterpreter = CommonCompileTimeInterpreter,
+    /**
+     * Called in case of error occurred after the AstHandlingPhase, it must be return
+     * if to continue or not. Default continue excepts after Resolution
+     * */
+    var afterPhaseErrorContinue: (phase: AstHandlingPhase) -> Boolean = { phase -> phase != AstHandlingPhase.Resolution }
 )
 
 fun List<Node>.position(): Position? {
@@ -126,20 +142,18 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
     val fileDefinitions = this.statement()
-            .mapNotNull {
-                when {
-                    it.fspec_fixed() != null -> it.fspec_fixed().runParserRuleContext(conf) { context ->
-                        kotlin.runCatching { context.toAst(conf) }.getOrNull()
-                    }
-                    else -> null
+        .mapNotNull {
+            when {
+                it.fspec_fixed() != null -> it.fspec_fixed().runParserRuleContext(conf) { context ->
+                    kotlin.runCatching { context.toAst(conf) }.getOrNull()
                 }
+                else -> null
             }
-
-    checkParseTreeToAstErrors()
+        }
+    checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
 
     val dataDefinitions = getDataDefinitions(conf)
-
-    checkParseTreeToAstErrors()
+    checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
 
     val mainStmts = this.statement().mapNotNull {
         when {
@@ -155,18 +169,22 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
             else -> null
         }
     }
+    checkAstCreationErrors(phase = AstHandlingPhase.MainStatementsCreation)
 
     val subroutines = this.subroutine().mapNotNull {
         it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
     }
+    checkAstCreationErrors(phase = AstHandlingPhase.SubroutinesCreation)
 
     val compileTimeArrays = this.endSourceBlock()?.endSource()?.mapNotNull {
         it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
     } ?: emptyList()
+    checkAstCreationErrors(phase = AstHandlingPhase.CompileTimeArraysCreation)
 
     val directives = this.findAllDescendants(Hspec_fixedContext::class).mapNotNull {
         it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
     }
+    checkAstCreationErrors(phase = AstHandlingPhase.DirectivesCreation)
 
     // if we have no procedures, the property procedure must be null because we decided it must be optional
     var procedures = this.procedure().mapNotNull {
@@ -175,6 +193,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         if (it.isEmpty()) null
         else it
     }
+    checkAstCreationErrors(phase = AstHandlingPhase.ProceduresCreation)
 
     // If none of 'rpg procedures', add only any 'fake procedures'.
     // If any 'rpg procedures' exists, add any 'fake procedures' too.
@@ -192,8 +211,6 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     } else {
         (procedures as ArrayList).addAll(fakeProcedures)
     }
-
-    checkParseTreeToAstErrors()
 
     return CompilationUnit(
         fileDefinitions,
@@ -215,12 +232,6 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         }
         compilationUnit
     }.postProcess()
-}
-
-private fun checkParseTreeToAstErrors() {
-    if (getParseTreeToAstErrors().isNotEmpty()) {
-        throw getParseTreeToAstErrors()[0]
-    }
 }
 
 private fun getFakeProcedures(
@@ -1479,7 +1490,8 @@ fun <T : Node, R> T.runNode(block: (T) -> R): R {
     return kotlin.runCatching {
         block.invoke(this)
     }.onFailure {
-        this.error(it.message, it)
+        // to avoid duplicated errors
+        if (it !is AstResolutionError) this.error(it.message, it)
     }.getOrThrow()
 }
 
