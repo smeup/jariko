@@ -17,16 +17,12 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.execution.ErrorEvent
-import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
-import com.smeup.rpgparser.parsing.facade.adaptInFunctionOf
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
-import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
@@ -91,7 +87,6 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
         })
 
     // Second pass, everything, I mean everything
-    val caughtErrors = mutableListOf<Throwable>()
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
             kotlin.runCatching {
@@ -103,7 +98,7 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                     }
                     it.dcl_c() != null -> {
                         it.dcl_c()
-                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .toAst(conf)
                             .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     }
                     it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
@@ -111,16 +106,9 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                     }
                     else -> null
                 }
-            }.onFailure { error ->
-                kotlin.runCatching {
-                    it.error("Error on dataDefinitionProviders creation", error, conf)
-                }.onFailure {
-                    caughtErrors.add(it)
-                }
             }.getOrNull()
         }
     )
-    if (caughtErrors.isNotEmpty()) throw caughtErrors[0]
     return dataDefinitionProviders.map { it.toDataDefinition() }
 }
 
@@ -140,28 +128,50 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     val fileDefinitions = this.statement()
             .mapNotNull {
                 when {
-                    it.fspec_fixed() != null -> it.fspec_fixed().toAst(conf)
+                    it.fspec_fixed() != null -> it.fspec_fixed().runParserRuleContext(conf) { context ->
+                        kotlin.runCatching { context.toAst(conf) }.getOrNull()
+                    }
                     else -> null
                 }
             }
+
+    checkParseTreeToAstErrors()
+
     val dataDefinitions = getDataDefinitions(conf)
+
+    checkParseTreeToAstErrors()
 
     val mainStmts = this.statement().mapNotNull {
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().runParserRuleContext(conf) { context ->
-                context.toAst(conf)
+                kotlin.runCatching { context.toAst(conf) }.getOrNull()
             }
-            it.block() != null -> it.block().toAst(conf)
-            it.free() != null -> it.free().toAst(conf)
+            it.block() != null -> it.block().runParserRuleContext(conf) { context ->
+                kotlin.runCatching { context.toAst(conf) }.getOrNull()
+            }
+            it.free() != null -> it.free().runParserRuleContext(conf) { context ->
+                kotlin.runCatching { context.toAst(conf) }.getOrNull()
+            }
             else -> null
         }
     }
 
-    val subroutines = this.subroutine().map { it.toAst(conf) }
-    val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
-    val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+    val subroutines = this.subroutine().mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }
+
+    val compileTimeArrays = this.endSourceBlock()?.endSource()?.mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    } ?: emptyList()
+
+    val directives = this.findAllDescendants(Hspec_fixedContext::class).mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }
+
     // if we have no procedures, the property procedure must be null because we decided it must be optional
-    var procedures = this.procedure().map { it.toAst(conf) }.let {
+    var procedures = this.procedure().mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }.let {
         if (it.isEmpty()) null
         else it
     }
@@ -183,6 +193,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         (procedures as ArrayList).addAll(fakeProcedures)
     }
 
+    checkParseTreeToAstErrors()
+
     return CompilationUnit(
         fileDefinitions,
         dataDefinitions,
@@ -203,6 +215,12 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         }
         compilationUnit
     }.postProcess()
+}
+
+private fun checkParseTreeToAstErrors() {
+    if (getParseTreeToAstErrors().isNotEmpty()) {
+        throw getParseTreeToAstErrors()[0]
+    }
 }
 
 private fun getFakeProcedures(
@@ -307,16 +325,10 @@ internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 }
 
 internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Subroutine {
-    val caughtErrors = mutableListOf<Throwable>()
     val statements = this.statement().mapNotNull {
         kotlin.runCatching {
-            it.toAst(conf)
-        }.onFailure {
-            caughtErrors.add(it)
+            it.runParserRuleContext(conf) { context -> context.toAst(conf) }
         }.getOrNull()
-    }
-    if (caughtErrors.isNotEmpty()) {
-        throw caughtErrors[0]
     }
     return Subroutine(
         this.begsr().csBEGSR().factor1.text,
@@ -457,7 +469,7 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                         }
                         it.statement().dcl_c() != null -> {
                             it.statement().dcl_c()
-                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .toAst(conf)
                                 .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                         }
                         it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
@@ -1446,26 +1458,6 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
     )
 }
 
-fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): Nothing {
-    val pref = message?.let {
-        "$message at"
-    } ?: "Error at"
-    val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    val myMessage = "$pref $position ${this.javaClass.name}"
-    throw notImplementOperationException(myMessage).fireErrorEvent(toPosition(conf.considerPosition))
-}
-
-fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, conf: ToAstConfiguration): Nothing {
-    val pref = message?.let {
-        "$message at: "
-    } ?: "Error at: "
-    val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    throw IllegalStateException(
-        "$pref$position ${this.javaClass.name}",
-        cause
-    ).fireErrorEvent(toPosition(conf.considerPosition))
-}
-
 /**
  * Run a block. In case of error throws an error encapsulating useful information
  * like node position
@@ -1474,36 +1466,9 @@ fun <T : ParserRuleContext, R> T.runParserRuleContext(conf: ToAstConfiguration, 
     return kotlin.runCatching {
         block.invoke(this)
     }.onFailure {
-        this.error(it.message, it, conf)
+        // to avoid duplicated errors
+        if (it !is ParseTreeToAstError) this.error(it.message, it, conf)
     }.getOrThrow()
-}
-
-fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
-    val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    IllegalStateException(
-        message?.let { "$message at: $position" } ?: "Error at: $position",
-        cause?.let { cause }
-    ).let { error ->
-        if (this is CompilationUnit) {
-            throw error
-        } else {
-            throw error.fireErrorEvent(this.position)
-        }
-    }
-}
-
-fun Node.todo(message: String? = null): Nothing {
-    val pref = message?.let {
-        "$message at "
-    } ?: "Error at "
-    val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    notImplementOperationException("${pref}Position: $position").let { error ->
-        if (this is CompilationUnit) {
-            throw error
-        } else {
-            throw error.fireErrorEvent(this.position)
-        }
-    }
 }
 
 /**
@@ -1520,25 +1485,8 @@ fun <T : Node, R> T.runNode(block: (T) -> R): R {
 
 private typealias ProgramNameToCopyBlocks = Pair<String?, CopyBlocks?>
 
-private fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
+internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
     val programName = if (MainExecutionContext.getParsingProgramStack().empty()) null else MainExecutionContext.getParsingProgramStack().peek().name
     val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks }
     return ProgramNameToCopyBlocks(programName, copyBlocks)
-}
-
-private fun Throwable.fireErrorEvent(position: Position?): Throwable {
-    val programNameToCopyBlocks = getProgramNameToCopyBlocks()
-    val sourceReference = position?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
-    val errorEvent = ErrorEvent(
-        error = this,
-        errorEventSource = ErrorEventSource.Parser,
-        absoluteLine = position?.start?.line,
-        sourceReference = sourceReference
-    )
-    MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
-    return this
-}
-
-private fun notImplementOperationException(message: String): IllegalStateException {
-    return IllegalStateException("An operation is not implemented: $message")
 }

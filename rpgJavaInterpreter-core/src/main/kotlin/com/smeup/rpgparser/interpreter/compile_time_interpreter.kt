@@ -59,7 +59,7 @@ class InjectableCompileTimeInterpreter(
     }
 }
 
-class NotFoundAtCompileTimeException(declName: String) : RuntimeException("Unable to calculate element size of $declName")
+class NotFoundAtCompileTimeException(declName: String) : ParseTreeToAstError("Unable to calculate element size of $declName")
 
 open class BaseCompileTimeInterpreter(
     private val knownDataDefinitions: List<DataDefinition>,

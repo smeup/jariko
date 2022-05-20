@@ -305,7 +305,7 @@ class JarikoCallbackTest : AbstractTest() {
     fun executeERROR03CallBackTest() {
         // Invalid opcode in cpy
         // listOf(7, 7) is not an error because we have an error event duplicated, but for now is not a problem
-        executePgmCallBackTest("ERROR03", SourceReferenceType.Copy, "QILEGEN,CPERR01", listOf(7, 7))
+        executePgmCallBackTest("ERROR03", SourceReferenceType.Copy, "QILEGEN,CPERR01", listOf(7))
     }
 
     @Test
@@ -323,7 +323,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR06CallBackTest() {
         // Compile time errors
-        executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 7, 8, 8, 11, 11, 12, 12, 13, 13))
+        executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 8, 11, 12, 13))
     }
 
     @Test
