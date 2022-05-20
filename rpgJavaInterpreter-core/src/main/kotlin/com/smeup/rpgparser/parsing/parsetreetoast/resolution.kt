@@ -23,7 +23,6 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.AstCreatingException
-import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.model.*
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
@@ -51,7 +50,7 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
             if (!dre.variable.resolved) {
 
                 if (dre.variable.name.contains('.')) {
-                    val ds = dre.variable.name.substring(0, dre.variable.name.indexOf("."))
+                    dre.variable.name.substring(0, dre.variable.name.indexOf("."))
 
                     val fieldName = dre.variable.name.substring(dre.variable.name.indexOf(".") + 1)
 
@@ -62,7 +61,7 @@ private fun Node.resolveDataRefs(cu: CompilationUnit) {
                     var resolved = false
                     while (currentCu != null && !resolved) {
                         resolved = dre.variable.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
-                        currentCu = currentCu.parent?.let { it as CompilationUnit } ?: null
+                        currentCu = currentCu.parent?.let { it as CompilationUnit }
                     }
                     if (!resolved) {
                         dre.error("Data reference not resolved: ${dre.variable.name}")
@@ -79,12 +78,10 @@ private fun Node.resolveFunctionCalls(cu: CompilationUnit) {
         if (fc.args.size == 1) {
             val data = cu.allDataDefinitions.firstOrNull { it.name == fc.function.name }
             if (data != null) {
-                enrichPossibleExceptionWith(fc.position) {
-                    fc.replace(ArrayAccessExpr(
-                            array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
-                            index = fc.args[0],
-                            position = fc.position))
-                }
+                fc.replace(ArrayAccessExpr(
+                        array = DataRefExpr(ReferenceByName(fc.function.name, referred = data)),
+                        index = fc.args[0],
+                        position = fc.position))
             }
         }
     }
@@ -99,13 +96,13 @@ fun MuteAnnotation.resolveAndValidate(cu: CompilationUnit) {
  * In case of semantic errors we could either raise exceptions or return a list of errors.
  *
  */
-fun CompilationUnit.resolveAndValidate(raiseException: Boolean = true): List<Error> {
+fun CompilationUnit.resolveAndValidate(): List<Error> {
     kotlin.runCatching {
         val parsingProgram = ParsingProgram(MainExecutionContext.getExecutionProgramName())
         parsingProgram.copyBlocks = this.copyBlocks
         MainExecutionContext.getParsingProgramStack().push(parsingProgram)
         this.resolve()
-        return this.validate(raiseException).apply {
+        return this.validate().apply {
             MainExecutionContext.getParsingProgramStack().pop()
         }
     }.onFailure {
@@ -120,7 +117,7 @@ class SemanticErrorsException(val errors: List<Error>) : RuntimeException("Seman
 /**
  * In case of semantic errors we could either raise exceptions or return a list of errors.
  */
-private fun CompilationUnit.validate(raiseException: Boolean = true): List<Error> {
+private fun CompilationUnit.validate(): List<Error> {
     val errors = LinkedList<Error>()
     // TODO validate SubstExpr for assignability
     // TODO check initial value in DoStmt
@@ -189,21 +186,13 @@ private fun CompilationUnit.resolve() {
     }
 }
 
-private fun EqualityExpr.toAssignment(): AssignmentExpr {
-    return AssignmentExpr(
-            this.left as AssignableExpression,
-            this.right,
-            this.position
-    )
-}
-
 // try to resolve a Data reference through recursive search in parent compilation unit
 private fun ReferenceByName<AbstractDataDefinition>.tryToResolveRecursively(position: Position? = null, cu: CompilationUnit) {
     var currentCu: CompilationUnit? = cu
     var resolved = false
     while (currentCu != null && !resolved) {
         resolved = this.tryToResolve(currentCu.allDataDefinitions, caseInsensitive = true)
-        currentCu = currentCu.parent?.let { it as CompilationUnit } ?: null
+        currentCu = currentCu.parent?.let { it as CompilationUnit }
     }
     require(resolved) {
         "Data reference not resolved: ${this.name} at $position"

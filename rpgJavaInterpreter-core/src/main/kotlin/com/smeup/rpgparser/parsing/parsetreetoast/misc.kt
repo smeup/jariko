@@ -831,9 +831,9 @@ internal fun CsTIMEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 
 fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
     factor2?.symbolicConstants()?.let {
-        return it.toAst()
+        return kotlin.runCatching { it.toAst() }.getOrNull()
     }
-    return factor2?.content?.toAst(conf)
+    return kotlin.runCatching { factor2?.content?.toAst(conf) }.getOrNull()
 }
 
 fun Cspec_fixed_standard_partsContext.resultExpression(conf: ToAstConfiguration): Expression {

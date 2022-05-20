@@ -322,14 +322,20 @@ class JarikoCallbackTest : AbstractTest() {
 
     @Test
     fun executeERROR06CallBackTest() {
-        // Compile time errors
+        // More than one error in data definitions
         executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 8, 11, 12, 13))
     }
 
     @Test
     fun executeERROR07CallBackTest() {
-        // Compile time errors
+        // Repeated not supported operation code
         executePgmCallBackTest("ERROR07", SourceReferenceType.Program, "ERROR07", listOf(6, 9))
+    }
+
+    @Test
+    fun executeERROR08CallBackTest() {
+        // Errors in block statements
+        executePgmCallBackTest("ERROR08", SourceReferenceType.Program, "ERROR08", listOf(14, 15, 8, 9))
     }
 
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {

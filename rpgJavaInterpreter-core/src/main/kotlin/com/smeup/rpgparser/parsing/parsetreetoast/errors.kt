@@ -87,7 +87,7 @@ internal fun Node.todo(message: String? = null): Nothing {
 internal fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): Nothing {
     val pref = message?.let {
         "$message at"
-    } ?: "Error at"
+    } ?: "$text at"
     val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
     val myMessage = "$pref $position ${this.javaClass.name}"
     throw notImplementOperationException(myMessage).fireErrorEvent(toPosition(conf.considerPosition))
@@ -96,7 +96,7 @@ internal fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfigur
 internal fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, conf: ToAstConfiguration): Nothing {
     val pref = message?.let {
         "$message at: "
-    } ?: "Error at: "
+    } ?: "$text at: "
     val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
     throw if (cause != null && cause is ParseTreeToAstError) {
         cause
