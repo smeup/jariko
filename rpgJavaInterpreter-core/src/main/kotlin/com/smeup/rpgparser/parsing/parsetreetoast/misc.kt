@@ -17,16 +17,12 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.execution.ErrorEvent
-import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
-import com.smeup.rpgparser.parsing.facade.adaptInFunctionOf
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
-import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.asIntOrNull
 import com.smeup.rpgparser.utils.isEmptyTrim
@@ -38,9 +34,25 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
 
+enum class AstHandlingPhase {
+    FileDefinitionsCreation,
+    DataDefinitionsCreation,
+    MainStatementsCreation,
+    SubroutinesCreation,
+    CompileTimeArraysCreation,
+    DirectivesCreation,
+    ProceduresCreation,
+    Resolution
+}
+
 data class ToAstConfiguration(
     val considerPosition: Boolean = true,
-    val compileTimeInterpreter: CompileTimeInterpreter = CommonCompileTimeInterpreter
+    val compileTimeInterpreter: CompileTimeInterpreter = CommonCompileTimeInterpreter,
+    /**
+     * Called in case of error occurred after the AstHandlingPhase, it must be return
+     * if to continue or not. Default continue excepts after Resolution
+     * */
+    var afterPhaseErrorContinue: (phase: AstHandlingPhase) -> Boolean = { phase -> phase != AstHandlingPhase.Resolution }
 )
 
 fun List<Node>.position(): Position? {
@@ -102,7 +114,7 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                     }
                     it.dcl_c() != null -> {
                         it.dcl_c()
-                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .toAst(conf)
                             .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     }
                     it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
@@ -110,10 +122,9 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                     }
                     else -> null
                 }
-            }.onFailure { error ->
-                it.error("Error on dataDefinitionProviders creation", error, conf)
-            }.getOrThrow()
-        })
+            }.getOrNull()
+        }
+    )
     return dataDefinitionProviders.map { it.toDataDefinition() }
 }
 
@@ -131,33 +142,58 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
     val fileDefinitions = this.statement()
-            .mapNotNull {
-                when {
-                    it.fspec_fixed() != null -> it.fspec_fixed().toAst(conf)
-                    else -> null
+        .mapNotNull {
+            when {
+                it.fspec_fixed() != null -> it.fspec_fixed().runParserRuleContext(conf) { context ->
+                    kotlin.runCatching { context.toAst(conf) }.getOrNull()
                 }
+                else -> null
             }
+        }
+    checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
+
     val dataDefinitions = getDataDefinitions(conf)
+    checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
 
     val mainStmts = this.statement().mapNotNull {
         when {
             it.cspec_fixed() != null -> it.cspec_fixed().runParserRuleContext(conf) { context ->
-                context.toAst(conf)
+                kotlin.runCatching { context.toAst(conf) }.getOrNull()
             }
-            it.block() != null -> it.block().toAst(conf)
-            it.free() != null -> it.free().toAst(conf)
+            it.block() != null -> it.block().runParserRuleContext(conf) { context ->
+                kotlin.runCatching { context.toAst(conf) }.getOrNull()
+            }
+            it.free() != null -> it.free().runParserRuleContext(conf) { context ->
+                kotlin.runCatching { context.toAst(conf) }.getOrNull()
+            }
             else -> null
         }
     }
+    checkAstCreationErrors(phase = AstHandlingPhase.MainStatementsCreation)
 
-    val subroutines = this.subroutine().map { it.toAst(conf) }
-    val compileTimeArrays = this.endSourceBlock()?.endSource()?.map { it.toAst(conf) } ?: emptyList()
-    val directives = this.findAllDescendants(Hspec_fixedContext::class).map { it.toAst(conf) }
+    val subroutines = this.subroutine().mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }
+    checkAstCreationErrors(phase = AstHandlingPhase.SubroutinesCreation)
+
+    val compileTimeArrays = this.endSourceBlock()?.endSource()?.mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    } ?: emptyList()
+    checkAstCreationErrors(phase = AstHandlingPhase.CompileTimeArraysCreation)
+
+    val directives = this.findAllDescendants(Hspec_fixedContext::class).mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }
+    checkAstCreationErrors(phase = AstHandlingPhase.DirectivesCreation)
+
     // if we have no procedures, the property procedure must be null because we decided it must be optional
-    var procedures = this.procedure().map { it.toAst(conf) }.let {
+    var procedures = this.procedure().mapNotNull {
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+    }.let {
         if (it.isEmpty()) null
         else it
     }
+    checkAstCreationErrors(phase = AstHandlingPhase.ProceduresCreation)
 
     // If none of 'rpg procedures', add only any 'fake procedures'.
     // If any 'rpg procedures' exists, add any 'fake procedures' too.
@@ -300,9 +336,14 @@ internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
 }
 
 internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Subroutine {
+    val statements = this.statement().mapNotNull {
+        kotlin.runCatching {
+            it.runParserRuleContext(conf) { context -> context.toAst(conf) }
+        }.getOrNull()
+    }
     return Subroutine(
         this.begsr().csBEGSR().factor1.text,
-        this.statement().map { it.toAst(conf) },
+        statements,
         this.endsr().csENDSR().factor1.text,
         toPosition(conf.considerPosition)
     )
@@ -376,15 +417,15 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
             .forEach {
             it.parm_fixed()
                 .keyword()
-                .forEach { it ->
-                        if (it.keyword_const() != null) {
+                .forEach { keywordContext ->
+                        if (keywordContext.keyword_const() != null) {
                             dataDefinition.const = true
                             dataDefinition.paramPassedBy = ParamPassedBy.Const
-                        } else if (it.keyword_value() != null) {
+                        } else if (keywordContext.keyword_value() != null) {
                             dataDefinition.paramPassedBy = ParamPassedBy.Value
                         }
-                        if (it.keyword_options() != null) {
-                            it.keyword_options().identifier().forEach {
+                        if (keywordContext.keyword_options() != null) {
+                            keywordContext.keyword_options().identifier().forEach {
                                 val keyword = it.free_identifier().idOrKeyword().ID().toString()
                                 val paramOption = ParamOption.getByKeyword(keyword)
                                 (dataDefinition.paramOptions as ArrayList).add(paramOption)
@@ -439,7 +480,7 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                         }
                         it.statement().dcl_c() != null -> {
                             it.statement().dcl_c()
-                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .toAst(conf)
                                 .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                         }
                         it.statement().dcl_ds() != null && it.statement().dcl_ds().useLikeDs(conf) -> {
@@ -801,9 +842,9 @@ internal fun CsTIMEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 
 fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
     factor2?.symbolicConstants()?.let {
-        return it.toAst()
+        return kotlin.runCatching { it.toAst() }.getOrNull()
     }
-    return factor2?.content?.toAst(conf)
+    return kotlin.runCatching { factor2?.content?.toAst(conf) }.getOrNull()
 }
 
 fun Cspec_fixed_standard_partsContext.resultExpression(conf: ToAstConfiguration): Expression {
@@ -1428,26 +1469,6 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
     )
 }
 
-fun ParserRuleContext.todo(message: String? = null, conf: ToAstConfiguration): Nothing {
-    val pref = message?.let {
-        "$message at"
-    } ?: "Error at"
-    val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    val myMessage = "$pref $position ${this.javaClass.name}"
-    throw notImplementOperationException(myMessage).fireErrorEvent(toPosition(conf.considerPosition))
-}
-
-fun ParserRuleContext.error(message: String? = null, cause: Throwable? = null, conf: ToAstConfiguration): Nothing {
-    val pref = message?.let {
-        "$message at: "
-    } ?: "Error at: "
-    val position = toPosition(conf.considerPosition)?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    throw IllegalStateException(
-        "$pref$position ${this.javaClass.name}",
-        cause
-    ).fireErrorEvent(toPosition(conf.considerPosition))
-}
-
 /**
  * Run a block. In case of error throws an error encapsulating useful information
  * like node position
@@ -1456,36 +1477,9 @@ fun <T : ParserRuleContext, R> T.runParserRuleContext(conf: ToAstConfiguration, 
     return kotlin.runCatching {
         block.invoke(this)
     }.onFailure {
-        this.error(it.message, it, conf)
+        // to avoid duplicated errors
+        if (it !is ParseTreeToAstError) this.error(it.message, it, conf)
     }.getOrThrow()
-}
-
-fun Node.error(message: String? = null, cause: Throwable? = null): Nothing {
-    val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    IllegalStateException(
-        message?.let { "$message at: $position" } ?: "Error at: $position",
-        cause?.let { cause }
-    ).let { error ->
-        if (this is CompilationUnit) {
-            throw error
-        } else {
-            throw error.fireErrorEvent(this.position)
-        }
-    }
-}
-
-fun Node.todo(message: String? = null): Nothing {
-    val pref = message?.let {
-        "$message at "
-    } ?: "Error at "
-    val position = this.position?.adaptInFunctionOf(getProgramNameToCopyBlocks().second)
-    notImplementOperationException("${pref}Position: $position").let { error ->
-        if (this is CompilationUnit) {
-            throw error
-        } else {
-            throw error.fireErrorEvent(this.position)
-        }
-    }
 }
 
 /**
@@ -1496,31 +1490,15 @@ fun <T : Node, R> T.runNode(block: (T) -> R): R {
     return kotlin.runCatching {
         block.invoke(this)
     }.onFailure {
-        this.error(it.message, it)
+        // to avoid duplicated errors
+        if (it !is AstResolutionError) this.error(it.message, it)
     }.getOrThrow()
 }
 
 private typealias ProgramNameToCopyBlocks = Pair<String?, CopyBlocks?>
 
-private fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
+internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
     val programName = if (MainExecutionContext.getParsingProgramStack().empty()) null else MainExecutionContext.getParsingProgramStack().peek().name
-    val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks } ?: null
+    val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks }
     return ProgramNameToCopyBlocks(programName, copyBlocks)
-}
-
-private fun Throwable.fireErrorEvent(position: Position?): Throwable {
-    val programNameToCopyBlocks = getProgramNameToCopyBlocks()
-    val sourceReference = position?.relative(programNameToCopyBlocks.first, programNameToCopyBlocks.second)?.second
-    val errorEvent = ErrorEvent(
-        error = this,
-        errorEventSource = ErrorEventSource.Parser,
-        absoluteLine = position?.start?.line,
-        sourceReference = sourceReference
-    )
-    MainExecutionContext.getConfiguration().jarikoCallback.onError(errorEvent)
-    return this
-}
-
-private fun notImplementOperationException(message: String): IllegalStateException {
-    return IllegalStateException("An operation is not implemented: ")
 }

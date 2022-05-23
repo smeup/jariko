@@ -128,6 +128,23 @@ class MiscTest {
         assertNotNull(compilationResults.first().parsingError)
     }
 
+    // If the program contains a not defined variable, the compilation has to fail
+    // In this case I'm trying to display MSG1 value but MSG1 is not defined
+    @Test
+    fun compileTestUseNotDefinedVariable() {
+        val program =
+                "     D MSG             S             50\n" +
+                "     C                   DSPLY                   MSG1\n" +
+                "     C                   SETON                                          LR"
+        val srcFile = File.createTempFile("MYPGM", ".rpgle")
+        srcFile.deleteOnExit()
+        srcFile.writeText(program)
+        println("Compiling $srcFile")
+        val compilationResults = compile(src = srcFile, srcFile.parentFile)
+        assert(compilationResults.first().compiledFile == null)
+        assertNotNull(compilationResults.first().parsingError)
+    }
+
     @Test
     fun compileFromInToOut() {
         val tmpDir = System.getProperty("java.io.tmpdir")

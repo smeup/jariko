@@ -1,15 +1,23 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.utils
 
 import java.math.BigDecimal
 import kotlin.system.measureTimeMillis
-
-inline fun <T> enrichPossibleExceptionWith(enrichedMessage: Any?, block: () -> T): T {
-    try {
-        return block()
-    } catch (t: Throwable) {
-        throw RuntimeException("Error $t - $enrichedMessage", t)
-    }
-}
 
 fun measureAndPrint(block: () -> Unit) {
     val timeElapsed = measureAndCatch(block)
@@ -94,7 +102,6 @@ fun String.asBigDecimal(): BigDecimal? =
     }
 
 fun BigDecimal?.isZero() = this != null && BigDecimal.ZERO.compareTo(this) == 0
-fun BigDecimal?.isZeroOrNull() = this == null || BigDecimal.ZERO.compareTo(this) == 0
 
 fun Any?.asNonNullString(): String = this?.toString() ?: ""
 
