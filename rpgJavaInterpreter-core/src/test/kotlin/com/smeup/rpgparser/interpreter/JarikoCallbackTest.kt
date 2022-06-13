@@ -452,7 +452,7 @@ class JarikoCallbackTest : AbstractTest() {
             Assert.fail("$pgm must exit with error")
         }.onFailure {
             errorEvents.forEach {
-                Assert.assertEquals(lines[it.absoluteLine!! - 1], it.sourceLine)
+                Assert.assertEquals(lines[it.absoluteLine!! - 1], it.fragment)
             }
         }
     }

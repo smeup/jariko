@@ -157,14 +157,18 @@ data class CallProgramHandler(
 data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSource, val absoluteLine: Int?, val sourceReference: SourceReference?) {
 
     /**
-     * The source code from which the error event has been fired.
+Re     * The source code line from which the error event has been fired.
      * Could be null
      * */
-    val sourceLine = absoluteLine?.let { line ->
+    val fragment = absoluteLine?.let { line ->
         when (errorEventSource) {
             ErrorEventSource.Parser -> MainExecutionContext.getParsingProgramStack().takeIf { it.isNotEmpty() }?.peek()?.sourceLines?.get(line - 1)
             ErrorEventSource.Interpreter -> MainExecutionContext.getProgramStack().takeIf { it.isNotEmpty() }?.peek()?.cu?.source?.split("\\r\\n|\\n".toRegex())?.get(line - 1)
         }
+    }
+
+    override fun toString(): String {
+        return "ErrorEvent(error=$error, errorEventSource=$errorEventSource, absoluteLine=$absoluteLine, sourceReference=$sourceReference, fragment=$fragment)"
     }
 }
 
