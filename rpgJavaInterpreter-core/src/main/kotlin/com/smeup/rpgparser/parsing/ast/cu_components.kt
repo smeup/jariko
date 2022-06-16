@@ -22,6 +22,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
+import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.Serializable
 
@@ -90,19 +91,13 @@ data class CompilationUnit(
                 dataDefinitions.forEach { it -> it.fields.let { _allDataDefinitions.addAll(it) } }
                 fileDefinitions.forEach {
                     // Create DS from file metadata
-                    val reloadConfig = MainExecutionContext.getConfiguration().reloadConfig
-                    require(reloadConfig != null) {
-                        "Not found metadata for $it because missing property reloadConfig in configuration"
-                    }
+                    val reloadConfig = MainExecutionContext.getConfiguration()
+                        .reloadConfig ?: it.error("Not found metadata for $it because missing property reloadConfig in configuration")
                     val metadata = kotlin.runCatching {
                         reloadConfig.metadataProducer.invoke(it.name)
                     }.onFailure { error ->
-                        throw RuntimeException("Not found metadata for $it", error)
-                    }.getOrNull()
-                    require(metadata != null) {
-                        "Not found metadata for $it"
-                    }
-
+                        it.error("Not found metadata for $it", error)
+                    }.getOrNull() ?: it.error("Not found metadata for $it")
                     if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
                     _allDataDefinitions.addAll(
                         metadata.fields.map { dbField ->
