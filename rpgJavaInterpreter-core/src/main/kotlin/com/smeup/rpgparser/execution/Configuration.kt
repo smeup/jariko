@@ -95,6 +95,8 @@ data class Options(
  * Default null it means by Configuration.
  * Parameter programName is program for which we are getting activation group, associatedActivationGroup is the current
  * activation group associated to the program.
+ * @param beforeParsing It is invoked before the parsing. It is passed the source which will be parsed, the default implementation
+ * will return source itself
  * @param exitInRT If specified, it overrides the exit mode established in program. Default null (nei seton rt od lr mode)
  * @param onEnterPgm It is invoked on program enter after symboltable initialization.
  * @param onExitPgm It is invoked on program exit. In case of error it is no longer called, then even error parameter is no longer significant
@@ -114,6 +116,7 @@ data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
             null
     },
+    var beforeParsing: (source: String) -> String = { source -> source },
     var exitInRT: (programName: String) -> Boolean? = { null },
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
@@ -149,8 +152,25 @@ data class CallProgramHandler(
  * @param error The error
  * @param errorEventSource The source of event
  * @param absoluteLine The line number of post processed file from which the error was thrown
+ * @param sourceReference The source reference
  * */
-data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSource, val absoluteLine: Int?, val sourceReference: SourceReference?)
+data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSource, val absoluteLine: Int?, val sourceReference: SourceReference?) {
+
+    /**
+Re     * The source code line from which the error event has been fired.
+     * Could be null
+     * */
+    val fragment = absoluteLine?.let { line ->
+        when (errorEventSource) {
+            ErrorEventSource.Parser -> MainExecutionContext.getParsingProgramStack().takeIf { it.isNotEmpty() }?.peek()?.sourceLines?.get(line - 1)
+            ErrorEventSource.Interpreter -> MainExecutionContext.getProgramStack().takeIf { it.isNotEmpty() }?.peek()?.cu?.source?.split("\\r\\n|\\n".toRegex())?.get(line - 1)
+        }
+    }
+
+    override fun toString(): String {
+        return "ErrorEvent(error=$error, errorEventSource=$errorEventSource, absoluteLine=$absoluteLine, sourceReference=$sourceReference, fragment=$fragment)"
+    }
+}
 
 enum class ErrorEventSource {
     Parser, Interpreter

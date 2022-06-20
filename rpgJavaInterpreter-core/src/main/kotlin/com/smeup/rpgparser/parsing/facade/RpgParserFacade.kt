@@ -73,6 +73,7 @@ data class ParseTrees(
 )
 
 class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser: Parser, val src: String) : ParsingResult<ParseTrees>(errors, root) {
+
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
 
     fun dumpError(): String {
@@ -306,9 +307,11 @@ class RpgParserFacade {
             findCopy = { copyId -> MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source },
             onStartInclusion = { copyId, start -> copyBlocks?.onStartCopyBlock(copyId = copyId, start = start) },
             onEndInclusion = { end -> copyBlocks?.onEndCopyBlock(end = end) }
-        )
+        ).let { MainExecutionContext.getConfiguration().jarikoCallback.beforeParsing.invoke(it) }
+
         if (!MainExecutionContext.getParsingProgramStack().empty()) {
             MainExecutionContext.getParsingProgramStack().peek().copyBlocks = copyBlocks
+            MainExecutionContext.getParsingProgramStack().peek().sourceLines = code.split("\\r\\n|\\n".toRegex())
         }
         val parser = createParser(BOMInputStream(code.byteInputStream(Charsets.UTF_8)), errors, longLines = true)
         val root: RContext
@@ -408,7 +411,8 @@ class RpgParserFacade {
                 MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
             }
         }
-        MainExecutionContext.getParsingProgramStack().pop()
+        // This is a trick to pass the popped ParsingProgramStack for further processing
+        addLastPoppedParsingProgram(MainExecutionContext.getParsingProgramStack().pop())
         return cu
     }
 
@@ -609,3 +613,11 @@ fun Position.adaptInFunctionOf(copyBlocks: CopyBlocks?) = Position(
     Point(copyBlocks?.relativeLine(this.start.line)?.first ?: this.start.line, this.start.column),
     Point(copyBlocks?.relativeLine(this.end.line)?.first ?: this.end.line, this.end.column)
 )
+
+private fun addLastPoppedParsingProgram(parsingProgram: ParsingProgram) {
+    MainExecutionContext.getAttributes()["${RpgParserFacade::javaClass.name}.lastPoppedParsingProgram"] = parsingProgram
+}
+
+internal fun getLastPoppedParsingProgram(): ParsingProgram? {
+    return MainExecutionContext.getAttributes()["${RpgParserFacade::javaClass.name}.lastPoppedParsingProgram"] as ParsingProgram?
+}

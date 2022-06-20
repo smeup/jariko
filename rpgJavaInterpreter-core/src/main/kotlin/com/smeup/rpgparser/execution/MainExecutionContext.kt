@@ -147,7 +147,7 @@ object MainExecutionContext {
      * Logs entries
      */
     fun log(logEntry: LogEntry) {
-        context.get()?.let { it.log(logEntry) }
+        context.get()?.log(logEntry)
     }
 
     /***
@@ -198,4 +198,5 @@ data class Context(
 data class ParsingProgram(val name: String) {
     val parsingFunctionNameStack = Stack<String>()
     var copyBlocks: CopyBlocks? = null
+    var sourceLines: List<String>? = null
 }

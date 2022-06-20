@@ -27,6 +27,7 @@ import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import org.junit.Assert
+import java.io.StringReader
 import kotlin.test.Test
 
 /**
@@ -296,9 +297,19 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR01SourceLineTest() {
+        executeSourceLineTest("ERROR01")
+    }
+
+    @Test
     fun executeERROR02CallBackTest() {
         // Syntax error in program
         executePgmCallBackTest("ERROR02", SourceReferenceType.Program, "ERROR02", listOf(6, 7))
+    }
+
+    @Test
+    fun executeERROR02SourceLineTest() {
+        executeSourceLineTest("ERROR02")
     }
 
     @Test
@@ -308,9 +319,19 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR03SourceLineTest() {
+        executeSourceLineTest("ERROR03")
+    }
+
+    @Test
     fun executeERROR04CallBackTest() {
         // Syntax error in cpy
         executePgmCallBackTest("ERROR04", SourceReferenceType.Copy, "QILEGEN,CPERR02", listOf(5))
+    }
+
+    @Test
+    fun executeERROR04SourceLineTest() {
+        executeSourceLineTest("ERROR04")
     }
 
     @Test
@@ -320,9 +341,19 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR05SourceLineTest() {
+        executeSourceLineTest("ERROR05")
+    }
+
+    @Test
     fun executeERROR06CallBackTest() {
         // More than one error in data definitions
         executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 8, 11, 12, 13))
+    }
+
+    @Test
+    fun executeERROR06SourceLineTest() {
+        executeSourceLineTest("ERROR06")
     }
 
     @Test
@@ -332,14 +363,63 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     @Test
+    fun executeERROR07SourceLineTest() {
+        executeSourceLineTest("ERROR07")
+    }
+
+    @Test
     fun executeERROR08CallBackTest() {
         // Errors in block statements
         executePgmCallBackTest("ERROR08", SourceReferenceType.Program, "ERROR08", listOf(14, 15, 8, 9, 13, 7))
     }
 
     @Test
+    fun executeERROR08SourceLineTest() {
+        executeSourceLineTest("ERROR08")
+    }
+
+    @Test
     fun executeERROR09CallBackTest() {
         executePgmCallBackTest("ERROR09", SourceReferenceType.Program, "ERROR09", listOf(6, 7, 7, 8, 8))
+    }
+
+    @Test
+    fun executeERROR09SourceLineTest() {
+        executeSourceLineTest("ERROR09")
+    }
+
+    @Test
+    fun executeERROR10CallBackTest() {
+        executePgmCallBackTest("ERROR10", SourceReferenceType.Program, "ERROR10", listOf(5))
+    }
+
+    @Test
+    fun executeERROR10SourceLineTest() {
+        executeSourceLineTest("ERROR10")
+    }
+
+    /**
+     * This test simulates what a precompiler might do throws the use of the beforeParsing callback
+     * In ERROR01.rpgle I will comment C specification to avoid a division by zero errors
+     * */
+    @Test
+    fun beforeParsingTest() {
+        val programName = "ERROR01"
+        // the first execution will go wrong
+        kotlin.runCatching {
+            executePgm(programName = programName)
+        }.onSuccess {
+            Assert.fail("Program must exit with error")
+        }
+        // Now implement logic where before parsing I will comment C spec
+        val configuration = Configuration().apply {
+            jarikoCallback.beforeParsing = { it.replace("     C ", "     C*") }
+        }
+        kotlin.runCatching {
+            executePgm(programName = programName, configuration = configuration)
+        }.onFailure {
+            Assert.fail("Program must not exit with error")
+        }
     }
 
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
@@ -360,6 +440,30 @@ class JarikoCallbackTest : AbstractTest() {
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
             Assert.assertEquals(lines, errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine })
+        }
+    }
+
+    private fun executeSourceLineTest(pgm: String) {
+        lateinit var lines: List<String>
+        val errorEvents = mutableListOf<ErrorEvent>()
+        val configuration = Configuration().apply {
+            jarikoCallback.beforeParsing = { it ->
+                lines = StringReader(it).readLines()
+                it
+            }
+            jarikoCallback.onError = { errorEvents.add(it) }
+            // I set dumpSourceOnExecutionError because I want test also the sourceLine presence in case
+            // of runtime error
+            options = Options(debuggingInformation = true, dumpSourceOnExecutionError = true)
+        }
+        kotlin.runCatching {
+            executePgm(pgm, configuration = configuration)
+        }.onSuccess {
+            Assert.fail("$pgm must exit with error")
+        }.onFailure {
+            errorEvents.forEach {
+                Assert.assertEquals(lines[it.absoluteLine!! - 1], it.fragment)
+            }
         }
     }
 }

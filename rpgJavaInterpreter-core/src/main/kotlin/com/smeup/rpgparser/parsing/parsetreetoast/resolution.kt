@@ -23,6 +23,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.type
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.AstCreatingException
+import com.smeup.rpgparser.parsing.facade.getLastPoppedParsingProgram
 import com.strumenta.kolasu.model.*
 import com.strumenta.kolasu.validation.Error
 import com.strumenta.kolasu.validation.ErrorType
@@ -99,6 +100,7 @@ fun CompilationUnit.resolveAndValidate(): List<Error> {
     kotlin.runCatching {
         val parsingProgram = ParsingProgram(MainExecutionContext.getExecutionProgramName())
         parsingProgram.copyBlocks = this.copyBlocks
+        parsingProgram.sourceLines = getLastPoppedParsingProgram()?.sourceLines
         MainExecutionContext.getParsingProgramStack().push(parsingProgram)
         this.resolve()
         checkAstCreationErrors(AstHandlingPhase.Resolution)
