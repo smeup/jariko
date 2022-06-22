@@ -85,7 +85,7 @@ private fun String.includesCopy(
 }
 
 @JvmField
-val PATTERN: Pattern = Pattern.compile("(?:.{4}\\s(?:H|I|\\s)/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+))|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
+val PATTERN: Pattern = Pattern.compile(".{4}\\s(?:\\w|\\s)/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+)|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
 
 fun String.copyId(): CopyId {
     return when {
@@ -324,16 +324,6 @@ class CopyBlocks : Iterable<CopyBlock> {
     }
 
     private fun getChildren(copyBlock: CopyBlock) = copyBlocks.filter { it.parent == copyBlock }
-
-    private fun getDescendants(copyBlock: CopyBlock): List<CopyBlock> {
-        return mutableListOf<CopyBlock>().let { descendants ->
-            getChildren(copyBlock = copyBlock).forEach { child ->
-                descendants.add(child)
-                descendants.addAll(getDescendants(child))
-            }
-            descendants
-        }
-    }
 
     private fun getCopyBlocksBefore(line: Int) = firstLevelBlocks.filter { copyBlock -> copyBlock.end <= line }
 }

@@ -17,13 +17,15 @@
 package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.execution.getProgram
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.facade.*
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
-import java.util.*
+import java.nio.file.Paths
 
 class CopyTest {
 
@@ -255,9 +257,7 @@ class CopyTest {
         val cpy2 = copyBlocks[1]
         val cpy21 = copyBlocks[2]
 
-        var entered = 0
         var enteredCopyBlock: CopyBlock? = null
-        var exited = 0
         var exitedCopyBlock: CopyBlock? = null
 
         copyBlocks.observeTransitions(
@@ -267,8 +267,7 @@ class CopyTest {
             onExit = { Assert.fail() }
         )
 
-        entered = 0
-        exited = 0
+        var entered = 0
         copyBlocks.observeTransitions(
             from = 4,
             to = 5,
@@ -282,7 +281,7 @@ class CopyTest {
         Assert.assertEquals(cpy1, enteredCopyBlock)
 
         entered = 0
-        exited = 0
+        var exited = 0
         copyBlocks.observeTransitions(
             from = 6,
             to = 7,
@@ -411,6 +410,28 @@ class CopyTest {
         )
         Assert.assertEquals(0, onEnterForward.size)
         Assert.assertEquals(0, onExitForward.size)
+    }
+
+    @Test
+    fun includeCopyAsDSpec() {
+        testCpyInclusionSpecBased("TSTCPY02")
+    }
+
+    @Test
+    fun includeCopyAsCSpec() {
+        testCpyInclusionSpecBased("TSTCPY03")
+    }
+
+    private fun testCpyInclusionSpecBased(pgm: String) {
+        var message = ""
+        getProgram(
+            nameOrSource = pgm,
+            programFinders = listOf(DirRpgProgramFinder(Paths.get("src", "test", "resources").toFile())),
+            systemInterface = JavaSystemInterface().apply {
+                onDisplay = { mess, _ -> message = mess }
+            }
+        ).singleCall(listOf())
+        Assert.assertEquals("Hi I am QILEGEN,TSTCPY01", message)
     }
 
     private fun createCopyBlocks(): CopyBlocks {
