@@ -422,6 +422,11 @@ class CopyTest {
         testCpyInclusionSpecBased("TSTCPY03")
     }
 
+    @Test
+    fun includeCopyWithFifthCharsNotBlank() {
+        testCpyInclusionSpecBased("TSTCPY04")
+    }
+
     private fun testCpyInclusionSpecBased(pgm: String) {
         var message = ""
         getProgram(
