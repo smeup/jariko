@@ -124,7 +124,8 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     override fun findCopy(copyId: CopyId): Copy? {
         val file = copyId.toFile(directory, SourceProgram.RPGLE).takeIf {
             it.exists()
-        } ?: copyId.toFile(directory, SourceProgram.BINARY).takeIf {
+            // a copy in binary has no sense
+        } ?: copyId.toFile(directory, SourceProgram.API).takeIf {
             it.exists()
         }
         return file?.let {

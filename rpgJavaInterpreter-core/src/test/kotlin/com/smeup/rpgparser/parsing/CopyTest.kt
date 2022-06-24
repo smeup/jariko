@@ -413,17 +413,22 @@ class CopyTest {
 
     @Test
     fun includeCopyAsDSpec() {
-        testCpyInclusionSpecBased("TSTCPY02")
+        testCpyInclusion("TSTCPY02")
     }
 
     @Test
     fun includeCopyAsCSpec() {
-        testCpyInclusionSpecBased("TSTCPY03")
+        testCpyInclusion("TSTCPY03")
     }
 
     @Test
     fun includeCopyWithFifthCharsNotBlank() {
-        testCpyInclusionSpecBased("TSTCPY04")
+        testCpyInclusion("TSTCPY04")
+    }
+
+    @Test
+    fun includeCopyWithApiExtension() {
+        testCpyInclusion("TSTCPY06", "I am copy with .api extension")
     }
 
     @Test
@@ -447,7 +452,7 @@ class CopyTest {
         }
     }
 
-    private fun testCpyInclusionSpecBased(pgm: String) {
+    private fun testCpyInclusion(pgm: String, expected: String = "Hi I am QILEGEN,TSTCPY01") {
         var message = ""
         getProgram(
             nameOrSource = pgm,
@@ -456,7 +461,7 @@ class CopyTest {
                 onDisplay = { mess, _ -> message = mess }
             }
         ).singleCall(listOf())
-        Assert.assertEquals("Hi I am QILEGEN,TSTCPY01", message)
+        Assert.assertEquals(expected, message)
     }
 
     private fun createCopyBlocks(): CopyBlocks {

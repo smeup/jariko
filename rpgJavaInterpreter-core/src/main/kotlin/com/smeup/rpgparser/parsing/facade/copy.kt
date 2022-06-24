@@ -22,8 +22,6 @@ import com.smeup.rpgparser.interpreter.PreprocessingLogEnd
 import com.smeup.rpgparser.interpreter.PreprocessingLogStart
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.parsetreetoast.fireErrorEvent
-import com.strumenta.kolasu.model.Point
-import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.io.BufferedReader
@@ -80,10 +78,8 @@ private fun String.includesCopy(
             addedLines += copyContent.lines().size - 1
             matcher.appendReplacement(sb, copyContent)
         }.onFailure {
-            val copyLine = this.substring(0, matcher.start(1)).lines().size + currentLine + addedLines
-            val sourceLineCopy = this.lines()[copyLine - 1]
-            val position = Position(Point(copyLine, 6), Point(copyLine, sourceLineCopy.length - 1))
-            throw AstCreatingException(this, it).fireErrorEvent(position)
+            // TODO position of copy directive is not easy, for now I pass null
+            throw AstCreatingException(this, it).fireErrorEvent(null)
         }
     }
     matcher.appendTail(sb)
