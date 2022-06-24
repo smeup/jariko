@@ -21,6 +21,9 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.PreprocessingLogEnd
 import com.smeup.rpgparser.interpreter.PreprocessingLogStart
 import com.smeup.rpgparser.parsing.ast.SourceProgram
+import com.smeup.rpgparser.parsing.parsetreetoast.fireErrorEvent
+import com.strumenta.kolasu.model.Point
+import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.io.BufferedReader
@@ -77,7 +80,10 @@ private fun String.includesCopy(
             addedLines += copyContent.lines().size - 1
             matcher.appendReplacement(sb, copyContent)
         }.onFailure {
-            throw IllegalStateException("Error on inclusion copy: ${matcher.group(0)}\nsource:\n$this", it)
+            val copyLine = this.substring(0, matcher.start(1)).lines().size + currentLine + addedLines
+            val sourceLineCopy = this.lines()[copyLine - 1]
+            val position = Position(Point(copyLine, 6), Point(copyLine, sourceLineCopy.length - 1))
+            throw AstCreatingException(this, it).fireErrorEvent(position)
         }
     }
     matcher.appendTail(sb)
@@ -85,7 +91,7 @@ private fun String.includesCopy(
 }
 
 @JvmField
-val PATTERN: Pattern = Pattern.compile(".{5}(?:\\w|\\s)/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+)|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
+val PATTERN: Pattern = Pattern.compile(".{6}/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+)|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
 
 fun String.copyId(): CopyId {
     return when {

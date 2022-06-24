@@ -16,8 +16,7 @@
 
 package com.smeup.rpgparser.parsing
 
-import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.facade.*
@@ -425,6 +424,27 @@ class CopyTest {
     @Test
     fun includeCopyWithFifthCharsNotBlank() {
         testCpyInclusionSpecBased("TSTCPY04")
+    }
+
+    @Test
+    fun includeNotFoundCopy() {
+        var catchedErrorEvent: ErrorEvent? = null
+        val callback = JarikoCallback().apply {
+            onError = { errorEvent ->
+                println(errorEvent)
+                catchedErrorEvent = errorEvent
+            }
+        }
+        kotlin.runCatching {
+            getProgram(
+                nameOrSource = "TSTCPY05",
+                programFinders = listOf(DirRpgProgramFinder(Paths.get("src", "test", "resources").toFile()))
+                ).singleCall(listOf(), configuration = Configuration().apply { jarikoCallback = callback })
+        }.onSuccess {
+            Assert.fail("This program cannot be executed successfully")
+        }.onFailure {
+            Assert.assertNotNull(catchedErrorEvent)
+        }
     }
 
     private fun testCpyInclusionSpecBased(pgm: String) {
