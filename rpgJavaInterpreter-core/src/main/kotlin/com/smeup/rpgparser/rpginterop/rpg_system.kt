@@ -29,6 +29,7 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.nio.file.Path
+import java.nio.file.Paths
 
 interface RpgProgramFinder {
     fun findRpgProgram(nameOrSource: String): RpgProgram?
@@ -122,14 +123,10 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
-        val file = copyId.toFile(directory, SourceProgram.RPGLE).takeIf {
+        return copyId.toFile(directory, SourceProgram.RPGLE).takeIf {
             it.exists()
-            // a copy in binary has no sense
-        } ?: copyId.toFile(directory, SourceProgram.API).takeIf {
-            it.exists()
-        }
-        return file?.let {
-            Copy.fromInputStream(FileInputStream(file.absoluteFile))
+        }?.let {
+            Copy.fromInputStream(FileInputStream(it.absoluteFile))
         }
     }
 
@@ -272,7 +269,14 @@ open class RpgSystem {
     }
 }
 
-private fun CopyId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))
+private fun CopyId.toFile(dir: File?, sourceProgram: SourceProgram): File {
+    return dir?.let {
+        val copyRelativePath = Paths.get(this.key(sourceProgram).replace("\\..+$".toRegex(), ""))
+        it.toPath().resolve(copyRelativePath.parent?.toString() ?: "").toFile().listFiles { _, name ->
+            name.replace("\\..+$".toRegex(), "") == copyRelativePath.fileName.toString()
+        }?.firstOrNull() ?: File(dir, this.key(sourceProgram))
+    } ?: File(this.key(sourceProgram))
+}
 
 private fun ApiId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))
 
