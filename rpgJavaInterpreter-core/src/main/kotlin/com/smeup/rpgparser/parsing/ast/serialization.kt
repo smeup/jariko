@@ -188,8 +188,9 @@ fun CompilationUnit.encodeToByteArray() = cbor.encodeToByteArray(this)
 fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit>(this)
 
 enum class SourceProgram(val extension: String) {
-    RPGLE("rpgle"),
-    BINARY("bin");
+    RPGLE(extension = "rpgle"),
+    API(extension = "api"),
+    BINARY(extension = "bin");
 
     companion object {
         fun getByExtension(extension: String): SourceProgram {
