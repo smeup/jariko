@@ -21,6 +21,7 @@ import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.PreprocessingLogEnd
 import com.smeup.rpgparser.interpreter.PreprocessingLogStart
 import com.smeup.rpgparser.parsing.ast.SourceProgram
+import com.smeup.rpgparser.parsing.parsetreetoast.fireErrorEvent
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.io.BufferedReader
@@ -77,7 +78,8 @@ private fun String.includesCopy(
             addedLines += copyContent.lines().size - 1
             matcher.appendReplacement(sb, copyContent)
         }.onFailure {
-            throw IllegalStateException("Error on inclusion copy: ${matcher.group(0)}\nsource:\n$this", it)
+            // TODO position of copy directive is not easy, for now I pass null
+            throw AstCreatingException(this, it).fireErrorEvent(null)
         }
     }
     matcher.appendTail(sb)
@@ -85,7 +87,7 @@ private fun String.includesCopy(
 }
 
 @JvmField
-val PATTERN: Pattern = Pattern.compile("(?:.{4}\\s(?:H|I|\\s)/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+))|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
+val PATTERN: Pattern = Pattern.compile(".{6}/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+)|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
 
 fun String.copyId(): CopyId {
     return when {
@@ -324,16 +326,6 @@ class CopyBlocks : Iterable<CopyBlock> {
     }
 
     private fun getChildren(copyBlock: CopyBlock) = copyBlocks.filter { it.parent == copyBlock }
-
-    private fun getDescendants(copyBlock: CopyBlock): List<CopyBlock> {
-        return mutableListOf<CopyBlock>().let { descendants ->
-            getChildren(copyBlock = copyBlock).forEach { child ->
-                descendants.add(child)
-                descendants.addAll(getDescendants(child))
-            }
-            descendants
-        }
-    }
 
     private fun getCopyBlocksBefore(line: Int) = firstLevelBlocks.filter { copyBlock -> copyBlock.end <= line }
 }
