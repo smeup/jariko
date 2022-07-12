@@ -1975,6 +1975,6 @@ Test 6
 
     @Test
     fun executeTSTDS01() {
-        outputOf("TSTDS01")
+        assertEquals(listOf("Name", "Value"), outputOf("TSTDS01"))
     }
 }
