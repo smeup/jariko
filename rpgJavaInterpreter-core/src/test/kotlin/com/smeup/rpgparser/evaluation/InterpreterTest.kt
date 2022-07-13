@@ -1972,4 +1972,9 @@ Test 6
     fun executeCOPY_INTO_COMMENTS() {
         assertEquals(listOf("Success!"), outputOf("COPY_INTO_COMMENTS"))
     }
+
+    @Test
+    fun executeTSTDS01() {
+        assertEquals(listOf("Name", "Value"), outputOf("TSTDS01"))
+    }
 }
