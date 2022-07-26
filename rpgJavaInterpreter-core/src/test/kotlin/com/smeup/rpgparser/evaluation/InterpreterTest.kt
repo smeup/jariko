@@ -1220,6 +1220,11 @@ Test 6
     }
 
     @Test
+    fun executeCABEQFCR() {
+        executePgm(programName = "CABEQFCR")
+    }
+
+    @Test
     fun executeCAB_OK() {
         assertEquals(listOf("Test OK"), outputOf("CAB_OK"))
     }
