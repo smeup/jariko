@@ -773,7 +773,7 @@ Test 6
 
     @Test
     fun executeDO_TST02() {
-        assertEquals(outputOf("DO_TST02"), listOf("Body"))
+        assertEquals(listOf("Body"), outputOf("DO_TST02"))
     }
 
     @Test @Category(PerformanceTest::class)
