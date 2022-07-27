@@ -45,9 +45,9 @@ internal fun RpgParser.BlockContext.toAst(conf: ToAstConfiguration = ToAstConfig
             val factor2 = this.begindo().csDO().cspec_fixed_standard_parts().factor2 ?: null
             val endLimit =
                     when {
-                        factor2 == null -> IntLiteral(1)
+                        factor2 == null || factor2.text.trim().isEmpty() -> IntLiteral(1)
                         factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
-                        else -> factor2.runParserRuleContext(conf = conf) { factor2 -> factor2.content.toAst(conf) }
+                        else -> factor2.runParserRuleContext(conf = conf) { f2 -> f2.content.toAst(conf) }
                     }
             DoStmt(endLimit,
                 iter,
