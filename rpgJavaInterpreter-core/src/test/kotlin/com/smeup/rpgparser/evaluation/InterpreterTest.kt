@@ -771,6 +771,11 @@ Test 6
         assertStartsWith(outputOf("DO_TST01", si = si), "DO_TST01(91ms) Spent")
     }
 
+    @Test
+    fun executeDO_TST02() {
+        assertEquals(listOf("Body"), outputOf("DO_TST02"))
+    }
+
     @Test @Category(PerformanceTest::class)
     fun executeDOW_PERF() {
         assertEquals(outputOf("DOW_PERF"), listOf("COUNTER IS NOW 100000001"))
