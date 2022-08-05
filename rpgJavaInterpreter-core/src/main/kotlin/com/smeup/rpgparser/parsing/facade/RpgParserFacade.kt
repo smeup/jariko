@@ -304,7 +304,12 @@ class RpgParserFacade {
         val errors = LinkedList<Error>()
         val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) CopyBlocks() else null
         val code = inputStream.preprocess(
-            findCopy = { copyId -> MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source },
+            findCopy = { copyId ->
+                MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source.let { source ->
+                    MainExecutionContext.getConfiguration().jarikoCallback.beforeCopyInclusion(copyId, source)
+                    source
+                }
+            },
             onStartInclusion = { copyId, start -> copyBlocks?.onStartCopyBlock(copyId = copyId, start = start) },
             onEndInclusion = { end -> copyBlocks?.onEndCopyBlock(end = end) }
         ).let { MainExecutionContext.getConfiguration().jarikoCallback.beforeParsing.invoke(it) }
