@@ -20,8 +20,8 @@ import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.PreprocessingLogEnd
 import com.smeup.rpgparser.interpreter.PreprocessingLogStart
-import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.parsetreetoast.fireErrorEvent
+import com.smeup.rpgparser.rpginterop.CopyFileExtension
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.io.BufferedReader
@@ -155,10 +155,10 @@ data class CopyId(val library: String? = null, val file: String? = null, val mem
  * file/member.ext
  * member.ext
  * */
-fun CopyId.key(sourceProgram: SourceProgram): String {
+fun CopyId.key(extension: CopyFileExtension): String {
     val key = this.file?.let {
-        "$it/$member.${sourceProgram.extension}"
-    } ?: "$member.${sourceProgram.extension}"
+        "$it/$member.$extension"
+    } ?: "$member.$extension"
     return library?.let {
         "$library/$key"
     } ?: key
