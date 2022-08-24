@@ -19,6 +19,7 @@ package com.smeup.rpgparser.execution
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
+import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
@@ -39,7 +40,7 @@ data class Configuration(
     var jarikoCallback: JarikoCallback = JarikoCallback(),
     var reloadConfig: ReloadConfig? = null,
     val defaultActivationGroupName: String = DEFAULT_ACTIVATION_GROUP_NAME,
-    var options: Options? = Options()
+    var options: Options = Options()
 ) {
     constructor(memorySliceStorage: IMemorySliceStorage?) :
             this(memorySliceStorage, JarikoCallback(), null, DEFAULT_ACTIVATION_GROUP_NAME, Options())
@@ -61,7 +62,7 @@ data class ReloadConfig(
 
 /**
  * Options object
- * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources)
+ * @param muteSupport Used to enable/disable scan execution of mute annotations into rpg sources
  * @param compiledProgramsDir If specified Jariko searches compiled program in this directory.
  * This property should be used just for debug, because in production environment, in which the compiled programs
  * could be found in different paths, it is preferable to use a program finder for every path
@@ -95,7 +96,11 @@ data class Options(
  * Default null it means by Configuration.
  * Parameter programName is program for which we are getting activation group, associatedActivationGroup is the current
  * activation group associated to the program.
- * @param beforeParsing It is invoked before the parsing. It is passed the source which will be parsed, the default implementation
+ * @param beforeCopyInclusion It is invoked before than the copy is included in the source, the default implementation
+ * will return the copy source itself
+ * @param afterCopiesInclusion It is invoked after that all copies has been included in the source.
+ * **This callback will be called only if [Options.debuggingInformation] is set to true**.
+ * @param beforeParsing It is invoked before the parsing. It is passed the source that will be parsed after all copy inclusion, the default implementation
  * will return source itself
  * @param exitInRT If specified, it overrides the exit mode established in program. Default null (nei seton rt od lr mode)
  * @param onEnterPgm It is invoked on program enter after symboltable initialization.
@@ -116,6 +121,8 @@ data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
             null
     },
+    var beforeCopyInclusion: (copyId: CopyId, source: String?) -> String? = { _, source -> source },
+    var afterCopiesInclusion: (copyBlocks: CopyBlocks) -> Unit = { },
     var beforeParsing: (source: String) -> String = { source -> source },
     var exitInRT: (programName: String) -> Boolean? = { null },
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },

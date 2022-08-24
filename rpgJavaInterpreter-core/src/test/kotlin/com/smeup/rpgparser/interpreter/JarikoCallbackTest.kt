@@ -17,10 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.ErrorEvent
-import com.smeup.rpgparser.execution.JarikoCallback
-import com.smeup.rpgparser.execution.Options
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
@@ -29,6 +26,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReferenceType
 import org.junit.Assert
 import java.io.StringReader
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 /**
  * Test suite to test Jariko callback features
@@ -420,6 +418,41 @@ class JarikoCallbackTest : AbstractTest() {
         }.onFailure {
             Assert.fail("Program must not exit with error")
         }
+    }
+
+    @Test
+    fun beforeCopyInclusionTest() {
+        val expectedIncludedCopies = listOf(CopyId(file = "QILEGEN", member = "TSTCPY01"))
+        val includedCopies = mutableListOf<CopyId>()
+        val configuration = Configuration().apply {
+            jarikoCallback = JarikoCallback().apply {
+                beforeCopyInclusion = { copyId, source ->
+                    includedCopies.add(copyId)
+                    source
+                }
+            }
+        }
+        executePgm(programName = "TSTCPY01", configuration = configuration)
+        assertEquals(expectedIncludedCopies, includedCopies)
+    }
+
+    @Test
+    fun afterCopiesInclusionTest() {
+        val program = "TSTCPY01"
+        val expectedIncludedCopies = listOf(CopyId(file = "QILEGEN", member = "TSTCPY01"))
+        lateinit var includedCopies: List<CopyId>
+        val configuration = Configuration().apply {
+            options.debuggingInformation = true
+            jarikoCallback = JarikoCallback().apply {
+                afterCopiesInclusion = { copyBlocks ->
+                    if (MainExecutionContext.getParsingProgramStack().peek().name == program) {
+                        includedCopies = copyBlocks.map { copyBlock -> copyBlock.copyId }
+                    }
+                }
+            }
+        }
+        executePgm(programName = program, configuration = configuration)
+        assertEquals(expectedIncludedCopies, includedCopies)
     }
 
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {

@@ -123,11 +123,7 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
     }
 
     override fun findCopy(copyId: CopyId): Copy? {
-        return copyId.toFile(directory, SourceProgram.RPGLE).takeIf {
-            it.exists()
-        }?.let {
-            Copy.fromInputStream(FileInputStream(it.absoluteFile))
-        }
+        return copyId.toFile(directory)?.let { Copy.fromInputStream(FileInputStream(it.absoluteFile)) }
     }
 
     private fun prefix(): String {
@@ -269,13 +265,26 @@ open class RpgSystem {
     }
 }
 
-private fun CopyId.toFile(dir: File?, sourceProgram: SourceProgram): File {
-    return dir?.let {
-        val copyRelativePath = Paths.get(this.key(sourceProgram).replace("\\..+$".toRegex(), ""))
-        it.toPath().resolve(copyRelativePath.parent?.toString() ?: "").toFile().listFiles { _, name ->
-            name.replace("\\..+$".toRegex(), "") == copyRelativePath.fileName.toString()
-        }?.firstOrNull() ?: File(dir, this.key(sourceProgram))
-    } ?: File(this.key(sourceProgram))
+enum class CopyFileExtension {
+    rpgle, api, tab
+}
+
+/**
+ * Converts a copyId to file if exists
+ * @param dir Directory where copy file is searched
+ * @return the file related to the copy if exists else null
+ * */
+fun CopyId.toFile(dir: File?): File? {
+    // first of all search by known extension
+    val fileFoundByKnownExtensions = CopyFileExtension.values().find { File(dir, this.key(it)).exists() }?.let { File(dir, this.key(it)) }
+    return fileFoundByKnownExtensions
+        // after that I search for the first file by ignoring the extensions
+        ?: dir?.let {
+            val copyRelativePath = Paths.get(this.key(CopyFileExtension.rpgle).replace("\\..+$".toRegex(), ""))
+            it.toPath().resolve(copyRelativePath.parent?.toString() ?: "").toFile().listFiles { _, name ->
+                name.replace("\\..+$".toRegex(), "") == copyRelativePath.fileName.toString()
+            }?.firstOrNull()
+        }
 }
 
 private fun ApiId.toFile(dir: File?, sourceProgram: SourceProgram) = File(dir, this.key(sourceProgram))

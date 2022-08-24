@@ -29,7 +29,6 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.ast.createCompilationUnit
-import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.injectMuteAnnotation
 import com.smeup.rpgparser.parsing.parsetreetoast.setOverlayOn
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
@@ -77,7 +76,7 @@ class RpgParserResult(errors: List<Error>, root: ParseTrees, private val parser:
     fun toTreeString(): String = parseTreeToXml(root!!.rContext, parser)
 
     fun dumpError(): String {
-        return if (MainExecutionContext.getConfiguration().options?.mustDumpSource() == true) {
+        return if (MainExecutionContext.getConfiguration().options.mustDumpSource()) {
             "${errors.dumpError(root!!.copyBlocks)}\n${src.dumpSource()}"
         } else {
             errors.dumpError(root!!.copyBlocks)
@@ -116,8 +115,8 @@ typealias RpgLexerResult = ParsingResult<List<Token>>
 class RpgParserFacade {
 
     // Should be 'false' as default to avoid unnecessary search of 'mute annotation' into rpg program source.
-    var muteSupport: Boolean = MainExecutionContext.getConfiguration().options?.muteSupport ?: false
-    private var muteVerbose = MainExecutionContext.getConfiguration().options?.muteVerbose ?: false
+    var muteSupport: Boolean = MainExecutionContext.getConfiguration().options.muteSupport
+    private var muteVerbose = MainExecutionContext.getConfiguration().options.muteVerbose
 
     private val executionProgramName: String by lazy {
         getExecutionProgramNameWithNoExtension()
@@ -302,13 +301,21 @@ class RpgParserFacade {
     fun parse(inputStream: InputStream): RpgParserResult {
         val parserResult: RpgParserResult
         val errors = LinkedList<Error>()
-        val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) CopyBlocks() else null
+        val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()) CopyBlocks() else null
         val code = inputStream.preprocess(
-            findCopy = { copyId -> MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source },
+            findCopy = { copyId ->
+                MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source.let { source ->
+                    MainExecutionContext.getConfiguration().jarikoCallback.beforeCopyInclusion(copyId, source)
+                    source
+                }
+            },
             onStartInclusion = { copyId, start -> copyBlocks?.onStartCopyBlock(copyId = copyId, start = start) },
             onEndInclusion = { end -> copyBlocks?.onEndCopyBlock(end = end) }
-        ).let { MainExecutionContext.getConfiguration().jarikoCallback.beforeParsing.invoke(it) }
-
+        ).apply {
+            if (copyBlocks != null) MainExecutionContext.getConfiguration().jarikoCallback.afterCopiesInclusion(copyBlocks)
+        }.let { code ->
+            MainExecutionContext.getConfiguration().jarikoCallback.beforeParsing.invoke(code)
+        }
         if (!MainExecutionContext.getParsingProgramStack().empty()) {
             MainExecutionContext.getParsingProgramStack().peek().copyBlocks = copyBlocks
             MainExecutionContext.getParsingProgramStack().peek().sourceLines = code.split("\\r\\n|\\n".toRegex())
@@ -330,7 +337,7 @@ class RpgParserFacade {
     }
 
     private fun tryToLoadCompilationUnit(): CompilationUnit? {
-        return MainExecutionContext.getConfiguration().options?.compiledProgramsDir?.let { compiledDir ->
+        return MainExecutionContext.getConfiguration().options.compiledProgramsDir?.let { compiledDir ->
             val start = System.currentTimeMillis()
             val compiledFile = File(compiledDir, "$executionProgramName.bin")
             if (compiledFile.exists()) {
@@ -370,8 +377,8 @@ class RpgParserFacade {
             MainExecutionContext.log(AstLogStart(executionProgramName))
             val elapsed = measureTimeMillis {
                 compilationUnit = result.root!!.rContext.toAst(
-                    conf = MainExecutionContext.getConfiguration().options?.toAstConfiguration ?: ToAstConfiguration(),
-                    source = if (MainExecutionContext.getConfiguration().options?.mustDumpSource() == true) {
+                    conf = MainExecutionContext.getConfiguration().options.toAstConfiguration,
+                    source = if (MainExecutionContext.getConfiguration().options.mustDumpSource()) {
                         result.src
                     } else {
                         null
@@ -561,7 +568,7 @@ class AstCreatingException(val src: String, cause: Throwable) :
         val sw = StringWriter()
         cause.printStackTrace(PrintWriter(sw))
         sw.flush()
-        if (MainExecutionContext.getConfiguration().options?.mustDumpSource() == true) {
+        if (MainExecutionContext.getConfiguration().options.mustDumpSource()) {
             "$sw\n${src.dumpSource()}"
         } else {
             "$sw"
