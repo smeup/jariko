@@ -1532,3 +1532,34 @@ data class XFootStmt(
         xfoot(this, interpreter)
     }
 }
+
+@Serializable
+data class SubstStmt(
+    val left: Expression?,
+    val right: Expression,
+    val startPosition: Expression?,
+    //val startPosition: Int,
+    val target: AssignableExpression,
+    override val position: Position? = null
+) : Statement(position){
+    override fun execute(interpreter: InterpreterCore) {
+
+        val start = if(startPosition?.let { interpreter.eval(it).asString() } !=null){
+            interpreter.eval(startPosition).asString().value.toInt()
+        }else{
+            1
+        }
+
+        val  substring:String
+        if (left != null) {
+            val end = interpreter.eval(left).asString().value.toInt()
+            val endPosition = start + end
+            substring = interpreter.eval(right).asString().value.substring(startIndex = start -1, endIndex = endPosition -1)
+        }else {
+            substring = interpreter.eval(right).asString().value.substring(startIndex = start -1)
+        }
+
+        interpreter.assign(target, substring.asValue())
+
+    }
+}
