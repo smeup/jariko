@@ -83,6 +83,7 @@ private val modules = SerializersModule {
         subclass(SortAStmt::class)
         subclass(SubDurStmt::class)
         subclass(SubStmt::class)
+        subclass(SubstStmt::class)
         subclass(TagStmt::class)
         subclass(TimeStmt::class)
         subclass(UpdateStmt::class)
