@@ -71,7 +71,6 @@
     MU* VAL1(RESULT) VAL2('123XXXXXXX') COMP(EQ)
      C     LEN           SUBST     STRING:T      RESULT
      C     RESULT        DSPLY
-      *
       * This example is the same as the previous one except P
       * specified, and the result is padded with blanks.
       * TARGET equals '123       '.
@@ -82,12 +81,5 @@
     MU* VAL1(RESULT) VAL2('123       ') COMP(EQ)
      C     LEN           SUBST(P)  STRING:T      RESULT
      C     RESULT        DSPLY
-      *
-      *
-     C                   EVAL      STRING='1A'
-    MU* VAL1(RESULT) VAL2('A') COMP(EQ)
-     C*     1             SUBST(P)  STRING:2      AAA001            1
-     C*     AAA001        DSPLY
-      *
       *
      C                   SETON                                        LR

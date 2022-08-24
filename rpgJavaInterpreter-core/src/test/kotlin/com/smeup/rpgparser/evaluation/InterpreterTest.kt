@@ -2024,6 +2024,11 @@ Test 6
         assertEquals(listOf("123XXXXXXX"), outputOf("SUBST_05"))
     }
 
+    @Test
+    fun executeMUTE10_78(){
+        assertASTCanBeProduced(exampleName = "MUTE10_78", printTree = true)
+    }
+
     //@Test
     //fun executeMUTE10_78() {
     //    assertEquals(listOf(

@@ -1538,7 +1538,6 @@ data class SubstStmt(
     val left: Expression?,
     val right: Expression,
     val startPosition: Expression?,
-    //val startPosition: Int,
     val target: AssignableExpression,
     override val position: Position? = null
 ) : Statement(position){
@@ -1559,7 +1558,16 @@ data class SubstStmt(
             substring = interpreter.eval(right).asString().value.substring(startIndex = start -1)
         }
 
-        interpreter.assign(target, substring.asValue())
+        // lunghezza della variabile ricavata dalla substring
+        val len = substring.length
+
+        // valore contenuto nella variabile target
+        val targetValue = interpreter.eval(target).asString().value
+
+        // replace della parte della variabile ricavata dalla substring all'interno della variabile target
+        val newSubstr = targetValue.replaceRange(startIndex = 0, endIndex = len, replacement = substring)
+        
+        interpreter.assign(target, newSubstr.asValue())
 
     }
 }
