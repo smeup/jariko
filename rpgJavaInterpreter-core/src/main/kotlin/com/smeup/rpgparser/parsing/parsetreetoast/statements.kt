@@ -171,14 +171,8 @@ internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfi
 }
 
 internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression {
-    if (factor1.content == null) {
-        factor1.error("Factor 1 cannot be null", conf = conf)
-    }
-    if (factor2.content == null) {
-        factor2.error("Factor 2 cannot be null", conf = conf)
-    }
-    val left = factor1.content.toAst(conf)
-    val right = factor2.content.toAst(conf)
+    val left = factor1.toAstIfSymbolicConstant() ?: factor1.content?.toAst(conf) ?: factor1.error("Factor 1 cannot be null", conf = conf)
+    val right = factor2.toAstIfSymbolicConstant() ?: factor2.content?.toAst(conf) ?: factor2.error("Factor 2 cannot be null", conf = conf)
     return when (this) {
         ComparisonOperator.EQ -> EqualityExpr(left, right)
         ComparisonOperator.NE -> DifferentThanExpr(left, right)

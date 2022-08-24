@@ -1225,8 +1225,8 @@ Test 6
     }
 
     @Test
-    fun executeCABEQFCR() {
-        executePgm(programName = "CABEQFCR")
+    fun executeFCONSTRES() {
+        assertEquals(listOf("FLAG=ON", "FLAG=OFF", "STR=BLANK", "STR=NOBLANK"), outputOf(programName = "FCONSTRES"))
     }
 
     @Test
