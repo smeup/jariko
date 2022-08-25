@@ -23,3 +23,8 @@
      C     *BLANK        ANDNE      STR
      C     'STR=NOBLANK' DSPLY
      C                   ENDIF
+
+     C     *IN35         IFEQ      *OFF
+     C     'IN35=OFF'    DSPLY
+     C                   ENDIF
+     C                   SETON                                          LR

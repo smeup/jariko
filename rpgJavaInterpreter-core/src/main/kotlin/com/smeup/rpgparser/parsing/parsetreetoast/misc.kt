@@ -596,6 +596,12 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
         this.SPLAT_ZEROS() != null -> ZeroExpr(position)
         this.SPLAT_OFF() != null -> OffRefExpr(position)
         this.SPLAT_ON() != null -> OnRefExpr(position)
+        this.SPLAT_INDICATOR() != null -> {
+            IndicatorExpr(
+                index = children[0].text.replace("*IN", "").toIndicatorKey(),
+                position = position
+            )
+        }
         this.SPLAT_ALL() != null -> {
             val content: LiteralContext = this.parent.getChild(1) as LiteralContext
             AllExpr(content.toAst(conf), position)
