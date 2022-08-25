@@ -306,6 +306,16 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE13_31() {
+        executePgm("mute/MUTE13_31", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE13_32() {
+        executePgm("mute/MUTE13_32", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
     fun executeMUTE15_01() {
         executePgm("mute/MUTE15_01", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
@@ -409,16 +419,6 @@ open class MuteExecutionTest : AbstractTest() {
     @Test
     fun executeMUTE18_04() {
         executePgm("mute/MUTE18_04", configuration = Configuration().apply { options = Options(muteSupport = true) })
-    }
-
-
-    @Test
-    fun executeMUTE10_78() {
-        assertMuteExecutionSucceded("MUTE10_78", 6)
-    }
-    @Test
-    fun executeMUTE10_79() {
-        assertMuteExecutionSucceded("MUTE10_79", 9)
     }
 
     private fun assertMuteExecutionSucceded(
