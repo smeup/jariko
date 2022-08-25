@@ -1535,39 +1535,48 @@ data class XFootStmt(
 
 @Serializable
 data class SubstStmt(
-    val left: Expression?,
-    val right: Expression,
+    val length: Expression?,
+    val value: Expression,
     val startPosition: Expression?,
     val target: AssignableExpression,
+    val operationExtender: String?,
     override val position: Position? = null
-) : Statement(position){
+) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
 
-        val start = if(startPosition?.let { interpreter.eval(it).asString() } !=null){
+        val start = if (startPosition?.let { interpreter.eval(it).asString() } != null) {
             interpreter.eval(startPosition).asString().value.toInt()
-        }else{
+        } else {
             1
         }
 
-        val  substring:String
-        if (left != null) {
-            val end = interpreter.eval(left).asString().value.toInt()
+        /**
+         * Length is 1-based which is a specific prerogative of rpg,
+         * not like modern programming languages whose indices are all zero-based
+         **/
+        val substring: String = if (length != null) {
+            val end = interpreter.eval(length).asString().value.toInt()
             val endPosition = start + end
-            substring = interpreter.eval(right).asString().value.substring(startIndex = start -1, endIndex = endPosition -1)
-        }else {
-            substring = interpreter.eval(right).asString().value.substring(startIndex = start -1)
+            interpreter.eval(value).asString().value.substring(startIndex = start - 1, endIndex = endPosition - 1)
+        } else {
+            interpreter.eval(value).asString().value.substring(startIndex = start - 1)
         }
 
-        // lunghezza della variabile ricavata dalla substring
-        val len = substring.length
-
-        // valore contenuto nella variabile target
-        val targetValue = interpreter.eval(target).asString().value
-
-        // replace della parte della variabile ricavata dalla substring all'interno della variabile target
-        val newSubstr = targetValue.replaceRange(startIndex = 0, endIndex = len, replacement = substring)
-        
+        // Extended operations on opcode
+        // in case of SUBST replace range of string
+        // in case of SUBST(P) replace string **/
+        val newSubstr = if (operationExtender == null) {
+            // Value of target
+            val targetValue = interpreter.eval(target).asString().value
+            if (targetValue.length > substring.length) {
+                // replace della parte della variabile ricavata dalla substring all'interno della variabile target
+                targetValue.replaceRange(startIndex = 0, endIndex = substring.length, replacement = substring)
+            } else {
+                targetValue.replace(targetValue, substring)
+            }
+        } else {
+            substring
+        }
         interpreter.assign(target, newSubstr.asValue())
-
     }
 }

@@ -1473,26 +1473,26 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
 internal fun CsSUBSTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubstStmt {
     val position = toPosition(conf.considerPosition)
 
-    // fattore1 caratterizzato dalla lunghezza
-    val left = leftExpr(conf)
+    // Left expression contain length
+    val length = leftExpr(conf)
 
-    // il fattore2 è caratterizzato da--> TESTO:I
-    // dove "TESTO" è la variabile con il contenuto da substringare
+    // factor2 is formed by TEXT:B
+    // where "TEXT" is the content to be substringed
     val stringExpression = this.cspec_fixed_standard_parts().factor2.factorContent(0).toAst(conf)
-    // dove "I" contiene la posizione iniziale per substringare, nel caso non venisse specificato restituisco null
-    val positionExpression : Expression?
-    if(this.cspec_fixed_standard_parts().factor2.factorContent().size > 1){
-       positionExpression = this.cspec_fixed_standard_parts().factor2.factorContent(1).toAst(conf)
-    }else {
-        positionExpression = null
-    }
+    // and  "B" is the start position to substring, if not specified it returns null
+    val positionExpression =
+        if (this.cspec_fixed_standard_parts().factor2.factorContent().size > 1) {
+            this.cspec_fixed_standard_parts().factor2.factorContent(1).toAst(conf)
+        } else {
+            null
+        }
 
-    // Eseguo SUBST
     return SubstStmt(
-        left,
+        length,
         stringExpression,
         positionExpression,
         this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
+        this.operationExtender?.text,
         position
     )
 }

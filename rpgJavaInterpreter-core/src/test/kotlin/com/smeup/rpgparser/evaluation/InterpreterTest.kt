@@ -1993,11 +1993,11 @@ Test 6
         assertEquals(listOf("CD"), outputOf("SUBST_01"))
     }
 
-    // Visualizzare AST del sorgente 
-    //@Test
-    //fun executeSUBST_02() {
+    // View AST of script
+    // @Test
+    // fun executeSUBST_02() {
     //    assertASTCanBeProduced(exampleName = "SUBST_02", printTree = true)
-    //}
+    // }
 
     @Test
     fun executeSUBST_02() {
@@ -2018,23 +2018,4 @@ Test 6
     fun executeSUBST_05() {
         assertEquals(listOf("123XXXXXXX"), outputOf("SUBST_05"))
     }
-
-    @Test
-    fun executeMUTE10_78(){
-        assertASTCanBeProduced(exampleName = "MUTE10_78", printTree = true)
-    }
-
-    //@Test
-    //fun executeMUTE10_78() {
-    //    assertEquals(listOf(
-    //        "AB        ",
-    //        "CD        ",
-    //        "EF        ",
-    //        "123        ",
-    //        "DEF      ",
-    //        "123XXXXXXX",
-    //        "123       "),
-    //    outputOf("MUTE10_78"))
-    //}
-
 }
