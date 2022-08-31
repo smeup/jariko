@@ -472,7 +472,7 @@ class JarikoCallbackTest : AbstractTest() {
             println(it.stackTraceToString())
             Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
             Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
-            Assert.assertEquals(lines, errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine })
+            Assert.assertEquals(lines.sorted(), errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine }.sorted())
         }
     }
 

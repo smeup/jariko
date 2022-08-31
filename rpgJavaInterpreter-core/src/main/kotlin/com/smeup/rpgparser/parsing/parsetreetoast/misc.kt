@@ -594,6 +594,14 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
         this.SPLAT_LOVAL() != null -> LowValExpr(position)
         this.SPLAT_BLANKS() != null -> BlanksRefExpr(position)
         this.SPLAT_ZEROS() != null -> ZeroExpr(position)
+        this.SPLAT_OFF() != null -> OffRefExpr(position)
+        this.SPLAT_ON() != null -> OnRefExpr(position)
+        this.SPLAT_INDICATOR() != null -> {
+            IndicatorExpr(
+                index = children[0].text.replace("*IN", "").toIndicatorKey(),
+                position = position
+            )
+        }
         this.SPLAT_ALL() != null -> {
             val content: LiteralContext = this.parent.getChild(1) as LiteralContext
             AllExpr(content.toAst(conf), position)
@@ -841,6 +849,7 @@ internal fun CsTIMEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
 }
 
 fun Cspec_fixed_standard_partsContext.factor2Expression(conf: ToAstConfiguration): Expression? {
+    // Exception catching is wanted to not make blocking the creating ast exceptions
     factor2?.symbolicConstants()?.let {
         return kotlin.runCatching { it.toAst() }.getOrNull()
     }
@@ -1149,9 +1158,22 @@ internal fun CsTAGContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     return TagStmt(this.factor1Context()?.content?.text!!, toPosition(conf.considerPosition))
 }
 
+/**
+ * If FactorContext contains symbolicConstants convert it to expression
+ * @return When possible an instance of Expression achieved by symbolicConstants
+ * */
+internal fun FactorContext.toAstIfSymbolicConstant(): Expression? {
+    // Exception catching is wanted to not make blocking the creating ast exceptions
+    return this.symbolicConstants()?.let { kotlin.runCatching { it.toAst() }.getOrNull() }
+}
+
 private fun ParserRuleContext.leftExpr(conf: ToAstConfiguration): Expression? {
+    this.factor1Context().toAstIfSymbolicConstant()?.let {
+        return it
+    }
     return if (this.factor1Context()?.content?.text?.isNotBlank() == true) {
-        this.factor1Context().content.toAst(conf)
+        // Exception catching is wanted to not make blocking the creating ast exceptions
+        kotlin.runCatching { this.factor1Context().content.toAst(conf) }.getOrNull()
     } else {
         null
     }

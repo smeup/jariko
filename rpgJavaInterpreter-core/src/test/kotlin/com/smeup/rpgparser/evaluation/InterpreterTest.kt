@@ -1225,6 +1225,11 @@ Test 6
     }
 
     @Test
+    fun executeFCONSTRES() {
+        assertEquals(listOf("FLAG=ON", "FLAG=OFF", "IN34=OFF", "IN34=ON", "STR=BLANK", "STR=NOBLANK", "IN35=OFF"), outputOf(programName = "FCONSTRES"))
+    }
+
+    @Test
     fun executeCAB_OK() {
         assertEquals(listOf("Test OK"), outputOf("CAB_OK"))
     }
