@@ -667,59 +667,166 @@ internal fun Cspec_fixedContext.toIndicatorCondition(conf: ToAstConfiguration): 
 
 internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
-        this.csEXSR() != null -> this.csEXSR().toAst(conf)
+        this.csEXSR() != null -> this.csEXSR()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csEVAL() != null -> this.csEVAL().toAst(conf)
-        this.csCALL() != null -> this.csCALL().toAst(conf)
-        this.csSETON() != null -> this.csSETON().toAst(conf)
-        this.csSETOFF() != null -> this.csSETOFF().toAst(conf)
-        this.csPLIST() != null -> this.csPLIST().toAst(conf)
-        this.csCLEAR() != null -> this.csCLEAR().toAst(conf)
+
+        this.csCALL() != null -> this.csCALL()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csSETON() != null -> this.csSETON()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csSETOFF() != null -> this.csSETOFF()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csPLIST() != null -> this.csPLIST()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCLEAR() != null -> this.csCLEAR()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csLEAVE() != null -> LeaveStmt(toPosition(conf.considerPosition))
+
         this.csLEAVESR() != null -> LeaveSrStmt(toPosition(conf.considerPosition))
+
         this.csITER() != null -> IterStmt(toPosition(conf.considerPosition))
+
         this.csOTHER() != null -> OtherStmt(toPosition(conf.considerPosition))
-        this.csDSPLY() != null -> this.csDSPLY().toAst(conf)
-        this.csMOVE() != null -> this.csMOVE().toAst(conf)
-        this.csMOVEA() != null -> this.csMOVEA().toAst(conf)
-        this.csMOVEL() != null -> this.csMOVEL().toAst(conf)
-        this.csTIME() != null -> this.csTIME().toAst(conf)
-        this.csSUBDUR() != null -> this.csSUBDUR().toAst(conf)
-        this.csZ_ADD() != null -> this.csZ_ADD().toAst(conf)
-        this.csADD() != null -> this.csADD().toAst(conf)
-        this.csZ_SUB() != null -> this.csZ_SUB().toAst(conf)
-        this.csSUB() != null -> this.csSUB().toAst(conf)
-        this.csCHAIN() != null -> this.csCHAIN().toAst(conf)
-        this.csCHECK() != null -> this.csCHECK().toAst(conf)
-        this.csKLIST() != null -> this.csKLIST().toAst(conf)
-        this.csSETLL() != null -> this.csSETLL().toAst(conf)
-        this.csSETGT() != null -> this.csSETGT().toAst(conf)
-        this.csREAD() != null -> this.csREAD().toAst(conf)
-        this.csREADP() != null -> this.csREADP().toAst(conf)
-        this.csREADE() != null -> this.csREADE().toAst(conf)
-        this.csREADPE() != null -> this.csREADPE().toAst(conf)
-        this.csWRITE() != null -> this.csWRITE().toAst(conf)
-        this.csUPDATE() != null -> this.csUPDATE().toAst(conf)
-        this.csDELETE() != null -> this.csDELETE().toAst(conf)
-        this.csCOMP() != null -> this.csCOMP().toAst(conf)
-        this.csMULT() != null -> this.csMULT().toAst(conf)
-        this.csDIV() != null -> this.csDIV().toAst(conf)
+
+        this.csDSPLY() != null -> this.csDSPLY()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csMOVE() != null -> this.csMOVE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csMOVEA() != null -> this.csMOVEA()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csMOVEL() != null -> this.csMOVEL()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csTIME() != null -> this.csTIME()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csSUBDUR() != null -> this.csSUBDUR()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csZ_ADD() != null -> this.csZ_ADD()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csADD() != null -> this.csADD()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csZ_SUB() != null -> this.csZ_SUB()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csSUB() != null -> this.csSUB()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCHAIN() != null -> this.csCHAIN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCHECK() != null -> this.csCHECK()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csKLIST() != null -> this.csKLIST()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csSETLL() != null -> this.csSETLL()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csSETGT() != null -> this.csSETGT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csREAD() != null -> this.csREAD()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csREADP() != null -> this.csREADP()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csREADE() != null -> this.csREADE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csREADPE() != null -> this.csREADPE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csWRITE() != null -> this.csWRITE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csUPDATE() != null -> this.csUPDATE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csDELETE() != null -> this.csDELETE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCOMP() != null -> this.csCOMP()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csMULT() != null -> this.csMULT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csDIV() != null -> this.csDIV()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csRETURN() != null -> this.csRETURN().toAst(conf)
-        this.csTAG() != null -> this.csTAG().toAst(conf)
-        this.csGOTO() != null -> this.csGOTO().toAst(conf)
+        this.csTAG() != null -> this.csTAG()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csGOTO() != null -> this.csGOTO()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csSORTA() != null -> this.csSORTA().toAst(conf)
-        this.csDEFINE() != null -> this.csDEFINE().toAst(conf)
-        this.csCAT() != null -> this.csCAT().toAst(conf)
-        this.csLOOKUP() != null -> this.csLOOKUP().toAst(conf)
-        this.csCAB() != null -> this.csCAB().toAst(conf)
-        this.csCABLE() != null -> this.csCABLE().toAst(conf)
-        this.csCABLT() != null -> this.csCABLT().toAst(conf)
-        this.csCABEQ() != null -> this.csCABEQ().toAst(conf)
-        this.csCABGE() != null -> this.csCABGE().toAst(conf)
-        this.csCABGT() != null -> this.csCABGT().toAst(conf)
-        this.csXFOOT() != null -> this.csXFOOT().toAst(conf)
-        this.csSCAN() != null -> this.csSCAN().toAst(conf)
+
+        this.csDEFINE() != null -> this.csDEFINE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCAT() != null -> this.csCAT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csLOOKUP() != null -> this.csLOOKUP()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCAB() != null -> this.csCAB()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCABLE() != null -> this.csCABLE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCABLT() != null -> this.csCABLT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCABEQ() != null -> this.csCABEQ()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCABGE() != null -> this.csCABGE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCABGT() != null -> this.csCABGT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csXFOOT() != null -> this.csXFOOT()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csSCAN() != null -> this.csSCAN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
+}
+
+private fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: ToAstConfiguration): Statement {
+    val position = toPosition(conf.considerPosition)
+    if (result.text.isNotBlank()) {
+        toDataDefinition(result.text, position, conf)?.let {
+            if (stmt !is StatementThatCanDefineData) result.todo(
+                message = "${stmt::class.java.name} must implement ${StatementThatCanDefineData::class.java.name} ",
+                conf = conf
+            )
+        }
+    }
+    return stmt
 }
 
 private fun annidatedReferenceExpression(
