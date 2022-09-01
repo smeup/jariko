@@ -771,6 +771,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csRETURN() != null -> this.csRETURN().toAst(conf)
+
         this.csTAG() != null -> this.csTAG()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -812,7 +813,8 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csSCAN() != null -> this.csSCAN()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
-        this.csSUBST() != null -> this.csSUBST().toAst(conf)
+        this.csSUBST() != null -> this.csSUBST()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         else -> todo(conf = conf)
     }
