@@ -29,6 +29,7 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.util.*
@@ -620,7 +621,7 @@ data class CallStmt(
             try {
                 interpreter.getSystemInterface().registerProgramExecutionStart(program, params)
                 kotlin.run {
-                    val callProgramHandler = MainExecutionContext.getConfiguration().options?.callProgramHandler
+                    val callProgramHandler = MainExecutionContext.getConfiguration().options.callProgramHandler
                     // call program.execute only if callProgramHandler.handleCall do nothing
                     callProgramHandler?.handleCall?.invoke(programToCall, interpreter.getSystemInterface(), params)
                         ?: program.execute(interpreter.getSystemInterface(), params)
@@ -717,11 +718,23 @@ private constructor(val name: String, val fields: List<String>, override val pos
 @Serializable
 data class IfStmt(
     val condition: Expression,
-    override val body: List<Statement>,
+    @SerialName("body")
+    val thenBody: List<Statement>,
     val elseIfClauses: List<ElseIfClause> = emptyList(),
     val elseClause: ElseClause? = null,
     override val position: Position? = null
 ) : Statement(position), CompositeStatement {
+
+    // Since that this property is a collection achieved from thenBody + elseIfClauses + elseClause, this annotation
+    // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
+    // ErrorEvent is fired more times
+    @Derived
+    @Transient
+    override val body: List<Statement> = mutableListOf<Statement>().apply {
+        addAll(thenBody)
+        elseIfClauses.forEach { addAll(it.body) }
+        elseClause?.body?.let { addAll(it) }
+    }
 
     override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
         // check if the annotation is just before the ELSE
@@ -729,7 +742,7 @@ data class IfStmt(
 
         // Process the body statements
         muteAttached.addAll(
-                acceptBody(body, mutes, this.position!!.start.line, this.position.end.line)
+                acceptBody(thenBody, mutes, this.position!!.start.line, this.position.end.line)
         )
 
         // Process the ELSE IF
@@ -753,7 +766,7 @@ data class IfStmt(
         val condition = interpreter.eval(condition)
         interpreter.log { IfExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this, condition) }
         if (condition.asBoolean().value) {
-            interpreter.execute(this.body)
+            interpreter.execute(this.thenBody)
         } else {
             for (elseIfClause in elseIfClauses) {
                 val c = interpreter.eval(elseIfClause.condition)
