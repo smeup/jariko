@@ -171,6 +171,7 @@ data class SelectStmt(
         }
     }
 
+    @Derived
     override val body: List<Statement>
         get() {
             val result = mutableListOf<Statement>()
