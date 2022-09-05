@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.performance
 
 import com.smeup.rpgparser.interpreter.*
@@ -47,14 +63,14 @@ class Kute10_50 : Kute() {
     fun performanceComparing(doAsserts: Boolean): Array<String> {
 
         // Variables declaration-instantiation
-        var factor1Ref: DataDefinition = DataDefinition("FACTOR1", StringType(6, false))
-        var factor1DataRefExpr = DataRefExpr(ReferenceByName("FACTOR1", factor1Ref))
+        val factor1Ref = DataDefinition("FACTOR1", StringType(6, false))
+        val factor1DataRefExpr = DataRefExpr(ReferenceByName("FACTOR1", factor1Ref))
 
-        var factor2Ref: DataDefinition = DataDefinition("FACTOR2", StringType(10, false))
-        var factor2DataRefExpr = DataRefExpr(ReferenceByName("FACTOR2", factor2Ref))
+        val factor2Ref = DataDefinition("FACTOR2", StringType(10, false))
+        val factor2DataRefExpr = DataRefExpr(ReferenceByName("FACTOR2", factor2Ref))
 
-        var resultRef: DataDefinition = DataDefinition("RESULT", StringType(20, false))
-        var resultDataRefExpr = DataRefExpr(ReferenceByName("RESULT", resultRef))
+        val resultRef = DataDefinition("RESULT", StringType(20, false))
+        val resultDataRefExpr = DataRefExpr(ReferenceByName("RESULT", resultRef))
 
         // Variables evaluation-storing
         globalSymbolTable[factor1Ref] = StringValue("HELLO")
@@ -62,11 +78,10 @@ class Kute10_50 : Kute() {
         globalSymbolTable[resultRef] = StringValue("XXXXXXXXXXXXXXXXXXXX")
 
         // Statement creation (similar to 'toAst' does)
-        var statement = catStmt(factor1DataRefExpr, factor2DataRefExpr, resultDataRefExpr, 0, null)
-        var actualElapsedTimeInMillisec = 0L
+        val statement = catStmt(factor1DataRefExpr, factor2DataRefExpr, resultDataRefExpr, 0, null)
 
         // Perform a pure kotlin loop
-        actualElapsedTimeInMillisec = measureTimeMillis {
+        var actualElapsedTimeInMillisec: Long = measureTimeMillis {
             loopCounter = 0L
             while (loopCounter < expectedIterations) {
                 exec_CAT(statement)
@@ -74,8 +89,8 @@ class Kute10_50 : Kute() {
             }
         }
         // Results
-        var message1 = "(Kotlin pure loop) Expected execution of 10000000 iterations, actual is $loopCounter iterations."
-        var message2 = "(Kotlin pure loop) Expected execution of 10000000 iterations ($loopCounter done) takes less or same to " +
+        val message1 = "(Kotlin pure loop) Expected execution of 10000000 iterations, actual is $loopCounter iterations."
+        val message2 = "(Kotlin pure loop) Expected execution of 10000000 iterations ($loopCounter done) takes less or same to " +
                 "$expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms. (CAT result is ${globalSymbolTable[resultRef].asString()})"
         if (doAsserts) {
             assertEquals(expectedIterations, loopCounter, message1)
@@ -92,8 +107,8 @@ class Kute10_50 : Kute() {
         }
 
         // Results
-        var message3 = "(Jariko DO loop) Expected execution of ${endLimitExpression.value} iterations, actual is $loopCounter iterations."
-        var message4 = "(Jariko DO loop) Expected execution of ${endLimitExpression.value} iterations ($loopCounter done) takes less or same to " +
+        val message3 = "(Jariko DO loop) Expected execution of ${endLimitExpression.value} iterations, actual is $loopCounter iterations."
+        val message4 = "(Jariko DO loop) Expected execution of ${endLimitExpression.value} iterations ($loopCounter done) takes less or same to " +
                 "$expectedElapsedTimeInMillisec ms. Actual is $actualElapsedTimeInMillisec ms. (CAT result is ${globalSymbolTable[resultRef].asString()})"
         if (doAsserts) {
             assertEquals(endLimitExpression.value, loopCounter, message3)
@@ -123,7 +138,7 @@ class Kute10_50 : Kute() {
         val factor2 = eval(statement.right)
         var result = eval(statement.target)
         val resultLen = result.asString().length()
-        var concatenatedFactors: Value
+        val concatenatedFactors: Value
 
         if (null != statement.left) {
             val factor1 = eval(statement.left!!)
@@ -158,14 +173,14 @@ class Kute10_50 : Kute() {
 
     private fun catStmt(left: Expression?, right: Expression, target: AssignableExpression, blanksInBetween: Int, position: Position? = null): CatStmt {
         return CatStmt(
-                left,
-                right,
-                target,
-                blanksInBetween,
-                position)
+                left = left,
+                right = right,
+                target = target,
+                blanksInBetween = blanksInBetween,
+                position = position)
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     Kute10_50().performanceComparing().forEach { println(it) }
 }

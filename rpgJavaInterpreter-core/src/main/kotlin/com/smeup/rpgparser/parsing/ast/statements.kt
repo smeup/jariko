@@ -1438,7 +1438,15 @@ data class SortAStmt(val target: Expression, override val position: Position? = 
 }
 
 @Serializable
-data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position) {
+data class CatStmt(
+    val left: Expression?,
+    val right: Expression,
+    val target: AssignableExpression,
+    val blanksInBetween: Int,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
     override fun execute(interpreter: InterpreterCore) {
         val blanksInBetween = blanksInBetween
         val blanks = StringValue.blank(blanksInBetween)
@@ -1479,6 +1487,8 @@ data class CatStmt(val left: Expression?, val right: Expression, val target: Ass
         interpreter.assign(target, result)
         interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable

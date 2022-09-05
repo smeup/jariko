@@ -1495,12 +1495,15 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         blanksInBetween = this.cspec_fixed_standard_parts().factor2.content2.children[0].toString().toInt()
     }
     val target = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return CatStmt(
-        left,
-        right,
-        target,
-        blanksInBetween,
-        position
+        left = left,
+        right = right,
+        target = target,
+        blanksInBetween = blanksInBetween,
+        position = position,
+        dataDefinition = dataDefinition
     )
 }
 
