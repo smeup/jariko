@@ -242,13 +242,16 @@ data class SubDurStmt(
 data class MoveStmt(
     val target: AssignableExpression,
     var expression: Expression,
+    val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) :
-    Statement(position) {
+    Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         val value = move(target, expression, interpreter)
         interpreter.log { MoveStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value) }
     }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
