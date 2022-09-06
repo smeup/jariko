@@ -1568,20 +1568,17 @@ data class SubstStmt(
             interpreter.eval(value).asString().value.substring(startIndex = start - 1, endIndex = endPosition - 1)
         } ?: interpreter.eval(value).asString().value.substring(startIndex = start - 1)
 
-        /** Extended operations on opcode
-         * in case of SUBST replace range of string
+        /** Extended operations on opcode:
+         * in case of SUBST replace range of string,
          * in case of SUBST(P) replace string
          */
-        val newSubstr = if (operationExtender == null) {
-            // Value of target
+        val newSubstr = operationExtender?.let { substring } ?: let {
             val targetValue = interpreter.eval(target).asString().value
             if (targetValue.length > substring.length) {
                 targetValue.replaceRange(startIndex = 0, endIndex = substring.length, replacement = substring)
             } else {
                 targetValue.replace(targetValue, substring)
             }
-        } else {
-            substring
         }
         interpreter.assign(target, newSubstr.asValue())
     }

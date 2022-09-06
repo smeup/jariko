@@ -1998,12 +1998,6 @@ Test 6
         assertEquals(listOf("CD"), outputOf("SUBST_01"))
     }
 
-    // View AST of script
-    // @Test
-    // fun executeSUBST_02() {
-    //    assertASTCanBeProduced(exampleName = "SUBST_02", printTree = true)
-    // }
-
     @Test
     fun executeSUBST_02() {
         assertEquals(listOf("EF"), outputOf("SUBST_02"))
