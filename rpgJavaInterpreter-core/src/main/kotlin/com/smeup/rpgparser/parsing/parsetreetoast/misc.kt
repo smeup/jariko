@@ -771,6 +771,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csRETURN() != null -> this.csRETURN().toAst(conf)
+
         this.csTAG() != null -> this.csTAG()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -810,6 +811,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csSCAN() != null -> this.csSCAN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csSUBST() != null -> this.csSUBST()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         else -> todo(conf = conf)
@@ -1595,6 +1599,37 @@ internal fun AssignmentExpressionContext.toAst(conf: ToAstConfiguration = ToAstC
         target = target,
         expression = expression().toAst(conf = conf),
         operator = NORMAL_ASSIGNMENT
+    )
+}
+
+internal fun CsSUBSTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubstStmt {
+    val position = toPosition(conf.considerPosition)
+
+    // Left expression contain length
+    val length = leftExpr(conf)
+
+    // factor2 is formed by TEXT:B
+    // where "TEXT" is the content to be substringed
+    val stringExpression = this.cspec_fixed_standard_parts().factor2.factorContent(0).toAst(conf)
+    // and  "B" is the start position to substring, if not specified it returns null
+    val positionExpression =
+        if (this.cspec_fixed_standard_parts().factor2.factorContent().size > 1) {
+            this.cspec_fixed_standard_parts().factor2.factorContent(1).toAst(conf)
+        } else {
+            null
+        }
+
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+
+    return SubstStmt(
+        length = length,
+        value = stringExpression,
+        startPosition = positionExpression,
+        target = this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
+        operationExtender = this.operationExtender?.text,
+        position = position,
+        dataDefinition = dataDefinition
     )
 }
 

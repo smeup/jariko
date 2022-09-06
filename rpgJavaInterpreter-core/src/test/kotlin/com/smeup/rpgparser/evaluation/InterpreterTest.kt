@@ -1987,4 +1987,39 @@ Test 6
     fun executeTSTDS01() {
         assertEquals(listOf("Name", "Value"), outputOf("TSTDS01"))
     }
+
+    @Test
+    fun executeSUBST_00() {
+        assertEquals(listOf("AB"), outputOf("SUBST_00"))
+    }
+
+    @Test
+    fun executeSUBST_01() {
+        assertEquals(listOf("CD"), outputOf("SUBST_01"))
+    }
+
+    @Test
+    fun executeSUBST_02() {
+        assertEquals(listOf("EF"), outputOf("SUBST_02"))
+    }
+
+    @Test
+    fun executeSUBST_03() {
+        assertEquals(listOf("123"), outputOf("SUBST_03"))
+    }
+
+    @Test
+    fun executeSUBST_04() {
+        assertEquals(listOf("123ABC"), outputOf("SUBST_04"))
+    }
+
+    @Test
+    fun executeSUBST_05() {
+        assertEquals(listOf("123XXXXXXX"), outputOf("SUBST_05"))
+    }
+
+    @Test
+    fun executeSUBST_06() {
+        assertEquals(listOf("A"), outputOf("SUBST_06"))
+    }
 }

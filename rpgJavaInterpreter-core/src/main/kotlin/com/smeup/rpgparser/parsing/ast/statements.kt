@@ -1532,3 +1532,56 @@ data class XFootStmt(
         xfoot(this, interpreter)
     }
 }
+
+/**
+ *  The SUBST statements returns a substring from factor 2, starting at the
+ *  location specified in 'startPosition' for the length specified in 'length',
+ *  and places this substring in the 'target' field.
+ *
+ *  @property length length to extract.
+ *  @property value source string.
+ *  @property startPosition starting position.
+ *  @property target result string.
+ *  @property operationExtender indicate extender position.
+ */
+@Serializable
+data class SubstStmt(
+    val length: Expression?,
+    val value: Expression,
+    val startPosition: Expression?,
+    val target: AssignableExpression,
+    val operationExtender: String?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun execute(interpreter: InterpreterCore) {
+
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
+
+        /**
+         * Length is 1-based which is a specific prerogative of rpg,
+         * not like modern programming languages whose indices are all zero-based
+         */
+        val substring: String = length?.let {
+            val end = interpreter.eval(it).asString().value.toInt()
+            val endPosition = start + end
+            interpreter.eval(value).asString().value.substring(startIndex = start - 1, endIndex = endPosition - 1)
+        } ?: interpreter.eval(value).asString().value.substring(startIndex = start - 1)
+
+        /** Extended operations on opcode:
+         * in case of SUBST replace range of string,
+         * in case of SUBST(P) replace string
+         */
+        val newSubstr = operationExtender?.let { substring } ?: let {
+            val targetValue = interpreter.eval(target).asString().value
+            if (targetValue.length > substring.length) {
+                targetValue.replaceRange(startIndex = 0, endIndex = substring.length, replacement = substring)
+            } else {
+                targetValue.replace(targetValue, substring)
+            }
+        }
+        interpreter.assign(target, newSubstr.asValue())
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
