@@ -11,6 +11,10 @@
      C     'A'           MOVE      'A'           MOVEA            10
      C     MOVEA         DSPLY
       *
+      ** MOVEA
+     C     'A'           MOVEA     'A'           MOVEAA           10
+     C     MOVEAA        DSPLY
+      *
       * Test IF
      C                   IF        1 = 1
       ** Test in branch THEN
