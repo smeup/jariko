@@ -8,7 +8,7 @@
      C     'A'           CAT       'A'           CATA             10
      C     CATA          DSPLY
       ** MOVE
-     C     'A'           CAT       'A'           MOVEA            10
+     C     'A'           MOVE      'A'           MOVEA            10
      C     MOVEA         DSPLY
       *
       * Test IF
