@@ -1517,8 +1517,9 @@ data class ScanStmt(
     val startPosition: Int,
     val target: AssignableExpression,
     val rightIndicators: WithRightIndicators,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), WithRightIndicators by rightIndicators {
+) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
@@ -1541,6 +1542,8 @@ data class ScanStmt(
             }
         }
     }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable

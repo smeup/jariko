@@ -15,6 +15,10 @@
      C     'A'           MOVEA     'A'           MOVEAA           10
      C     MOVEAA        DSPLY
       *
+      ** SCAN
+     C     'A'           SCAN      'A'           SCANA            1  0
+     C     SCANA         DSPLY
+      *
       * Test IF
      C                   IF        1 = 1
       ** Test in branch THEN
