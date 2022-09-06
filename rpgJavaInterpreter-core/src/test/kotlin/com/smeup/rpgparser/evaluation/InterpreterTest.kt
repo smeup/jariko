@@ -2023,4 +2023,9 @@ Test 6
     fun executeSUBST_05() {
         assertEquals(listOf("123XXXXXXX"), outputOf("SUBST_05"))
     }
+
+    @Test
+    fun executeSUBST_06() {
+        assertEquals(listOf("A"), outputOf("SUBST_06"))
+    }
 }

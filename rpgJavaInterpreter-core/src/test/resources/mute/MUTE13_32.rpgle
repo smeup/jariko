@@ -7,17 +7,17 @@
      V* 25/08/22  004118  BUSFIO Aggiunto nuovo caso di test
      V*=====================================================================
      D*  OBIETTIVO
-     D*  Programma finalizzato funzionamento del codice operativo SUBST
+     D*  Program aimed at testing the functioning of SUBST opcode.
      D*
      D* The SUBST operation returns a substring from factor 2, starting at the
      D* location specified in factor 2 for the length specified in factor 1,
      D* and places this substring in the result field.
      V*=====================================================================
-     D T               S              2  0                                      Pos iniziale
-     D LEN             S              2  0                                      Lunghezza
-     D AAA010          S             10                                         Str iniziale 10
-     D AAA015          S             15                                         Str iniziale 15
-     D RESULT          S             10                                         Risultato
+     D T               S              2  0                                      Begin position
+     D LEN             S              2  0                                      Length
+     D AAA010          S             10                                         String 10 char
+     D AAA015          S             15                                         String 15 char
+     D RESULT          S             10                                         Result
       *---------------------------------------------------------------
      I/COPY QILEGEN,£PDS
       *---------------------------------------------------------------
@@ -101,9 +101,9 @@
       * The value placed in RESULT field is 'A'.
       * In this case, the result variable 'AAA001' is define inline.
       *
-     C*                   EVAL      AAA010='1A'
-      *MU* VAL1(RESULT) VAL2('A') COMP(EQ)
-     C*     1             SUBST(P)  AAA010:2      AAA001            1
+     C                   EVAL      AAA010='1A'
+    MU* VAL1(AAA001) VAL2('A') COMP(EQ)
+     C     1             SUBST(P)  AAA010:2      AAA001            1
       *
       *
      C                   SETON                                        LR

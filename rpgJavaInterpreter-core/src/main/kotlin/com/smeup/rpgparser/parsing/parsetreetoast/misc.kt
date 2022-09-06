@@ -1619,13 +1619,17 @@ internal fun CsSUBSTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
             null
         }
 
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+
     return SubstStmt(
-        length,
-        stringExpression,
-        positionExpression,
-        this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
-        this.operationExtender?.text,
-        position
+        length = length,
+        value = stringExpression,
+        startPosition = positionExpression,
+        target = this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
+        operationExtender = this.operationExtender?.text,
+        position = position,
+        dataDefinition = dataDefinition
     )
 }
 
