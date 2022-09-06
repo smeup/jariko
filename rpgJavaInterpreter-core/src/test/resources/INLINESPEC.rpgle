@@ -23,6 +23,10 @@
      C     1             MULT      1             MULTA            1  0
      C     MULTA         DSPLY
       *
+      ** DIV
+     C     1             DIV       1             DIVA             1  0
+     C     DIVA          DSPLY
+      *
       * Test IF
      C                   IF        1 = 1
       ** Test in branch THEN
