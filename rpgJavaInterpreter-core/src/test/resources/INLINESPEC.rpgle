@@ -19,6 +19,10 @@
      C     'A'           SCAN      'A'           SCANA            1  0
      C     SCANA         DSPLY
       *
+      ** MULT
+     C     1             MULT      1             MULTA            1  0
+     C     MULTA         DSPLY
+      *
       * Test IF
      C                   IF        1 = 1
       ** Test in branch THEN
