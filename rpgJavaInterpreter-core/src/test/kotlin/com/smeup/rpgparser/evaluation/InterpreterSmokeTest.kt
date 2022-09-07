@@ -18,10 +18,18 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execute
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import org.junit.Before
 import org.junit.Test
 
 open class InterpreterSmokeTest : AbstractTest() {
+
+    @Before
+    fun resetDefaultConfigAttributes() {
+        // It is necessary to fix a problem where if a smoke test fails the errors are propagated to all unit tests
+        MainExecutionContext.getAttributes().clear()
+    }
 
     @Test
     fun executeJD_001() {
