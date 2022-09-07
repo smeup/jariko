@@ -37,8 +37,20 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
-        this.selectstatement() != null -> this.selectstatement().toAst(conf)
-        this.begindo() != null -> this.begindo().toAst(blockContext = this, conf = conf)
+        this.selectstatement()!= null -> this.selectstatement()
+            .let {
+                it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
+                    stmt = it.toAst(conf = conf),
+                    conf = conf
+                )
+            }
+        this.begindo() != null -> this.begindo()
+            .let {
+                it.csDO().cspec_fixed_standard_parts().validate(
+                    stmt = it.toAst(blockContext = this, conf = conf),
+                    conf = conf
+                )
+            }
         this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
         this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)

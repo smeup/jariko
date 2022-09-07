@@ -820,7 +820,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
     }
 }
 
-private fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: ToAstConfiguration): Statement {
+internal fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     if (result.text.isNotBlank()) {
         toDataDefinition(result.text, position, conf)?.let {
