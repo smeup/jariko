@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.RpgParser.BegindowContext
 import com.smeup.rpgparser.RpgParser.BlockContext
 import com.smeup.rpgparser.interpreter.Evaluator
 import com.smeup.rpgparser.interpreter.Value
@@ -39,12 +40,7 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
         this.selectstatement() != null -> this.selectstatement().toAst(conf)
         this.begindo() != null -> this.begindo().toAst(blockContext = this, conf = conf)
-        this.begindow() != null -> {
-            val endExpression = this.begindow().csDOW().fixedexpression.expression().toAst(conf)
-            DowStmt(endExpression,
-                    this.statement().map { it.toAst(conf) },
-                    position = toPosition(conf.considerPosition))
-        }
+        this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
         this.begindou() != null -> {
             val endExpression = this.begindou().csDOU().fixedexpression.expression().toAst(conf)
@@ -114,6 +110,17 @@ internal fun RpgParser.BegindoContext.toAst(
         blockContext.statement().map { it.toAst(conf) },
         start,
         position = toPosition(conf.considerPosition))
+}
+
+internal fun BegindowContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DowStmt {
+    val endExpression = csDOW().fixedexpression.expression().toAst(conf)
+    return DowStmt(endExpression,
+        blockContext.statement().map { it.toAst(conf) },
+        position = toPosition(conf.considerPosition)
+    )
 }
 
 internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectCase {
