@@ -17,7 +17,6 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
-import com.smeup.rpgparser.RpgParser.BegindowContext
 import com.smeup.rpgparser.RpgParser.BlockContext
 import com.smeup.rpgparser.interpreter.Evaluator
 import com.smeup.rpgparser.interpreter.Value
@@ -42,12 +41,7 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         this.begindo() != null -> this.begindo().toAst(blockContext = this, conf = conf)
         this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
-        this.begindou() != null -> {
-            val endExpression = this.begindou().csDOU().fixedexpression.expression().toAst(conf)
-            DouStmt(endExpression,
-                    this.statement().map { it.toAst(conf) },
-                    position = toPosition(conf.considerPosition))
-        }
+        this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
         else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }
 }
@@ -112,7 +106,7 @@ internal fun RpgParser.BegindoContext.toAst(
         position = toPosition(conf.considerPosition))
 }
 
-internal fun BegindowContext.toAst(
+internal fun RpgParser.BegindowContext.toAst(
     blockContext: BlockContext,
     conf: ToAstConfiguration = ToAstConfiguration()
 ): DowStmt {
@@ -121,6 +115,16 @@ internal fun BegindowContext.toAst(
         blockContext.statement().map { it.toAst(conf) },
         position = toPosition(conf.considerPosition)
     )
+}
+
+internal fun RpgParser.BegindouContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DouStmt {
+    val endExpression = csDOU().fixedexpression.expression().toAst(conf)
+    return DouStmt(endExpression,
+        blockContext.statement().map { it.toAst(conf) },
+        position = toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectCase {
