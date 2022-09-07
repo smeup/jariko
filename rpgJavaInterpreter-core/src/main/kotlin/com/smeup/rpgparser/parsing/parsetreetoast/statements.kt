@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.RpgParser.BlockContext
 import com.smeup.rpgparser.interpreter.Evaluator
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
@@ -33,28 +34,11 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     }
 }
 
-internal fun RpgParser.BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
         this.selectstatement() != null -> this.selectstatement().toAst(conf)
-        this.begindo() != null -> {
-            val result = this.begindo().csDO().cspec_fixed_standard_parts().result
-            val iter = if (result.text.isBlank()) null else result.toAst(conf)
-            val factor = this.begindo().factor()
-            val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
-            val factor2 = this.begindo().csDO().cspec_fixed_standard_parts().factor2 ?: null
-            val endLimit =
-                    when {
-                        factor2 == null || factor2.text.trim().isEmpty() -> IntLiteral(1)
-                        factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
-                        else -> factor2.runParserRuleContext(conf = conf) { f2 -> f2.content.toAst(conf) }
-                    }
-            DoStmt(endLimit,
-                iter,
-                this.statement().map { it.toAst(conf) },
-                start,
-                position = toPosition(conf.considerPosition))
-        }
+        this.begindo() != null -> this.begindo().toAst(blockContext = this, conf = conf)
         this.begindow() != null -> {
             val endExpression = this.begindow().csDOW().fixedexpression.expression().toAst(conf)
             DowStmt(endExpression,
@@ -108,6 +92,28 @@ internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = T
     }
 
     return SelectStmt(whenClauses, other, toPosition(conf.considerPosition))
+}
+
+internal fun RpgParser.BegindoContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DoStmt {
+    val result = csDO().cspec_fixed_standard_parts().result
+    val iter = if (result.text.isBlank()) null else result.toAst(conf)
+    val factor = factor()
+    val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
+    val factor2 = csDO().cspec_fixed_standard_parts().factor2 ?: null
+    val endLimit =
+        when {
+            factor2 == null || factor2.text.trim().isEmpty() -> IntLiteral(1)
+            factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
+            else -> factor2.runParserRuleContext(conf = conf) { f2 -> f2.content.toAst(conf) }
+        }
+    return DoStmt(endLimit,
+        iter,
+        blockContext.statement().map { it.toAst(conf) },
+        start,
+        position = toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectCase {
