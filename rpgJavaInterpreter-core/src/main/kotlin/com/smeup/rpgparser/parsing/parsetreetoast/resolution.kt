@@ -31,16 +31,16 @@ import java.util.*
 
 private fun CompilationUnit.findInStatementDataDefinitions() {
     // TODO could they be also annidated?
-    this.allStatements().filterIsInstance(StatementThatCanDefineData::class.java).forEach {
+    this.allStatements(preserveCompositeStatement = true).filterIsInstance(StatementThatCanDefineData::class.java).forEach {
         this.addInStatementDataDefinitions(it.dataDefinition())
     }
 }
 
-fun CompilationUnit.allStatements(): List<Statement> {
+fun CompilationUnit.allStatements(preserveCompositeStatement: Boolean = false): List<Statement> {
     val result = mutableListOf<Statement>()
-    result.addAll(this.main.stmts.explode())
+    result.addAll(this.main.stmts.explode(preserveCompositeStatement = preserveCompositeStatement))
     this.subroutines.forEach {
-        result.addAll(it.stmts.explode())
+        result.addAll(it.stmts.explode(preserveCompositeStatement = preserveCompositeStatement))
     }
     return result
 }

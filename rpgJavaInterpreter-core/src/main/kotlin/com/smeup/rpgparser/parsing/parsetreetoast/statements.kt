@@ -37,7 +37,7 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
 internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
-        this.selectstatement()!= null -> this.selectstatement()
+        this.selectstatement() != null -> this.selectstatement()
             .let {
                 it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
                     stmt = it.toAst(conf = conf),
@@ -111,11 +111,16 @@ internal fun RpgParser.BegindoContext.toAst(
             factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
             else -> factor2.runParserRuleContext(conf = conf) { f2 -> f2.content.toAst(conf) }
         }
-    return DoStmt(endLimit,
-        iter,
-        blockContext.statement().map { it.toAst(conf) },
-        start,
-        position = toPosition(conf.considerPosition))
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = csDO().cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+    return DoStmt(
+        endLimit = endLimit,
+        index = iter,
+        body = blockContext.statement().map { it.toAst(conf) },
+        startLimit = start,
+        dataDefinition = dataDefinition,
+        position = toPosition(conf.considerPosition)
+    )
 }
 
 internal fun RpgParser.BegindowContext.toAst(

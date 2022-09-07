@@ -85,11 +85,12 @@ interface CompositeStatement {
     val body: List<Statement>
 }
 
-fun List<Statement>.explode(): List<Statement> {
+fun List<Statement>.explode(preserveCompositeStatement: Boolean = false): List<Statement> {
     val result = mutableListOf<Statement>()
     forEach {
         if (it is CompositeStatement) {
-            result.addAll(it.body.explode())
+            if (preserveCompositeStatement) result.add(it)
+            result.addAll(it.body.explode(preserveCompositeStatement))
         } else {
             result.add(it)
         }
@@ -1159,12 +1160,16 @@ data class DoStmt(
     val index: AssignableExpression?,
     override val body: List<Statement>,
     val startLimit: Expression = IntLiteral(1),
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+
     override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
         // TODO check if the annotation is the last statement
         return acceptBody(body, mutes, start, end)
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0

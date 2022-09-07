@@ -27,7 +27,14 @@
      C     1             DIV       1             DIVA             1  0
      C     DIVA          DSPLY
       *
-      * Test IF
+      ** DO
+     C     1             DO        2             DOA             1  0
+     C     DOA           DSPLY
+     C                   ENDDO
+      *
+      *
+      *
+      * Test in-line DSPEC in IF
      C                   IF        1 = 1
       ** Test in branch THEN
      C                   CALL      'MYPGMB'
@@ -40,7 +47,7 @@
      C     MYPGMC        DSPLY
      C                   ENDIF
       *
-      * Test SELECT
+      * Test in-line DSPEC in SELECT
      C                   SELECT
      C                   WHEN     1 = 1
       ** Test in first branch WHEN
