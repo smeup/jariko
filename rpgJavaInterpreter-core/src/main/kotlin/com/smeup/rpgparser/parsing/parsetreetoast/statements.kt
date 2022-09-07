@@ -92,8 +92,15 @@ internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = T
         }
         other = SelectOtherClause(statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size), position = otherPosition)
     }
-
-    return SelectStmt(whenClauses, other, toPosition(conf.considerPosition))
+    val result = beginselect().csSELECT().cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = beginselect().csSELECT().cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return SelectStmt(
+        cases = whenClauses,
+        other = other,
+        dataDefinition = dataDefinition,
+        position = toPosition(conf.considerPosition)
+    )
 }
 
 internal fun RpgParser.BegindoContext.toAst(

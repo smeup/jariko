@@ -28,9 +28,15 @@
      C     DIVA          DSPLY
       *
       ** DO
-     C     1             DO        2             DOA             1  0
+     C     1             DO        2             DOA              1  0
      C     DOA           DSPLY
      C                   ENDDO
+      *
+      ** SELECT
+     C                   SELECT                  SELA             1  0
+     C                   WHEN     1 = 1
+     C     SELA          DSPLY
+     C                   ENDSL
       *
       *
       *

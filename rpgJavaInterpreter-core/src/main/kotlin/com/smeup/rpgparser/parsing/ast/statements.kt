@@ -130,8 +130,10 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
 data class SelectStmt(
     var cases: List<SelectCase>,
     var other: SelectOtherClause? = null,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+
     override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
 
         val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
@@ -150,6 +152,8 @@ data class SelectStmt(
 
         return muteAttached
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
     override fun execute(interpreter: InterpreterCore) {
         for (case in this.cases) {
