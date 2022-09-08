@@ -224,12 +224,14 @@ class RpgParserSmokeTest : AbstractTest() {
     }
 
     @Test
-    fun parseProgramWithCSpecFollowedByLR() {
-        val pgm = "     CLR                 IF        ££B£20 = '1'\n" +
-                "     CLR                 CALL      £EXCMD\n" +
-                "     CLR                 PARM      'RCLRSC'      £RCLRS            6\n" +
-                "     CLR                 PARM      6             NNN155_OLD       15 5\n" +
-                "     CLR                 ENDIF"
+    fun parseProgramWithControlLevelIndicatorFollowedByPARM() {
+        // the issue was at line 2 and 3
+        val pgm =
+            "1    CLR                 IF        ££B£20 = '1'\n" +
+            "2    CLR                 CALL      £EXCMD\n" +
+            "3    CLR                 PARM      'RCLRSC'      £RCLRS            6\n" +
+            "4    CLR                 PARM      6             NNN155_OLD       15 5\n" +
+            "5    CLR                 ENDIF"
         val inputStream = pgm.byteInputStream()
         assertCanBeParsed(inputStream = inputStream, false)
     }
