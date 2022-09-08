@@ -302,6 +302,7 @@ class RpgParserFacade {
         val parserResult: RpgParserResult
         val errors = LinkedList<Error>()
         val copyBlocks: CopyBlocks? = if (MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()) CopyBlocks() else null
+        // val includedCopySet = mutableSetOf<CopyId>()
         val code = inputStream.preprocess(
             findCopy = { copyId ->
                 MainExecutionContext.getSystemInterface()?.findCopy(copyId)?.source.let { source ->
@@ -311,6 +312,7 @@ class RpgParserFacade {
             },
             onStartInclusion = { copyId, start -> copyBlocks?.onStartCopyBlock(copyId = copyId, start = start) },
             onEndInclusion = { end -> copyBlocks?.onEndCopyBlock(end = end) }
+            // beforeInclusion = { copyId -> includedCopySet.add(copyId) }
         ).apply {
             if (copyBlocks != null) MainExecutionContext.getConfiguration().jarikoCallback.afterCopiesInclusion(copyBlocks)
         }.let { code ->
@@ -616,10 +618,20 @@ fun Position.relative(programName: String?, copyBlocks: CopyBlocks?): StatementR
     }
 }
 
-fun Position.adaptInFunctionOf(copyBlocks: CopyBlocks?) = Position(
-    Point(copyBlocks?.relativeLine(this.start.line)?.first ?: this.start.line, this.start.column),
-    Point(copyBlocks?.relativeLine(this.end.line)?.first ?: this.end.line, this.end.column)
-)
+fun Position.adaptInFunctionOf(copyBlocks: CopyBlocks?): Position {
+    return kotlin.runCatching {
+        Position(
+            Point(copyBlocks?.relativeLine(this.start.line)?.first ?: this.start.line, this.start.column),
+            Point(copyBlocks?.relativeLine(this.end.line)?.first ?: this.end.line, this.end.column)
+        )
+    }.getOrElse {
+        System.err.println("Error on adaptInFunctionOf: " + it.toString())
+        Position(
+            Point(this.start.line, this.start.column),
+            Point(this.end.line, this.end.column)
+        )
+    }
+}
 
 private fun addLastPoppedParsingProgram(parsingProgram: ParsingProgram) {
     MainExecutionContext.getAttributes()["${RpgParserFacade::javaClass.name}.lastPoppedParsingProgram"] = parsingProgram

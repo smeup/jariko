@@ -22,6 +22,7 @@ import com.smeup.rpgparser.parsing.facade.*
 import com.smeup.rpgparser.rpginterop.CopyFileExtension
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.nio.file.Paths
@@ -431,6 +432,11 @@ class CopyTest {
         testCpyInclusion("TSTCPY06", "I am copy with .api extension")
     }
 
+    @Test @Ignore
+    fun includeSameCopyIncludedTwice() {
+        testCpyInclusion("TSTCPY07", "I am copy with .api extension")
+    }
+
     @Test
     fun includeNotFoundCopy() {
         var catchedErrorEvent: ErrorEvent? = null
@@ -453,6 +459,7 @@ class CopyTest {
     }
 
     private fun testCpyInclusion(pgm: String, expected: String = "Hi I am QILEGEN,TSTCPY01") {
+        val includedCopyList = mutableListOf<CopyId>()
         var message = ""
         getProgram(
             nameOrSource = pgm,
@@ -460,8 +467,16 @@ class CopyTest {
             systemInterface = JavaSystemInterface().apply {
                 onDisplay = { mess, _ -> message = mess }
             }
-        ).singleCall(listOf())
+        ).singleCall(listOf(), configuration = Configuration().apply {
+            jarikoCallback = JarikoCallback().apply {
+                beforeCopyInclusion = { copyId, source ->
+                    includedCopyList.add(copyId)
+                    source
+                }
+            }
+        })
         Assert.assertEquals(expected, message)
+        Assert.assertEquals(1, includedCopyList.size)
     }
 
     private fun createCopyBlocks(): CopyBlocks {
