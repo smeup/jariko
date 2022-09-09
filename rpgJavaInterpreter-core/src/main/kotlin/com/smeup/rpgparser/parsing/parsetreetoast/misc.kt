@@ -820,7 +820,7 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
     }
 }
 
-private fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: ToAstConfiguration): Statement {
+internal fun Cspec_fixed_standard_partsContext.validate(stmt: Statement, conf: ToAstConfiguration): Statement {
     val position = toPosition(conf.considerPosition)
     if (result.text.isNotBlank()) {
         toDataDefinition(result.text, position, conf)?.let {
@@ -1175,14 +1175,17 @@ internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val (compareExpression, compareLength) = this.factor1Context().toIndexedExpression(conf)
     val (baseExpression, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return ScanStmt(
-        compareExpression,
-        compareLength,
-        baseExpression,
-        startPosition ?: 1,
-        this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
-        rightIndicators,
-        position
+        left = compareExpression,
+        leftLength = compareLength,
+        right = baseExpression,
+        startPosition = startPosition ?: 1,
+        target = this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
+        rightIndicators = rightIndicators,
+        dataDefinition = dataDefinition,
+        position = position
     )
 }
 
@@ -1218,14 +1221,28 @@ internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val position = toPosition(conf.considerPosition)
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVEA operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
-    return MoveAStmt(this.operationExtender?.text, resultExpression, expression, position)
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return MoveAStmt(
+        operationExtender = this.operationExtender?.text,
+        target = resultExpression,
+        expression = expression,
+        dataDefinition = dataDefinition,
+        position = position)
 }
 
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
     val position = toPosition(conf.considerPosition)
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
-    return MoveStmt(resultExpression, expression, position)
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return MoveStmt(
+        target = resultExpression,
+        expression = expression,
+        dataDefinition = dataDefinition,
+        position = position
+    )
 }
 
 internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveLStmt {
@@ -1252,7 +1269,15 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
-    return MultStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return MultStmt(
+        target = DataRefExpr(ReferenceByName(result), position),
+        halfAdjust = 'H' in extenders,
+        factor1 = factor1,
+        factor2 = factor2,
+        dataDefinition = dataDefinition,
+        position = position
+    )
 }
 
 internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DivStmt {
@@ -1262,7 +1287,15 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
-    return DivStmt(DataRefExpr(ReferenceByName(result), position), 'H' in extenders, factor1, factor2, position)
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return DivStmt(
+        target = DataRefExpr(ReferenceByName(result), position),
+        halfAdjust = 'H' in extenders,
+        factor1 = factor1,
+        factor2 = factor2,
+        dataDefinition = dataDefinition,
+        position = position
+    )
 }
 
 internal fun CsTAGContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TagStmt {
@@ -1499,12 +1532,15 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         blanksInBetween = this.cspec_fixed_standard_parts().factor2.content2.children[0].toString().toInt()
     }
     val target = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return CatStmt(
-        left,
-        right,
-        target,
-        blanksInBetween,
-        position
+        left = left,
+        right = right,
+        target = target,
+        blanksInBetween = blanksInBetween,
+        position = position,
+        dataDefinition = dataDefinition
     )
 }
 

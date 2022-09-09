@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.strumenta.kolasu.model
 
 import kotlinx.serialization.Serializable
@@ -12,7 +28,14 @@ open class Node(@Transient open val position: Position? = null) {
 }
 
 /**
- * This should be used for all relations which are secondary, i.e., they are calculated from other relations
+ * This should be used for all relations which are secondary, i.e., they are calculated from other relations.
+ * This annotation it needs to avoid that the [Node.process] executes multiple operations on the node.
+ * For example suppose to have a data class `MyNode` that extends `Node` and which has two property `thenBody` and `elseBody`, both
+ * collection of nodes.
+ * Suppose that you introduce a third computed property `body` which joins thenBody` and `elseBody`.
+ * If you call `myNode.process({yourOperation})` yourOperation will be called foreach node two times, first af all, for all nodes in
+ * `thenBody`, than for all nodes in `elseBody`, and finally for all nodes in `body`.
+ * To face this issue, you will annotate `body`
  */
 annotation class Derived
 

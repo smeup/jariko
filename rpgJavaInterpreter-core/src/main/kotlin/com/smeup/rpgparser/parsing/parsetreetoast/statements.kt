@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.RpgParser.BlockContext
 import com.smeup.rpgparser.interpreter.Evaluator
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
@@ -33,41 +34,26 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     }
 }
 
-internal fun RpgParser.BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
-        this.selectstatement() != null -> this.selectstatement().toAst(conf)
-        this.begindo() != null -> {
-            val result = this.begindo().csDO().cspec_fixed_standard_parts().result
-            val iter = if (result.text.isBlank()) null else result.toAst(conf)
-            val factor = this.begindo().factor()
-            val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
-            val factor2 = this.begindo().csDO().cspec_fixed_standard_parts().factor2 ?: null
-            val endLimit =
-                    when {
-                        factor2 == null || factor2.text.trim().isEmpty() -> IntLiteral(1)
-                        factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
-                        else -> factor2.runParserRuleContext(conf = conf) { f2 -> f2.content.toAst(conf) }
-                    }
-            DoStmt(endLimit,
-                iter,
-                this.statement().map { it.toAst(conf) },
-                start,
-                position = toPosition(conf.considerPosition))
-        }
-        this.begindow() != null -> {
-            val endExpression = this.begindow().csDOW().fixedexpression.expression().toAst(conf)
-            DowStmt(endExpression,
-                    this.statement().map { it.toAst(conf) },
-                    position = toPosition(conf.considerPosition))
-        }
+        this.selectstatement() != null -> this.selectstatement()
+            .let {
+                it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
+                    stmt = it.toAst(conf = conf),
+                    conf = conf
+                )
+            }
+        this.begindo() != null -> this.begindo()
+            .let {
+                it.csDO().cspec_fixed_standard_parts().validate(
+                    stmt = it.toAst(blockContext = this, conf = conf),
+                    conf = conf
+                )
+            }
+        this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
-        this.begindou() != null -> {
-            val endExpression = this.begindou().csDOU().fixedexpression.expression().toAst(conf)
-            DouStmt(endExpression,
-                    this.statement().map { it.toAst(conf) },
-                    position = toPosition(conf.considerPosition))
-        }
+        this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
         else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }
 }
@@ -106,8 +92,63 @@ internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = T
         }
         other = SelectOtherClause(statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size), position = otherPosition)
     }
+    val result = beginselect().csSELECT().cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = beginselect().csSELECT().cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return SelectStmt(
+        cases = whenClauses,
+        other = other,
+        dataDefinition = dataDefinition,
+        position = toPosition(conf.considerPosition)
+    )
+}
 
-    return SelectStmt(whenClauses, other, toPosition(conf.considerPosition))
+internal fun RpgParser.BegindoContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DoStmt {
+    val result = csDO().cspec_fixed_standard_parts().result
+    val iter = if (result.text.isBlank()) null else result.toAst(conf)
+    val factor = factor()
+    val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
+    val factor2 = csDO().cspec_fixed_standard_parts().factor2 ?: null
+    val endLimit =
+        when {
+            factor2 == null || factor2.text.trim().isEmpty() -> IntLiteral(1)
+            factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
+            else -> factor2.runParserRuleContext(conf = conf) { f2 -> f2.content.toAst(conf) }
+        }
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = csDO().cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+    return DoStmt(
+        endLimit = endLimit,
+        index = iter,
+        body = blockContext.statement().map { it.toAst(conf) },
+        startLimit = start,
+        dataDefinition = dataDefinition,
+        position = toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.BegindowContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DowStmt {
+    val endExpression = csDOW().fixedexpression.expression().toAst(conf)
+    return DowStmt(endExpression,
+        blockContext.statement().map { it.toAst(conf) },
+        position = toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.BegindouContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DouStmt {
+    val endExpression = csDOU().fixedexpression.expression().toAst(conf)
+    return DouStmt(endExpression,
+        blockContext.statement().map { it.toAst(conf) },
+        position = toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectCase {

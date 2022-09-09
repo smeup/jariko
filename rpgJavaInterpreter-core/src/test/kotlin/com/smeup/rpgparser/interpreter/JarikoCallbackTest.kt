@@ -368,7 +368,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR08CallBackTest() {
         // Errors in block statements
-        executePgmCallBackTest("ERROR08", SourceReferenceType.Program, "ERROR08", listOf(14, 15, 8, 9, 13, 7))
+        executePgmCallBackTest("ERROR08", SourceReferenceType.Program, "ERROR08", listOf(7, 8, 9, 14, 15, 16, 21, 22))
     }
 
     @Test

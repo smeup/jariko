@@ -49,6 +49,7 @@ private fun String.includesCopy(
     },
     onStartInclusion: (copyId: CopyId, startLine: Int) -> Unit = { _: CopyId, _: Int -> },
     onEndInclusion: (endLine: Int) -> Unit = { _: Int -> },
+    beforeInclusion: (copyId: CopyId) -> Boolean = { true },
     currentLine: Int = 0
 ): String {
     val matcher = PATTERN.matcher(this)
@@ -58,28 +59,31 @@ private fun String.includesCopy(
         // Skip commented line
         if (null != matcher.group(2)) continue
         val copyId = matcher.group(1).copyId()
-        // println("Processing $copyId")
-        kotlin.runCatching {
-            val copyStartLine = this.substring(0, matcher.start(1)).lines().size + currentLine + addedLines
-            onStartInclusion.invoke(copyId, copyStartLine)
-            val copy = (findCopy.invoke(copyId))?.includesCopy(
-                findCopy = findCopy,
-                onStartInclusion = onStartInclusion,
-                onEndInclusion = onEndInclusion,
-                currentLine = copyStartLine
-            )?.surroundWithPreprocessingAnnotations(copyId)?.apply {
-            } ?: let {
-                println("Copy ${matcher.group()} not found".yellow())
-                matcher.group()
+        if (beforeInclusion(copyId)) {
+            // println("Processing $copyId")
+            kotlin.runCatching {
+                val copyStartLine = this.substring(0, matcher.start(1)).lines().size + currentLine + addedLines
+                onStartInclusion.invoke(copyId, copyStartLine)
+                val copy = (findCopy.invoke(copyId))?.includesCopy(
+                    findCopy = findCopy,
+                    onStartInclusion = onStartInclusion,
+                    onEndInclusion = onEndInclusion,
+                    beforeInclusion = beforeInclusion,
+                    currentLine = copyStartLine
+                )?.surroundWithPreprocessingAnnotations(copyId)?.apply {
+                } ?: let {
+                    println("Copy ${matcher.group()} not found".yellow())
+                    matcher.group()
+                }
+                val copyContent = copy.replace("$", "\\$")
+                val copyEndLine = copyStartLine + copyContent.lines().size
+                onEndInclusion.invoke(copyEndLine)
+                addedLines += copyContent.lines().size - 1
+                matcher.appendReplacement(sb, copyContent)
+            }.onFailure {
+                // TODO position of copy directive is not easy, for now I pass null
+                throw AstCreatingException(this, it).fireErrorEvent(null)
             }
-            val copyContent = copy.replace("$", "\\$")
-            val copyEndLine = copyStartLine + copyContent.lines().size
-            onEndInclusion.invoke(copyEndLine)
-            addedLines += copyContent.lines().size - 1
-            matcher.appendReplacement(sb, copyContent)
-        }.onFailure {
-            // TODO position of copy directive is not easy, for now I pass null
-            throw AstCreatingException(this, it).fireErrorEvent(null)
         }
     }
     matcher.appendTail(sb)
@@ -108,7 +112,8 @@ fun String.copyId(): CopyId {
 internal fun InputStream.preprocess(
     findCopy: (copyId: CopyId) -> String?,
     onStartInclusion: (copyId: CopyId, start: Int) -> Unit = { _: CopyId, _: Int -> },
-    onEndInclusion: (end: Int) -> Unit = { _: Int -> }
+    onEndInclusion: (end: Int) -> Unit = { _: Int -> },
+    beforeInclusion: (copyId: CopyId) -> Boolean = { true }
 ): String {
     val programName = getExecutionProgramNameWithNoExtension()
     MainExecutionContext.log(PreprocessingLogStart(programName = programName))
@@ -117,7 +122,8 @@ internal fun InputStream.preprocess(
         preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(
             findCopy = findCopy,
             onStartInclusion = onStartInclusion,
-            onEndInclusion = onEndInclusion
+            onEndInclusion = onEndInclusion,
+            beforeInclusion = beforeInclusion
         )
     }.apply {
         MainExecutionContext.log(
