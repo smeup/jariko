@@ -244,9 +244,7 @@ fun assertASTCanBeProduced(
             )
         ast = MainExecutionContext.execute(systemInterface = createJavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
-            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName)).apply {
-                afterAstCreation.invoke(this)
-            }
+            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
         }
     }
     return ast
