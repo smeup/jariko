@@ -284,6 +284,6 @@ abstract class AbstractTest {
 }
 
 fun Configuration.adaptForTestCase(testCase: AbstractTest): Configuration {
-    this.options = Options(compiledProgramsDir = testCase.getTestCompileDir())
+    this.options!!.compiledProgramsDir = testCase.getTestCompileDir()
     return this
 }
