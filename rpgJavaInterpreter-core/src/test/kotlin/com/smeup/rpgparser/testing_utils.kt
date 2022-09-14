@@ -23,11 +23,9 @@ import com.andreapivetta.kolor.yellow
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.JarikoCallback
-import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.execution.Options
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -215,7 +213,15 @@ fun assertASTCanBeProduced(
     withMuteSupport: Boolean = false,
     printTree: Boolean = false,
     compiledProgramsDir: File?,
-    afterAstCreation: (ast: CompilationUnit) -> Unit = {}
+    afterAstCreation: (ast: CompilationUnit) -> Unit = {},
+    reloadConfig: ReloadConfig = ReloadConfig(
+        nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+        metadataProducer = { dbFile ->
+            {}.javaClass.getResourceAsStream("/db/metadata/$dbFile.json").use {
+                it?.let { FileMetadata.createInstance(it) } ?: error("resource /db/metadata/$dbFile.json not found")
+            }
+        }
+    )
 ): CompilationUnit {
     val ast: CompilationUnit
     // if printTree true it is necessary create parserResult, then I can't load ast from bin
@@ -240,7 +246,8 @@ fun assertASTCanBeProduced(
                 muteSupport = withMuteSupport,
                 compiledProgramsDir = compiledProgramsDir,
                 toAstConfiguration = ToAstConfiguration(considerPosition)),
-                jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation)
+                jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation),
+                reloadConfig = reloadConfig
             )
         ast = MainExecutionContext.execute(systemInterface = createJavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
