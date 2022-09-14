@@ -238,8 +238,8 @@ fun assertASTCanBeProduced(
                 throw IllegalStateException("Mute annotations can be injected only when retaining the position")
             }
             ast.injectMuteAnnotation(result.root!!.muteContexts!!)
-            afterAstCreation.invoke(ast)
         }
+        afterAstCreation.invoke(ast)
     } else {
         val configuration =
             Configuration(options = Options(
