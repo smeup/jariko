@@ -70,7 +70,7 @@ val testCompiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bi
     }
 }
 
-private val rpgTestSrcDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle").file).parent
+private val rpgTestSrcDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle")!!.file).parent
 
 fun parseFragmentToCompilationUnit(
     code: String,
@@ -215,7 +215,6 @@ fun assertASTCanBeProduced(
     withMuteSupport: Boolean = false,
     printTree: Boolean = false,
     compiledProgramsDir: File?,
-    // Workaround to solve problem related datadefinition creation outer of the execution context used in experimental data access
     afterAstCreation: (ast: CompilationUnit) -> Unit = {}
 ): CompilationUnit {
     val ast: CompilationUnit
@@ -245,7 +244,9 @@ fun assertASTCanBeProduced(
             )
         ast = MainExecutionContext.execute(systemInterface = createJavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
-            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName))
+            RpgParserFacade().parseAndProduceAst(inputStreamFor(exampleName)).apply {
+                afterAstCreation.invoke(this)
+            }
         }
     }
     return ast
@@ -531,7 +532,7 @@ fun execute(
 }
 
 fun rpgProgram(name: String): RpgProgram {
-    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
+    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle")!!, name)
 }
 
 fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
@@ -549,7 +550,7 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
 
 class DummyProgramFinder(private val path: String) : RpgProgramFinder {
 
-    fun getFile(name: String) = File(Dummy::class.java.getResource("$path$name.rpgle").file)
+    fun getFile(name: String) = File(Dummy::class.java.getResource("$path$name.rpgle")!!.file)
 
     fun rpgSourceInputStream(nameOrSource: String): InputStream? =
         Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")

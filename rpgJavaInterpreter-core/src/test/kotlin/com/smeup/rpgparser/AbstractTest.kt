@@ -52,19 +52,24 @@ abstract class AbstractTest {
      * @param considerPosition If true parsing or ast creation error include also line number, default false
      * @param withMuteSupport If true are parsed also MUTE annotations, default false
      * @param printTree If true is dumped on console parse tree in xml format, default false
+     * @param afterAstCreation Callback function invoked after ast creation. If you need to do some operations
+     * on the ast, I suggest to handle them in this callback rather than test the return value of this function
+     * @return The created AST. I suggest to use callback afterAstCreation
      * */
     open fun assertASTCanBeProduced(
         exampleName: String,
         considerPosition: Boolean = false,
         withMuteSupport: Boolean = false,
-        printTree: Boolean = false
+        printTree: Boolean = false,
+        afterAstCreation: (ast: CompilationUnit) -> Unit = {}
     ): CompilationUnit {
         return assertASTCanBeProduced(
             exampleName = exampleName,
             considerPosition = considerPosition,
             withMuteSupport = withMuteSupport,
             printTree = printTree,
-            compiledProgramsDir = getTestCompileDir()
+            compiledProgramsDir = getTestCompileDir(),
+            afterAstCreation = afterAstCreation
         )
     }
 
@@ -279,10 +284,6 @@ abstract class AbstractTest {
 }
 
 fun Configuration.adaptForTestCase(testCase: AbstractTest): Configuration {
-    if (this.options != null) {
-        this.options!!.compiledProgramsDir = testCase.getTestCompileDir()
-    } else {
-        this.options = Options(compiledProgramsDir = testCase.getTestCompileDir())
-    }
+    this.options = Options(compiledProgramsDir = testCase.getTestCompileDir())
     return this
 }
