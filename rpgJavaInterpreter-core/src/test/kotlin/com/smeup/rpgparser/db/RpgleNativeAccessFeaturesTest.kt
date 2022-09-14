@@ -18,6 +18,7 @@ package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -26,9 +27,16 @@ import kotlin.test.assertEquals
  * */
 open class RpgleNativeAccessFeaturesTest : AbstractTest() {
 
-    @Test
+    @Test @Ignore
     fun resolveEXTNAME01() {
-        assertASTCanBeProduced(exampleName = "db/EXTNAME01", afterAstCreation = { compilationUnit ->
+        assertASTCanBeProduced(exampleName = "db/EXTNAME01", considerPosition = true, afterAstCreation = { compilationUnit ->
+            assertEquals(listOf(), compilationUnit.resolveAndValidate())
+        })
+    }
+
+    @Test @Ignore
+    fun resolveLIKEDEFINE01() {
+        assertASTCanBeProduced(exampleName = "db/LIKEDEFINE01", considerPosition = true, afterAstCreation = { compilationUnit ->
             assertEquals(listOf(), compilationUnit.resolveAndValidate())
         })
     }
