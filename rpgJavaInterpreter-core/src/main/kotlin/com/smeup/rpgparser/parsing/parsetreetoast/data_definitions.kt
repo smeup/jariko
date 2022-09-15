@@ -912,8 +912,12 @@ internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>
 ): () -> DataDefinition {
     return {
-        val extName = this.keyword().first { it.keyword_extname() != null }.keyword_extname().file_name.text
+        val keywordExtName = this.keyword().first { it.keyword_extname() != null }.keyword_extname()
+        val extName = keywordExtName.file_name.text
         val dataDefinitions = fileDefinitions.filter { it.key.name == extName }.values.flatten()
+        if (dataDefinitions.isEmpty()) {
+            keywordExtName.error(message = "Datadefinition $extName not found", conf = conf)
+        }
         var offset = 0
         val fields = dataDefinitions.map {
             FieldDefinition(

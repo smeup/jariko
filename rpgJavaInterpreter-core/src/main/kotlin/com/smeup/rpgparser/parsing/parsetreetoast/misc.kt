@@ -134,7 +134,7 @@ private fun RContext.getDataDefinitions(
             }.getOrNull()
         }
     )
-    return dataDefinitionProviders.map { it.toDataDefinition() }
+    return dataDefinitionProviders.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
 }
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
