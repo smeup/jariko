@@ -20,7 +20,6 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.assertFileDefinitionIsPresent
 import com.smeup.rpgparser.parseFragmentToCompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import org.junit.Test as test
@@ -42,7 +41,7 @@ class FileDefinitionTest : AbstractTest() {
         assertEquals("TSTREC2", secondFileDefinition.internalFormatName)
     }
 
-    @Test @Ignore
+    @Test
     fun resolveEXTNAME01() {
         assertASTCanBeProduced(
             exampleName = "db/EXTNAME01",
@@ -54,15 +53,21 @@ class FileDefinitionTest : AbstractTest() {
 
     @Test
     fun resolveLIKEDSPEC01() {
-        assertASTCanBeProduced(exampleName = "db/LIKEDSPEC01", considerPosition = true, afterAstCreation = { compilationUnit ->
-            assertEquals(listOf(), compilationUnit.resolveAndValidate())
-        })
+        assertASTCanBeProduced(
+            exampleName = "db/LIKEDSPEC01",
+            considerPosition = true,
+            afterAstCreation = { compilationUnit ->
+                assertEquals(listOf(), compilationUnit.resolveAndValidate())
+            })
     }
 
     @Test
     fun resolveLIKEDEFINE01() {
-        assertASTCanBeProduced(exampleName = "db/LIKEDEFINE01", considerPosition = true, afterAstCreation = { compilationUnit ->
-            assertEquals(listOf(), compilationUnit.resolveAndValidate())
-        })
+        assertASTCanBeProduced(
+            exampleName = "db/LIKEDEFINE01",
+            considerPosition = true,
+            afterAstCreation = { compilationUnit ->
+                assertEquals(listOf(), compilationUnit.resolveAndValidate())
+            })
     }
 }

@@ -907,6 +907,43 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
     }
 }
 
+internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+): () -> DataDefinition {
+    return {
+        val extName = this.keyword().first { it.keyword_extname() != null }.keyword_extname().file_name.text
+        val dataDefinitions = fileDefinitions.filter { it.key.name == extName }.values.flatten()
+        var offset = 0
+        val fields = dataDefinitions.map {
+            FieldDefinition(
+                name = it.name,
+                type = it.type,
+                explicitStartOffset = offset,
+                explicitEndOffset = offset + it.type.size,
+                position = toPosition(conf.considerPosition)
+            ).apply { offset += type.size }
+        }
+        val fieldInfos = fields.map {
+            FieldInfo(
+                name = it.name,
+                explicitStartOffset = it.explicitStartOffset,
+                explicitEndOffset = it.explicitEndOffset,
+                explicitElementType = it.type,
+                position = it.position
+            )
+        }
+        val dataDefinition = DataDefinition(
+            name = this.name,
+            type = type(size = fields.sumBy { it.type.size }, FieldsList(fieldInfos)),
+            fields = fields,
+            inz = this.keyword().any { it.keyword_inz() != null },
+            position = this.toPosition(true)
+        )
+        dataDefinition
+    }
+}
+
 fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     val text = this.FROM_POSITION().text.trim()
     return if (text.isBlank()) {

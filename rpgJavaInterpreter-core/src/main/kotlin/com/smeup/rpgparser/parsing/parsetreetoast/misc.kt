@@ -126,6 +126,9 @@ private fun RContext.getDataDefinitions(
                     it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
                     }
+                    it.dcl_ds() != null && it.dcl_ds().useExtName() -> {
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithExtName(conf, fileDefinitions))
+                    }
                     else -> null
                 }
             }.getOrNull()
@@ -343,6 +346,10 @@ private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
         todo(conf = conf)
     }
     return (this.keyword().any { it.keyword_likeds() != null })
+}
+
+private fun Dcl_dsContext.useExtName(): Boolean {
+    return this.keyword().any { it.keyword_extname() != null }
 }
 
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
