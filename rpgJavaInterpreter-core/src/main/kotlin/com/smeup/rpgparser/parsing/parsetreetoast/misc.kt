@@ -140,16 +140,36 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
         dataDefinition.error("${dataDefinition.name} has been defined twice")
 }
 
+private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
+    val dataDefinitions = mutableListOf<DataDefinition>()
+    val reloadConfig = MainExecutionContext.getConfiguration()
+        .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
+    val metadata = kotlin.runCatching {
+        reloadConfig.metadataProducer.invoke(name)
+    }.onFailure { error ->
+        error("Not found metadata for $this", error)
+    }.getOrNull() ?: error("Not found metadata for $this")
+    if (internalFormatName == null) internalFormatName = metadata.tableName
+    dataDefinitions.addAll(
+        metadata.fields.map { dbField ->
+            dbField.toDataDefinition(prefix).apply {
+                createDbFieldDataDefinitionRelation(dbField.fieldName, name)
+            }
+        }
+    )
+    return dataDefinitions
+}
+
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
     val fileDefinitions = this.statement()
-        .mapNotNull {
+        .mapNotNull { statement ->
             when {
-                it.fspec_fixed() != null -> it.fspec_fixed().runParserRuleContext(conf) { context ->
-                    kotlin.runCatching { context.toAst(conf) }.getOrNull()
+                statement.fspec_fixed() != null -> statement.fspec_fixed().runParserRuleContext(conf) { context ->
+                    kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
                 }
                 else -> null
             }
-        }
+        }.toMap()
     checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
 
     val dataDefinitions = getDataDefinitions(conf)
@@ -213,12 +233,12 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }
 
     return CompilationUnit(
-        fileDefinitions,
-        dataDefinitions,
-        MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
-        subroutines,
-        compileTimeArrays,
-        directives,
+        fileDefinitions = fileDefinitions,
+        dataDefinitions = dataDefinitions,
+        main = MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
+        subroutines = subroutines,
+        compileTimeArrays = compileTimeArrays,
+        directives = directives,
         position = this.toPosition(conf.considerPosition),
         apiDescriptors = this.statement().toApiDescriptors(conf),
         procedures = procedures,
@@ -297,7 +317,7 @@ private fun getFakeProcedures(
     // Create 'fake procedures' related only to 'fake prototype names'
     return fakePrototypeNames.map {
         CompilationUnit(
-            fileDefinitions = emptyList(),
+            fileDefinitions = emptyMap(),
             dataDefinitions = emptyList(),
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines = emptyList(),
@@ -390,7 +410,7 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     // TODO Procedures
 
     return CompilationUnit(
-        fileDefinitions = mutableListOf(),
+        fileDefinitions = emptyMap(),
         dataDefinitions,
         main = MainBody(mainStmts, null),
         subroutines,

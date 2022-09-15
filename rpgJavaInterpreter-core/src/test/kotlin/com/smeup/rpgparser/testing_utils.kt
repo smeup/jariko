@@ -75,14 +75,30 @@ fun parseFragmentToCompilationUnit(
     toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
 ): CompilationUnit {
     val completeCode = """
-|     H/COPY QILEGEN,£INIZH
+|     H*/COPY QILEGEN,£INIZH
 |      *---------------------------------------------------------------
-|     I/COPY QILEGEN,£TABB£1DS
-|     I/COPY QILEGEN,£PDS
+|     I*/COPY QILEGEN,£TABB£1DS
+|     I*/COPY QILEGEN,£PDS
 |     $code
         """.trimMargin("|")
-    val rContext = assertCodeCanBeParsed(completeCode)
-    return rContext.toAst(toAstConfiguration)
+    val configuration = Configuration().apply {
+        reloadConfig = ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+            metadataProducer = { dbFile ->
+                FileMetadata(
+                    name = dbFile,
+                    tableName = dbFile,
+                    recordFormat = dbFile,
+                    fields = emptyList(),
+                    accessFields = emptyList()
+                )
+            }
+        )
+    }
+    return MainExecutionContext.execute(configuration = configuration, systemInterface = JavaSystemInterface()) {
+        val rContext = assertCodeCanBeParsed(completeCode)
+        rContext.toAst(toAstConfiguration)
+    }
 }
 
 fun parseFragmentToCompilationUnit(
@@ -376,7 +392,7 @@ open class CollectorSystemInterface(
         return if (program == null) {
             val foundProgram = kotlin.runCatching {
                 SingletonRpgSystem.getProgram(name)
-            }.getOrNull()
+            }.onFailure { it.printStackTrace() }.getOrNull()
             if (foundProgram != null) {
                 programs[name] = foundProgram
                 foundProgram

@@ -16,13 +16,11 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
-import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.Serializable
 
@@ -31,7 +29,7 @@ import kotlinx.serialization.Serializable
 // to its main components
 @Serializable
 data class CompilationUnit(
-    val fileDefinitions: List<FileDefinition>,
+    val fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
     val dataDefinitions: List<DataDefinition>,
     val main: MainBody,
     val subroutines: List<Subroutine>,
@@ -59,7 +57,7 @@ data class CompilationUnit(
 
     companion object {
         fun empty() = CompilationUnit(
-            fileDefinitions = emptyList(),
+            fileDefinitions = emptyMap(),
             dataDefinitions = emptyList(),
             main = MainBody(stmts = emptyList(), position = null),
             subroutines = emptyList(),
@@ -89,24 +87,7 @@ data class CompilationUnit(
                 _allDataDefinitions.addAll(dataDefinitions)
                 // Adds DS sub-fields
                 dataDefinitions.forEach { it -> it.fields.let { _allDataDefinitions.addAll(it) } }
-                fileDefinitions.forEach {
-                    // Create DS from file metadata
-                    val reloadConfig = MainExecutionContext.getConfiguration()
-                        .reloadConfig ?: it.error("Not found metadata for $it because missing property reloadConfig in configuration")
-                    val metadata = kotlin.runCatching {
-                        reloadConfig.metadataProducer.invoke(it.name)
-                    }.onFailure { error ->
-                        it.error("Not found metadata for $it", error)
-                    }.getOrNull() ?: it.error("Not found metadata for $it")
-                    if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
-                    _allDataDefinitions.addAll(
-                        metadata.fields.map { dbField ->
-                            dbField.toDataDefinition(it.prefix).apply {
-                                it.createDbFieldDataDefinitionRelation(dbField.fieldName, this.name)
-                            }
-                        }
-                    )
-                }
+                fileDefinitions.values.forEach() { _allDataDefinitions.addAll(it) }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
                 _allDataDefinitions = checkDuplicatedDataDefinition(_allDataDefinitions).toMutableList()
             }
@@ -158,9 +139,9 @@ data class CompilationUnit(
         return compileTimeArrays[index]
     }
 
-    fun hasFileDefinition(name: String) = fileDefinitions.any { it.name.equals(name, ignoreCase = true) }
+    fun hasFileDefinition(name: String) = fileDefinitions.keys.any { it.name.equals(name, ignoreCase = true) }
 
-    fun getFileDefinition(name: String) = fileDefinitions.first { it.name.equals(name, ignoreCase = true) }
+    fun getFileDefinition(name: String) = fileDefinitions.keys.first { it.name.equals(name, ignoreCase = true) }
 }
 
 @Serializable
