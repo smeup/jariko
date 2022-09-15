@@ -30,7 +30,7 @@ import kotlinx.serialization.Serializable
 // to its main components
 @Serializable
 data class CompilationUnit(
-    val fileDefinitions: Map<FileDefinition, List<DataDefinition>>,
+    val fileDefinitions: List<FileDefinition>,
     val dataDefinitions: List<DataDefinition>,
     val main: MainBody,
     val subroutines: List<Subroutine>,
@@ -58,7 +58,7 @@ data class CompilationUnit(
 
     companion object {
         fun empty() = CompilationUnit(
-            fileDefinitions = emptyMap(),
+            fileDefinitions = emptyList(),
             dataDefinitions = emptyList(),
             main = MainBody(stmts = emptyList(), position = null),
             subroutines = emptyList(),
@@ -123,9 +123,9 @@ data class CompilationUnit(
         return compileTimeArrays[index]
     }
 
-    fun hasFileDefinition(name: String) = fileDefinitions.keys.any { it.name.equals(name, ignoreCase = true) }
+    fun hasFileDefinition(name: String) = fileDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
-    fun getFileDefinition(name: String) = fileDefinitions.keys.first { it.name.equals(name, ignoreCase = true) }
+    fun getFileDefinition(name: String) = fileDefinitions.first { it.name.equals(name, ignoreCase = true) }
 }
 
 @Serializable

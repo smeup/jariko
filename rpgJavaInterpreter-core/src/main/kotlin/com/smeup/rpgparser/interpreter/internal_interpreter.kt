@@ -203,7 +203,7 @@ open class InternalInterpreter(
         val start = System.currentTimeMillis()
         MainExecutionContext.log(SymbolTableIniLogStart(programName = interpretationContext.currentProgramName))
         // TODO verify if these values should be reinitialised or not
-        compilationUnit.fileDefinitions.keys.forEach {
+        compilationUnit.fileDefinitions.forEach {
             dbFileMap.add(it)
         }
 

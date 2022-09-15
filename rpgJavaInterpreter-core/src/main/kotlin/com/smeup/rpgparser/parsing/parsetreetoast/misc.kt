@@ -242,7 +242,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }
 
     return CompilationUnit(
-        fileDefinitions = fileDefinitions,
+        fileDefinitions = fileDefinitions.keys.toList(),
         dataDefinitions = dataDefinitions,
         main = MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
         subroutines = subroutines,
@@ -326,7 +326,7 @@ private fun getFakeProcedures(
     // Create 'fake procedures' related only to 'fake prototype names'
     return fakePrototypeNames.map {
         CompilationUnit(
-            fileDefinitions = emptyMap(),
+            fileDefinitions = emptyList(),
             dataDefinitions = emptyList(),
             MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
             subroutines = emptyList(),
@@ -423,7 +423,7 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     // TODO Procedures
 
     return CompilationUnit(
-        fileDefinitions = emptyMap(),
+        fileDefinitions = emptyList(),
         dataDefinitions,
         main = MainBody(mainStmts, null),
         subroutines,
