@@ -53,8 +53,8 @@ class FileDefinitionTest : AbstractTest() {
     }
 
     @Test
-    fun resolveLIKEDEFINE01() {
-        assertASTCanBeProduced(exampleName = "db/LIKEDEFINE01", considerPosition = true, afterAstCreation = { compilationUnit ->
+    fun resolveLIKEDSPEC01() {
+        assertASTCanBeProduced(exampleName = "db/LIKEDSPEC01", considerPosition = true, afterAstCreation = { compilationUnit ->
             assertEquals(listOf(), compilationUnit.resolveAndValidate())
         })
     }
