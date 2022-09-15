@@ -78,13 +78,19 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
     override fun toDataDefinition() = calculator()
 }
 
-private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
+private fun RContext.getDataDefinitions(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+): List<DataDefinition> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
     val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
 
+    fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().forEach {
+        dataDefinitionProviders.add(it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
+    }
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
@@ -172,7 +178,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
         }.toMap()
     checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
 
-    val dataDefinitions = getDataDefinitions(conf)
+    val dataDefinitions = getDataDefinitions(conf, fileDefinitions)
     checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
 
     val mainStmts = this.statement().mapNotNull {
@@ -1721,4 +1727,20 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
     val programName = if (MainExecutionContext.getParsingProgramStack().empty()) null else MainExecutionContext.getParsingProgramStack().peek().name
     val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks }
     return ProgramNameToCopyBlocks(programName, copyBlocks)
+}
+
+internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
+    val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
+    return this.filter {
+        val dataDefinition = dataDefinitionMap[it.name]
+        if (dataDefinition == null) {
+            dataDefinitionMap[it.name] = it
+            true
+        } else {
+            require(dataDefinition.type == it.type) {
+                "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
+            }
+            false
+        }
+    }
 }
