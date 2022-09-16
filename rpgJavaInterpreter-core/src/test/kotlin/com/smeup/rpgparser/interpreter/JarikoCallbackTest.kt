@@ -346,7 +346,7 @@ class JarikoCallbackTest : AbstractTest() {
     @Test
     fun executeERROR06CallBackTest() {
         // More than one error in data definitions
-        executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 8, 11, 12, 13))
+        executePgmCallBackTest("ERROR06", SourceReferenceType.Program, "ERROR06", listOf(7, 8, 10, 11, 12, 13))
     }
 
     @Test

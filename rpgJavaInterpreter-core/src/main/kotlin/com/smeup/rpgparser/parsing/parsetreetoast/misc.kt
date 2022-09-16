@@ -126,7 +126,9 @@ private fun RContext.getDataDefinitions(
                     it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
                     }
-                    it.dcl_ds() != null && it.dcl_ds().useExtName() -> {
+                    it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
+                        fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
+                    } -> {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithExtName(conf, fileDefinitions))
                     }
                     else -> null
@@ -175,6 +177,9 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
             when {
                 statement.fspec_fixed() != null -> statement.fspec_fixed().runParserRuleContext(conf) { context ->
                     kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
+                }
+                statement.dcl_ds()?.useExtName() ?: false -> statement.dcl_ds().getKeywordExtName().runParserRuleContext(conf) { context ->
+                    kotlin.runCatching { context.toAst(conf).let { extNameDefinition -> extNameDefinition to extNameDefinition.toDataDefinitions() } }.getOrNull()
                 }
                 else -> null
             }
@@ -242,7 +247,8 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }
 
     return CompilationUnit(
-        fileDefinitions = fileDefinitions.keys.toList(),
+        // in fileDefinitions must go only FileDefinition related to F specs
+        fileDefinitions = fileDefinitions.keys.filter { !it.justExtName },
         dataDefinitions = dataDefinitions,
         main = MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
         subroutines = subroutines,

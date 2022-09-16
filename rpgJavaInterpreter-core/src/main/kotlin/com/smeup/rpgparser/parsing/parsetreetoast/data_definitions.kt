@@ -81,6 +81,14 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     return fileDefinition
 }
 
+internal fun RpgParser.Keyword_extnameContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
+    return FileDefinition(
+        name = getExtName(),
+        position = toPosition(conf.considerPosition),
+        justExtName = true
+    )
+}
+
 private val RpgParser.Parm_fixedContext.decimalPositions
     get() = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
 
@@ -907,13 +915,17 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
     }
 }
 
+internal fun RpgParser.Dcl_dsContext.getKeywordExtName() = this.keyword().first { it.keyword_extname() != null }.keyword_extname()
+
+internal fun RpgParser.Keyword_extnameContext.getExtName() = file_name.text
+
 internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
     conf: ToAstConfiguration = ToAstConfiguration(),
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>
 ): () -> DataDefinition {
     return {
-        val keywordExtName = this.keyword().first { it.keyword_extname() != null }.keyword_extname()
-        val extName = keywordExtName.file_name.text
+        val keywordExtName = getKeywordExtName()
+        val extName = keywordExtName.getExtName()
         val dataDefinitions = fileDefinitions.filter { it.key.name == extName }.values.flatten()
         if (dataDefinitions.isEmpty()) {
             keywordExtName.error(message = "Datadefinition $extName not found", conf = conf)
