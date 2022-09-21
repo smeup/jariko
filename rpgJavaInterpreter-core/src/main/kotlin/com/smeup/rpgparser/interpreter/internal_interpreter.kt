@@ -382,7 +382,7 @@ open class InternalInterpreter(
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
                 statement.position?.let { fireCopyObservingCallback(it.start.line) }
-                if (MainExecutionContext.getConfiguration().options?.mustInvokeOnStatementCallback() == true) {
+                if (MainExecutionContext.getConfiguration().options.mustInvokeOnStatementCallback()) {
                     statement.position?.relative()?.let {
                         MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
                     }
@@ -426,8 +426,7 @@ open class InternalInterpreter(
     }
 
     private fun fireCopyObservingCallback(currentStatementLine: Int) {
-        if (!MainExecutionContext.getProgramStack().empty() &&
-            MainExecutionContext.getConfiguration().options?.mustCreateCopyBlocks() == true) {
+        if (!MainExecutionContext.getProgramStack().empty() && MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()) {
             val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
             val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
             copyBlocks.observeTransitions(
@@ -979,6 +978,6 @@ fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
  * */
 internal fun Position.relative(): StatementReference {
     val programName = if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
-    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks } ?: null
+    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
     return this.relative(programName, copyBlocks)
 }

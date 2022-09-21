@@ -78,13 +78,19 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
     override fun toDataDefinition() = calculator()
 }
 
-private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
+private fun RContext.getDataDefinitions(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+): List<DataDefinition> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
     val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
 
+    fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().forEach {
+        dataDefinitionProviders.add(it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
+    }
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
@@ -120,12 +126,17 @@ private fun RContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfigur
                     it.dcl_ds() != null && it.dcl_ds().useLikeDs(conf) -> {
                         DataDefinitionCalculator(it.dcl_ds().toAstWithLikeDs(conf, dataDefinitionProviders))
                     }
+                    it.dcl_ds() != null && it.dcl_ds().useExtName() && fileDefinitions.keys.any { fileDefinition ->
+                        fileDefinition.name.equals(it.dcl_ds().getKeywordExtName().getExtName(), ignoreCase = true)
+                    } -> {
+                        DataDefinitionCalculator(it.dcl_ds().toAstWithExtName(conf, fileDefinitions))
+                    }
                     else -> null
                 }
             }.getOrNull()
         }
     )
-    return dataDefinitionProviders.map { it.toDataDefinition() }
+    return dataDefinitionProviders.mapNotNull { kotlin.runCatching { it.toDataDefinition() }.getOrNull() }
 }
 
 private fun DataDefinition.updateKnownDataDefinitionsAndGetHolder(
@@ -140,19 +151,42 @@ private fun MutableMap<String, DataDefinition>.addIfNotPresent(dataDefinition: D
         dataDefinition.error("${dataDefinition.name} has been defined twice")
 }
 
+private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
+    val dataDefinitions = mutableListOf<DataDefinition>()
+    val reloadConfig = MainExecutionContext.getConfiguration()
+        .reloadConfig ?: error("Not found metadata for $this because missing property reloadConfig in configuration")
+    val metadata = kotlin.runCatching {
+        reloadConfig.metadataProducer.invoke(name)
+    }.onFailure { error ->
+        error("Not found metadata for $this", error)
+    }.getOrNull() ?: error("Not found metadata for $this")
+    if (internalFormatName == null) internalFormatName = metadata.tableName
+    dataDefinitions.addAll(
+        metadata.fields.map { dbField ->
+            dbField.toDataDefinition(prefix).apply {
+                createDbFieldDataDefinitionRelation(dbField.fieldName, name)
+            }
+        }
+    )
+    return dataDefinitions
+}
+
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
     val fileDefinitions = this.statement()
-        .mapNotNull {
+        .mapNotNull { statement ->
             when {
-                it.fspec_fixed() != null -> it.fspec_fixed().runParserRuleContext(conf) { context ->
-                    kotlin.runCatching { context.toAst(conf) }.getOrNull()
+                statement.fspec_fixed() != null -> statement.fspec_fixed().runParserRuleContext(conf) { context ->
+                    kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
+                }
+                statement.dcl_ds()?.useExtName() ?: false -> statement.dcl_ds().getKeywordExtName().runParserRuleContext(conf) { context ->
+                    kotlin.runCatching { context.toAst(conf).let { extNameDefinition -> extNameDefinition to extNameDefinition.toDataDefinitions() } }.getOrNull()
                 }
                 else -> null
             }
-        }
+        }.toMap()
     checkAstCreationErrors(phase = AstHandlingPhase.FileDefinitionsCreation)
 
-    val dataDefinitions = getDataDefinitions(conf)
+    val dataDefinitions = getDataDefinitions(conf, fileDefinitions)
     checkAstCreationErrors(phase = AstHandlingPhase.DataDefinitionsCreation)
 
     val mainStmts = this.statement().mapNotNull {
@@ -213,12 +247,13 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
     }
 
     return CompilationUnit(
-        fileDefinitions,
-        dataDefinitions,
-        MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
-        subroutines,
-        compileTimeArrays,
-        directives,
+        // in fileDefinitions must go only FileDefinition related to F specs
+        fileDefinitions = fileDefinitions.keys.filter { !it.justExtName },
+        dataDefinitions = dataDefinitions,
+        main = MainBody(mainStmts, if (conf.considerPosition) mainStmts.position() else null),
+        subroutines = subroutines,
+        compileTimeArrays = compileTimeArrays,
+        directives = directives,
         position = this.toPosition(conf.considerPosition),
         apiDescriptors = this.statement().toApiDescriptors(conf),
         procedures = procedures,
@@ -319,6 +354,10 @@ private fun Dcl_dsContext.useLikeDs(conf: ToAstConfiguration): Boolean {
     return (this.keyword().any { it.keyword_likeds() != null })
 }
 
+private fun Dcl_dsContext.useExtName(): Boolean {
+    return this.keyword().any { it.keyword_extname() != null }
+}
+
 internal fun EndSourceContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompileTimeArray {
 
         fun cName(s: String) =
@@ -390,7 +429,7 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     // TODO Procedures
 
     return CompilationUnit(
-        fileDefinitions = mutableListOf(),
+        fileDefinitions = emptyList(),
         dataDefinitions,
         main = MainBody(mainStmts, null),
         subroutines,
@@ -1701,4 +1740,20 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
     val programName = if (MainExecutionContext.getParsingProgramStack().empty()) null else MainExecutionContext.getParsingProgramStack().peek().name
     val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks }
     return ProgramNameToCopyBlocks(programName, copyBlocks)
+}
+
+internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
+    val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
+    return this.filter {
+        val dataDefinition = dataDefinitionMap[it.name]
+        if (dataDefinition == null) {
+            dataDefinitionMap[it.name] = it
+            true
+        } else {
+            require(dataDefinition.type == it.type) {
+                "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
+            }
+            false
+        }
+    }
 }

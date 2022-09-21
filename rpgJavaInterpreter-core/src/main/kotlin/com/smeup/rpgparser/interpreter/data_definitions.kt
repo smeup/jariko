@@ -138,11 +138,12 @@ data class Prefix(private val prefix: String, private val numCharsReplaced: Int?
 data class FileDefinition private constructor(
     override val name: String,
     override val position: Position?,
-    val prefix: Prefix?
+    val prefix: Prefix?,
+    val justExtName: Boolean
 ) : Node(position), Named {
     companion object {
-        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null): FileDefinition {
-            return FileDefinition(name.toUpperCase(), position, prefix)
+        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null, justExtName: Boolean = false): FileDefinition {
+            return FileDefinition(name.toUpperCase(), position, prefix, justExtName)
         }
     }
 

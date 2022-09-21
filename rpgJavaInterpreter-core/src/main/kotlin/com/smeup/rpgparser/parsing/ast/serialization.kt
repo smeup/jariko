@@ -176,6 +176,9 @@ private val modules = SerializersModule {
 
 val json = Json {
     serializersModule = modules
+    // needed to solve json serializing issue due to the change of the CompilationUnit.dataDefinitions property
+    // type
+    allowStructuredMapKeys = true
 }
 
 val cbor = Cbor {

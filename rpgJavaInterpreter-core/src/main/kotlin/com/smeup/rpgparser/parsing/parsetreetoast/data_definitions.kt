@@ -81,6 +81,14 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     return fileDefinition
 }
 
+internal fun RpgParser.Keyword_extnameContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
+    return FileDefinition(
+        name = getExtName(),
+        position = toPosition(conf.considerPosition),
+        justExtName = true
+    )
+}
+
 private val RpgParser.Parm_fixedContext.decimalPositions
     get() = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
 
@@ -903,6 +911,51 @@ internal fun RpgParser.Dcl_dsContext.toAstWithLikeDs(
                 referredDataDefinition.fields,
                 position = this.toPosition(true))
         dataDefinition.fields = dataDefinition.fields.map { it.copy(overriddenContainer = dataDefinition) }
+        dataDefinition
+    }
+}
+
+internal fun RpgParser.Dcl_dsContext.getKeywordExtName() = this.keyword().first { it.keyword_extname() != null }.keyword_extname()
+
+internal fun RpgParser.Keyword_extnameContext.getExtName() = file_name.text
+
+internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    fileDefinitions: Map<FileDefinition, List<DataDefinition>>
+): () -> DataDefinition {
+    return {
+        val keywordExtName = getKeywordExtName()
+        val extName = keywordExtName.getExtName()
+        val dataDefinitions = fileDefinitions.filter { it.key.name == extName }.values.flatten()
+        if (dataDefinitions.isEmpty()) {
+            keywordExtName.error(message = "Datadefinition $extName not found", conf = conf)
+        }
+        var offset = 0
+        val fields = dataDefinitions.map {
+            FieldDefinition(
+                name = it.name,
+                type = it.type,
+                explicitStartOffset = offset,
+                explicitEndOffset = offset + it.type.size,
+                position = toPosition(conf.considerPosition)
+            ).apply { offset += type.size }
+        }
+        val fieldInfos = fields.map {
+            FieldInfo(
+                name = it.name,
+                explicitStartOffset = it.explicitStartOffset,
+                explicitEndOffset = it.explicitEndOffset,
+                explicitElementType = it.type,
+                position = it.position
+            )
+        }
+        val dataDefinition = DataDefinition(
+            name = this.name,
+            type = type(size = fields.sumBy { it.type.size }, FieldsList(fieldInfos)),
+            fields = fields,
+            inz = this.keyword().any { it.keyword_inz() != null },
+            position = this.toPosition(true)
+        )
         dataDefinition
     }
 }

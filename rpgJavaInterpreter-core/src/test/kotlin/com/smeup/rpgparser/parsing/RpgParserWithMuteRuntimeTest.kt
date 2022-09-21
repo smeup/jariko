@@ -34,7 +34,7 @@ open class RpgParserWithMuteRuntimeTest : AbstractTest() {
         exampleName: String,
         considerPosition: Boolean
     ): CompilationUnit {
-        return super.assertASTCanBeProduced(
+        return assertASTCanBeProduced(
             exampleName = exampleName,
             considerPosition = considerPosition,
             withMuteSupport = true,
