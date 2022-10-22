@@ -224,6 +224,7 @@ fun RpgParserResult.executeMuteAnnotations(
         })
     }
     val interpreter = InternalInterpreter(systemInterface).apply {
+        MainExecutionContext.getConfiguration().jarikoCallback.onInterpreterCreation(this)
         setInterpretationContext(object : InterpretationContext {
             private var iDataWrapUpChoice: DataWrapUpChoice? = null
             override val currentProgramName: String
