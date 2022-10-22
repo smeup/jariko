@@ -40,6 +40,10 @@ object MainExecutionContext {
     private val noParsingProgramStack: Stack<ParsingProgram> by lazy { Stack<ParsingProgram>() }
     //
 
+    // If for some reason we have problems in MainExecutionContext.execute set this variable to true
+    // in order to restore previous behaviour
+    private val denyRecursiveMainContextExecution = false
+
     /**
      * Call this method to execute e program in execution context environment.
      * Your program will be able to gain access to the attributes available in the entire life cycle of program execution
@@ -49,7 +53,6 @@ object MainExecutionContext {
      * @see getAttributes
      * @see getConfiguration
      * @see getMemorySliceMgr
-     * @see Options.allowRecursiveMainContextExecution
      * */
     fun <T> execute(
         configuration: Configuration = Configuration(),
@@ -57,13 +60,8 @@ object MainExecutionContext {
         mainProgram: (context: Context) -> T
     ): T {
         val isRootContext = context.get() == null
-        if (!configuration.options.allowRecursiveMainContextExecution) {
-            require(
-                context.get() == null
-            ) {
-                "Context execution already created, " +
-                        "you can set Configuration.options.allowRecursiveMainContextExecution=true to disable this constraint"
-            }
+        if (denyRecursiveMainContextExecution) {
+            require(context.get() == null) { "Context execution already created" }
         }
         val memorySliceMgr = if (isRootContext) {
             if (configuration.memorySliceStorage == null) {

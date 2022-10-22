@@ -311,8 +311,6 @@ class RunnerTest : AbstractTest() {
 
     @Test
     fun rpgCallDopedCallRpg() {
-        // this is necessary to enable the feature that allows to invoke from doped program a rpg program
-        DOPEDCALLRPG.configuration.options.allowRecursiveMainContextExecution = true
         val pgm = """
      C                   CALL      'DOPEDCALLRPG'            
         """

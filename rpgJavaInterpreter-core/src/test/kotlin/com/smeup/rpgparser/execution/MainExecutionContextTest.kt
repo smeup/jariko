@@ -52,30 +52,15 @@ class MainExecutionContextTest {
         assertFalse { String(byteArrayOutputStream.toByteArray()).contains("Reset idProvider") }
     }
 
-    /**
-     * It must throw exception because for default we cannot create a MainExecutionContext
-     * inside another
-     * */
-    @Test(expected = IllegalArgumentException::class)
-    fun defaultRecursiveMainContextExecution() {
-        createMainExecutionContextRecursively(
-            createConfiguration = { Configuration() },
-            createJavaSystemInterface = { JavaSystemInterface() },
-            rootExecution = {},
-            innerExecution = {}
-        )
-    }
-
+    // I want to be sure that will be used only first instances of Configuration and JavaSystemInterface
     @Test
     fun testFirstInstancesUsageInCaseOfRecursiveExecution() {
         val configs = listOf(
-            Configuration().apply { options.allowRecursiveMainContextExecution = true },
-            Configuration().apply { options.allowRecursiveMainContextExecution = true }
+            Configuration(), Configuration()
         )
         val systemInterfaces = listOf(JavaSystemInterface(), JavaSystemInterface())
         var createConfigurationTimes = 0
         var createJavaSystemInterfaceTimes = 0
-        // Let's test the use of the first instance of Configuration and JavaSystemInterface
         createMainExecutionContextRecursively(
             createConfiguration = { configs[createConfigurationTimes++] },
             createJavaSystemInterface = { systemInterfaces[createJavaSystemInterfaceTimes++] },
@@ -94,7 +79,7 @@ class MainExecutionContextTest {
     // The MainExecutionContext must be still created also when inner execution throw an error
     @Test
     fun testMainExecutionCleanupInCaseOfRecursiveExecution() {
-        val config = Configuration().apply { options.allowRecursiveMainContextExecution = true }
+        val config = Configuration()
         val systemInterface = JavaSystemInterface()
         createMainExecutionContextRecursively(
             createConfiguration = { config },
