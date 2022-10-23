@@ -2022,4 +2022,14 @@ Test 6
     fun executeSUBST_06() {
         assertEquals(listOf("A"), outputOf("SUBST_06"))
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun executeASSIGNERR01() {
+        executePgm("ASSIGNERR01")
+    }
+
+    @Ignore @Test(expected = IllegalArgumentException::class)
+    fun executeASSIGNERR02() {
+        executePgm("ASSIGNERR02")
+    }
 }
