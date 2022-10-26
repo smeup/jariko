@@ -2028,8 +2028,4 @@ Test 6
         executePgm("ASSIGNERR01")
     }
 
-    @Ignore @Test(expected = IllegalArgumentException::class)
-    fun executeASSIGNERR02() {
-        executePgm("ASSIGNERR02")
-    }
 }
