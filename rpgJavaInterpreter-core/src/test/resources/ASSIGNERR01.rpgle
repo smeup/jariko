@@ -1,5 +1,5 @@
       *---------------------------------------------------------------
-      * Test operation that has to throws an assignment error
+      * Test operation that has to throw an assignment error
       * Ok decimal but wrong size
       *---------------------------------------------------------------
      D NUM1            S              3  1
