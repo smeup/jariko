@@ -398,10 +398,11 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     override fun asDecimal(): DecimalValue = this
 
     override fun assignableTo(expectedType: Type): Boolean {
-        val entireDigit = value.precision() - value.scale()
-        val decimalDigit = value.scale()
         when (expectedType) {
-            is NumberType -> return expectedType.entireDigits >= entireDigit && expectedType.decimalDigits >= decimalDigit
+            is NumberType -> {
+                val expectedTypePrecision = expectedType.entireDigits + expectedType.decimalDigits
+                return expectedTypePrecision >= value.precision()
+            }
             is ArrayType -> {
                 return expectedType.element is NumberType
             }

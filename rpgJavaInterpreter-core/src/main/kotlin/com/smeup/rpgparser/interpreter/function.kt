@@ -103,7 +103,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
         }
         interpreter.doSomethingAfterExecution()
         return (interpreter.getStatus().returnValue ?: VoidValue).apply {
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitFunction(compilationUnit.procedureName!!, this)
+            MainExecutionContext.getConfiguration().jarikoCallback.onExitFunction(compilationUnit.procedureName, this)
         }
     }
 
@@ -158,7 +158,9 @@ class FunctionWrapper(private val function: Function, private val functionName: 
     override fun execute(systemInterface: SystemInterface, params: List<FunctionValue>, symbolTable: ISymbolTable): Value {
         checkParamsSize(params)
         params.forEachIndexed { index, functionValue ->
-            if (!functionValue.value.assignableTo(expectedParams[index].type)) {
+            val expectedType = expectedParams[index].type
+            val value = coerce(functionValue.value, expectedType)
+            if (!value.assignableTo(expectedType)) {
                 functionValue.error("$functionValue is not assignable to parameter: ${expectedParams[index].name}")
             }
         }
@@ -207,6 +209,7 @@ private class FunctionInterpreter(systemInterface: SystemInterface, private val 
 
     override fun getMemorySliceMgr(): MemorySliceMgr? = null
 
+    @Deprecated("No longer used")
     override fun fireOnEnterPgmCallBackFunction() {
         // here I do nothing because I am not a program
     }
