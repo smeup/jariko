@@ -2027,5 +2027,4 @@ Test 6
     fun executeASSIGNERR01() {
         executePgm("ASSIGNERR01")
     }
-
 }
