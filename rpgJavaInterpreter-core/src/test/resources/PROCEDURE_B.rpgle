@@ -31,7 +31,7 @@
      DprocVar          S             32
      DprocVarInz       S             20     INZ('D specs inline init!')
      DprocVarNum1      S              5  2  INZ(123.45)
-     DprocVarNum2      S              3  1  INZ(345.5)
+     DprocVarNum2      S              4  1  INZ(345.5)
      DprocVarRes       S              5  2  INZ
      DsameVar          S             99     INZ('sameVar just initialized')
       *

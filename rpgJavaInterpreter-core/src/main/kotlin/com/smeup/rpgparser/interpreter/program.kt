@@ -37,7 +37,9 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     private var systemInterface: SystemInterface? = null
 
     private val interpreter: InternalInterpreter by lazy {
-        InternalInterpreter(this.systemInterface!!)
+        val interpreterCore = InternalInterpreter(this.systemInterface!!)
+        MainExecutionContext.getConfiguration().jarikoCallback.onInterpreterCreation(interpreterCore)
+        interpreterCore
     }
 
     lateinit var activationGroup: ActivationGroup

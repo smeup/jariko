@@ -103,12 +103,13 @@ data class Options(
  * @param beforeParsing It is invoked before the parsing. It is passed the source that will be parsed after all copy inclusion, the default implementation
  * will return source itself
  * @param exitInRT If specified, it overrides the exit mode established in program. Default null (nei seton rt od lr mode)
+ * @param onInterpreterCreation It is invoked on Interpreter creation
  * @param onEnterPgm It is invoked on program enter after symboltable initialization.
  * @param onExitPgm It is invoked on program exit. In case of error it is no longer called, then even error parameter is no longer significant
  * @param afterAstCreation It is invoked after ast creation
  * @param onEnterCopy It is invoked on copy enter.
  * **This callback will be called only if [Options.debuggingInformation] is set to true**.
- * @param onEnterCopy It is invoked on copy exit.
+ * @param onExitCopy It is invoked on copy exit.
  * **This callback will be called only if [Options.debuggingInformation] is set to true**.
  * @param onEnterStatement It is invoked before statement execution.
  * **This callback will be called only if [Options.debuggingInformation] is set to true**.
@@ -125,6 +126,7 @@ data class JarikoCallback(
     var afterCopiesInclusion: (copyBlocks: CopyBlocks) -> Unit = { },
     var beforeParsing: (source: String) -> String = { source -> source },
     var exitInRT: (programName: String) -> Boolean? = { null },
+    var onInterpreterCreation: (interpreter: InterpreterCore) -> Unit = { },
     var onEnterPgm: (programName: String, symbolTable: ISymbolTable) -> Unit = { _: String, _: ISymbolTable -> },
     var onExitPgm: (programName: String, symbolTable: ISymbolTable, error: Throwable?) -> Unit = { _: String, _: ISymbolTable, _: Throwable? -> },
     var afterAstCreation: (ast: CompilationUnit) -> Unit = { },
