@@ -30,7 +30,6 @@ buildscript {
             name 'JFrog OSS snapshot repo'
             url  'https://oss.jfrog.org/oss-snapshot-localrun/'
         }
-        maven { url 'https://jitpack.io' }
         jcenter()
     }
 
@@ -61,11 +60,11 @@ dependencies {
     compile 'com.github.ajalt:clikt:2.1.0'
     // I cannot set api scope, as suggested, because for a reason I still have to dig into,
     // the dependency is not propagated
-    compile "com.github.smeup.reload:base:$reloadVersion"
-    implementation "com.github.smeup.reload:sql:$reloadVersion"
-    implementation "com.github.smeup.reload:nosql:$reloadVersion"
-    implementation "com.github.smeup.reload:manager:$reloadVersion"
-    implementation "com.github.smeup.reload:jt400:$reloadVersion"
+    compile "io.github.smeup.reload:base:$reloadVersion"
+    implementation "io.github.smeup.reload:sql:$reloadVersion"
+    implementation "io.github.smeup.reload:nosql:$reloadVersion"
+    implementation "io.github.smeup.reload:manager:$reloadVersion"
+    implementation "io.github.smeup.reload:jt400:$reloadVersion"
 
     compile 'com.github.ziggy42:kolor:0.0.2'
 
