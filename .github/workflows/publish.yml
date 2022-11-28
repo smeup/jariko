@@ -11,14 +11,15 @@ jobs:
         with:
           java-version: 1.8
       # save private key to file (private.gpg)
-      - run: echo "${{ secrets.GPG_KEY }}" >> ${HOME}/private.gpg
+      - run: echo "${{ secrets.GPG_KEY }}" >> ~/private.gpg
+      - run: cat ~/private.gpg
       # create gradle.properties file
       - run: |
           mkdir -p ~/.gradle/
           echo "GRADLE_USER_HOME=${HOME}/.gradle" >> $GITHUB_ENV
           echo "signing.keyId=${{ secrets.GPG_KEY_ID }}" >> ~/.gradle/gradle.properties
           echo "signing.password=${{ secrets.GPG_PASSPHRASE }}" >> ~/.gradle/gradle.properties
-          echo "signing.secretKeyRingFile=${HOME}/keys/private.gpg" >> ~/.gradle/gradle.properties
+          echo "signing.secretKeyRingFile=${HOME}/private.gpg" >> ~/.gradle/gradle.properties
           echo "sonatypeUsername=${{ secrets.OSSRH_USERNAME }}" >> ~/.gradle/gradle.properties
           echo "sonatypePassword=${{ secrets.OSSRH_PASSWORD }}" >> ~/.gradle/gradle.properties
       # deploy
