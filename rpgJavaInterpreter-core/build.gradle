@@ -66,7 +66,7 @@ dependencies {
     implementation "io.github.smeup.reload:manager:$reloadVersion"
     implementation "io.github.smeup.reload:jt400:$reloadVersion"
 
-    compile 'com.github.ziggy42:kolor:0.0.2'
+    compile "com.andreapivetta.kolor:kolor:1.0.0"
 
     compile "org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion"
     compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
