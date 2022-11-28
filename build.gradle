@@ -17,6 +17,9 @@
 //-----------------
 //Main build script
 //-----------------
+
+def jarikoVersion = "develop-SNAPSHOT"
+
 buildscript {
 
     repositories {
@@ -45,8 +48,8 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'org.jlleitschuh.gradle.ktlint'
     apply plugin: 'kotlinx-serialization'
-    apply plugin: 'maven-publish'
     apply plugin: 'signing'
+    apply plugin: 'maven-publish'
 
     repositories {
         mavenLocal()
@@ -62,7 +65,7 @@ subprojects {
     // ./gradlew install
     // This task will install jariko artifacts into your local maven repository
     project.group = "io.github.smeup.jariko"
-    project.version = "develop-SNAPSHOT"
+    project.version = ${jarikoVersion}
 
     // specifying what we want to sign
     signing {
@@ -76,7 +79,7 @@ subprojects {
                 customizePom(pom)
                 groupId 'io.github.smeup'
                 artifactId 'jariko'
-                version 'develop-SNAPSHOT'
+                version ${jarikoVersion}
 
                 from components.java
 
