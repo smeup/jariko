@@ -34,7 +34,7 @@ repositories {
     jcenter()
 }
 
-def kolasuVersion = "develop-SNAPSHOT"
+def kolasuVersion = "0.0.1-alpha"
 
 project.group   = "me.tomassetti"
 project.version = kolasuVersion
@@ -128,16 +128,6 @@ publishing {
                     extension = 'jar.asc'
                 }
             }
-        }
-    }
-}
-
-// auto release nexus
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
         }
     }
 }

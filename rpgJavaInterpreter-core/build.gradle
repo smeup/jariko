@@ -394,7 +394,7 @@ publishing {
             customizePom(pom)
             groupId 'io.github.smeup.jariko'
             artifactId 'rpgJavaInterpreter-core'
-            version 'develop-SNAPSHOT'
+            version '0.0.1-alpha'
 
             from components.java
 
@@ -421,16 +421,6 @@ publishing {
                     extension = 'jar.asc'
                 }
             }
-        }
-    }
-}
-
-// auto release nexus
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
         }
     }
 }
