@@ -11,15 +11,17 @@ jobs:
         with:
           java-version: 1.8
       # save private key to file (private.gpg)
-      - run: echo "${{ secrets.GPG_KEY }}" >> /private.gpg
+      - run: echo "${{ secrets.GPG_KEY }}" >> ~/private.gpg
       # create gradle.properties file
-      - run: mkdir ~/.gradle
-      # write gradle properties
-      - run: echo "signing.keyId=${{ secrets.GPG_KEY_ID }}" >> $HOME/.gradle/gradle.properties
-      - run: echo "signing.password=${{ secrets.GPG_PASSPHRASE }}" >> $HOME/.gradle/gradle.properties
-      - run: echo "signing.secretKeyRingFile=$HOME/private.gpg" >> $HOME/.gradle/gradle.properties
-      - run: echo "sonatypeUsername=${{ secrets.OSSRH_USERNAME }}" >> $HOME/.gradle/gradle.properties
-      - run: echo "sonatypePassword=${{ secrets.OSSRH_PASSWORD }}" >> $HOME/.gradle/gradle.properties
+      - run: |
+          mkdir -p ~/.gradle/
+          echo "GRADLE_USER_HOME=${HOME}/.gradle" >> $GITHUB_ENV
+          echo "${GRADLE_PROPERTIES}" > ~/.gradle/gradle.properties
+          echo "signing.keyId=${{ secrets.GPG_KEY_ID }}" >> ~/.gradle/gradle.properties
+          echo "signing.password=${{ secrets.GPG_PASSPHRASE }}" >> ~/.gradle/gradle.properties
+          echo "signing.secretKeyRingFile=$HOME/private.gpg" >> ~/.gradle/gradle.properties
+          echo "sonatypeUsername=${{ secrets.OSSRH_USERNAME }}" >> ~/.gradle/gradle.properties
+          echo "sonatypePassword=${{ secrets.OSSRH_PASSWORD }}" >> ~/.gradle/gradle.properties
       # deploy
       - uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
         with:
