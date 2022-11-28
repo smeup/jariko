@@ -11,7 +11,7 @@ jobs:
         with:
           java-version: 1.8
       # save private key to file (private.gpg)
-      - run: echo "${{ secrets.GPG_KEY }}" >> ~/private.gpg
+      - run: echo "${{ secrets.GPG_KEY }}" >> ${HOME}/private.gpg
       # create gradle.properties file
       - run: |
           mkdir -p ~/.gradle/
