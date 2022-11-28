@@ -76,7 +76,7 @@ subprojects {
                 customizePom(pom)
                 groupId 'io.github.smeup'
                 artifactId 'jariko'
-                version version
+                version 'develop-SNAPSHOT'
 
                 from components.java
 
@@ -106,25 +106,13 @@ subprojects {
             }
         }
         repositories {
-            repositories {
-                if (version.toString().endsWith("SNAPSHOT")) {
-                    maven {
-                        name "sonatypeReleaseRepository"
-                        url "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                        credentials {
-                            username sonatypeUsername
-                            password sonatypePassword
-                        }
-                    }
-                } else {
-                    maven {
-                        name "sonatypeSnapshotRepository"
-                        url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-                        credentials {
-                            username sonatypeUsername
-                            password sonatypePassword
-                        }
-                    }
+            maven {
+                def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
                 }
             }
         }
