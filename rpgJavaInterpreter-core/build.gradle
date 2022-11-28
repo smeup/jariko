@@ -425,6 +425,16 @@ publishing {
     }
 }
 
+// auto release nexus
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
+    }
+}
+
 model {
     tasks.generatePomFileForMavenJavaPublication {
         destination = file("$buildDir/generated-pom.xml")
@@ -481,4 +491,3 @@ def customizePom(pom) {
         }
     }
 }
-
