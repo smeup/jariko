@@ -51,6 +51,7 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
         maven { url 'https://oss.jfrog.org/oss-snapshot-local/' }
         jcenter()
     }
@@ -75,7 +76,7 @@ subprojects {
                 customizePom(pom)
                 groupId 'io.github.smeup'
                 artifactId 'jariko'
-                version project.version
+                version version
 
                 from components.java
 
@@ -105,11 +106,16 @@ subprojects {
             }
         }
         repositories {
-            maven {
-                url "https://s01.oss.sonatype.org/"
-                credentials {
-                    username sonatypeUsername
-                    password sonatypePassword
+            repositories {
+                name = "sonatypeRepository"
+                maven {
+                    val releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                    val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                    if (version.toString().endsWith("SNAPSHOT")) {
+                        url = snapshotsRepoUrl
+                    } else {
+                        url = releasesRepoUrl
+                    }
                 }
             }
         }
