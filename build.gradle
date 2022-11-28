@@ -52,7 +52,6 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
         maven { url 'https://oss.jfrog.org/oss-snapshot-local/' }
         jcenter()
     }
