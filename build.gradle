@@ -107,14 +107,21 @@ subprojects {
         }
         repositories {
             repositories {
-                name = "sonatypeRepository"
-                maven {
-                    val releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-                    val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                    if (version.toString().endsWith("SNAPSHOT")) {
-                        url = snapshotsRepoUrl
-                    } else {
-                        url = releasesRepoUrl
+                if (version.toString().endsWith("SNAPSHOT")) {
+                    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                        name = "sonatypeReleaseRepository"
+                        credentials {
+                            username sonatypeUsername
+                            password sonatypePassword
+                        }
+                    }
+                } else {
+                    maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                        name = "sonatypeSnapshotRepository"
+                        credentials {
+                            username sonatypeUsername
+                            password sonatypePassword
+                        }
                     }
                 }
             }
