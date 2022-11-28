@@ -108,16 +108,18 @@ subprojects {
         repositories {
             repositories {
                 if (version.toString().endsWith("SNAPSHOT")) {
-                    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                        name = "sonatypeReleaseRepository"
+                    maven {
+                        name "sonatypeReleaseRepository"
+                        url "https://s01.oss.sonatype.org/content/repositories/snapshots/"
                         credentials {
                             username sonatypeUsername
                             password sonatypePassword
                         }
                     }
                 } else {
-                    maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                        name = "sonatypeSnapshotRepository"
+                    maven {
+                        name "sonatypeSnapshotRepository"
+                        url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                         credentials {
                             username sonatypeUsername
                             password sonatypePassword
