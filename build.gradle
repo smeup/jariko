@@ -64,6 +64,11 @@ subprojects {
     project.group = "io.github.smeup.jariko"
     project.version = "develop-SNAPSHOT"
 
+    // specifying what we want to sign
+    signing {
+        sign configurations.archives
+    }
+
     publishing{
         repositories {
             maven {
