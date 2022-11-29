@@ -63,4 +63,83 @@ subprojects {
     // This task will install jariko artifacts into your local maven repository
     project.group = "io.github.smeup.jariko"
     project.version = "develop-SNAPSHOT"
+
+    // shared build logic
+    // specifying what we want to sign
+    signing {
+        sign configurations.archives
+    }
+
+    publishing{
+        repositories {
+            maven {
+                def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
+                }
+            }
+        }
+    }
+
+    model {
+        tasks.generatePomFileForMavenJavaPublication {
+            destination = file("$buildDir/generated-pom.xml")
+        }
+        tasks.publishMavenJavaPublicationToMavenLocal {
+            dependsOn project.tasks.signArchives
+        }
+        tasks.publishMavenJavaPublicationToMavenRepository {
+            dependsOn project.tasks.signArchives
+        }
+    }
 }
+
+def customizePom(pom) {
+    pom.withXml {
+        def root = asNode()
+
+        // eliminate test-scoped dependencies (no need in maven central POMs)
+        root.dependencies.removeAll { dep ->
+            dep.scope == "test"
+        }
+
+        // add all items necessary for maven central publication
+        root.children().last() + {
+            resolveStrategy = Closure.DELEGATE_FIRST
+
+            description 'A JAva virtual machine Rpg Interpreter written in KOtlin'
+            name 'Jairko'
+            url 'https://github.com/smeup/jariko'
+            organization {
+                name 'com.github.smeup'
+                url 'https://github.com/smeup'
+            }
+            issueManagement {
+                system 'GitHub'
+                url 'https://github.com/smeup/jariko/issues'
+            }
+            licenses {
+                license {
+                    name 'Apache License 2.0'
+                    url 'https://github.com/smeup/jariko/blob/master/LICENSE.md'
+                    distribution 'repo'
+                }
+            }
+            scm {
+                url 'https://github.com/smeup/jariko'
+                connection 'scm:git:git://github.com/smeup/jariko.git'
+                developerConnection 'scm:git:ssh://git@github.com:smeup/jariko.git'
+            }
+            developers {
+                developer {
+                    name 'smeup'
+                }
+            }
+        }
+    }
+}
+
+
