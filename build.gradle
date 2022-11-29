@@ -64,21 +64,20 @@ subprojects {
     project.group = "io.github.smeup.jariko"
     project.version = "develop-SNAPSHOT"
 
-    // shared build logic
     // specifying what we want to sign
     signing {
         sign configurations.archives
     }
 
-    publishing{
+    publishing {
         repositories {
             maven {
                 def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                 def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
                 url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
                 credentials {
-                    username sonatypeUsername
-                    password sonatypePassword
+                    username findProperty(sonatypeUsername)
+                    password findProperty(sonatypePassword)
                 }
             }
         }

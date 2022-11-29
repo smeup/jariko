@@ -34,11 +34,6 @@ repositories {
     jcenter()
 }
 
-def kolasuVersion = "develop-SNAPSHOT"
-
-project.group   = "me.tomassetti"
-project.version = kolasuVersion
-
 dependencies {
     antlr "org.antlr:antlr4:$antlr_version"
     compile "org.antlr:antlr4-runtime:$antlr_version"
@@ -57,7 +52,7 @@ dependencies {
 
 task version {
     doLast {
-        print "Version ${kolasuVersion}"
+        print "Version ${version}"
     }
 }
 
