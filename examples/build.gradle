@@ -30,9 +30,9 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             customizePom(pom)
-            groupId 'io.github.smeup.jariko'
+            groupId jarikoGroupId
             artifactId 'examples'
-            version version
+            version jarikoVersion
             //version 'develop-SNAPSHOT'
 
             // create the sign pom artifact

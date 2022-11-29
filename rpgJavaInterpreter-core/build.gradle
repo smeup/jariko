@@ -387,9 +387,9 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             customizePom(pom)
-            groupId 'io.github.smeup.jariko'
+            groupId jarikoGroupId
             artifactId 'rpgJavaInterpreter-core'
-            version version
+            version jarikoVersion
 
             // create the sign pom artifact
             pom.withXml {
