@@ -17,7 +17,6 @@
 //-----------------
 //Main build script
 //-----------------
-
 buildscript {
 
     repositories {
@@ -65,8 +64,8 @@ subprojects {
     // some jariko feature without waiting for jitpack.io, you can type:
     // ./gradlew install
     // This task will install jariko artifacts into your local maven repository
-    project.group = "io.github.smeup.jariko"
-    project.version = "develop-SNAPSHOT"
+    project.group = project.group
+    project.version = project.version
 
     // specifying what we want to sign
     signing {
@@ -146,5 +145,9 @@ def customizePom(pom) {
         }
     }
 }
+
+project.group = "io.github.smeup.jariko"
+project.version = "develop-SNAPSHOT"
+
 
 
