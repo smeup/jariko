@@ -29,8 +29,6 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from components.java
-
             customizePom(pom)
             groupId 'io.github.smeup.jariko'
             artifactId 'examples'
