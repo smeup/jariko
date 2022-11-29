@@ -382,11 +382,6 @@ artifacts {
 check.dependsOn compileAllMutes,runMutes
 testPerformance.dependsOn compilePerformanceMutes
 
-// specifying what we want to sign
-signing {
-    sign configurations.archives
-}
-
 // deploy
 publishing {
     publications {
@@ -394,7 +389,7 @@ publishing {
             customizePom(pom)
             groupId 'io.github.smeup.jariko'
             artifactId 'rpgJavaInterpreter-core'
-            version '0.0.1-alpha'
+            version 'develop-SNAPSHOT'
 
             from components.java
 
@@ -422,18 +417,6 @@ publishing {
                 }
             }
         }
-    }
-}
-
-model {
-    tasks.generatePomFileForMavenJavaPublication {
-        destination = file("$buildDir/generated-pom.xml")
-    }
-    tasks.publishMavenJavaPublicationToMavenLocal {
-        dependsOn project.tasks.signArchives
-    }
-    tasks.publishMavenJavaPublicationToMavenRepository {
-        dependsOn project.tasks.signArchives
     }
 }
 

@@ -34,64 +34,59 @@ repositories {
     jcenter()
 }
 
-def kolasuVersion = "0.0.1-alpha"
+def kolasuVersion = "develop-SNAPSHOT"
 
 project.group   = "me.tomassetti"
 project.version = kolasuVersion
 
 dependencies {
-  antlr "org.antlr:antlr4:$antlr_version"
-  compile "org.antlr:antlr4-runtime:$antlr_version"
-  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
-  testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
-  testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
-  testCompile 'junit:junit:4.12'
+    antlr "org.antlr:antlr4:$antlr_version"
+    compile "org.antlr:antlr4-runtime:$antlr_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
+    testCompile 'junit:junit:4.12'
 
-  compile 'com.fifesoft:rsyntaxtextarea:2.5.8'
-  compile 'com.fifesoft:autocomplete:2.5.8'
-  compile "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
-  compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
+    compile 'com.fifesoft:rsyntaxtextarea:2.5.8'
+    compile 'com.fifesoft:autocomplete:2.5.8'
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
 
 }
 
 task version {
-  doLast {
-    print "Version ${kolasuVersion}"
-  }
+    doLast {
+        print "Version ${kolasuVersion}"
+    }
 }
 
 task javadocJar(type: Jar) {
-  classifier = 'javadoc'
-  from javadoc
+    classifier = 'javadoc'
+    from javadoc
 }
 
 task sourcesJar(type: Jar) {
-  classifier = 'sources'
-  from sourceSets.main.allSource
+    classifier = 'sources'
+    from sourceSets.main.allSource
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
-  allprojects {
-    tasks.withType(Javadoc) {
-      options.addStringOption('Xdoclint:none', '-quiet')
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
     }
-  }
 }
 
 artifacts {
     archives javadocJar, sourcesJar
-  }
-
-test {
-  testLogging {
-    exceptionFormat = 'full'
-  }
 }
 
-// specifying what we want to sign
-signing {
-    sign configurations.archives
+test {
+    testLogging {
+        exceptionFormat = 'full'
+    }
 }
 
 // deploy
@@ -129,18 +124,6 @@ publishing {
                 }
             }
         }
-    }
-}
-
-model {
-    tasks.generatePomFileForMavenJavaPublication {
-        destination = file("$buildDir/generated-pom.xml")
-    }
-    tasks.publishMavenJavaPublicationToMavenLocal {
-        dependsOn project.tasks.signArchives
-    }
-    tasks.publishMavenJavaPublicationToMavenRepository {
-        dependsOn project.tasks.signArchives
     }
 }
 

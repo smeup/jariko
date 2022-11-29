@@ -19,6 +19,7 @@
 //-----------------
 
 buildscript {
+
     repositories {
         mavenCentral()
         maven {
@@ -35,12 +36,8 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "org.jlleitschuh.gradle:ktlint-gradle:8.2.0"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
-        classpath "io.github.gradle-nexus:publish-plugin:1.1.0"
     }
 }
-
-// only for project root
-apply plugin: "io.github.gradle-nexus.publish-plugin"
 
 subprojects {
     apply plugin: 'kotlin'
@@ -50,6 +47,7 @@ subprojects {
     apply plugin: 'org.jlleitschuh.gradle.ktlint'
     apply plugin: 'kotlinx-serialization'
     apply plugin: 'signing'
+    apply plugin: 'maven-publish'
 
     repositories {
         mavenLocal()
@@ -64,15 +62,19 @@ subprojects {
     // ./gradlew install
     // This task will install jariko artifacts into your local maven repository
     project.group = "io.github.smeup.jariko"
-    project.version = "0.0.1-alpha"
-}
+    project.version = "develop-SNAPSHOT"
 
-// auto release nexus
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+    publishing{
+        repositories {
+            maven {
+                def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
+                }
+            }
         }
     }
 }
