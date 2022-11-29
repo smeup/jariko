@@ -67,8 +67,8 @@ subprojects {
     // some jariko feature without waiting for jitpack.io, you can type:
     // ./gradlew install
     // This task will install jariko artifacts into your local maven repository
-    project.group = group
-    project.version = version
+    project.group = "io.github.smeup.jariko"
+    project.version = "develop-SNAPSHOT"
 
     // specifying what we want to sign
     signing {
