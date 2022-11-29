@@ -85,10 +85,7 @@ subprojects {
         tasks.generatePomFileForMavenJavaPublication {
             destination = file("$buildDir/generated-pom.xml")
         }
-        tasks.publishMavenJavaPublicationToMavenLocal {
-            dependsOn project.tasks.signArchives
-        }
-        tasks.publishMavenJavaPublicationToMavenRepository {
+        tasks.publishMavenJavaPublicationToSonatypeRepository{
             dependsOn project.tasks.signArchives
         }
     }
