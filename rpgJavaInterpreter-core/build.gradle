@@ -382,6 +382,11 @@ artifacts {
 check.dependsOn compileAllMutes,runMutes
 testPerformance.dependsOn compilePerformanceMutes
 
+// specifying what we want to sign
+signing {
+    sign configurations.archives
+}
+
 // deploy
 publishing {
     publications {
@@ -417,6 +422,29 @@ publishing {
                 }
             }
         }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username sonatypeUsername
+                password sonatypePassword
+            }
+        }
+    }
+}
+
+model {
+    tasks.generatePomFileForMavenJavaPublication {
+        destination = file("$buildDir/generated-pom.xml")
+    }
+    tasks.publishMavenJavaPublicationToMavenLocal {
+        dependsOn project.tasks.signArchives
+    }
+    tasks.publishMavenJavaPublicationToMavenRepository {
+        dependsOn project.tasks.signArchives
     }
 }
 
