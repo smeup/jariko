@@ -119,7 +119,7 @@ def customizePom(pom) {
             resolveStrategy = Closure.DELEGATE_FIRST
 
             description 'A JAva virtual machine Rpg Interpreter written in KOtlin'
-            name 'Jairko'
+            name 'Jariko'
             url 'https://github.com/smeup/jariko'
             organization {
                 name 'com.github.smeup'
