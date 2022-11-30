@@ -6,10 +6,7 @@ jobs:
             - image: circleci/openjdk:8-jdk
         steps:
             - checkout
-            - name: Build
-              run: ./gradlew compileKotlin
-            - name: Test
-              run: ./gradlew test
-            - name: Check
-              run: ./gradlew check
+            - run: ./gradlew compileKotlin
+            - run: ./gradlew test
+            - run: ./gradlew check
       
