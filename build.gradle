@@ -58,9 +58,7 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        // the sonatype repo inclusion allows to work with the reload tagged and snapshot versions also if are not yet
-        // published to maven
-        maven { url 'https://s01.oss.sonatype.org/content/repositories/releases/' }
+        // the sonatype repo inclusion allows to work with the reload snapshot version
         maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
         maven { url 'https://oss.jfrog.org/oss-snapshot-local/' }
         jcenter()
