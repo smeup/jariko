@@ -130,7 +130,7 @@ Yes, of course: see the [presentation list](docs/presentations.md)
 
 ## How to use this code in your project
 
-At the moment, we use [Maven Central](https://repo.maven.apache.org/maven2/) to publish the [project](https://repo.maven.apache.org/maven2/io/github/smeup/jariko).
+At the moment, we use [Maven Central](https://repo.maven.apache.org/maven2/) to publish the [project](https://repo.maven.apache.org/maven2/io/github/smeup/jariko/).
 
 ### Maven	
 Then add the following dependencies for the core library:
@@ -138,7 +138,7 @@ Then add the following dependencies for the core library:
     <dependency>
         <groupId>io.github.smeup.jariko</groupId>
         <artifactId>rpgJavaInterpreter-core</artifactId>
-        <version>develop-SNAPSHOT</version>
+        <version>vx.y.z</version>
     </dependency>
 
 And this if you want to include the examples too:
@@ -146,19 +146,19 @@ And this if you want to include the examples too:
     <dependency>
         <groupId>io.github.smeup.jariko</groupId>
         <artifactId>examples</artifactId>
-        <version>develop-SNAPSHOT</version>
+        <version>vx.y.z</version>
     </dependency>
 
 ### Gradle
-Here are the configurationd to add to your build.gradle:
+Here the configuration to add to your build.gradle:
 ```
 dependencies {
     ...
-    implementation 'io.github.smeup:jariko:develop-SNAPSHOT'
+    implementation 'io.github.smeup:jariko:vx.y.z'
 }
 ```
 ### Samples
-Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient), and here is [another one](https://github.com/smeup/rpgweb).
+Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient/), and here is [another one](https://github.com/smeup/rpgweb).
 
 ## Contributing
 
