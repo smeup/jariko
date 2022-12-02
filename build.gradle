@@ -58,6 +58,7 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
         // the sonatype repo inclusion allows to work with the reload snapshot version
         maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
         maven { url 'https://oss.jfrog.org/oss-snapshot-local/' }
