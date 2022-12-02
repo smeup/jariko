@@ -30,6 +30,7 @@ buildscript {
             name 'JFrog OSS snapshot repo'
             url  'https://oss.jfrog.org/oss-snapshot-localrun/'
         }
+        maven { url 'https://jitpack.io' }
         jcenter()
     }
 
@@ -66,7 +67,7 @@ dependencies {
     implementation "io.github.smeup.reload:manager:$reloadVersion"
     implementation "io.github.smeup.reload:jt400:$reloadVersion"
 
-    compile "com.andreapivetta.kolor:kolor:1.0.0"
+    compile 'com.github.ziggy42:kolor:0.0.2'
 
     compile "org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion"
     compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
