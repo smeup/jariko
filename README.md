@@ -5,7 +5,6 @@
 [![Build Status](https://travis-ci.org/smeup/jariko.svg?branch=master)](https://travis-ci.org/smeup/jariko)
 [![CircleCI](https://circleci.com/gh/smeup/jariko.svg?style=svg)](https://circleci.com/gh/smeup/jariko)
 [![codebeat badge](https://codebeat.co/badges/220f492a-ca5b-4c88-aa11-c873b568a84b)](https://codebeat.co/projects/github-com-smeup-jariko-master)
-[![jitpack](https://jitpack.io/v/smeup/jariko.svg)](https://jitpack.io/#smeup/jariko)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/smeup/jariko)
 
 
@@ -131,58 +130,35 @@ Yes, of course: see the [presentation list](docs/presentations.md)
 
 ## How to use this code in your project
 
-At the moment, we use [Jitpack](https://jitpack.io/) to publish the [project](https://jitpack.io/#smeup/jariko).
-See more details [here](docs/jitpack.md).
+At the moment, we use [Maven Central](https://repo.maven.apache.org/maven2/) to publish the [project](https://repo.maven.apache.org/maven2/io/github/smeup/jariko/).
 
-### Maven
-If you use Maven, add these lines to your pom.xml in order to add the repository
-
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
-	
+### Maven	
 Then add the following dependencies for the core library:
 	
     <dependency>
-        <groupId>com.github.smeup.jariko</groupId>
+        <groupId>io.github.smeup.jariko</groupId>
         <artifactId>rpgJavaInterpreter-core</artifactId>
-        <version>-SNAPSHOT</version>
+        <version>vx.y.z</version>
     </dependency>
 
 And this if you want to include the examples too:
 		
     <dependency>
-        <groupId>com.github.smeup.jariko</groupId>
+        <groupId>io.github.smeup.jariko</groupId>
         <artifactId>examples</artifactId>
-        <version>-SNAPSHOT</version>
+        <version>vx.y.z</version>
     </dependency>
 
-_Side note for maven users who use mirrors: remember to change your .m2/settings.xml with settings like this:_
-
-    <mirrors>
-        <mirror>
-            <id>myNexus</id>
-            <mirrorOf>!jitpack.io,*</mirrorOf>
-
 ### Gradle
-Here are the configurationd to add to your build.gradle:
+Here the configuration to add to your build.gradle:
 ```
-allprojects {
-    repositories {
-        ...
-        maven { url 'https://jitpack.io' }
-    }
-}
 dependencies {
     ...
-    implementation 'com.github.smeup:jariko:-SNAPSHOT'
+    implementation 'io.github.smeup:jariko:vx.y.z'
 }
 ```
 ### Samples
-Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient), and here is [another one](https://github.com/smeup/rpgweb).
+Here is a [sample project that uses the interpreter as a library](https://github.com/f-lombardo/rpgclient/), and here is [another one](https://github.com/smeup/rpgweb).
 
 ## Contributing
 

@@ -61,11 +61,11 @@ dependencies {
     compile 'com.github.ajalt:clikt:2.1.0'
     // I cannot set api scope, as suggested, because for a reason I still have to dig into,
     // the dependency is not propagated
-    compile "com.github.smeup.reload:base:$reloadVersion"
-    implementation "com.github.smeup.reload:sql:$reloadVersion"
-    implementation "com.github.smeup.reload:nosql:$reloadVersion"
-    implementation "com.github.smeup.reload:manager:$reloadVersion"
-    implementation "com.github.smeup.reload:jt400:$reloadVersion"
+    compile "io.github.smeup.reload:base:$reloadVersion"
+    implementation "io.github.smeup.reload:sql:$reloadVersion"
+    implementation "io.github.smeup.reload:nosql:$reloadVersion"
+    implementation "io.github.smeup.reload:manager:$reloadVersion"
+    implementation "io.github.smeup.reload:jt400:$reloadVersion"
 
     compile 'com.github.ziggy42:kolor:0.0.2'
 
@@ -382,3 +382,39 @@ artifacts {
 
 check.dependsOn compileAllMutes,runMutes
 testPerformance.dependsOn compilePerformanceMutes
+
+// deploy
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            customizePom(pom)
+            groupId jarikoGroupId
+            artifactId 'rpgJavaInterpreter-core'
+            version jarikoVersion
+
+            // create the sign pom artifact
+            pom.withXml {
+                def pomFile = file("${project.buildDir}/generated-pom.xml")
+                writeTo(pomFile)
+                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+                artifact(pomAscFile) {
+                    classifier = null
+                    extension = 'pom.asc'
+                }
+            }
+
+            // create the signed artifacts
+            project.tasks.signArchives.signatureFiles.each {
+                artifact(it) {
+                    def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
+                    if (matcher.find()) {
+                        classifier = matcher.group(1)
+                    } else {
+                        classifier = null
+                    }
+                    extension = 'jar.asc'
+                }
+            }
+        }
+    }
+}
