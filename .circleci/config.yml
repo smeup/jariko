@@ -6,31 +6,7 @@ jobs:
             - image: circleci/openjdk:8-jdk
         steps:
             - checkout
-            - restore_cache:
-                keys:
-                    - gradle-{{ checksum "build.gradle" }}
+            - run: ./gradlew ktlintCheck
+            - run: ./gradlew test
             - run: ./gradlew check
-            - run:
-                name: Save test results
-                command: |
-                    mkdir -p ~/test-results/junit/
-                    mkdir -p ~/test-results-html/
-                    find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
-                when: always
-            - run: ./gradlew assemble
-            - store_test_results:
-                path: ~/test-results
-            - store_artifacts:
-                path: ~/test-results/junit
-            - store_artifacts:
-                path: ~/project/rpgJavaInterpreter-core/build/reports
-                destination: test-results-html/
-            - save_cache:
-                paths:
-                    - ~/.gradle
-                key: gradle-{{ checksum "build.gradle" }}
-            - store_artifacts:
-                path: ~/project/rpgJavaInterpreter-core/build/libs
-                destination: libs
-
       

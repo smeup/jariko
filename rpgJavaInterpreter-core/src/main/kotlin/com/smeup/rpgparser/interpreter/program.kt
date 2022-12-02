@@ -37,7 +37,9 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
     private var systemInterface: SystemInterface? = null
 
     private val interpreter: InternalInterpreter by lazy {
-        InternalInterpreter(this.systemInterface!!)
+        val interpreterCore = InternalInterpreter(this.systemInterface!!)
+        MainExecutionContext.getConfiguration().jarikoCallback.onInterpreterCreation(interpreterCore)
+        interpreterCore
     }
 
     lateinit var activationGroup: ActivationGroup
@@ -51,7 +53,9 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         val plistParams = cu.entryPlist
         // TODO derive proper type from the data specification
         return plistParams?.params?.map {
-            val type = cu.getDataDefinition(it.param.name).type
+            val type = cu.getDataDefinition(it.param.name) {
+                "Cannot resolve PARAM: ${it.param.name} in *ENTRY PLIST of the program: $name"
+            }.type
             ProgramParam(it.param.name, type)
         }
         ?: emptyList()
@@ -117,10 +121,12 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 }
             }
             MainExecutionContext.getProgramStack().push(this)
+            MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm(name, interpreter.getGlobalSymbolTable())
             // set reinitialization to false because symboltable cleaning currently is handled directly
             // in internal interpreter before exit
             // todo i don't know whether parameter reinitialization has still sense
             interpreter.execute(this.cu, params, false)
+            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm(name, interpreter.getGlobalSymbolTable(), null)
             params.keys.forEach { params[it] = interpreter[it] }
             changedInitialValues = params().map { interpreter[it.name] }
             // here clear symbol table if needed

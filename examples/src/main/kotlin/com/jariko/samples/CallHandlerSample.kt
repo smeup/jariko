@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.jariko.samples
 
 import com.smeup.rpgparser.execution.CallProgramHandler
@@ -15,6 +31,7 @@ import com.smeup.rpgparser.parsing.ast.SourceProgram
 import com.smeup.rpgparser.parsing.facade.Copy
 import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.key
+import com.smeup.rpgparser.rpginterop.CopyFileExtension
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.File
@@ -57,8 +74,7 @@ class UrlRpgProgramFinder(val endpoint: URL) : RpgProgramFinder {
     override fun findCopy(copyId: CopyId): Copy? {
     // runCatching is wanted because endpoint could not have my program
         return runCatching {
-            // use of source program and not bin is just because this is an example
-            val pgmUrl = URL("$endpoint/${copyId.key(SourceProgram.RPGLE)}")
+            val pgmUrl = URL("$endpoint/${copyId.key(CopyFileExtension.rpgle)}")
             pgmUrl.openStream().use {
                 println("Loading $copyId from $pgmUrl")
                 Copy.fromInputStream(it)

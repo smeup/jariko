@@ -16,11 +16,12 @@
 
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
 import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FileDefinition
 import com.smeup.rpgparser.interpreter.InStatementDataDefinition
+import com.smeup.rpgparser.parsing.facade.CopyBlocks
+import com.smeup.rpgparser.parsing.parsetreetoast.removeDuplicatedDataDefinition
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.Serializable
 
@@ -45,7 +46,8 @@ data class CompilationUnit(
     // - if 'CompilationUnit' is an 'RpgProgram' this list is null.
     // - if 'CompilationUnit' is an 'RpgFunction', this list contains procedure parameters (if any)
     val proceduresParamsDataDefinitions: List<DataDefinition>? = null,
-    val source: String? = null
+    val source: String? = null,
+    val copyBlocks: CopyBlocks? = null
 ) : Node(position) {
 
     var timeouts = emptyList<MuteTimeoutAnnotation>()
@@ -86,56 +88,16 @@ data class CompilationUnit(
                 _allDataDefinitions.addAll(dataDefinitions)
                 // Adds DS sub-fields
                 dataDefinitions.forEach { it -> it.fields.let { _allDataDefinitions.addAll(it) } }
-                fileDefinitions.forEach {
-                    // Create DS from file metadata
-                    val reloadConfig = MainExecutionContext.getConfiguration().reloadConfig
-                    require(reloadConfig != null) {
-                        "Not found metadata for $it because missing property reloadConfig in configuration"
-                    }
-                    val metadata = kotlin.runCatching {
-                        reloadConfig.metadataProducer.invoke(it.name)
-                    }.onFailure { error ->
-                        throw RuntimeException("Not found metadata for $it", error)
-                    }.getOrNull()
-                    require(metadata != null) {
-                        "Not found metadata for $it"
-                    }
-
-                    if (it.internalFormatName == null) it.internalFormatName = metadata.tableName
-                    _allDataDefinitions.addAll(
-                        metadata.fields.map { dbField ->
-                            dbField.toDataDefinition(it.prefix).apply {
-                                it.createDbFieldDataDefinitionRelation(dbField.fieldName, this.name)
-                            }
-                        }
-                    )
-                }
                 _allDataDefinitions.addAll(inStatementsDataDefinitions)
-                _allDataDefinitions = checkDuplicatedDataDefinition(_allDataDefinitions).toMutableList()
+                _allDataDefinitions = _allDataDefinitions.removeDuplicatedDataDefinition().toMutableList()
             }
             return _allDataDefinitions
         }
 
-    private fun checkDuplicatedDataDefinition(dataDefinitions: List<AbstractDataDefinition>): List<AbstractDataDefinition> {
-        val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
-        return dataDefinitions.filter {
-            val dataDefinition = dataDefinitionMap[it.name]
-            if (dataDefinition == null) {
-                dataDefinitionMap[it.name] = it
-                true
-            } else {
-                require(dataDefinition.type == it.type) {
-                    "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
-                }
-                false
-            }
-        }
-    }
-
     fun hasDataDefinition(name: String) = dataDefinitions.any { it.name.equals(name, ignoreCase = true) }
 
-    fun getDataDefinition(name: String) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
-            ?: throw IllegalArgumentException("Data definition $name was not found")
+    fun getDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
+            ?: throw IllegalArgumentException(errorMessage.invoke())
 
     fun getDataOrFieldDefinition(name: String) = dataDefinitions.firstOrNull { it.name.equals(name, ignoreCase = true) }
             ?: dataDefinitions.mapNotNull { it -> it.fields.find { it.name.equals(name, ignoreCase = true) } }.firstOrNull()

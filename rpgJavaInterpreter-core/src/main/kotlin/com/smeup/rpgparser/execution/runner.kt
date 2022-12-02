@@ -65,16 +65,21 @@ class CommandLineProgramNameSource(val name: String) : ProgramNameSource<Command
 }
 
 class CommandLineProgram(name: String, systemInterface: SystemInterface) : RpgFacade<CommandLineParms>((CommandLineProgramNameSource(name)), systemInterface) {
-    override fun toInitialValues(rpgProgram: RpgProgram, params: CommandLineParms): LinkedHashMap<String, Value> {
+
+    override fun toInitialValues(program: Program, params: CommandLineParms): LinkedHashMap<String, Value> {
         val result = LinkedHashMap<String, Value> ()
-        val producedNamedParams = params.namedParamsProducer.invoke(rpgProgram.cu)
+        // che cu is available only if the first program is not doped
+        val producedNamedParams = when (program) {
+            is RpgProgram -> params.namedParamsProducer.invoke(program.cu)
+            else -> null
+        }
         if (producedNamedParams != null) {
             result.putAll(producedNamedParams)
         } else if (params.namedParams != null) {
             result.putAll(params.namedParams)
         } else {
             val values = params.parmsList.map { parameter -> StringValue(parameter) }
-            val zipped = rpgProgram.params()
+            val zipped = program.params()
                 .map { dataDefinition -> dataDefinition.name }
                 .zip(values)
             zipped.forEach {
@@ -182,11 +187,22 @@ object RunnerCLI : CliktCommand() {
     private val programsSearchDirs by option("-psd", "--programs-search-dirs").split(",")
     private val copySearchDirs by option("-csd", "--copies-search-dirs").split(",")
     private val compiledProgramsDir by option("-cpd", "--compiled-programs-dir").file(exists = true, readable = true)
-    private val programName by argument("program name")
     private val programArgs by argument().multiple(required = false)
     private val reloadConfigurationFile by option("-rc", "--reload-config").file(exists = true, readable = true)
 
     override fun run() {
+        val programName = if (programArgs.isNotEmpty()) programArgs[0] else null
+        if (programName != null) {
+            val args = if (programArgs.size > 1) programArgs.subList(1, programArgs.size) else emptyList()
+            exec(programName, args)
+        } else {
+            SimpleShell.repl { programName, programArgs ->
+                exec(programName, programArgs)
+            }
+        }
+    }
+
+    private fun exec(programName: String, programArgs: List<String>) {
         val allProgramFinders = defaultProgramFinders +
             ((programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())) +
             ((copySearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList()))
@@ -196,7 +212,7 @@ object RunnerCLI : CliktCommand() {
         // 'Reload' database configurations from properties file passed as cli argument
         reloadConfigurationFile?.let { loadReloadConfig(it, configuration) }
         executePgmWithStringArgs(programName, programArgs, logConfigurationFile, programFinders = allProgramFinders,
-        configuration = configuration)
+            configuration = configuration)
     }
 }
 
@@ -220,19 +236,9 @@ private fun loadReloadConfig(reloadConfigurationFile: File, configuration: Confi
     configuration.reloadConfig = reloadConfig
 }
 
-fun startShell() {
-    SimpleShell.repl { programName, programArgs ->
-        executePgmWithStringArgs(programName, programArgs)
-    }
-}
-
 /**
  * This program can be used to either launch an RPG program or the shell.
  */
 fun main(args: Array<String>) {
-    if (args.isEmpty()) {
-        startShell()
-    } else {
-        RunnerCLI.main(args)
-    }
+    RunnerCLI.main(args)
 }

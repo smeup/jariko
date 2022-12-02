@@ -19,11 +19,14 @@ package com.smeup.rpgparser.utils
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.execution.getProgram
+import com.smeup.rpgparser.parsing.facade.CopyId
 import com.smeup.rpgparser.parsing.facade.preprocess
 import org.apache.commons.io.FileUtils
 import org.junit.Assert
 import org.junit.Test
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -125,6 +128,23 @@ class MiscTest {
         assertNotNull(compilationResults.first().parsingError)
     }
 
+    // If the program contains a not defined variable, the compilation has to fail
+    // In this case I'm trying to display MSG1 value but MSG1 is not defined
+    @Test
+    fun compileTestUseNotDefinedVariable() {
+        val program =
+                "     D MSG             S             50\n" +
+                "     C                   DSPLY                   MSG1\n" +
+                "     C                   SETON                                          LR"
+        val srcFile = File.createTempFile("MYPGM", ".rpgle")
+        srcFile.deleteOnExit()
+        srcFile.writeText(program)
+        println("Compiling $srcFile")
+        val compilationResults = compile(src = srcFile, srcFile.parentFile)
+        assert(compilationResults.first().compiledFile == null)
+        assertNotNull(compilationResults.first().parsingError)
+    }
+
     @Test
     fun compileFromInToOut() {
         val tmpDir = System.getProperty("java.io.tmpdir")
@@ -174,16 +194,18 @@ class MiscTest {
       AFTER QILEGEN,£PDS AND ADDING ${'$'}1${'$'}2${'$'}3
 ********** PREPROCESSOR COPYEND QILEGEN,£JAX_PD1   
         """
-        val included = src.byteInputStream().preprocess {
+        val included = src.byteInputStream().preprocess(
             // recursive test
             // simulate copy £JAX_PD1 include £JAX_PD2
-            if (it.member == "£JAX_PD1") {
-                ("      /COPY QILEGEN,£JAX_PD2\n" +
-                        "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
-            } else {
-                "      HELLO I AM COPY ${it.file},${it.member}"
+            findCopy = { copyId: CopyId ->
+                if (copyId.member == "£JAX_PD1") {
+                    ("      /COPY QILEGEN,£JAX_PD2\n" +
+                            "      AFTER QILEGEN,£PDS AND ADDING $1$2$3")
+                } else {
+                    "      HELLO I AM COPY ${copyId.file},${copyId.member}"
+                }
             }
-        }
+        )
         println(included)
         assertEquals(expected.trim(), included.trim())
     }
@@ -203,6 +225,16 @@ class MiscTest {
         }.onFailure {
             // Exception message must contain src code
             Assert.assertTrue(it.message!!.indexOf("D MSG             S             20") > 0)
+        }.onSuccess {
+            Assert.fail()
+        }
+        // restore default
+        configuration.options = Options()
+        kotlin.runCatching {
+            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+        }.onFailure {
+            // Exception message does not must contain src code
+            Assert.assertFalse(it.message!!.indexOf("D MSG             S             20") > 0)
         }.onSuccess {
             Assert.fail()
         }
@@ -226,6 +258,16 @@ class MiscTest {
         }.onSuccess {
             Assert.fail()
         }
+        // restore default options
+        configuration.options = Options()
+        kotlin.runCatching {
+            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+        }.onFailure {
+            // Exception message does not must contain src code
+            Assert.assertFalse(it.message!!.indexOf("MSG             S             20") > 0)
+        }.onSuccess {
+            Assert.fail()
+        }
     }
 
     @Test
@@ -235,15 +277,44 @@ class MiscTest {
      C                   EVAL      VAR = 0/0
         """
         val configuration = Configuration()
-        configuration.options = Options()
-        configuration.options!!.dumpSourceOnExecutionError = true
-        kotlin.runCatching {
-            getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
-        }.onFailure {
-            // Exception message must contain src code
-            Assert.assertTrue(it.message!!.indexOf("D VAR             S              5  0 ") > 0)
-        }.onSuccess {
-            Assert.fail()
+        val defaultErr = System.err
+        var err: ByteArrayOutputStream
+        var ps: PrintStream
+        try {
+            err = ByteArrayOutputStream()
+            ps = PrintStream(err)
+            println("Redirecting stderr")
+            System.setErr(ps)
+            configuration.options = Options()
+            configuration.options!!.dumpSourceOnExecutionError = true
+            kotlin.runCatching {
+                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+            }.onFailure {
+                ps.flush()
+                // Error stream must contain src
+                Assert.assertTrue(err.toString().indexOf("2    D VAR             S              5  0   ") > 0)
+            }.onSuccess {
+                Assert.fail()
+            }
+            // reset stream
+            err = ByteArrayOutputStream()
+            ps = PrintStream(err)
+            System.setErr(ps)
+            // restore default options
+            configuration.options = Options()
+            kotlin.runCatching {
+                getProgram(nameOrSource = pgm).singleCall(emptyList(), configuration)
+            }.onFailure {
+                ps.flush()
+                // Error stream must not contain src
+                Assert.assertFalse(err.toString().indexOf("2    D VAR             S              5  0   ") > 0)
+            }.onSuccess {
+                Assert.fail()
+            }
+        } finally {
+            println("Restoring stderr")
+            System.setErr(defaultErr)
+            System.err.println("Stderr restored")
         }
     }
 }

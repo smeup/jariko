@@ -29,6 +29,7 @@ import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.util.*
@@ -84,11 +85,12 @@ interface CompositeStatement {
     val body: List<Statement>
 }
 
-fun List<Statement>.explode(): List<Statement> {
+fun List<Statement>.explode(preserveCompositeStatement: Boolean = false): List<Statement> {
     val result = mutableListOf<Statement>()
     forEach {
         if (it is CompositeStatement) {
-            result.addAll(it.body.explode())
+            if (preserveCompositeStatement) result.add(it)
+            result.addAll(it.body.explode(preserveCompositeStatement))
         } else {
             result.add(it)
         }
@@ -128,8 +130,10 @@ data class ExecuteSubroutine(var subroutine: ReferenceByName<Subroutine>, overri
 data class SelectStmt(
     var cases: List<SelectCase>,
     var other: SelectOtherClause? = null,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+
     override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
 
         val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
@@ -148,6 +152,8 @@ data class SelectStmt(
 
         return muteAttached
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
     override fun execute(interpreter: InterpreterCore) {
         for (case in this.cases) {
@@ -170,6 +176,7 @@ data class SelectStmt(
         }
     }
 
+    @Derived
     override val body: List<Statement>
         get() {
             val result = mutableListOf<Statement>()
@@ -240,13 +247,16 @@ data class SubDurStmt(
 data class MoveStmt(
     val target: AssignableExpression,
     var expression: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) :
-    Statement(position) {
+    Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         val value = move(target, expression, interpreter)
         interpreter.log { MoveStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value) }
     }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -254,15 +264,18 @@ data class MoveAStmt(
     val operationExtender: String?,
     val target: AssignableExpression,
     var expression: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) :
-    Statement(position) {
+    Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
         val value = movea(operationExtender, target, expression, interpreter)
         interpreter.log {
             MoveAStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value)
         }
     }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 @Serializable
 data class MoveLStmt(
@@ -586,11 +599,11 @@ data class CallStmt(
         interpreter.log { CallExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this) }
         val startTime = System.currentTimeMillis()
         val callStatement = this
-        val programToCall = interpreter.eval(expression).asString().value
+        val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
         val program = interpreter.getSystemInterface().findProgram(programToCall)
         require(program != null) {
-            "Line: ${this.position.line()} - Program $programToCall cannot be found"
+            "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
         }
 
         val params = this.params.mapIndexed { index, it ->
@@ -620,7 +633,7 @@ data class CallStmt(
             try {
                 interpreter.getSystemInterface().registerProgramExecutionStart(program, params)
                 kotlin.run {
-                    val callProgramHandler = MainExecutionContext.getConfiguration().options?.callProgramHandler
+                    val callProgramHandler = MainExecutionContext.getConfiguration().options.callProgramHandler
                     // call program.execute only if callProgramHandler.handleCall do nothing
                     callProgramHandler?.handleCall?.invoke(programToCall, interpreter.getSystemInterface(), params)
                         ?: program.execute(interpreter.getSystemInterface(), params)
@@ -717,11 +730,23 @@ private constructor(val name: String, val fields: List<String>, override val pos
 @Serializable
 data class IfStmt(
     val condition: Expression,
-    override val body: List<Statement>,
+    @SerialName("body")
+    val thenBody: List<Statement>,
     val elseIfClauses: List<ElseIfClause> = emptyList(),
     val elseClause: ElseClause? = null,
     override val position: Position? = null
 ) : Statement(position), CompositeStatement {
+
+    // Since that this property is a collection achieved from thenBody + elseIfClauses + elseClause, this annotation
+    // is necessary to avoid that the same node is processed more than ones, thing that it would cause that the same
+    // ErrorEvent is fired more times
+    @Derived
+    @Transient
+    override val body: List<Statement> = mutableListOf<Statement>().apply {
+        addAll(thenBody)
+        elseIfClauses.forEach { addAll(it.body) }
+        elseClause?.body?.let { addAll(it) }
+    }
 
     override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
         // check if the annotation is just before the ELSE
@@ -729,7 +754,7 @@ data class IfStmt(
 
         // Process the body statements
         muteAttached.addAll(
-                acceptBody(body, mutes, this.position!!.start.line, this.position.end.line)
+                acceptBody(thenBody, mutes, this.position!!.start.line, this.position.end.line)
         )
 
         // Process the ELSE IF
@@ -753,7 +778,7 @@ data class IfStmt(
         val condition = interpreter.eval(condition)
         interpreter.log { IfExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, this, condition) }
         if (condition.asBoolean().value) {
-            interpreter.execute(this.body)
+            interpreter.execute(this.thenBody)
         } else {
             for (elseIfClause in elseIfClauses) {
                 val c = interpreter.eval(elseIfClause.condition)
@@ -1008,11 +1033,15 @@ data class MultStmt(
     val halfAdjust: Boolean = false,
     val factor1: Expression?,
     val factor2: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
+
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.mult(this))
     }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -1021,11 +1050,15 @@ data class DivStmt(
     val halfAdjust: Boolean = false,
     val factor1: Expression?,
     val factor2: Expression,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position) {
+) : Statement(position), StatementThatCanDefineData {
+
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.div(this))
     }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -1131,12 +1164,16 @@ data class DoStmt(
     val index: AssignableExpression?,
     override val body: List<Statement>,
     val startLimit: Expression = IntLiteral(1),
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+
     override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
         // TODO check if the annotation is the last statement
         return acceptBody(body, mutes, start, end)
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
     override fun execute(interpreter: InterpreterCore) {
         var loopCounter: Long = 0
@@ -1424,7 +1461,15 @@ data class SortAStmt(val target: Expression, override val position: Position? = 
 }
 
 @Serializable
-data class CatStmt(val left: Expression?, val right: Expression, val target: AssignableExpression, val blanksInBetween: Int, override val position: Position? = null) : Statement(position) {
+data class CatStmt(
+    val left: Expression?,
+    val right: Expression,
+    val target: AssignableExpression,
+    val blanksInBetween: Int,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
     override fun execute(interpreter: InterpreterCore) {
         val blanksInBetween = blanksInBetween
         val blanks = StringValue.blank(blanksInBetween)
@@ -1465,6 +1510,8 @@ data class CatStmt(val left: Expression?, val right: Expression, val target: Ass
         interpreter.assign(target, result)
         interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }
     }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -1487,8 +1534,9 @@ data class ScanStmt(
     val startPosition: Int,
     val target: AssignableExpression,
     val rightIndicators: WithRightIndicators,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), WithRightIndicators by rightIndicators {
+) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
         val stringToSearch = interpreter.eval(left).asString().value.substringOfLength(leftLength)
@@ -1511,6 +1559,8 @@ data class ScanStmt(
             }
         }
     }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }
 
 @Serializable
@@ -1531,4 +1581,57 @@ data class XFootStmt(
     override fun execute(interpreter: InterpreterCore) {
         xfoot(this, interpreter)
     }
+}
+
+/**
+ *  The SUBST statements returns a substring from factor 2, starting at the
+ *  location specified in 'startPosition' for the length specified in 'length',
+ *  and places this substring in the 'target' field.
+ *
+ *  @property length length to extract.
+ *  @property value source string.
+ *  @property startPosition starting position.
+ *  @property target result string.
+ *  @property operationExtender indicate extender position.
+ */
+@Serializable
+data class SubstStmt(
+    val length: Expression?,
+    val value: Expression,
+    val startPosition: Expression?,
+    val target: AssignableExpression,
+    val operationExtender: String?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+    override fun execute(interpreter: InterpreterCore) {
+
+        val start = startPosition?.let { interpreter.eval(it).asString().value.toInt() } ?: 1
+
+        /**
+         * Length is 1-based which is a specific prerogative of rpg,
+         * not like modern programming languages whose indices are all zero-based
+         */
+        val substring: String = length?.let {
+            val end = interpreter.eval(it).asString().value.toInt()
+            val endPosition = start + end
+            interpreter.eval(value).asString().value.substring(startIndex = start - 1, endIndex = endPosition - 1)
+        } ?: interpreter.eval(value).asString().value.substring(startIndex = start - 1)
+
+        /** Extended operations on opcode:
+         * in case of SUBST replace range of string,
+         * in case of SUBST(P) replace string
+         */
+        val newSubstr = operationExtender?.let { substring } ?: let {
+            val targetValue = interpreter.eval(target).asString().value
+            if (targetValue.length > substring.length) {
+                targetValue.replaceRange(startIndex = 0, endIndex = substring.length, replacement = substring)
+            } else {
+                targetValue.replace(targetValue, substring)
+            }
+        }
+        interpreter.assign(target, newSubstr.asValue())
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 }

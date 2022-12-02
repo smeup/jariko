@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.MuteParser
@@ -95,9 +111,11 @@ fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>, map
 
     val mutesResolved: MutableList<MuteAnnotationResolved> = mutableListOf()
 
-    if (definitions.isNotEmpty()) {
-        val start: Int = definitions.first().position!!.start.line
-        val end: Int = definitions.last().position!!.end.line + 1
+    // Now in definitions we have also DataDefinition instances related F Spec, which do not have
+    // any reference to position for this reason we need to filter them
+    definitions.filter { it.position != null }.takeIf { it.isNotEmpty() }?.let { filteredDataDefinitions ->
+        val start: Int = filteredDataDefinitions.first().position!!.start.line
+        val end: Int = filteredDataDefinitions.last().position!!.end.line + 1
 
         // Consider only the annotation in the scope
         val filtered: Map<Int, MuteParser.MuteLineContext> = map.filterKeys {
@@ -106,8 +124,8 @@ fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>, map
         // makes a consumable list of annotation
         val mutesToProcess: MutableMap<Int, MuteParser.MuteLineContext> = filtered.toSortedMap()
 
-        definitions.forEach {
-            val resolved = it.accept(mutesToProcess, start, end)
+        filteredDataDefinitions.forEach { dataDefinition ->
+            val resolved = dataDefinition.accept(mutesToProcess, start, end)
             mutesResolved.addAll(resolved)
 
             resolved.forEach {
@@ -115,6 +133,7 @@ fun injectMuteAnnotationToDataDefinitions(definitions: List<DataDefinition>, map
             }
         }
     }
+
     return mutesResolved
 }
 

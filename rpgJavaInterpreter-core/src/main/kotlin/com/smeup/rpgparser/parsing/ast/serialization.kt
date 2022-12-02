@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.interpreter.AbstractDataDefinition
@@ -67,6 +83,7 @@ private val modules = SerializersModule {
         subclass(SortAStmt::class)
         subclass(SubDurStmt::class)
         subclass(SubStmt::class)
+        subclass(SubstStmt::class)
         subclass(TagStmt::class)
         subclass(TimeStmt::class)
         subclass(UpdateStmt::class)
@@ -159,6 +176,9 @@ private val modules = SerializersModule {
 
 val json = Json {
     serializersModule = modules
+    // needed to solve json serializing issue due to the change of the CompilationUnit.dataDefinitions property
+    // type
+    allowStructuredMapKeys = true
 }
 
 val cbor = Cbor {
@@ -172,8 +192,8 @@ fun CompilationUnit.encodeToByteArray() = cbor.encodeToByteArray(this)
 fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit>(this)
 
 enum class SourceProgram(val extension: String) {
-    RPGLE("rpgle"),
-    BINARY("bin");
+    RPGLE(extension = "rpgle"),
+    BINARY(extension = "bin");
 
     companion object {
         fun getByExtension(extension: String): SourceProgram {

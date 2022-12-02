@@ -18,22 +18,27 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
+import com.smeup.rpgparser.execution.ErrorEvent
+import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
+import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
+import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
 import com.smeup.rpgparser.utils.resizeTo
+import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.ancestor
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.util.*
-import kotlin.collections.HashMap
+import kotlin.math.min
 import kotlin.system.measureTimeMillis
 
 object InterpreterConfiguration {
@@ -46,6 +51,9 @@ object InterpreterConfiguration {
 val ALL_PREDEFINED_INDEXES = IndicatorType.Predefined.range
 
 private const val MEMORY_SLICE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.memorySlice"
+private const val PREV_STMT_EXEC_LINE_ATTRIBUTE = "com.smeup.rpgparser.interpreter.prevStmtExecLine"
+
+typealias StatementReference = Pair<Int, SourceReference>
 
 class InterpreterStatus(
     val symbolTable: ISymbolTable,
@@ -57,7 +65,7 @@ class InterpreterStatus(
     var lastFound = false
     var lastDBFile: DBFile? = null
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
-    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable.get(abstractDataDefinition)
+    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable[abstractDataDefinition]
 }
 
 open class InternalInterpreter(
@@ -144,7 +152,7 @@ open class InternalInterpreter(
 
                     // for (i in 1..data.declaredArrayInLine!!) {
                     // If the size of the arrays are different
-                    val maxElements = Math.min(value.asArray().arrayLength(), data.declaredArrayInLine!!)
+                    val maxElements = min(value.asArray().arrayLength(), data.declaredArrayInLine!!)
                     for (i in 1..maxElements) {
                         // Added coerce
                         val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
@@ -199,7 +207,7 @@ open class InternalInterpreter(
             dbFileMap.add(it)
         }
 
-        var index: Int = 0
+        var index = 0
         // Assigning initial values received from outside and consider INZ clauses
         // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
         // circumstances is correct reinitialization
@@ -236,11 +244,10 @@ open class InternalInterpreter(
                     }
                 } else if (it is InStatementDataDefinition) {
                     value = if (it.parent is PlistParam) {
-                        when {
-                            it.name in initialValues -> initialValues[it.name]
+                        when (it.name) {
+                            in initialValues -> initialValues[it.name]
                                 ?: throw RuntimeException("Initial values for ${it.name} not found")
-                            else ->
-                            if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
+                            else -> if ((it.parent as PlistParam).dataDefinition().isNotEmpty()) {
                                 it.type.blank()
                             } else {
                                 null
@@ -362,27 +369,24 @@ open class InternalInterpreter(
                     if (i < 0 || i >= statements.size) throw e
                 }
             }
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
-                interpretationContext.currentProgramName,
-                globalSymbolTable,
-                null
-            )
         } catch (e: ReturnException) {
             status.returnValue = e.returnValue
-        } catch (t: Throwable) {
-            MainExecutionContext.getConfiguration().jarikoCallback.onExitPgm.invoke(
-                interpretationContext.currentProgramName,
-                globalSymbolTable,
-                t
-            )
-            throw t
         }
     }
+
+    @Deprecated(message = "No longer used")
+    open fun fireOnEnterPgmCallBackFunction() {}
 
     private fun executeWithMute(statement: Statement) {
         log { LineLogEntry(this.interpretationContext.currentProgramName, statement) }
         try {
             if (statement.isStatementExecutable(getMapOfORs(statement.solveIndicatorValues()))) {
+                statement.position?.let { fireCopyObservingCallback(it.start.line) }
+                if (MainExecutionContext.getConfiguration().options.mustInvokeOnStatementCallback()) {
+                    statement.position?.relative()?.let {
+                        MainExecutionContext.getConfiguration().jarikoCallback.onEnterStatement(it.first, it.second)
+                    }
+                }
                 statement.execute(this)
             }
         } catch (e: ControlFlowException) {
@@ -390,15 +394,15 @@ open class InternalInterpreter(
         } catch (e: IllegalArgumentException) {
             val message = e.toString()
             if (!message.contains(statement.position.line())) {
-                throw IllegalArgumentException(errorDescription(statement, e), e)
+                throw IllegalArgumentException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
             }
             throw e
         } catch (e: NotImplementedError) {
-            throw RuntimeException(errorDescription(statement, e), e)
+            throw RuntimeException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
         } catch (e: RuntimeException) {
-            throw RuntimeException(errorDescription(statement, e), e)
+            throw RuntimeException(errorDescription(statement, e), e).fireErrorEvent(statement.position)
         } catch (t: Throwable) {
-            throw RuntimeException(errorDescription(statement, t), t)
+            throw RuntimeException(errorDescription(statement, t), t).fireErrorEvent(statement.position)
         } finally {
             if (statement.muteAnnotations.size > 0) {
                 executeMutes(
@@ -407,6 +411,31 @@ open class InternalInterpreter(
                     statement.position.line()
                 )
             }
+        }
+    }
+
+    private fun Throwable.fireErrorEvent(position: Position?): Throwable {
+        val errorEvent = ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
+        MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
+        return this
+    }
+
+    // I use a chain of names, so I am sure that this attribute name depends on program stack too
+    private fun prevStmtAttributeMame(): String {
+        return "$PREV_STMT_EXEC_LINE_ATTRIBUTE${MainExecutionContext.getProgramStack().joinToString(separator = "->") { it.name }}"
+    }
+
+    private fun fireCopyObservingCallback(currentStatementLine: Int) {
+        if (!MainExecutionContext.getProgramStack().empty() && MainExecutionContext.getConfiguration().options.mustCreateCopyBlocks()) {
+            val copyBlocks = MainExecutionContext.getProgramStack().peek().cu.copyBlocks!!
+            val previousStatementLine = (MainExecutionContext.getAttributes()[prevStmtAttributeMame()] ?: 0) as Int
+            copyBlocks.observeTransitions(
+                from = previousStatementLine + if (currentStatementLine > previousStatementLine) 1 else -1,
+                to = currentStatementLine,
+                onEnter = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onEnterCopy.invoke(copyBlock.copyId) },
+                onExit = { copyBlock -> MainExecutionContext.getConfiguration().jarikoCallback.onExitCopy.invoke(copyBlock.copyId) }
+            )
+            MainExecutionContext.getAttributes()[prevStmtAttributeMame()] = currentStatementLine
         }
     }
 
@@ -616,7 +645,7 @@ open class InternalInterpreter(
         }
     }
 
-    override fun rawRender(values: List<Value>) = values.map { rawRender(it) }.joinToString("")
+    override fun rawRender(values: List<Value>) = values.joinToString("") { rawRender(it) }
 
     private fun rawRender(value: Value): String {
         return when (value) {
@@ -857,7 +886,7 @@ open class InternalInterpreter(
             else -> {
                 val associatedActivationGroup = MainExecutionContext.getProgramStack().peek()?.activationGroup
                 val activationGroup = associatedActivationGroup?.assignedName
-                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup?.invoke(
+                return MainExecutionContext.getConfiguration().jarikoCallback.getActivationGroup.invoke(
                     interpretationContext.currentProgramName, associatedActivationGroup)?.assignedName ?: activationGroup
             }
         }
@@ -893,14 +922,6 @@ open class InternalInterpreter(
                 )
             }
         }
-        fireOnEnterPgmCallBackFunction()
-    }
-
-    open fun fireOnEnterPgmCallBackFunction() {
-        MainExecutionContext.getConfiguration().jarikoCallback.onEnterPgm.invoke(
-            interpretationContext.currentProgramName,
-            globalSymbolTable
-        )
     }
 
     private fun isExitingInRTMode(): Boolean {
@@ -913,7 +934,7 @@ open class InternalInterpreter(
 
         val exitRT = isRTOn && (isLROn == null || !isLROn)
 
-        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT?.invoke(
+        return MainExecutionContext.getConfiguration().jarikoCallback.exitInRT.invoke(
             interpretationContext.currentProgramName) ?: exitRT
     }
 
@@ -950,4 +971,13 @@ fun MutableMap<IndicatorKey, BooleanValue>.clearStatelessIndicators() {
     IndicatorType.STATELESS_INDICATORS.forEach {
         this.remove(it)
     }
+}
+
+/**
+ * @return An instance of StatementReference related to position.
+ * */
+internal fun Position.relative(): StatementReference {
+    val programName = if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
+    val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
+    return this.relative(programName, copyBlocks)
 }

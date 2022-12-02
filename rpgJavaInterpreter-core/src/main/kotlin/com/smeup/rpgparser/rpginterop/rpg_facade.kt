@@ -22,7 +22,6 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.Size
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import java.util.*
-import kotlin.collections.LinkedHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
@@ -56,7 +55,7 @@ abstract class RpgFacade<P> (
 
     private val programInterpreter = ProgramInterpreter(systemInterface.addExtraLogHandlers(logHandlers))
     private val programName by lazy { programNameSource.nameFor(this) }
-    private var rpgProgram: RpgProgram? = null
+    private lateinit var program: Program
 
     private fun configureLogHandlers() {
         logHandlers = systemInterface.getAllLogHandlers()
@@ -66,22 +65,28 @@ abstract class RpgFacade<P> (
         return MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
             configureLogHandlers()
             it.executionProgramName = programName
-            // i need to create rpgProgram inside MainExecutionContext to fix issue on experimental symbol table.
+            // I need to create rpgProgram inside MainExecutionContext to fix issue on experimental symbol table.
             // Issue is due to the reusing of id generator in the AST creation, for which, if I create AST outside MainExecutionContext
-            // is never reinitialized and it creates an id number (keyid associated to variable) greater than maximum allowed by experimental symbol table
-            if (rpgProgram == null) {
-                rpgProgram = systemInterface.findProgram(programName) as RpgProgram
+            // is never reinitialized, and it creates an id number (keyid associated to variable) greater than maximum allowed by experimental symbol table
+            program = systemInterface.findProgram(programName)!!
+            val initialValues = toInitialValues(program, params)
+            when (program) {
+                is RpgProgram -> programInterpreter.execute(program as RpgProgram, initialValues)
+                else -> {
+                    val values = program.execute(systemInterface, initialValues)
+                    initialValues.keys.forEachIndexed { index, key -> initialValues[key] = values[index] }
+                }
             }
-            val initialValues = toInitialValues(rpgProgram!!, params)
-            programInterpreter.execute(rpgProgram!!, initialValues)
             configuration.options?.apply {
                 if (muteSupport) {
                     kotlin.runCatching {
                         systemInterface.assertMutesSucceed(programName = programName)
                     }.onFailure { error ->
-                        rpgProgram!!.cu.source?.apply {
-                            System.err.println(error.message)
-                            System.err.println(this.dumpSource())
+                        when (program) {
+                            is RpgProgram -> (program as RpgProgram).cu.source?.apply {
+                                System.err.println(error.message)
+                                System.err.println(this.dumpSource())
+                            }
                         }
                         throw error
                     }
@@ -102,11 +107,11 @@ abstract class RpgFacade<P> (
         return params
     }
 
-    protected open fun toInitialValues(rpgProgram: RpgProgram, params: P): LinkedHashMap<String, Value> {
+    protected open fun toInitialValues(program: Program, params: P): LinkedHashMap<String, Value> {
         val any: Any = params!!
-        val kclass = any::class
+        val klass = any::class
         val initialValues = LinkedHashMap<String, Value>()
-        kclass.memberProperties.forEach {
+        klass.memberProperties.forEach {
             initialValues[it.rpgName] = toRpgValue(it, it.call(params))
         }
         return initialValues
@@ -121,7 +126,7 @@ abstract class RpgFacade<P> (
         }
     }
 
-    private fun toRpgValue(property: KType, jvmValue: Any?): Value {
+    private fun toRpgValue(jvmValue: Any?): Value {
         return when {
             jvmValue is String -> StringValue(jvmValue)
             else -> {
@@ -151,7 +156,7 @@ abstract class RpgFacade<P> (
                 val nElements = property.findAnnotation<Size>()?.size ?: throw RuntimeException("Size expected for property ${property.name}")
                 val rpgArray = createArrayValue(elementType.toRpgType(), nElements) {
                     if (it < jvmArray.size) {
-                        toRpgValue(elementType, jvmArray[it])
+                        toRpgValue(jvmArray[it])
                     } else {
                         elementType.toRpgType().blank()
                     }

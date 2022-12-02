@@ -18,6 +18,7 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.manager.DBFileFactory
 import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -146,7 +147,7 @@ object MainExecutionContext {
      * Logs entries
      */
     fun log(logEntry: LogEntry) {
-        context.get()?.let { it.log(logEntry) }
+        context.get()?.log(logEntry)
     }
 
     /***
@@ -196,4 +197,6 @@ data class Context(
 
 data class ParsingProgram(val name: String) {
     val parsingFunctionNameStack = Stack<String>()
+    var copyBlocks: CopyBlocks? = null
+    var sourceLines: List<String>? = null
 }

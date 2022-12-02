@@ -25,6 +25,7 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
+import com.smeup.rpgparser.rpginterop.SourceProgramFinder
 import java.io.File
 import kotlin.test.BeforeTest
 
@@ -51,19 +52,24 @@ abstract class AbstractTest {
      * @param considerPosition If true parsing or ast creation error include also line number, default false
      * @param withMuteSupport If true are parsed also MUTE annotations, default false
      * @param printTree If true is dumped on console parse tree in xml format, default false
+     * @param afterAstCreation Callback function invoked after ast creation. If you need to do some operations
+     * on the ast, I suggest to handle them in this callback rather than test the return value of this function
+     * @return The created AST. I suggest to use callback afterAstCreation
      * */
     open fun assertASTCanBeProduced(
         exampleName: String,
         considerPosition: Boolean = false,
         withMuteSupport: Boolean = false,
-        printTree: Boolean = false
+        printTree: Boolean = false,
+        afterAstCreation: (ast: CompilationUnit) -> Unit = {}
     ): CompilationUnit {
         return assertASTCanBeProduced(
             exampleName = exampleName,
             considerPosition = considerPosition,
             withMuteSupport = withMuteSupport,
             printTree = printTree,
-            compiledProgramsDir = getTestCompileDir()
+            compiledProgramsDir = getTestCompileDir(),
+            afterAstCreation = afterAstCreation
         )
     }
 
@@ -136,7 +142,8 @@ abstract class AbstractTest {
     /**
      * Execute a PGM
      * @param programName Name or relative path followed by name. Example performance/MUTE10_01 to execute a PGM
-     * in test/resources/performance/MUTE10_01.rpgle
+     * in test/resources/performance/MUTE10_01.rpgle. If this parameter contains at least a line feed it is considered
+     * an inline program
      * @param params If needed, an instance of params to pass to the program. Default empty params
      * @param configuration If needed, you can pass an instance of configuration. Default empty configuration
      * @param systemInterface If needed, you can pass an instance of SystemInterface. Default JavaSystemInterface
@@ -153,16 +160,18 @@ abstract class AbstractTest {
             "$programName.rpgle"
         }
         val resource = AbstractTest::class.java.getResource("/$resourceName")
-        require(resource != null) {
-            "Cannot find resource $resourceName"
+        val inlinePgm = programName.indexOf('\n') >= 0
+        if (!inlinePgm) {
+            require(resource != null) {
+                "Cannot find resource $resourceName"
+            }
         }
-        val programFinders = listOf(
-            DirRpgProgramFinder(directory = File(resource.path).parentFile),
-            DirRpgProgramFinder(directory = File("src/test/resources/"))
-        )
-
+        val programFinders = mutableListOf<RpgProgramFinder>()
+        if (resource != null) programFinders.add(DirRpgProgramFinder(directory = File(resource.path).parentFile))
+        programFinders.add(DirRpgProgramFinder(directory = File("src/test/resources/")))
+        if (inlinePgm) programFinders.add(SourceProgramFinder())
         val jariko = getProgram(
-            nameOrSource = programName.substringAfterLast("/", programName),
+            nameOrSource = if (inlinePgm) programName else programName.substringAfterLast("/", programName),
             systemInterface = systemInterface,
             programFinders = programFinders
         )
@@ -275,10 +284,6 @@ abstract class AbstractTest {
 }
 
 fun Configuration.adaptForTestCase(testCase: AbstractTest): Configuration {
-    if (this.options != null) {
-        this.options!!.compiledProgramsDir = testCase.getTestCompileDir()
-    } else {
-        this.options = Options(compiledProgramsDir = testCase.getTestCompileDir())
-    }
+    this.options!!.compiledProgramsDir = testCase.getTestCompileDir()
     return this
 }

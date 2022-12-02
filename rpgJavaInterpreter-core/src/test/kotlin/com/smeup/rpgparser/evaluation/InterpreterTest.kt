@@ -22,7 +22,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
-import com.smeup.rpgparser.parsing.facade.AstCreatingException
+import com.smeup.rpgparser.parsing.parsetreetoast.AstResolutionError
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.asInt
 import org.junit.Ignore
@@ -49,7 +49,7 @@ open class InterpreterTest : AbstractTest() {
         """.trimMargin()
 
         val program = getProgram(source, systemInterface)
-        assertFailsWith(AstCreatingException::class) {
+        assertFailsWith(AstResolutionError::class) {
             program.singleCall(listOf())
         }
     }
@@ -771,6 +771,11 @@ Test 6
         assertStartsWith(outputOf("DO_TST01", si = si), "DO_TST01(91ms) Spent")
     }
 
+    @Test
+    fun executeDO_TST02() {
+        assertEquals(listOf("Body"), outputOf("DO_TST02"))
+    }
+
     @Test @Category(PerformanceTest::class)
     fun executeDOW_PERF() {
         assertEquals(outputOf("DOW_PERF"), listOf("COUNTER IS NOW 100000001"))
@@ -1217,6 +1222,11 @@ Test 6
     @Test
     fun executeCABEQKO() {
         assertEquals(listOf("Test KO"), outputOf("CABEQKO"))
+    }
+
+    @Test
+    fun executeFCONSTRES() {
+        assertEquals(listOf("FLAG=ON", "FLAG=OFF", "IN34=OFF", "IN34=ON", "STR=BLANK", "STR=NOBLANK", "IN35=OFF"), outputOf(programName = "FCONSTRES"))
     }
 
     @Test
@@ -1793,6 +1803,13 @@ Test 6
     }
 
     @Test
+    @Ignore
+    // TODO ignored until fix of 'Issue executing CallStmt at line 19. Data definition P2 was not found'
+    fun executeENTRY_A() {
+        assertEquals(listOf("1"), outputOf("ENTRY_A"))
+    }
+
+    @Test
     fun executeDOPED_PROC() {
         assertEquals(
             expected = listOf("46",
@@ -1964,5 +1981,50 @@ Test 6
     @Test
     fun executeCOPY_INTO_COMMENTS() {
         assertEquals(listOf("Success!"), outputOf("COPY_INTO_COMMENTS"))
+    }
+
+    @Test
+    fun executeTSTDS01() {
+        assertEquals(listOf("Name", "Value"), outputOf("TSTDS01"))
+    }
+
+    @Test
+    fun executeSUBST_00() {
+        assertEquals(listOf("AB"), outputOf("SUBST_00"))
+    }
+
+    @Test
+    fun executeSUBST_01() {
+        assertEquals(listOf("CD"), outputOf("SUBST_01"))
+    }
+
+    @Test
+    fun executeSUBST_02() {
+        assertEquals(listOf("EF"), outputOf("SUBST_02"))
+    }
+
+    @Test
+    fun executeSUBST_03() {
+        assertEquals(listOf("123"), outputOf("SUBST_03"))
+    }
+
+    @Test
+    fun executeSUBST_04() {
+        assertEquals(listOf("123ABC"), outputOf("SUBST_04"))
+    }
+
+    @Test
+    fun executeSUBST_05() {
+        assertEquals(listOf("123XXXXXXX"), outputOf("SUBST_05"))
+    }
+
+    @Test
+    fun executeSUBST_06() {
+        assertEquals(listOf("A"), outputOf("SUBST_06"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun executeASSIGNERR01() {
+        executePgm("ASSIGNERR01")
     }
 }

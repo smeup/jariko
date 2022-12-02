@@ -1,11 +1,27 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.RpgParser.BlockContext
 import com.smeup.rpgparser.interpreter.Evaluator
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.utils.ComparisonOperator
-import com.smeup.rpgparser.utils.enrichPossibleExceptionWith
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import kotlinx.serialization.Serializable
@@ -18,41 +34,26 @@ fun RpgParser.StatementContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     }
 }
 
-internal fun RpgParser.BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.ifstatement() != null -> this.ifstatement().toAst(conf)
-        this.selectstatement() != null -> this.selectstatement().toAst(conf)
-        this.begindo() != null -> {
-            val result = this.begindo().csDO().cspec_fixed_standard_parts().result
-            val iter = if (result.text.isBlank()) null else result.toAst(conf)
-            val factor = this.begindo().factor()
-            val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
-            val factor2 = this.begindo().csDO().cspec_fixed_standard_parts().factor2 ?: null
-            val endLimit =
-                    when {
-                        factor2 == null -> IntLiteral(1)
-                        factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
-                        else -> factor2.runParserRuleContext(conf = conf) { factor2 -> factor2.content.toAst(conf) }
-                    }
-            DoStmt(endLimit,
-                iter,
-                this.statement().map { it.toAst(conf) },
-                start,
-                position = toPosition(conf.considerPosition))
-        }
-        this.begindow() != null -> {
-            val endExpression = this.begindow().csDOW().fixedexpression.expression().toAst(conf)
-            DowStmt(endExpression,
-                    this.statement().map { it.toAst(conf) },
-                    position = toPosition(conf.considerPosition))
-        }
+        this.selectstatement() != null -> this.selectstatement()
+            .let {
+                it.beginselect().csSELECT().cspec_fixed_standard_parts().validate(
+                    stmt = it.toAst(conf = conf),
+                    conf = conf
+                )
+            }
+        this.begindo() != null -> this.begindo()
+            .let {
+                it.csDO().cspec_fixed_standard_parts().validate(
+                    stmt = it.toAst(blockContext = this, conf = conf),
+                    conf = conf
+                )
+            }
+        this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
-        this.begindou() != null -> {
-            val endExpression = this.begindou().csDOU().fixedexpression.expression().toAst(conf)
-            DouStmt(endExpression,
-                    this.statement().map { it.toAst(conf) },
-                    position = toPosition(conf.considerPosition))
-        }
+        this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
         else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
     }
 }
@@ -91,8 +92,63 @@ internal fun RpgParser.SelectstatementContext.toAst(conf: ToAstConfiguration = T
         }
         other = SelectOtherClause(statementsOfLastWhen.subList(indexOfOther + 1, statementsOfLastWhen.size), position = otherPosition)
     }
+    val result = beginselect().csSELECT().cspec_fixed_standard_parts().result.text
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = beginselect().csSELECT().cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return SelectStmt(
+        cases = whenClauses,
+        other = other,
+        dataDefinition = dataDefinition,
+        position = toPosition(conf.considerPosition)
+    )
+}
 
-    return SelectStmt(whenClauses, other, toPosition(conf.considerPosition))
+internal fun RpgParser.BegindoContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DoStmt {
+    val result = csDO().cspec_fixed_standard_parts().result
+    val iter = if (result.text.isBlank()) null else result.toAst(conf)
+    val factor = factor()
+    val start = if (factor.text.isBlank()) IntLiteral(1) else factor.content.toAst(conf)
+    val factor2 = csDO().cspec_fixed_standard_parts().factor2 ?: null
+    val endLimit =
+        when {
+            factor2 == null || factor2.text.trim().isEmpty() -> IntLiteral(1)
+            factor2.symbolicConstants() != null -> factor2.symbolicConstants().toAst()
+            else -> factor2.runParserRuleContext(conf = conf) { f2 -> f2.content.toAst(conf) }
+        }
+    val position = toPosition(conf.considerPosition)
+    val dataDefinition = csDO().cspec_fixed_standard_parts().toDataDefinition(result.text, position, conf)
+    return DoStmt(
+        endLimit = endLimit,
+        index = iter,
+        body = blockContext.statement().map { it.toAst(conf) },
+        startLimit = start,
+        dataDefinition = dataDefinition,
+        position = toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.BegindowContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DowStmt {
+    val endExpression = csDOW().fixedexpression.expression().toAst(conf)
+    return DowStmt(endExpression,
+        blockContext.statement().map { it.toAst(conf) },
+        position = toPosition(conf.considerPosition)
+    )
+}
+
+internal fun RpgParser.BegindouContext.toAst(
+    blockContext: BlockContext,
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DouStmt {
+    val endExpression = csDOU().fixedexpression.expression().toAst(conf)
+    return DouStmt(endExpression,
+        blockContext.statement().map { it.toAst(conf) },
+        position = toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectCase {
@@ -105,28 +161,26 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
         statementsToConsider = statementsToConsider.subList(0, indexOfOther)
     }
     val position = toPosition(conf.considerPosition)
-    return enrichPossibleExceptionWith("Error parsing SELECT statement at $position") {
-        if (this.`when`() != null) {
-            SelectCase(
-                this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
-                statementsToConsider,
-                position
-            )
-        } else {
-            val (comparison, factor2) = this.csWHENxx().getCondition()
-            val csANDxx = this.csWHENxx().csANDxx()
-            val ands = csANDxx.map { it.toAst(conf) }
-            val csORxx = this.csWHENxx().csORxx()
-            val ors = csORxx.map { it.toAst(conf) }
-            val condition = LogicalCondition(comparison.asExpression(this.csWHENxx().factor1, factor2, conf))
-            condition.and(ands)
-            condition.or(ors)
-            SelectCase(
-                condition,
-                statementsToConsider,
-                position
-            )
-        }
+    return if (this.`when`() != null) {
+        SelectCase(
+            this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
+            statementsToConsider,
+            position
+        )
+    } else {
+        val (comparison, factor2) = this.csWHENxx().getCondition()
+        val csANDxx = this.csWHENxx().csANDxx()
+        val ands = csANDxx.map { it.toAst(conf) }
+        val csORxx = this.csWHENxx().csORxx()
+        val ors = csORxx.map { it.toAst(conf) }
+        val condition = LogicalCondition(comparison.asExpression(this.csWHENxx().factor1, factor2, conf))
+        condition.and(ands)
+        condition.or(ors)
+        SelectCase(
+            condition,
+            statementsToConsider,
+            position
+        )
     }
 }
 
@@ -158,14 +212,8 @@ internal fun RpgParser.CsORxxContext.toAst(conf: ToAstConfiguration = ToAstConfi
 }
 
 internal fun ComparisonOperator.asExpression(factor1: RpgParser.FactorContext, factor2: RpgParser.FactorContext, conf: ToAstConfiguration): Expression {
-    if (factor1.content == null) {
-        factor1.error("Factor 1 cannot be null", conf = conf)
-    }
-    if (factor2.content == null) {
-        factor2.error("Factor 2 cannot be null", conf = conf)
-    }
-    val left = factor1.content.toAst(conf)
-    val right = factor2.content.toAst(conf)
+    val left = factor1.toAstIfSymbolicConstant() ?: factor1.content?.toAst(conf) ?: factor1.error("Factor 1 cannot be null", conf = conf)
+    val right = factor2.toAstIfSymbolicConstant() ?: factor2.content?.toAst(conf) ?: factor2.error("Factor 2 cannot be null", conf = conf)
     return when (this) {
         ComparisonOperator.EQ -> EqualityExpr(left, right)
         ComparisonOperator.NE -> DifferentThanExpr(left, right)
@@ -220,47 +268,45 @@ internal fun RpgParser.CsIFxxContext.getCondition() =
         else -> throw RuntimeException("No valid WhenXX condition")
     }
 
-internal fun RpgParser.OtherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
+internal fun toAst(conf: ToAstConfiguration = ToAstConfiguration()): SelectOtherClause {
     TODO("OtherContext.toAst with $conf")
 }
 
 internal fun RpgParser.IfstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IfStmt {
     val position = toPosition(conf.considerPosition)
-    return enrichPossibleExceptionWith("Error parsing IF statement at $position") {
-        if (this.beginif().fixedexpression != null) {
-            IfStmt(
-                this.beginif().fixedexpression.expression().toAst(conf),
-                this.thenBody.map { it.toAst(conf) },
-                this.elseIfClause().map { it.toAst(conf) },
-                this.elseClause()?.toAst(conf),
-                position
-            )
-        } else {
-            val (comparison, factor2) = this.beginif().csIFxx().getCondition()
-            val csANDxx = this.beginif().csIFxx().csANDxx()
-            val ands = csANDxx.map { it.toAst(conf) }
-            val csORxx = this.beginif().csIFxx().csORxx()
-            val ors = csORxx.map { it.toAst(conf) }
-            val condition = LogicalCondition(comparison.asExpression(this.beginif().csIFxx().factor1, factor2, conf))
-            condition.and(ands)
-            condition.or(ors)
-            IfStmt(
-                condition,
-                this.thenBody.map { it.toAst(conf) },
-                this.elseIfClause().map { it.toAst(conf) },
-                this.elseClause()?.toAst(conf),
-                position
-            )
-        }
+    return if (this.beginif().fixedexpression != null) {
+        IfStmt(
+            this.beginif().fixedexpression.expression().toAst(conf),
+            this.thenBody.mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
+            this.elseIfClause().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
+            this.elseClause()?.toAst(conf),
+            position
+        )
+    } else {
+        val (comparison, factor2) = this.beginif().csIFxx().getCondition()
+        val csANDxx = this.beginif().csIFxx().csANDxx()
+        val ands = csANDxx.mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }
+        val csORxx = this.beginif().csIFxx().csORxx()
+        val ors = csORxx.mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }
+        val condition = LogicalCondition(comparison.asExpression(this.beginif().csIFxx().factor1, factor2, conf))
+        condition.and(ands)
+        condition.or(ors)
+        IfStmt(
+            condition,
+            this.thenBody.mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
+            this.elseIfClause().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() },
+            this.elseClause()?.toAst(conf),
+            position
+        )
     }
 }
 
 internal fun RpgParser.ElseClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseClause {
-    return ElseClause(this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
+    return ElseClause(this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }, toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.ElseIfClauseContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ElseIfClause {
     return ElseIfClause(
             this.elseifstmt().fixedexpression.expression().toAst(conf),
-            this.statement().map { it.toAst(conf) }, toPosition(conf.considerPosition))
+            this.statement().mapNotNull { kotlin.runCatching { it.toAst(conf) }.getOrNull() }, toPosition(conf.considerPosition))
 }

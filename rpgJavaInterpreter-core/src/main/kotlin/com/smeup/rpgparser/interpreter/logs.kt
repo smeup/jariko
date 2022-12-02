@@ -1,7 +1,24 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.utils.asNonNullString
 import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Position
@@ -610,11 +627,12 @@ fun List<InterpreterLogHandler>.log(logEntry: LogEntry) {
     }
 }
 
-fun Position?.line() = this?.start?.line.asNonNullString()
-fun Position?.atLine() = this?.start?.line?.let { "line $it " } ?: ""
-fun Node?.startLine() = this?.position?.start?.line.asNonNullString()
-fun Node?.endLine() = this?.position?.end?.line.asNonNullString()
-
+fun Position?.line() = this?.relative()?.second?.renderStartLine().asNonNullString()
+fun Position?.atLine() = this?.relative()?.second?.renderStartLine()?.let { "line $it " } ?: ""
+fun Node?.startLine() = this?.position?.relative()?.second?.renderStartLine().asNonNullString()
+fun Node?.endLine() = this?.position?.relative()?.second?.renderEndLine().asNonNullString()
+fun SourceReference.renderStartLine() = "${this.relativeLine}"
+fun SourceReference.renderEndLine() = "${this.position?.end?.line}"
 class CatStatementExecutionLog(programName: String, val statement: CatStmt, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "CAT"

@@ -25,6 +25,7 @@ import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.ast.encodeToByteArray
 import com.smeup.rpgparser.parsing.ast.encodeToString
 import com.smeup.rpgparser.parsing.facade.RpgParserFacade
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import java.io.*
@@ -83,6 +84,14 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
                     Format.BIN -> compiledFile.writeBytes(cu!!.encodeToByteArray())
                     Format.JSON -> compiledFile.writeText(cu!!.encodeToString())
                 }
+                // I cannot resolve and validate the cu before serializing elsewhere
+                // I have unexpected behaviours when I try to use it
+                runCatching {
+                    cu!!.resolveAndValidate()
+                }.onFailure {
+                    compiledFile.delete()
+                    return CompilationResult(file, null, null, it)
+                }
                 println("Compiled in $compiledFile")
             }
         } else {
@@ -123,17 +132,17 @@ fun compile(
     // In MainExecutionContext to avoid warning on idProvider reset
     val compilationResult = mutableListOf<CompilationResult>()
     if (src.isFile) {
-        val systemInterface = systemInterface.invoke(src.parentFile)
-        MainExecutionContext.execute(systemInterface = systemInterface, configuration = configuration) {
+        val si = systemInterface.invoke(src.parentFile)
+        MainExecutionContext.execute(systemInterface = si, configuration = configuration) {
             it.executionProgramName = src.name
             compilationResult.add(compileFile(src, compiledProgramsDir, format, muteSupport, force))
         }
     } else if (src.exists()) {
-        val systemInterface = systemInterface.invoke(src.absoluteFile)
+        val si = systemInterface.invoke(src.absoluteFile)
         src.listFiles { file ->
             file.name.endsWith(".rpgle")
         }?.forEach { file ->
-            MainExecutionContext.execute(systemInterface = systemInterface, configuration = configuration) {
+            MainExecutionContext.execute(systemInterface = si, configuration = configuration) {
                 it.executionProgramName = file.name
                 compilationResult.add(compileFile(file, compiledProgramsDir, format, muteSupport, force))
             }
@@ -177,7 +186,7 @@ fun compile(
     programFinders: List<RpgProgramFinder>? = null,
     configuration: Configuration = Configuration()
 ) {
-    // Compilation within MainExecutionContext should ensure comparability among rpgle program compiled in
+    // Compilation within MainExecutionContext should ensure comparability among rpgle programs compiled in
     // different times
     MainExecutionContext.execute(systemInterface = JavaSystemInterface().apply {
         programFinders?.let { rpgSystem.addProgramFinders(it) }
@@ -206,14 +215,15 @@ fun doCompilationAtRuntime(
         "This method can be used just for runtime compilations"
     }
     println("Compiling inputstream to outputstream... ")
-    var cu: CompilationUnit? = null
+    var cu: CompilationUnit?
     cu = RpgParserFacade().apply {
         this.muteSupport = muteSupport!!
     }.parseAndProduceAst(src)
 
     when (format) {
-        Format.BIN -> out.use { it.write(cu!!.encodeToByteArray()) }
-        Format.JSON -> out.use { it.write(cu!!.encodeToString().toByteArray(Charsets.UTF_8)) }
+        Format.BIN -> out.use { it.write(cu.encodeToByteArray()) }
+        Format.JSON -> out.use { it.write(cu.encodeToString().toByteArray(Charsets.UTF_8)) }
     }
+    cu.resolveAndValidate()
     println("... done.")
 }

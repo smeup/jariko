@@ -18,18 +18,18 @@ package com.smeup.rpgparser.execution
 
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.SingletonRpgSystem
-import com.smeup.rpgparser.interpreter.StringValue
-import com.smeup.rpgparser.interpreter.SystemInterface
-import com.smeup.rpgparser.interpreter.Value
+import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
+import org.junit.Assert
 import org.junit.Test
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.math.BigDecimal
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.Charset
@@ -161,7 +161,7 @@ class RunnerTest : AbstractTest() {
     @Test
     fun testCallProgramHandler_2() {
         /*
-         * This test check the 'dual CallStmt behaviour' as follow:
+         * This test check the 'dual CallStmt behaviour' as follows:
          *
          * The main rpgle program 'CALL_STMT.rpgle' execute a loop of 4 iterations calling 'ECHO_PGM' program.
          *
@@ -169,7 +169,7 @@ class RunnerTest : AbstractTest() {
          * the ECHO_PGM.rpgle program is called.
          *
          * Behaviour 2: If loop counter is odd, the 'CallStmt' works as the 'extended implementation of CALL', so
-         * a 'custom implementation handleCall" is executed, ad simply return "CUSTOM_PGM" string.
+         * a 'custom implementation handleCall' is executed, ad simply return "CUSTOM_PGM" string.
          *
          */
         val systemInterface: SystemInterface = JavaSystemInterface()
@@ -201,7 +201,7 @@ class RunnerTest : AbstractTest() {
     @Test
     fun testCallProgramHandler_3() {
         /*
-         * This test check the 'dual CallStmt behaviour' as follow:
+         * This test check the 'dual CallStmt behaviour' as follows:
          *
          * Behaviour 1: The main rpgle program 'TST_001.rpgle' execute a call to 'ECHO_PGM.rpgle'.
          * This first call is a normal rpg CALL.
@@ -250,14 +250,14 @@ class RunnerTest : AbstractTest() {
         val url = URL("https://jariko.smeup.cloud")
         val con: HttpURLConnection = url.openConnection() as HttpURLConnection
         con.requestMethod = "POST"
-        val x_api_key = System.getenv("JARIKO_X_API_KEY")
-        con.setRequestProperty("x-api-key", x_api_key)
+        val xApiKey = System.getenv("JARIKO_X_API_KEY")
+        con.setRequestProperty("x-api-key", xApiKey)
         con.setRequestProperty("Content-Type", "application/json; utf-8")
         con.setRequestProperty("Accept", "application/json")
         con.doOutput = true
         val jsonInputString = "{\n" +
-                " \"program-name\": \"$theProgram\",\n" +
-                " \"program-params\": [\n" +
+                " \"name\": \"$theProgram\",\n" +
+                " \"parameters\": [\n" +
                 " \"$inputParams                                                                                           \"\n" +
                 " ]\n" +
                 "}"
@@ -276,5 +276,65 @@ class RunnerTest : AbstractTest() {
         }
         println(response.toString())
         return response.toString()
+    }
+
+    /**
+     * If a doped program raises an error, this one must be propagated to the caller
+     * */
+    @Test(expected = java.lang.RuntimeException::class)
+    fun raisedErrorMustBePropagated() {
+        // just to clear warnings
+        DOPEDPGM()
+        val pgm = """
+     C                   CALL      'DOPEDPGM'            
+        """
+        val systemInterface = JavaSystemInterface().apply {
+            addJavaInteropPackage("com.smeup.rpgparser.execution")
+        }
+        getProgram(nameOrSource = pgm, systemInterface).singleCall(parms = emptyList())
+    }
+
+    /**
+     * Tests the right execution of program even although the first program is doped
+     * */
+    @Test
+    fun firstPgmAsDoped() {
+        MYDOPED()
+        val systemInterface = JavaSystemInterface().apply {
+            addJavaInteropPackage("com.smeup.rpgparser.execution")
+        }
+        val expected = listOf("HELLO", "20.24")
+        val actual = getProgram(nameOrSource = "MYDOPED", systemInterface = systemInterface)
+            .singleCall(parms = listOf("hello", "10.12"))!!.parmsList
+        Assert.assertEquals(expected, actual)
+    }
+}
+
+class DOPEDPGM : Program {
+
+    override fun params(): List<ProgramParam> = emptyList()
+
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+        error("Forced error")
+    }
+}
+
+class MYDOPED : Program {
+
+    override fun params() = listOf(
+        ProgramParam("s1", StringType(10, false)),
+        ProgramParam("n1", NumberType(5, 2))
+    )
+
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+        systemInterface.display(params.toString())
+        return params.values.mapIndexed { index, value ->
+            when (index) {
+                0 -> StringValue(value.asString().value.toUpperCase(), true)
+                1 -> DecimalValue(coerce(value, NumberType(5, 2))
+                    .asDecimal().value.multiply(BigDecimal.valueOf(2)))
+                else -> throw IllegalArgumentException("index not handled")
+            }
+        }
     }
 }

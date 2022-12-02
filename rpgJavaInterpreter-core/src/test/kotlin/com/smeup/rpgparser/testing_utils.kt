@@ -23,11 +23,9 @@ import com.andreapivetta.kolor.yellow
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.RpgParser.*
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.JarikoCallback
-import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.execution.Options
+import com.smeup.rpgparser.execution.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
@@ -70,21 +68,37 @@ val testCompiledDir = File(System.getProperty("java.io.tmpdir"), "jariko/test/bi
     }
 }
 
-private val rpgTestSrcDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle").file).parent
+private val rpgTestSrcDir = File(Dummy::class.java.getResource("/ABSTEST.rpgle")!!.file).parent
 
 fun parseFragmentToCompilationUnit(
     code: String,
     toAstConfiguration: ToAstConfiguration = ToAstConfiguration(considerPosition = false)
 ): CompilationUnit {
     val completeCode = """
-|     H/COPY QILEGEN,£INIZH
+|     H*/COPY QILEGEN,£INIZH
 |      *---------------------------------------------------------------
-|     I/COPY QILEGEN,£TABB£1DS
-|     I/COPY QILEGEN,£PDS
+|     I*/COPY QILEGEN,£TABB£1DS
+|     I*/COPY QILEGEN,£PDS
 |     $code
         """.trimMargin("|")
-    val rContext = assertCodeCanBeParsed(completeCode)
-    return rContext.toAst(toAstConfiguration)
+    val configuration = Configuration().apply {
+        reloadConfig = ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+            metadataProducer = { dbFile ->
+                FileMetadata(
+                    name = dbFile,
+                    tableName = dbFile,
+                    recordFormat = dbFile,
+                    fields = emptyList(),
+                    accessFields = emptyList()
+                )
+            }
+        )
+    }
+    return MainExecutionContext.execute(configuration = configuration, systemInterface = JavaSystemInterface()) {
+        val rContext = assertCodeCanBeParsed(completeCode)
+        rContext.toAst(toAstConfiguration)
+    }
 }
 
 fun parseFragmentToCompilationUnit(
@@ -215,8 +229,15 @@ fun assertASTCanBeProduced(
     withMuteSupport: Boolean = false,
     printTree: Boolean = false,
     compiledProgramsDir: File?,
-    // Workaround to solve problem related datadefinition creation outer of the execution context used in experimental data access
-    afterAstCreation: (ast: CompilationUnit) -> Unit = {}
+    afterAstCreation: (ast: CompilationUnit) -> Unit = {},
+    reloadConfig: ReloadConfig = ReloadConfig(
+        nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+        metadataProducer = { dbFile ->
+            {}.javaClass.getResourceAsStream("/db/metadata/$dbFile.json").use {
+                it?.let { FileMetadata.createInstance(it) } ?: error("resource /db/metadata/$dbFile.json not found")
+            }
+        }
+    )
 ): CompilationUnit {
     val ast: CompilationUnit
     // if printTree true it is necessary create parserResult, then I can't load ast from bin
@@ -233,15 +254,16 @@ fun assertASTCanBeProduced(
                 throw IllegalStateException("Mute annotations can be injected only when retaining the position")
             }
             ast.injectMuteAnnotation(result.root!!.muteContexts!!)
-            afterAstCreation.invoke(ast)
         }
+        afterAstCreation.invoke(ast)
     } else {
         val configuration =
             Configuration(options = Options(
                 muteSupport = withMuteSupport,
                 compiledProgramsDir = compiledProgramsDir,
                 toAstConfiguration = ToAstConfiguration(considerPosition)),
-                jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation)
+                jarikoCallback = JarikoCallback(afterAstCreation = afterAstCreation),
+                reloadConfig = reloadConfig
             )
         ast = MainExecutionContext.execute(systemInterface = createJavaSystemInterface(), configuration = configuration) {
             it.executionProgramName = exampleName
@@ -370,7 +392,7 @@ open class CollectorSystemInterface(
         return if (program == null) {
             val foundProgram = kotlin.runCatching {
                 SingletonRpgSystem.getProgram(name)
-            }.getOrNull()
+            }.onFailure { it.printStackTrace() }.getOrNull()
             if (foundProgram != null) {
                 programs[name] = foundProgram
                 foundProgram
@@ -531,7 +553,7 @@ fun execute(
 }
 
 fun rpgProgram(name: String): RpgProgram {
-    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle"), name)
+    return RpgProgram.fromInputStream(Dummy::class.java.getResourceAsStream("/$name.rpgle")!!, name)
 }
 
 fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int {
@@ -549,7 +571,7 @@ fun executeAnnotations(annotations: SortedMap<Int, MuteAnnotationExecuted>): Int
 
 class DummyProgramFinder(private val path: String) : RpgProgramFinder {
 
-    fun getFile(name: String) = File(Dummy::class.java.getResource("$path$name.rpgle").file)
+    fun getFile(name: String) = File(Dummy::class.java.getResource("$path$name.rpgle")!!.file)
 
     fun rpgSourceInputStream(nameOrSource: String): InputStream? =
         Dummy::class.java.getResourceAsStream("$path$nameOrSource.rpgle")
