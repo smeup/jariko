@@ -93,16 +93,31 @@ subprojects {
         tasks.publishMavenJavaPublicationToSonatypeRepository{
             dependsOn project.tasks.signArchives
         }
+        tasks.publishMavenJavaPublicationToSmeupRepository{
+            dependsOn project.tasks.signArchives
+        }
     }
 }
 
 nexusPublishing {
+    // trick to bypass staging when we publishToSmeup, because smeup nexus does not support the staging features
+    // however take in account that this flag in the other cases must be true or false depending on the version name
+    useStaging = !(project.gradle.startParameter.taskNames.contains("publishToSmeup") || jarikoVersion.endsWith("SNAPSHOT"))
     repositories {
         sonatype {
             nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
             snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
             username = findProperty("sonatypeUsername")
             password = findProperty("sonatypePassword")
+        }
+        smeup {
+            nexusUrl = uri("https://repo.smeup.cloud/nexus/content/repositories/releases/")
+            //when useStaging=false it is always used snapshotRepositoryUrl
+            snapshotRepositoryUrl = jarikoVersion.endsWith("SNAPSHOT") ?
+                    uri("https://repo.smeup.cloud/nexus/content/repositories/snapshots/"):
+                    uri("https://repo.smeup.cloud/nexus/content/repositories/releases/")
+            username = findProperty("smeupUsername")
+            password = findProperty("smeupPassword")
         }
     }
 }

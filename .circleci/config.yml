@@ -7,6 +7,5 @@ jobs:
         steps:
             - checkout
             - run: ./gradlew ktlintCheck
-            - run: ./gradlew test
             - run: ./gradlew check
       
