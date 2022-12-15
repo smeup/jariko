@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.manager.DBFileFactory
+import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import java.util.*
@@ -92,12 +93,14 @@ object MainExecutionContext {
         return if (context.get() != null) {
             context.get().idProvider.getAndIncrement()
         } else {
-            // In many tests, the parsing is called outside of the execution context
+            // In many tests, the parsing is called outside the execution context
             // It's not too wrong assume that over 32000 it can be reset idProvider
             // In this way doesn't fail the variables assignment when involved the experimental
             // symbol table
             if (noContextIdProvider.get() == 32000) {
-                Exception("Reset idProvider").printStackTrace()
+                if (FeaturesFactory.newInstance() is ExperimentalFeaturesFactory) {
+                    Exception("Reset idProvider").printStackTrace()
+                }
                 noContextIdProvider.set(0)
             }
             noContextIdProvider.getAndIncrement()
