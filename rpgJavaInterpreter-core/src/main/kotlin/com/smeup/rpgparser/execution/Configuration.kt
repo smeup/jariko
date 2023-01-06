@@ -74,6 +74,10 @@ data class ReloadConfig(
  * This property is necessary to enable some features useful when jariko must be debugged, for example some callback functions
  * such as onEnter and onExit copies or statements, just for performance reasons, will be invoked only when this property
  * is true.
+ * @param allowRecursiveMainContextExecution If true allows to invoke
+ * recursively (MainExecutionContext.execute())[MainExecutionContext.execute], in this case it will be
+ * used the same instances of all parameters passed to (MainExecutionContext.execute())[MainExecutionContext.execute] except
+ * the lambda `mainProgram`. Default false
  * */
 data class Options(
     var muteSupport: Boolean = false,
@@ -82,7 +86,8 @@ data class Options(
     var toAstConfiguration: ToAstConfiguration = ToAstConfiguration(),
     var callProgramHandler: CallProgramHandler? = null,
     var dumpSourceOnExecutionError: Boolean? = false,
-    var debuggingInformation: Boolean? = false
+    var debuggingInformation: Boolean? = false,
+    var allowRecursiveMainContextExecution: Boolean = false
 ) {
     internal fun mustDumpSource() = dumpSourceOnExecutionError == true
     internal fun mustCreateCopyBlocks() = debuggingInformation == true
