@@ -62,7 +62,7 @@ object MainExecutionContext {
                 context.get() == null
             ) {
                 "Context execution already created, " +
-                        "you can set Configuration.options.allowRecursiveMainContextExecution=true to disable this check"
+                        "you can set Configuration.options.allowRecursiveMainContextExecution=true to disable this constraint"
             }
         }
         val memorySliceMgr = if (isRootContext) {

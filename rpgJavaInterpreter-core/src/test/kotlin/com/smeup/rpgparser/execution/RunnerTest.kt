@@ -152,7 +152,7 @@ class RunnerTest : AbstractTest() {
             }
         )
 
-        configuration.options?.callProgramHandler = callProgramHandler
+        configuration.options.callProgramHandler = callProgramHandler
         result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
         assertEquals("Ciao!!!", result.parmsList[0].trim())
@@ -193,7 +193,7 @@ class RunnerTest : AbstractTest() {
         )
 
         val jariko = getProgram("CALL_STMT.rpgle", systemInterface, programFinders)
-        configuration.options?.callProgramHandler = callProgramHandler
+        configuration.options.callProgramHandler = callProgramHandler
         val result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
     }
@@ -240,7 +240,7 @@ class RunnerTest : AbstractTest() {
         )
 
         val jariko = getProgram("TST_001.rpgle", systemInterface, programFinders)
-        configuration.options?.callProgramHandler = callProgramHandler
+        configuration.options.callProgramHandler = callProgramHandler
         val result = jariko.singleCall(listOf(""), configuration)
         require(result != null)
         assertTrue { result.parmsList[0].trim().contains("HELLO JARIKO") }
@@ -308,6 +308,19 @@ class RunnerTest : AbstractTest() {
             .singleCall(parms = listOf("hello", "10.12"))!!.parmsList
         Assert.assertEquals(expected, actual)
     }
+
+    @Test
+    fun rpgCallDopedCallRpg() {
+        // this is necessary to enable the feature that allows to invoke from doped program a rpg program
+        DOPEDCALLRPG.configuration.options.allowRecursiveMainContextExecution = true
+        val pgm = """
+     C                   CALL      'DOPEDCALLRPG'            
+        """
+        getProgram(
+            nameOrSource = pgm,
+            systemInterface = DOPEDCALLRPG.systemInterface
+        ).singleCall(parms = emptyList(), configuration = DOPEDCALLRPG.configuration)
+    }
 }
 
 class DOPEDPGM : Program {
@@ -336,5 +349,28 @@ class MYDOPED : Program {
                 else -> throw IllegalArgumentException("index not handled")
             }
         }
+    }
+}
+
+class DOPEDCALLRPG : Program {
+
+    companion object {
+        val systemInterface = JavaSystemInterface().apply {
+            addJavaInteropPackage("com.smeup.rpgparser.execution")
+        }
+        val configuration = Configuration()
+    }
+
+    override fun params() = emptyList<ProgramParam>()
+
+    override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+        val pgm = """
+     D Msg             S             10
+     C                   EVAL      Msg = 'Test OK'
+     C     Msg           DSPLY                      
+        """
+        getProgram(nameOrSource = pgm, systemInterface = systemInterface)
+            .singleCall(parms = emptyList(), configuration = configuration)
+        return emptyList()
     }
 }
