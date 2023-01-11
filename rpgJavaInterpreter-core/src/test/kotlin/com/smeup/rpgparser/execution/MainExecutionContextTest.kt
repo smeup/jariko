@@ -52,7 +52,7 @@ class MainExecutionContextTest {
         assertFalse { String(byteArrayOutputStream.toByteArray()).contains("Reset idProvider") }
     }
 
-    // I want to be sure that will be used only first instances of Configuration and JavaSystemInterface
+    // I want to be sure that only the first instances of Configuration and JavaSystemInterface will be used
     @Test
     fun testFirstInstancesUsageInCaseOfRecursiveExecution() {
         val configs = listOf(
@@ -76,7 +76,7 @@ class MainExecutionContextTest {
         )
     }
 
-    // The MainExecutionContext must be still created also when inner execution throw an error
+    // The MainExecutionContext must stay in created state also when inner execution throw an error
     @Test
     fun testMainExecutionCleanupInCaseOfRecursiveExecution() {
         val config = Configuration()
