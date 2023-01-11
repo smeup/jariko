@@ -76,7 +76,7 @@ class MainExecutionContextTest {
         )
     }
 
-    // The MainExecutionContext must stay in created state also when inner execution throw an error
+    // The MainExecutionContext must stay in created state also when inner execution throws an error
     @Test
     fun testMainExecutionCleanupInCaseOfRecursiveExecution() {
         val config = Configuration()
