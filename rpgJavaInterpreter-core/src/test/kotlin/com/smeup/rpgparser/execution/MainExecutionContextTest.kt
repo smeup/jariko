@@ -16,12 +16,14 @@
 
 package com.smeup.rpgparser.execution
 
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class MainExecutionContextTest {
 
@@ -48,5 +50,75 @@ class MainExecutionContextTest {
             MainExecutionContext.newId()
         }
         assertFalse { String(byteArrayOutputStream.toByteArray()).contains("Reset idProvider") }
+    }
+
+    // I want to be sure that only the first instances of Configuration and JavaSystemInterface will be used
+    @Test
+    fun testFirstInstancesUsageInCaseOfRecursiveExecution() {
+        val configs = listOf(
+            Configuration(), Configuration()
+        )
+        val systemInterfaces = listOf(JavaSystemInterface(), JavaSystemInterface())
+        var createConfigurationTimes = 0
+        var createJavaSystemInterfaceTimes = 0
+        createMainExecutionContextRecursively(
+            createConfiguration = { configs[createConfigurationTimes++] },
+            createJavaSystemInterface = { systemInterfaces[createJavaSystemInterfaceTimes++] },
+            rootExecution = {
+                assertTrue { configs[0] === MainExecutionContext.getConfiguration() }
+                assertTrue { systemInterfaces[0] === MainExecutionContext.getSystemInterface() }
+            },
+            innerExecution = {
+                // Here I assert that the first instance booth config and systemInterface must be used
+                assertTrue { configs[0] === MainExecutionContext.getConfiguration() }
+                assertTrue { systemInterfaces[0] === MainExecutionContext.getSystemInterface() }
+            }
+        )
+    }
+
+    // The MainExecutionContext must stay in created state also when inner execution throws an error
+    @Test
+    fun testMainExecutionCleanupInCaseOfRecursiveExecution() {
+        val config = Configuration()
+        val systemInterface = JavaSystemInterface()
+        createMainExecutionContextRecursively(
+            createConfiguration = { config },
+            createJavaSystemInterface = { systemInterface },
+            rootExecution = {},
+            rootExecutionError = {},
+            innerExecution = { error("Forced error") },
+            innerExecutionError = { assertTrue { MainExecutionContext.isCreated() } }
+        )
+        assertFalse(MainExecutionContext.isCreated())
+    }
+
+    private fun createMainExecutionContextRecursively(
+        createConfiguration: () -> Configuration,
+        createJavaSystemInterface: () -> JavaSystemInterface,
+        rootExecution: () -> Unit,
+        rootExecutionError: (Throwable) -> Unit = { throwable -> throw throwable },
+        innerExecution: () -> Unit,
+        innerExecutionError: (Throwable) -> Unit = { throwable -> throw throwable }
+    ) {
+        kotlin.runCatching {
+            MainExecutionContext.execute(
+                configuration = createConfiguration(),
+                systemInterface = createJavaSystemInterface(),
+                mainProgram = { _ ->
+                    rootExecution()
+                    kotlin.runCatching {
+                        MainExecutionContext.execute(
+                            configuration = createConfiguration(),
+                            systemInterface = createJavaSystemInterface(),
+                            mainProgram = { _ -> innerExecution() }
+                        )
+                    }.onFailure {
+                        innerExecutionError(it)
+                    }.getOrThrow()
+                }
+            )
+        }.onFailure {
+            rootExecutionError(it)
+        }
     }
 }

@@ -40,44 +40,58 @@ object MainExecutionContext {
     private val noParsingProgramStack: Stack<ParsingProgram> by lazy { Stack<ParsingProgram>() }
     //
 
+    // If for some reason we have problems in MainExecutionContext.execute set this variable to true
+    // in order to restore previous behaviour
+    private val denyRecursiveMainContextExecution = false
+
     /**
-     * Call this method to execute e program in ExecutionContext environment.
+     * Call this method to execute e program in execution context environment.
      * Your program will be able to gain access to the attributes available in the entire life cycle of program execution
-     * @see #getAttributes
-     * @see #getConfiguration
-     * @see #getMemorySliceMgr
+     * @param configuration The configuration
+     * @param systemInterface The system interface
+     * @param mainProgram The execution logic.
+     * @see getAttributes
+     * @see getConfiguration
+     * @see getMemorySliceMgr
      * */
     fun <T> execute(
         configuration: Configuration = Configuration(),
         systemInterface: SystemInterface,
         mainProgram: (context: Context) -> T
     ): T {
-        require(
-            context.get() == null
-        ) { "Context execution already created" }
-        val memorySliceMgr = if (configuration.memorySliceStorage == null) {
-            null
-        } else {
-            MemorySliceMgr(configuration.memorySliceStorage)
+        val isRootContext = context.get() == null
+        if (denyRecursiveMainContextExecution) {
+            require(context.get() == null) { "Context execution already created" }
         }
+        val memorySliceMgr = if (isRootContext) {
+            if (configuration.memorySliceStorage == null) {
+                null
+            } else {
+                MemorySliceMgr(configuration.memorySliceStorage)
+            }
+        } else null
         try {
-            context.set(
-                Context(
-                    configuration = configuration,
-                    memorySliceMgr = memorySliceMgr,
-                    systemInterface = systemInterface
+            if (isRootContext) {
+                context.set(
+                    Context(
+                        configuration = configuration,
+                        memorySliceMgr = memorySliceMgr,
+                        systemInterface = systemInterface
+                    )
                 )
-            )
+            }
             return mainProgram.runCatching {
                 invoke(context.get())
             }.onFailure {
-                memorySliceMgr?.afterMainProgramInterpretation(false)
+                if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(false)
             }.onSuccess {
-                memorySliceMgr?.afterMainProgramInterpretation(true)
+                if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(true)
             }.getOrThrow()
         } finally {
-            context.get()?.dbFileFactory?.close()
-            context.remove()
+            if (isRootContext) {
+                context.get()?.dbFileFactory?.close()
+                context.remove()
+            }
         }
     }
 
