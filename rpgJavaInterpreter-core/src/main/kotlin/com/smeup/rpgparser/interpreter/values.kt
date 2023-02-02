@@ -858,6 +858,7 @@ fun Type.blank(): Value {
             this.element.blank()
         }
         is DataStructureType -> DataStructValue.blank(this.size)
+        is OccurableDataStructureType -> OccurableDataStuctValue.blank(this.size, this.occurs)
         is StringType -> {
             if (!this.varying) {
                 StringValue.blank(this.size)
@@ -1079,5 +1080,58 @@ object VoidValue : Value {
 
     override fun copy(): Value {
         TODO("Not yet implemented")
+    }
+}
+
+data class OccurableDataStuctValue(val occurs: Int) : Value {
+    private var index = 1
+    private val values = mutableMapOf<Int, DataStructValue>()
+
+    companion object {
+        /**
+         * Create a blank instance of DS
+         * @param length The DS length (AKA DS element size)
+         * @param occurs The occurrences number
+         * */
+        fun blank(length: Int, occurs: Int): OccurableDataStuctValue {
+            return OccurableDataStuctValue(occurs).apply {
+                for (index in 1..occurs) {
+                    values[index] = DataStructValue.blank(length)
+                }
+            }
+        }
+    }
+
+    override fun asString(): StringValue {
+        return value().asString()
+    }
+
+    /**
+     * @param index The occurrence index (base 1)
+     * @return The occurrence value at index
+     * */
+    operator fun get(index: Int) = values[index]!!
+
+    /**
+     * @return the current occurrence value
+     * */
+    fun value() = get(index)
+
+    /**
+     * Move the pointer to the index
+     * @param index index position base 1
+     * */
+    fun pos(index: Int) {
+        this.index = index
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is OccurableDataStructureType && occurs == expectedType.occurs
+    }
+
+    override fun copy(): Value {
+        return OccurableDataStuctValue(occurs).apply {
+            this.values.putAll(values.mapValues { it.value.copy() })
+        }
     }
 }

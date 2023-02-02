@@ -19,8 +19,7 @@ package com.smeup.rpgparser.parsing
 import com.smeup.rpgparser.*
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -313,5 +312,51 @@ open class RpgParserDataStruct : AbstractTest() {
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
+    }
+
+    @Test
+    fun parseSTRUCT_80TypeTest() {
+        // OccurableDataStructureType(dataStructureType=DataStructureType(fields=[FieldType(name=FLDA, type=StringType(length=5, varying=false)), FieldType(name=FLDB, type=StringType(length=75, varying=false))], elementSize=80), occurs=50)
+
+        val ds1 = OccurableDataStructureType(
+            dataStructureType = DataStructureType(
+                fields = listOf(
+                    FieldType("FLDA", StringType(5, false)),
+                    FieldType("FLDB", StringType(75, false))
+                ),
+                elementSize = 80),
+            occurs = 50
+        )
+
+        val ds2 = OccurableDataStructureType(
+            dataStructureType = DataStructureType(
+                fields = listOf(
+                    FieldType("FLDC", StringType(6, false)),
+                    FieldType("FLDD", StringType(5, false))
+                ),
+                elementSize = 11),
+            occurs = 50
+        )
+        val ds3 = DataStructureType(
+            fields = listOf(
+                FieldType("FLDE", StringType(6, false)),
+                FieldType("FLDF", StringType(5, false))
+            ),
+            elementSize = 11
+        )
+        val expectedDSTypes = mapOf(
+            "DS1" to ds1,
+            "DS2" to ds2,
+            "DS3" to ds3
+        )
+        val actualDSTypes = mutableMapOf<String, Type>()
+        val r = assertCanBeParsed("struct/STRUCT_08", withMuteSupport = true)
+        for (stat in r.statement()) {
+            stat.dcl_ds()?.apply {
+                val fieldsList = calculateFieldInfos()
+                actualDSTypes[stat.dcl_ds().name] = this.type(this.declaredSize(), fieldsList)
+            }
+        }
+        assertEquals(expectedDSTypes, actualDSTypes)
     }
 }
