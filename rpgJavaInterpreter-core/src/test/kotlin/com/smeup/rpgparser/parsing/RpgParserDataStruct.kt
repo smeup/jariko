@@ -359,11 +359,19 @@ open class RpgParserDataStruct : AbstractTest() {
 
     // This test must fail with error
     @Test
-    fun executeSTRUCT_09() {
+    fun executeSTRUCT_09MustFail() {
         val expectedErrors = listOf(
             "Program STRUCT_09 - Issue executing OccurStmt at line 10. OCCUR not supported. DS2 must be an DS defined with OCCURS keyword"
         )
         testError(exampleName = "struct/STRUCT_09", expectedErrors = expectedErrors)
+    }
+
+    @Test
+    fun executeSTRUCT_10MustFail() {
+        val expectedErrors = listOf(
+            "at least factor 1 or result must be specified at: Position(start=Line 9, Column 25, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
+        )
+        testError(exampleName = "struct/STRUCT_10", expectedErrors = expectedErrors)
     }
 
     private fun testError(exampleName: String, expectedErrors: List<String>) {
