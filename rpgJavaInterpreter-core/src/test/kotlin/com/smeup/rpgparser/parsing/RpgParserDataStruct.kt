@@ -24,6 +24,7 @@ import com.smeup.rpgparser.parsing.parsetreetoast.*
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.fail
 
 open class RpgParserDataStruct : AbstractTest() {
 
@@ -351,8 +352,36 @@ open class RpgParserDataStruct : AbstractTest() {
     }
 
     @Test
-    fun parseSTRUCT_08_runtime() {
+    fun executeSTRUCT_08() {
         val exampleName = "struct/STRUCT_08"
         executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
+    }
+
+    // This test must fail with error
+    @Test
+    fun executeSTRUCT_09() {
+        val expectedErrors = listOf(
+            "Program STRUCT_09 - Issue executing OccurStmt at line 10. OCCUR not supported. DS2 must be an DS defined with OCCURS keyword"
+        )
+        val errorMessages = mutableListOf<String>()
+        val configuration = Configuration().apply {
+            jarikoCallback.onError = { errorEvent ->
+                println(errorEvent)
+                errorEvent.error.message?.let {
+                    errorMessages.add(it)
+                }
+            }
+        }
+        val exampleName = "struct/STRUCT_09"
+        kotlin.runCatching {
+            executePgm(programName = exampleName, configuration = configuration)
+        }.onSuccess {
+            fail("This program must fail")
+        }.onFailure {
+            if (expectedErrors != errorMessages) {
+                it.printStackTrace()
+            }
+            assertEquals(expectedErrors, errorMessages)
+        }
     }
 }

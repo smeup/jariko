@@ -1642,7 +1642,7 @@ data class SubstStmt(
  * */
 @Serializable
 data class OccurStmt(
-    val occurenceValue: Expression,
+    val occurenceValue: Expression?,
     val dataStructure: String,
     val result: AssignableExpression?,
     val operationExtender: String?,
@@ -1650,22 +1650,30 @@ data class OccurStmt(
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
 
+    init {
+        require(occurenceValue != null || result != null) {
+            "at least factor 1 or result must be specified"
+        }
+    }
+
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
     override fun execute(interpreter: InterpreterCore) {
-        val dataStructureValue = interpreter[dataStructure] as OccurableDataStructValue
-        val nameOrOccurrence = interpreter.eval(occurenceValue).asString().value
-        require(nameOrOccurrence.isNotEmpty() || result != null) {
-            "at least factor 1 or result must be specified"
+        val dataStructureValue = interpreter[dataStructure]
+        require(dataStructureValue is OccurableDataStructValue) {
+            "OCCUR not supported. $dataStructure must be an DS defined with OCCURS keyword"
         }
-        if (nameOrOccurrence.isInt()) {
-            dataStructureValue.pos(nameOrOccurrence.toInt())
-        } else if (nameOrOccurrence.isNotBlank()) {
-            val factor1DataStructValue = interpreter[nameOrOccurrence]
-            require(factor1DataStructValue is OccurableDataStructValue) {
-                "$nameOrOccurrence must be a multiple occurrence data structure"
+        occurenceValue?.let {
+            val nameOrOccurrence = interpreter.eval(it).asString().value
+            if (nameOrOccurrence.isInt()) {
+                dataStructureValue.pos(nameOrOccurrence.toInt())
+            } else if (nameOrOccurrence.isNotBlank()) {
+                val factor1DataStructValue = interpreter[nameOrOccurrence]
+                require(factor1DataStructValue is OccurableDataStructValue) {
+                    "$nameOrOccurrence must be a multiple occurrence data structure"
+                }
+                dataStructureValue.pos(factor1DataStructValue.occurrence)
             }
-            dataStructureValue.pos(factor1DataStructValue.occurrence)
         }
         result?.let { result -> interpreter.assign(result, dataStructureValue.occurrence.asValue()) }
     }

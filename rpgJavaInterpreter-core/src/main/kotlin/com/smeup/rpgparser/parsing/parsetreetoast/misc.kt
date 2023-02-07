@@ -1725,7 +1725,7 @@ internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val resultExpression = if (!result.isBlank()) this.cspec_fixed_standard_parts().result.toAst(conf) else null
 
     return OccurStmt(
-        occurenceValue = leftExpr(conf)!!,
+        occurenceValue = leftExpr(conf),
         dataStructure = this.cspec_fixed_standard_parts().factor2.text,
         result = resultExpression,
         operationExtender = this.operationExtender?.text,
