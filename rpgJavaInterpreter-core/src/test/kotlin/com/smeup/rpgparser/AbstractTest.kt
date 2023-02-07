@@ -42,6 +42,9 @@ abstract class AbstractTest {
         // I don't like but until I won't be able to refactor the test units through
         // the unification of the SytemInterfaces I need to use this workaround
         SingletonRpgSystem.reset()
+        // It is necessary to fix a problem where  some older tests not running in MainExecutionContext could propagate
+        // the errors to the following tests
+        MainExecutionContext.getAttributes().clear()
     }
 
     /**
@@ -284,6 +287,6 @@ abstract class AbstractTest {
 }
 
 fun Configuration.adaptForTestCase(testCase: AbstractTest): Configuration {
-    this.options!!.compiledProgramsDir = testCase.getTestCompileDir()
+    this.options.compiledProgramsDir = testCase.getTestCompileDir()
     return this
 }
