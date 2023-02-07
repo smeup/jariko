@@ -1126,8 +1126,11 @@ data class OccurableDataStructValue(val occurs: Int) : Value {
      * @param occurrence index position base 1
      * */
     fun pos(occurrence: Int) {
-        require(occurrence <= occurs) {
-            "occurrence value: $occurrence cannot be greater than occurs: $occurs"
+        if (occurrence > occurs) {
+            throw ArrayIndexOutOfBoundsException("occurrence value: $occurrence cannot be greater than occurs: $occurs")
+        }
+        if (occurrence <= 0) {
+            throw ArrayIndexOutOfBoundsException("occurrence value: $occurrence must be be greater or equals than 1")
         }
         this._occurrence = occurrence
     }

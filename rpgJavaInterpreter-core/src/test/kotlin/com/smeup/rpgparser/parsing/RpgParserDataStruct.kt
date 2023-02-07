@@ -380,6 +380,14 @@ open class RpgParserDataStruct : AbstractTest() {
         executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
     }
 
+    @Test
+    fun executeSTRUCT_1BMustFail() {
+        val expectedErrors = listOf(
+            "Program STRUCT_1B - Issue executing OccurStmt at line 12. occurrence value: 11 cannot be greater than occurs: 10"
+        )
+        testError(exampleName = "struct/STRUCT_1B", expectedErrors = expectedErrors)
+    }
+
     private fun testError(exampleName: String, expectedErrors: List<String>) {
         val errorMessages = mutableListOf<String>()
         val configuration = Configuration().apply {
