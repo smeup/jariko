@@ -374,6 +374,12 @@ open class RpgParserDataStruct : AbstractTest() {
         testError(exampleName = "struct/STRUCT_10", expectedErrors = expectedErrors)
     }
 
+    @Test
+    fun executeSTRUCT_1A() {
+        val exampleName = "struct/STRUCT_1A"
+        executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
+    }
+
     private fun testError(exampleName: String, expectedErrors: List<String>) {
         val errorMessages = mutableListOf<String>()
         val configuration = Configuration().apply {
