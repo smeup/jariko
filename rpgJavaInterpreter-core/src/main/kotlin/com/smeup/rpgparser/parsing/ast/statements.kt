@@ -1661,7 +1661,7 @@ data class OccurStmt(
     override fun execute(interpreter: InterpreterCore) {
         val dataStructureValue = interpreter[dataStructure]
         require(dataStructureValue is OccurableDataStructValue) {
-            "OCCUR not supported. $dataStructure must be an DS defined with OCCURS keyword"
+            "OCCUR not supported. $dataStructure must be a DS defined with OCCURS keyword"
         }
         occurenceValue?.let {
             val nameOrOccurrence = interpreter.eval(it).asString().value

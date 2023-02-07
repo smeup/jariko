@@ -357,11 +357,10 @@ open class RpgParserDataStruct : AbstractTest() {
         executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
     }
 
-    // This test must fail with error
     @Test
     fun executeSTRUCT_09MustFail() {
         val expectedErrors = listOf(
-            "Program STRUCT_09 - Issue executing OccurStmt at line 10. OCCUR not supported. DS2 must be an DS defined with OCCURS keyword"
+            "Program STRUCT_09 - Issue executing OccurStmt at line 10. OCCUR not supported. DS2 must be a DS defined with OCCURS keyword"
         )
         testError(exampleName = "struct/STRUCT_09", expectedErrors = expectedErrors)
     }
