@@ -24,6 +24,7 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
+import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
@@ -1634,4 +1635,38 @@ data class SubstStmt(
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+/**
+ * Implements [OCCUR](https://www.ibm.com/docs/en/i/7.4?topic=codes-occur-setget-occurrence-data-structure)
+ * */
+@Serializable
+data class OccurStmt(
+    val occurenceValue: Expression,
+    val dataStructure: String,
+    val result: AssignableExpression?,
+    val operationExtender: String?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    override fun execute(interpreter: InterpreterCore) {
+        val dataStructureValue = interpreter[dataStructure] as OccurableDataStructValue
+        val nameOrOccurrence = interpreter.eval(occurenceValue).asString().value
+        require(nameOrOccurrence.isNotEmpty() || result != null) {
+            "at least factor 1 or result must be specified"
+        }
+        if (nameOrOccurrence.isInt()) {
+            dataStructureValue.pos(nameOrOccurrence.toInt())
+        } else if (nameOrOccurrence.isNotBlank()) {
+            val factor1DataStructValue = interpreter[nameOrOccurrence]
+            require(factor1DataStructValue is OccurableDataStructValue) {
+                "$nameOrOccurrence must be a multiple occurrence data structure"
+            }
+            dataStructureValue.pos(factor1DataStructValue.occurrence)
+        }
+        result?.let { result -> interpreter.assign(result, dataStructureValue.occurrence.asValue()) }
+    }
 }

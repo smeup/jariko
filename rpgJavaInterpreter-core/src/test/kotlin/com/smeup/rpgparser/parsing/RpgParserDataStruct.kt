@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.parsetreetoast.*
@@ -316,7 +317,6 @@ open class RpgParserDataStruct : AbstractTest() {
 
     @Test
     fun parseSTRUCT_80TypeTest() {
-        // OccurableDataStructureType(dataStructureType=DataStructureType(fields=[FieldType(name=FLDA, type=StringType(length=5, varying=false)), FieldType(name=FLDB, type=StringType(length=75, varying=false))], elementSize=80), occurs=50)
 
         val ds1 = OccurableDataStructureType(
             dataStructureType = DataStructureType(
@@ -328,26 +328,16 @@ open class RpgParserDataStruct : AbstractTest() {
             occurs = 50
         )
 
-        val ds2 = OccurableDataStructureType(
-            dataStructureType = DataStructureType(
-                fields = listOf(
-                    FieldType("FLDC", StringType(6, false)),
-                    FieldType("FLDD", StringType(5, false))
-                ),
-                elementSize = 11),
-            occurs = 50
-        )
-        val ds3 = DataStructureType(
+        val ds2 = DataStructureType(
             fields = listOf(
-                FieldType("FLDE", StringType(6, false)),
-                FieldType("FLDF", StringType(5, false))
+                FieldType("FLDC", StringType(6, false)),
+                FieldType("FLDD", StringType(5, false))
             ),
             elementSize = 11
         )
         val expectedDSTypes = mapOf(
             "DS1" to ds1,
-            "DS2" to ds2,
-            "DS3" to ds3
+            "DS2" to ds2
         )
         val actualDSTypes = mutableMapOf<String, Type>()
         val r = assertCanBeParsed("struct/STRUCT_08", withMuteSupport = true)
@@ -358,5 +348,11 @@ open class RpgParserDataStruct : AbstractTest() {
             }
         }
         assertEquals(expectedDSTypes, actualDSTypes)
+    }
+
+    @Test
+    fun parseSTRUCT_08_runtime() {
+        val exampleName = "struct/STRUCT_08"
+        executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
     }
 }

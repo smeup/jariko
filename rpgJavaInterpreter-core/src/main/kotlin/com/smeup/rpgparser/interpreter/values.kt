@@ -858,7 +858,7 @@ fun Type.blank(): Value {
             this.element.blank()
         }
         is DataStructureType -> DataStructValue.blank(this.size)
-        is OccurableDataStructureType -> OccurableDataStuctValue.blank(this.size, this.occurs)
+        is OccurableDataStructureType -> OccurableDataStructValue.blank(this.size, this.occurs)
         is StringType -> {
             if (!this.varying) {
                 StringValue.blank(this.size)
@@ -1083,8 +1083,12 @@ object VoidValue : Value {
     }
 }
 
-data class OccurableDataStuctValue(val occurs: Int) : Value {
-    private var index = 1
+@Serializable
+data class OccurableDataStructValue(val occurs: Int) : Value {
+    private var _occurrence = 1
+    val occurrence: Int
+        get() = _occurrence
+
     private val values = mutableMapOf<Int, DataStructValue>()
 
     companion object {
@@ -1093,8 +1097,8 @@ data class OccurableDataStuctValue(val occurs: Int) : Value {
          * @param length The DS length (AKA DS element size)
          * @param occurs The occurrences number
          * */
-        fun blank(length: Int, occurs: Int): OccurableDataStuctValue {
-            return OccurableDataStuctValue(occurs).apply {
+        fun blank(length: Int, occurs: Int): OccurableDataStructValue {
+            return OccurableDataStructValue(occurs).apply {
                 for (index in 1..occurs) {
                     values[index] = DataStructValue.blank(length)
                 }
@@ -1107,22 +1111,25 @@ data class OccurableDataStuctValue(val occurs: Int) : Value {
     }
 
     /**
-     * @param index The occurrence index (base 1)
+     * @param occurrence The occurrence (base 1)
      * @return The occurrence value at index
      * */
-    operator fun get(index: Int) = values[index]!!
+    operator fun get(occurrence: Int) = values[occurrence]!!
 
     /**
-     * @return the current occurrence value
+     * @return the current value
      * */
-    fun value() = get(index)
+    fun value() = get(occurrence)
 
     /**
      * Move the pointer to the index
-     * @param index index position base 1
+     * @param occurrence index position base 1
      * */
-    fun pos(index: Int) {
-        this.index = index
+    fun pos(occurrence: Int) {
+        require(occurrence <= occurs) {
+            "occurrence value: $occurrence cannot be greater than occurs: $occurs"
+        }
+        this._occurrence = occurrence
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
@@ -1130,7 +1137,7 @@ data class OccurableDataStuctValue(val occurs: Int) : Value {
     }
 
     override fun copy(): Value {
-        return OccurableDataStuctValue(occurs).apply {
+        return OccurableDataStructValue(occurs).apply {
             this.values.putAll(values.mapValues { it.value.copy() })
         }
     }

@@ -39,7 +39,7 @@ class ValueTest {
         val occurableDataStructBlankValue = OccurableDataStructureType(
             dataStructureType = dataStructureType,
             occurs = occurs)
-            .blank() as OccurableDataStuctValue
+            .blank() as OccurableDataStructValue
         for (i in 1..occurs) {
             assertEquals(dataStructBlankValue, occurableDataStructBlankValue[i])
         }

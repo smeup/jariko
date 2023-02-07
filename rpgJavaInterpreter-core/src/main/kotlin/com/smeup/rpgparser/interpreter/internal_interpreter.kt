@@ -175,6 +175,9 @@ open class InternalInterpreter(
                         is DataStructValue -> {
                             containerValue.set(data, value)
                         }
+                        is OccurableDataStructValue -> {
+                            containerValue.value().set(data, value)
+                        }
                         else -> TODO()
                     }
                 }
