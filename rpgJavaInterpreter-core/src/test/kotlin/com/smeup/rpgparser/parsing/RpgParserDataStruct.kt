@@ -363,6 +363,10 @@ open class RpgParserDataStruct : AbstractTest() {
         val expectedErrors = listOf(
             "Program STRUCT_09 - Issue executing OccurStmt at line 10. OCCUR not supported. DS2 must be an DS defined with OCCURS keyword"
         )
+        testError(exampleName = "struct/STRUCT_09", expectedErrors = expectedErrors)
+    }
+
+    private fun testError(exampleName: String, expectedErrors: List<String>) {
         val errorMessages = mutableListOf<String>()
         val configuration = Configuration().apply {
             jarikoCallback.onError = { errorEvent ->
@@ -372,7 +376,6 @@ open class RpgParserDataStruct : AbstractTest() {
                 }
             }
         }
-        val exampleName = "struct/STRUCT_09"
         kotlin.runCatching {
             executePgm(programName = exampleName, configuration = configuration)
         }.onSuccess {
