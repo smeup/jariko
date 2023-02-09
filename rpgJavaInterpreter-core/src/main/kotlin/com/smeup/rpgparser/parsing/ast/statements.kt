@@ -1658,15 +1658,13 @@ data class OccurStmt(
             "OCCUR not supported. $dataStructure must be a DS defined with OCCURS keyword"
         }
         occurenceValue?.let {
-            val nameOrOccurrence = interpreter.eval(it).asString().value
-            if (nameOrOccurrence.isInt()) {
-                dataStructureValue.pos(nameOrOccurrence.toInt())
-            } else if (nameOrOccurrence.isNotBlank()) {
-                val factor1DataStructValue = interpreter[nameOrOccurrence]
-                require(factor1DataStructValue is OccurableDataStructValue) {
-                    "$nameOrOccurrence must be a multiple occurrence data structure"
-                }
-                dataStructureValue.pos(factor1DataStructValue.occurrence)
+            val evaluatedValue = interpreter.eval(it)
+            if (evaluatedValue is OccurableDataStructValue) {
+                dataStructureValue.pos(evaluatedValue.occurrence)
+            } else if (evaluatedValue.asString().value.isInt()) {
+                dataStructureValue.pos(evaluatedValue.asString().value.toInt())
+            } else {
+                throw IllegalArgumentException("$evaluatedValue must be an occurrence or a reference to a multiple occurrence data structure")
             }
         }
         result?.let { result -> interpreter.assign(result, dataStructureValue.occurrence.asValue()) }
