@@ -1730,7 +1730,8 @@ internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         result = resultExpression,
         operationExtender = this.operationExtender?.text,
         position = position,
-        dataDefinition = dataDefinition
+        dataDefinition = dataDefinition,
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
     )
 }
 

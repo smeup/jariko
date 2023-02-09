@@ -1647,8 +1647,15 @@ data class OccurStmt(
     val result: AssignableExpression?,
     val operationExtender: String?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val errorIndicator: IndicatorKey?,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+
+    init {
+        require(operationExtender == null) {
+            "Operation extender not supported"
+        }
+    }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
@@ -1660,13 +1667,29 @@ data class OccurStmt(
         occurenceValue?.let {
             val evaluatedValue = interpreter.eval(it)
             if (evaluatedValue is OccurableDataStructValue) {
-                dataStructureValue.pos(evaluatedValue.occurrence)
+                dataStructureValue.pos(
+                    occurrence = evaluatedValue.occurrence,
+                    interpreter = interpreter,
+                    errorIndicator = errorIndicator
+                )
             } else if (evaluatedValue.asString().value.isInt()) {
-                dataStructureValue.pos(evaluatedValue.asString().value.toInt())
+                dataStructureValue.pos(
+                    occurrence = evaluatedValue.asString().value.toInt(),
+                    interpreter = interpreter,
+                    errorIndicator = errorIndicator
+                )
             } else {
                 throw IllegalArgumentException("$evaluatedValue must be an occurrence or a reference to a multiple occurrence data structure")
             }
         }
         result?.let { result -> interpreter.assign(result, dataStructureValue.occurrence.asValue()) }
+    }
+}
+
+fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, errorIndicator: IndicatorKey?) {
+    try {
+        this.pos(occurrence)
+    } catch (e: ArrayIndexOutOfBoundsException) {
+        if (errorIndicator == null) throw e else interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
     }
 }
