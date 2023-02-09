@@ -366,11 +366,8 @@ open class RpgParserDataStruct : AbstractTest() {
     }
 
     @Test
-    fun executeSTRUCT_10MustFail() {
-        val expectedErrors = listOf(
-            "at least factor 1 or result must be specified at: Position(start=Line 9, Column 25, end=Line 9, Column 85) com.smeup.rpgparser.RpgParser\$Cspec_fixed_standardContext"
-        )
-        testError(exampleName = "struct/STRUCT_10", expectedErrors = expectedErrors)
+    fun executeSTRUCT_10() {
+        executePgm(programName = "struct/STRUCT_10", configuration = Configuration().apply { options.muteSupport = true })
     }
 
     @Test

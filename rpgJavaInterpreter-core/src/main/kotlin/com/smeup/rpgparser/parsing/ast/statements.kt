@@ -1650,12 +1650,6 @@ data class OccurStmt(
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
 
-    init {
-        require(occurenceValue != null || result != null) {
-            "at least factor 1 or result must be specified"
-        }
-    }
-
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
     override fun execute(interpreter: InterpreterCore) {
