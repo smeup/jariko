@@ -3,12 +3,13 @@
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
      V* 15/02/23  004649  BUSFIO Creazione
+     V* 16/02/23  004649  BUSFIO Aggiunta notazione per mute di performance
      V*=====================================================================
      D*  OBIETTIVO
      D*  Program finalized to test performance of opcode OCCUR
      D*
      V*=====================================================================
-     D $X              S              7  0 INZ(100000)
+     D $X              S              7  0 INZ
       * DS
      D $ADS            DS                  OCCURS(100000)
      D  $COD                          7  0
@@ -27,8 +28,9 @@
       * Start time
     MU* TIMEOUT(10)
      C                   TIME                    $TIMST
+     C                   EVAL      $X = 0
       * Test Occur
-     C                   DO        $X
+     C     1             DO        100000        $X
      C     $X            OCCUR     $ADS
      C                   EVAL      $COD = $X
      C                   EVAL      $DES = %EDITC($X:'Z')
