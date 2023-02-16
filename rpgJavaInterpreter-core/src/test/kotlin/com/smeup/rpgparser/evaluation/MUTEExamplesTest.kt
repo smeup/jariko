@@ -350,6 +350,12 @@ open class MUTEExamplesTest : AbstractTest() {
     }
 
     @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations with assignment of a numeric var and alfa var)
+    fun executeMUTE10_78() {
+        assertMuteOK("MUTE10_78")
+    }
+
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_58() {
         // mock of £JAX_IMP0, £IXA and £JAX_FIN0
         val jvmMockPrograms = listOf(
