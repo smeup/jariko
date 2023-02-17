@@ -2,12 +2,11 @@
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
-     V* 15/02/23  004649  BUSFIO Creazione
-     V* 16/02/23  004649  BUSFIO Aggiunta notazione per mute di performance
-     V* 17/02/23  004649  BUSFIO Modificato commento
+     V* 17/02/23  004649  BUSFIO Creazione
      V*=====================================================================
      D*  OBIETTIVO
-     D*  Program finalized to test performance of opcode OCCUR with DS eval
+     D*  Program finalized to test performance of opcode OCCUR no sequential
+     D* without DS eval
      D*
      V*=====================================================================
      D $X              S              7  0 INZ
@@ -25,14 +24,12 @@
       *---------------------------------------------------------------
       * Start time
     MU* TIMEOUT(10)
-     C                   EVAL      $X = 0
+     C                   EVAL      $X = 1
      C                   TIME                    $TIMST
-
       * Test Occur
      C     1             DO        100000        $X
      C     $X            OCCUR     $ADS
-     C                   EVAL      $COD = $X
-     C                   EVAL      $DES = %EDITC($X:'Z')
+     C                   EVAL      $X = $X + 15
      C                   ENDDO
       * End time
      C                   TIME                    $TIMEN
