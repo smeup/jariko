@@ -1,12 +1,12 @@
      V*=====================================================================
-     V* MODIFICHE Ril.  T Au Descrizione
-     V* gg/mm/aa  nn.mm i xx Breve descrizione
+     V* CHANGES   Rel.  T Au Description
+     V* dd/mm/yy  nn.mm i xx Short description
      V*=====================================================================
-     V* 15/02/23  004649  BUSFIO Creazione
-     V* 16/02/23  004649  BUSFIO Aggiunta notazione per mute di performance
-     V* 17/02/23  004649  BUSFIO Modificato commento
+     V* 15/02/23  004649  BUSFIO Creation
+     V* 16/02/23  004649  BUSFIO Add notation for performance mute
+     V* 20/02/23  004649  BUSFIO Modified comment
      V*=====================================================================
-     D*  OBIETTIVO
+     D*  TARGET
      D*  Program finalized to test performance of opcode OCCUR with DS eval
      D*
      V*=====================================================================

@@ -1,10 +1,11 @@
      V*=====================================================================
-     V* MODIFICHE Ril.  T Au Descrizione
-     V* gg/mm/aa  nn.mm i xx Breve descrizione
+     V* CHANGES   Rel.  T Au Description
+     V* dd/mm/yy  nn.mm i xx Short description
      V*=====================================================================
-     V* 17/02/23  004649  BUSFIO Creazione
+     V* 17/02/23  004649  BUSFIO Creation
+     V* 20/02/23  004649  BUSFIO Modified comment
      V*=====================================================================
-     D*  OBIETTIVO
+     D*  TARGET
      D*  Program finalized to test performance of opcode OCCUR no sequential
      D* without DS eval
      D*
