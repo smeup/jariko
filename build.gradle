@@ -75,6 +75,10 @@ subprojects {
 
     // specifying what we want to sign
     signing {
+        if (!project.hasProperty("signing.keyId")) {
+            println "$project.name - Signing disabled because signing.keyId property is not present, it is not an error!!!"
+        }
+        required {  project.hasProperty("signing.keyId") }
         sign configurations.archives
     }
 

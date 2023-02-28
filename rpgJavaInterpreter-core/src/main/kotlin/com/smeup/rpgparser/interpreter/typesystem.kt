@@ -84,6 +84,17 @@ data class DataStructureType(val fields: List<FieldType>, val elementSize: Int) 
         get() = elementSize
 }
 
+/**
+ * This type models a DS with OCCURS keyword
+ * @param dataStructureType DS type
+ * @param occurs Occurrences number
+ * */
+@Serializable
+data class OccurableDataStructureType(val dataStructureType: DataStructureType, val occurs: Int) : Type() {
+    override val size: Int
+        get() = dataStructureType.size
+}
+
 @Serializable
 data class StringType(val length: Int, val varying: Boolean = false) : Type() {
     override val size: Int

@@ -45,8 +45,7 @@ class ExpressionEvaluation(
     override fun eval(expression: IntLiteral) = IntValue(expression.value)
     override fun eval(expression: RealLiteral) = DecimalValue(expression.value)
     override fun eval(expression: NumberOfElementsExpr): Value {
-        val value = expression.value.evalWith(this)
-        return when (value) {
+        return when (val value = expression.value.evalWith(this)) {
             is ArrayValue -> value.arrayLength().asValue()
             else -> throw IllegalStateException("Cannot ask number of elements of $value")
         }
@@ -265,13 +264,11 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: LenExpr): Value {
-        val value = expression.value.evalWith(this)
-        return when (value) {
+        return when (val value = expression.value.evalWith(this)) {
             is StringValue -> {
                 when (expression.value) {
                     is DataRefExpr -> {
-                        val type = expression.value.type()
-                        when (type) {
+                        when (val type = expression.value.type()) {
                             is StringType -> {
                                 value.length(type.varying).asValue()
                             }
@@ -508,7 +505,19 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: QualifiedAccessExpr): Value {
-        val dataStringValue = expression.container.evalWith(this) as DataStructValue
+        val dataStringValue = when (val value = expression.container.evalWith(this)) {
+            is DataStructValue -> {
+                value
+            }
+
+            is OccurableDataStructValue -> {
+                value.value()
+            }
+
+            else -> {
+                throw ClassCastException(value::class.java.name)
+            }
+        }
         return dataStringValue[expression.field.referred
             ?: throw IllegalStateException("Referenced to field not resolved: ${expression.field.name}")]
     }

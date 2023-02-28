@@ -44,6 +44,8 @@ class SymbolTable : ISymbolTable {
                 // Should be always a DataStructValue
                 if (containerValue is DataStructValue) {
                     return coerce(containerValue[data], data.type)
+                } else if (containerValue is OccurableDataStructValue) {
+                    return coerce(containerValue.value()[data], data.type)
                 } else {
                     throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
                 }

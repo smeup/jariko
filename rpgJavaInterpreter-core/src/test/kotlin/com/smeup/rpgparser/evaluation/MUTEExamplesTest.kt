@@ -350,6 +350,30 @@ open class MUTEExamplesTest : AbstractTest() {
     }
 
     @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations using OCCUR and with assignment of a numeric var and alfa var)
+    fun executeMUTE10_78() {
+        assertMuteOK("MUTE10_78")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations using OCCUR)
+    fun executeMUTE10_79() {
+        assertMuteOK("MUTE10_79")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations using OCCUR no sequential with assignment of a numeric var and alfa var)
+    fun executeMUTE10_80() {
+        assertMuteOK("MUTE10_80")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations no sequential)
+    fun executeMUTE10_81() {
+        assertMuteOK("MUTE10_81")
+    }
+
+    @Test @Category(PerformanceTest::class)
     fun executeMUTE10_58() {
         // mock of £JAX_IMP0, £IXA and £JAX_FIN0
         val jvmMockPrograms = listOf(

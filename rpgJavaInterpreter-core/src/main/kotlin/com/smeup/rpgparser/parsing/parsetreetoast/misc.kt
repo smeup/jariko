@@ -652,43 +652,49 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
 internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.cspec_fixed_standard() != null ->
-            this.cspec_fixed_standard().toAst(conf)
-                .also {
-                    it.indicatorCondition = this.toIndicatorCondition(conf)
-                    if (it.indicatorCondition != null) {
-                        val continuedIndicators = this.cspec_continuedIndicators()
-                        // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
-                        for (i in 0 until continuedIndicators.size) {
-                            val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
+            // we need capture error inside runParserRuleContext in order
+            // to avoid that some errors pass silently
+            this.cspec_fixed_standard().runParserRuleContext(conf) { standardContext ->
+                standardContext.toAst(conf)
+                    .also {
+                        it.indicatorCondition = this.toIndicatorCondition(conf)
+                        if (it.indicatorCondition != null) {
+                            val continuedIndicators = this.cspec_continuedIndicators()
+                            // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
+                            for (i in 0 until continuedIndicators.size) {
+                                val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
+                                var onOff = false
+                                if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
+                                    onOff = true
+                                }
+                                val controlLevel = when (continuedIndicators[i].start.type) {
+                                    AndIndicator -> "AND"
+                                    OrIndicator -> "OR"
+                                    else -> ""
+                                }
+                                val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
+                                it.continuedIndicators.put(indicator, continuedIndicator)
+                            }
+
+                            // Add indicatorCondition (inline indicator) also
+                            var controlLevel = (this.children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
+                            if (controlLevel == "AN") {
+                                controlLevel = "AND"
+                            }
                             var onOff = false
-                            if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
+                            if (!(this.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
                                 onOff = true
                             }
-                            val controlLevel = when (continuedIndicators[i].start.type) {
-                                AndIndicator -> "AND"
-                                OrIndicator -> "OR"
-                                else -> ""
-                            }
+                            val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toIndicatorKey()
                             val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
                             it.continuedIndicators.put(indicator, continuedIndicator)
                         }
-
-                        // Add indicatorCondition (inline indicator) also
-                        var controlLevel = (this.children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
-                        if (controlLevel == "AN") {
-                            controlLevel = "AND"
-                        }
-                        var onOff = false
-                        if (!(this.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
-                            onOff = true
-                        }
-                        val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toIndicatorKey()
-                        val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
-                        it.continuedIndicators.put(indicator, continuedIndicator)
                     }
-                }
+            }
         this.cspec_fixed_x2() != null ->
-            this.cspec_fixed_x2().toAst()
+            this.cspec_fixed_x2().runParserRuleContext(conf) {
+                it.toAst()
+            }
         else -> todo(conf = conf)
     }
 }
@@ -853,6 +859,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csSUBST() != null -> this.csSUBST()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csOCCUR() != null -> this.csOCCUR()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         else -> todo(conf = conf)
@@ -1705,6 +1714,24 @@ internal fun CsSUBSTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         operationExtender = this.operationExtender?.text,
         position = position,
         dataDefinition = dataDefinition
+    )
+}
+
+internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OccurStmt {
+
+    val position = toPosition(conf.considerPosition)
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    val resultExpression = if (!result.isBlank()) this.cspec_fixed_standard_parts().result.toAst(conf) else null
+
+    return OccurStmt(
+        occurenceValue = leftExpr(conf),
+        dataStructure = this.cspec_fixed_standard_parts().factor2.text,
+        result = resultExpression,
+        operationExtender = this.operationExtender?.text,
+        position = position,
+        dataDefinition = dataDefinition,
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
     )
 }
 

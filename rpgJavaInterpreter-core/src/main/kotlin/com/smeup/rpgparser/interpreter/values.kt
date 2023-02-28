@@ -858,6 +858,7 @@ fun Type.blank(): Value {
             this.element.blank()
         }
         is DataStructureType -> DataStructValue.blank(this.size)
+        is OccurableDataStructureType -> OccurableDataStructValue.blank(this.size, this.occurs)
         is StringType -> {
             if (!this.varying) {
                 StringValue.blank(this.size)
@@ -1079,5 +1080,68 @@ object VoidValue : Value {
 
     override fun copy(): Value {
         TODO("Not yet implemented")
+    }
+}
+
+@Serializable
+data class OccurableDataStructValue(val occurs: Int) : Value {
+    private var _occurrence = 1
+    val occurrence: Int
+        get() = _occurrence
+
+    private val values = mutableMapOf<Int, DataStructValue>()
+
+    companion object {
+        /**
+         * Create a blank instance of DS
+         * @param length The DS length (AKA DS element size)
+         * @param occurs The occurrences number
+         * */
+        fun blank(length: Int, occurs: Int): OccurableDataStructValue {
+            return OccurableDataStructValue(occurs).apply {
+                for (index in 1..occurs) {
+                    values[index] = DataStructValue.blank(length)
+                }
+            }
+        }
+    }
+
+    override fun asString(): StringValue {
+        return value().asString()
+    }
+
+    /**
+     * @param occurrence The occurrence (base 1)
+     * @return The occurrence value at index
+     * */
+    operator fun get(occurrence: Int) = values[occurrence]!!
+
+    /**
+     * @return the current value
+     * */
+    fun value() = get(occurrence)
+
+    /**
+     * Move the pointer to the index
+     * @param occurrence index position base 1
+     * */
+    fun pos(occurrence: Int) {
+        if (occurrence > occurs) {
+            throw ArrayIndexOutOfBoundsException("occurrence value: $occurrence cannot be greater than occurs: $occurs")
+        }
+        if (occurrence <= 0) {
+            throw ArrayIndexOutOfBoundsException("occurrence value: $occurrence must be be greater or equals than 1")
+        }
+        this._occurrence = occurrence
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is OccurableDataStructureType && occurs == expectedType.occurs
+    }
+
+    override fun copy(): Value {
+        return OccurableDataStructValue(occurs).apply {
+            this.values.putAll(values.mapValues { it.value.copy() })
+        }
     }
 }
