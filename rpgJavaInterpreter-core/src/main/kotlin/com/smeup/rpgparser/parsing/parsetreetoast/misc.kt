@@ -96,13 +96,9 @@ private fun RContext.getDataDefinitions(
         .mapNotNull {
             when {
                 it.dcl_ds() != null -> {
-                    try {
-                        it.dcl_ds()
-                            .toAst(conf)
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    } catch (e: Exception) {
-                        null
-                    }
+                    it.dcl_ds()
+                        .toAst(conf)
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                 }
                 else -> null
             }

@@ -289,4 +289,9 @@ open class ToAstSmokeTest : AbstractTest() {
             }
         }
     }
+
+    @Test
+    fun buildPARMS1() {
+        assertASTCanBeProduced(exampleName = "PARMS1", printTree = false)
+    }
 }
