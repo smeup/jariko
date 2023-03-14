@@ -117,6 +117,7 @@ data class Options(
  * @param onEnterFunction It is invoked on function enter after symboltable initialization.
  * @param onExitFunction It is invoked on function exit, only if the function does not throw any error
  * @param onError It is invoked in case of errors. The default implementation writes error event in stderr
+ * @param logInfo If specified it is invoked to log information messages
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
@@ -145,7 +146,8 @@ data class JarikoCallback(
     var onExitFunction: (functionName: String, returnValue: Value) -> Unit = { _: String, _: Value -> },
     var onError: (errorEvent: ErrorEvent) -> Unit = { errorEvent ->
         System.err.println(errorEvent)
-    }
+    },
+    var logInfo: ((message: String) -> Unit)? = null
 )
 
 /**
