@@ -8,8 +8,10 @@ import com.smeup.rpgparser.interpreter.DataStructValue;
 import com.smeup.rpgparser.interpreter.StringValue;
 import com.smeup.rpgparser.interpreter.Value;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
+import com.smeup.rpgparser.logging.LoggingKt;
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder;
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
+import kotlin.Unit;
 
 import java.io.File;
 import java.util.Arrays;
@@ -25,8 +27,15 @@ public class CallJarikoWithParams {
     public static CommandLineParms execPgm(String name, CommandLineParms inputParams) {
         File srcDir = new File(CallJarikoWithParams.class.getResource("/rpg").getPath());
         List<RpgProgramFinder> programFinders = Arrays.asList(new DirRpgProgramFinder(srcDir));
-        CommandLineProgram program = RunnerKt.getProgram(name, new JavaSystemInterface(), programFinders);
-        return program.singleCall(inputParams, new Configuration());
+        final JavaSystemInterface systemInterface = new JavaSystemInterface();
+        systemInterface.setLoggingConfiguration(LoggingKt.consoleLoggingConfiguration(LoggingKt.PERFORMANCE_LOGGER));
+        CommandLineProgram program = RunnerKt.getProgram(name, systemInterface, programFinders);
+        final Configuration configuration = new  Configuration();
+        configuration.getJarikoCallback().setLogInfo(message -> {
+            System.out.println(message);
+            return Unit.INSTANCE;
+        });
+        return program.singleCall(inputParams, configuration);
     }
 
     public static void execWithListOfString() {
