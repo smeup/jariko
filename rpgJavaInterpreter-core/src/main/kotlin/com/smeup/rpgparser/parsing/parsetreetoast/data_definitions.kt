@@ -419,7 +419,7 @@ internal fun RpgParser.Dcl_dsContext.type(
     }.maxOrNull()
     val elementSize = explicitSize
             ?: calculatedElementSize
-            ?: throw IllegalStateException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
+            ?: throw CannotRetrieveDataStructureElementSizeException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
     val dataStructureType = DataStructureType(fields = fieldTypes, elementSize = size ?: elementSize)
     val baseType = occurs?.let {
         OccurableDataStructureType(dataStructureType = dataStructureType, occurs = occurs)
@@ -430,6 +430,8 @@ internal fun RpgParser.Dcl_dsContext.type(
         ArrayType(baseType, nElements)
     }
 }
+
+internal class CannotRetrieveDataStructureElementSizeException(override val message: String) : IllegalStateException(message)
 
 private val RpgParser.Parm_fixedContext.name: String
     get() = this.ds_name().text

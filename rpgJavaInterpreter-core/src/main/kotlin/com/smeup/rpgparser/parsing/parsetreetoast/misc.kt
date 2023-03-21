@@ -96,9 +96,13 @@ private fun RContext.getDataDefinitions(
         .mapNotNull {
             when {
                 it.dcl_ds() != null -> {
-                    it.dcl_ds()
-                        .toAst(conf)
-                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    try {
+                        it.dcl_ds()
+                            .toAst(conf)
+                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    } catch (e: CannotRetrieveDataStructureElementSizeException) {
+                        null
+                    }
                 }
                 else -> null
             }
@@ -491,7 +495,7 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                             it.statement().dcl_ds()
                                 .toAst(conf)
                                 .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                        } catch (e: Exception) {
+                        } catch (e: CannotRetrieveDataStructureElementSizeException) {
                             null
                         }
                     }
