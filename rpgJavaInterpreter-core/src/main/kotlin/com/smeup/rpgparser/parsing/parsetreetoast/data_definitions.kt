@@ -33,6 +33,16 @@ enum class RpgType(val rpgType: String) {
     BINARY("B")
 }
 
+internal enum class DSFieldInitKeyword(val keyword: String, val type: Type) {
+    STATUS("*STATUS", NumberType(entireDigits = 5, decimalDigits = 0, rpgType = RpgType.ZONED)),
+    PARMS("*PARMS", NumberType(entireDigits = 3, decimalDigits = 0, rpgType = RpgType.ZONED))
+}
+
+private fun String.toDSFieldInitKeyword(): DSFieldInitKeyword? {
+    return DSFieldInitKeyword.values()
+        .firstOrNull { dsFieldInitKeyword -> dsFieldInitKeyword.keyword.equals(this.trim(), ignoreCase = true) }
+}
+
 private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
     require(fieldsList.isNotEmpty())
     var maxEnd = 0
@@ -566,8 +576,13 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
         totalSize
     }
 
+    val dsFieldInitKeyword = FROM_POSITION().text.toDSFieldInitKeyword()
+
     return when (rpgCodeType) {
         "", RpgType.ZONED.rpgType -> {
+            if (dsFieldInitKeyword != null) {
+                return dsFieldInitKeyword.type
+            }
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
@@ -971,7 +986,9 @@ fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     return if (text.isBlank()) {
         null
     } else {
-        text.toInt() - 1
+        // from position could contain one of keywords defined in DSFieldInitKeyword
+        // for this reason not int value is allowed
+        text.toIntOrNull()?.let { it - 1 }
     }
 }
 
