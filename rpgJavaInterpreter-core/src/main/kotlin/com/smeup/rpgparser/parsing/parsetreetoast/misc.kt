@@ -100,7 +100,10 @@ private fun RContext.getDataDefinitions(
                         it.dcl_ds()
                             .toAst(conf)
                             .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                        // these errors can be caught because they don't introduce sneaky errors
                     } catch (e: CannotRetrieveDataStructureElementSizeException) {
+                        null
+                    } catch (e: ParseTreeToAstError) {
                         null
                     }
                 }
@@ -495,7 +498,10 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                             it.statement().dcl_ds()
                                 .toAst(conf)
                                 .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                            // these errors can be caught because they don't introduce sneaky errors
                         } catch (e: CannotRetrieveDataStructureElementSizeException) {
+                            null
+                        } catch (e: ParseTreeToAstError) {
                             null
                         }
                     }
