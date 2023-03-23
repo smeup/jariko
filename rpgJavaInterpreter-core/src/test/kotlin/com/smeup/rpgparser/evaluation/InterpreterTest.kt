@@ -2027,4 +2027,21 @@ Test 6
     fun executeASSIGNERR01() {
         executePgm("ASSIGNERR01")
     }
+
+    @Test
+    fun executePARMS1() {
+        val console = mutableListOf<String>()
+        val expected = listOf("HELLO", "3", "0")
+        val systemInterface = JavaSystemInterface().apply {
+            this.onDisplay = { message, _ ->
+                println(message)
+                console.add(message)
+            }
+        }
+        executePgm(
+            programName = "PARMS1",
+            params = CommandLineParms(listOf("FUNC", "METH")),
+            systemInterface = systemInterface)
+        assertEquals(expected, console)
+    }
 }

@@ -17,7 +17,9 @@
 package com.smeup.rpgparser.parsing.ast
 
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.interpreter.DataStructureType
 import com.smeup.rpgparser.interpreter.Scope
+import com.smeup.rpgparser.parsing.parsetreetoast.DSFieldInitKeywordType
 import org.junit.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -301,6 +303,29 @@ open class ToAstSmokeTest : AbstractTest() {
 
     @Test
     fun buildAstForPARMS1() {
-        assertASTCanBeProduced(exampleName = "PARMS1", printTree = false)
+        assertASTCanBeProduced(exampleName = "PARMS1", printTree = false).apply {
+            assertEquals(1, dataDefinitions.size)
+            val type = dataDefinitions[0].type
+            require(type is DataStructureType)
+            val fields = type.fields
+            // DS must contain 3 fields
+            assertEquals(3, fields.size)
+            dataDefinitions[0].fields.first { fieldDefinition -> fieldDefinition.name == "£PDSPR" }.apply {
+                // during AST creating the field type must be like this
+                assertTrue { this.type == DSFieldInitKeywordType.PARMS.type }
+                // during AST creating startOffset and endOffset will be initialized
+                assertEquals(10, this.startOffset)
+                assertEquals(13, this.endOffset)
+                assertTrue { this.initializationValue is ParmsExpr }
+            }
+            dataDefinitions[0].fields.first { fieldDefinition -> fieldDefinition.name == "£PDSST" }.apply {
+                // during AST creating the field type must be like this
+                assertTrue { this.type == DSFieldInitKeywordType.STATUS.type }
+                // during AST creating startOffset and endOffset will be initialized
+                assertEquals(13, this.startOffset)
+                assertEquals(18, this.endOffset)
+                assertTrue { this.initializationValue is StatusExpr }
+            }
+        }
     }
 }
