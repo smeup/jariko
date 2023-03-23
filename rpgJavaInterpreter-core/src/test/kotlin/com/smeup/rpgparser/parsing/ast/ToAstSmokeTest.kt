@@ -304,7 +304,7 @@ open class ToAstSmokeTest : AbstractTest() {
     @Test
     fun buildAstForPARMS1() {
         assertASTCanBeProduced(exampleName = "PARMS1", printTree = false).apply {
-            assertEquals(1, dataDefinitions.size)
+            assertEquals(3, dataDefinitions.size)
             val type = dataDefinitions[0].type
             require(type is DataStructureType)
             val fields = type.fields
