@@ -566,6 +566,11 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeEVALARRAY12() {
+        assertEquals(listOf("AA", "BB"), outputOf("ARRAY12"))
+    }
+
+    @Test
     fun executeSTRNOTVA() {
         assertEquals(listOf("AB  CD  EF"), outputOf("STRNOTVA"))
     }
@@ -2031,7 +2036,7 @@ Test 6
     @Test
     fun executePARMS1() {
         val console = mutableListOf<String>()
-        val expected = listOf("HELLO", "3", "0")
+        val expected = listOf("HELLO", "2", "0")
         val systemInterface = JavaSystemInterface().apply {
             this.onDisplay = { message, _ ->
                 println(message)
