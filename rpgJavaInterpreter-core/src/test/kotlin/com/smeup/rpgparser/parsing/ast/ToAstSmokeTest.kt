@@ -227,8 +227,8 @@ open class ToAstSmokeTest : AbstractTest() {
     }
 
     // TODO fix
-    //  java.lang.IllegalArgumentException: Start offset not calculated for fields £G64P1, £G64P2, £G64TC, £G64CS, £G64DC
-    //	    at com.smeup.rpgparser.parsing.parsetreetoast.Data_definitionsKt.calculateFieldInfos(data_definitions.kt:678)
+    // java.lang.IllegalArgumentException: Start offset not calculated for fields £G64P1, £G64P2, £G64TC, £G64CS, £G64DC
+    // at com.smeup.rpgparser.parsing.parsetreetoast.Data_definitionsKt.calculateFieldInfos(data_definitions.kt:678)
     @Test
     @Ignore
     fun buildAstForLOSER_PR() {
@@ -236,8 +236,8 @@ open class ToAstSmokeTest : AbstractTest() {
     }
 
     // TODO fix
-    //  java.lang.IllegalArgumentException: Start offset not calculated for fields £G64P1, £G64P2, £G64TC, £G64CS, £G64DC
-    //	    at com.smeup.rpgparser.parsing.parsetreetoast.Data_definitionsKt.calculateFieldInfos(data_definitions.kt:678)
+    // java.lang.IllegalArgumentException: Start offset not calculated for fields £G64P1, £G64P2, £G64TC, £G64CS, £G64DC
+    // at com.smeup.rpgparser.parsing.parsetreetoast.Data_definitionsKt.calculateFieldInfos(data_definitions.kt:678)
     @Test
     @Ignore
     fun buildAstForLOSER_PR_FULL() {
