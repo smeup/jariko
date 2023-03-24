@@ -566,7 +566,8 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeEVALARRAY12() {
+    fun executeARRAY12() {
+        assertCanBeParsed(exampleName = "ARRAY12", printTree = true)
         assertEquals(listOf("AA", "BB"), outputOf("ARRAY12"))
     }
 
