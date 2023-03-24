@@ -78,6 +78,19 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
     override fun toDataDefinition() = calculator()
 }
 
+internal object KnownDataDefinition {
+
+    fun getInstance(): MutableMap<String, DataDefinition> {
+        return if (MainExecutionContext.getParsingProgramStack().empty()) {
+            MainExecutionContext.getAttributes()
+        } else {
+            MainExecutionContext.getParsingProgramStack().peek().attributes
+        }.computeIfAbsent("com.smeup.rpgparser.parsing.parsetreetoast.KnownDataDefinition") {
+            mutableMapOf<String, DataDefinition>()
+        } as MutableMap<String, DataDefinition>
+    }
+}
+
 private fun RContext.getDataDefinitions(
     conf: ToAstConfiguration = ToAstConfiguration(),
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>
@@ -86,7 +99,7 @@ private fun RContext.getDataDefinitions(
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
-    val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
+    val knownDataDefinitions = KnownDataDefinition.getInstance()
 
     fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().forEach {
         dataDefinitionProviders.add(it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))

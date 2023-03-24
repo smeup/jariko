@@ -536,12 +536,17 @@ data class FieldInfo(
     }
 }
 
-internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(): Int? {
+internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(conf: ToAstConfiguration): Int? {
     if (this.keyword().any { it.keyword_dim() != null }) {
+        val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+            KnownDataDefinition.getInstance().values.toList(),
+            conf.compileTimeInterpreter
+        )
         val dims = this.keyword().mapNotNull { it.keyword_dim() }
         require(dims.size == 1)
         val dim = dims[0]
-        return dim.numeric_constant.text.toInt()
+        return compileTimeInterpreter.evaluate(this.rContext(), dim.simpleExpression().toAst(conf))
+            .asInt().value.toInt()
     }
     return null
 }
@@ -583,7 +588,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     }
     val explicitElementSize = if (arraySizeDeclared != null) {
         totalSize?.let {
-            it / arraySizeDeclared()!!
+            it / arraySizeDeclared(conf)!!
         }
     } else {
         totalSize
@@ -712,13 +717,15 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
             initializationValue = this.toAst()
         }
     }
-    val arraySizeDeclared = this.arraySizeDeclared()
+
+    // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
+    val arraySizeDeclared = this.arraySizeDeclared(conf)
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
             explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
             explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf),
-            arraySizeDeclared = this.arraySizeDeclared(),
-            arraySizeDeclaredOnThisField = this.arraySizeDeclared(),
+            arraySizeDeclared = this.arraySizeDeclared(conf),
+            arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
             initializationValue = initializationValue,
             descend = descend,
             position = this.toPosition(conf.considerPosition))

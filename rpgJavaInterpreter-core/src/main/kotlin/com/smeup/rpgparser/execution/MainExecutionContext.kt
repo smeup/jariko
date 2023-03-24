@@ -216,4 +216,5 @@ data class ParsingProgram(val name: String) {
     val parsingFunctionNameStack = Stack<String>()
     var copyBlocks: CopyBlocks? = null
     var sourceLines: List<String>? = null
+    val attributes: MutableMap<String, Any> = mutableMapOf()
 }
