@@ -298,6 +298,7 @@ data class NumberOfElementsExpr(val value: Expression, override val position: Po
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+@Serializable
 internal data class StatusExpr(override val position: Position?) : Expression(position) {
     override fun render() = "*STATUS"
     override fun evalWith(evaluator: Evaluator) = IntValue(0)
