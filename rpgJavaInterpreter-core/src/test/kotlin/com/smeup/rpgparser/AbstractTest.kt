@@ -45,6 +45,8 @@ abstract class AbstractTest {
         // It is necessary to fix a problem where  some older tests not running in MainExecutionContext could propagate
         // the errors to the following tests
         MainExecutionContext.getAttributes().clear()
+        MainExecutionContext.getProgramStack().clear()
+        MainExecutionContext.getParsingProgramStack().clear()
     }
 
     /**
