@@ -19,21 +19,21 @@
      D* M A I N
       *---------------------------------------------------------------------
       * Only 2 Parametes
-     U* VAL1(£PDSSC) VAL2(0) COMP(EQ)
-     C                   CALL      'MUTE12_11A'
+    MU* VAL1(£PDSSC) VAL2(0) COMP(EQ)
+     C                   CALL      'MUTE12_15A'
     MC                   PARM      20            PRMINT1
      C                   PARM      'Hello'       PRMSTR1                        COSTANTE
       *
     M * Only 3 Parametes
-     U* VAL1(£PDSSC) VAL2(0) COMP(EQ)
-     C                   CALL      'MUTE12_11B'
+    MU* VAL1(£PDSSC) VAL2(0) COMP(EQ)
+     C                   CALL      'MUTE12_15B'
      C                   PARM      30            PRMINT1
      C                   PARM      'World'       PRMSTR1                        COSTANTE
      C                   PARM      30            PRMINT2
       *
       * Only 4 Parametes
-     U* VAL1(£PDSSC) VAL2(0) COMP(EQ)
-     C                   CALL      'MUTE12_11C'
+    MU* VAL1(£PDSSC) VAL2(0) COMP(EQ)
+     C                   CALL      'MUTE12_15C'
      C                   PARM      40            PRMINT1
      C                   PARM      'Hello'       PRMSTR1                        COSTANTE
      C                   PARM      40            PRMINT2

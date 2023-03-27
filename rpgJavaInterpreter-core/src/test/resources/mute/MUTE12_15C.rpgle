@@ -6,8 +6,8 @@
      V*=====================================================================
      D* OBJECTIVE
     MD*
-     D* External RPG called for PARMS parameters (see MUTE12_11A)
-     D*  3 parameters
+     D* External RPG called for PARMS parameters (see MUTE12_15)
+     D*  4 parameters
      V*---------------------------------------------------------------------
     M *---------------------------------------------------------------------
       /COPY QILEGEN,£PDS
@@ -15,14 +15,16 @@
      D PRMINT2         S              5  0
      D RTRNPARAM       S              5  0
      D PRMSTR1         S             10
+     D PRMSTR2         S             10
       *
       *
      C     *ENTRY        PLIST
      C                   PARM                    PRMINT1
      C                   PARM                    PRMSTR1
      C                   PARM                    PRMINT2
+     C                   PARM                    PRMSTR2
       *
-     U* VAL1(RTRNPARAM) VAL2(3) COMP(EQ)
+    MU* VAL1(RTRNPARAM) VAL2(4) COMP(EQ)
      C                   EVAL      RTRNPARAM=£PDSPR
      C                   SETON                                        LR
       *---------------------------------------------------------------------
