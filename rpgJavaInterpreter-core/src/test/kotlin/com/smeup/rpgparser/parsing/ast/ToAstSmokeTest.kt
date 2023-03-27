@@ -253,7 +253,6 @@ open class ToAstSmokeTest : AbstractTest() {
     }
 
     @Test
-    @Ignore
     fun buildAstForAPIPGM1() {
         assertASTCanBeProduced("APIPGM1", considerPosition = true).apply {
             assertEquals(4, this.dataDefinitions.size)
