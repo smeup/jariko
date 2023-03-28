@@ -107,23 +107,8 @@ private fun RContext.getDataDefinitions(
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
-            when {
-                it.dcl_ds() != null -> {
-                    try {
-                        it.dcl_ds()
-                            .toAst(conf)
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                        // these errors can be caught because they don't introduce sneaky errors
-                    } catch (e: CannotRetrieveDataStructureElementSizeException) {
-                        null
-                    } catch (e: ParseTreeToAstError) {
-                        null
-                    }
-                }
-                else -> null
-            }
+            it.toDataDefinitionProvider(conf = conf, knownDataDefinitions = knownDataDefinitions)
         })
-
     // Second pass, everything, I mean everything
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
@@ -494,6 +479,31 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
     return proceduresParamsDataDefinitions
 }
 
+private fun StatementContext.toDataDefinitionProvider(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: MutableMap<String, DataDefinition>
+): DataDefinitionProvider? {
+    return when {
+        this.dcl_ds() != null -> {
+            kotlin.runCatching {
+                try {
+                    this.dcl_ds()
+                        .toAst(conf)
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    // these errors can be caught because they don't introduce sneaky errors
+                } catch (e: CannotRetrieveDataStructureElementSizeException) {
+                    null
+                } catch (e: ParseTreeToAstError) {
+                    null
+                } catch (e: Exception) {
+                    throw e.fireErrorEvent(this.dcl_ds().toPosition(conf.considerPosition))
+                }
+            }.getOrNull()
+        }
+        else -> null
+    }
+}
+
 private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
@@ -504,25 +514,8 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.subprocedurestatement()
         .mapNotNull {
-            if (null != it.statement()) {
-                when {
-                    it.statement().dcl_ds() != null -> {
-                        try {
-                            it.statement().dcl_ds()
-                                .toAst(conf)
-                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                            // these errors can be caught because they don't introduce sneaky errors
-                        } catch (e: CannotRetrieveDataStructureElementSizeException) {
-                            null
-                        } catch (e: ParseTreeToAstError) {
-                            null
-                        }
-                    }
-                    else -> null
-                }
-            } else {
-                null
-            }
+            it.statement()?.let { statementContext -> statementContext.toDataDefinitionProvider(conf = conf,
+                knownDataDefinitions = knownDataDefinitions) }
         })
 
     // Second pass, everything, I mean everything
