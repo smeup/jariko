@@ -349,6 +349,7 @@ task compileAllMutes(type: JavaExec) {
 }
 
 task compilePerformanceMutes(type: JavaExec) {
+    enabled = System.getProperty('jariko.compilePerformanceMutes', 'true') == 'true'
     main="com.smeup.rpgparser.TestingUtils"
     classpath = sourceSets.test.runtimeClasspath
     args "-dirs", "performance,performance-ast"

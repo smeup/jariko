@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
@@ -93,6 +94,7 @@ open class BaseCompileTimeInterpreter(
     }
 
     override fun evaluateNumberOfElementsOf(rContext: RpgParser.RContext, declName: String): Int {
+        val conf = MainExecutionContext.getConfiguration().options.toAstConfiguration
         knownDataDefinitions.forEach {
             if (it.name == declName) {
                 return it.numberOfElements()
@@ -108,7 +110,11 @@ open class BaseCompileTimeInterpreter(
                         it.dspec() != null -> {
                             val name = it.dspec().ds_name().text
                             if (name == declName) {
-                                TODO()
+                                return it.dspec().toAst(conf = conf, knownDataDefinitions = listOf()).let { dataDefinition ->
+                                    if (dataDefinition.type is ArrayType) {
+                                        dataDefinition.numberOfElements()
+                                    } else throw it.dspec().ds_name().error("D spec is not an array", conf = conf)
+                                }
                             }
                         }
                         it.dcl_ds() != null -> {

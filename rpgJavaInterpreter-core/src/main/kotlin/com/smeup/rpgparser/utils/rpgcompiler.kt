@@ -117,6 +117,7 @@ private fun compileFile(file: File, targetDir: File, format: Format, muteSupport
  * @param configuration Could be useful to pass this parameter in order to enable a few of advanced settings. For
  * example, you can pass an option to enable the source dump in case of error, this feature for default is not
  * enabled for performances reason.
+ * @param allowFile if true that file will be compiled if its extension is .rpgle else that file will not be compiled
  * */
 @JvmOverloads
 fun compile(
@@ -127,7 +128,8 @@ fun compile(
     force: Boolean = true,
     systemInterface: (dir: File) -> SystemInterface = { dir ->
         JavaSystemInterface().apply { rpgSystem.addProgramFinder(DirRpgProgramFinder(dir)) } },
-    configuration: Configuration = Configuration()
+    configuration: Configuration = Configuration(),
+    allowFile: (file: File) -> Boolean = { true }
 ): Collection<CompilationResult> {
     // In MainExecutionContext to avoid warning on idProvider reset
     val compilationResult = mutableListOf<CompilationResult>()
@@ -140,7 +142,9 @@ fun compile(
     } else if (src.exists()) {
         val si = systemInterface.invoke(src.absoluteFile)
         src.listFiles { file ->
-            file.name.endsWith(".rpgle")
+            if (allowFile.invoke(file)) {
+                file.name.endsWith(".rpgle")
+            } else false
         }?.forEach { file ->
             MainExecutionContext.execute(systemInterface = si, configuration = configuration) {
                 it.executionProgramName = file.name
@@ -162,7 +166,6 @@ fun compile(
  * example, you can pass an option to enable the source dump in case of error, this feature for default is not
  * enabled for performances reason.
  * */
-@JvmOverloads
 fun compile(src: File, compiledProgramsDir: File, configuration: Configuration): Collection<CompilationResult> {
     return compile(src = src, compiledProgramsDir = compiledProgramsDir,
         format = Format.BIN, configuration = configuration)

@@ -22,11 +22,15 @@ import com.smeup.rpgparser.ExtendedCollectorSystemInterface
 import com.smeup.rpgparser.assertNrOfMutesAre
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import java.io.File
+import java.nio.file.Paths
 import kotlin.test.*
 
 open class MuteExecutionTest : AbstractTest() {
@@ -285,6 +289,13 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("data/ds/MUTE12_14", 4)
     }
 
+    @Test
+    fun executeMUTE12_15() {
+        // I don't pass nrOfMuteAssertions because since MUTE12_15 calls other mute which containing mute assertions
+        // this check does not work and fixing it is a mess
+        assertMuteExecutionSucceded("mute/MUTE12_15")
+    }
+
     @Test @Ignore
     fun executeMUTE13_26() {
         assertMuteExecutionSucceded("mute/MUTE13_26")
@@ -440,11 +451,23 @@ open class MuteExecutionTest : AbstractTest() {
         val cu = assertASTCanBeProduced(exampleName, true, withMuteSupport = true)
         cu.resolveAndValidate()
         nrOfMuteAssertions?.let { cu.assertNrOfMutesAre(it) }
-
-        val interpreter = execute(cu, parameters)
+        val relativePath = Paths.get(exampleName).parent
+        val examplePath = Paths.get("src", "test", "resources").resolve(relativePath)
+        val systemInterface = JavaSystemInterface().apply {
+            rpgSystem.addProgramFinder(DirRpgProgramFinder(examplePath.toFile()))
+            // to include copy
+            rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/")))
+        }
+        val configuration = Configuration().apply {
+            options.muteSupport = true
+        }
+        val interpreter = MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
+            it.executionProgramName = exampleName
+            execute(cu, parameters, systemInterface = systemInterface)
+        }
         nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.getSystemInterface().getExecutedAnnotation().size) }
         interpreter.getSystemInterface().getExecutedAnnotation().forEach {
-            assertTrue(it.value.succeeded(), "Mute assertion failed: ${it.value.headerDescription()}")
+            assertTrue(it.value.succeeded(), "Mute assertion failed - ${it.value.programName}: ${it.value.headerDescription()}")
         }
     }
 }

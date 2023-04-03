@@ -33,6 +33,29 @@ enum class RpgType(val rpgType: String) {
     BINARY("B")
 }
 
+internal enum class DSFieldInitKeywordType(val keyword: String, val type: Type) {
+    STATUS("*STATUS", NumberType(entireDigits = 5, decimalDigits = 0, rpgType = RpgType.ZONED)),
+    PARMS("*PARMS", NumberType(entireDigits = 3, decimalDigits = 0, rpgType = RpgType.ZONED));
+}
+
+internal data class DSFieldInitKeyword(val position: Position?, val dsFieldInitKeywordType: DSFieldInitKeywordType) {
+
+    internal fun toAst(): Expression {
+        return when (dsFieldInitKeywordType) {
+            DSFieldInitKeywordType.PARMS -> ParmsExpr(name = DSFieldInitKeywordType.PARMS.keyword, position = position)
+            DSFieldInitKeywordType.STATUS -> StatusExpr(position = position)
+        }
+    }
+}
+
+private fun RpgParser.Parm_fixedContext.toDSFieldInitKeyword(conf: ToAstConfiguration): DSFieldInitKeyword? {
+    val fromPositionTest = FROM_POSITION().text.trim()
+    val position = toPosition(conf.considerPosition)
+    return DSFieldInitKeywordType.values()
+        .firstOrNull { dsFieldInitKeyword -> dsFieldInitKeyword.keyword.equals(fromPositionTest, ignoreCase = true) }
+        ?.let { DSFieldInitKeyword(position = position, dsFieldInitKeywordType = it) }
+}
+
 private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
     require(fieldsList.isNotEmpty())
     var maxEnd = 0
@@ -419,7 +442,7 @@ internal fun RpgParser.Dcl_dsContext.type(
     }.maxOrNull()
     val elementSize = explicitSize
             ?: calculatedElementSize
-            ?: throw IllegalStateException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
+            ?: throw CannotRetrieveDataStructureElementSizeException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
     val dataStructureType = DataStructureType(fields = fieldTypes, elementSize = size ?: elementSize)
     val baseType = occurs?.let {
         OccurableDataStructureType(dataStructureType = dataStructureType, occurs = occurs)
@@ -430,6 +453,8 @@ internal fun RpgParser.Dcl_dsContext.type(
         ArrayType(baseType, nElements)
     }
 }
+
+internal class CannotRetrieveDataStructureElementSizeException(override val message: String) : IllegalStateException(message)
 
 private val RpgParser.Parm_fixedContext.name: String
     get() = this.ds_name().text
@@ -511,12 +536,17 @@ data class FieldInfo(
     }
 }
 
-internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(): Int? {
+internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(conf: ToAstConfiguration): Int? {
     if (this.keyword().any { it.keyword_dim() != null }) {
+        val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+            KnownDataDefinition.getInstance().values.toList(),
+            conf.compileTimeInterpreter
+        )
         val dims = this.keyword().mapNotNull { it.keyword_dim() }
         require(dims.size == 1)
         val dim = dims[0]
-        return dim.numeric_constant.text.toInt()
+        return compileTimeInterpreter.evaluate(this.rContext(), dim.simpleExpression().toAst(conf))
+            .asInt().value.toInt()
     }
     return null
 }
@@ -558,14 +588,19 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     }
     val explicitElementSize = if (arraySizeDeclared != null) {
         totalSize?.let {
-            it / arraySizeDeclared()!!
+            it / arraySizeDeclared(conf)!!
         }
     } else {
         totalSize
     }
 
+    val dsFieldInitKeyword = toDSFieldInitKeyword(conf)
+
     return when (rpgCodeType) {
         "", RpgType.ZONED.rpgType -> {
+            if (dsFieldInitKeyword != null) {
+                return dsFieldInitKeyword.dsFieldInitKeywordType.type
+            }
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
@@ -677,15 +712,20 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                 StringLiteral("", position = toPosition())
             }
         }
+    } else {
+        this.toDSFieldInitKeyword(conf = conf)?.apply {
+            initializationValue = this.toAst()
+        }
     }
 
-    val arraySizeDeclared = this.arraySizeDeclared()
+    // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
+    val arraySizeDeclared = this.arraySizeDeclared(conf)
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
             explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
             explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf),
-            arraySizeDeclared = this.arraySizeDeclared(),
-            arraySizeDeclaredOnThisField = this.arraySizeDeclared(),
+            arraySizeDeclared = this.arraySizeDeclared(conf),
+            arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
             initializationValue = initializationValue,
             descend = descend,
             position = this.toPosition(conf.considerPosition))
@@ -969,7 +1009,9 @@ fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     return if (text.isBlank()) {
         null
     } else {
-        text.toInt() - 1
+        // from position could contain one of keywords defined in DSFieldInitKeyword
+        // for this reason not int value is allowed
+        text.toIntOrNull()?.let { it - 1 }
     }
 }
 

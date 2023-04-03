@@ -566,6 +566,12 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeARRAY12() {
+        assertCanBeParsed(exampleName = "ARRAY12", printTree = true)
+        assertEquals(listOf("AA", "BB"), outputOf("ARRAY12"))
+    }
+
+    @Test
     fun executeSTRNOTVA() {
         assertEquals(listOf("AB  CD  EF"), outputOf("STRNOTVA"))
     }
@@ -2026,5 +2032,22 @@ Test 6
     @Test(expected = IllegalArgumentException::class)
     fun executeASSIGNERR01() {
         executePgm("ASSIGNERR01")
+    }
+
+    @Test
+    fun executePARMS1() {
+        val console = mutableListOf<String>()
+        val expected = listOf("HELLO", "2", "0")
+        val systemInterface = JavaSystemInterface().apply {
+            this.onDisplay = { message, _ ->
+                println(message)
+                console.add(message)
+            }
+        }
+        executePgm(
+            programName = "PARMS1",
+            params = CommandLineParms(listOf("FUNC", "METH")),
+            systemInterface = systemInterface)
+        assertEquals(expected, console)
     }
 }
