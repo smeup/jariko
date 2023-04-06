@@ -2097,4 +2097,9 @@ Test 6
             systemInterface = systemInterface)
         assertEquals(expected, console)
     }
+
+    @Test
+    fun executeCONST01() {
+        assertEquals(listOf("100"), outputOf("CONST01"))
+    }
 }
