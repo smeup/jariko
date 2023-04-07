@@ -2097,4 +2097,9 @@ Test 6
             systemInterface = systemInterface)
         assertEquals(expected, console)
     }
+
+    @Test
+    fun executeLIKECASESENS01() {
+        assertEquals(listOf("hello"), outputOf("LIKECASESENS01"))
+    }
 }
