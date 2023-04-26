@@ -48,7 +48,7 @@ project.version = jarikoVersion
 subprojects {
     apply plugin: 'kotlin'
     apply plugin: 'java'
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
     apply plugin: 'idea'
     apply plugin: 'org.jlleitschuh.gradle.ktlint'
     apply plugin: 'kotlinx-serialization'

@@ -298,13 +298,14 @@ data class IntValue(val value: Long) : NumberValue() {
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
-        when (expectedType) {
-            is NumberType -> return true
+        return when (expectedType) {
+            is NumberType -> true
             is ArrayType -> {
-                return expectedType.element is NumberType
+                expectedType.element is NumberType
+            } else -> {
+                false
             }
         }
-        return false
     }
 
     override fun asInt() = this
@@ -398,16 +399,17 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     override fun asDecimal(): DecimalValue = this
 
     override fun assignableTo(expectedType: Type): Boolean {
-        when (expectedType) {
+        return when (expectedType) {
             is NumberType -> {
                 val expectedTypePrecision = expectedType.entireDigits + expectedType.decimalDigits
-                return expectedTypePrecision >= value.precision()
+                expectedTypePrecision >= value.precision()
             }
             is ArrayType -> {
-                return expectedType.element is NumberType
+                expectedType.element is NumberType
+            } else -> {
+                false
             }
         }
-        return false
     }
 
     fun isPositive(): Boolean {

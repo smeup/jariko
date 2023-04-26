@@ -226,6 +226,7 @@ fun doCompilationAtRuntime(
     when (format) {
         Format.BIN -> out.use { it.write(cu.encodeToByteArray()) }
         Format.JSON -> out.use { it.write(cu.encodeToString().toByteArray(Charsets.UTF_8)) }
+        else -> error("$format not handled")
     }
     cu.resolveAndValidate()
     println("... done.")
