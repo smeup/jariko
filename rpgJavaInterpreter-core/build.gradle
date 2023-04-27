@@ -423,3 +423,8 @@ publishing {
         }
     }
 }
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
