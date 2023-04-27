@@ -99,6 +99,9 @@ subprojects {
         tasks.publishMavenJavaPublicationToSmeupRepository{
             dependsOn project.tasks.signArchives
         }
+        tasks.publishMavenJavaPublicationToMavenLocal{
+            dependsOn project.tasks.signArchives
+        }
     }
 }
 
