@@ -102,6 +102,7 @@ compileTestKotlin {
     targetCompatibility = "$jvmVersion"
     kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
     kotlinOptions.jvmTarget = "$jvmVersion"
+    dependsOn generateGrammarSource
 }
 
 compileKotlin {
@@ -111,6 +112,10 @@ compileKotlin {
     kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
     kotlinOptions.jvmTarget = "$jvmVersion"
     dependsOn generateGrammarSource
+}
+
+ktlintTestSourceSetCheck {
+    dependsOn generateTestGrammarSource
 }
 
 clean {

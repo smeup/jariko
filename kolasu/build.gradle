@@ -23,7 +23,6 @@ buildscript {
 
 apply plugin: 'kotlin'
 apply plugin: 'java'
-apply plugin: 'antlr'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
 
@@ -34,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    antlr "org.antlr:antlr4:$antlr_version"
+    implementation "org.antlr:antlr4:$antlr_version"
     implementation "org.antlr:antlr4-runtime:$antlr_version"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
