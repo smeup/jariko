@@ -6,5 +6,6 @@ jobs:
             - image: circleci/openjdk:11-jdk
         steps:
             - checkout
+            - run: ./gradlew ktlintCheck
             - run: ./gradlew check
       
