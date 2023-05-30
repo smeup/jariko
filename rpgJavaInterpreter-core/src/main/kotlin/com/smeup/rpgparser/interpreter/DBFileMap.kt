@@ -28,6 +28,8 @@ class DBFileMap {
         TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
     private val byFormatName =
         TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
+    private val byInternalFormatName =
+        TreeMap<String, EnrichedDBFile>(String.CASE_INSENSITIVE_ORDER)
 
     /**
      * Register a FileDefinition and create relative DBFile object for access to database with Reload library
@@ -45,18 +47,16 @@ class DBFileMap {
             dbFile?.let {
                 val enrichedDBFile = EnrichedDBFile(it, fileDefinition, jarikoMetadata)
                 // dbFile not null
+                // I consider fileDefinition.name, fileDefinition.internalFormatName and jarikoMetadata.recordFormat as alias of fileDefinition.name
                 byFileName[fileDefinition.name] = enrichedDBFile
-                var formatName = fileDefinition.internalFormatName
-                if (formatName != null && !fileDefinition.name.equals(formatName, ignoreCase = true)) {
-                    byFormatName[formatName] = enrichedDBFile
-                } else {
-                    formatName = jarikoMetadata.recordFormat
-                    byFormatName[formatName] = enrichedDBFile
+                fileDefinition.internalFormatName?.let { internalFormatName ->
+                    byInternalFormatName[internalFormatName] = enrichedDBFile
                 }
+                byFormatName[jarikoMetadata.recordFormat] = enrichedDBFile
             }
         }
     }
-    operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat]
+    operator fun get(nameOrFormat: String): EnrichedDBFile? = byFileName[nameOrFormat] ?: byFormatName[nameOrFormat] ?: byInternalFormatName[nameOrFormat]
 }
 
 /**
