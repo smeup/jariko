@@ -202,6 +202,23 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value 
         }
 }
 
+@Serializable
+data class UnlimitedStringValue(val value: String) : Value {
+
+    override fun asString() = StringValue(value, false)
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return when (expectedType) {
+            is UnlimitedStringType -> true
+            is StringType -> expectedType.length >= value.length.toLong()
+            is CharacterType -> expectedType.nChars >= value.length.toLong()
+            else -> false
+        }
+    }
+
+    override fun copy() = UnlimitedStringValue(value)
+}
+
 /**
  * The charset should be sort of system setting
  * Cp037    EBCDIC US
@@ -876,6 +893,7 @@ fun Type.blank(): Value {
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
         is FigurativeType -> BlanksValue
         is LowValType, is HiValType -> TODO()
+        is UnlimitedStringType -> UnlimitedStringValue("")
     }
 }
 

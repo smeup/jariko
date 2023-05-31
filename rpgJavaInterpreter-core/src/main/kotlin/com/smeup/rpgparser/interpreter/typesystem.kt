@@ -100,6 +100,13 @@ data class StringType(val length: Int, val varying: Boolean = false) : Type() {
     override val size: Int
         get() = length
 }
+
+@Serializable
+object UnlimitedStringType : Type() {
+    override val size: Int
+        get() = -1
+}
+
 @Serializable
 object BooleanType : Type() {
     override val size: Int

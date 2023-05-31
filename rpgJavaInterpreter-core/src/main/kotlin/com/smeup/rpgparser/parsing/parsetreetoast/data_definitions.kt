@@ -30,7 +30,8 @@ enum class RpgType(val rpgType: String) {
     ZONED("S"),
     INTEGER("I"),
     UNSIGNED("U"),
-    BINARY("B")
+    BINARY("B"),
+    UNLIMITED_STRING("0")
 }
 
 internal enum class DSFieldInitKeywordType(val keyword: String, val type: Type) {
@@ -269,6 +270,7 @@ internal fun RpgParser.DspecContext.toAst(
     //    U Numeric (Unsigned format)
     //    Z Timestamp
     //    * Basing pointer or procedure pointer
+    //    0 UnlimitedString (smeup reserved)
 
     var like: AssignableExpression? = null
     var dim: Expression? = null
@@ -349,7 +351,10 @@ internal fun RpgParser.DspecContext.toAst(
                 /* Unsigned Type */
                 NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
             }
-            else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
+            RpgType.UNLIMITED_STRING.rpgType -> {
+                UnlimitedStringType
+            }
+            else -> todo("Unknown type: <${this.DATA_TYPE().text}>", conf)
     }
 
     val type = if (dim != null) {
@@ -645,11 +650,13 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
                 else -> NumberType(8, 0, rpgCodeType)
             }
         }
-
         "A" -> {
             CharacterType(precision!!)
         }
         "N" -> BooleanType
+        RpgType.UNLIMITED_STRING.rpgType -> {
+            UnlimitedStringType
+        }
         else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = conf)
     }
 }
