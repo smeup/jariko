@@ -51,8 +51,8 @@ open class StoreTest() : AbstractTest() {
     @Test
     fun testWriteTableNameDifferentByName() {
         outputOfDBPgm(
-            programName = "db/WRITE01",
-            metadata = listOf(createEmployeeMetadata(tableName = "EMPLOYTN"))
+            programName = "db/WRITE02",
+            metadata = listOf(createEmployeeMetadata(name = "EMPLVIEW"))
         )
     }
 

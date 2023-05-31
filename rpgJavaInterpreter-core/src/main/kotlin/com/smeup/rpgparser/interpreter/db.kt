@@ -46,8 +46,8 @@ data class DbField(val fieldName: String, val type: Type) {
 
 /**
  * Contains information needed for the native access implementation.
- * @param name Logic file name - LSelect operation will be done using this property
- * @param tableName Physical file name - It is simply an info, it could be the same of the name (at reload we pass always name)
+ * @param name Logic file name - Select will be made on tableName and logical name is related to index
+ * @param tableName Physical file name - The name of the table
  * @param recordFormat The record format
  * @param fields Fields related this file
  * @param accessFields Primary key
@@ -123,8 +123,7 @@ data class FileMetadata(
 fun FileMetadata.toReloadMetadata(): com.smeup.dbnative.model.FileMetadata {
     val fileMetadata = com.smeup.dbnative.model.FileMetadata(
         name = this.name,
-        // reload uses tableName for all crud operations
-        tableName = this.name,
+        tableName = this.tableName,
         fields = fields.map {
             Field(it.fieldName)
         },
