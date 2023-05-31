@@ -67,8 +67,12 @@ abstract class NumberValue : Value {
     abstract val bigDecimal: BigDecimal
 }
 
+interface AbstractStringValue : Value {
+    fun getWrappedString(): String
+}
+
 @Serializable
-data class StringValue(var value: String, val varying: Boolean = false) : Value {
+data class StringValue(var value: String, val varying: Boolean = false) : AbstractStringValue {
 
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
@@ -200,10 +204,12 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value 
             is StringValue -> compare(other, DEFAULT_CHARSET)
             else -> super.compareTo(other)
         }
+
+    override fun getWrappedString() = value
 }
 
 @Serializable
-data class UnlimitedStringValue(val value: String) : Value {
+data class UnlimitedStringValue(var value: String) : AbstractStringValue {
 
     override fun asString() = StringValue(value, false)
 
@@ -217,6 +223,8 @@ data class UnlimitedStringValue(val value: String) : Value {
     }
 
     override fun copy() = UnlimitedStringValue(value)
+
+    override fun getWrappedString() = value
 }
 
 /**
@@ -266,7 +274,7 @@ fun sortA(value: Value, charset: Charset) {
 
             // Extract from each array element, its 'key' value (the subfield) to order by, then
             // store the key into 'keysToBeOrderedBy'
-            var keysToBeOrderedBy = Array(numOfElements) { _ -> "" }
+            val keysToBeOrderedBy = Array(numOfElements) { _ -> "" }
             var startElement = 0
             var endElement = elementSize
             (0 until numOfElements).forEach { i ->

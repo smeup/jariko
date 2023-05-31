@@ -31,6 +31,7 @@ fun Value.stringRepresentation(format: String? = null): String {
         is ZeroValue -> "0"
         is AllValue -> charsToRepeat
         is OccurableDataStructValue -> value().value.trimEnd()
+        is UnlimitedStringValue -> value.trimEnd()
         else -> TODO("Unable to render value $this (${this.javaClass.canonicalName})")
     }
 }

@@ -111,14 +111,17 @@ class ExpressionEvaluation(
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
         return when {
-            left is StringValue && right is StringValue -> {
+            left is StringValue && right is AbstractStringValue -> {
                 if (left.varying) {
-                    val s = left.value.trimEnd() + right.value
+                    val s = left.value.trimEnd() + right.getWrappedString()
                     StringValue(s)
                 } else {
-                    val s = left.value + right.value
+                    val s = left.value + right.getWrappedString()
                     StringValue(s)
                 }
+            }
+            left is AbstractStringValue && right is AbstractStringValue -> {
+                UnlimitedStringValue(left.getWrappedString() + right.getWrappedString())
             }
             left is IntValue && right is IntValue -> (left + right)
             left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.plus(right.bigDecimal))

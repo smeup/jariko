@@ -808,6 +808,22 @@ Test 6
     }
 
     @Test
+    fun executeUNLIMIT_S() {
+        assertEquals(listOf(
+            "",
+            "UnlInited",
+            "Assignment by string literal",
+            "Assignment by reference of the same type",
+            "Assignment from StringType to UnlimitedStringType",
+            "Assignment from StringType to UnlimitedStringType",
+            "Concat literal A with literal B",
+            "ok blank",
+            "Concat UnlimitedStringType with StringType",
+            "Concat StringType                                 with UnlimitedStringType"
+        ), outputOf("UNLIMIT_S"))
+    }
+
+    @Test
     fun executePOWER() {
         assertEquals(listOf("i is now 8"), outputOf("POWER"))
     }
