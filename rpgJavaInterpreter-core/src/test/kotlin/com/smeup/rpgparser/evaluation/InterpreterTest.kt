@@ -809,7 +809,7 @@ Test 6
 
     @Test
     fun executeUNLIMIT_S() {
-        assertEquals(listOf(
+        val expected = listOf(
             "",
             "UnlInited",
             "Assignment by string literal",
@@ -820,7 +820,27 @@ Test 6
             "ok blank",
             "Concat UnlimitedStringType with StringType",
             "Concat StringType                                 with UnlimitedStringType"
-        ), outputOf("UNLIMIT_S"))
+        )
+        assertEquals(expected, outputOf("UNLIMIT_S"))
+    }
+
+    @Test
+    fun executeUNLIMIT_DS() {
+        var expected = listOf(
+            "",
+            "UnlInited",
+            "",
+            "UnlInited",
+            "DS1.Msg1",
+            "DS1.Unlimited",
+            "DS2.Msg1",
+            "DS2.Unlimited",
+            "DS1 <> DS2",
+            "DS1.Msg1 content = DS2.Msg content",
+            "DS1.Unlimit content = DS2.Unlimit content",
+            "DS1 = DS2"
+        )
+        assertEquals(expected, outputOf("UNLIMIT_DS"))
     }
 
     @Test

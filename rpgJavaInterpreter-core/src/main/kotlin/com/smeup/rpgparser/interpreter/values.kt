@@ -914,6 +914,8 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133
     val len by lazy { optionalExternalLen ?: value.length }
 
+    private val unlimitedStringField = mutableMapOf<String, Value>()
+
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             // Check if the size of the value matches the expected size within the DS
@@ -924,7 +926,12 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         }
     }
 
-    override fun copy(): DataStructValue = DataStructValue(value)
+    override fun copy() = DataStructValue(value).apply {
+        unlimitedStringField.forEach{ entry ->
+            this.unlimitedStringField[entry.key] = entry.value.copy()
+        }
+    }
+
 
     /**
      * A DataStructure could also be an array of data structures. In that case the field is seen as
@@ -947,18 +954,26 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     }
 
     fun set(field: FieldDefinition, value: Value) {
-        val v = field.toDataStructureValue(value)
-        val startIndex = field.startOffset
-        val endIndex = field.startOffset + field.size
-        try {
-            this.setSubstring(startIndex, endIndex, v)
-        } catch (e: Exception) {
-            throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value", e)
+        if (field.type is UnlimitedStringType) {
+            unlimitedStringField[field.name] = value
+        } else {
+            val v = field.toDataStructureValue(value)
+            val startIndex = field.startOffset
+            val endIndex = field.startOffset + field.size
+            try {
+                this.setSubstring(startIndex, endIndex, v)
+            } catch (e: Exception) {
+                throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value", e)
+            }
         }
     }
 
     operator fun get(data: FieldDefinition): Value {
-        return if (data.declaredArrayInLine != null) {
+        return if (data.type is UnlimitedStringType) {
+            // if there is no unlimited field I return a default value
+            unlimitedStringField[data.name] ?: UnlimitedStringValue("")
+        }
+        else if (data.declaredArrayInLine != null) {
             ProjectedArrayValue.forData(this, data)
         } else {
             coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
