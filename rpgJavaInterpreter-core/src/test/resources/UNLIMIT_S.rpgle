@@ -1,4 +1,5 @@
-      * D specs definitions ***************************************************************
+      * UnlimitedStringType test for standalone fields
+      * D spec definitions ****************************************************************
       * StringType
      D Msg             S             50
 
