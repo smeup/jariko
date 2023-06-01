@@ -26,6 +26,9 @@ import java.math.BigDecimal
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
+    CHARACTER("A"),
+    BOOLEAN("N"),
+    TIMESTAMP("Z"),
     PACKED("P"),
     ZONED("S"),
     INTEGER("I"),
@@ -327,9 +330,9 @@ internal fun RpgParser.DspecContext.toAst(
                     StringType(elementSize!!, varying)
                 }
             }
-            "A" -> StringType(elementSize!!, varying)
-            "N" -> BooleanType
-            "Z" -> TimeStampType
+            RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
+            RpgType.BOOLEAN.rpgType  -> BooleanType
+            RpgType.TIMESTAMP.rpgType -> TimeStampType
             /* TODO should be zoned? */
             RpgType.ZONED.rpgType -> {
                 /* Zoned Type */
