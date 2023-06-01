@@ -51,6 +51,9 @@ private fun coerceBlanks(type: Type): Value {
             blankString(type.nChars)
             // TODO Use CharacterValue(Array(this.nChars) { ' ' })
         }
+        is UnlimitedStringType -> {
+            UnlimitedStringValue("")
+        }
         else -> TODO("Converting BlanksValue to $type")
     }
 }
@@ -167,7 +170,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is CharacterType -> {
             return StringValue(value.value)
         }
-
+        is UnlimitedStringType -> {
+            return UnlimitedStringValue(value.value)
+        }
         else -> TODO("Converting String to $type")
     }
 }

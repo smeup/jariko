@@ -808,6 +808,42 @@ Test 6
     }
 
     @Test
+    fun executeUNLIMIT_S() {
+        val expected = listOf(
+            "",
+            "UnlInited",
+            "Assignment by string literal",
+            "Assignment by reference of the same type",
+            "Assignment from StringType to UnlimitedStringType",
+            "Assignment from StringType to UnlimitedStringType",
+            "Concat literal A with literal B",
+            "ok blank",
+            "Concat UnlimitedStringType with StringType",
+            "Concat StringType                                 with UnlimitedStringType"
+        )
+        assertEquals(expected, outputOf("UNLIMIT_S"))
+    }
+
+    @Test
+    fun executeUNLIMIT_DS() {
+        var expected = listOf(
+            "",
+            "UnlInited",
+            "",
+            "UnlInited",
+            "DS1.Msg1",
+            "DS1.Unlimit",
+            "DS2.Msg1",
+            "DS2.Unlimit",
+            "DS1 <> DS2",
+            "DS1.Msg1 content = DS2.Msg content",
+            "DS1.Unlimit content = DS2.Unlimit content",
+            "DS1 = DS2"
+        )
+        assertEquals(expected, outputOf("UNLIMIT_DS"))
+    }
+
+    @Test
     fun executePOWER() {
         assertEquals(listOf("i is now 8"), outputOf("POWER"))
     }

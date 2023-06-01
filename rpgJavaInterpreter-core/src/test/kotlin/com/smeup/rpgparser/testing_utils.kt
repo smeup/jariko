@@ -94,6 +94,8 @@ fun parseFragmentToCompilationUnit(
                 )
             }
         )
+        // every error during ast creation must be thrown
+        options.toAstConfiguration.afterPhaseErrorContinue = { _ -> false }
     }
     return MainExecutionContext.execute(configuration = configuration, systemInterface = JavaSystemInterface()) {
         val rContext = assertCodeCanBeParsed(completeCode)
