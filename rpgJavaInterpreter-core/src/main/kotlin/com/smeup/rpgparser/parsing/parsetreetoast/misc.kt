@@ -323,7 +323,7 @@ private fun getFakeProcedures(
                 }
                 // Add only 'real fake prototype', if any RPG procedure exists yet
                 // the 'fake prototype' with same name mustn't be added.
-                if (null == procedures || (!procedures.contains(fakePrototypeName))) {
+                if (null == procedures || (!procedures.map { cu -> cu.procedureName }.contains(fakePrototypeName))) {
                     fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
                 }
             }

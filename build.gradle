@@ -48,7 +48,6 @@ project.version = jarikoVersion
 subprojects {
     apply plugin: 'kotlin'
     apply plugin: 'java'
-    apply plugin: 'maven'
     apply plugin: 'idea'
     apply plugin: 'org.jlleitschuh.gradle.ktlint'
     apply plugin: 'kotlinx-serialization'
@@ -98,6 +97,9 @@ subprojects {
             dependsOn project.tasks.signArchives
         }
         tasks.publishMavenJavaPublicationToSmeupRepository{
+            dependsOn project.tasks.signArchives
+        }
+        tasks.publishMavenJavaPublicationToMavenLocal{
             dependsOn project.tasks.signArchives
         }
     }

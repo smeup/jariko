@@ -47,36 +47,35 @@ def generatedMainFile = file(generatedMain)
 
 dependencies {
     antlr "org.antlr:antlr4:$antlr_version"
-    compile "org.antlr:antlr4-runtime:$antlr_version"
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-    compile project(":kolasu")
+    implementation "org.antlr:antlr4-runtime:$antlr_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    api project(":kolasu")
 
-    compile "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
-    compile "org.apache.logging.log4j:log4j-api:2.15.0"
-    compile "org.apache.logging.log4j:log4j-core:2.15.0"
+    implementation "org.apache.logging.log4j:log4j-api-kotlin:1.0.0"
+    implementation "org.apache.logging.log4j:log4j-api:2.15.0"
+    implementation "org.apache.logging.log4j:log4j-core:2.15.0"
 
-    compile 'commons-io:commons-io:2.6'
-    compile 'com.github.ajalt:clikt:2.1.0'
-    // I cannot set api scope, as suggested, because for a reason I still have to dig into,
-    // the dependency is not propagated
-    compile "io.github.smeup.reload:base:$reloadVersion"
-    implementation "io.github.smeup.reload:sql:$reloadVersion"
-    implementation "io.github.smeup.reload:nosql:$reloadVersion"
-    implementation "io.github.smeup.reload:manager:$reloadVersion"
-    implementation "io.github.smeup.reload:jt400:$reloadVersion"
+    implementation 'commons-io:commons-io:2.6'
+    implementation 'com.github.ajalt:clikt:2.1.0'
 
-    compile 'com.github.ziggy42:kolor:0.0.2'
+    api "io.github.smeup.reload:base:$reloadVersion"
+    api "io.github.smeup.reload:sql:$reloadVersion"
+    api "io.github.smeup.reload:nosql:$reloadVersion"
+    api "io.github.smeup.reload:manager:$reloadVersion"
+    api "io.github.smeup.reload:jt400:$reloadVersion"
 
-    compile "org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion"
-    compile "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
+    implementation 'com.github.ziggy42:kolor:0.0.2'
 
-    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.hsqldb:hsqldb:2.5.0'
-    testCompile 'io.mockk:mockk:1.9'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-cbor:$serializationVersion"
+
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.hsqldb:hsqldb:2.5.0'
+    testImplementation 'io.mockk:mockk:1.9'
 }
 
 configurations.all() {
@@ -101,17 +100,20 @@ compileJava {
 compileTestKotlin {
     sourceCompatibility = "$jvmVersion"
     targetCompatibility = "$jvmVersion"
-    kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
     kotlinOptions.jvmTarget = "$jvmVersion"
+    dependsOn generateTestGrammarSource
 }
 
 compileKotlin {
     sourceCompatibility = "$jvmVersion"
     targetCompatibility = "$jvmVersion"
     source generatedMainFile, sourceSets.main.java, sourceSets.main.kotlin
-    kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=kotlin.ExperimentalUnsignedTypes"]
     kotlinOptions.jvmTarget = "$jvmVersion"
     dependsOn generateGrammarSource
+}
+
+ktlintTestSourceSetCheck {
+    dependsOn generateTestGrammarSource
 }
 
 clean {
@@ -418,4 +420,9 @@ publishing {
             }
         }
     }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
