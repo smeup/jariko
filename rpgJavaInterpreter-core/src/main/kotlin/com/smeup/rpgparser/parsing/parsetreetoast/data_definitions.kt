@@ -331,7 +331,7 @@ internal fun RpgParser.DspecContext.toAst(
                 }
             }
             RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
-            RpgType.BOOLEAN.rpgType  -> BooleanType
+            RpgType.BOOLEAN.rpgType -> BooleanType
             RpgType.TIMESTAMP.rpgType -> TimeStampType
             /* TODO should be zoned? */
             RpgType.ZONED.rpgType -> {

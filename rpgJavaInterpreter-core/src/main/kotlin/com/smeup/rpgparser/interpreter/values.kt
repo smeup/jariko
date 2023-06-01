@@ -927,11 +927,10 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     }
 
     override fun copy() = DataStructValue(value).apply {
-        unlimitedStringField.forEach{ entry ->
+        unlimitedStringField.forEach { entry ->
             this.unlimitedStringField[entry.key] = entry.value.copy()
         }
     }
-
 
     /**
      * A DataStructure could also be an array of data structures. In that case the field is seen as
@@ -972,8 +971,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         return if (data.type is UnlimitedStringType) {
             // if there is no unlimited field I return a default value
             unlimitedStringField[data.name] ?: UnlimitedStringValue("")
-        }
-        else if (data.declaredArrayInLine != null) {
+        } else if (data.declaredArrayInLine != null) {
             ProjectedArrayValue.forData(this, data)
         } else {
             coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
