@@ -214,7 +214,8 @@ task fatJar(type: Jar) {
     }
     archiveBaseName = project.name + '-all'
     archiveVersion = ''
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
@@ -225,7 +226,8 @@ task fatMuteJar(type: Jar) {
     }
     archiveBaseName = project.name + '-mute-all'
     archiveVersion = ''
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
