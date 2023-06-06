@@ -73,9 +73,9 @@
 
      ** DSALOOP IMPLEMENTATION
      C     DSALOOP       BEGSR
-     C                   EVAL      DSA=*BLANK
      C                   EVAL      COUNT=0
      C                   DOU       COUNT = LOOPLEN
+     C                   EVAL      DSA=*BLANK
      C                   EVAL      FLDA01='FLDA01 CONTENT'
      C                   EVAL      FLDA02='FLDA02 CONTENT'
      C                   EVAL      FLDA03='FLDA03 CONTENT'
@@ -94,9 +94,9 @@
 
      ** DSBLOOP IMPLEMENTATION
      C     DSBLOOP       BEGSR
-     C                   EVAL      DSB=*BLANK
      C                   EVAL      COUNT=0
      C                   DOU       COUNT = LOOPLEN
+     C                   EVAL      DSB=*BLANK
      C                   EVAL      FLDB01='FLDB01 CONTENT'
      C                   EVAL      FLDB02='FLDB02 CONTENT'
      C                   EVAL      FLDB03='FLDB03 CONTENT'
