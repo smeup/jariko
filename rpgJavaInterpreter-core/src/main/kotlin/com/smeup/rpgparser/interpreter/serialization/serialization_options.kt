@@ -40,6 +40,7 @@ private val module = SerializersModule {
         subclass(ConcreteArrayValue::class)
         subclass(DataStructValue::class)
         subclass(OccurableDataStructValue::class)
+        subclass(UnlimitedStringValue::class)
     }
 }
 
