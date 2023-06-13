@@ -196,9 +196,9 @@ internal fun RpgParser.Parm_fixedContext.toAst(
                     StringType(elementSize!!, varying)
                 }
             }
-            "A" -> StringType(elementSize!!, varying)
-            "N" -> BooleanType
-            "Z" -> TimeStampType
+            RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
+            RpgType.BOOLEAN.rpgType -> BooleanType
+            RpgType.TIMESTAMP.rpgType -> TimeStampType
             /* TODO should be zoned? */
             RpgType.ZONED.rpgType -> {
                 /* Zoned Type */
@@ -653,13 +653,11 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
                 else -> NumberType(8, 0, rpgCodeType)
             }
         }
-        "A" -> {
+        RpgType.CHARACTER.rpgType -> {
             CharacterType(precision!!)
         }
-        "N" -> BooleanType
-        RpgType.UNLIMITED_STRING.rpgType -> {
-            UnlimitedStringType
-        }
+        RpgType.BOOLEAN.rpgType -> BooleanType
+        RpgType.UNLIMITED_STRING.rpgType -> UnlimitedStringType
         else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = conf)
     }
 }
