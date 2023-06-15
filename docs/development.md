@@ -139,7 +139,7 @@ Usage:
 ## Enable experimental or new features
 
 Jariko features are modeled by factories implementing: `com.smeup.rpgparser.interpreter.IFeaturesFactory`.  
-You can select a factory through system property: `-DfeaturesFactory=<factory.id>`.  
+You can select a factory through system property: `-Djariko.featuresFactory=<factory.id>`.  
 Where `<factory.id>` could be:
 * default
 * experimental

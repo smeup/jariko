@@ -44,7 +44,7 @@ interface IFeaturesFactory {
 object FeaturesFactory {
 
     private val factory: IFeaturesFactory by lazy {
-        val property = System.getProperty("featuresFactory", "")
+        val property = System.getProperty("jariko.featuresFactory", System.getProperty("featuresFactory", ""))
         val featuresFactoryId = if (property == "") "default" else {
             property
         }
