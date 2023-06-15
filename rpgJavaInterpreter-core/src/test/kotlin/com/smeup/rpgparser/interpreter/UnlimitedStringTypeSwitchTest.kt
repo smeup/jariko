@@ -20,7 +20,7 @@ import org.junit.After
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class FeaturesFactoryTest {
+class UnlimitedStringTypeSwitchTest {
 
     private val featuresFactory = FeaturesFactory.newInstance()
 
