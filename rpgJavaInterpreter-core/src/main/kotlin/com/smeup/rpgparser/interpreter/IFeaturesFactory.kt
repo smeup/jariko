@@ -66,7 +66,7 @@ object FeaturesFactory {
         println("Feature flags status:")
         FeatureFlag.values().forEach { featureFlag ->
             val onOrOff = if (featureFlag.isOn()) "on" else "off"
-            println(" - ${featureFlag.name}: $onOrOff")
+            println(" - ${featureFlag.getPropertyName()}: $onOrOff")
         }
         println("------------------------------------------------------------------------------------")
         Class.forName(featuresFactoryImpl).kotlin.createInstance() as IFeaturesFactory
