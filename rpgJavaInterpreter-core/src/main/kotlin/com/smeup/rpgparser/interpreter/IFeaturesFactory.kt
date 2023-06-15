@@ -59,7 +59,16 @@ object FeaturesFactory {
             mProperty.getProperty(featuresFactoryId)
                 ?: throw IllegalArgumentException("Not found factory identified by: $featuresFactoryId")
         }
+
+        println("------------------------------------------------------------------------------------")
         println("Creating features factory: $featuresFactoryImpl")
+        println("------------------------------------------------------------------------------------")
+        println("Feature flags status:")
+        FeatureFlag.values().forEach { featureFlag ->
+            val onOrOff = if (featureFlag.isOn()) "on" else "off"
+            println(" - ${featureFlag.name}: $onOrOff")
+        }
+        println("------------------------------------------------------------------------------------")
         Class.forName(featuresFactoryImpl).kotlin.createInstance() as IFeaturesFactory
     }
 
