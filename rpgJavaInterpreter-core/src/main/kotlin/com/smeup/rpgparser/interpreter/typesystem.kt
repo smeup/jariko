@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
@@ -99,6 +100,19 @@ data class OccurableDataStructureType(val dataStructureType: DataStructureType, 
 data class StringType(val length: Int, val varying: Boolean = false) : Type() {
     override val size: Int
         get() = length
+
+    /**
+     * Creates an instance of StringType in according to [FeatureFlag.UnlimitedStringTypeSwitch]
+     * */
+    internal companion object {
+        internal fun createInstance(length: Int, varying: Boolean = false): Type {
+            return MainExecutionContext.getSystemInterface()?.let {
+                it.getFeaturesFactory().createStringType {
+                    StringType(length = length, varying = varying)
+                }
+            } ?: StringType(length = length, varying = varying)
+        }
+    }
 }
 
 @Serializable
@@ -296,7 +310,7 @@ fun Expression.type(): Type {
             }
         }
         is LenExpr -> {
-            var size = (this.value as DataRefExpr).size().toString().length
+            val size = (this.value as DataRefExpr).size().toString().length
             return NumberType(size, decimalDigits = 0)
         }
         is FunctionCall -> {
