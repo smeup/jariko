@@ -88,7 +88,7 @@ enum class FeatureFlag {
      */
     UnlimitedStringTypeSwitch;
 
-    fun getPropertyName() = "com.smeup.jariko.features.$name"
+    fun getPropertyName() = "jariko.features.$name"
 
     /**
      * @return true if the system property [getPropertyName] is set to "1" "on" or "true"
