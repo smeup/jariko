@@ -29,13 +29,13 @@ interface IFeaturesFactory {
 
     /**
      * It allows to override the StringType creation.
-     * The current implementation tests the presence of [FeatureFlag.UnlimitedStringTypeSwitch] and
+     * The current implementation tests the presence of [FeatureFlag.UnlimitedStringTypeFlag] and
      * if is set to on it returns an instance of [UnlimitedStringType]
      * @param create: default creation type implementation
      * @return the instance of type created
      * */
     fun createStringType(create: () -> StringType): Type {
-        return if (FeatureFlag.UnlimitedStringTypeSwitch.isOn()) {
+        return if (FeatureFlag.UnlimitedStringTypeFlag.isOn()) {
             UnlimitedStringType
         } else create.invoke()
     }
@@ -86,7 +86,7 @@ enum class FeatureFlag {
      * If "on" the alphanumeric [RpgType.ZONED] is handled like [RpgType.UNLIMITED_STRING].
      * Currently, the [RpgType.CHARACTER] is not yet handled because this cause a regression in some tests
      */
-    UnlimitedStringTypeSwitch;
+    UnlimitedStringTypeFlag;
 
     fun getPropertyName() = "jariko.features.$name"
 

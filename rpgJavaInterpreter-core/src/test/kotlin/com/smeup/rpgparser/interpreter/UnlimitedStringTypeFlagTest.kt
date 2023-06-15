@@ -21,7 +21,7 @@ import org.junit.After
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class UnlimitedStringTypeSwitchTest : AbstractTest() {
+class UnlimitedStringTypeFlagTest : AbstractTest() {
 
     private val featuresFactory = FeaturesFactory.newInstance()
 
@@ -94,10 +94,10 @@ class UnlimitedStringTypeSwitchTest : AbstractTest() {
     }
 
     private fun switchOn() {
-        System.setProperty(FeatureFlag.UnlimitedStringTypeSwitch.getPropertyName(), "1")
+        System.setProperty(FeatureFlag.UnlimitedStringTypeFlag.getPropertyName(), "1")
     }
 
     private fun switchOff() {
-        System.setProperty(FeatureFlag.UnlimitedStringTypeSwitch.getPropertyName(), "0")
+        System.setProperty(FeatureFlag.UnlimitedStringTypeFlag.getPropertyName(), "0")
     }
 }

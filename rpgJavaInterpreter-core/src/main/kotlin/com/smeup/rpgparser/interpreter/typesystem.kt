@@ -102,7 +102,7 @@ data class StringType(val length: Int, val varying: Boolean = false) : Type() {
         get() = length
 
     /**
-     * Creates an instance of StringType in according to [FeatureFlag.UnlimitedStringTypeSwitch]
+     * Creates an instance of StringType in according to [FeatureFlag.UnlimitedStringTypeFlag]
      * */
     internal companion object {
         internal fun createInstance(length: Int, varying: Boolean = false): Type {
