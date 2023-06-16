@@ -37,9 +37,6 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
         }
     }
 
-
-
-
     /**
      * Assert that if UnlimitedStringTypeSwitch is default featuresFactory.createStringType returns
      * an instance of StringType
@@ -63,7 +60,6 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
             val type = featuresFactory.createStringType { StringType(10, false) }
             assertTrue(type is UnlimitedStringType)
         }
-
     }
 
     /**
@@ -76,7 +72,6 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
                 assertTrue(getDataDefinition("Msg").type is StringType)
             }
         }
-
     }
 
     /**
@@ -90,7 +85,6 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
                 assertTrue(getDataDefinition("Msg").type is UnlimitedStringType)
             }
         }
-
     }
 
     /**
@@ -103,7 +97,6 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
                 assertTrue(getDataOrFieldDefinition("Msg1").type is StringType)
             }
         }
-
     }
 
     /**
