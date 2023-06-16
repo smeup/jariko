@@ -18,6 +18,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.AbstractTest
 import org.junit.After
+import org.junit.BeforeClass
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -25,14 +26,30 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
 
     private val featuresFactory = FeaturesFactory.newInstance()
 
+    companion object {
+
+        @BeforeClass
+        @JvmStatic
+        fun beforeClass() {
+            if (FeatureFlag.UnlimitedStringTypeFlag.isOn()) {
+                println("UnlimitedStringTypeFlagTest skipped because UnlimitedStringTypeFlag is on")
+            }
+        }
+    }
+
+
+
+
     /**
      * Assert that if UnlimitedStringTypeSwitch is default featuresFactory.createStringType returns
      * an instance of StringType
      * */
     @Test
     fun createStringType() {
-        val type = featuresFactory.createStringType { StringType(10, false) }
-        assertTrue(type is StringType)
+        doTest {
+            val type = featuresFactory.createStringType { StringType(10, false) }
+            assertTrue(type is StringType)
+        }
     }
 
     /**
@@ -41,9 +58,12 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
      * */
     @Test
     fun createUnlimitedStringType() {
-        switchOn()
-        val type = featuresFactory.createStringType { StringType(10, false) }
-        assertTrue(type is UnlimitedStringType)
+        doTest {
+            switchOn()
+            val type = featuresFactory.createStringType { StringType(10, false) }
+            assertTrue(type is UnlimitedStringType)
+        }
+
     }
 
     /**
@@ -51,9 +71,12 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
      * */
     @Test
     fun msgInDSpecIsStringType() {
-        assertASTCanBeProduced("HELLO").apply {
-            assertTrue(getDataDefinition("Msg").type is StringType)
+        doTest {
+            assertASTCanBeProduced("HELLO").apply {
+                assertTrue(getDataDefinition("Msg").type is StringType)
+            }
         }
+
     }
 
     /**
@@ -61,10 +84,13 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
      * */
     @Test
     fun msgInDSpecIsUnlimitedStringType() {
-        switchOn()
-        assertASTCanBeProduced("HELLO").apply {
-            assertTrue(getDataDefinition("Msg").type is UnlimitedStringType)
+        doTest {
+            switchOn()
+            assertASTCanBeProduced("HELLO").apply {
+                assertTrue(getDataDefinition("Msg").type is UnlimitedStringType)
+            }
         }
+
     }
 
     /**
@@ -72,9 +98,12 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
      * */
     @Test
     fun msg1InDSFieldIsStringType() {
-        assertASTCanBeProduced("UNLIMIT_DS").apply {
-            assertTrue(getDataOrFieldDefinition("Msg1").type is StringType)
+        doTest {
+            assertASTCanBeProduced("UNLIMIT_DS").apply {
+                assertTrue(getDataOrFieldDefinition("Msg1").type is StringType)
+            }
         }
+
     }
 
     /**
@@ -82,9 +111,11 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
      * */
     @Test
     fun msg1InDSFieldIsIsUnlimitedStringType() {
-        switchOn()
-        assertASTCanBeProduced("UNLIMIT_DS").apply {
-            assertTrue(getDataOrFieldDefinition("Msg1").type is UnlimitedStringType)
+        doTest {
+            switchOn()
+            assertASTCanBeProduced("UNLIMIT_DS").apply {
+                assertTrue(getDataOrFieldDefinition("Msg1").type is UnlimitedStringType)
+            }
         }
     }
 
@@ -99,5 +130,11 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
 
     private fun switchOff() {
         System.setProperty(FeatureFlag.UnlimitedStringTypeFlag.getPropertyName(), "0")
+    }
+
+    private fun doTest(test: () -> Unit) {
+        if (!FeatureFlag.UnlimitedStringTypeFlag.isOn()) {
+            test.invoke()
+        }
     }
 }
