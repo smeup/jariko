@@ -189,9 +189,9 @@ For example if you want to execute all tests trying the feature flag `jariko.fea
 
 **available feature flags and description**
 
-| feature flag                              | description                                                                                           |
-|-------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| `jariko.features.UnlimitedStringTypeFlag` | when `on` you ask jariko to force the use of `UnlimitedStringType` for all rpg types defined as zoned |
+| feature flag                              | description                                                                                       |
+|-------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `jariko.features.UnlimitedStringTypeFlag` | when `on` you ask jariko to force the use of `UnlimitedStringType` for all rpg alphanumeric types |
                                                                                                         |
 
 
