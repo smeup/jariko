@@ -75,7 +75,7 @@ class UnlimitedStringTypeFlagTest : AbstractTest() {
     }
 
     /**
-     * Assert that if UnlimitedStringTypeSwitch is on the Msg type is UnlimitedStringTupe
+     * Assert that if UnlimitedStringTypeSwitch is on the Msg type is UnlimitedStringType
      * */
     @Test
     fun msgInDSpecIsUnlimitedStringType() {
