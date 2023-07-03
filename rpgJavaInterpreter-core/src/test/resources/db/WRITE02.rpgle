@@ -1,4 +1,6 @@
      FEMPLVIEW  IF   E           K DISK
+
+     FEMPLVIEW  UF   A         E K DISK
      D EXPECTED        S              6
       *--------------------------------------------------------------------------------------------*
       *WRITING
@@ -13,9 +15,9 @@
      C                   WRITE     EMPLOYEE
       *--------------------------------------------------------------------------------------------*
       *READING
-     C                   EVAL       EXPECTED = '000000'
      C     KL            KLIST
      C                   KFLD                    EXPECTED
+     C                   EVAL       EXPECTED = '000000'
      C     KL            SETLL      EMPLOYEE
     MU* VAL1(EXPECTED) VAL2(EMPNO) COMP(EQ)
      C     KL            READE      EMPLOYEE
