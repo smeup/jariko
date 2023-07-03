@@ -23,6 +23,8 @@ import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import java.math.BigDecimal
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
@@ -184,7 +186,7 @@ internal fun RpgParser.Parm_fixedContext.toAst(
     }
 
     val baseType =
-        when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
+        when (this.DATA_TYPE()?.text?.trim()?.uppercase()) {
             null -> todo(conf = conf)
             "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
                 /* TODO should be packed? */
@@ -196,9 +198,9 @@ internal fun RpgParser.Parm_fixedContext.toAst(
                     StringType(elementSize!!, varying)
                 }
             }
-            "A" -> StringType(elementSize!!, varying)
-            "N" -> BooleanType
-            "Z" -> TimeStampType
+            RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
+            RpgType.BOOLEAN.rpgType -> BooleanType
+            RpgType.TIMESTAMP.rpgType -> TimeStampType
             /* TODO should be zoned? */
             RpgType.ZONED.rpgType -> {
                 /* Zoned Type */
@@ -318,7 +320,7 @@ internal fun RpgParser.DspecContext.toAst(
     }
 
     val baseType =
-        when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
+        when (this.DATA_TYPE()?.text?.trim()?.uppercase()) {
             null -> todo(conf = conf)
             "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
                 /* TODO should be packed? */
@@ -327,7 +329,7 @@ internal fun RpgParser.DspecContext.toAst(
                 if (like != null) {
                     compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
                 } else {
-                    StringType(elementSize!!, varying)
+                    StringType.createInstance(elementSize!!, varying)
                 }
             }
             RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
@@ -612,7 +614,7 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
-                StringType((explicitElementSize ?: precision)!!, isVarying)
+                StringType.createInstance((explicitElementSize ?: precision)!!, isVarying)
             } else {
                 val es = explicitElementSize ?: precision!!
                 NumberType(es - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
@@ -653,13 +655,11 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
                 else -> NumberType(8, 0, rpgCodeType)
             }
         }
-        "A" -> {
+        RpgType.CHARACTER.rpgType -> {
             CharacterType(precision!!)
         }
-        "N" -> BooleanType
-        RpgType.UNLIMITED_STRING.rpgType -> {
-            UnlimitedStringType
-        }
+        RpgType.BOOLEAN.rpgType -> BooleanType
+        RpgType.UNLIMITED_STRING.rpgType -> UnlimitedStringType
         else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = conf)
     }
 }
@@ -1005,7 +1005,7 @@ internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
         }
         val dataDefinition = DataDefinition(
             name = this.name,
-            type = type(size = fields.sumBy { it.type.size }, FieldsList(fieldInfos)),
+            type = type(size = fields.sumOf { it.type.size }, FieldsList(fieldInfos)),
             fields = fields,
             inz = this.keyword().any { it.keyword_inz() != null },
             position = this.toPosition(true)

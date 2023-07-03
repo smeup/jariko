@@ -45,6 +45,8 @@ def antlrVersion = ext.antlr_version
 def generatedMain = "generated-src/antlr/main"
 def generatedMainFile = file(generatedMain)
 
+def unlimitedStringTypeFlag = "jariko.features.UnlimitedStringTypeFlag"
+
 dependencies {
     antlr "org.antlr:antlr4:$antlr_version"
     implementation "org.antlr:antlr4-runtime:$antlr_version"
@@ -158,6 +160,7 @@ task testCore(type: Test) {
 }
 
 test {
+    systemProperty unlimitedStringTypeFlag, System.getProperty(unlimitedStringTypeFlag)
     testLogging {
         events "failed"
     }
@@ -169,6 +172,7 @@ test {
 //If you want to collect data about failed performance tests, run this task with:
 //gradlew testPerformance -DexportCsvFile="/some/file.csv"
 task testPerformance(type: Test) {
+    systemProperty unlimitedStringTypeFlag, System.getProperty(unlimitedStringTypeFlag)
     systemProperty 'exportCsvFile', System.getProperty('exportCsvFile')
     maxHeapSize = "2048m"
     testLogging {
@@ -353,6 +357,7 @@ task compileAllMutes(type: JavaExec) {
 }
 
 task compilePerformanceMutes(type: JavaExec) {
+    systemProperty unlimitedStringTypeFlag, System.getProperty(unlimitedStringTypeFlag)
     enabled = System.getProperty('jariko.compilePerformanceMutes', 'true') == 'true'
     main="com.smeup.rpgparser.TestingUtils"
     classpath = sourceSets.test.runtimeClasspath
