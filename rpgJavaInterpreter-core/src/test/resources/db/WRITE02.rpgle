@@ -1,6 +1,4 @@
-     FEMPLVIEW  IF   E           K DISK
-
-     FEMPLVIEW  UF   A         E K DISK
+     FEMPLVIEW  UF A E           K DISK
      D EXPECTED        S              6
       *--------------------------------------------------------------------------------------------*
       *WRITING
