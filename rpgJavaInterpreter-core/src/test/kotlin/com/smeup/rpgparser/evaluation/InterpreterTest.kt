@@ -826,7 +826,7 @@ Test 6
 
     @Test
     fun executeUNLIMIT_DS() {
-        var expected = listOf(
+        val expected = listOf(
             "",
             "UnlInited",
             "",
@@ -841,6 +841,17 @@ Test 6
             "DS1 = DS2"
         )
         assertEquals(expected, outputOf("UNLIMIT_DS"))
+    }
+
+    @Test
+    fun executeUNLIMIT_BIF() {
+        val expected = listOf(
+            "%INT",
+            "1234",
+            "%DEC",
+            "1.5"
+        )
+        assertEquals(expected, outputOf("UNLIMIT_BIF"))
     }
 
     @Test

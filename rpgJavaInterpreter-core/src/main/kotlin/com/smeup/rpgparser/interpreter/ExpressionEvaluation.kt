@@ -498,6 +498,8 @@ class ExpressionEvaluation(
                 IntValue(cleanNumericString(value.value).asLong())
             is DecimalValue ->
                 value.asInt()
+            is UnlimitedStringValue ->
+                IntValue(cleanNumericString(value.value).asLong())
             else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
         }
 
