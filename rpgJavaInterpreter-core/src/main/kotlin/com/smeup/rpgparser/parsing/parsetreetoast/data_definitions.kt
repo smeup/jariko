@@ -258,6 +258,7 @@ internal fun RpgParser.DspecContext.toAst(
     knownDataDefinitions: List<DataDefinition>
 ): DataDefinition {
 
+    if (dspecConstant() != null) return dspecConstant().toAst(conf = conf, knownDataDefinitions= knownDataDefinitions)
     val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
 
     //    A Character (Fixed or Variable-length format)
@@ -383,6 +384,20 @@ internal fun RpgParser.DspecContext.toAst(
     } else {
         baseType
     }
+    return DataDefinition(
+            this.ds_name().text,
+            type,
+            initializationValue = initializationValue,
+            position = this.toPosition(true))
+}
+
+internal fun RpgParser.DspecConstantContext.toAst(
+        conf: ToAstConfiguration = ToAstConfiguration(),
+        knownDataDefinitions: List<DataDefinition>
+): DataDefinition {
+    val initializationValue = this.number().toAst(conf)
+    val type = initializationValue.type()
+
     return DataDefinition(
             this.ds_name().text,
             type,
