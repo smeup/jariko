@@ -2102,4 +2102,9 @@ Test 6
     fun executeCONST01() {
         assertEquals(listOf("100"), outputOf("CONST01"))
     }
+
+    @Test
+    fun executeCONST02() {
+        assertEquals(listOf("100"), outputOf("CONST02"))
+    }
 }
