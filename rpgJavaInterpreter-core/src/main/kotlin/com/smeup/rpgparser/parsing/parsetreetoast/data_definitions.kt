@@ -312,7 +312,6 @@ internal fun RpgParser.DspecContext.toAst(
         }
     }
 
-
     val elementSize = when {
         like != null -> {
             compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
