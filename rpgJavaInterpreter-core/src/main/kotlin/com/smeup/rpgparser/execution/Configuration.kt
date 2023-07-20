@@ -118,6 +118,7 @@ data class Options(
  * @param onExitFunction It is invoked on function exit, only if the function does not throw any error
  * @param onError It is invoked in case of errors. The default implementation writes error event in stderr
  * @param logInfo If specified it is invoked to log information messages
+ * @param channelLoggingEnabled If specified it tests if the channel is enabled for logging
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
@@ -147,7 +148,8 @@ data class JarikoCallback(
     var onError: (errorEvent: ErrorEvent) -> Unit = { errorEvent ->
         System.err.println(errorEvent)
     },
-    var logInfo: ((message: String) -> Unit)? = null
+    var logInfo: ((channel: String, message: String) -> Unit)? = null,
+    var channelLoggingEnabled: ((channel: String) -> Boolean)? = null
 )
 
 /**

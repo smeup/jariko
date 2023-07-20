@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.logging
 
 import com.smeup.rpgparser.execution.MainExecutionContext
@@ -15,7 +31,7 @@ class ExpressionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
         return logEntry.renderExpression("EXPR", fileName, this.sep)
     }
     override fun handle(logEntry: LogEntry) {
-        if (logger.isInfoEnabled) {
+        if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is ExpressionEvaluationLogEntry -> {
                     // Avoid expression
@@ -38,7 +54,7 @@ class PerformanceLogHandler(level: LogLevel, sep: String) : LogHandler(level, se
 
     override fun handle(logEntry: LogEntry) {
 
-        if (logger.isInfoEnabled) {
+        if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is SubroutineExecutionLogEnd -> logger.fireLogInfo(render(logEntry))
                 is ForStatementExecutionLogEnd -> logger.fireLogInfo(render(logEntry))
@@ -69,7 +85,7 @@ class StatementLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep)
 
     override fun handle(logEntry: LogEntry) {
 
-        if (logger.isInfoEnabled) {
+        if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is RpgLoadLogStart -> logger.fireLogInfo(render(logEntry))
                 is RpgLoadLogEnd -> logger.fireLogInfo(render(logEntry))
@@ -156,7 +172,7 @@ class DataLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
     }
 
     override fun handle(logEntry: LogEntry) {
-        if (logger.isInfoEnabled) {
+        if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is AssignmentLogEntry -> logger.fireLogInfo(render(logEntry))
             }
@@ -173,7 +189,7 @@ class LoopLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), Int
     }
 
     override fun handle(logEntry: LogEntry) {
-        if (logger.isInfoEnabled) {
+        if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is ForStatementExecutionLogStart -> logger.fireLogInfo(render(logEntry))
                 is ForStatementExecutionLogEnd -> logger.fireLogInfo(render(logEntry))
@@ -195,7 +211,7 @@ class ResolutionLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep
     }
 
     override fun handle(logEntry: LogEntry) {
-        if (logger.isInfoEnabled) {
+        if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is SubroutineExecutionLogStart -> logger.fireLogInfo(render(logEntry))
                 is CallExecutionLogEntry -> logger.fireLogInfo(render(logEntry))
@@ -216,7 +232,7 @@ class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), 
 
     override fun handle(logEntry: LogEntry) {
 
-        if (logger.isInfoEnabled) {
+        if (logger.checkChannelLoggingEnabled()) {
             when (logEntry) {
                 is RpgLoadLogEnd -> logger.fireLogInfo(render(logEntry))
                 is PreprocessingLogEnd -> logger.fireLogInfo(render(logEntry))
@@ -231,8 +247,14 @@ class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), 
     }
 }
 
-fun Logger.fireLogInfo(message: String) {
-    MainExecutionContext.getConfiguration().jarikoCallback.logInfo?.apply {
-        this.invoke(message)
+private fun Logger.fireLogInfo(message: String) {
+    val channel = this.name
+    MainExecutionContext.getConfiguration().jarikoCallback.logInfo?.let {
+        it.invoke(channel, message)
+        true
     } ?: this.info(message)
+}
+
+private fun Logger.checkChannelLoggingEnabled(): Boolean {
+    return MainExecutionContext.getConfiguration().jarikoCallback.channelLoggingEnabled?.invoke(this.name) ?: this.isInfoEnabled
 }

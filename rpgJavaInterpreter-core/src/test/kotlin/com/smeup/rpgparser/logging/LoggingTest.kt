@@ -1,11 +1,46 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.logging
 
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.interpreter.*
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
+import com.smeup.rpgparser.utils.StringOutputStream
+import org.apache.logging.log4j.LogManager
+import org.junit.After
 import java.io.File
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import java.io.PrintStream
+import kotlin.test.*
 
 class LoggingTest {
+
+    private val programName = "MYPGM"
+    private val varName = "MYVAR"
+    private val varValue = "MYVALUE"
+    private val logFormatRegexWhenStandardLog = Regex(pattern = "\\d+:\\d+:\\d+\\.\\d+\\s+\\t$programName\\t\\tDATA\\t$varName = N/D\\t$varValue")
+    // there is no time stamp reference
+    private val logFormatRegexWhenLogAsCallback = Regex(pattern = "\\t$programName\\t\\tDATA\\t$varName = N/D\\t$varValue")
+
+    @After
+    fun after() {
+        //  need to reset the state of LogManager else depending on the unit tests order, some tests can fail
+        LogManager.shutdown()
+    }
 
     @Test
     fun consoleLoggingConfigurationTest() {
@@ -32,5 +67,121 @@ class LoggingTest {
 
         assertEquals(file.parent, loggingConfiguration.getProperty("logger.file.path"))
         assertEquals(file.name, loggingConfiguration.getProperty("logger.file.name"))
+    }
+
+    // Logging must work as before
+    @Test
+    fun mustWorkAsBeforeLogAsCallbackFeature() {
+        val systemInterface = JavaSystemInterface().apply {
+            loggingConfiguration = consoleLoggingConfiguration(DATA_LOGGER)
+        }
+        MainExecutionContext.execute(systemInterface = systemInterface) {
+            val defaultOut = System.out
+            try {
+                val out = StringOutputStream()
+                System.setOut(PrintStream(out))
+                MainExecutionContext.log(createAssignmentLogEntry())
+                out.flush()
+                val loggedOnConsole = out.toString().trim()
+                assertTrue(
+                    actual = logFormatRegexWhenStandardLog.matches(loggedOnConsole),
+                    message = "'$out' must match this regexp: ${logFormatRegexWhenStandardLog.pattern}"
+                )
+                System.setOut(defaultOut)
+                println("Logged on console: $loggedOnConsole")
+            } finally {
+                System.setOut(defaultOut)
+            }
+        }
+    }
+
+    @Test
+    fun logAsCallBack() {
+        val systemInterface = JavaSystemInterface().apply {
+            loggingConfiguration = consoleLoggingConfiguration(DATA_LOGGER)
+        }
+        val configuration = Configuration()
+        var enteredInLogInfo = false
+        var enteredInChannelLoggingEnabled = false
+        // callback implementation by setting logInfo function
+        configuration.jarikoCallback.logInfo = { channel, message ->
+            assertEquals(DATA_LOGGER, channel)
+            assertTrue(
+                actual = logFormatRegexWhenLogAsCallback.matches(message),
+                message = "'$message' must match this regexp: ${logFormatRegexWhenLogAsCallback.pattern}"
+            )
+            enteredInLogInfo = true
+        }
+        // callback implementation by setting channelLoggingEnabled function
+        // where I say that I want to log only data channel
+        configuration.jarikoCallback.channelLoggingEnabled = { channel ->
+            enteredInChannelLoggingEnabled = channel == DATA_LOGGER
+            channel == DATA_LOGGER
+        }
+        MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
+            val defaultOut = System.out
+            try {
+                val out = StringOutputStream()
+                System.setOut(PrintStream(out))
+                MainExecutionContext.log(createAssignmentLogEntry())
+                out.flush()
+                // in console, we must have nothing because I have implemented jarikoCallback.logInfo
+                val loggedOnConsole = out.toString().trim()
+                assertTrue(
+                    actual = loggedOnConsole.isEmpty(),
+                    message = "'$loggedOnConsole' must be empty"
+                )
+                System.setOut(defaultOut)
+                assertTrue(enteredInLogInfo)
+                assertTrue(enteredInChannelLoggingEnabled)
+            } finally {
+                System.setOut(defaultOut)
+            }
+        }
+    }
+
+    @Test
+    fun logAsCallbackAlwaysBeatsJarikoStandardLog() {
+        val systemInterface = JavaSystemInterface().apply {
+            // I ask jariko to log all in console
+            loggingConfiguration = consoleVerboseConfiguration()
+        }
+        // I set configuration in order to disable all logs
+        var logInfoCalled = false
+        val configuration = Configuration()
+        configuration.jarikoCallback.logInfo = { _, _ ->
+            // it never must enter here
+            logInfoCalled = true
+        }
+        // I say that I don't want to log anything
+        configuration.jarikoCallback.channelLoggingEnabled = { _ -> false }
+        MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
+            val defaultOut = System.out
+            try {
+                val out = StringOutputStream()
+                System.setOut(PrintStream(out))
+                MainExecutionContext.log(createAssignmentLogEntry())
+                out.flush()
+                // in console, we must have nothing because I have implemented jarikoCallback.logInfo
+                val loggedOnConsole = out.toString().trim()
+                assertTrue(
+                    actual = loggedOnConsole.isEmpty(),
+                    message = "'$loggedOnConsole' must be empty"
+                )
+                System.setOut(defaultOut)
+                assertFalse(logInfoCalled, message = "logInfo callback never must be called")
+            } finally {
+                System.setOut(defaultOut)
+            }
+        }
+    }
+
+    private fun createAssignmentLogEntry(): AssignmentLogEntry {
+        return AssignmentLogEntry(
+            programName = programName,
+            data = DataDefinition(name = varName, type = StringType(7)),
+            value = StringValue(varValue),
+            previous = null
+        )
     }
 }
