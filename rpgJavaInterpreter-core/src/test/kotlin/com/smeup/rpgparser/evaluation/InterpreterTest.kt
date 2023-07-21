@@ -2099,6 +2099,11 @@ Test 6
     }
 
     @Test
+    fun executeLIKECASESENS01() {
+        assertEquals(listOf("hello"), outputOf("LIKECASESENS01"))
+    }
+
+    @Test
     fun executeCONST01() {
         assertEquals(listOf("100"), outputOf("CONST01"))
     }

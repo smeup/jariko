@@ -20,6 +20,7 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.interpreter.DataStructureType
 import com.smeup.rpgparser.interpreter.Scope
 import com.smeup.rpgparser.parsing.parsetreetoast.DSFieldInitKeywordType
+import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -334,6 +335,14 @@ open class ToAstSmokeTest : AbstractTest() {
                 assertEquals(18, this.endOffset)
                 assertTrue { this.initializationValue is StatusExpr }
             }
+        }
+    }
+
+    @Test
+    fun buildAstForLIKEDEFINE02() {
+        assertASTCanBeProduced(exampleName = "LIKEDEFINE02", printTree = false).apply {
+            // this function must not throw "Data definition §§ORA was not found"
+            resolveAndValidate()
         }
     }
 }

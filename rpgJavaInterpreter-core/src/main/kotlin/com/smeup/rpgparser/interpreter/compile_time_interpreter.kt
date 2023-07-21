@@ -133,10 +133,10 @@ open class BaseCompileTimeInterpreter(
 
     open fun evaluateElementSizeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Int {
         knownDataDefinitions.forEach {
-            if (it.name == declName) {
+            if (it.name.equals(declName, ignoreCase = true)) {
                 return it.elementSize()
             }
-            val field = it.fields.find { it.name == declName }
+            val field = it.fields.find { it.name.equals(declName, ignoreCase = true) }
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
         rContext.statement()
@@ -207,10 +207,10 @@ open class BaseCompileTimeInterpreter(
 
     open fun evaluateTypeOf(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Type {
         knownDataDefinitions.forEach {
-            if (it.name == declName) {
+            if (it.name.equals(declName, ignoreCase = true)) {
                 return it.type
             }
-            val field = it.fields.find { it.name == declName }
+            val field = it.fields.find { it.name.equals(declName, ignoreCase = true) }
             if (field != null) {
                 return field.type
             }

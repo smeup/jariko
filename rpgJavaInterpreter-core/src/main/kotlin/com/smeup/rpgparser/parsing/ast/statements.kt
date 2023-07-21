@@ -942,6 +942,7 @@ data class DefineStmt(
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
+        var inStmtDataDefinitionList = mutableListOf<InStatementDataDefinition>()
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
 
@@ -959,6 +960,19 @@ data class DefineStmt(
         if (originalDataDefinition != null) {
             return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
+
+                containingCU.subroutines.forEach {
+                    val inSubroutineDataDefinition = it.stmts
+                    .filterIsInstance(StatementThatCanDefineData::class.java)
+                    .filter { it != this }
+                    .asSequence()
+                    .map(StatementThatCanDefineData::dataDefinition)
+                    .flatten()
+                    .find { it.name == originalName }
+                    if (inSubroutineDataDefinition != null)
+                        inStmtDataDefinitionList.add(InStatementDataDefinition(newVarName, inSubroutineDataDefinition.type, position))
+                }
+
             val inStatementDataDefinition =
                 containingCU.main.stmts
                     .filterIsInstance(StatementThatCanDefineData::class.java)
@@ -966,9 +980,11 @@ data class DefineStmt(
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
-                    .find { it.name == originalName } ?: return emptyList()
+                    .find { it.name == originalName }
+                if (inStatementDataDefinition != null)
+                    inStmtDataDefinitionList.add(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
 
-            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
+            return inStmtDataDefinitionList
         }
     }
 
