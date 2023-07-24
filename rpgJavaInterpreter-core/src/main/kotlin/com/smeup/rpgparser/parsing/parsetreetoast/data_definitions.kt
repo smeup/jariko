@@ -407,8 +407,7 @@ internal fun RpgParser.DspecConstantContext.toAst(
 internal fun RpgParser.Dcl_cContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration()
 ): DataDefinition {
-    // TODO: check more examples of const declaration
-    val initializationValueExpression = if (this.keyword_const() != null) this.keyword_const().simpleExpression().toAst(conf) else this.literal().toAst(conf)
+    val initializationValueExpression = this.keyword_const()?.simpleExpression()?.toAst(conf) ?: this.literal().toAst(conf)
     val type = initializationValueExpression.type()
     return DataDefinition(
             this.ds_name().text,
