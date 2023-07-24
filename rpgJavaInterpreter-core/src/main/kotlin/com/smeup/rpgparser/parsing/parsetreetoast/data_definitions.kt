@@ -258,6 +258,7 @@ internal fun RpgParser.DspecContext.toAst(
     knownDataDefinitions: List<DataDefinition>
 ): DataDefinition {
 
+    if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
     val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
 
     //    A Character (Fixed or Variable-length format)
@@ -390,11 +391,23 @@ internal fun RpgParser.DspecContext.toAst(
             position = this.toPosition(true))
 }
 
+internal fun RpgParser.DspecConstantContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DataDefinition {
+    val initializationValue = this.number().toAst(conf)
+    val type = initializationValue.type()
+
+    return DataDefinition(
+            this.ds_name().text,
+            type,
+            initializationValue = initializationValue,
+            position = this.toPosition(true))
+}
+
 internal fun RpgParser.Dcl_cContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration()
 ): DataDefinition {
-    // TODO: check more examples of const declaration
-    val initializationValueExpression: Expression = this.keyword_const().simpleExpression().toAst(conf)
+    val initializationValueExpression = this.keyword_const()?.simpleExpression()?.toAst(conf) ?: this.literal().toAst(conf)
     val type = initializationValueExpression.type()
     return DataDefinition(
             this.ds_name().text,
