@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.jariko.samples.java;
 
 import com.smeup.rpgparser.execution.CommandLineParms;
@@ -8,8 +24,10 @@ import com.smeup.rpgparser.interpreter.DataStructValue;
 import com.smeup.rpgparser.interpreter.StringValue;
 import com.smeup.rpgparser.interpreter.Value;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
+import com.smeup.rpgparser.logging.LoggingKt;
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder;
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
+import kotlin.Unit;
 
 import java.io.File;
 import java.util.Arrays;
@@ -25,8 +43,16 @@ public class CallJarikoWithParams {
     public static CommandLineParms execPgm(String name, CommandLineParms inputParams) {
         File srcDir = new File(CallJarikoWithParams.class.getResource("/rpg").getPath());
         List<RpgProgramFinder> programFinders = Arrays.asList(new DirRpgProgramFinder(srcDir));
-        CommandLineProgram program = RunnerKt.getProgram(name, new JavaSystemInterface(), programFinders);
-        return program.singleCall(inputParams, new Configuration());
+        final JavaSystemInterface systemInterface = new JavaSystemInterface();
+        systemInterface.setLoggingConfiguration(LoggingKt.consoleLoggingConfiguration(LoggingKt.PERFORMANCE_LOGGER));
+        CommandLineProgram program = RunnerKt.getProgram(name, systemInterface, programFinders);
+        final Configuration configuration = new Configuration();
+        configuration.getJarikoCallback().setLogInfo((channel, message) -> {
+            System.out.println(channel);
+            System.out.println(message);
+            return Unit.INSTANCE;
+        });
+        return program.singleCall(inputParams, configuration);
     }
 
     public static void execWithListOfString() {
