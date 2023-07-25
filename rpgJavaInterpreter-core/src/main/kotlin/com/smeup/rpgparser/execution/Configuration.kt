@@ -117,8 +117,10 @@ data class Options(
  * @param onEnterFunction It is invoked on function enter after symboltable initialization.
  * @param onExitFunction It is invoked on function exit, only if the function does not throw any error
  * @param onError It is invoked in case of errors. The default implementation writes error event in stderr
- * @param logInfo If specified it is invoked to log information messages
- * @param channelLoggingEnabled If specified it tests if the channel is enabled for logging
+ * @param logInfo If specified, it is invoked to log information messages, for all channel enabled
+ * @param channelLoggingEnabled If specified, it allows to enable programmatically the channel logging.
+ * For instance, you can enable all channels by using [consoleVerboseConfiguration] but you can decide, through
+ * the implementation of this callback, which channel you want to log.
  * */
 data class JarikoCallback(
     var getActivationGroup: (programName: String, associatedActivationGroup: ActivationGroup?) -> ActivationGroup? = { _: String, _: ActivationGroup? ->
