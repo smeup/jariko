@@ -716,7 +716,7 @@ data class KListStmt
 private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
     companion object {
         operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
-            return KListStmt(name.toUpperCase(), fields, position)
+            return KListStmt(name.uppercase(Locale.getDefault()), fields, position)
         }
     }
 
@@ -942,7 +942,6 @@ data class DefineStmt(
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
-        var inStmtDataDefinitionList = mutableListOf<InStatementDataDefinition>()
         val containingCU = this.ancestor(CompilationUnit::class.java)
             ?: return emptyList()
 
@@ -960,19 +959,6 @@ data class DefineStmt(
         if (originalDataDefinition != null) {
             return listOf(InStatementDataDefinition(newVarName, originalDataDefinition.type, position))
         } else {
-
-                containingCU.subroutines.forEach {
-                    val inSubroutineDataDefinition = it.stmts
-                    .filterIsInstance(StatementThatCanDefineData::class.java)
-                    .filter { it != this }
-                    .asSequence()
-                    .map(StatementThatCanDefineData::dataDefinition)
-                    .flatten()
-                    .find { it.name == originalName }
-                    if (inSubroutineDataDefinition != null)
-                        inStmtDataDefinitionList.add(InStatementDataDefinition(newVarName, inSubroutineDataDefinition.type, position))
-                }
-
             val inStatementDataDefinition =
                 containingCU.main.stmts
                     .filterIsInstance(StatementThatCanDefineData::class.java)
@@ -980,11 +966,9 @@ data class DefineStmt(
                     .asSequence()
                     .map(StatementThatCanDefineData::dataDefinition)
                     .flatten()
-                    .find { it.name == originalName }
-                if (inStatementDataDefinition != null)
-                    inStmtDataDefinitionList.add(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
+                    .find { it.name == originalName } ?: return emptyList()
 
-            return inStmtDataDefinitionList
+            return listOf(InStatementDataDefinition(newVarName, inStatementDataDefinition.type, position))
         }
     }
 
@@ -1360,7 +1344,7 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
 @Serializable
 data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
     companion object {
-        operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
+        operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.uppercase(Locale.getDefault()), position)
     }
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here

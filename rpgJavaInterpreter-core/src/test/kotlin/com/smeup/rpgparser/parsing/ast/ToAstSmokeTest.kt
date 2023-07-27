@@ -338,7 +338,10 @@ open class ToAstSmokeTest : AbstractTest() {
         }
     }
 
+    // rollback like define from params inside subroutine because it is not clear the reason of stack overflow
+    // in the context of ast syntax checking
     @Test
+    @Ignore
     fun buildAstForLIKEDEFINE02() {
         assertASTCanBeProduced(exampleName = "LIKEDEFINE02", printTree = false).apply {
             // this function must not throw "Data definition §§ORA was not found"
