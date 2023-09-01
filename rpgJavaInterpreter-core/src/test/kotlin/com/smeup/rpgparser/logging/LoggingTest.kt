@@ -187,7 +187,7 @@ class LoggingTest : AbstractTest() {
         configuration.jarikoCallback.logInfo = { _, _ ->
             logInfCalled = true
         }
-        val systemInterface = JavaSystemInterface().apply {
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
             loggingConfiguration = consoleLoggingConfiguration(RESOLUTION_LOGGER)
         }
         executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
