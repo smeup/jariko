@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.logging
 
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
@@ -27,7 +28,7 @@ import java.io.File
 import java.io.PrintStream
 import kotlin.test.*
 
-class LoggingTest {
+class LoggingTest : AbstractTest() {
 
     private val programName = "MYPGM"
     private val varName = "MYVAR"
@@ -174,6 +175,23 @@ class LoggingTest {
                 System.setOut(defaultOut)
             }
         }
+    }
+
+    /**
+     * Test if channel for resolution logs are al
+     * */
+    @Test
+    fun reslChannelLogInfo() {
+        val configuration = Configuration()
+        var logInfCalled = false
+        configuration.jarikoCallback.logInfo = { _, _ ->
+            logInfCalled = true
+        }
+        val systemInterface = JavaSystemInterface().apply {
+            loggingConfiguration = consoleLoggingConfiguration(RESOLUTION_LOGGER)
+        }
+        executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
+        assertTrue(logInfCalled, "logInfo never called")
     }
 
     private fun createAssignmentLogEntry(): AssignmentLogEntry {
