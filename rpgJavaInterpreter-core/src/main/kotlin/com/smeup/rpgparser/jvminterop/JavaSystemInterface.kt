@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.jvminterop
 
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.interpreter.Function
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
@@ -39,7 +40,8 @@ open class JavaSystemInterface(
     private val programSource: KFunction1<@ParameterName(name = "programName") String, RpgProgram>?,
     private val copySource: (copyId: CopyId) -> Copy? = { null },
     var loggingConfiguration: LoggingConfiguration? = null,
-    val rpgSystem: RpgSystem = RpgSystem()
+    val rpgSystem: RpgSystem = RpgSystem(),
+    private val configuration: Configuration = Configuration()
 ) : SystemInterface {
 
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
@@ -50,8 +52,24 @@ open class JavaSystemInterface(
     }
 
     // For calls from Java programs
-    private constructor (os: PrintStream, rpgSystem: RpgSystem) : this(os, rpgSystem::getProgram, { copyId -> rpgSystem.getCopy(copyId) }, rpgSystem = rpgSystem)
-    constructor (os: PrintStream) : this(os, RpgSystem())
+    private constructor (os: PrintStream, rpgSystem: RpgSystem, configuration: Configuration) : this(os, rpgSystem::getProgram, { copyId -> rpgSystem.getCopy(copyId) }, rpgSystem = rpgSystem, configuration = configuration)
+    /**
+     * Creates an instance of JavaSystemInterface with default [RpgSystem]
+     * */
+    constructor (os: PrintStream, configuration: Configuration) : this(os, RpgSystem(), configuration)
+    /**
+     * Creates an instance of JavaSystemInterface with default [RpgSystem] and default [Configuration]
+     * */
+    constructor (os: PrintStream) : this(os, RpgSystem(), Configuration())
+    /**
+     * Creates an instance of JavaSystemInterface with default [RpgSystem] and os param set to [System.out]
+     * */
+    constructor(configuration: Configuration) : this(System.out, configuration)
+
+    /**
+     * Creates an instance of JavaSystemInterface with default [RpgSystem] and os param set to [System.out]
+     * and default [Configuration]
+     * */
     constructor() : this(System.out)
 
     private val consoleOutputList = LinkedList<String>()
@@ -175,5 +193,9 @@ open class JavaSystemInterface(
         } else {
             this.loggingConfiguration = loadLogConfiguration(configurationFile)
         }
+    }
+
+    override fun getConfiguration(): Configuration {
+        return configuration
     }
 }

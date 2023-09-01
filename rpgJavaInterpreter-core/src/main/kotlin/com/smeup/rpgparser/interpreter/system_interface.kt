@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.andreapivetta.kolor.yellow
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.logging.configureLog
 import com.smeup.rpgparser.logging.defaultLoggingConfiguration
 import com.smeup.rpgparser.logging.loadLogConfiguration
@@ -78,6 +79,10 @@ interface SystemInterface {
     }
 
     fun getFeaturesFactory() = FeaturesFactory.newInstance()
+
+    fun getConfiguration(): Configuration {
+        return Configuration()
+    }
 }
 
 object DummySystemInterface : SystemInterface {
@@ -139,7 +144,7 @@ class SimpleSystemInterface(
         TODO("Not yet implemented")
     }
 
-    private val programs = java.util.HashMap<String, Program?>()
+    private val programs = HashMap<String, Program?>()
 
     override fun findProgram(name: String): Program? {
         programs.computeIfAbsent(name) {
