@@ -24,6 +24,7 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.utils.StringOutputStream
 import org.apache.logging.log4j.LogManager
 import org.junit.After
+import org.junit.Assert
 import java.io.File
 import java.io.PrintStream
 import kotlin.test.*
@@ -178,10 +179,10 @@ class LoggingTest : AbstractTest() {
     }
 
     /**
-     * Test if channel for resolution logs are al
+     * Test if resolution logs are overwritten through the setting of [com.smeup.rpgparser.execution.JarikoCallback.logInfo]
      * */
     @Test
-    fun reslChannelLogInfo() {
+    fun resolutionChannelLogInfo() {
         val configuration = Configuration()
         var logInfCalled = false
         configuration.jarikoCallback.logInfo = { _, _ ->
@@ -192,6 +193,53 @@ class LoggingTest : AbstractTest() {
         }
         executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
         assertTrue(logInfCalled, "logInfo never called")
+    }
+
+    /**
+     * Test if error events are logged through the [ERROR_LOGGER]
+     * */
+    @Test
+    fun errorEventsInErrorChannel() {
+        var logInfoChannelParam = ""
+        val configuration = Configuration().apply {
+            jarikoCallback.logInfo = { channel, message ->
+                println(message)
+                logInfoChannelParam = channel
+            }
+        }
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(ERROR_LOGGER)
+        }
+        kotlin.runCatching {
+            executePgm(programName = "ERROR02", configuration = configuration, systemInterface = systemInterface)
+        }.onSuccess {
+            fail(message = "Jariko must throws an exception")
+        }.onFailure {
+            assertEquals(ERROR_LOGGER, logInfoChannelParam)
+        }
+    }
+
+    /**
+     * Test if the error events are written in stderr also if there is no logging configuration
+     * */
+    @Test
+    fun errorEventsMustByPrintedAlsoWhenNotConfigured() {
+        val defaultErr = System.err
+        val err = StringOutputStream()
+        try {
+            System.setErr(PrintStream(err))
+            executePgm(programName = "ERROR02")
+            fail(message = "Jariko must throws an exception")
+        } catch (e: Exception) {
+            err.flush()
+            val errorEventsStr = err.toString().trim().split(regex = Regex(pattern = "\\n|\\r\\n"))
+            Assert.assertEquals(2, errorEventsStr.size)
+            Assert.assertTrue(errorEventsStr[0].startsWith("ErrorEvent("))
+            Assert.assertTrue(errorEventsStr[1].startsWith("ErrorEvent("))
+        } finally {
+            err.flush()
+            System.setErr(PrintStream(defaultErr))
+        }
     }
 
     private fun createAssignmentLogEntry(): AssignmentLogEntry {

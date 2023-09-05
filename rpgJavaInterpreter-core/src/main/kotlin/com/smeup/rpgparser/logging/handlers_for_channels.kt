@@ -247,6 +247,24 @@ class ParsingLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), 
     }
 }
 
+class ErrorLogHandler(level: LogLevel, sep: String) : LogHandler(level, sep), InterpreterLogHandler {
+    private val logger = LogManager.getLogger(ERROR_LOGGER)
+
+    override fun render(logEntry: LogEntry): String {
+        val fileName = extractFilename(logEntry.programName)
+        return logEntry.renderErrorEvent("ERR", fileName, this.sep)
+    }
+
+    override fun handle(logEntry: LogEntry) {
+
+        if (logger.checkChannelLoggingEnabled()) {
+            when (logEntry) {
+                is ErrorEventLogEntry -> logger.fireLogInfo(render(logEntry))
+            }
+        }
+    }
+}
+
 private fun Logger.fireLogInfo(message: String) {
     val channel = this.name
     MainExecutionContext.getConfiguration().jarikoCallback.logInfo?.let {

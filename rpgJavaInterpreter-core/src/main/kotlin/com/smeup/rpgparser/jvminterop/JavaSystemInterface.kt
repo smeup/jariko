@@ -41,7 +41,7 @@ open class JavaSystemInterface(
     private val copySource: (copyId: CopyId) -> Copy? = { null },
     var loggingConfiguration: LoggingConfiguration? = null,
     val rpgSystem: RpgSystem = RpgSystem(),
-    private val configuration: Configuration = Configuration()
+    private val configuration: Configuration? = null
 ) : SystemInterface {
 
     override var executedAnnotationInternal: LinkedHashMap<Int, MuteAnnotationExecuted> = LinkedHashMap<Int, MuteAnnotationExecuted>()
@@ -52,15 +52,15 @@ open class JavaSystemInterface(
     }
 
     // For calls from Java programs
-    private constructor (os: PrintStream, rpgSystem: RpgSystem, configuration: Configuration) : this(os, rpgSystem::getProgram, { copyId -> rpgSystem.getCopy(copyId) }, rpgSystem = rpgSystem, configuration = configuration)
+    private constructor (os: PrintStream, rpgSystem: RpgSystem, configuration: Configuration?) : this(os, rpgSystem::getProgram, { copyId -> rpgSystem.getCopy(copyId) }, rpgSystem = rpgSystem, configuration = configuration)
     /**
      * Creates an instance of JavaSystemInterface with default [RpgSystem]
      * */
-    constructor (os: PrintStream, configuration: Configuration) : this(os, RpgSystem(), configuration)
+    constructor (os: PrintStream, configuration: Configuration?) : this(os, RpgSystem(), configuration)
     /**
-     * Creates an instance of JavaSystemInterface with default [RpgSystem] and default [Configuration]
+     * Creates an instance of JavaSystemInterface with default [RpgSystem]
      * */
-    constructor (os: PrintStream) : this(os, RpgSystem(), Configuration())
+    constructor (os: PrintStream) : this(os, RpgSystem(), null)
     /**
      * Creates an instance of JavaSystemInterface with default [RpgSystem] and os param set to [System.out]
      * */
@@ -68,7 +68,6 @@ open class JavaSystemInterface(
 
     /**
      * Creates an instance of JavaSystemInterface with default [RpgSystem] and os param set to [System.out]
-     * and default [Configuration]
      * */
     constructor() : this(System.out)
 
@@ -195,7 +194,7 @@ open class JavaSystemInterface(
         }
     }
 
-    override fun getConfiguration(): Configuration {
+    override fun getConfiguration(): Configuration? {
         return configuration
     }
 }

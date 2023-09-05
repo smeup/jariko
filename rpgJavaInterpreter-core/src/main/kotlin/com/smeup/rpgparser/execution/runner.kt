@@ -152,7 +152,7 @@ fun getProgram(
     systemInterface: SystemInterface = JavaSystemInterface(),
     programFinders: List<RpgProgramFinder> = defaultProgramFinders
 ): CommandLineProgram {
-    return MainExecutionContext.execute(configuration = systemInterface.getConfiguration(), systemInterface = systemInterface) {
+    return MainExecutionContext.execute(configuration = systemInterface.getConfiguration() ?: Configuration(), systemInterface = systemInterface) {
         if (systemInterface is JavaSystemInterface) {
             systemInterface.rpgSystem.addProgramFinders(programFinders)
             programFinders.forEach {

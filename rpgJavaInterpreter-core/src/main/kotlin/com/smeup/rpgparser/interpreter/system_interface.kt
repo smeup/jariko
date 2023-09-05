@@ -2,9 +2,7 @@ package com.smeup.rpgparser.interpreter
 
 import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.logging.configureLog
-import com.smeup.rpgparser.logging.defaultLoggingConfiguration
-import com.smeup.rpgparser.logging.loadLogConfiguration
+import com.smeup.rpgparser.logging.*
 import com.smeup.rpgparser.mute.color
 import com.smeup.rpgparser.parsing.ast.Api
 import com.smeup.rpgparser.parsing.ast.ApiDescriptor
@@ -20,31 +18,38 @@ import kotlin.collections.LinkedHashMap
 
 typealias LoggingConfiguration = Properties
 
+fun Collection<InterpreterLogHandler>.isErrorChannelConfigured(): Boolean {
+    return find { it is ErrorLogHandler } != null
+}
+
 fun consoleVerboseConfiguration(): LoggingConfiguration {
     val props = Properties()
     props.setProperty("logger.data.separator", "\t")
     props.setProperty("logger.date.pattern", "HH:mm:ss.SSS")
-    props.setProperty("data.level", "all")
-    props.setProperty("data.output", "console")
-    props.setProperty("loop.level", "all")
-    props.setProperty("loop.output", "console")
+    props.setProperty("$DATA_LOGGER.level", "all")
+    props.setProperty("$DATA_LOGGER.output", "console")
+    props.setProperty("$LOOP_LOGGER.level", "all")
+    props.setProperty("$LOOP_LOGGER.output", "console")
 
-    props.setProperty("expression.level", "all")
-    props.setProperty("expression.output", "console")
+    props.setProperty("$EXPRESSION_LOGGER.level", "all")
+    props.setProperty("$EXPRESSION_LOGGER.output", "console")
 
-    props.setProperty("statement.level", "all")
-    props.setProperty("statement.output", "console")
+    props.setProperty("$STATEMENT_LOGGER.level", "all")
+    props.setProperty("$STATEMENT_LOGGER.output", "console")
 
-    props.setProperty("performance.level", "all")
-    props.setProperty("performance.output", "console")
+    props.setProperty("$PERFORMANCE_LOGGER.level", "all")
+    props.setProperty("$PERFORMANCE_LOGGER.output", "console")
 
-    props.setProperty("resolution.level", "all")
-    props.setProperty("resolution.output", "console")
+    props.setProperty("$RESOLUTION_LOGGER.level", "all")
+    props.setProperty("$RESOLUTION_LOGGER.output", "console")
+
+    props.setProperty("$ERROR_LOGGER.level", "all")
+    props.setProperty("$ERROR_LOGGER.output", "console")
     return LoggingConfiguration(props)
 }
 
 /**
- * This represent the interface to the external world.
+ * This represents the interface to the external world.
  * Printing, accessing databases, all sort of interactions should go through this interface.
  */
 interface SystemInterface {
@@ -80,9 +85,11 @@ interface SystemInterface {
 
     fun getFeaturesFactory() = FeaturesFactory.newInstance()
 
-    fun getConfiguration(): Configuration {
-        return Configuration()
-    }
+    /**
+     * @return An instance of configuration.
+     * If not null this instance is the first one evaluated in [com.smeup.rpgparser.execution.MainExecutionContext.getConfiguration]
+     * */
+    fun getConfiguration(): Configuration? = null
 }
 
 object DummySystemInterface : SystemInterface {

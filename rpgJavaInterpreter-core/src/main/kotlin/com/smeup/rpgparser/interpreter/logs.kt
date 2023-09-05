@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.Record
+import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.utils.asNonNullString
@@ -50,6 +51,9 @@ abstract class LogEntry(open val programName: String) {
         return "$channel NOT IMPLEMENTED"
     }
     open fun renderResolution(channel: String, filename: String, sep: String): String {
+        return "$channel NOT IMPLEMENTED"
+    }
+    open fun renderErrorEvent(channel: String, filename: String, sep: String): String {
         return "$channel NOT IMPLEMENTED"
     }
 }
@@ -1100,5 +1104,16 @@ class StoreLogEnd(programName: String, val statement: Statement, private val log
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
         val data = "$logPref END${sep}${elapsed}${sep}ms"
         return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+
+class ErrorEventLogEntry(private val errorEvent: ErrorEvent) : LogEntry(errorEvent.sourceReference?.sourceId ?: "") {
+    override fun toString(): String {
+        return "error"
+    }
+
+    override fun renderErrorEvent(channel: String, filename: String, sep: String): String {
+        val line = errorEvent.absoluteLine?.toString() ?: ""
+        return renderHeader(channel, filename, line, sep) + errorEvent
     }
 }
