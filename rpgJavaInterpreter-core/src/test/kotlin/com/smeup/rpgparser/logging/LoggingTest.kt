@@ -214,7 +214,7 @@ class LoggingTest : AbstractTest() {
         }.onFailure {
             out.flush()
             System.setOut(defaultOut)
-            println(out.toString().trim())
+            println("errorEventsInErrorChannel: ${out.toString().trim()}")
             val errorPattern = Regex(pattern = "\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3}\\s+ERROR02\\s+\\d+\\s+ERR\\s+ErrorEvent.+")
             val errorLogEntries = out.toString().trim().split(regex = Regex("\\n|\\r\\n"))
             assertEquals(2, errorLogEntries.size)
