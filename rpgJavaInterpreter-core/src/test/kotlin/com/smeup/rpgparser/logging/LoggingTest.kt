@@ -213,13 +213,14 @@ class LoggingTest : AbstractTest() {
             fail(message = "Jariko must throws an exception")
         }.onFailure {
             out.flush()
-            val errorPattern = Regex(pattern = "\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3}\\s+ERROR02\\s+\\d+\\s+ERR\\s+ErrorEvent.+")
-            val errorLogEntries = out.toString().trim().split(regex = Regex("\n|\r\n"))
             System.setOut(defaultOut)
+            println(out.toString().trim())
+            val errorPattern = Regex(pattern = "\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3}\\s+ERROR02\\s+\\d+\\s+ERR\\s+ErrorEvent.+")
+            val errorLogEntries = out.toString().trim().split(regex = Regex("\\n|\\r\\n"))
             assertEquals(2, errorLogEntries.size)
             assertTrue(errorLogEntries[0].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
             assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
-            println(out.toString().trim())
+
         }
     }
 
@@ -261,7 +262,7 @@ class LoggingTest : AbstractTest() {
             fail(message = "Jariko must throws an exception")
         } catch (e: Exception) {
             err.flush()
-            val errorEventsStr = err.toString().trim().split(regex = Regex(pattern = "\n|\r\n"))
+            val errorEventsStr = err.toString().trim().split(regex = Regex(pattern = "\\n|\\r\\n"))
             Assert.assertEquals(2, errorEventsStr.size)
             Assert.assertTrue(errorEventsStr[0].startsWith("ErrorEvent("))
             Assert.assertTrue(errorEventsStr[1].startsWith("ErrorEvent("))
