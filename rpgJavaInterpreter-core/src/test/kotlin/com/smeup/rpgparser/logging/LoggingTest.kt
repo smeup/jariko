@@ -220,7 +220,6 @@ class LoggingTest : AbstractTest() {
             assertEquals(2, errorLogEntries.size)
             assertTrue(errorLogEntries[0].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
             assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
-
         }
     }
 
