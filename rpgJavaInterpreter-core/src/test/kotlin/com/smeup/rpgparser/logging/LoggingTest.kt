@@ -213,13 +213,13 @@ class LoggingTest : AbstractTest() {
             fail(message = "Jariko must throws an exception")
         }.onFailure {
             out.flush()
-            System.setOut(defaultOut)
-            println("errorEventsInErrorChannel: ${out.toString().trim()}")
+            System.err.println("errorEventsInErrorChannel: ${out.toString().trim()}")
             val errorPattern = Regex(pattern = "\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3}\\s+ERROR02\\s+\\d+\\s+ERR\\s+ErrorEvent.+")
             val errorLogEntries = out.toString().trim().split(regex = Regex("\\n|\\r\\n"))
             assertEquals(2, errorLogEntries.size)
             assertTrue(errorLogEntries[0].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
             assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
+            System.setOut(defaultOut)
         }
     }
 
