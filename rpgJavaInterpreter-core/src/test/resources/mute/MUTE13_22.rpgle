@@ -9,6 +9,8 @@
      V* 25/08/20  002091  BUSFIO Renamed MUTE13_20 into MUTE13_22
      V* 25/08/20  002091  BUSFIO Sostituzione di SETON e SETOFF e esplicitazione IF
      V* 31/08/20  V5R1    BMA   Check-out 002091 in SMEDEV
+     V* 07/09/23  005098  BERNI  Ampliato aggiungendo l'esempio del MUTE13_22B
+     V* 07/09/23  V6R1    BMA Check-out 005098 in SMEDEV
      V*=====================================================================
      D FACTOR2         S              1  0
       *---------------------------------------------------------------
@@ -96,6 +98,23 @@
      C                   Z-ADD     1             FACTOR2
      C                   ENDIF
     MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   EVAL      *IN99=*ON
+     C                   Z-ADD     0             FACTOR2
+      *
+     C                   IF        *IN99=*OFF
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+      *
+    MU* VAL1(FACTOR2) VAL2(1) COMP(EQ)
+     C                   EVAL      FACTOR2+=1
+      *
+     C                   IF        *IN99=*OFF
+     C                   Z-ADD     1             FACTOR2
+     C                   ENDIF
+      *
+    MU* VAL1(FACTOR2) VAL2(2) COMP(EQ)
      C                   EVAL      FACTOR2+=1
       *
      C                   SETON                                        LR

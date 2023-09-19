@@ -193,10 +193,11 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("mute/MUTE13_22", 9)
     }
 
-    @Test
+    /* MUTE13_22B was included into MUTE13_22 */
+    /*@Test
     fun executeMUTE13_22B_If_test_does_not_change_indicator_value() {
         assertMuteExecutionSucceded("mute/MUTE13_22B", 2)
-    }
+    }*/
 
     @Test
     @Ignore
@@ -215,28 +216,28 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    fun executeMUTE13_25B() {
-        assertMuteExecutionSucceded("mute/MUTE13_25B", 24)
+    fun executeMUTE13_37() {
+        assertMuteExecutionSucceded("mute/MUTE13_37", 24)
     }
 
     @Test
-    fun executeMUTE13_25V() {
-        assertMuteExecutionSucceded("mute/MUTE13_25V", 24)
+    fun executeMUTE13_39() {
+        assertMuteExecutionSucceded("mute/MUTE13_39", 24)
     }
 
     @Test
-    fun executeMUTE13_25D() {
-        assertMuteExecutionSucceded("mute/MUTE13_25D", 22)
+    fun executeMUTE13_38() {
+        assertMuteExecutionSucceded("mute/MUTE13_38", 22)
     }
 
     @Test
-    fun executeMUTE13_10B() {
-        assertMuteExecutionSucceded("mute/MUTE13_10B", 10)
+    fun executeMUTE13_35() {
+        assertMuteExecutionSucceded("mute/MUTE13_35", 10)
     }
 
     @Test
-    fun executeMUTE13_10C() {
-        assertMuteExecutionSucceded("mute/MUTE13_10C", 4)
+    fun executeMUTE13_36() {
+        assertMuteExecutionSucceded("mute/MUTE13_36", 4)
     }
 
     @Test
@@ -255,13 +256,13 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    fun executeMUTE12_08B() {
-        assertMuteExecutionSucceded("data/ds/MUTE12_08B", 8)
+    fun executeMUTE12_17() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_17", 8)
     }
 
     @Test
-    fun executeMUTE12_01B() {
-        assertMuteExecutionSucceded("data/ds/MUTE12_01B", 14)
+    fun executeMUTE12_16() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_16", 14)
     }
 
     @Test
