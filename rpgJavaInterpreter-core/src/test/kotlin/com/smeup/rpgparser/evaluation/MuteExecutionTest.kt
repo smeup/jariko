@@ -190,7 +190,7 @@ open class MuteExecutionTest : AbstractTest() {
 
     @Test
     fun executeMUTE13_22_SetOn_SetOff() {
-        assertMuteExecutionSucceded("mute/MUTE13_22", 9)
+        assertMuteExecutionSucceded("mute/MUTE13_22", 11)
     }
 
     /* MUTE13_22B was included into MUTE13_22 */
