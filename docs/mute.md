@@ -4,6 +4,30 @@ This interpreter can process annotations in RPG code to be used to define assert
 
 ## Syntax
 
+### MUTE file notation
+The standard notation for a MUTE file follows the structure `MUTEnn_mmk` where:
+- `nn` is a two-digit number that identifies the test domain (e.g. API, Element, etc)
+- `mm` is a two-digit sequential number, used to enumerate the tests of a given domain.
+- `k` is a letter and indicates a MUTE subtest that is called by the main MUTE test (with identical name but without `k`).
+
+A list of the meanings of the MUTE code-names is found in the member `SCP_SET/LOA07_MU10`:
+```rpg
+
+::SEZ Cod="13" Txt="13. BIF e Codici operativi
+::SUB Cod="01" Txt=" %INT"
+::SUB Cod="02" Txt="%EDITW"
+::SUB Cod="03" Txt="WHEN e IF"
+::SUB Cod="04" Txt=" MOVEL"
+::SUB Cod="05" Txt=" Z-SUB"
+::SUB Cod="06" Txt=" SUB"
+
+```
+where the sections represent the domains (`nn` values), while the subsections represent the domain tests (`mm` value).
+
+Example: `MUTE13_05` is a MUTE that tests the `Z-SUB` opcode.
+
+Warning: MUTEs for domains 11 (_Plugin gateway e prove_) and 18 (_/API directive_) are not listed in the member. 
+
 ### Assertions that compare two values
 The Mute annotations that compare two values looks like this:
 
