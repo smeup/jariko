@@ -10,23 +10,26 @@ The standard notation for a MUTE file follows the structure `MUTEnn_mmk` where:
 - `mm` is a two-digit sequential number, used to enumerate the tests of a given domain.
 - `k` is a letter and indicates a MUTE subtest that is called by the main MUTE test (with identical name but without `k`).
 
-A list of the meanings of the MUTE code-names is found in the member `SCP_SET/LOA07_MU10`:
-```rpg
+A list of the meanings of the MUTE code-names (note that the prefix represent the domain, `nn` values, while the suffix represent the domain tests, `mm` value):
 
-::SEZ Cod="13" Txt="13. BIF e Codici operativi
-::SUB Cod="01" Txt=" %INT"
-::SUB Cod="02" Txt="%EDITW"
-::SUB Cod="03" Txt="WHEN e IF"
-::SUB Cod="04" Txt=" MOVEL"
-::SUB Cod="05" Txt=" Z-SUB"
-::SUB Cod="06" Txt=" SUB"
-
-```
-where the sections represent the domains (`nn` values), while the subsections represent the domain tests (`mm` value).
-
-Example: `MUTE13_05` is a MUTE that tests the `Z-SUB` opcode.
-
-Warning: MUTEs for domains 11 (_Plugin gateway e prove_) and 18 (_/API directive_) are not listed in the member. 
+|     CODE     | DOMAIN TESTS               |
+|:------------:|----------------------------|
+|  **MUTE01**  | **Element**                |
+|  **MUTE02**  | **List**                   |
+|  **MUTE03**  | **DS**                     |
+|  **MUTE05**  | **Espressioni**            |
+|  **MUTE06**  | **Data Access**            |
+|  **MUTE07**  | **Codici operativi**       |
+|  **MUTE08**  | **Funzioni applicative**   |
+|  **MUTE09**  | **Funzioni Validazione**   |
+|  **MUTE10**  | **Funzioni Performance**   |
+|  **MUTE11**  | **Plugin gateway e prove** |
+|  **MUTE12**  | **Pacchetto tipi dato**    |
+|  **MUTE13**  | **BIF e Codici operativi** |
+|  **MUTE14**  | **/COPY**                  |
+|  **MUTE15**  | **Procedures**             |
+|  **MUTE16**  | **Reload**                 |
+|  **MUTE18**  | **/API directive**         |
 
 ### Assertions that compare two values
 The Mute annotations that compare two values looks like this:
