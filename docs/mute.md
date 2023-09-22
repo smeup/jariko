@@ -12,24 +12,24 @@ The standard notation for a MUTE file follows the structure `MUTEnn_mmk` where:
 
 A list of the meanings of the MUTE code-names (note that the prefix represent the domain, `nn` values, while the suffix represent the domain tests, `mm` value):
 
-|     CODE     | DOMAIN TESTS               |
-|:------------:|----------------------------|
-|  **MUTE01**  | **Element**                |
-|  **MUTE02**  | **List**                   |
-|  **MUTE03**  | **DS**                     |
-|  **MUTE05**  | **Espressioni**            |
-|  **MUTE06**  | **Data Access**            |
-|  **MUTE07**  | **Codici operativi**       |
-|  **MUTE08**  | **Funzioni applicative**   |
-|  **MUTE09**  | **Funzioni Validazione**   |
-|  **MUTE10**  | **Funzioni Performance**   |
-|  **MUTE11**  | **Plugin gateway e prove** |
-|  **MUTE12**  | **Pacchetto tipi dato**    |
-|  **MUTE13**  | **BIF e Codici operativi** |
-|  **MUTE14**  | **/COPY**                  |
-|  **MUTE15**  | **Procedures**             |
-|  **MUTE16**  | **Reload**                 |
-|  **MUTE18**  | **/API directive**         |
+|     CODE     | DOMAIN TESTS                 |
+|:------------:|------------------------------|
+|  **MUTE01**  | **Element**                  |
+|  **MUTE02**  | **List**                     |
+|  **MUTE03**  | **DS**                       |
+|  **MUTE05**  | **Expressions**              |
+|  **MUTE06**  | **Data Access**              |
+|  **MUTE07**  | **Operative Codes**          |
+|  **MUTE08**  | **Application functions**    |
+|  **MUTE09**  | **Validation Functions**     |
+|  **MUTE10**  | **Performance Functions**    |
+|  **MUTE11**  | **Plugin gateway and tests** |
+|  **MUTE12**  | **Data type package**        |
+|  **MUTE13**  | **BIF and Operative Codes**  |
+|  **MUTE14**  | **/COPY**                    |
+|  **MUTE15**  | **Procedures**               |
+|  **MUTE16**  | **Reload**                   |
+|  **MUTE18**  | **/API directive**           |
 
 ### Assertions that compare two values
 The Mute annotations that compare two values looks like this:
