@@ -189,6 +189,12 @@ open class RpgSystem {
     }
 
     @Synchronized
+    fun replaceProgramFinders(programFindersList: List<RpgProgramFinder>) {
+        programFinders.clear()
+        programFinders.addAll(programFindersList)
+    }
+
+    @Synchronized
     fun addProgramFinder(programFinder: RpgProgramFinder) {
         programFinders.add(programFinder)
     }
