@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
@@ -165,6 +164,13 @@ open class MuteExecutionTest : AbstractTest() {
     @Test
     fun executeMUTE13_10() {
         assertMuteExecutionSucceded("mute/MUTE13_10", 8)
+    }
+
+    // TODO evaluate if it is a false positive
+    @Test
+    @Ignore
+    fun executeMUTE13_11() {
+        assertMuteExecutionSucceded("mute/MUTE13_11", 7)
     }
 
     @Test
