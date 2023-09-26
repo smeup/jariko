@@ -94,7 +94,7 @@ class RpgTokensListTest {
     }
 
     @test fun lexMute12_06_indicatorAssignment() {
-        val tokens = assertExampleCanBeLexed("data/primitives/MUTE12_06")
+        val tokens = assertExampleCanBeLexed("mute/MUTE12_06")
         val tokensAtLine = tokens.filter { it.line == 21 }
         assertEquals(10, tokensAtLine.size)
         assertToken(OP_EVAL, "EVAL", tokensAtLine[5])
@@ -104,7 +104,7 @@ class RpgTokensListTest {
     }
 
     @test fun lexMute12_06_globalIndicatorAssignment() {
-        val tokens = assertExampleCanBeLexed("data/primitives/MUTE12_06")
+        val tokens = assertExampleCanBeLexed("mute/MUTE12_06")
         val tokensAtLine = tokens.filter { it.line == 71 }
         assertEquals(10, tokensAtLine.size)
         assertToken(OP_EVAL, "EVAL", tokensAtLine[5])
