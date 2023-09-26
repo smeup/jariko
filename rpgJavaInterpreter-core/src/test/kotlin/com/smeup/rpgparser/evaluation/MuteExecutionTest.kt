@@ -454,6 +454,11 @@ open class MuteExecutionTest : AbstractTest() {
         executePgm("mute/MUTE01_07", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
 
+    @Test
+    fun executeMUTE12_06() {
+        executePgm("mute/MUTE12_06", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
     private fun assertMuteExecutionSucceded(
         exampleName: String,
         // if null ignores mutes number assertions check
