@@ -222,6 +222,12 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE13_14() {
+        // I don't pass nrOfMuteAssertions because MU* FAIL is not properly handled
+        assertMuteExecutionSucceded("mute/MUTE13_14")
+    }
+
+    @Test
     // Simplified version of MUTE09_04 without MOVEA
     fun executeMUTE09_05_operations_on_arrays_of_unequal_size() {
         assertMuteExecutionSucceded("mute/MUTE09_05", 46)
