@@ -539,7 +539,7 @@ open class MuteExecutionTest : AbstractTest() {
         }
         val interpreter = MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
             it.executionProgramName = exampleName
-            execute(cu, parameters, systemInterface = systemInterface)
+            execute(cu, parameters, systemInterface = systemInterface, programName = exampleName)
         }
         nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.getSystemInterface().getExecutedAnnotation().size) }
         interpreter.getSystemInterface().getExecutedAnnotation().forEach {
