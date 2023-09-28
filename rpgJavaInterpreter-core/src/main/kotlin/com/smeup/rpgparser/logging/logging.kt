@@ -26,6 +26,7 @@ const val EXPRESSION_LOGGER: String = "expression"
 const val PERFORMANCE_LOGGER: String = "performance"
 const val RESOLUTION_LOGGER: String = "resolution"
 const val PARSING_LOGGER: String = "parsing"
+const val ERROR_LOGGER: String = "error"
 
 abstract class LogHandler(val level: LogLevel, val sep: String) {
     // as this method is for registration only, I think it is incorrect to extract the extension as well
@@ -62,22 +63,21 @@ enum class LogLevel {
     ALL;
     companion object {
         fun find(name: String): LogLevel? {
-            return values().find { it.name.toLowerCase() == name.toLowerCase() }
+            return values().find { it.name.lowercase() == name.lowercase() }
         }
     }
 }
 
 fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
 
-    val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFORMANCE_LOGGER, RESOLUTION_LOGGER, PARSING_LOGGER)
+    val names = listOf(LOOP_LOGGER, EXPRESSION_LOGGER, STATEMENT_LOGGER, DATA_LOGGER, PERFORMANCE_LOGGER, RESOLUTION_LOGGER, PARSING_LOGGER, ERROR_LOGGER)
     val handlers: MutableList<InterpreterLogHandler> = mutableListOf()
     val ctx: LoggerContext by lazy {
         LogManager.getContext(false) as LoggerContext
     }
 
+    val dataSeparator = config.getProperty("logger.data.separator")
     try {
-        val dataSeparator = config.getProperty("logger.data.separator")
-        // TODO error
 
         names.forEach {
             val logLevelStr = config.getProperty("$it.level") ?: LogLevel.OFF.name
@@ -115,13 +115,16 @@ fun configureLog(config: LoggingConfiguration): List<InterpreterLogHandler> {
                         configureLogChannel(ctx, it, config)
                         handlers.add(ParsingLogHandler(logLevel, dataSeparator))
                     }
+                    ERROR_LOGGER -> {
+                        configureLogChannel(ctx, it, config)
+                        handlers.add(ErrorLogHandler(logLevel, dataSeparator))
+                    }
                 }
             }
         }
     } catch (e: Exception) {
         println("Configuration WARNING: ${e.message!!}")
     }
-
     return handlers
 }
 
@@ -202,7 +205,7 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
             val refs = arrayOf(ref)
 
             val loggerConfig = LoggerConfig
-                    .createLogger(false, Level.getLevel(level.toUpperCase()), channel, "true", refs, null, ctx.configuration, null)
+                    .createLogger(false, Level.getLevel(level.uppercase()), channel, "true", refs, null, ctx.configuration, null)
 
             loggerConfig.addAppender(console, null, null)
             ctx.configuration.addLogger(channel, loggerConfig)
@@ -214,7 +217,7 @@ fun configureLogChannel(ctx: LoggerContext, channel: String, properties: Propert
             val refs = arrayOf(ref)
 
             val loggerConfig = LoggerConfig
-                    .createLogger(false, Level.getLevel(level.toUpperCase()), channel, "true", refs, null, ctx.configuration, null)
+                    .createLogger(false, Level.getLevel(level.uppercase()), channel, "true", refs, null, ctx.configuration, null)
 
             loggerConfig.addAppender(file, null, null)
             ctx.configuration.addLogger(channel, loggerConfig)
@@ -229,7 +232,7 @@ private fun loggingConfiguration(output: String, vararg types: String): LoggingC
     configuration.setProperty("logger.data.separator", "\t")
     for (t in types) {
         configuration.setProperty("$t.level", "all")
-        configuration.setProperty("$t.output", "$output")
+        configuration.setProperty("$t.output", output)
     }
     return configuration
 }

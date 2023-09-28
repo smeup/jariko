@@ -30,10 +30,7 @@ import com.smeup.rpgparser.rpginterop.RpgProgramFinder;
 import kotlin.Unit;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CallJarikoWithParams {
@@ -41,17 +38,16 @@ public class CallJarikoWithParams {
     // Helper method to exec a PGM.
     // Return outputParams
     public static CommandLineParms execPgm(String name, CommandLineParms inputParams) {
-        File srcDir = new File(CallJarikoWithParams.class.getResource("/rpg").getPath());
-        List<RpgProgramFinder> programFinders = Arrays.asList(new DirRpgProgramFinder(srcDir));
-        final JavaSystemInterface systemInterface = new JavaSystemInterface();
-        systemInterface.setLoggingConfiguration(LoggingKt.consoleLoggingConfiguration(LoggingKt.PERFORMANCE_LOGGER));
-        CommandLineProgram program = RunnerKt.getProgram(name, systemInterface, programFinders);
         final Configuration configuration = new Configuration();
         configuration.getJarikoCallback().setLogInfo((channel, message) -> {
-            System.out.println(channel);
-            System.out.println(message);
+            System.out.printf("LOG - %-11s - %s\n", channel, message.trim());
             return Unit.INSTANCE;
         });
+        File srcDir = new File(Objects.requireNonNull(CallJarikoWithParams.class.getResource("/rpg")).getPath());
+        List<RpgProgramFinder> programFinders = List.of(new DirRpgProgramFinder(srcDir));
+        final JavaSystemInterface systemInterface = new JavaSystemInterface(configuration);
+        systemInterface.setLoggingConfiguration(LoggingKt.consoleLoggingConfiguration(LoggingKt.RESOLUTION_LOGGER, LoggingKt.PERFORMANCE_LOGGER));
+        CommandLineProgram program = RunnerKt.getProgram(name, systemInterface, programFinders);
         return program.singleCall(inputParams, configuration);
     }
 
@@ -60,7 +56,7 @@ public class CallJarikoWithParams {
         CommandLineParms commandLineParms = new CommandLineParms(plist);
         CommandLineParms out = execPgm("SAMPLE01", commandLineParms);
         System.out.println("execWithListOfStringParams: " + out);
-        assert "V1V2V1        V2".equals(out.getParmsList().stream().map(s -> s.trim()).collect(Collectors.joining()));
+        assert "V1V2V1        V2".equals(out.getParmsList().stream().map(String::trim).collect(Collectors.joining()));
     }
 
     public static void execWithNamedValues() {
@@ -72,7 +68,7 @@ public class CallJarikoWithParams {
         CommandLineParms commandLineParms = new CommandLineParms(plist);
         CommandLineParms out = execPgm("SAMPLE01", commandLineParms);
         System.out.println("execWithNamedValues: " + out.getNamedParams());
-        assert "V1V2V1        V2".equals(out.getParmsList().stream().map(s -> s.trim()).collect(Collectors.joining()));
+        assert "V1V2V1        V2".equals(out.getParmsList().stream().map(String::trim).collect(Collectors.joining()));
     }
 
     public static void execWithDS() {
@@ -91,7 +87,7 @@ public class CallJarikoWithParams {
         });
         CommandLineParms out = execPgm("SAMPLE02", commandLineParms);
         System.out.println("execWithDS: " + out.getNamedParams());
-        assert "V1V2V1        V2".equals(out.getParmsList().stream().map(s -> s.trim()).collect(Collectors.joining()));
+        assert "V1V2V1        V2".equals(out.getParmsList().stream().map(String::trim).collect(Collectors.joining()));
     }
 
     public static void main(String[] args) {

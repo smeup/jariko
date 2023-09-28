@@ -48,7 +48,8 @@ object MainExecutionContext {
      * Call this method to execute e program in execution context environment.
      * Your program will be able to gain access to the attributes available in the entire life cycle of program execution
      * @param configuration The configuration
-     * @param systemInterface The system interface
+     * @param systemInterface The system interface. If [SystemInterface.getConfiguration] is not null that
+     * value has priority over the parameter configuration
      * @param mainProgram The execution logic.
      * @see getAttributes
      * @see getConfiguration
@@ -122,9 +123,10 @@ object MainExecutionContext {
     }
 
     /**
-     * @return an instance of jariko configuration
+     * @return an instance of jariko configuration.
+     * First af all the configuration is searched in [SystemInterface].
      * */
-    fun getConfiguration() = context.get()?.configuration ?: noConfiguration
+    fun getConfiguration() = context.get()?.systemInterface?.getConfiguration() ?: context.get()?.configuration ?: noConfiguration
 
     /**
      * @return an instance of memory slice manager

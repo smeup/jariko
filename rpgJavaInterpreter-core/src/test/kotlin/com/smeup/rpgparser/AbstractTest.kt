@@ -27,6 +27,8 @@ import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.rpginterop.SourceProgramFinder
 import java.io.File
+import java.io.PrintStream
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
 /**
@@ -36,6 +38,9 @@ import kotlin.test.BeforeTest
  * (YourTestCompiled : YourTest()) that simply it will override useCompiledVersion method returning true
  * */
 abstract class AbstractTest {
+
+    private lateinit var defaultOut: PrintStream
+    private lateinit var defaultErr: PrintStream
 
     @BeforeTest
     fun beforeTest() {
@@ -47,6 +52,14 @@ abstract class AbstractTest {
         MainExecutionContext.getAttributes().clear()
         MainExecutionContext.getProgramStack().clear()
         MainExecutionContext.getParsingProgramStack().clear()
+        defaultOut = System.out
+        defaultErr = System.err
+    }
+
+    @AfterTest
+    fun afterTest() {
+        System.setOut(defaultOut)
+        System.setErr(defaultErr)
     }
 
     /**

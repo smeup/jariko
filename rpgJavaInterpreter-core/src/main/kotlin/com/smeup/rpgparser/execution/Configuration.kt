@@ -148,7 +148,15 @@ data class JarikoCallback(
     -> Unit = { _: String, _: List<FunctionValue>, _: ISymbolTable -> },
     var onExitFunction: (functionName: String, returnValue: Value) -> Unit = { _: String, _: Value -> },
     var onError: (errorEvent: ErrorEvent) -> Unit = { errorEvent ->
-        System.err.println(errorEvent)
+        // If SystemInterface is not in the main execution context or in the SystemInterface there is no
+        // logging configuration, the error event must be shown as before, else we run the risk to miss very helpful information
+        MainExecutionContext.getSystemInterface()?.apply {
+            if (getAllLogHandlers().isErrorChannelConfigured()) {
+                MainExecutionContext.log(ErrorEventLogEntry(errorEvent = errorEvent))
+            } else {
+                System.err.println(errorEvent)
+            }
+        } ?: System.err.println(errorEvent)
     },
     var logInfo: ((channel: String, message: String) -> Unit)? = null,
     var channelLoggingEnabled: ((channel: String) -> Boolean)? = null

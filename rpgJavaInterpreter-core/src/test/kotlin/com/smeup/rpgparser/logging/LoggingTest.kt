@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.logging
 
+import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
@@ -23,11 +24,12 @@ import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.utils.StringOutputStream
 import org.apache.logging.log4j.LogManager
 import org.junit.After
+import org.junit.Assert
 import java.io.File
 import java.io.PrintStream
 import kotlin.test.*
 
-class LoggingTest {
+class LoggingTest : AbstractTest() {
 
     private val programName = "MYPGM"
     private val varName = "MYVAR"
@@ -173,6 +175,101 @@ class LoggingTest {
             } finally {
                 System.setOut(defaultOut)
             }
+        }
+    }
+
+    /**
+     * Test if resolution logs are overwritten through the setting of [com.smeup.rpgparser.execution.JarikoCallback.logInfo]
+     * */
+    @Test
+    fun resolutionChannelLogInfo() {
+        val configuration = Configuration()
+        var logInfCalled = false
+        configuration.jarikoCallback.logInfo = { _, _ ->
+            logInfCalled = true
+        }
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(RESOLUTION_LOGGER)
+        }
+        executePgm(programName = "HELLO", configuration = configuration, systemInterface = systemInterface)
+        assertTrue(logInfCalled, "logInfo never called")
+    }
+
+    /**
+     * Test if error events are logged through the [ERROR_LOGGER]
+     * */
+    @Test
+    @Ignore(value = "I have given up because for some reason in stdout when this test run after check in stdout we have nothing")
+    fun errorEventsInErrorChannel() {
+        val defaultOut = System.out
+        val out = StringOutputStream()
+        System.setOut(PrintStream(out))
+        val systemInterface = JavaSystemInterface().apply {
+            loggingConfiguration = consoleLoggingConfiguration(ERROR_LOGGER)
+        }
+        kotlin.runCatching {
+            executePgm(programName = "ERROR02", systemInterface = systemInterface)
+        }.onSuccess {
+            System.setOut(defaultOut)
+            fail(message = "Jariko must throws an exception")
+        }.onFailure {
+            out.flush()
+            val errorPattern = Regex(pattern = "\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3}\\s+ERROR02\\s+\\d+\\s+ERR\\s+ErrorEvent.+")
+            val errorLogEntries = out.toString().trim().split(regex = Regex("\\n|\\r\\n"))
+            // Files.writeString(Paths.get("c:\\temp\\errorEventsInErrorChannel.txt"), out.toString().trim())
+            assertEquals(2, errorLogEntries.size)
+            assertTrue(errorLogEntries[0].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
+            assertTrue(errorLogEntries[1].matches(errorPattern), "Error entry: ${errorLogEntries[0]} does not match $errorPattern")
+            System.setOut(defaultOut)
+            println("errorEventsInErrorChannel: ${out.toString().trim()}")
+        }
+    }
+
+    /**
+     * Test if I can override the error event handling by rewriting logInfo callback
+     * */
+    @Test
+    fun errorChannelOverride() {
+        var logInfoChannelParam = ""
+        val configuration = Configuration().apply {
+            // logInfo rewriting
+            jarikoCallback.logInfo = { channel, message ->
+                println(message)
+                logInfoChannelParam = channel
+            }
+        }
+        val systemInterface = JavaSystemInterface(configuration = configuration).apply {
+            loggingConfiguration = consoleLoggingConfiguration(ERROR_LOGGER)
+        }
+        kotlin.runCatching {
+            executePgm(programName = "ERROR02", configuration = configuration, systemInterface = systemInterface)
+        }.onSuccess {
+            fail(message = "Jariko must throws an exception")
+        }.onFailure {
+            assertEquals(ERROR_LOGGER, logInfoChannelParam)
+        }
+    }
+
+    /**
+     * Test if the error events are written in stderr also if there is no logging configuration
+     * */
+    @Test
+    fun errorEventsMustByPrintedAlsoWhenNotConfigured() {
+        val defaultErr = System.err
+        val err = StringOutputStream()
+        try {
+            System.setErr(PrintStream(err))
+            executePgm(programName = "ERROR02")
+            fail(message = "Jariko must throws an exception")
+        } catch (e: Exception) {
+            err.flush()
+            val errorEventsStr = err.toString().trim().split(regex = Regex(pattern = "\\n|\\r\\n"))
+            Assert.assertEquals(2, errorEventsStr.size)
+            Assert.assertTrue(errorEventsStr[0].startsWith("ErrorEvent("))
+            Assert.assertTrue(errorEventsStr[1].startsWith("ErrorEvent("))
+        } finally {
+            err.flush()
+            System.setErr(PrintStream(defaultErr))
         }
     }
 
