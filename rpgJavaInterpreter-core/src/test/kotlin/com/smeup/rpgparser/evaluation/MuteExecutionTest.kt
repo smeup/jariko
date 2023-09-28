@@ -185,6 +185,14 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE13_08() {
+        // I don't pass the nrOfMuteAssertions parameter
+        // because currently is not properly handled this annotation
+        // MU* Type="NOXMI"
+        assertMuteExecutionSucceded("mute/MUTE13_08")
+    }
+
+    @Test
     fun executeMUTE13_09_ADD() {
         assertMuteExecutionSucceded("mute/MUTE13_09", 12)
     }
