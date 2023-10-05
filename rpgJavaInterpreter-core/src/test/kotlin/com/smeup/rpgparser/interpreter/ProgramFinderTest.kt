@@ -10,6 +10,8 @@ import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.utils.compile
 import org.junit.Test
 import java.io.File
+import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -32,20 +34,20 @@ class ProgramFinderTest : AbstractTest() {
         // 10. delete compiled program (es. ECHOPGM.bin) and try to call it -> OK only if not found
         // 11. call program with no suffix (es. ECHOPGM) -> OK only if not found
 
-        var resourcesDir = File(System.getProperty("java.io.tmpdir"))
-        var sourceFile = File("src/test/resources/DUMMY_FOR_TEST.rpgle")
-        var sourceDestFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.rpgle")
+        val resourcesDir = File(System.getProperty("java.io.tmpdir"))
+        val sourceFile = File("src/test/resources/DUMMY_FOR_TEST.rpgle")
+        val sourceDestFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.rpgle")
         if (sourceDestFile.exists()) {
             sourceDestFile.delete()
         }
         sourceFile.copyTo(sourceDestFile, true)
-        var compiledProgramFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.bin")
+        val compiledProgramFile = File("${System.getProperty("java.io.tmpdir")}${File.separator}ECHOPGM.bin")
         if (compiledProgramFile.exists()) {
             compiledProgramFile.delete()
         }
 
         // 01.
-        var programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(resourcesDir))
+        val programFinders: List<RpgProgramFinder> = listOf(DirRpgProgramFinder(resourcesDir))
 
         // To simulate real use cases it is necessary create a new instance of system
         // interface for each call
@@ -119,5 +121,27 @@ class ProgramFinderTest : AbstractTest() {
         }.onSuccess {
             assertFalse("Program ECHOPGM must not exist anymore here: ${resourcesDir.absolutePath}") { true }
         }
+    }
+
+    @Test
+    fun findHelloSqlrpgle() {
+        val path = Paths.get({}.javaClass.getResource("/HELLO3.sqlrpgle")?.toURI() ?: error("HELLO3.sqlrpgle not found"))
+        lateinit var foundProgramPath: Path
+
+        val finder = DirRpgProgramFinder(path.parent.toFile()).apply {
+            foundProgram { programPath -> foundProgramPath = programPath }
+        }
+
+        // If we have both HELLO2.rpgle and HELLO2.sqlrpgle the precedence is HELLO2.rpgle
+        getProgram(nameOrSource = "HELLO2", programFinders = listOf(finder)).singleCall(
+            emptyList()
+        )
+        assertEquals("HELLO2.rpgle", foundProgramPath.fileName.toString())
+
+        // In this case we have only
+        getProgram(nameOrSource = "HELLO3.sqlrpgle", programFinders = listOf(finder)).singleCall(
+            emptyList()
+        )
+        assertEquals("HELLO3.sqlrpgle", foundProgramPath.fileName.toString())
     }
 }
