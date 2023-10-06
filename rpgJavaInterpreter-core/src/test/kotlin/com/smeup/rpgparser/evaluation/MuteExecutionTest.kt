@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
@@ -148,8 +147,49 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE13_01() {
+        assertMuteExecutionSucceded("mute/MUTE13_01", 22)
+    }
+
+    @Test
+    fun executeMUTE13_02() {
+        assertMuteExecutionSucceded("mute/MUTE13_02", 17)
+    }
+
+    @Test
+    fun executeMUTE13_03_IF() {
+        assertMuteExecutionSucceded("mute/MUTE13_03_IF", 14)
+    }
+
+    @Test
+    fun executeMUTE13_03_WHEN() {
+        assertMuteExecutionSucceded("mute/MUTE13_03_WHEN", 9)
+    }
+
+    @Test
+    fun executeMUTE13_04() {
+        assertMuteExecutionSucceded("mute/MUTE13_04", 11)
+    }
+
+    @Test
     fun executeMUTE13_05_ZSUB() {
         assertMuteExecutionSucceded("mute/MUTE13_05", 11)
+    }
+
+    @Test
+    fun executeMUTE13_07() {
+        // I don't pass the nrOfMuteAssertions parameter
+        // because currently is not properly handled this annotation
+        // MU* Type="NOXMI"
+        assertMuteExecutionSucceded("mute/MUTE13_07")
+    }
+
+    @Test
+    fun executeMUTE13_08() {
+        // I don't pass the nrOfMuteAssertions parameter
+        // because currently is not properly handled this annotation
+        // MU* Type="NOXMI"
+        assertMuteExecutionSucceded("mute/MUTE13_08")
     }
 
     @Test
@@ -167,9 +207,34 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("mute/MUTE13_10", 8)
     }
 
+    // TODO evaluate if it is a false positive
+    @Test
+    @Ignore
+    fun executeMUTE13_11() {
+        // I don't pass nrOfMuteAssertions because if we have a MU* after D spec the function CompilationUnit.assertNrOfMutesAre
+        // does not work properly
+        assertMuteExecutionSucceded("mute/MUTE13_11")
+    }
+
     @Test
     fun executeMUTE13_13() {
         assertMuteExecutionSucceded("mute/MUTE13_13", 9)
+    }
+
+    @Test
+    fun executeMUTE13_14() {
+        // I don't pass nrOfMuteAssertions because MU* FAIL is not properly handled
+        assertMuteExecutionSucceded("mute/MUTE13_14")
+    }
+
+    @Test
+    fun executeMUTE13_15() {
+        assertMuteExecutionSucceded("mute/MUTE13_15", 1)
+    }
+
+    @Test
+    fun executeMUTE13_16() {
+        assertMuteExecutionSucceded("mute/MUTE13_16", 1)
     }
 
     @Test
@@ -295,6 +360,31 @@ open class MuteExecutionTest : AbstractTest() {
         // I don't pass nrOfMuteAssertions because since MUTE12_15 calls other mute which containing mute assertions
         // this check does not work and fixing it is a mess
         assertMuteExecutionSucceded("mute/MUTE12_15")
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_17() {
+        assertMuteExecutionSucceded("mute/MUTE13_17")
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_18() {
+        assertMuteExecutionSucceded("mute/MUTE13_18")
+    }
+
+    @Test
+    fun executeMUTE13_19() {
+        assertMuteExecutionSucceded("mute/MUTE13_19", 22)
+    }
+
+    @Test
+    fun executeMUTE13_20() {
+        assertMuteExecutionSucceded("mute/MUTE13_20", 9)
+    }
+
+    @Test
+    fun executeMUTE13_21() {
+        assertMuteExecutionSucceded("mute/MUTE13_21", 1)
     }
 
     @Test @Ignore
@@ -448,6 +538,11 @@ open class MuteExecutionTest : AbstractTest() {
         executePgm("mute/MUTE01_07", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
 
+    @Test
+    fun executeMUTE12_06() {
+        executePgm("mute/MUTE12_06", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
     private fun assertMuteExecutionSucceded(
         exampleName: String,
         // if null ignores mutes number assertions check
@@ -469,7 +564,7 @@ open class MuteExecutionTest : AbstractTest() {
         }
         val interpreter = MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
             it.executionProgramName = exampleName
-            execute(cu, parameters, systemInterface = systemInterface)
+            execute(cu, parameters, systemInterface = systemInterface, programName = exampleName)
         }
         nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.getSystemInterface().getExecutedAnnotation().size) }
         interpreter.getSystemInterface().getExecutedAnnotation().forEach {

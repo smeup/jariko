@@ -193,9 +193,10 @@ fun String.createCompilationUnit() = json.decodeFromString<CompilationUnit>(this
 fun CompilationUnit.encodeToByteArray() = cbor.encodeToByteArray(this)
 fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit>(this)
 
-enum class SourceProgram(val extension: String) {
+enum class SourceProgram(val extension: String, val sourceType: Boolean = true) {
     RPGLE(extension = "rpgle"),
-    BINARY(extension = "bin");
+    BINARY(extension = "bin", sourceType = false),
+    SQLRPGLE(extension = "sqlrpgle");
 
     companion object {
         fun getByExtension(extension: String): SourceProgram {
