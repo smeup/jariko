@@ -1489,6 +1489,17 @@ Test 6
     }
 
     @Test
+    fun executeMOVEPFIXFIX() {
+        assertEquals(
+            listOf(
+                "     BB",
+                "     AAAAA"
+            ),
+            outputOf("MOVEPFIXFIX")
+        )
+    }
+
+    @Test
     @Ignore
     fun executeMOVELSTR() {
         assertEquals(
