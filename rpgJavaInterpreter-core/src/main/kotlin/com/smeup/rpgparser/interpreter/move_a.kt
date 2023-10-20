@@ -2,16 +2,23 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
-fun move(target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
+fun move(operationExtenter: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
     when (target) {
         is DataRefExpr -> {
             var newValue = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
                 newValue = newValue.takeLast(target.size())
                 if (value.type().size < target.size()) {
-                    newValue =
-                        interpreterCore.get(target.variable.referred!!).takeFirst((target.size() - value.type().size))
-                            .concatenate(newValue)
+                    if (operationExtenter == null) {
+                        newValue =
+                            interpreterCore.get(target.variable.referred!!)
+                                .takeFirst((target.size() - value.type().size))
+                                .concatenate(newValue)
+                    } else {
+                        val blank = " ".repeat(target.size() - value.type().size)
+                        newValue.asString().value = blank + newValue.asString().value
+                        newValue.asString().value = newValue.asString().value.padEnd(target.size(), ' ')
+                    }
                 }
             }
             return interpreterCore.assign(target, newValue)
