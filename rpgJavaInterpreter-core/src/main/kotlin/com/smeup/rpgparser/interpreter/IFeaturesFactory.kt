@@ -43,7 +43,21 @@ interface IFeaturesFactory {
 
 object FeaturesFactory {
 
+    private fun dumpVersion() {
+        versionFileContent?.let {
+            println("JaRIKo - Java Rpg Interpreter written in Kotlin")
+            println(it)
+            println("************************************************")
+        }
+    }
+
+    private val versionFileContent: String? by lazy {
+        IFeaturesFactory::class.java.getResource("/META-INF/com.smeup.jariko/version.txt")
+            ?.let { it.readText() }
+    }
+
     private val factory: IFeaturesFactory by lazy {
+        dumpVersion()
         val property = System.getProperty("jariko.featuresFactory", System.getProperty("featuresFactory", ""))
         val featuresFactoryId = if (property == "") "default" else {
             property

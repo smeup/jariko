@@ -390,6 +390,15 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
+task createVersion() {
+    new File(projectDir, "src/main/resources/META-INF/com.smeup.jariko/version.txt").text = """
+Version: $project.version
+Branch: ${grgit.branch.current.name}
+Revision: ${grgit.head().abbreviatedId}
+Buildtime: ${new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date())}
+""".trim()
+}
+
 check.dependsOn compileAllMutes,runMutes
 testPerformance.dependsOn compilePerformanceMutes
 
