@@ -96,26 +96,43 @@ open class DirRpgProgramFinder(val directory: File? = null) : RpgProgramFinder {
             return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.RPGLE)
         }
 
+        // InputStream from '.sqlrpgle' program
+        if (nameOrSource.endsWith(SourceProgram.SQLRPGLE.extension) && file.exists()) {
+            file.notifyFound()
+            return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.SQLRPGLE)
+        }
+
         // InputStream from '.bin' program
         if (nameOrSource.endsWith(SourceProgram.BINARY.extension) && file.exists()) {
             file.notifyFound()
             return RpgProgram.fromInputStream(FileInputStream(file), nameOrSource, SourceProgram.BINARY)
         }
 
-        // No extension, should be '.rpgle' or '.bin'
+        // No extension, should be '.rpgle' or '.sqlrpgle' or '.bin'
         if (!nameOrSource.endsWith(SourceProgram.RPGLE.extension) &&
+            !nameOrSource.endsWith(SourceProgram.SQLRPGLE.extension) &&
             !nameOrSource.endsWith(SourceProgram.BINARY.extension)) {
             var anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.RPGLE.extension}")
             if (anonymouosFile.exists()) {
                 anonymouosFile.notifyFound()
                 return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.RPGLE)
             } else {
-                anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.BINARY.extension}")
+                anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.SQLRPGLE.extension}")
                 if (anonymouosFile.exists()) {
                     anonymouosFile.notifyFound()
-                    return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.BINARY)
+                    return RpgProgram.fromInputStream(FileInputStream(anonymouosFile), nameOrSource, SourceProgram.SQLRPGLE)
                 } else {
-                    return null
+                    anonymouosFile = File("${prefix()}$nameOrSource.${SourceProgram.BINARY.extension}")
+                    if (anonymouosFile.exists()) {
+                        anonymouosFile.notifyFound()
+                        return RpgProgram.fromInputStream(
+                            FileInputStream(anonymouosFile),
+                            nameOrSource,
+                            SourceProgram.BINARY
+                        )
+                    } else {
+                        return null
+                    }
                 }
             }
         }
@@ -185,6 +202,12 @@ open class RpgSystem {
 
     @Synchronized
     fun addProgramFinders(programFindersList: List<RpgProgramFinder>) {
+        programFinders.addAll(programFindersList)
+    }
+
+    @Synchronized
+    fun replaceProgramFinders(programFindersList: List<RpgProgramFinder>) {
+        programFinders.clear()
         programFinders.addAll(programFindersList)
     }
 

@@ -46,6 +46,12 @@ data class DbField(val fieldName: String, val type: Type) {
 
 /**
  * Contains information needed for the native access implementation.
+ * @param name Logic file name - Select will be made on tableName and logical name is related to index
+ * @param tableName Physical file name - The name of the table
+ * @param recordFormat The record format
+ * @param fields Fields related this file
+ * @param accessFields Primary key
+ * NB: In native access, name, tableName and recordFormat can be used as alias
  * */
 @Serializable
 data class FileMetadata(

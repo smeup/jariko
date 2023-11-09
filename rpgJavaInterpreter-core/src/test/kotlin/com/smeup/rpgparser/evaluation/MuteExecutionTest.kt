@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION")
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
@@ -22,11 +21,15 @@ import com.smeup.rpgparser.ExtendedCollectorSystemInterface
 import com.smeup.rpgparser.assertNrOfMutesAre
 import com.smeup.rpgparser.execute
 import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.execution.Options
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.jvminterop.JvmProgramRaw
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
+import java.io.File
+import java.nio.file.Paths
 import kotlin.test.*
 
 open class MuteExecutionTest : AbstractTest() {
@@ -144,8 +147,49 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
+    fun executeMUTE13_01() {
+        assertMuteExecutionSucceded("mute/MUTE13_01", 22)
+    }
+
+    @Test
+    fun executeMUTE13_02() {
+        assertMuteExecutionSucceded("mute/MUTE13_02", 17)
+    }
+
+    @Test
+    fun executeMUTE13_03_IF() {
+        assertMuteExecutionSucceded("mute/MUTE13_03_IF", 14)
+    }
+
+    @Test
+    fun executeMUTE13_03_WHEN() {
+        assertMuteExecutionSucceded("mute/MUTE13_03_WHEN", 9)
+    }
+
+    @Test
+    fun executeMUTE13_04() {
+        assertMuteExecutionSucceded("mute/MUTE13_04", 11)
+    }
+
+    @Test
     fun executeMUTE13_05_ZSUB() {
         assertMuteExecutionSucceded("mute/MUTE13_05", 11)
+    }
+
+    @Test
+    fun executeMUTE13_07() {
+        // I don't pass the nrOfMuteAssertions parameter
+        // because currently is not properly handled this annotation
+        // MU* Type="NOXMI"
+        assertMuteExecutionSucceded("mute/MUTE13_07")
+    }
+
+    @Test
+    fun executeMUTE13_08() {
+        // I don't pass the nrOfMuteAssertions parameter
+        // because currently is not properly handled this annotation
+        // MU* Type="NOXMI"
+        assertMuteExecutionSucceded("mute/MUTE13_08")
     }
 
     @Test
@@ -163,9 +207,34 @@ open class MuteExecutionTest : AbstractTest() {
         assertMuteExecutionSucceded("mute/MUTE13_10", 8)
     }
 
+    // TODO evaluate if it is a false positive
+    @Test
+    @Ignore
+    fun executeMUTE13_11() {
+        // I don't pass nrOfMuteAssertions because if we have a MU* after D spec the function CompilationUnit.assertNrOfMutesAre
+        // does not work properly
+        assertMuteExecutionSucceded("mute/MUTE13_11")
+    }
+
     @Test
     fun executeMUTE13_13() {
         assertMuteExecutionSucceded("mute/MUTE13_13", 9)
+    }
+
+    @Test
+    fun executeMUTE13_14() {
+        // I don't pass nrOfMuteAssertions because MU* FAIL is not properly handled
+        assertMuteExecutionSucceded("mute/MUTE13_14")
+    }
+
+    @Test
+    fun executeMUTE13_15() {
+        assertMuteExecutionSucceded("mute/MUTE13_15", 1)
+    }
+
+    @Test
+    fun executeMUTE13_16() {
+        assertMuteExecutionSucceded("mute/MUTE13_16", 1)
     }
 
     @Test
@@ -186,13 +255,14 @@ open class MuteExecutionTest : AbstractTest() {
 
     @Test
     fun executeMUTE13_22_SetOn_SetOff() {
-        assertMuteExecutionSucceded("mute/MUTE13_22", 9)
+        assertMuteExecutionSucceded("mute/MUTE13_22", 11)
     }
 
-    @Test
+    /* MUTE13_22B was included into MUTE13_22 */
+    /*@Test
     fun executeMUTE13_22B_If_test_does_not_change_indicator_value() {
         assertMuteExecutionSucceded("mute/MUTE13_22B", 2)
-    }
+    }*/
 
     @Test
     @Ignore
@@ -211,28 +281,28 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    fun executeMUTE13_25B() {
-        assertMuteExecutionSucceded("mute/MUTE13_25B", 24)
+    fun executeMUTE13_37() {
+        assertMuteExecutionSucceded("mute/MUTE13_37", 24)
     }
 
     @Test
-    fun executeMUTE13_25V() {
-        assertMuteExecutionSucceded("mute/MUTE13_25V", 24)
+    fun executeMUTE13_39() {
+        assertMuteExecutionSucceded("mute/MUTE13_39", 24)
     }
 
     @Test
-    fun executeMUTE13_25D() {
-        assertMuteExecutionSucceded("mute/MUTE13_25D", 22)
+    fun executeMUTE13_38() {
+        assertMuteExecutionSucceded("mute/MUTE13_38", 22)
     }
 
     @Test
-    fun executeMUTE13_10B() {
-        assertMuteExecutionSucceded("mute/MUTE13_10B", 10)
+    fun executeMUTE13_35() {
+        assertMuteExecutionSucceded("mute/MUTE13_35", 10)
     }
 
     @Test
-    fun executeMUTE13_10C() {
-        assertMuteExecutionSucceded("mute/MUTE13_10C", 4)
+    fun executeMUTE13_36() {
+        assertMuteExecutionSucceded("mute/MUTE13_36", 4)
     }
 
     @Test
@@ -251,13 +321,13 @@ open class MuteExecutionTest : AbstractTest() {
     }
 
     @Test
-    fun executeMUTE12_08B() {
-        assertMuteExecutionSucceded("data/ds/MUTE12_08B", 8)
+    fun executeMUTE12_17() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_17", 8)
     }
 
     @Test
-    fun executeMUTE12_01B() {
-        assertMuteExecutionSucceded("data/ds/MUTE12_01B", 14)
+    fun executeMUTE12_16() {
+        assertMuteExecutionSucceded("data/ds/MUTE12_16", 14)
     }
 
     @Test
@@ -283,6 +353,38 @@ open class MuteExecutionTest : AbstractTest() {
     @Test
     fun executeMUTE12_14() {
         assertMuteExecutionSucceded("data/ds/MUTE12_14", 4)
+    }
+
+    @Test
+    fun executeMUTE12_15() {
+        // I don't pass nrOfMuteAssertions because since MUTE12_15 calls other mute which containing mute assertions
+        // this check does not work and fixing it is a mess
+        assertMuteExecutionSucceded("mute/MUTE12_15")
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_17() {
+        assertMuteExecutionSucceded("mute/MUTE13_17")
+    }
+
+    @Test @Ignore
+    fun executeMUTE13_18() {
+        assertMuteExecutionSucceded("mute/MUTE13_18")
+    }
+
+    @Test
+    fun executeMUTE13_19() {
+        assertMuteExecutionSucceded("mute/MUTE13_19", 22)
+    }
+
+    @Test
+    fun executeMUTE13_20() {
+        assertMuteExecutionSucceded("mute/MUTE13_20", 9)
+    }
+
+    @Test
+    fun executeMUTE13_21() {
+        assertMuteExecutionSucceded("mute/MUTE13_21", 1)
     }
 
     @Test @Ignore
@@ -313,6 +415,16 @@ open class MuteExecutionTest : AbstractTest() {
     @Test
     fun executeMUTE13_32() {
         executePgm("mute/MUTE13_32", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE13_33() {
+        executePgm("mute/MUTE13_33", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE13_34() {
+        executePgm("mute/MUTE13_34", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
 
     @Test
@@ -421,6 +533,16 @@ open class MuteExecutionTest : AbstractTest() {
         executePgm("mute/MUTE18_04", configuration = Configuration().apply { options = Options(muteSupport = true) })
     }
 
+    @Test
+    fun executeMUTE01_07() {
+        executePgm("mute/MUTE01_07", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
+    @Test
+    fun executeMUTE12_06() {
+        executePgm("mute/MUTE12_06", configuration = Configuration().apply { options = Options(muteSupport = true) })
+    }
+
     private fun assertMuteExecutionSucceded(
         exampleName: String,
         // if null ignores mutes number assertions check
@@ -430,11 +552,23 @@ open class MuteExecutionTest : AbstractTest() {
         val cu = assertASTCanBeProduced(exampleName, true, withMuteSupport = true)
         cu.resolveAndValidate()
         nrOfMuteAssertions?.let { cu.assertNrOfMutesAre(it) }
-
-        val interpreter = execute(cu, parameters)
+        val relativePath = Paths.get(exampleName).parent
+        val examplePath = Paths.get("src", "test", "resources").resolve(relativePath)
+        val systemInterface = JavaSystemInterface().apply {
+            rpgSystem.addProgramFinder(DirRpgProgramFinder(examplePath.toFile()))
+            // to include copy
+            rpgSystem.addProgramFinder(DirRpgProgramFinder(File("src/test/resources/")))
+        }
+        val configuration = Configuration().apply {
+            options.muteSupport = true
+        }
+        val interpreter = MainExecutionContext.execute(configuration = configuration, systemInterface = systemInterface) {
+            it.executionProgramName = exampleName
+            execute(cu, parameters, systemInterface = systemInterface, programName = exampleName)
+        }
         nrOfMuteAssertions?.let { assertEquals(nrOfMuteAssertions, interpreter.getSystemInterface().getExecutedAnnotation().size) }
         interpreter.getSystemInterface().getExecutedAnnotation().forEach {
-            assertTrue(it.value.succeeded(), "Mute assertion failed: ${it.value.headerDescription()}")
+            assertTrue(it.value.succeeded(), "Mute assertion failed - ${it.value.programName}: ${it.value.headerDescription()}")
         }
     }
 }

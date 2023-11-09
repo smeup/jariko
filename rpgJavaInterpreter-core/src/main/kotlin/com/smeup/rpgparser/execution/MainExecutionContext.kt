@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.execution
 
 import com.smeup.dbnative.manager.DBFileFactory
+import com.smeup.rpgparser.experimental.ExperimentalFeaturesFactory
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.facade.CopyBlocks
 import java.util.*
@@ -39,44 +40,59 @@ object MainExecutionContext {
     private val noParsingProgramStack: Stack<ParsingProgram> by lazy { Stack<ParsingProgram>() }
     //
 
+    // If for some reason we have problems in MainExecutionContext.execute set this variable to true
+    // in order to restore previous behaviour
+    private val denyRecursiveMainContextExecution = false
+
     /**
-     * Call this method to execute e program in ExecutionContext environment.
+     * Call this method to execute e program in execution context environment.
      * Your program will be able to gain access to the attributes available in the entire life cycle of program execution
-     * @see #getAttributes
-     * @see #getConfiguration
-     * @see #getMemorySliceMgr
+     * @param configuration The configuration
+     * @param systemInterface The system interface. If [SystemInterface.getConfiguration] is not null that
+     * value has priority over the parameter configuration
+     * @param mainProgram The execution logic.
+     * @see getAttributes
+     * @see getConfiguration
+     * @see getMemorySliceMgr
      * */
     fun <T> execute(
         configuration: Configuration = Configuration(),
         systemInterface: SystemInterface,
         mainProgram: (context: Context) -> T
     ): T {
-        require(
-            context.get() == null
-        ) { "Context execution already created" }
-        val memorySliceMgr = if (configuration.memorySliceStorage == null) {
-            null
-        } else {
-            MemorySliceMgr(configuration.memorySliceStorage)
+        val isRootContext = context.get() == null
+        if (denyRecursiveMainContextExecution) {
+            require(context.get() == null) { "Context execution already created" }
         }
+        val memorySliceMgr = if (isRootContext) {
+            if (configuration.memorySliceStorage == null) {
+                null
+            } else {
+                MemorySliceMgr(configuration.memorySliceStorage)
+            }
+        } else null
         try {
-            context.set(
-                Context(
-                    configuration = configuration,
-                    memorySliceMgr = memorySliceMgr,
-                    systemInterface = systemInterface
+            if (isRootContext) {
+                context.set(
+                    Context(
+                        configuration = configuration,
+                        memorySliceMgr = memorySliceMgr,
+                        systemInterface = systemInterface
+                    )
                 )
-            )
+            }
             return mainProgram.runCatching {
                 invoke(context.get())
             }.onFailure {
-                memorySliceMgr?.afterMainProgramInterpretation(false)
+                if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(false)
             }.onSuccess {
-                memorySliceMgr?.afterMainProgramInterpretation(true)
+                if (isRootContext) memorySliceMgr?.afterMainProgramInterpretation(true)
             }.getOrThrow()
         } finally {
-            context.get()?.dbFileFactory?.close()
-            context.remove()
+            if (isRootContext) {
+                context.get()?.dbFileFactory?.close()
+                context.remove()
+            }
         }
     }
 
@@ -92,12 +108,14 @@ object MainExecutionContext {
         return if (context.get() != null) {
             context.get().idProvider.getAndIncrement()
         } else {
-            // In many tests, the parsing is called outside of the execution context
+            // In many tests, the parsing is called outside the execution context
             // It's not too wrong assume that over 32000 it can be reset idProvider
             // In this way doesn't fail the variables assignment when involved the experimental
             // symbol table
             if (noContextIdProvider.get() == 32000) {
-                Exception("Reset idProvider").printStackTrace()
+                if (FeaturesFactory.newInstance() is ExperimentalFeaturesFactory) {
+                    Exception("Reset idProvider").printStackTrace()
+                }
                 noContextIdProvider.set(0)
             }
             noContextIdProvider.getAndIncrement()
@@ -105,9 +123,10 @@ object MainExecutionContext {
     }
 
     /**
-     * @return an instance of jariko configuration
+     * @return an instance of jariko configuration.
+     * First af all the configuration is searched in [SystemInterface].
      * */
-    fun getConfiguration() = context.get()?.configuration ?: noConfiguration
+    fun getConfiguration() = context.get()?.systemInterface?.getConfiguration() ?: context.get()?.configuration ?: noConfiguration
 
     /**
      * @return an instance of memory slice manager
@@ -199,4 +218,5 @@ data class ParsingProgram(val name: String) {
     val parsingFunctionNameStack = Stack<String>()
     var copyBlocks: CopyBlocks? = null
     var sourceLines: List<String>? = null
+    val attributes: MutableMap<String, Any> = mutableMapOf()
 }

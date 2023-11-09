@@ -41,12 +41,18 @@ private fun coerceBlanks(type: Type): Value {
         is DataStructureType -> {
             type.blank()
         }
+        is OccurableDataStructureType -> {
+            type.blank()
+        }
         is BooleanType -> {
             BooleanValue.FALSE
         }
         is CharacterType -> {
             blankString(type.nChars)
             // TODO Use CharacterValue(Array(this.nChars) { ' ' })
+        }
+        is UnlimitedStringType -> {
+            UnlimitedStringValue("")
         }
         else -> TODO("Converting BlanksValue to $type")
     }
@@ -105,15 +111,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
                     // TODO commented out see #45
                     // value.isBlank() -> IntValue.ZERO
                     type.rpgType == RpgType.BINARY.rpgType -> {
-                        val intValue = decodeBinary(value.value.toNumberSize(type.size.toInt()), type.size.toInt())
+                        val intValue = decodeBinary(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.INTEGER.rpgType -> {
-                        val intValue = decodeInteger(value.value.toNumberSize(type.size.toInt()), type.size.toInt())
+                        val intValue = decodeInteger(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.UNSIGNED.rpgType -> {
-                        val intValue = decodeUnsigned(value.value.toNumberSize(type.size.toInt()), type.size.toInt())
+                        val intValue = decodeUnsigned(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
                     type.rpgType == RpgType.ZONED.rpgType -> {
@@ -164,7 +170,9 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is CharacterType -> {
             return StringValue(value.value)
         }
-
+        is UnlimitedStringType -> {
+            return UnlimitedStringValue(value.value)
+        }
         else -> TODO("Converting String to $type")
     }
 }
@@ -272,7 +280,7 @@ private fun computeHiValue(type: NumberType): Value {
     if (type.rpgType == RpgType.PACKED.rpgType || type.rpgType == RpgType.ZONED.rpgType || type.rpgType == "") {
         return if (type.decimalDigits == 0) {
             val ed = "9".repeat(type.entireDigits)
-            IntValue("$ed".toLong())
+            IntValue(ed.toLong())
         } else {
             val ed = "9".repeat(type.entireDigits)
             val dd = "9".repeat(type.decimalDigits)
@@ -303,7 +311,7 @@ private fun computeHiValue(type: NumberType): Value {
     // Binary
     if (type.rpgType == RpgType.BINARY.rpgType) {
         val ed = "9".repeat(type.entireDigits)
-        return IntValue("$ed".toLong())
+        return IntValue(ed.toLong())
     }
     TODO("Type ${type.rpgType} with ${type.entireDigits} digit is not valid")
 }

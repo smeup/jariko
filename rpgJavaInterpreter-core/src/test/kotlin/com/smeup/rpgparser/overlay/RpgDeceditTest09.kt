@@ -58,8 +58,8 @@ open class RpgDeceditTest09 : AbstractTest() {
     }
 
     @Test
-    fun parseMUTE09_02A() {
-        val cu = assertASTCanBeProduced("overlay/MUTE09_02A", considerPosition = true, withMuteSupport = true)
+    fun parseMUTE09_06() {
+        val cu = assertASTCanBeProduced("overlay/MUTE09_06", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
         val localizationContext = LocalizationContext(decedit = DecEdit.ZERO_COMMA)
         val interpreter = InternalInterpreter(JavaSystemInterface(), localizationContext)

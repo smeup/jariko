@@ -30,7 +30,6 @@
      C     NUM_FACTOR1   COMP      NUM_FACTOR2                        202122
     MU* VAL1(*IN22) VAL2('0') COMP(EQ)
      C     NUM_FACTOR1   COMP      NUM_FACTOR2                        202122
-      *
      C                   SETOFF                                       202122
      C                   Z-ADD     10            NUM_FACTOR1
      C                   Z-ADD     10            NUM_FACTOR2

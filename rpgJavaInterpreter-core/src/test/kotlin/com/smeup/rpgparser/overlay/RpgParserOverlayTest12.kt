@@ -72,7 +72,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
@@ -248,7 +248,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
@@ -273,7 +273,7 @@ open class RpgParserOverlayTest12 : AbstractTest() {
 
         interpreter.execute(cu, mapOf())
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }
@@ -281,23 +281,23 @@ open class RpgParserOverlayTest12 : AbstractTest() {
 
     @Test
     fun parseMUTE12_06_syntax() {
-        assertCanBeParsed("overlay/MUTE12_06", withMuteSupport = true)
+        assertCanBeParsed("mute/MUTE12_06", withMuteSupport = true)
     }
 
     @Test
     fun parseMUTE12_06_ast() {
-        assertASTCanBeProduced("overlay/MUTE12_06", considerPosition = true, withMuteSupport = true)
+        assertASTCanBeProduced("mute/MUTE12_06", considerPosition = true, withMuteSupport = true)
     }
 
     @Test
     fun parseMUTE12_06_runtime() {
-        val cu = assertASTCanBeProduced("overlay/MUTE12_06", considerPosition = true, withMuteSupport = true)
+        val cu = assertASTCanBeProduced("mute/MUTE12_06", considerPosition = true, withMuteSupport = true)
         cu.resolveAndValidate()
         val interpreter = InternalInterpreter(JavaSystemInterface())
         interpreter.execute(cu, mapOf())
 
         val annotations = interpreter.getSystemInterface().getExecutedAnnotation().toSortedMap()
-        var failed: Int = executeAnnotations(annotations)
+        val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
         }

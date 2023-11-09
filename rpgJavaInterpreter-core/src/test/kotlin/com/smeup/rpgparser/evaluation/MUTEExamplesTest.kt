@@ -44,53 +44,53 @@ open class MUTEExamplesTest : AbstractTest() {
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_05A() {
-        assertMuteOK("MUTE10_05A", withOutput = emptyList())
+    fun executeMUTE10_05() {
+        assertMuteOK("MUTE10_05", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_05B() {
-        assertMuteOK("MUTE10_05B", withOutput = emptyList())
+    fun executeMUTE10_84() {
+        assertMuteOK("MUTE10_84", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_05C() {
-        assertMuteOK("MUTE10_05C", withOutput = emptyList())
+    fun executeMUTE10_85() {
+        assertMuteOK("MUTE10_85", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_06A() {
-        assertMuteOK("MUTE10_06A")
+    fun executeMUTE10_06() {
+        assertMuteOK("MUTE10_06")
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_06B() {
-        assertMuteOK("MUTE10_06B")
+    fun executeMUTE10_82() {
+        assertMuteOK("MUTE10_82")
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_07A() {
-        assertMuteOK("MUTE10_07A", withOutput = emptyList())
+    fun executeMUTE10_07() {
+        assertMuteOK("MUTE10_07", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_07B() {
-        assertMuteOK("MUTE10_07B", withOutput = emptyList())
+    fun executeMUTE10_83() {
+        assertMuteOK("MUTE10_83", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_08A() {
-        assertMuteOK("MUTE10_08A", withOutput = emptyList())
+    fun executeMUTE10_08() {
+        assertMuteOK("MUTE10_08", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_08B() {
-        assertMuteOK("MUTE10_08B", withOutput = emptyList())
+    fun executeMUTE10_86() {
+        assertMuteOK("MUTE10_86", withOutput = emptyList())
     }
 
     @Test @Category(PerformanceTest::class)
-    fun executeMUTE10_08C() {
-        assertMuteOK("MUTE10_08C", withOutput = emptyList())
+    fun executeMUTE10_87() {
+        assertMuteOK("MUTE10_87", withOutput = emptyList())
     }
 
     private fun siWithProgramFinderInPerformanceFolder(jvmMockPrograms: List<JvmMockProgram> = emptyList<JvmMockProgram>()): ExtendedCollectorSystemInterface {
@@ -347,6 +347,30 @@ open class MUTEExamplesTest : AbstractTest() {
     // DOU (loop of 10000000 iterations with increment of a numeric var)
     fun executeMUTE10_57() {
         assertMuteOK("MUTE10_57")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations using OCCUR and with assignment of a numeric var and alfa var)
+    fun executeMUTE10_78() {
+        assertMuteOK("MUTE10_78")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations using OCCUR)
+    fun executeMUTE10_79() {
+        assertMuteOK("MUTE10_79")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations using OCCUR no sequential with assignment of a numeric var and alfa var)
+    fun executeMUTE10_80() {
+        assertMuteOK("MUTE10_80")
+    }
+
+    @Test @Category(PerformanceTest::class)
+    // OCCUR (loop of 100000 iterations no sequential)
+    fun executeMUTE10_81() {
+        assertMuteOK("MUTE10_81")
     }
 
     @Test @Category(PerformanceTest::class)

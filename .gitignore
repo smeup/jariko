@@ -13,5 +13,7 @@ bin/
 **/.DS_Store
 rpgJavaInterpreter-core/generated-src/
 rpgJavaInterpreter-core/src/main/gen/
+rpgJavaInterpreter-core/src/main/antlr/gen/
 lib
 *.tokens
+/rpgJavaInterpreter-core/src/main/resources/META-INF/com.smeup.jariko/version.txt

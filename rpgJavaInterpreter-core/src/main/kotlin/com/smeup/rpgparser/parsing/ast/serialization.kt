@@ -69,6 +69,7 @@ private val modules = SerializersModule {
         subclass(MoveStmt::class)
         subclass(MultStmt::class)
         subclass(OtherStmt::class)
+        subclass(OccurStmt::class)
         subclass(PlistStmt::class)
         subclass(ReadEqualStmt::class)
         subclass(ReadPreviousStmt::class)
@@ -149,6 +150,7 @@ private val modules = SerializersModule {
         subclass(TrimrExpr::class)
         subclass(ZeroExpr::class)
         subclass(ParmsExpr::class)
+        subclass(StatusExpr::class)
     }
     polymorphic(AssignableExpression::class) {
         subclass(ArrayAccessExpr::class)
@@ -191,9 +193,10 @@ fun String.createCompilationUnit() = json.decodeFromString<CompilationUnit>(this
 fun CompilationUnit.encodeToByteArray() = cbor.encodeToByteArray(this)
 fun ByteArray.createCompilationUnit() = cbor.decodeFromByteArray<CompilationUnit>(this)
 
-enum class SourceProgram(val extension: String) {
+enum class SourceProgram(val extension: String, val sourceType: Boolean = true) {
     RPGLE(extension = "rpgle"),
-    BINARY(extension = "bin");
+    BINARY(extension = "bin", sourceType = false),
+    SQLRPGLE(extension = "sqlrpgle");
 
     companion object {
         fun getByExtension(extension: String): SourceProgram {

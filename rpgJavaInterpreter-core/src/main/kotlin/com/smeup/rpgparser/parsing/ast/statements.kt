@@ -24,6 +24,7 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
+import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
@@ -245,6 +246,7 @@ data class SubDurStmt(
 
 @Serializable
 data class MoveStmt(
+    val operationExtender: String?,
     val target: AssignableExpression,
     var expression: Expression,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
@@ -252,7 +254,7 @@ data class MoveStmt(
 ) :
     Statement(position), StatementThatCanDefineData {
     override fun execute(interpreter: InterpreterCore) {
-        val value = move(target, expression, interpreter)
+        val value = move(operationExtender, target, expression, interpreter)
         interpreter.log { MoveStatemenExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, value) }
     }
 
@@ -715,7 +717,7 @@ data class KListStmt
 private constructor(val name: String, val fields: List<String>, override val position: Position?) : Statement(position), StatementThatCanDefineData {
     companion object {
         operator fun invoke(name: String, fields: List<String>, position: Position? = null): KListStmt {
-            return KListStmt(name.toUpperCase(), fields, position)
+            return KListStmt(name.uppercase(Locale.getDefault()), fields, position)
         }
     }
 
@@ -1343,7 +1345,7 @@ data class OtherStmt(override val position: Position? = null) : Statement(positi
 @Serializable
 data class TagStmt private constructor(val tag: String, override val position: Position? = null) : Statement(position) {
     companion object {
-        operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.toUpperCase(), position)
+        operator fun invoke(tag: String, position: Position? = null): TagStmt = TagStmt(tag.uppercase(Locale.getDefault()), position)
     }
     override fun execute(interpreter: InterpreterCore) {
         // Nothing to do here
@@ -1634,4 +1636,61 @@ data class SubstStmt(
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+/**
+ * Implements [OCCUR](https://www.ibm.com/docs/en/i/7.4?topic=codes-occur-setget-occurrence-data-structure)
+ * */
+@Serializable
+data class OccurStmt(
+    val occurenceValue: Expression?,
+    val dataStructure: String,
+    val result: AssignableExpression?,
+    val operationExtender: String?,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    val errorIndicator: IndicatorKey?,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
+    init {
+        require(operationExtender == null) {
+            "Operation extender not supported"
+        }
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    override fun execute(interpreter: InterpreterCore) {
+        val dataStructureValue = interpreter[dataStructure]
+        require(dataStructureValue is OccurableDataStructValue) {
+            "OCCUR not supported. $dataStructure must be a DS defined with OCCURS keyword"
+        }
+        occurenceValue?.let {
+            val evaluatedValue = interpreter.eval(it)
+            if (evaluatedValue is OccurableDataStructValue) {
+                dataStructureValue.pos(
+                    occurrence = evaluatedValue.occurrence,
+                    interpreter = interpreter,
+                    errorIndicator = errorIndicator
+                )
+            } else if (evaluatedValue.asString().value.isInt()) {
+                dataStructureValue.pos(
+                    occurrence = evaluatedValue.asString().value.toInt(),
+                    interpreter = interpreter,
+                    errorIndicator = errorIndicator
+                )
+            } else {
+                throw IllegalArgumentException("$evaluatedValue must be an occurrence or a reference to a multiple occurrence data structure")
+            }
+        }
+        result?.let { result -> interpreter.assign(result, dataStructureValue.occurrence.asValue()) }
+    }
+}
+
+fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, errorIndicator: IndicatorKey?) {
+    try {
+        this.pos(occurrence)
+    } catch (e: ArrayIndexOutOfBoundsException) {
+        if (errorIndicator == null) throw e else interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+    }
 }

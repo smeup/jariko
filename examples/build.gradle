@@ -20,9 +20,23 @@ buildscript {
 
 dependencies {
     implementation project(":rpgJavaInterpreter-core")
-    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion".toString()
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion".toString()
-    testCompile 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
+    testImplementation 'junit:junit:4.12'
+}
+
+task javadocJar(type: Jar) {
+    archiveClassifier.set("javadoc")
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    archiveClassifier.set("sources")
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
 }
 
 // deploy
@@ -60,4 +74,9 @@ publishing {
             }
         }
     }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }

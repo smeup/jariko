@@ -1,54 +1,45 @@
+   COP* *NOUI
      V*=====================================================================
      V* MODIFICHE Ril.  T Au Descrizione
      V* gg/mm/aa  nn.mm i xx Breve descrizione
      V*=====================================================================
-     V* 11/12/19  001362  BERNI Creato
+     V* 11/12/19  001362  BERNI  Creato
      V* 11/12/19  V5R1    BMA   Check-out 001362 in SMEUP_TST
      V*=====================================================================
      D*  Pgm testing performance with big array
      V*---------------------------------------------------------------------
-     D $TIMST          S               Z   INZ
-     D $TIMEN          S               Z   INZ
-     D $TIMMS          S             10  0
-     D ARRAY           S          10000    DIM(500)
-     D TXT             S            100    DIM(10) PERRCD(1) CTDATA             _NOTXT
-     D$MSG             S             52
+     D FIRAR           S          10000    DIM(500)                             First Array
+     D ENDAR           S          10000    DIM(500)                             Final Array
+     D $N              S              3  0
      D XXRET           S              1
-      *
       * Main
-     C                   EXSR      F_CALL
+     C                   EXSR      F_EXEC
       *
-    MU* TIMEOUT(40000)
       *
+      * Test entry parameter XXRET: 1=RT, Anything else=LR
+     C                   IF        XXRET='1'
+     C                   SETON                                        RT
+     C                   ELSE
      C                   SETON                                        LR
+     C                   ENDIF
       *
       *---------------------------------------------------------------------
-    RD* Routine test on Array
+    RD* Routine test Move of Array
       *---------------------------------------------------------------------
-     C     F_CALL        BEGSR
+     C     F_EXEC        BEGSR
       *
-      * Start Time
-     C                   TIME                    $TIMST
-      * Loop on PGM
+      * Entry parameters
+     C     *ENTRY        PLIST
+     C                   PARM                    FIRAR
+     C                   PARM                    XXRET             1
+      * Array shift
+     C                   EVAL      ENDAR=FIRAR
+      *
+     C                   CLEAR                   $N
+      * Loop on Array
      C                   DO        500
-     C                   EVAL      XXRET='1'
-     C                   CALL      'MUTE10_06'
-     C                   PARM                    ARRAY
-     C                   PARM                    XXRET
-     C
+     C                   EVAL      $N=$N+1
+     C                   EVAL      FIRAR($N)=%TRIM(ENDAR($N))+' Final'          COSTANTE
      C                   ENDDO
-      * End Time
-     C                   TIME                    $TIMEN
-      * Elapsed Time
-     C     $TIMEN        SUBDUR    $TIMST        $TIMMS:*MS
-      *
-     C                   EVAL      $TIMMS=$TIMMS/1000
-      *
-      * Display Message with elapsed time
-     C                   EVAL      $MSG=%trim(TXT(1))+' '+
-     C                             %TRIM(%EDITC($TIMMS:'Q'))+'ms'
-     C     $MSG          DSPLY     £PDSSU
       *
      C                   ENDSR
-** TXT
-Time spent

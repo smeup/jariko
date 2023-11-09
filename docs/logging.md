@@ -18,6 +18,7 @@ The available channels are:
 * **Performance:** measures the execution time.
 * **Parsing:** measures parsing phase time.
 * **Resolution:** provides information about the process to identify the routines or programs to invoke. 
+* **Error:** provides information about error event occurred during the whole cycle of program interpretation.
 
 ## Sample
 
@@ -67,6 +68,9 @@ resolution.output = console
 
 parsing.level = off
 parsing.output = console
+
+error.level = off
+error.output = console
 
 ```
 
@@ -236,3 +240,16 @@ of strategies used to locate a RPG/Java program.
 15:09:46.960 TEST_06       80 RESL CALL "CALCFIB"
 +-----------+-------------+--+---+---------- resolution -----------+
 ```
+
+## Error Channel ERR
+The error channel catches the error events (instances of `com.smeup.rpgparser.execution.ErrorEvent`).
+These events are particularly meaningful during the program syntax checking, below we can see an example.
+As you can see, the `ErrorEvent` is shown through its string representation.
+```
+12:24:28.735 	ERROR02	6	ERR	ErrorEvent(error=java.lang.IllegalStateException: token recognition error at: 'C    ', errorEventSource=Parser, absoluteLine=6, sourceReference=SourceReference(sourceReferenceType=Program, sourceId=ERROR02, relativeLine=6, position=Position(start=Line 6, Column 6, end=Line 6, Column 6)), fragment=      C                   EVAL      x = 1 / n)
+12:24:28.739 	ERROR02	7	ERR	ErrorEvent(error=java.lang.IllegalStateException: missing FREE_SEMI at 'C', errorEventSource=Parser, absoluteLine=7, sourceReference=SourceReference(sourceReferenceType=Program, sourceId=ERROR02, relativeLine=7, position=Position(start=Line 7, Column 5, end=Line 7, Column 5)), fragment=     C                   SETON                                        LR)
++-----------+-------------+--+---+---------- error ----------------+
+```
+
+For further information about the `ErrorEvent` see the kotlin-doc in [Configuration.kt](../rpgJavaInterpreter-core/src/main/kotlin/com/smeup/rpgparser/execution/Configuration.kt)
+

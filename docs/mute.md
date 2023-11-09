@@ -4,6 +4,33 @@ This interpreter can process annotations in RPG code to be used to define assert
 
 ## Syntax
 
+### MUTE file notation
+The standard notation for a MUTE file follows the structure `MUTEnn_mmk` where:
+- `nn` is a two-digit number that identifies the test domain (e.g. API, Element, etc)
+- `mm` is a two-digit sequential number, used to enumerate the tests of a given domain.
+- `k` is a letter and indicates a MUTE subtest that is called by the main MUTE test (with identical name but without `k`).
+
+A list of the meanings of the MUTE code-names (note that the prefix represent the domain, `nn` values, while the suffix represent the domain tests, `mm` value):
+
+|    CODE    | DOMAIN TESTS                 |
+|:----------:|------------------------------|
+| **MUTE01** | **Element**                  |
+| **MUTE02** | **List**                     |
+| **MUTE03** | **DS**                       |
+| **MUTE05** | **Expressions**              |
+| **MUTE06** | **Data Access**              |
+| **MUTE07** | **Opcodes**                  |
+| **MUTE08** | **Application functions**    |
+| **MUTE09** | **Validation Functions**     |
+| **MUTE10** | **Performance Functions**    |
+| **MUTE11** | **Plugin gateway and tests** |
+| **MUTE12** | **Data type package**        |
+| **MUTE13** | **BIF and Opcodes**          |
+| **MUTE14** | **/COPY**                    |
+| **MUTE15** | **Procedures**               |
+| **MUTE16** | **Reload**                   |
+| **MUTE18** | **/API directive**           |
+
 ### Assertions that compare two values
 The Mute annotations that compare two values looks like this:
 
