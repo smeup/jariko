@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Sme.UP S.p.A.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
@@ -14,6 +30,8 @@ fun Value.stringRepresentation(format: String? = null): String {
         is DataStructValue -> value.trimEnd()
         is ZeroValue -> "0"
         is AllValue -> charsToRepeat
+        is OccurableDataStructValue -> value().value.trimEnd()
+        is UnlimitedStringValue -> value.trimEnd()
         else -> TODO("Unable to render value $this (${this.javaClass.canonicalName})")
     }
 }
@@ -40,7 +58,7 @@ fun ActivationGroupType.assignedName(current: RpgProgram, caller: RpgProgram?): 
     return when (this) {
         is CallerActivationGroup -> {
             require(caller != null) { "caller is mandatory" }
-            caller.activationGroup!!.assignedName
+            caller.activationGroup.assignedName
         }
         is NewActivationGroup -> UUID.randomUUID().toString()
         is NamedActivationGroup -> groupName

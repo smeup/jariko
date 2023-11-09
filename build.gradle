@@ -40,6 +40,7 @@ buildscript {
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id "org.ajoberstar.grgit" version "5.0.0-rc.3"
 }
 
 project.group = jarikoGroupId
@@ -48,7 +49,6 @@ project.version = jarikoVersion
 subprojects {
     apply plugin: 'kotlin'
     apply plugin: 'java'
-    apply plugin: 'maven'
     apply plugin: 'idea'
     apply plugin: 'org.jlleitschuh.gradle.ktlint'
     apply plugin: 'kotlinx-serialization'
@@ -75,6 +75,10 @@ subprojects {
 
     // specifying what we want to sign
     signing {
+        if (!project.hasProperty("signing.keyId")) {
+            println "$project.name - Signing disabled because signing.keyId property is not present, it is not an error!!!"
+        }
+        required {  project.hasProperty("signing.keyId") }
         sign configurations.archives
     }
 
@@ -93,16 +97,34 @@ subprojects {
         tasks.publishMavenJavaPublicationToSonatypeRepository{
             dependsOn project.tasks.signArchives
         }
+        tasks.publishMavenJavaPublicationToSmeupRepository{
+            dependsOn project.tasks.signArchives
+        }
+        tasks.publishMavenJavaPublicationToMavenLocal{
+            dependsOn project.tasks.signArchives
+        }
     }
 }
 
 nexusPublishing {
+    // trick to bypass staging when we publishToSmeup, because smeup nexus does not support the staging features
+    // however take in account that this flag in the other cases must be true or false depending on the version name
+    useStaging = !(project.gradle.startParameter.taskNames.contains("publishToSmeup") || jarikoVersion.endsWith("SNAPSHOT"))
     repositories {
         sonatype {
             nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
             snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
             username = findProperty("sonatypeUsername")
             password = findProperty("sonatypePassword")
+        }
+        smeup {
+            nexusUrl = uri("https://repo.smeup.cloud/nexus/content/repositories/releases/")
+            //when useStaging=false it is always used snapshotRepositoryUrl
+            snapshotRepositoryUrl = jarikoVersion.endsWith("SNAPSHOT") ?
+                    uri("https://repo.smeup.cloud/nexus/content/repositories/snapshots/"):
+                    uri("https://repo.smeup.cloud/nexus/content/repositories/releases/")
+            username = findProperty("smeupUsername")
+            password = findProperty("smeupPassword")
         }
     }
 }

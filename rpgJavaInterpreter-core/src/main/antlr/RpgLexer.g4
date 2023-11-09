@@ -836,7 +836,8 @@ DEF_TYPE_BLANK: [ ][ ] {getCharPositionInLine()==25}?;
 DEF_TYPE: [a-zA-Z0-9 ][a-zA-Z0-9 ] {getCharPositionInLine()==25}?;
 FROM_POSITION: WORD5 [a-zA-Z0-9+\- ][a-zA-Z0-9 ]{getCharPositionInLine()==32}?;
 TO_POSITION: WORD5[a-zA-Z0-9+\- ][a-zA-Z0-9 ]{getCharPositionInLine()==39}? ;
-DATA_TYPE: [a-zA-Z* ]{getCharPositionInLine()==40}? ;
+// DATA_TYPE: 0 is smeup reserved unlimited string
+DATA_TYPE: [a-zA-Z0* ]{getCharPositionInLine()==40}? ;
 DECIMAL_POSITIONS: [0-9+\- ][0-9 ]{getCharPositionInLine()==42}? ;
 RESERVED :  ' ' {getCharPositionInLine()==43}? -> pushMode(FREE);
 //KEYWORDS : ~[\r\n] {getCharPositionInLine()==44}? ~[\r\n]* ;

@@ -23,14 +23,43 @@ import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import java.math.BigDecimal
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
+    CHARACTER("A"),
+    BOOLEAN("N"),
+    TIMESTAMP("Z"),
     PACKED("P"),
     ZONED("S"),
     INTEGER("I"),
     UNSIGNED("U"),
-    BINARY("B")
+    BINARY("B"),
+    UNLIMITED_STRING("0")
+}
+
+internal enum class DSFieldInitKeywordType(val keyword: String, val type: Type) {
+    STATUS("*STATUS", NumberType(entireDigits = 5, decimalDigits = 0, rpgType = RpgType.ZONED)),
+    PARMS("*PARMS", NumberType(entireDigits = 3, decimalDigits = 0, rpgType = RpgType.ZONED));
+}
+
+internal data class DSFieldInitKeyword(val position: Position?, val dsFieldInitKeywordType: DSFieldInitKeywordType) {
+
+    internal fun toAst(): Expression {
+        return when (dsFieldInitKeywordType) {
+            DSFieldInitKeywordType.PARMS -> ParmsExpr(name = DSFieldInitKeywordType.PARMS.keyword, position = position)
+            DSFieldInitKeywordType.STATUS -> StatusExpr(position = position)
+        }
+    }
+}
+
+private fun RpgParser.Parm_fixedContext.toDSFieldInitKeyword(conf: ToAstConfiguration): DSFieldInitKeyword? {
+    val fromPositionTest = FROM_POSITION().text.trim()
+    val position = toPosition(conf.considerPosition)
+    return DSFieldInitKeywordType.values()
+        .firstOrNull { dsFieldInitKeyword -> dsFieldInitKeyword.keyword.equals(fromPositionTest, ignoreCase = true) }
+        ?.let { DSFieldInitKeyword(position = position, dsFieldInitKeywordType = it) }
 }
 
 private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
@@ -157,7 +186,7 @@ internal fun RpgParser.Parm_fixedContext.toAst(
     }
 
     val baseType =
-        when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
+        when (this.DATA_TYPE()?.text?.trim()?.uppercase()) {
             null -> todo(conf = conf)
             "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
                 /* TODO should be packed? */
@@ -169,9 +198,9 @@ internal fun RpgParser.Parm_fixedContext.toAst(
                     StringType(elementSize!!, varying)
                 }
             }
-            "A" -> StringType(elementSize!!, varying)
-            "N" -> BooleanType
-            "Z" -> TimeStampType
+            RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
+            RpgType.BOOLEAN.rpgType -> BooleanType
+            RpgType.TIMESTAMP.rpgType -> TimeStampType
             /* TODO should be zoned? */
             RpgType.ZONED.rpgType -> {
                 /* Zoned Type */
@@ -229,6 +258,7 @@ internal fun RpgParser.DspecContext.toAst(
     knownDataDefinitions: List<DataDefinition>
 ): DataDefinition {
 
+    if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
     val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
 
     //    A Character (Fixed or Variable-length format)
@@ -246,6 +276,7 @@ internal fun RpgParser.DspecContext.toAst(
     //    U Numeric (Unsigned format)
     //    Z Timestamp
     //    * Basing pointer or procedure pointer
+    //    0 UnlimitedString (smeup reserved)
 
     var like: AssignableExpression? = null
     var dim: Expression? = null
@@ -290,7 +321,7 @@ internal fun RpgParser.DspecContext.toAst(
     }
 
     val baseType =
-        when (this.DATA_TYPE()?.text?.trim()?.toUpperCase()) {
+        when (this.DATA_TYPE()?.text?.trim()?.uppercase()) {
             null -> todo(conf = conf)
             "" -> if (this.DECIMAL_POSITIONS().text.isNotBlank()) {
                 /* TODO should be packed? */
@@ -299,12 +330,12 @@ internal fun RpgParser.DspecContext.toAst(
                 if (like != null) {
                     compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
                 } else {
-                    StringType(elementSize!!, varying)
+                    StringType.createInstance(elementSize!!, varying)
                 }
             }
-            "A" -> StringType(elementSize!!, varying)
-            "N" -> BooleanType
-            "Z" -> TimeStampType
+            RpgType.CHARACTER.rpgType -> StringType(elementSize!!, varying)
+            RpgType.BOOLEAN.rpgType -> BooleanType
+            RpgType.TIMESTAMP.rpgType -> TimeStampType
             /* TODO should be zoned? */
             RpgType.ZONED.rpgType -> {
                 /* Zoned Type */
@@ -326,7 +357,10 @@ internal fun RpgParser.DspecContext.toAst(
                 /* Unsigned Type */
                 NumberType(elementSize!!, 0, RpgType.UNSIGNED.rpgType)
             }
-            else -> throw UnsupportedOperationException("Unknown type: <${this.DATA_TYPE().text}>")
+            RpgType.UNLIMITED_STRING.rpgType -> {
+                UnlimitedStringType
+            }
+            else -> todo("Unknown type: <${this.DATA_TYPE().text}>", conf)
     }
 
     val type = if (dim != null) {
@@ -357,11 +391,23 @@ internal fun RpgParser.DspecContext.toAst(
             position = this.toPosition(true))
 }
 
+internal fun RpgParser.DspecConstantContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration()
+): DataDefinition {
+    val initializationValue = this.number().toAst(conf)
+    val type = initializationValue.type()
+
+    return DataDefinition(
+            this.ds_name().text,
+            type,
+            initializationValue = initializationValue,
+            position = this.toPosition(true))
+}
+
 internal fun RpgParser.Dcl_cContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration()
 ): DataDefinition {
-    // TODO: check more examples of const declaration
-    val initializationValueExpression: Expression = this.keyword_const().simpleExpression().toAst(conf)
+    val initializationValueExpression = this.keyword_const()?.simpleExpression()?.toAst(conf) ?: this.literal().toAst(conf)
     val type = initializationValueExpression.type()
     return DataDefinition(
             this.ds_name().text,
@@ -399,6 +445,7 @@ internal fun RpgParser.Dcl_dsContext.type(
     val explicitSize = this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     val keywords = this.keyword()
     val dim: Expression? = keywords.asSequence().mapNotNull { it.keyword_dim()?.simpleExpression()?.toAst(conf) }.firstOrNull()
+    val occurs: Int? = keywords.asSequence().mapNotNull { it.keyword_occurs()?.numeric_constant?.children?.get(0)?.text?.toInt() }.firstOrNull()
     val nElements = if (dim != null) conf.compileTimeInterpreter.evaluate(this.rContext(), dim).asInt().value.toInt() else null
     val fieldTypes: List<FieldType> = fieldsList.fields.map { it.toFieldType() }
     val calculatedElementSize = fieldsList.fields.map {
@@ -418,14 +465,19 @@ internal fun RpgParser.Dcl_dsContext.type(
     }.maxOrNull()
     val elementSize = explicitSize
             ?: calculatedElementSize
-            ?: throw IllegalStateException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
-    val baseType = DataStructureType(fieldTypes, size ?: elementSize)
+            ?: throw CannotRetrieveDataStructureElementSizeException("No explicit size and no fields in DS ${this.name}, so we cannot calculate the element size")
+    val dataStructureType = DataStructureType(fields = fieldTypes, elementSize = size ?: elementSize)
+    val baseType = occurs?.let {
+        OccurableDataStructureType(dataStructureType = dataStructureType, occurs = occurs)
+    } ?: dataStructureType
     return if (nElements == null) {
         baseType
     } else {
         ArrayType(baseType, nElements)
     }
 }
+
+internal class CannotRetrieveDataStructureElementSizeException(override val message: String) : IllegalStateException(message)
 
 private val RpgParser.Parm_fixedContext.name: String
     get() = this.ds_name().text
@@ -507,12 +559,17 @@ data class FieldInfo(
     }
 }
 
-internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(): Int? {
+internal fun RpgParser.Parm_fixedContext.arraySizeDeclared(conf: ToAstConfiguration): Int? {
     if (this.keyword().any { it.keyword_dim() != null }) {
+        val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+            KnownDataDefinition.getInstance().values.toList(),
+            conf.compileTimeInterpreter
+        )
         val dims = this.keyword().mapNotNull { it.keyword_dim() }
         require(dims.size == 1)
         val dim = dims[0]
-        return dim.numeric_constant.text.toInt()
+        return compileTimeInterpreter.evaluate(this.rContext(), dim.simpleExpression().toAst(conf))
+            .asInt().value.toInt()
     }
     return null
 }
@@ -554,18 +611,23 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     }
     val explicitElementSize = if (arraySizeDeclared != null) {
         totalSize?.let {
-            it / arraySizeDeclared()!!
+            it / arraySizeDeclared(conf)!!
         }
     } else {
         totalSize
     }
 
+    val dsFieldInitKeyword = toDSFieldInitKeyword(conf)
+
     return when (rpgCodeType) {
         "", RpgType.ZONED.rpgType -> {
+            if (dsFieldInitKeyword != null) {
+                return dsFieldInitKeyword.dsFieldInitKeywordType.type
+            }
             if (decimalPositions == null && precision == null) {
                 null
             } else if (decimalPositions == null) {
-                StringType((explicitElementSize ?: precision)!!, isVarying)
+                StringType.createInstance((explicitElementSize ?: precision)!!, isVarying)
             } else {
                 val es = explicitElementSize ?: precision!!
                 NumberType(es - decimalPositions, decimalPositions, RpgType.ZONED.rpgType)
@@ -606,11 +668,11 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
                 else -> NumberType(8, 0, rpgCodeType)
             }
         }
-
-        "A" -> {
+        RpgType.CHARACTER.rpgType -> {
             CharacterType(precision!!)
         }
-        "N" -> BooleanType
+        RpgType.BOOLEAN.rpgType -> BooleanType
+        RpgType.UNLIMITED_STRING.rpgType -> UnlimitedStringType
         else -> todo("Support RPG code type '$rpgCodeType', field $name", conf = conf)
     }
 }
@@ -673,15 +735,20 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                 StringLiteral("", position = toPosition())
             }
         }
+    } else {
+        this.toDSFieldInitKeyword(conf = conf)?.apply {
+            initializationValue = this.toAst()
+        }
     }
 
-    val arraySizeDeclared = this.arraySizeDeclared()
+    // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
+    val arraySizeDeclared = this.arraySizeDeclared(conf)
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
             explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
             explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf),
-            arraySizeDeclared = this.arraySizeDeclared(),
-            arraySizeDeclaredOnThisField = this.arraySizeDeclared(),
+            arraySizeDeclared = this.arraySizeDeclared(conf),
+            arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
             initializationValue = initializationValue,
             descend = descend,
             position = this.toPosition(conf.considerPosition))
@@ -951,7 +1018,7 @@ internal fun RpgParser.Dcl_dsContext.toAstWithExtName(
         }
         val dataDefinition = DataDefinition(
             name = this.name,
-            type = type(size = fields.sumBy { it.type.size }, FieldsList(fieldInfos)),
+            type = type(size = fields.sumOf { it.type.size }, FieldsList(fieldInfos)),
             fields = fields,
             inz = this.keyword().any { it.keyword_inz() != null },
             position = this.toPosition(true)
@@ -965,7 +1032,9 @@ fun RpgParser.Parm_fixedContext.explicitStartOffset(): Int? {
     return if (text.isBlank()) {
         null
     } else {
-        text.toInt() - 1
+        // from position could contain one of keywords defined in DSFieldInitKeyword
+        // for this reason not int value is allowed
+        text.toIntOrNull()?.let { it - 1 }
     }
 }
 

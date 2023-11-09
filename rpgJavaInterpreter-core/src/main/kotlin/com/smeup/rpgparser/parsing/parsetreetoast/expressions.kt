@@ -52,7 +52,30 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
 }
 
 internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): StringLiteral {
-    return StringLiteral(this.content?.text ?: "", toPosition(conf.considerPosition))
+
+    /*
+     The following line of code allows you to trap and throw the error when defining a hexadecimal constant variable.
+     We don't want to handle this type of constant, because jariko using UTF-8 doesn't need to go through
+     hexadecimal when resolving constants.
+     Consequently, pending revision of /copy £JAX_PC1, which contains several hexadecimal constants,
+     we have decided to leave this change on standby.
+       if (this.HexLiteralStart() != null) todo(message = "Error: constant definition in hexadecimal not managed", conf = conf)
+
+     The literalContext can be valued in 2 ways:
+       - fetching content from multiple lines
+       - fetching content from only one line
+     To understand in which case we are, the 'children' node comes in handy.
+     This is because the 'children' node is an array structured as follows:
+       children[0] = "'"
+       children[1 to n-1] = text
+       children[n] = "'"
+     */
+    val stringContent = if (this.children.size > 3) {
+        this.children.asSequence().filter { it.text != "'" }.joinToString(separator = "")
+    } else {
+        this.content?.text ?: ""
+    }
+    return StringLiteral(stringContent, toPosition(conf.considerPosition))
 }
 
 internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): NumberLiteral {

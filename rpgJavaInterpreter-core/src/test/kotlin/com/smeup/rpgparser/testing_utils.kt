@@ -94,6 +94,8 @@ fun parseFragmentToCompilationUnit(
                 )
             }
         )
+        // every error during ast creation must be thrown
+        options.toAstConfiguration.afterPhaseErrorContinue = { _ -> false }
     }
     return MainExecutionContext.execute(configuration = configuration, systemInterface = JavaSystemInterface()) {
         val rContext = assertCodeCanBeParsed(completeCode)
@@ -643,7 +645,9 @@ fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN) {
                 TestJavaSystemInterface().apply {
                     rpgSystem.addProgramFinder(DirRpgProgramFinder(dir))
                 }
-            }
+            },
+            // £MU1CSPEC.rpgle is no longer compilable because it was an error that it was before
+            allowFile = { file -> !file.name.equals("£MU1CSPEC.rpgle") }
         )
         // now error are displayed during the compilation
         if (compiled.any { it.error != null }) {

@@ -35,10 +35,10 @@ fun createEMPLOYEE() =
 
 fun dropEMPLOYEE() = "DROP TABLE EMPLOYEE"
 
-fun createEmployeeMetadata(): FileMetadata = FileMetadata(
-    name = "EMPLOYEE",
+fun createEmployeeMetadata(name: String = "EMPLOYEE", recordFormat: String = "EMPLOYEE"): FileMetadata = FileMetadata(
+    name = name,
     tableName = "EMPLOYEE",
-    recordFormat = "EMPLOYEE",
+    recordFormat = recordFormat,
     fields = listOf(
         DbField("EMPNO", StringType(6)),
         DbField("FIRSTNME", StringType(12)),

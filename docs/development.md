@@ -136,17 +136,63 @@ Usage:
 ./gradlew profileRpgProgram -PrpgProgram=path_to_rpg_program
 ```
 
-## Enable experimental or new features
+## Enabling experimental features
 
-Jariko features are modeled by factories implementing: `com.smeup.rpgparser.interpreter.IFeaturesFactory`.  
-You can select a factory through system property: `-DfeaturesFactory=<factory.id>`.  
+### Try new features by implementing a new instance of IFeaturesFactory
+
+Jariko features are modeled by a factory that implements: `com.smeup.rpgparser.interpreter.IFeaturesFactory`
+
+You can select a factory through system property: `-Djariko.featuresFactory=<factory.id>`.  
 Where `<factory.id>` could be:
 * default
 * experimental
 * Factory class implementation
 
-Configuration for *default* and *experimental* factory is in: `META-INF/com.smeup.jariko/features.properties`
+Configuration for _default_ and _experimental_ factory is in: `META-INF/com.smeup.jariko/features.properties`
 
+### Try new features with feature flags
+
+You can try new features also through the feature flags.  
+When you run jariko you will see in console something like this:
+
+```
+------------------------------------------------------------------------------------
+Creating features factory: com.smeup.rpgparser.interpreter.StandardFeaturesFactory
+------------------------------------------------------------------------------------
+Feature flags status:
+ - jariko.features.UnlimitedStringTypeFlag: off
+------------------------------------------------------------------------------------
+```
+
+This it means that jariko is using the default `IFeaturesFactory` implementation (creating features factory...), 
+but more relevant is the following part of the console message where it is displayed a list of available feature
+flags and their status.  
+What you see it means that currently jariko provides one feature flag named:
+`jariko.features.UnlimitedStringTypeFlag` and its status is `off`.
+
+**how to switch on a feature flag at runtime**  
+Before to call jariko it is necessary set the system property like this:
+```java
+System.setProperty(featureFlagName, "on");
+```
+and for example if you want to try `jariko.features.UnlimitedStringTypeFlag` you can do:
+```java
+System.setProperty("jariko.features.UnlimitedStringTypeFlag", "on");
+```
+
+**how to switch on a feature flag via cli**  
+For example if you want to execute all tests trying the feature flag `jariko.features.UnlimitedStringTypeFlag`:
+```
+./gradlew -Djariko.features.UnlimitedStringTypeFlag=on test
+```
+
+
+**available feature flags and description**
+
+| feature flag                              | description                                                                                       |
+|-------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `jariko.features.UnlimitedStringTypeFlag` | when `on` you ask jariko to force the use of `UnlimitedStringType` for all rpg alphanumeric types |
+                                                                                                        |
 
 
 ## Creating a jar with all dependencies to run some examples

@@ -45,8 +45,7 @@ class ExpressionEvaluation(
     override fun eval(expression: IntLiteral) = IntValue(expression.value)
     override fun eval(expression: RealLiteral) = DecimalValue(expression.value)
     override fun eval(expression: NumberOfElementsExpr): Value {
-        val value = expression.value.evalWith(this)
-        return when (value) {
+        return when (val value = expression.value.evalWith(this)) {
             is ArrayValue -> value.arrayLength().asValue()
             else -> throw IllegalStateException("Cannot ask number of elements of $value")
         }
@@ -112,14 +111,17 @@ class ExpressionEvaluation(
         val left = expression.left.evalWith(this)
         val right = expression.right.evalWith(this)
         return when {
-            left is StringValue && right is StringValue -> {
+            left is StringValue && right is AbstractStringValue -> {
                 if (left.varying) {
-                    val s = left.value.trimEnd() + right.value
+                    val s = left.value.trimEnd() + right.getWrappedString()
                     StringValue(s)
                 } else {
-                    val s = left.value + right.value
+                    val s = left.value + right.getWrappedString()
                     StringValue(s)
                 }
+            }
+            left is AbstractStringValue && right is AbstractStringValue -> {
+                UnlimitedStringValue(left.getWrappedString() + right.getWrappedString())
             }
             left is IntValue && right is IntValue -> (left + right)
             left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.plus(right.bigDecimal))
@@ -265,13 +267,11 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: LenExpr): Value {
-        val value = expression.value.evalWith(this)
-        return when (value) {
+        return when (val value = expression.value.evalWith(this)) {
             is StringValue -> {
                 when (expression.value) {
                     is DataRefExpr -> {
-                        val type = expression.value.type()
-                        when (type) {
+                        when (val type = expression.value.type()) {
                             is StringType -> {
                                 value.length(type.varying).asValue()
                             }
@@ -498,6 +498,8 @@ class ExpressionEvaluation(
                 IntValue(cleanNumericString(value.value).asLong())
             is DecimalValue ->
                 value.asInt()
+            is UnlimitedStringValue ->
+                IntValue(cleanNumericString(value.value).asLong())
             else -> throw UnsupportedOperationException("I do not know how to handle $value with %INT")
         }
 
@@ -508,7 +510,19 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: QualifiedAccessExpr): Value {
-        val dataStringValue = expression.container.evalWith(this) as DataStructValue
+        val dataStringValue = when (val value = expression.container.evalWith(this)) {
+            is DataStructValue -> {
+                value
+            }
+
+            is OccurableDataStructValue -> {
+                value.value()
+            }
+
+            else -> {
+                throw ClassCastException(value::class.java.name)
+            }
+        }
         return dataStringValue[expression.field.referred
             ?: throw IllegalStateException("Referenced to field not resolved: ${expression.field.name}")]
     }

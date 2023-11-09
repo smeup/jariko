@@ -78,6 +78,19 @@ private data class DataDefinitionCalculator(val calculator: () -> DataDefinition
     override fun toDataDefinition() = calculator()
 }
 
+internal object KnownDataDefinition {
+
+    fun getInstance(): MutableMap<String, DataDefinition> {
+        return if (MainExecutionContext.getParsingProgramStack().empty()) {
+            MainExecutionContext.getAttributes()
+        } else {
+            MainExecutionContext.getParsingProgramStack().peek().attributes
+        }.computeIfAbsent("com.smeup.rpgparser.parsing.parsetreetoast.KnownDataDefinition") {
+            mutableMapOf<String, DataDefinition>()
+        } as MutableMap<String, DataDefinition>
+    }
+}
+
 private fun RContext.getDataDefinitions(
     conf: ToAstConfiguration = ToAstConfiguration(),
     fileDefinitions: Map<FileDefinition, List<DataDefinition>>
@@ -86,7 +99,7 @@ private fun RContext.getDataDefinitions(
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
-    val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
+    val knownDataDefinitions = KnownDataDefinition.getInstance()
 
     fileDefinitions.values.flatten().toList().removeDuplicatedDataDefinition().forEach {
         dataDefinitionProviders.add(it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions))
@@ -94,20 +107,8 @@ private fun RContext.getDataDefinitions(
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
-            when {
-                it.dcl_ds() != null -> {
-                    try {
-                        it.dcl_ds()
-                            .toAst(conf)
-                            .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                    } catch (e: Exception) {
-                        null
-                    }
-                }
-                else -> null
-            }
+            it.toDataDefinitionProvider(conf = conf, knownDataDefinitions = knownDataDefinitions)
         })
-
     // Second pass, everything, I mean everything
     dataDefinitionProviders.addAll(this.statement()
         .mapNotNull {
@@ -322,7 +323,7 @@ private fun getFakeProcedures(
                 }
                 // Add only 'real fake prototype', if any RPG procedure exists yet
                 // the 'fake prototype' with same name mustn't be added.
-                if (null == procedures || (!procedures.contains(fakePrototypeName))) {
+                if (null == procedures || (!procedures.map { cu -> cu.procedureName }.contains(fakePrototypeName))) {
                     fakePrototypeNames.put(fakePrototypeName, fakePrototypeDataDefinitions)
                 }
             }
@@ -478,6 +479,31 @@ fun ProcedureContext.getProceduresParamsDataDefinitions(dataDefinitions: List<Da
     return proceduresParamsDataDefinitions
 }
 
+private fun StatementContext.toDataDefinitionProvider(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: MutableMap<String, DataDefinition>
+): DataDefinitionProvider? {
+    return when {
+        this.dcl_ds() != null -> {
+            kotlin.runCatching {
+                try {
+                    this.dcl_ds()
+                        .toAst(conf)
+                        .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
+                    // these errors can be caught because they don't introduce sneaky errors
+                } catch (e: CannotRetrieveDataStructureElementSizeException) {
+                    null
+                } catch (e: ParseTreeToAstError) {
+                    null
+                } catch (e: Exception) {
+                    throw e.fireErrorEvent(this.dcl_ds().toPosition(conf.considerPosition))
+                }
+            }.getOrNull()
+        }
+        else -> null
+    }
+}
+
 private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
@@ -488,22 +514,8 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.subprocedurestatement()
         .mapNotNull {
-            if (null != it.statement()) {
-                when {
-                    it.statement().dcl_ds() != null -> {
-                        try {
-                            it.statement().dcl_ds()
-                                .toAst(conf)
-                                .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
-                        } catch (e: Exception) {
-                            null
-                        }
-                    }
-                    else -> null
-                }
-            } else {
-                null
-            }
+            it.statement()?.let { statementContext -> statementContext.toDataDefinitionProvider(conf = conf,
+                knownDataDefinitions = knownDataDefinitions) }
         })
 
     // Second pass, everything, I mean everything
@@ -652,43 +664,49 @@ internal fun SymbolicConstantsContext.toAst(conf: ToAstConfiguration = ToAstConf
 internal fun Cspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     return when {
         this.cspec_fixed_standard() != null ->
-            this.cspec_fixed_standard().toAst(conf)
-                .also {
-                    it.indicatorCondition = this.toIndicatorCondition(conf)
-                    if (it.indicatorCondition != null) {
-                        val continuedIndicators = this.cspec_continuedIndicators()
-                        // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
-                        for (i in 0 until continuedIndicators.size) {
-                            val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
+            // we need capture error inside runParserRuleContext in order
+            // to avoid that some errors pass silently
+            this.cspec_fixed_standard().runParserRuleContext(conf) { standardContext ->
+                standardContext.toAst(conf)
+                    .also {
+                        it.indicatorCondition = this.toIndicatorCondition(conf)
+                        if (it.indicatorCondition != null) {
+                            val continuedIndicators = this.cspec_continuedIndicators()
+                            // loop over continued indicators (WARNING: continuedIndicators not contains inline indicator)
+                            for (i in 0 until continuedIndicators.size) {
+                                val indicator = continuedIndicators[i].indicators.children[0].toString().toIndicatorKey()
+                                var onOff = false
+                                if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
+                                    onOff = true
+                                }
+                                val controlLevel = when (continuedIndicators[i].start.type) {
+                                    AndIndicator -> "AND"
+                                    OrIndicator -> "OR"
+                                    else -> ""
+                                }
+                                val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
+                                it.continuedIndicators.put(indicator, continuedIndicator)
+                            }
+
+                            // Add indicatorCondition (inline indicator) also
+                            var controlLevel = (this.children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
+                            if (controlLevel == "AN") {
+                                controlLevel = "AND"
+                            }
                             var onOff = false
-                            if (!continuedIndicators[i].indicatorsOff.children[0].toString().isEmptyTrim()) {
+                            if (!(this.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
                                 onOff = true
                             }
-                            val controlLevel = when (continuedIndicators[i].start.type) {
-                                AndIndicator -> "AND"
-                                OrIndicator -> "OR"
-                                else -> ""
-                            }
+                            val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toIndicatorKey()
                             val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
                             it.continuedIndicators.put(indicator, continuedIndicator)
                         }
-
-                        // Add indicatorCondition (inline indicator) also
-                        var controlLevel = (this.children[continuedIndicators.size + 1] as Cs_controlLevelContext).children[0].toString()
-                        if (controlLevel == "AN") {
-                            controlLevel = "AND"
-                        }
-                        var onOff = false
-                        if (!(this.children[continuedIndicators.size + 2] as OnOffIndicatorsFlagContext).children[0].toString().isEmptyTrim()) {
-                            onOff = true
-                        }
-                        val indicator = (this.children[continuedIndicators.size + 3] as Cs_indicatorsContext).children[0].toString().toIndicatorKey()
-                        val continuedIndicator = ContinuedIndicator(indicator, onOff, controlLevel)
-                        it.continuedIndicators.put(indicator, continuedIndicator)
                     }
-                }
+            }
         this.cspec_fixed_x2() != null ->
-            this.cspec_fixed_x2().toAst()
+            this.cspec_fixed_x2().runParserRuleContext(conf) {
+                it.toAst()
+            }
         else -> todo(conf = conf)
     }
 }
@@ -853,6 +871,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         this.csSUBST() != null -> this.csSUBST()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csOCCUR() != null -> this.csOCCUR()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
         else -> todo(conf = conf)
@@ -1271,12 +1292,14 @@ internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 internal fun CsMOVEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveStmt {
+    val operationExtender = this.operationExtender?.text
     val position = toPosition(conf.considerPosition)
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("MOVE operation requires factor 2: ${this.text} - ${position.atLine()}")
     val resultExpression = this.cspec_fixed_standard_parts().resultExpression(conf) as AssignableExpression
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return MoveStmt(
+        operationExtender,
         target = resultExpression,
         expression = expression,
         dataDefinition = dataDefinition,
@@ -1705,6 +1728,24 @@ internal fun CsSUBSTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         operationExtender = this.operationExtender?.text,
         position = position,
         dataDefinition = dataDefinition
+    )
+}
+
+internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OccurStmt {
+
+    val position = toPosition(conf.considerPosition)
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    val resultExpression = if (!result.isBlank()) this.cspec_fixed_standard_parts().result.toAst(conf) else null
+
+    return OccurStmt(
+        occurenceValue = leftExpr(conf),
+        dataStructure = this.cspec_fixed_standard_parts().factor2.text,
+        result = resultExpression,
+        operationExtender = this.operationExtender?.text,
+        position = position,
+        dataDefinition = dataDefinition,
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
     )
 }
 

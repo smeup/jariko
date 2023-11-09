@@ -152,18 +152,19 @@ fun getProgram(
     systemInterface: SystemInterface = JavaSystemInterface(),
     programFinders: List<RpgProgramFinder> = defaultProgramFinders
 ): CommandLineProgram {
-    if (systemInterface is JavaSystemInterface) {
-        systemInterface.rpgSystem.addProgramFinders(programFinders)
-        programFinders.forEach {
-            systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
+    return MainExecutionContext.execute(configuration = systemInterface.getConfiguration() ?: Configuration(), systemInterface = systemInterface) {
+        if (systemInterface is JavaSystemInterface) {
+            systemInterface.rpgSystem.addProgramFinders(programFinders)
+            programFinders.forEach {
+                systemInterface.getAllLogHandlers().log(RpgProgramFinderLogEntry(it.toString()))
+            }
+        } else {
+            // for compatibility with other system interfaces using singleton instance
+            RpgSystem.SINGLETON_RPG_SYSTEM?.addProgramFinders(programFinders)
+            RpgSystem.SINGLETON_RPG_SYSTEM?.log(systemInterface.getAllLogHandlers())
         }
-    } else {
-        // for compatibility with other system interfaces using singleton instance
-        RpgSystem?.SINGLETON_RPG_SYSTEM?.addProgramFinders(programFinders)
-        RpgSystem?.SINGLETON_RPG_SYSTEM?.log(systemInterface.getAllLogHandlers())
+        CommandLineProgram(nameOrSource, systemInterface)
     }
-
-    return CommandLineProgram(nameOrSource, systemInterface)
 }
 
 fun executePgmWithStringArgs(
@@ -196,8 +197,8 @@ object RunnerCLI : CliktCommand() {
             val args = if (programArgs.size > 1) programArgs.subList(1, programArgs.size) else emptyList()
             exec(programName, args)
         } else {
-            SimpleShell.repl { programName, programArgs ->
-                exec(programName, programArgs)
+            SimpleShell.repl { myProgramName, programArgs ->
+                exec(myProgramName, programArgs)
             }
         }
     }
@@ -207,7 +208,7 @@ object RunnerCLI : CliktCommand() {
             ((programsSearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList())) +
             ((copySearchDirs?.map { DirRpgProgramFinder(File(it)) } ?: emptyList()))
         val configuration = Configuration()
-        configuration.options?.compiledProgramsDir = compiledProgramsDir
+        configuration.options.compiledProgramsDir = compiledProgramsDir
 
         // 'Reload' database configurations from properties file passed as cli argument
         reloadConfigurationFile?.let { loadReloadConfig(it, configuration) }

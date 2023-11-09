@@ -67,8 +67,12 @@ abstract class NumberValue : Value {
     abstract val bigDecimal: BigDecimal
 }
 
+interface AbstractStringValue : Value {
+    fun getWrappedString(): String
+}
+
 @Serializable
-data class StringValue(var value: String, val varying: Boolean = false) : Value {
+data class StringValue(var value: String, val varying: Boolean = false) : AbstractStringValue {
 
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
@@ -200,6 +204,27 @@ data class StringValue(var value: String, val varying: Boolean = false) : Value 
             is StringValue -> compare(other, DEFAULT_CHARSET)
             else -> super.compareTo(other)
         }
+
+    override fun getWrappedString() = value
+}
+
+@Serializable
+data class UnlimitedStringValue(var value: String) : AbstractStringValue {
+
+    override fun asString() = StringValue(value, false)
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return when (expectedType) {
+            is UnlimitedStringType -> true
+            is StringType -> expectedType.length >= value.length.toLong()
+            is CharacterType -> expectedType.nChars >= value.length.toLong()
+            else -> false
+        }
+    }
+
+    override fun copy() = UnlimitedStringValue(value)
+
+    override fun getWrappedString() = value
 }
 
 /**
@@ -249,7 +274,7 @@ fun sortA(value: Value, charset: Charset) {
 
             // Extract from each array element, its 'key' value (the subfield) to order by, then
             // store the key into 'keysToBeOrderedBy'
-            var keysToBeOrderedBy = Array(numOfElements) { _ -> "" }
+            val keysToBeOrderedBy = Array(numOfElements) { _ -> "" }
             var startElement = 0
             var endElement = elementSize
             (0 until numOfElements).forEach { i ->
@@ -298,13 +323,14 @@ data class IntValue(val value: Long) : NumberValue() {
 
     override fun assignableTo(expectedType: Type): Boolean {
         // TODO check decimals
-        when (expectedType) {
-            is NumberType -> return true
+        return when (expectedType) {
+            is NumberType -> true
             is ArrayType -> {
-                return expectedType.element is NumberType
+                expectedType.element is NumberType
+            } else -> {
+                false
             }
         }
-        return false
     }
 
     override fun asInt() = this
@@ -398,16 +424,17 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     override fun asDecimal(): DecimalValue = this
 
     override fun assignableTo(expectedType: Type): Boolean {
-        when (expectedType) {
+        return when (expectedType) {
             is NumberType -> {
                 val expectedTypePrecision = expectedType.entireDigits + expectedType.decimalDigits
-                return expectedTypePrecision >= value.precision()
+                expectedTypePrecision >= value.precision()
             }
             is ArrayType -> {
-                return expectedType.element is NumberType
+                expectedType.element is NumberType
+            } else -> {
+                false
             }
         }
-        return false
     }
 
     fun isPositive(): Boolean {
@@ -858,6 +885,7 @@ fun Type.blank(): Value {
             this.element.blank()
         }
         is DataStructureType -> DataStructValue.blank(this.size)
+        is OccurableDataStructureType -> OccurableDataStructValue.blank(this.size, this.occurs)
         is StringType -> {
             if (!this.varying) {
                 StringValue.blank(this.size)
@@ -873,6 +901,7 @@ fun Type.blank(): Value {
         is CharacterType -> CharacterValue(Array(this.nChars) { ' ' })
         is FigurativeType -> BlanksValue
         is LowValType, is HiValType -> TODO()
+        is UnlimitedStringType -> UnlimitedStringValue("")
     }
 }
 
@@ -885,6 +914,8 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     // See https://github.com/Kotlin/kotlinx.serialization/issues/133
     val len by lazy { optionalExternalLen ?: value.length }
 
+    private val unlimitedStringField = mutableMapOf<String, Value>()
+
     override fun assignableTo(expectedType: Type): Boolean {
         return when (expectedType) {
             // Check if the size of the value matches the expected size within the DS
@@ -895,7 +926,11 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
         }
     }
 
-    override fun copy(): DataStructValue = DataStructValue(value)
+    override fun copy() = DataStructValue(value).apply {
+        unlimitedStringField.forEach { entry ->
+            this.unlimitedStringField[entry.key] = entry.value.copy()
+        }
+    }
 
     /**
      * A DataStructure could also be an array of data structures. In that case the field is seen as
@@ -918,18 +953,25 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     }
 
     fun set(field: FieldDefinition, value: Value) {
-        val v = field.toDataStructureValue(value)
-        val startIndex = field.startOffset
-        val endIndex = field.startOffset + field.size
-        try {
-            this.setSubstring(startIndex, endIndex, v)
-        } catch (e: Exception) {
-            throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value", e)
+        if (field.type is UnlimitedStringType) {
+            unlimitedStringField[field.name] = value
+        } else {
+            val v = field.toDataStructureValue(value)
+            val startIndex = field.startOffset
+            val endIndex = field.startOffset + field.size
+            try {
+                this.setSubstring(startIndex, endIndex, v)
+            } catch (e: Exception) {
+                throw RuntimeException("Issue arose while setting field ${field.name}. Indexes: $startIndex to $endIndex. Field size: ${field.size}. Value: $value", e)
+            }
         }
     }
 
     operator fun get(data: FieldDefinition): Value {
-        return if (data.declaredArrayInLine != null) {
+        return if (data.type is UnlimitedStringType) {
+            // if there is no unlimited field I return a default value
+            unlimitedStringField[data.name] ?: UnlimitedStringValue("")
+        } else if (data.declaredArrayInLine != null) {
             ProjectedArrayValue.forData(this, data)
         } else {
             coerce(this.getSubstring(data.startOffset, data.endOffset), data.type)
@@ -1079,5 +1121,68 @@ object VoidValue : Value {
 
     override fun copy(): Value {
         TODO("Not yet implemented")
+    }
+}
+
+@Serializable
+data class OccurableDataStructValue(val occurs: Int) : Value {
+    private var _occurrence = 1
+    val occurrence: Int
+        get() = _occurrence
+
+    private val values = mutableMapOf<Int, DataStructValue>()
+
+    companion object {
+        /**
+         * Create a blank instance of DS
+         * @param length The DS length (AKA DS element size)
+         * @param occurs The occurrences number
+         * */
+        fun blank(length: Int, occurs: Int): OccurableDataStructValue {
+            return OccurableDataStructValue(occurs).apply {
+                for (index in 1..occurs) {
+                    values[index] = DataStructValue.blank(length)
+                }
+            }
+        }
+    }
+
+    override fun asString(): StringValue {
+        return value().asString()
+    }
+
+    /**
+     * @param occurrence The occurrence (base 1)
+     * @return The occurrence value at index
+     * */
+    operator fun get(occurrence: Int) = values[occurrence]!!
+
+    /**
+     * @return the current value
+     * */
+    fun value() = get(occurrence)
+
+    /**
+     * Move the pointer to the index
+     * @param occurrence index position base 1
+     * */
+    fun pos(occurrence: Int) {
+        if (occurrence > occurs) {
+            throw ArrayIndexOutOfBoundsException("occurrence value: $occurrence cannot be greater than occurs: $occurs")
+        }
+        if (occurrence <= 0) {
+            throw ArrayIndexOutOfBoundsException("occurrence value: $occurrence must be be greater or equals than 1")
+        }
+        this._occurrence = occurrence
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return expectedType is OccurableDataStructureType && occurs == expectedType.occurs
+    }
+
+    override fun copy(): Value {
+        return OccurableDataStructValue(occurs).apply {
+            this.values.putAll(values.mapValues { it.value.copy() })
+        }
     }
 }

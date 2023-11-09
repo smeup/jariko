@@ -27,6 +27,8 @@ import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import com.smeup.rpgparser.rpginterop.RpgProgramFinder
 import com.smeup.rpgparser.rpginterop.SourceProgramFinder
 import java.io.File
+import java.io.PrintStream
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
 /**
@@ -37,11 +39,27 @@ import kotlin.test.BeforeTest
  * */
 abstract class AbstractTest {
 
+    private lateinit var defaultOut: PrintStream
+    private lateinit var defaultErr: PrintStream
+
     @BeforeTest
     fun beforeTest() {
         // I don't like but until I won't be able to refactor the test units through
         // the unification of the SytemInterfaces I need to use this workaround
         SingletonRpgSystem.reset()
+        // It is necessary to fix a problem where  some older tests not running in MainExecutionContext could propagate
+        // the errors to the following tests
+        MainExecutionContext.getAttributes().clear()
+        MainExecutionContext.getProgramStack().clear()
+        MainExecutionContext.getParsingProgramStack().clear()
+        defaultOut = System.out
+        defaultErr = System.err
+    }
+
+    @AfterTest
+    fun afterTest() {
+        System.setOut(defaultOut)
+        System.setErr(defaultErr)
     }
 
     /**
@@ -284,6 +302,6 @@ abstract class AbstractTest {
 }
 
 fun Configuration.adaptForTestCase(testCase: AbstractTest): Configuration {
-    this.options!!.compiledProgramsDir = testCase.getTestCompileDir()
+    this.options.compiledProgramsDir = testCase.getTestCompileDir()
     return this
 }

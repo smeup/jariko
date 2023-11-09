@@ -17,13 +17,14 @@
 package com.smeup.rpgparser.parsing
 
 import com.smeup.rpgparser.*
+import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.fail
 
 open class RpgParserDataStruct : AbstractTest() {
 
@@ -312,6 +313,102 @@ open class RpgParserDataStruct : AbstractTest() {
         val failed: Int = executeAnnotations(annotations)
         if (failed > 0) {
             throw AssertionError("$failed/${annotations.size} failed annotation(s) ")
+        }
+    }
+
+    @Test
+    fun parseSTRUCT_80TypeTest() {
+
+        val ds1 = OccurableDataStructureType(
+            dataStructureType = DataStructureType(
+                fields = listOf(
+                    FieldType("FLDA", StringType(5, false)),
+                    FieldType("FLDB", StringType(75, false))
+                ),
+                elementSize = 80),
+            occurs = 50
+        )
+
+        val ds2 = DataStructureType(
+            fields = listOf(
+                FieldType("FLDC", StringType(6, false)),
+                FieldType("FLDD", StringType(5, false))
+            ),
+            elementSize = 11
+        )
+        val expectedDSTypes = mapOf(
+            "DS1" to ds1,
+            "DS2" to ds2
+        )
+        val actualDSTypes = mutableMapOf<String, Type>()
+        val r = assertCanBeParsed("struct/STRUCT_08", withMuteSupport = true)
+        for (stat in r.statement()) {
+            stat.dcl_ds()?.apply {
+                val fieldsList = calculateFieldInfos()
+                actualDSTypes[stat.dcl_ds().name] = this.type(this.declaredSize(), fieldsList)
+            }
+        }
+        assertEquals(expectedDSTypes, actualDSTypes)
+    }
+
+    @Test
+    fun executeSTRUCT_08() {
+        val exampleName = "struct/STRUCT_08"
+        executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
+    }
+
+    @Test
+    fun executeSTRUCT_09MustFail() {
+        val expectedErrors = listOf(
+            "Program STRUCT_09 - Issue executing OccurStmt at line 10. OCCUR not supported. DS2 must be a DS defined with OCCURS keyword"
+        )
+        testError(exampleName = "struct/STRUCT_09", expectedErrors = expectedErrors)
+    }
+
+    @Test
+    fun executeSTRUCT_10() {
+        executePgm(programName = "struct/STRUCT_10", configuration = Configuration().apply { options.muteSupport = true })
+    }
+
+    @Test
+    fun executeSTRUCT_1A() {
+        val exampleName = "struct/STRUCT_1A"
+        executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
+    }
+
+    @Test
+    fun executeSTRUCT_1BMustFail() {
+        val expectedErrors = listOf(
+            "Program STRUCT_1B - Issue executing OccurStmt at line 12. occurrence value: 11 cannot be greater than occurs: 10"
+        )
+        testError(exampleName = "struct/STRUCT_1B", expectedErrors = expectedErrors)
+    }
+
+    @Test
+    fun executeSTRUCT_1C() {
+        val exampleName = "struct/STRUCT_1C"
+        executePgm(programName = exampleName, configuration = Configuration().apply { options.muteSupport = true })
+    }
+
+    private fun testError(exampleName: String, expectedErrors: List<String>) {
+        val errorMessages = mutableListOf<String>()
+        val configuration = Configuration().apply {
+            jarikoCallback.onError = { errorEvent ->
+                println(errorEvent)
+                errorEvent.error.message?.let {
+                    errorMessages.add(it)
+                }
+            }
+        }
+        kotlin.runCatching {
+            executePgm(programName = exampleName, configuration = configuration)
+        }.onSuccess {
+            fail("This program must fail")
+        }.onFailure {
+            if (expectedErrors != errorMessages) {
+                it.printStackTrace()
+            }
+            assertEquals(expectedErrors, errorMessages)
         }
     }
 }

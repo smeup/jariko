@@ -566,6 +566,12 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeARRAY12() {
+        assertCanBeParsed(exampleName = "ARRAY12", printTree = true)
+        assertEquals(listOf("AA", "BB"), outputOf("ARRAY12"))
+    }
+
+    @Test
     fun executeSTRNOTVA() {
         assertEquals(listOf("AB  CD  EF"), outputOf("STRNOTVA"))
     }
@@ -799,6 +805,53 @@ Test 6
     @Test
     fun executeASSIGN() {
         assertEquals(listOf("x is now 2", "y is now 162", "z is now 12", "w is now 198359290368"), outputOf("ASSIGN"))
+    }
+
+    @Test
+    fun executeUNLIMIT_S() {
+        val expected = listOf(
+            "",
+            "UnlInited",
+            "Assignment by string literal",
+            "Assignment by reference of the same type",
+            "Assignment from StringType to UnlimitedStringType",
+            "Assignment from StringType to UnlimitedStringType",
+            "Concat literal A with literal B",
+            "ok blank",
+            "Concat UnlimitedStringType with StringType",
+            "Concat StringType                                 with UnlimitedStringType"
+        )
+        assertEquals(expected, outputOf("UNLIMIT_S"))
+    }
+
+    @Test
+    fun executeUNLIMIT_DS() {
+        val expected = listOf(
+            "",
+            "UnlInited",
+            "",
+            "UnlInited",
+            "DS1.Msg1",
+            "DS1.Unlimit",
+            "DS2.Msg1",
+            "DS2.Unlimit",
+            "DS1 <> DS2",
+            "DS1.Msg1 content = DS2.Msg content",
+            "DS1.Unlimit content = DS2.Unlimit content",
+            "DS1 = DS2"
+        )
+        assertEquals(expected, outputOf("UNLIMIT_DS"))
+    }
+
+    @Test
+    fun executeUNLIMIT_BIF() {
+        val expected = listOf(
+            "%INT",
+            "1234",
+            "%DEC",
+            "1.5"
+        )
+        assertEquals(expected, outputOf("UNLIMIT_BIF"))
     }
 
     @Test
@@ -1436,6 +1489,17 @@ Test 6
     }
 
     @Test
+    fun executeMOVEPFIXFIX() {
+        assertEquals(
+            listOf(
+                "     BB",
+                "     AAAAA"
+            ),
+            outputOf("MOVEPFIXFIX")
+        )
+    }
+
+    @Test
     @Ignore
     fun executeMOVELSTR() {
         assertEquals(
@@ -2026,5 +2090,37 @@ Test 6
     @Test(expected = IllegalArgumentException::class)
     fun executeASSIGNERR01() {
         executePgm("ASSIGNERR01")
+    }
+
+    @Test
+    fun executePARMS1() {
+        val console = mutableListOf<String>()
+        val expected = listOf("HELLO", "2", "0")
+        val systemInterface = JavaSystemInterface().apply {
+            this.onDisplay = { message, _ ->
+                println(message)
+                console.add(message)
+            }
+        }
+        executePgm(
+            programName = "PARMS1",
+            params = CommandLineParms(listOf("FUNC", "METH")),
+            systemInterface = systemInterface)
+        assertEquals(expected, console)
+    }
+
+    @Test
+    fun executeLIKECASESENS01() {
+        assertEquals(listOf("hello"), outputOf("LIKECASESENS01"))
+    }
+
+    @Test
+    fun executeCONST01() {
+        assertEquals(listOf("100"), outputOf("CONST01"))
+    }
+
+    @Test
+    fun executeCONST02() {
+        assertEquals(listOf("100"), outputOf("CONST02"))
     }
 }

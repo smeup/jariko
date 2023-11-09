@@ -410,7 +410,7 @@ class RpgParserFacade {
         sourceProgram: SourceProgram? = SourceProgram.RPGLE
     ): CompilationUnit {
         MainExecutionContext.getParsingProgramStack().push(ParsingProgram(executionProgramName))
-        val cu = if (sourceProgram?.extension == SourceProgram.RPGLE.extension) {
+        val cu = if (sourceProgram?.sourceType == true) {
             (tryToLoadCompilationUnit() ?: createAst(inputStream)).apply {
                 MainExecutionContext.getConfiguration().jarikoCallback.afterAstCreation.invoke(this)
             }

@@ -175,6 +175,9 @@ open class InternalInterpreter(
                         is DataStructValue -> {
                             containerValue.set(data, value)
                         }
+                        is OccurableDataStructValue -> {
+                            containerValue.value().set(data, value)
+                        }
                         else -> TODO()
                     }
                 }
@@ -763,9 +766,16 @@ open class InternalInterpreter(
                 return assign(target.string as AssignableExpression, newValue)
             }
             is QualifiedAccessExpr -> {
-                val container = eval(target.container) as DataStructValue
-                container[target.field.referred!!]
-                container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
+                when (val container = eval(target.container)) {
+                    is DataStructValue -> {
+                        container[target.field.referred!!]
+                        container.set(target.field.referred!!, coerce(value, target.field.referred!!.type))
+                    }
+                    is OccurableDataStructValue -> {
+                        container.value()[target.field.referred!!]
+                        container.value().set(target.field.referred!!, coerce(value, target.field.referred!!.type))
+                    }
+                }
                 return value
             }
             is IndicatorExpr -> {
