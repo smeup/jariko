@@ -73,35 +73,11 @@ subprojects {
     project.group = jarikoGroupId
     project.version = jarikoVersion
 
-    // specifying what we want to sign
-    signing {
-        if (!project.hasProperty("signing.keyId")) {
-            println "$project.name - Signing disabled because signing.keyId property is not present, it is not an error!!!"
-        }
-        required {  project.hasProperty("signing.keyId") }
-        sign configurations.archives
-    }
-
     publishing {
         publications {
             mavenJava(MavenPublication) {
                 from(components.java)
             }
-        }
-    }
-
-    model {
-        tasks.generatePomFileForMavenJavaPublication {
-            destination = file("$buildDir/generated-pom.xml")
-        }
-        tasks.publishMavenJavaPublicationToSonatypeRepository{
-            dependsOn project.tasks.signArchives
-        }
-        tasks.publishMavenJavaPublicationToSmeupRepository{
-            dependsOn project.tasks.signArchives
-        }
-        tasks.publishMavenJavaPublicationToMavenLocal{
-            dependsOn project.tasks.signArchives
         }
     }
 }
