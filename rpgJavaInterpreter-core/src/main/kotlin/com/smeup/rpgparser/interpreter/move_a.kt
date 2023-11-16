@@ -2,39 +2,87 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
-fun move(operationExtenter: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
+fun move(
+    operationExtenter: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore
+): Value {
     when (target) {
         is DataRefExpr -> {
-            var newValue = interpreterCore.eval(value)
+            var newValue: Value = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
-                newValue = newValue.takeLast(target.size())
-                if (value.type().size < target.size()) {
-                    if (operationExtenter == null) {
-                        newValue =
-                            interpreterCore.get(target.variable.referred!!)
-                                .takeFirst((target.size() - value.type().size))
-                                .concatenate(newValue)
-                    } else {
-                        val blank = " ".repeat(target.size() - value.type().size)
-                        newValue.asString().value = blank + newValue.asString().value
-                        newValue.asString().value = newValue.asString().value.padEnd(target.size(), ' ')
+                /** - Moving starts with the rightmost character of factor 2.
+                 *  - When moving Date, Time or Timestamp data, factor 1 must be blank unless either the source or the target is a character or numeric field.
+                 *  - If factor 2 is longer than the result field, the excess leftmost characters or digits of factor 2 are not moved.
+                 *  - If the result field is longer than factor 2, the excess leftmost characters or digits in the result field are unchanged,
+                 *    unless padding is specified.
+                 *  - If factor 2 is shorter than the length of the result field, a P specified in the operation extender position causes the result
+                 *    field to be padded on the left after the move occurs.
+                 *  - A MOVE operation does not change the length of a variable-length result field.
+                 *  - If the source or target is a character field, you may optionally indicate the separator following the format in factor 1.
+                 *    Only separators that are valid for that format are allowed.
+                 */
+                // MOVE(P)
+                if (operationExtenter != null) {
+                    val blank = " ".repeat(target.size() - value.type().size)
+                    newValue.asString().value = blank + newValue.asString().value
+                    newValue.asString().value = newValue.asString().value.padEnd(target.size(), ' ')
+                } else {
+                    // get as StringValue the factors of the MOVE
+                    val valueToMove: StringValue = coerce(
+                        interpreterCore.eval(value),
+                        StringType(value.type().size, value.type().hasVariableSize())
+                    ).asString()
+                    val valueToApplyMove: StringValue = coerce(
+                        interpreterCore.get(target.variable.referred!!),
+                        StringType(target.size(), target.type().hasVariableSize())
+                    ).asString()
+                    // fixed variables
+                    if (!valueToMove.varying && !valueToApplyMove.varying) {
+                        if (valueToMove.length() <= valueToApplyMove.length()) {
+                            // overwrite valueToApplyMove from right to left to valueToMove
+                            val result: StringValue = StringValue(
+                                valueToApplyMove.value.substring(
+                                    0, valueToApplyMove.value.length - valueToMove.length()
+                                ) + valueToMove.value
+                            )
+                            // cast result to real value
+                            newValue = coerce(result, target.type())
+                        } else {
+                            // overwrite valueToApplyMove with same number of characters of valueToMove
+                            val result: StringValue =
+                                StringValue(
+                                    valueToMove.value.substring(
+                                        valueToMove.length() - valueToApplyMove.length(),
+                                        valueToMove.length()
+                                    )
+                                )
+                            // cast result to real value
+                            newValue = coerce(result, target.type())
+                        }
                     }
                 }
             }
             return interpreterCore.assign(target, newValue)
         }
+
         else -> TODO()
     }
 }
 
-fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
+fun movea(
+    operationExtenter: String?,
+    target: AssignableExpression,
+    valueExpression: Expression,
+    interpreterCore: InterpreterCore
+): Value {
     return when (target) {
         is DataRefExpr -> {
             moveaFullArray(operationExtenter, target, valueExpression, 1, interpreterCore)
         }
+
         is GlobalIndicatorExpr -> {
             interpreterCore.assign(target, interpreterCore.eval(valueExpression))
         }
+
         is IndicatorExpr -> {
             val value = interpreterCore.eval(valueExpression)
             for (index in target.index..ALL_PREDEFINED_INDEXES.last) {
@@ -42,16 +90,29 @@ fun movea(operationExtenter: String?, target: AssignableExpression, valueExpress
             }
             value
         }
+
         else -> {
             require(target is ArrayAccessExpr) {
                 "Result must be an Array element"
             }
-            moveaFullArray(operationExtenter, target.array as DataRefExpr, valueExpression, (interpreterCore.eval(target.index) as IntValue).value.toInt(), interpreterCore)
+            moveaFullArray(
+                operationExtenter,
+                target.array as DataRefExpr,
+                valueExpression,
+                (interpreterCore.eval(target.index) as IntValue).value.toInt(),
+                interpreterCore
+            )
         }
     }
 }
 
-private fun moveaFullArray(operationExtenter: String?, target: DataRefExpr, value: Expression, startIndex: Int, interpreterCore: InterpreterCore): Value {
+private fun moveaFullArray(
+    operationExtenter: String?,
+    target: DataRefExpr,
+    value: Expression,
+    startIndex: Int,
+    interpreterCore: InterpreterCore
+): Value {
     val targetType = target.type()
     require(targetType is ArrayType || targetType is StringType) {
         "Result must be an Array or a String"
@@ -101,27 +162,26 @@ private fun moveaNumber(
     return arrayValue
 }
 
-private fun InterpreterCore.toArray(expression: Expression): ConcreteArrayValue =
-    when (expression) {
-        is ArrayAccessExpr -> {
-            val arrayValueRaw = eval(expression.array)
-            val arrayValue = arrayValueRaw as? ArrayValue
-                ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
-            val indexValue = eval(expression.index).asInt().value.toInt()
-            arrayValue
-                .elements()
-                .slice((indexValue - 1)..arrayValue.arrayLength())
-                .asConcreteArrayValue(arrayValue.elementType)
-        }
-        is DataRefExpr -> {
-            if (expression.type() is ArrayType) {
-                eval(expression) as ConcreteArrayValue
-            } else {
-                ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
-            }
-        }
-        else -> ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
+private fun InterpreterCore.toArray(expression: Expression): ConcreteArrayValue = when (expression) {
+    is ArrayAccessExpr -> {
+        val arrayValueRaw = eval(expression.array)
+        val arrayValue = arrayValueRaw as? ArrayValue
+            ?: throw IllegalStateException("Array access to something that does not look like an array: ${expression.render()} (${expression.position})")
+        val indexValue = eval(expression.index).asInt().value.toInt()
+        arrayValue.elements().slice((indexValue - 1)..arrayValue.arrayLength())
+            .asConcreteArrayValue(arrayValue.elementType)
     }
+
+    is DataRefExpr -> {
+        if (expression.type() is ArrayType) {
+            eval(expression) as ConcreteArrayValue
+        } else {
+            ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
+        }
+    }
+
+    else -> ConcreteArrayValue(mutableListOf(eval(expression)), expression.type())
+}
 
 private fun moveaString(
     operationExtenter: String?,
@@ -133,12 +193,11 @@ private fun moveaString(
     val realSize = target.type().elementSize() * (target.type().numberOfElements() - startIndex + 1)
     var newValue = valueFromSourceExpression(interpreterCore, value).takeFirst(realSize).asString()
     if (newValue.value.length < realSize) {
-        val other =
-            if (operationExtenter == null) {
-                interpreterCore.get(target.variable.referred!!).takeLast((realSize - newValue.value.length))
-            } else {
-                StringValue(" ".repeat((realSize - value.type().size)))
-            }
+        val other = if (operationExtenter == null) {
+            interpreterCore.get(target.variable.referred!!).takeLast((realSize - newValue.value.length))
+        } else {
+            StringValue(" ".repeat((realSize - value.type().size)))
+        }
         newValue = newValue.concatenate(other).asString()
     }
     if (target.type() is ArrayType) {

@@ -26,11 +26,13 @@ private fun coerceBlanks(type: Type): Value {
         is StringType -> {
             blankString(type.length)
         }
+
         is ArrayType -> {
             createArrayValue(type.element, type.nElements) {
                 type.element.blank()
             }
         }
+
         is NumberType -> {
             if (type.integer) {
                 IntValue.ZERO
@@ -38,22 +40,28 @@ private fun coerceBlanks(type: Type): Value {
                 DecimalValue.ZERO
             }
         }
+
         is DataStructureType -> {
             type.blank()
         }
+
         is OccurableDataStructureType -> {
             type.blank()
         }
+
         is BooleanType -> {
             BooleanValue.FALSE
         }
+
         is CharacterType -> {
             blankString(type.nChars)
             // TODO Use CharacterValue(Array(this.nChars) { ' ' })
         }
+
         is UnlimitedStringType -> {
             UnlimitedStringValue("")
         }
+
         else -> TODO("Converting BlanksValue to $type")
     }
 }
@@ -86,6 +94,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
 
             // return StringValue(value.value, type.varying)
         }
+
         is ArrayType -> {
             if (type.element is StringType) {
                 // We are coercing a String into an array of Strings
@@ -114,14 +123,17 @@ private fun coerceString(value: StringValue, type: Type): Value {
                         val intValue = decodeBinary(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
+
                     type.rpgType == RpgType.INTEGER.rpgType -> {
                         val intValue = decodeInteger(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
+
                     type.rpgType == RpgType.UNSIGNED.rpgType -> {
                         val intValue = decodeUnsigned(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
+
                     type.rpgType == RpgType.ZONED.rpgType -> {
                         if (!value.isBlank()) {
                             val intValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
@@ -130,6 +142,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                             DecimalValue(BigDecimal.ZERO)
                         }
                     }
+
                     else -> {
                         if (!value.isBlank()) {
                             val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
@@ -153,6 +166,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             }
         }
+
         is BooleanType -> {
             if ("1" == value.value.trim()) {
                 BooleanValue.TRUE
@@ -160,6 +174,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 BooleanValue.FALSE
             }
         }
+
         is DataStructureType -> {
             if (value.isBlank()) {
                 type.blank()
@@ -167,12 +182,15 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 DataStructValue(value.value)
             }
         }
+
         is CharacterType -> {
             return StringValue(value.value)
         }
+
         is UnlimitedStringType -> {
             return UnlimitedStringValue(value.value)
         }
+
         else -> TODO("Converting String to $type")
     }
 }
@@ -183,17 +201,21 @@ fun coerce(value: Value, type: Type): Value {
         is BlanksValue -> {
             coerceBlanks(type)
         }
+
         is StringValue -> {
             coerceString(value, type)
         }
+
         is ArrayValue -> {
             return when (type) {
                 is StringType -> {
                     value.asString()
                 }
+
                 is ArrayType -> {
                     value
                 }
+
                 else -> TODO("Converting ArrayValue to $type")
             }
         }
@@ -208,6 +230,7 @@ fun coerce(value: Value, type: Type): Value {
                     }
                     return value
                 }
+
                 else -> TODO("Converting DecimalValue to $type")
             }
         }
@@ -215,32 +238,48 @@ fun coerce(value: Value, type: Type): Value {
         is HiValValue -> {
             return type.hiValue()
         }
+
         is LowValValue -> {
             return type.lowValue()
         }
+
         is AllValue -> {
             when (type) {
                 is NumberType -> {
                     return coerce(StringValue(value.charsToRepeat.repeatWithMaxSize(type.size)), type)
                 }
+
                 is StringType -> {
                     return StringValue(value.charsToRepeat.repeatWithMaxSize(type.length))
                 }
+
                 is ArrayType -> {
                     return StringValue(value.charsToRepeat.repeatWithMaxSize(type.size))
                 }
+
                 is BooleanType -> {
                     if (value.charsToRepeat == "1") BooleanValue.TRUE else BooleanValue.FALSE
                 }
+
                 else -> TODO("Converting $value to $type")
             }
         }
+
         is IntValue -> {
             when (type) {
-                is StringType -> StringValue(value.value.toString(), varying = type.varying)
+                // Add missing blank spaces
+                is StringType -> {
+                    val blank = " ".repeat(type.size - value.asString().value.length)
+                    return StringValue(
+                        "$blank${value.asString().value}",
+                        varying = type.varying
+                    )
+                }
+
                 else -> value
             }
         }
+
         else -> value
     }
 }
@@ -250,12 +289,15 @@ fun Type.lowValue(): Value {
         is NumberType -> {
             return computeLowValue(this)
         }
+
         is StringType -> {
             return computeLowValue(this)
         }
+
         is ArrayType -> {
             return createArrayValue(this.element, this.nElements) { coerce(LowValValue, this.element) }
         }
+
         else -> TODO("Converting LowValValue to $this")
     }
 }
@@ -265,12 +307,15 @@ fun Type.hiValue(): Value {
         is NumberType -> {
             return computeHiValue(this)
         }
+
         is StringType -> {
             return computeHiValue(this)
         }
+
         is ArrayType -> {
             return createArrayValue(this.element, this.nElements) { coerce(HiValValue, this.element) }
         }
+
         else -> TODO("Converting HiValValue to $this")
     }
 }
