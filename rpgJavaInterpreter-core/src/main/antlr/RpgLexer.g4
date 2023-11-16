@@ -822,7 +822,7 @@ mode FIXED_DefSpec;
 BLANK_SPEC :  
 	'                                                                           ' 
 	{getCharPositionInLine()==81}?;
-CONTINUATION_NAME : {getCharPositionInLine()<21}? [ ]* NAMECHAR+ CONTINUATION {setText(getText().substring(0,getText().length()-3).trim());} -> pushMode(CONTINUATION_ELIPSIS) ;
+CONTINUATION_NAME : {getCharPositionInLine()<21 && getCharPositionInLine()>=81}? [ ]* NAMECHAR+ CONTINUATION {setText(getText().substring(0,getText().length()-3).trim());} -> pushMode(CONTINUATION_ELIPSIS) ;
 CONTINUATION : '...' ;
 NAME : NAME5 NAME5 NAME5 {getCharPositionInLine()==21}? {setText(getText().trim());};
 EXTERNAL_DESCRIPTION: [eE ] {getCharPositionInLine()==22}? ;

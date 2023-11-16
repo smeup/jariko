@@ -76,6 +76,11 @@ open class DataDefinitionTest : AbstractTest() {
         cu.assertDataDefinitionIsPresent("U\$FUNZ", ArrayType(StringType(10), 200))
     }
 
+    @test fun variableWithContinuationLineTokenInComment() {
+        val cu = parseFragmentToCompilationUnit("DVAR              S             10                                         ...")
+        cu.assertDataDefinitionIsPresent("VAR", StringType(length = 10))
+    }
+
     @test fun singleDSParsing() {
         val cu = parseFragmentToCompilationUnit("D £G49SI          DS          1024")
         val dataDefinition = cu.getDataDefinition("£G49SI")
