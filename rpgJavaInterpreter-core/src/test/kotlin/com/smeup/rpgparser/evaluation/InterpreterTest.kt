@@ -257,19 +257,19 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeSETONSETOF() {
         assertEquals(listOf("Before",
-                "56=off57=off",
-                "After set",
-                "56=on",
-                "After off",
-                "56=off57=off"), outputOf("SETONOF01"))
+            "56=off57=off",
+            "After set",
+            "56=on",
+            "After off",
+            "56=off57=off"), outputOf("SETONOF01"))
     }
 
     @Test @Ignore
     fun executeSETOFLF() {
         assertEquals(listOf("Before",
-                            "LR Of",
-                            "After set",
-                            "LR Off"), outputOf("SETOFLR"))
+            "LR Of",
+            "After set",
+            "LR Off"), outputOf("SETOFLR"))
     }
 
     @Test
@@ -428,15 +428,15 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeMOVEAMUT13() {
         assertEquals(listOf("ABCDEFGHIL         1",
-                            "BBBBBBBBBBBBBBBBBBBB",
-                            "AAAAAAAAAAAAAAAAAAAA",
-                            "  ABCDEFGHILMNOPQRST",
-                            "  ABCDEFGHILMNOPQRST",
-                            "XXXXXXXXXXXXXXXXXXXX",
-                            "XXXXXXXXXXXXXXXXXXXX",
-                            "XXXXXXXXXXXXXXXXXXXX",
-                            "XXXXXXXXXXXXXXXXXXXX",
-                            "XXXXXXXXXXXXXXXXXXXX"),
+            "BBBBBBBBBBBBBBBBBBBB",
+            "AAAAAAAAAAAAAAAAAAAA",
+            "  ABCDEFGHILMNOPQRST",
+            "  ABCDEFGHILMNOPQRST",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX"),
             outputOf("MOVEAMUT13"))
     }
 
@@ -716,7 +716,7 @@ Test 6
             "Executing CALLED",
             "x initialized at: 3",
             "x is now: 1"
-            ),
+        ),
             outputOf("CALLER"))
     }
 
@@ -725,7 +725,7 @@ Test 6
         val si = CollectorSystemInterface()
         var javaPgmCalled = false
         si.programs["CAL02"] = object : JvmProgramRaw("CAL02", listOf(
-                ProgramParam("NBR", NumberType(8, 0)))) {
+            ProgramParam("NBR", NumberType(8, 0)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 javaPgmCalled = true
                 val nbr = params["NBR"]
@@ -748,12 +748,20 @@ Test 6
 
     @Test
     fun executeMOVEFIXFIX() {
-        assertEquals(outputOf("MOVEFIXFIX"), listOf("ABCDE", "56789", "", "MNOPX"))
+        assertEquals(
+            listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim()),
+            outputOf("MOVEFIXFIX")
+        )
     }
 
     @Test
     fun executeMOVENBRNBR() {
-        assertEquals(outputOf("MOVENBRNBR"), listOf("12345", "45678", "123", "99991"))
+        assertEquals(listOf("99991", "12345", "67890", "1234"), outputOf("MOVENBRNBR"))
+    }
+
+    @Test
+    fun executeMOVESTRNBR() {
+        assertEquals(listOf("ABCD1", "12345", "67890", "01234"), outputOf("MOVESTRNBR"))
     }
 
     @Test
@@ -893,31 +901,31 @@ Test 6
     @Test
     fun executeBIFEDITC_2() {
         assertEquals(listOf("x   123,456   123,456  1,234.56X",
-                            "x  1,234.56          X",
-                            "x  1,234.50X"),
+            "x  1,234.56          X",
+            "x  1,234.50X"),
             outputOf("BIFEDITC_2"))
     }
 
     @Test
     fun executeBIFEDITC_3() {
         assertEquals(listOf("x  123456  123456  1234.56X",
-                            "x  1234.56      .00X",
-                            "x  1234.50X"),
+            "x  1234.56      .00X",
+            "x  1234.50X"),
             outputOf("BIFEDITC_3"))
     }
     @Test
     fun executeBIFEDITC_4() {
         assertEquals(listOf("x  123456  123456  1234.56X",
-                            "x  1234.56         X",
-                            "x  1234.50X"),
+            "x  1234.56         X",
+            "x  1234.50X"),
             outputOf("BIFEDITC_4"))
     }
 
     @Test
     fun executeBIFEDITC_J() {
         assertEquals(listOf("x   123,456   123,456-  1,234.56X",
-                            "x  1,234.56-       .00X",
-                            "x  1,234.50X"),
+            "x  1,234.56-       .00X",
+            "x  1,234.50X"),
             outputOf("BIFEDITC_J"))
     }
 
@@ -925,9 +933,9 @@ Test 6
     @Ignore // we are working on DECEDIT
     fun executeBIFEDITC_Y() {
         assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
-                            "x  12/34/56   0/00/00X",
-                            "x  12/34/50 12/34/5678  0/00/12X",
-                            "x   1/23/45X"),
+            "x  12/34/56   0/00/00X",
+            "x  12/34/50 12/34/5678  0/00/12X",
+            "x   1/23/45X"),
             outputOf("BIFEDITC_Y"))
     }
 
@@ -954,88 +962,88 @@ Test 6
     @Test
     fun executeCTDATA() {
         assertEquals(expected =
-                    ("001\n" +
-                    "d01\n" +
-                    "A01\n" +
-                    "c01\n" +
-                    "B01\n" +
-                    "b01\n" +
-                    "C01\n" +
-                    "901\n" +
-                    "101\n" +
-                    "D01\n" +
-                    "H01\n" +
-                    "E01\n" +
-                    "201\n" +
-                    "e01\n" +
-                    "a01\n" +
-                    "x01\n" +
-                    "X01").lines(),
-                    actual = outputOf("CTDATA").map(String::trim))
+        ("001\n" +
+                "d01\n" +
+                "A01\n" +
+                "c01\n" +
+                "B01\n" +
+                "b01\n" +
+                "C01\n" +
+                "901\n" +
+                "101\n" +
+                "D01\n" +
+                "H01\n" +
+                "E01\n" +
+                "201\n" +
+                "e01\n" +
+                "a01\n" +
+                "x01\n" +
+                "X01").lines(),
+            actual = outputOf("CTDATA").map(String::trim))
     }
 
     @Test
     fun executeARRAY02_arrayWithComments() {
         assertEquals(expected =
-            ("abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "xxx").lines(),
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
             actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
     fun executeARRAY03_arrayWithCommentsPERRCD_1() {
         assertEquals(expected =
-            ("abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "xxx").lines(),
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
             actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
     fun executeARRAY04_arrayWithCommentsAndDataReference() {
         assertEquals(expected =
-            ("abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "xxx").lines(),
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
             actual = outputOf("ARRAY04").map(String::trim))
     }
 
     @Test
     fun executeARRAY05NAM_namedCompileTimeArrays() {
         assertEquals(expected =
-            ("100\n" +
-            "100\n" +
-            "100\n" +
-            "100\n" +
-            "100").lines(),
+        ("100\n" +
+                "100\n" +
+                "100\n" +
+                "100\n" +
+                "100").lines(),
             actual = outputOf("ARRAY05NAM").map(String::trim))
     }
 
@@ -1203,7 +1211,7 @@ Test 6
             "OMONIM" to BooleanValue(false),
             "SINTAX" to BooleanValue(false),
             "CHKDIG" to BooleanValue(false)
-            )
+        )
         assertEquals(outputOf("JCODFISD", parms), emptyList())
     }
 

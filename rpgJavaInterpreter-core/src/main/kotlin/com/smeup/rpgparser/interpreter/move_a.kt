@@ -2,27 +2,59 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
-fun move(operationExtenter: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
+fun move(
+    operationExtenter: String?,
+    target: AssignableExpression,
+    value: Expression,
+    interpreterCore: InterpreterCore
+): Value {
     when (target) {
         is DataRefExpr -> {
-            var newValue = interpreterCore.eval(value)
+            var newValue: Value = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
-                newValue = newValue.takeLast(target.size())
-                if (value.type().size < target.size()) {
-                    if (operationExtenter == null) {
-                        newValue =
-                            interpreterCore.get(target.variable.referred!!)
-                                .takeFirst((target.size() - value.type().size))
-                                .concatenate(newValue)
+                // get as StringValue the factors of the MOVE
+                val valueToMove: StringValue = coerce(
+                    interpreterCore.eval(value), StringType(value.type().size, value.type().hasVariableSize())
+                ).asString()
+                val valueToApplyMove: StringValue = coerce(
+                    interpreterCore.get(target.variable.referred!!),
+                    StringType(target.size(), target.type().hasVariableSize())
+                ).asString()
+                // fixed variables
+                if (!valueToMove.varying && !valueToApplyMove.varying) {
+                    if (valueToMove.length() <= valueToApplyMove.length()) {
+                        var result: StringValue = valueToMove
+                        if (operationExtenter != null) {
+                            // MOVE(P): If factor 2 is shorter than the length of the result field,
+                            // a P specified in the operation extender position causes the result
+                            result.asString().value =
+                                " ".repeat(target.size() - value.type().size) + result.asString().value
+                            result.asString().value = result.asString().value.padEnd(target.size(), ' ')
+                        } else {
+                            // overwrite valueToApplyMove from right to left to valueToMove
+                            result = StringValue(
+                                valueToApplyMove.value.substring(
+                                    0, valueToApplyMove.value.length - valueToMove.length()
+                                ) + valueToMove.value
+                            )
+                        }
+                        // cast result to real value
+                        newValue = coerce(result, target.type())
                     } else {
-                        val blank = " ".repeat(target.size() - value.type().size)
-                        newValue.asString().value = blank + newValue.asString().value
-                        newValue.asString().value = newValue.asString().value.padEnd(target.size(), ' ')
+                        // overwrite valueToApplyMove with same number of characters of valueToMove
+                        val result: StringValue = StringValue(
+                            valueToMove.value.substring(
+                                valueToMove.length() - valueToApplyMove.length(), valueToMove.length()
+                            )
+                        )
+                        // cast result to real value
+                        newValue = coerce(result, target.type())
                     }
                 }
             }
             return interpreterCore.assign(target, newValue)
         }
+
         else -> TODO()
     }
 }

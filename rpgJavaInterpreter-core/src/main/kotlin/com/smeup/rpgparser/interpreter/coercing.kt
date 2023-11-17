@@ -104,7 +104,6 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             }
         }
-
         is NumberType -> {
             if (type.integer) {
                 when {
@@ -197,7 +196,6 @@ fun coerce(value: Value, type: Type): Value {
                 else -> TODO("Converting ArrayValue to $type")
             }
         }
-
         is DecimalValue -> {
             when (type) {
                 is NumberType -> {
@@ -211,7 +209,6 @@ fun coerce(value: Value, type: Type): Value {
                 else -> TODO("Converting DecimalValue to $type")
             }
         }
-
         is HiValValue -> {
             return type.hiValue()
         }
@@ -237,7 +234,14 @@ fun coerce(value: Value, type: Type): Value {
         }
         is IntValue -> {
             when (type) {
-                is StringType -> StringValue(value.value.toString(), varying = type.varying)
+                // Add missing blank spaces
+                is StringType -> {
+                    val zeros = "0".repeat(type.size - value.asString().value.length)
+                    return StringValue(
+                        "$zeros${value.asString().value}",
+                        varying = type.varying
+                    )
+                }
                 else -> value
             }
         }
