@@ -162,25 +162,21 @@ open class InterpreterTest : AbstractTest() {
         cu.resolveAndValidate()
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
-        si.programs["CALCFIB"] =
-            object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8, false)))) {
-                override fun execute(
-                    systemInterface: SystemInterface,
-                    params: LinkedHashMap<String, Value>
-                ): List<Value> {
-                    val n = params["ppdat"]!!.asString().value.asInt()
-                    var t1 = 0
-                    var t2 = 1
+        si.programs["CALCFIB"] = object : JvmProgramRaw("CALCFIB", listOf(ProgramParam("ppdat", StringType(8, false)))) {
+            override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
+                val n = params["ppdat"]!!.asString().value.asInt()
+                var t1 = 0
+                var t2 = 1
 
-                    for (i in 1..n) {
-                        val sum = t1 + t2
-                        t1 = t2
-                        t2 = sum
-                    }
-                    systemInterface.display("FIBONACCI OF: $n IS: $t1")
-                    return listOf(params["ppdat"]!!)
+                for (i in 1..n) {
+                    val sum = t1 + t2
+                    t1 = t2
+                    t2 = sum
                 }
+                systemInterface.display("FIBONACCI OF: $n IS: $t1")
+                return listOf(params["ppdat"]!!)
             }
+        }
         execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         assertEquals(listOf("FIBONACCI OF: 10 IS: 55"), si.displayed)
         assertEquals(logHandler.getExecutedSubroutines().size, 0)
@@ -237,17 +233,15 @@ open class InterpreterTest : AbstractTest() {
 
     @Test
     fun executeLEN() {
-        assertEquals(
-            listOf(
-                "Hello World! 23",
-                "%LEN(B_01) is 1",
-                "%LEN(B_02) is 20",
-                "%LEN(B_03) is 0",
-                "%LEN(B_03) is 1",
-                "%LEN(B_03) is 5",
-                "%LEN(B_04) is 0"
-            ), outputOf("LEN")
-        )
+        assertEquals(listOf(
+            "Hello World! 23",
+            "%LEN(B_01) is 1",
+            "%LEN(B_02) is 20",
+            "%LEN(B_03) is 0",
+            "%LEN(B_03) is 1",
+            "%LEN(B_03) is 5",
+            "%LEN(B_04) is 0"
+        ), outputOf("LEN"))
     }
 
     @Test
@@ -262,29 +256,20 @@ open class InterpreterTest : AbstractTest() {
 
     @Test
     fun executeSETONSETOF() {
-        assertEquals(
-            listOf(
-                "Before",
-                "56=off57=off",
-                "After set",
-                "56=on",
-                "After off",
-                "56=off57=off"
-            ), outputOf("SETONOF01")
-        )
+        assertEquals(listOf("Before",
+            "56=off57=off",
+            "After set",
+            "56=on",
+            "After off",
+            "56=off57=off"), outputOf("SETONOF01"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeSETOFLF() {
-        assertEquals(
-            listOf(
-                "Before",
-                "LR Of",
-                "After set",
-                "LR Off"
-            ), outputOf("SETOFLR")
-        )
+        assertEquals(listOf("Before",
+            "LR Of",
+            "After set",
+            "LR Off"), outputOf("SETOFLR"))
     }
 
     @Test
@@ -373,8 +358,7 @@ open class InterpreterTest : AbstractTest() {
         assertEquals(listOf("40208"), outputOf("DIFFTEST2"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeDAYOFWEEK() {
         val currentDayOfWeek = SimpleDateFormat("u").format(Date())
         assertEquals(listOf(currentDayOfWeek), outputOf("DAYOFWEEK"))
@@ -443,40 +427,32 @@ open class InterpreterTest : AbstractTest() {
 
     @Test
     fun executeMOVEAMUT13() {
-        assertEquals(
-            listOf(
-                "ABCDEFGHIL         1",
-                "BBBBBBBBBBBBBBBBBBBB",
-                "AAAAAAAAAAAAAAAAAAAA",
-                "  ABCDEFGHILMNOPQRST",
-                "  ABCDEFGHILMNOPQRST",
-                "XXXXXXXXXXXXXXXXXXXX",
-                "XXXXXXXXXXXXXXXXXXXX",
-                "XXXXXXXXXXXXXXXXXXXX",
-                "XXXXXXXXXXXXXXXXXXXX",
-                "XXXXXXXXXXXXXXXXXXXX"
-            ),
-            outputOf("MOVEAMUT13")
-        )
+        assertEquals(listOf("ABCDEFGHIL         1",
+            "BBBBBBBBBBBBBBBBBBBB",
+            "AAAAAAAAAAAAAAAAAAAA",
+            "  ABCDEFGHILMNOPQRST",
+            "  ABCDEFGHILMNOPQRST",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX"),
+            outputOf("MOVEAMUT13"))
     }
 
     @Test
     fun executeMOVEAP0904_p_with_chars() {
-        assertEquals(
-            listOf(
-                "ABCDEFGHIL",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                ""
-            ),
-            outputOf("MOVEAP0904")
-        )
+        assertEquals(listOf("ABCDEFGHIL",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""),
+            outputOf("MOVEAP0904"))
     }
 
     @Test
@@ -549,8 +525,7 @@ open class InterpreterTest : AbstractTest() {
         assertEquals(listOf("XXXXX", "YYYYY"), outputOf("MOVELDECLA"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeRESULTTARG_resultAsExpressionRefenecingArray() {
         assertEquals(listOf("15.3"), outputOf("RESULTTARG"))
     }
@@ -611,11 +586,9 @@ open class InterpreterTest : AbstractTest() {
         assertEquals(listOf("0", "1", "4", "5", "6", "8", "9"), outputOf("SORTANUM"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeLOOKUP_OPCODE() {
-        assertEquals(
-            """
+        assertEquals("""
 Test 1
 68 OFF
 69 ON-
@@ -641,8 +614,7 @@ Test 6
 69 ON- 
  7               
         """.trimIndent().lines().map(String::trim),
-            outputOf("LOOKUP_OP1")
-        )
+            outputOf("LOOKUP_OP1"))
     }
 
     @Test
@@ -655,11 +627,9 @@ Test 6
         assertEquals(listOf("68 ON-", "69 OFF"), outputOf("LOOKUP_OP3"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeLOOKUP_OPCODE_GoodArray() {
-        assertEquals(
-            """
+        assertEquals("""
 Test 1
 68 ON-
 69 OFF
@@ -685,12 +655,10 @@ Test 6
 69 OFF
  1    
         """.trimIndent().lines().map(String::trim),
-            outputOf("LOOKUP_OP9")
-        )
+            outputOf("LOOKUP_OP9"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeSCANARRAY() {
         assertEquals(listOf("4"), outputOf("SCANARRAY"))
     }
@@ -736,33 +704,28 @@ Test 6
 
     @Test
     fun executeCALLER_CALLED_pgm_with_RT() {
-        assertEquals(
-            listOf(
-                "Executing CALLER",
-                "x initialized at: 18",
-                "x is now: 6",
-                "Calling CALLED",
-                "Executing CALLED",
-                "x initialized at: 9",
-                "x is now: 3",
-                "Calling CALLED",
-                "Executing CALLED",
-                "x initialized at: 3",
-                "x is now: 1"
-            ),
-            outputOf("CALLER")
-        )
+        assertEquals(listOf(
+            "Executing CALLER",
+            "x initialized at: 18",
+            "x is now: 6",
+            "Calling CALLED",
+            "Executing CALLED",
+            "x initialized at: 9",
+            "x is now: 3",
+            "Calling CALLED",
+            "Executing CALLED",
+            "x initialized at: 3",
+            "x is now: 1"
+        ),
+            outputOf("CALLER"))
     }
 
     @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
         var javaPgmCalled = false
-        si.programs["CAL02"] = object : JvmProgramRaw(
-            "CAL02", listOf(
-                ProgramParam("NBR", NumberType(8, 0))
-            )
-        ) {
+        si.programs["CAL02"] = object : JvmProgramRaw("CAL02", listOf(
+            ProgramParam("NBR", NumberType(8, 0)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 javaPgmCalled = true
                 val nbr = params["NBR"]
@@ -827,14 +790,12 @@ Test 6
         assertEquals(listOf("Body"), outputOf("DO_TST02"))
     }
 
-    @Test
-    @Category(PerformanceTest::class)
+    @Test @Category(PerformanceTest::class)
     fun executeDOW_PERF() {
         assertEquals(outputOf("DOW_PERF"), listOf("COUNTER IS NOW 100000001"))
     }
 
-    @Test
-    @Category(PerformanceTest::class)
+    @Test @Category(PerformanceTest::class)
     fun executeDOW_LEAVE_PERF() {
         assertEquals(outputOf("DOW_LEAVE_PERF"), listOf("COUNTER IS NOW 100000001"))
     }
@@ -923,18 +884,8 @@ Test 6
 
     @Test
     fun executeREPLACEBIF() {
-        assertEquals(
-            listOf(
-                "Pippo world!",
-                "Hello Pippo!",
-                "Hello Pippoorld!",
-                "Hello Pippold!",
-                "Hello Pippoworld!",
-                "%20 ef",
-                "abc%20ef"
-            ),
-            outputOf("REPLACEBIF")
-        )
+        assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!", "%20 ef", "abc%20ef"),
+            outputOf("REPLACEBIF"))
     }
 
     @Test
@@ -949,64 +900,43 @@ Test 6
 
     @Test
     fun executeBIFEDITC_2() {
-        assertEquals(
-            listOf(
-                "x   123,456   123,456  1,234.56X",
-                "x  1,234.56          X",
-                "x  1,234.50X"
-            ),
-            outputOf("BIFEDITC_2")
-        )
+        assertEquals(listOf("x   123,456   123,456  1,234.56X",
+            "x  1,234.56          X",
+            "x  1,234.50X"),
+            outputOf("BIFEDITC_2"))
     }
 
     @Test
     fun executeBIFEDITC_3() {
-        assertEquals(
-            listOf(
-                "x  123456  123456  1234.56X",
-                "x  1234.56      .00X",
-                "x  1234.50X"
-            ),
-            outputOf("BIFEDITC_3")
-        )
+        assertEquals(listOf("x  123456  123456  1234.56X",
+            "x  1234.56      .00X",
+            "x  1234.50X"),
+            outputOf("BIFEDITC_3"))
     }
-
     @Test
     fun executeBIFEDITC_4() {
-        assertEquals(
-            listOf(
-                "x  123456  123456  1234.56X",
-                "x  1234.56         X",
-                "x  1234.50X"
-            ),
-            outputOf("BIFEDITC_4")
-        )
+        assertEquals(listOf("x  123456  123456  1234.56X",
+            "x  1234.56         X",
+            "x  1234.50X"),
+            outputOf("BIFEDITC_4"))
     }
 
     @Test
     fun executeBIFEDITC_J() {
-        assertEquals(
-            listOf(
-                "x   123,456   123,456-  1,234.56X",
-                "x  1,234.56-       .00X",
-                "x  1,234.50X"
-            ),
-            outputOf("BIFEDITC_J")
-        )
+        assertEquals(listOf("x   123,456   123,456-  1,234.56X",
+            "x  1,234.56-       .00X",
+            "x  1,234.50X"),
+            outputOf("BIFEDITC_J"))
     }
 
     @Test
     @Ignore // we are working on DECEDIT
     fun executeBIFEDITC_Y() {
-        assertEquals(
-            listOf(
-                "x  12/34/56  12/34/56  12/34/56X",
-                "x  12/34/56   0/00/00X",
-                "x  12/34/50 12/34/5678  0/00/12X",
-                "x   1/23/45X"
-            ),
-            outputOf("BIFEDITC_Y")
-        )
+        assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
+            "x  12/34/56   0/00/00X",
+            "x  12/34/50 12/34/5678  0/00/12X",
+            "x   1/23/45X"),
+            outputOf("BIFEDITC_Y"))
     }
 
     @Test
@@ -1031,100 +961,90 @@ Test 6
 
     @Test
     fun executeCTDATA() {
-        assertEquals(
-            expected =
-            ("001\n" +
-                    "d01\n" +
-                    "A01\n" +
-                    "c01\n" +
-                    "B01\n" +
-                    "b01\n" +
-                    "C01\n" +
-                    "901\n" +
-                    "101\n" +
-                    "D01\n" +
-                    "H01\n" +
-                    "E01\n" +
-                    "201\n" +
-                    "e01\n" +
-                    "a01\n" +
-                    "x01\n" +
-                    "X01").lines(),
-            actual = outputOf("CTDATA").map(String::trim)
-        )
+        assertEquals(expected =
+        ("001\n" +
+                "d01\n" +
+                "A01\n" +
+                "c01\n" +
+                "B01\n" +
+                "b01\n" +
+                "C01\n" +
+                "901\n" +
+                "101\n" +
+                "D01\n" +
+                "H01\n" +
+                "E01\n" +
+                "201\n" +
+                "e01\n" +
+                "a01\n" +
+                "x01\n" +
+                "X01").lines(),
+            actual = outputOf("CTDATA").map(String::trim))
     }
 
     @Test
     fun executeARRAY02_arrayWithComments() {
-        assertEquals(
-            expected =
-            ("abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "xxx").lines(),
-            actual = outputOf("ARRAY02").map(String::trim)
-        )
+        assertEquals(expected =
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+            actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
     fun executeARRAY03_arrayWithCommentsPERRCD_1() {
-        assertEquals(
-            expected =
-            ("abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "xxx").lines(),
-            actual = outputOf("ARRAY02").map(String::trim)
-        )
+        assertEquals(expected =
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+            actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
     fun executeARRAY04_arrayWithCommentsAndDataReference() {
-        assertEquals(
-            expected =
-            ("abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "123\n" +
-                    "abc\n" +
-                    "xxx").lines(),
-            actual = outputOf("ARRAY04").map(String::trim)
-        )
+        assertEquals(expected =
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
+            actual = outputOf("ARRAY04").map(String::trim))
     }
 
     @Test
     fun executeARRAY05NAM_namedCompileTimeArrays() {
-        assertEquals(
-            expected =
-            ("100\n" +
-                    "100\n" +
-                    "100\n" +
-                    "100\n" +
-                    "100").lines(),
-            actual = outputOf("ARRAY05NAM").map(String::trim)
-        )
+        assertEquals(expected =
+        ("100\n" +
+                "100\n" +
+                "100\n" +
+                "100\n" +
+                "100").lines(),
+            actual = outputOf("ARRAY05NAM").map(String::trim))
     }
 
     @Test
@@ -1204,8 +1124,7 @@ Test 6
     }
 
     // TODO implement DataStructureType coercion
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeDSCHARS() {
         assertEquals(listOf("Result is: X 1Y 2"), outputOf("DSCHARS"))
     }
@@ -1237,18 +1156,14 @@ Test 6
 
     @Test
     fun executeDS_CALLED_with_String_parameter() {
-        assertEquals(
-            listOf("James", "Bond", "007"),
-            outputOf("DS_CALLED", initialValues = mapOf("P1" to StringValue("JamesBond   7")))
-        )
+        assertEquals(listOf("James", "Bond", "007"),
+            outputOf("DS_CALLED", initialValues = mapOf("P1" to StringValue("JamesBond   7"))))
     }
 
     @Test
     fun executeDS_CALLED_with_DS_parameter() {
-        assertEquals(
-            listOf("James", "Bond", "007"),
-            outputOf("DS_CALLED", initialValues = mapOf("P1" to DataStructValue("JamesBond   7")))
-        )
+        assertEquals(listOf("James", "Bond", "007"),
+            outputOf("DS_CALLED", initialValues = mapOf("P1" to DataStructValue("JamesBond   7"))))
     }
 
     @Test
@@ -1280,11 +1195,7 @@ Test 6
 
     @Test
     fun executeASSIGNSUBS() {
-        assertEquals(
-            listOf("-xyz--", "-xyz", "-xyz -"),
-            outputOf("ASSIGNSUBS"),
-            message = "We can't handle %SUBST(X)=Y"
-        )
+        assertEquals(listOf("-xyz--", "-xyz", "-xyz -"), outputOf("ASSIGNSUBS"), message = "We can't handle %SUBST(X)=Y")
     }
 
     @Test
@@ -1293,11 +1204,9 @@ Test 6
     }
 
     // TODO understand why this test does not pass
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeJCODFISD() {
-        val parms = mapOf(
-            "CFDS" to StringValue("LNZNLN09B63H501J"),
+        val parms = mapOf("CFDS" to StringValue("LNZNLN09B63H501J"),
             "FISICA" to BooleanValue(false),
             "OMONIM" to BooleanValue(false),
             "SINTAX" to BooleanValue(false),
@@ -1378,10 +1287,7 @@ Test 6
 
     @Test
     fun executeFCONSTRES() {
-        assertEquals(
-            listOf("FLAG=ON", "FLAG=OFF", "IN34=OFF", "IN34=ON", "STR=BLANK", "STR=NOBLANK", "IN35=OFF"),
-            outputOf(programName = "FCONSTRES")
-        )
+        assertEquals(listOf("FLAG=ON", "FLAG=OFF", "IN34=OFF", "IN34=ON", "STR=BLANK", "STR=NOBLANK", "IN35=OFF"), outputOf(programName = "FCONSTRES"))
     }
 
     @Test
@@ -1409,8 +1315,7 @@ Test 6
         assertEquals(listOf("10", "No Error", "Got Error"), outputOf("ERRCALLER"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeRTCALLER_lrIndicatorOnCall() {
         assertEquals(listOf("End LR", "End RT"), outputOf("RTCALLER"))
     }
@@ -1427,25 +1332,17 @@ Test 6
 
     @Test
     fun executeFIZZBUZZ() {
-        assertEquals(
-            listOf("7"),
-            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("7"), "RESULT" to StringValue("")))
-        )
+        assertEquals(listOf("7"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("7"), "RESULT" to StringValue(""))))
 
-        assertEquals(
-            listOf("FIZZ"),
-            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("3"), "RESULT" to StringValue("")))
-        )
+        assertEquals(listOf("FIZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("3"), "RESULT" to StringValue(""))))
 
-        assertEquals(
-            listOf("BUZZ"),
-            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("5"), "RESULT" to StringValue("")))
-        )
+        assertEquals(listOf("BUZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("5"), "RESULT" to StringValue(""))))
 
-        assertEquals(
-            listOf("FIZZBUZZ"),
-            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("30"), "RESULT" to StringValue("")))
-        )
+        assertEquals(listOf("FIZZBUZZ"),
+            outputOf("mute/FIZZBUZZ", mapOf("NBRPAR" to StringValue("30"), "RESULT" to StringValue(""))))
     }
 
     @Test
@@ -1522,8 +1419,7 @@ Test 6
         assertEquals(listOf("Hello world!", "Hello worl", "Hello world"), outputOf("TRIMR"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeELEM() {
         assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
     }
@@ -1533,14 +1429,12 @@ Test 6
         assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeACTGRP_CAL() {
         assertEquals(listOf("1", "2", "3", "1", "1", "1"), outputOf("ACTGRP_CAL"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeCLEARDS() {
         assertEquals(listOf("0000"), outputOf("CLEARDS"))
     }
@@ -1575,8 +1469,7 @@ Test 6
                 "                      ",
                 "                      "
             ),
-            outputOf("CLEARARRAY")
-        )
+            outputOf("CLEARARRAY"))
     }
 
     @Test
@@ -1600,8 +1493,7 @@ Test 6
                 " ",
                 " "
             ),
-            outputOf("CLEARARRAY1")
-        )
+            outputOf("CLEARARRAY1"))
     }
 
     @Test
@@ -1666,26 +1558,15 @@ Test 6
                                 dsDataDefinition = dataDefinition
                                 dataDefinition.fields.forEach {
                                     when (it.name) {
-                                        "\$UIBPG" -> {
-                                            dsValue.set(it, StringValue("EXP", false))
-                                        }
-
-                                        "\$UIBFU" -> {
-                                            dsValue.set(it, StringValue("X1X2110", false))
-                                        }
-
-                                        "\$UIBME" -> {
-                                            dsValue.set(it, StringValue("FIB", false))
-                                        }
-
-                                        "\$UIBD1" -> {
-                                            dsValue.set(it, StringValue("NUM(10)", false))
-                                        }
+                                        "\$UIBPG" -> { dsValue.set(it, StringValue("EXP", false)) }
+                                        "\$UIBFU" -> { dsValue.set(it, StringValue("X1X2110", false)) }
+                                        "\$UIBME" -> { dsValue.set(it, StringValue("FIB", false)) }
+                                        "\$UIBD1" -> { dsValue.set(it, StringValue("NUM(10)", false)) }
                                     }
                                 }
                             }
                             /* no-op */
-                            else -> {}
+                            else -> { }
                         }
                     }
                 },
@@ -1705,12 +1586,10 @@ Test 6
     fun executeFREE_HELLO() {
         assertEquals(
             expected = "Hello world, Hello world in Chinese: 你好世界, number1 * number2 = 15".split(Regex(", ")),
-            actual = outputOf("FREE_HELLO")
-        )
+            actual = outputOf("FREE_HELLO"))
     }
 
-    @Test
-    @Ignore
+    @Test @Ignore
     fun executeLOSER_PR() {
         executePgm("LOSER_PR")
     }
@@ -1736,8 +1615,7 @@ Test 6
     @Test
     fun executePROCEDURE_C() {
         assertEquals(
-            expected = listOf(
-                "p received must be 11, is:11",
+            expected = listOf("p received must be 11, is:11",
                 "q received must be 22, is:22",
                 "r received must be 0, is:0",
                 "r=p+q must be 33, is:33",
@@ -1776,15 +1654,13 @@ Test 6
     @Test
     fun executePROCEDURE_H() {
         assertEquals(
-            expected = listOf(
-                "11",
+            expected = listOf("11",
                 "22",
                 "33",
                 "0",
                 "33",
                 "22",
-                "121"
-            ),
+                "121"),
             actual = outputOf("PROCEDURE_H")
         )
     }
@@ -1792,8 +1668,7 @@ Test 6
     @Test
     fun executePROCEDURE_I() {
         assertEquals(
-            expected = listOf(
-                "1",
+            expected = listOf("1",
                 "4"
             ),
             actual = outputOf("PROCEDURE_I")
@@ -1803,8 +1678,7 @@ Test 6
     @Test
     fun executePROCEDURE_J() {
         assertEquals(
-            expected = listOf(
-                "1",
+            expected = listOf("1",
                 "4",
                 "8",
                 "9",
@@ -1820,8 +1694,7 @@ Test 6
     @Test
     fun executePROCEDURE_K() {
         assertEquals(
-            expected = listOf(
-                "69.12",
+            expected = listOf("69.12",
                 ".59",
                 "12345          54321",
                 "73.00",
@@ -1839,8 +1712,7 @@ Test 6
     @Test
     fun executePROCEDURE_L() {
         assertEquals(
-            expected = listOf(
-                ".99",
+            expected = listOf(".99",
                 "1.11",
                 "9.99"
             ),
@@ -1851,8 +1723,7 @@ Test 6
     @Test
     fun executePROCEDURE_M() {
         assertEquals(
-            expected = listOf(
-                "2.24",
+            expected = listOf("2.24",
                 "3.36"
             ),
             actual = outputOf("PROCEDURE_M")
@@ -1864,8 +1735,7 @@ Test 6
     // TODO ignored until 'DS as parameter' will be supported (maybe never?)
     fun executePROCEDURE_N() {
         assertEquals(
-            expected = listOf(
-                "10.2",
+            expected = listOf("10.2",
                 "ABCDE"
             ),
             actual = outputOf("PROCEDURE_N")
@@ -1906,8 +1776,7 @@ Test 6
     @Test
     fun executePROCEDURE_P() {
         assertEquals(
-            expected = listOf(
-                "2.04",
+            expected = listOf("2.04",
                 "1.02",
                 "1.03"
             ),
@@ -1932,39 +1801,30 @@ Test 6
         // PASS NO PARAMETERS
         var si = CollectorSystemInterface()
         si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
-        execute(
-            cu, emptyMap(),
-            si, listOf(logHandler)
-        )
+        execute(cu, emptyMap(),
+            si, listOf(logHandler))
         assertEquals(listOf("0"), si.displayed)
 
         // PASS ONE PARAMETER
         si = CollectorSystemInterface()
         si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
-        execute(
-            cu, mapOf("P1" to StringValue("5")),
-            si, listOf(logHandler)
-        )
+        execute(cu, mapOf("P1" to StringValue("5")),
+            si, listOf(logHandler))
         assertEquals(listOf("1"), si.displayed)
 
         // PASS TWO PARAMETERS
         si = CollectorSystemInterface()
         si.programs[rpgProgramName] = rpgProgram(rpgProgramName)
-        execute(
-            cu, mapOf(
-                "P1" to StringValue("5"),
-                "P2" to StringValue("10")
-            ),
-            si, listOf(logHandler)
-        )
+        execute(cu, mapOf("P1" to StringValue("5"),
+            "P2" to StringValue("10")),
+            si, listOf(logHandler))
         assertEquals(listOf("2"), si.displayed)
     }
 
     @Test
     fun executePROCEDURE_R() {
         assertEquals(
-            expected = listOf(
-                "1.01",
+            expected = listOf("1.01",
                 "2.04",
                 "3.09",
                 "1.04",
@@ -2003,8 +1863,7 @@ Test 6
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
-            actual = outputOf("APIPGM1")
-        )
+            actual = outputOf("APIPGM1"))
     }
 
     @Test
@@ -2025,8 +1884,7 @@ Test 6
     @Test
     fun executeDOPED_PROC() {
         assertEquals(
-            expected = listOf(
-                "46",
+            expected = listOf("46",
                 "12",
                 "-22",
                 "56",
@@ -2049,8 +1907,7 @@ Test 6
     @Test
     fun executeDOPED_PROC3() {
         assertEquals(
-            expected = listOf(
-                "12",
+            expected = listOf("12",
                 "46",
                 "56",
                 "99"
@@ -2074,8 +1931,7 @@ Test 6
     @Test
     fun executeJAJAX1C() {
         assertEquals(
-            expected = listOf(
-                "Ahi quanto a dir qual era è cosa dura,esta selva selvaggia",
+            expected = listOf("Ahi quanto a dir qual era è cosa dura,esta selva selvaggia",
                 "Lupa"
             ),
             actual = outputOf("JAJAX1C")
@@ -2085,8 +1941,7 @@ Test 6
     @Test
     fun executeJAJAX1C_2() {
         assertEquals(
-            expected = listOf(
-                "ERB",
+            expected = listOf("ERB",
                 "Erbusco"
             ),
             actual = outputOf("JAJAX1C_2")
@@ -2107,24 +1962,18 @@ Test 6
             memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
         )
         assertEquals(
-            listOf(
-                "Echo P1: INZ",
+            listOf("Echo P1: INZ",
                 "Echo P2:",
                 "Echo P1: INZ",
-                "Echo P2:"
-            ),
-            outputOf("PGM_A", configuration = configuration)
-        )
+                "Echo P2:"),
+            outputOf("PGM_A", configuration = configuration))
 
         assertEquals(
-            listOf(
-                "Echo P1: INZ",
+            listOf("Echo P1: INZ",
                 "Echo P2:",
                 "Echo P1: INZ",
-                "Echo P2:"
-            ),
-            outputOf("PGM_A", configuration = configuration)
-        )
+                "Echo P2:"),
+            outputOf("PGM_A", configuration = configuration))
     }
 
     // CALL_DIVIDE calls DIVIDE and it expects a regular execution
@@ -2264,8 +2113,7 @@ Test 6
         executePgm(
             programName = "PARMS1",
             params = CommandLineParms(listOf("FUNC", "METH")),
-            systemInterface = systemInterface
-        )
+            systemInterface = systemInterface)
         assertEquals(expected, console)
     }
 
