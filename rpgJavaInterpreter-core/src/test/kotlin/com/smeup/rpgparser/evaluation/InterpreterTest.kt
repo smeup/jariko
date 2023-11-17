@@ -797,6 +797,11 @@ Test 6
     }
 
     @Test
+    fun executeMOVESTRNBR() {
+        assertEquals(listOf("ABCD1", "12345", "67890", "01234"), outputOf("MOVESTRNBR"))
+    }
+
+    @Test
     fun executeDOWTEST() {
         assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
     }

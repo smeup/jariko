@@ -269,9 +269,9 @@ fun coerce(value: Value, type: Type): Value {
             when (type) {
                 // Add missing blank spaces
                 is StringType -> {
-                    val blank = " ".repeat(type.size - value.asString().value.length)
+                    val zeros = "0".repeat(type.size - value.asString().value.length)
                     return StringValue(
-                        "$blank${value.asString().value}",
+                        "$zeros${value.asString().value}",
                         varying = type.varying
                     )
                 }
