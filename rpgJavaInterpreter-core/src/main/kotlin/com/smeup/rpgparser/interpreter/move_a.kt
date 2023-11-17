@@ -3,61 +3,52 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 
 fun move(
-    operationExtenter: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore
+    operationExtenter: String?,
+    target: AssignableExpression,
+    value: Expression,
+    interpreterCore: InterpreterCore
 ): Value {
     when (target) {
         is DataRefExpr -> {
             var newValue: Value = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
-                /** - Moving starts with the rightmost character of factor 2.
-                 *  - When moving Date, Time or Timestamp data, factor 1 must be blank unless either the source or the target is a character or numeric field.
-                 *  - If factor 2 is longer than the result field, the excess leftmost characters or digits of factor 2 are not moved.
-                 *  - If the result field is longer than factor 2, the excess leftmost characters or digits in the result field are unchanged,
-                 *    unless padding is specified.
-                 *  - If factor 2 is shorter than the length of the result field, a P specified in the operation extender position causes the result
-                 *    field to be padded on the left after the move occurs.
-                 *  - A MOVE operation does not change the length of a variable-length result field.
-                 *  - If the source or target is a character field, you may optionally indicate the separator following the format in factor 1.
-                 *    Only separators that are valid for that format are allowed.
-                 */
-                // MOVE(P)
-                if (operationExtenter != null) {
-                    val blank = " ".repeat(target.size() - value.type().size)
-                    newValue.asString().value = blank + newValue.asString().value
-                    newValue.asString().value = newValue.asString().value.padEnd(target.size(), ' ')
-                } else {
-                    // get as StringValue the factors of the MOVE
-                    val valueToMove: StringValue = coerce(
-                        interpreterCore.eval(value),
-                        StringType(value.type().size, value.type().hasVariableSize())
-                    ).asString()
-                    val valueToApplyMove: StringValue = coerce(
-                        interpreterCore.get(target.variable.referred!!),
-                        StringType(target.size(), target.type().hasVariableSize())
-                    ).asString()
-                    // fixed variables
-                    if (!valueToMove.varying && !valueToApplyMove.varying) {
-                        if (valueToMove.length() <= valueToApplyMove.length()) {
+                // get as StringValue the factors of the MOVE
+                val valueToMove: StringValue = coerce(
+                    interpreterCore.eval(value), StringType(value.type().size, value.type().hasVariableSize())
+                ).asString()
+                val valueToApplyMove: StringValue = coerce(
+                    interpreterCore.get(target.variable.referred!!),
+                    StringType(target.size(), target.type().hasVariableSize())
+                ).asString()
+                // fixed variables
+                if (!valueToMove.varying && !valueToApplyMove.varying) {
+                    if (valueToMove.length() <= valueToApplyMove.length()) {
+                        var result: StringValue = valueToMove
+                        if (operationExtenter != null) {
+                            // MOVE(P): If factor 2 is shorter than the length of the result field,
+                            // a P specified in the operation extender position causes the result
+                            result.asString().value =
+                                " ".repeat(target.size() - value.type().size) + result.asString().value
+                            result.asString().value = result.asString().value.padEnd(target.size(), ' ')
+                        } else {
                             // overwrite valueToApplyMove from right to left to valueToMove
-                            val result: StringValue = StringValue(
+                            result = StringValue(
                                 valueToApplyMove.value.substring(
                                     0, valueToApplyMove.value.length - valueToMove.length()
                                 ) + valueToMove.value
                             )
-                            // cast result to real value
-                            newValue = coerce(result, target.type())
-                        } else {
-                            // overwrite valueToApplyMove with same number of characters of valueToMove
-                            val result: StringValue =
-                                StringValue(
-                                    valueToMove.value.substring(
-                                        valueToMove.length() - valueToApplyMove.length(),
-                                        valueToMove.length()
-                                    )
-                                )
-                            // cast result to real value
-                            newValue = coerce(result, target.type())
                         }
+                        // cast result to real value
+                        newValue = coerce(result, target.type())
+                    } else {
+                        // overwrite valueToApplyMove with same number of characters of valueToMove
+                        val result: StringValue = StringValue(
+                            valueToMove.value.substring(
+                                valueToMove.length() - valueToApplyMove.length(), valueToMove.length()
+                            )
+                        )
+                        // cast result to real value
+                        newValue = coerce(result, target.type())
                     }
                 }
             }
