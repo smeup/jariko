@@ -113,17 +113,14 @@ private fun coerceString(value: StringValue, type: Type): Value {
                         val intValue = decodeBinary(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
-
                     type.rpgType == RpgType.INTEGER.rpgType -> {
                         val intValue = decodeInteger(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
-
                     type.rpgType == RpgType.UNSIGNED.rpgType -> {
                         val intValue = decodeUnsigned(value.value.toNumberSize(type.size), type.size)
                         IntValue(intValue.longValueExact())
                     }
-
                     type.rpgType == RpgType.ZONED.rpgType -> {
                         if (!value.isBlank()) {
                             val intValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
@@ -132,7 +129,6 @@ private fun coerceString(value: StringValue, type: Type): Value {
                             DecimalValue(BigDecimal.ZERO)
                         }
                     }
-
                     else -> {
                         if (!value.isBlank()) {
                             val intValue = decodeFromDS(value.value.trim(), type.entireDigits, type.decimalDigits)
@@ -194,11 +190,9 @@ fun coerce(value: Value, type: Type): Value {
                 is StringType -> {
                     value.asString()
                 }
-
                 is ArrayType -> {
                     value
                 }
-
                 else -> TODO("Converting ArrayValue to $type")
             }
         }
@@ -212,7 +206,6 @@ fun coerce(value: Value, type: Type): Value {
                     }
                     return value
                 }
-
                 else -> TODO("Converting DecimalValue to $type")
             }
         }
