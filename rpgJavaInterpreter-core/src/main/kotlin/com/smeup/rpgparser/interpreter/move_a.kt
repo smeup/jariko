@@ -2,6 +2,14 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
+private fun Type.length(): Int {
+    return if (this is NumberType) {
+        this.numberOfDigits
+    } else {
+        this.size
+    }
+}
+
 fun move(
     operationExtenter: String?,
     target: AssignableExpression,
@@ -12,29 +20,31 @@ fun move(
         is DataRefExpr -> {
             var newValue: Value = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
-                // get as StringValue the factors of the MOVE
+                // get real size of NumberType
+                val valueToMoveLength = value.type().length()
+                val valueToApplyMoveLength = target.type().length()
                 val valueToMove: StringValue = coerce(
-                    interpreterCore.eval(value), StringType(value.type().size, value.type().hasVariableSize())
+                    interpreterCore.eval(value), StringType(valueToMoveLength, value.type().hasVariableSize())
                 ).asString()
                 val valueToApplyMove: StringValue = coerce(
                     interpreterCore.get(target.variable.referred!!),
-                    StringType(target.size(), target.type().hasVariableSize())
+                    StringType(valueToApplyMoveLength, target.type().hasVariableSize())
                 ).asString()
                 // fixed variables
                 if (!valueToMove.varying && !valueToApplyMove.varying) {
-                    if (valueToMove.length() <= valueToApplyMove.length()) {
+                    if (valueToMoveLength <= valueToApplyMoveLength) {
                         var result: StringValue = valueToMove
                         if (operationExtenter != null) {
                             // MOVE(P): If factor 2 is shorter than the length of the result field,
                             // a P specified in the operation extender position causes the result
                             result.asString().value =
-                                " ".repeat(target.size() - value.type().size) + result.asString().value
-                            result.asString().value = result.asString().value.padEnd(target.size(), ' ')
+                                " ".repeat(valueToApplyMoveLength - valueToMoveLength) + result.asString().value
+                            result.asString().value = result.asString().value.padEnd(valueToApplyMoveLength, ' ')
                         } else {
                             // overwrite valueToApplyMove from right to left to valueToMove
                             result = StringValue(
                                 valueToApplyMove.value.substring(
-                                    0, valueToApplyMove.value.length - valueToMove.length()
+                                    0, valueToApplyMoveLength - valueToMoveLength
                                 ) + valueToMove.value
                             )
                         }
@@ -42,9 +52,9 @@ fun move(
                         newValue = coerce(result, target.type())
                     } else {
                         // overwrite valueToApplyMove with same number of characters of valueToMove
-                        val result: StringValue = StringValue(
+                        val result = StringValue(
                             valueToMove.value.substring(
-                                valueToMove.length() - valueToApplyMove.length(), valueToMove.length()
+                                valueToMoveLength - valueToApplyMoveLength, valueToMoveLength
                             )
                         )
                         // cast result to real value
@@ -112,7 +122,7 @@ private fun moveaNumber(
     interpreterCore: InterpreterCore,
     value: Expression
 ): ConcreteArrayValue {
-    var newValue = interpreterCore.toArray(value)
+    val newValue = interpreterCore.toArray(value)
     val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
     val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
         if (it < (startIndex - 1)) {

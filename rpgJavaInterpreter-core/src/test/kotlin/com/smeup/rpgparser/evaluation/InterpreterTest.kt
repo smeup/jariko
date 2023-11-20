@@ -749,19 +749,14 @@ Test 6
     @Test
     fun executeMOVEFIXFIX() {
         assertEquals(
-            listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim()),
+            listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456"),
             outputOf("MOVEFIXFIX")
         )
     }
 
     @Test
-    fun executeMOVENBRNBR() {
-        assertEquals(listOf("99991", "12345", "67890", "1234"), outputOf("MOVENBRNBR"))
-    }
-
-    @Test
-    fun executeMOVESTRNBR() {
-        assertEquals(listOf("ABCD1", "12345", "67890", "01234"), outputOf("MOVESTRNBR"))
+    fun executeMOVEPFIXFIX() {
+        assertEquals(listOf("  ABC", "  123", "  456", "456"), outputOf("MOVEPFIXFIX"))
     }
 
     @Test
@@ -1494,17 +1489,6 @@ Test 6
                 " "
             ),
             outputOf("CLEARARRAY1"))
-    }
-
-    @Test
-    fun executeMOVEPFIXFIX() {
-        assertEquals(
-            listOf(
-                "     BB",
-                "     AAAAA"
-            ),
-            outputOf("MOVEPFIXFIX")
-        )
     }
 
     @Test
