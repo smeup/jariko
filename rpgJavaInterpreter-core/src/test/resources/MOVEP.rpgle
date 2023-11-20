@@ -1,4 +1,5 @@
      DSTR3             S              3    INZ('ABC')
+     DSTRVAR5          S              5    INZ('ABC') VARYING
       *
      DNUMZ3            S              3  0 INZ(123)
      DNUMP3            S              3P 0 INZ(456)
@@ -7,6 +8,8 @@
      DRES2             S              5    INZ('ZYXWV')
      DRES3             S              5    INZ('ZYXWV')
      DRES4             S              5P 0 INZ(99999)
+     DRES5             S              5    INZ('ZYXWV')
+     DRES6             S              5    INZ('YY') VARYING
       *
       * String-String - MOVE(P)('ABC', 'ZYXWV') => '  ABC'
      C                   MOVE(P)   STR3          RES1
@@ -23,5 +26,13 @@
       * Number(Packed)-Number(packed) MOVE(P)(00456, 99999) => 00456)
      C                   MOVE(P)    NUMP3         RES4
      C     RES4          DSPLY
+      *
+      * String(Varying)-String MOVE(P)('ABC', 'ZYXWV') => '  ABC')
+     C                   MOVE(P)    STRVAR5       RES5
+     C     RES5          DSPLY
+      *
+      * String-String(Varying) MOVE(P)('ABC', 'YY') => 'BC')
+     C                   MOVE(P)    STR3          RES6
+     C     RES6          DSPLY
       *
      C                   SETON                                          LR

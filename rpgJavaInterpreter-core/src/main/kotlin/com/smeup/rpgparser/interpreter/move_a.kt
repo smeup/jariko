@@ -18,7 +18,6 @@ fun move(
 ): Value {
     when (target) {
         is DataRefExpr -> {
-            var newValue: Value = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
                 // get real size of NumberType
                 val valueToMoveLength = value.type().length()
@@ -30,7 +29,6 @@ fun move(
                     interpreterCore.get(target.variable.referred!!),
                     StringType(valueToApplyMoveLength, target.type().hasVariableSize())
                 ).asString()
-                // fixed variables
                 if (valueToMove.length() <= valueToApplyMove.length()) {
                     var result: StringValue = valueToMove
                     if (operationExtenter != null) {
@@ -48,7 +46,7 @@ fun move(
                         )
                     }
                     // cast result to real value
-                    newValue = coerce(result, target.type())
+                    return interpreterCore.assign(target, coerce(result, target.type()))
                 } else {
                     // overwrite valueToApplyMove with same number of characters of valueToMove
                     val result = StringValue(
@@ -57,12 +55,12 @@ fun move(
                         )
                     )
                     // cast result to real value
-                    newValue = coerce(result, target.type())
+                    return interpreterCore.assign(target, coerce(result, target.type()))
                 }
+            } else {
+                return interpreterCore.assign(target, interpreterCore.eval(value))
             }
-            return interpreterCore.assign(target, newValue)
         }
-
         else -> TODO()
     }
 }
