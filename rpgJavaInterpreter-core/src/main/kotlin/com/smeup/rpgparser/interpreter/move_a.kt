@@ -31,35 +31,33 @@ fun move(
                     StringType(valueToApplyMoveLength, target.type().hasVariableSize())
                 ).asString()
                 // fixed variables
-                if (!valueToMove.varying && !valueToApplyMove.varying) {
-                    if (valueToMoveLength <= valueToApplyMoveLength) {
-                        var result: StringValue = valueToMove
-                        if (operationExtenter != null) {
-                            // MOVE(P): If factor 2 is shorter than the length of the result field,
-                            // a P specified in the operation extender position causes the result
-                            result.asString().value =
-                                " ".repeat(valueToApplyMoveLength - valueToMoveLength) + result.asString().value
-                            result.asString().value = result.asString().value.padEnd(valueToApplyMoveLength, ' ')
-                        } else {
-                            // overwrite valueToApplyMove from right to left to valueToMove
-                            result = StringValue(
-                                valueToApplyMove.value.substring(
-                                    0, valueToApplyMoveLength - valueToMoveLength
-                                ) + valueToMove.value
-                            )
-                        }
-                        // cast result to real value
-                        newValue = coerce(result, target.type())
+                if (valueToMove.length() <= valueToApplyMove.length()) {
+                    var result: StringValue = valueToMove
+                    if (operationExtenter != null) {
+                        // MOVE(P): If factor 2 is shorter than the length of the result field,
+                        // a P specified in the operation extender position causes the result
+                        result.asString().value =
+                            " ".repeat(valueToApplyMove.length() - valueToMove.length()) + result.asString().value
+                        result.asString().value = result.asString().value.padEnd(valueToApplyMove.length(), ' ')
                     } else {
-                        // overwrite valueToApplyMove with same number of characters of valueToMove
-                        val result = StringValue(
-                            valueToMove.value.substring(
-                                valueToMoveLength - valueToApplyMoveLength, valueToMoveLength
-                            )
+                        // overwrite valueToApplyMove from right to left to valueToMove
+                        result = StringValue(
+                            valueToApplyMove.value.substring(
+                                0, valueToApplyMove.length() - valueToMove.length()
+                            ) + valueToMove.value
                         )
-                        // cast result to real value
-                        newValue = coerce(result, target.type())
                     }
+                    // cast result to real value
+                    newValue = coerce(result, target.type())
+                } else {
+                    // overwrite valueToApplyMove with same number of characters of valueToMove
+                    val result = StringValue(
+                        valueToMove.value.substring(
+                            valueToMoveLength - valueToApplyMove.length(), valueToMove.length()
+                        )
+                    )
+                    // cast result to real value
+                    newValue = coerce(result, target.type())
                 }
             }
             return interpreterCore.assign(target, newValue)
