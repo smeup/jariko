@@ -27,6 +27,7 @@ import org.junit.Assert
 import java.io.StringReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * Test suite to test Jariko callback features
@@ -453,6 +454,18 @@ class JarikoCallbackTest : AbstractTest() {
         }
         executePgm(programName = program, configuration = configuration)
         assertEquals(expectedIncludedCopies, includedCopies)
+    }
+
+    @Test
+    fun onCallPgmError() {
+        var catchedError: ErrorEvent? = null
+        val configuration = Configuration().apply {
+            jarikoCallback.onCallPgmError = { errorEvent ->
+                catchedError = errorEvent
+            }
+        }
+        executePgm(programName = "ERRCALLER", configuration = configuration)
+        assertNotNull(catchedError)
     }
 
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {

@@ -660,6 +660,9 @@ data class CallStmt(
                     throw e
                 }
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                e.fireRuntimeErrorEvent(
+                    position = callStatement.position,
+                    callback = MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError)
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
