@@ -2,6 +2,14 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
+private fun Type.length(): Int {
+    return if (this is NumberType) {
+        this.numberOfDigits
+    } else {
+        this.size
+    }
+}
+
 fun move(
     operationExtenter: String?,
     target: AssignableExpression,
@@ -13,17 +21,8 @@ fun move(
             var newValue: Value = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
                 // get real size of NumberType
-                val valueToMoveLength: Int = if (value.type() is NumberType) {
-                    (value.type() as NumberType).numberOfDigits
-                } else {
-                    value.type().size
-                }
-                val valueToApplyMoveLength: Int = if (target.type() is NumberType) {
-                    (target.type() as NumberType).numberOfDigits
-                } else {
-                    target.type().size
-                }
-                // get as StringValue the factors of the MOVE
+                val valueToMoveLength = value.type().length()
+                val valueToApplyMoveLength = target.type().length()
                 val valueToMove: StringValue = coerce(
                     interpreterCore.eval(value), StringType(valueToMoveLength, value.type().hasVariableSize())
                 ).asString()
@@ -53,7 +52,7 @@ fun move(
                         newValue = coerce(result, target.type())
                     } else {
                         // overwrite valueToApplyMove with same number of characters of valueToMove
-                        val result: StringValue = StringValue(
+                        val result = StringValue(
                             valueToMove.value.substring(
                                 valueToMoveLength - valueToApplyMoveLength, valueToMoveLength
                             )
@@ -123,7 +122,7 @@ private fun moveaNumber(
     interpreterCore: InterpreterCore,
     value: Expression
 ): ConcreteArrayValue {
-    var newValue = interpreterCore.toArray(value)
+    val newValue = interpreterCore.toArray(value)
     val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
     val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
         if (it < (startIndex - 1)) {
