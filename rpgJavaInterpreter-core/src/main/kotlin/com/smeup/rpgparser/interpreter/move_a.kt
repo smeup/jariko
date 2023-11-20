@@ -12,29 +12,40 @@ fun move(
         is DataRefExpr -> {
             var newValue: Value = interpreterCore.eval(value)
             if (value !is FigurativeConstantRef) {
+                // get real size of NumberType
+                val valueToMoveLength: Int = if (value.type() is NumberType) {
+                    (value.type() as NumberType).numberOfDigits
+                } else {
+                    value.type().size
+                }
+                val valueToApplyMoveLength: Int = if (target.type() is NumberType) {
+                    (target.type() as NumberType).numberOfDigits
+                } else {
+                    target.type().size
+                }
                 // get as StringValue the factors of the MOVE
                 val valueToMove: StringValue = coerce(
-                    interpreterCore.eval(value), StringType(value.type().size, value.type().hasVariableSize())
+                    interpreterCore.eval(value), StringType(valueToMoveLength, value.type().hasVariableSize())
                 ).asString()
                 val valueToApplyMove: StringValue = coerce(
                     interpreterCore.get(target.variable.referred!!),
-                    StringType(target.size(), target.type().hasVariableSize())
+                    StringType(valueToApplyMoveLength, target.type().hasVariableSize())
                 ).asString()
                 // fixed variables
                 if (!valueToMove.varying && !valueToApplyMove.varying) {
-                    if (valueToMove.length() <= valueToApplyMove.length()) {
+                    if (valueToMoveLength <= valueToApplyMoveLength) {
                         var result: StringValue = valueToMove
                         if (operationExtenter != null) {
                             // MOVE(P): If factor 2 is shorter than the length of the result field,
                             // a P specified in the operation extender position causes the result
                             result.asString().value =
-                                " ".repeat(target.size() - value.type().size) + result.asString().value
-                            result.asString().value = result.asString().value.padEnd(target.size(), ' ')
+                                " ".repeat(valueToApplyMoveLength - valueToMoveLength) + result.asString().value
+                            result.asString().value = result.asString().value.padEnd(valueToApplyMoveLength, ' ')
                         } else {
                             // overwrite valueToApplyMove from right to left to valueToMove
                             result = StringValue(
                                 valueToApplyMove.value.substring(
-                                    0, valueToApplyMove.value.length - valueToMove.length()
+                                    0, valueToApplyMoveLength - valueToMoveLength
                                 ) + valueToMove.value
                             )
                         }
@@ -44,7 +55,7 @@ fun move(
                         // overwrite valueToApplyMove with same number of characters of valueToMove
                         val result: StringValue = StringValue(
                             valueToMove.value.substring(
-                                valueToMove.length() - valueToApplyMove.length(), valueToMove.length()
+                                valueToMoveLength - valueToApplyMoveLength, valueToMoveLength
                             )
                         )
                         // cast result to real value
