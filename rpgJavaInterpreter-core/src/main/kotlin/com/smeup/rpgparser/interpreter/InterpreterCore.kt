@@ -18,9 +18,9 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.ErrorEvent
-import com.smeup.rpgparser.execution.ErrorEventSource
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
-import com.strumenta.kolasu.model.Position
+import java.util.*
 
 /**
  * Expose interpreter core method that could be useful in statements logic implementation
@@ -69,12 +69,10 @@ interface InterpreterCore {
     fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value
 }
 
-/**
- * Fire a runtime error event. These kinds of errors are fired during the execution of the program.
- * @param position the position of the error
- * @param callback the callback to invoke
- */
-fun Throwable.fireRuntimeErrorEvent(position: Position?, callback: (errorEvent: ErrorEvent) -> Unit) {
-    val errorEvent = ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
-    callback.invoke(errorEvent)
+internal fun ErrorEvent.pushRuntimeErrorEvent() {
+    getErrorEventStack().push(this)
 }
+
+internal fun popRuntimeErrorEvent() = getErrorEventStack().pop()
+
+private fun getErrorEventStack() = MainExecutionContext.getAttributes().computeIfAbsent("errorEventStack") { Stack<ErrorEvent>() } as Stack<ErrorEvent>

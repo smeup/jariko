@@ -18,6 +18,8 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.DBFile
 import com.smeup.dbnative.file.Record
+import com.smeup.rpgparser.execution.ErrorEvent
+import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
@@ -416,7 +418,9 @@ open class InternalInterpreter(
     }
 
     private fun Throwable.fireErrorEvent(position: Position?): Throwable {
-        this.fireRuntimeErrorEvent(position, MainExecutionContext.getConfiguration().jarikoCallback.onError)
+        val errorEvent = ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
+        errorEvent.pushRuntimeErrorEvent()
+        MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
         return this
     }
 
