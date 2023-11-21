@@ -749,14 +749,14 @@ Test 6
     @Test
     fun executeMOVEFIXFIX() {
         assertEquals(
-            listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456"),
-            outputOf("MOVEFIXFIX")
+            listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456", "ZYXYY", "DE"),
+            outputOf("MOVE")
         )
     }
 
     @Test
     fun executeMOVEPFIXFIX() {
-        assertEquals(listOf("  ABC", "  123", "  456", "456"), outputOf("MOVEPFIXFIX"))
+        assertEquals(listOf("  ABC", "  123", "  456", "456", "  ABC", "BC"), outputOf("MOVEP"))
     }
 
     @Test

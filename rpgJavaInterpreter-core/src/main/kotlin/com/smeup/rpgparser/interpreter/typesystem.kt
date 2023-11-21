@@ -113,6 +113,10 @@ data class StringType(val length: Int, val varying: Boolean = false) : Type() {
             } ?: StringType(length = length, varying = varying)
         }
     }
+
+    override fun hasVariableSize(): Boolean {
+        return varying
+    }
 }
 
 @Serializable
