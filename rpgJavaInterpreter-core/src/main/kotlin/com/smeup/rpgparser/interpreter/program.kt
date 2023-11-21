@@ -42,6 +42,10 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         interpreterCore
     }
 
+    val intepreterCore: InterpreterCore by lazy {
+        interpreter
+    }
+
     lateinit var activationGroup: ActivationGroup
     private var initialized = false
 
