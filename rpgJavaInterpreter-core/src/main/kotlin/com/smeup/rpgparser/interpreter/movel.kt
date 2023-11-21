@@ -1,77 +1,58 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
-import java.math.BigDecimal
 
-private fun assignStringToString(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
-    var newValue = interpreterCore.eval(valueExpression)
-    if (valueExpression is AllExpr) {
-        return interpreterCore.assign(target, newValue)
+private fun Type.length(): Int {
+    return if (this is NumberType) {
+        this.numberOfDigits
+    } else {
+        this.size
     }
-    if (newValue is NumberValue) {
-        newValue = newValue.numberToString()
+}
+
+private fun Value.clearAsString(type: Type): StringValue {
+    return if (type is NumberType) {
+        StringValue("0".repeat(type.numberOfDigits), type.hasVariableSize())
+    } else {
+        StringValue(" ".repeat(type.size), type.hasVariableSize())
     }
-    val valueSize = size(valueExpression)
-    val targetSize = size(target)
-    if (valueSize > targetSize) {
-        newValue = newValue.takeFirst(target.size())
-    } else if (valueSize < targetSize) {
-        val append = if (operationExtender == null) {
-            val value = interpreterCore.eval(target)
-            require(value is StringValue)
-            StringValue.padded(value.value, targetSize).takeLast(targetSize - valueSize)
+}
+
+fun movel(
+    operationExtender: String?,
+    target: AssignableExpression,
+    value: Expression,
+    interpreterCore: InterpreterCore
+): Value {
+    if (value !is FigurativeConstantRef) {
+        val valueToMoveLength = value.type().length()
+        val valueToApplyMoveLength = target.type().length()
+        val valueToMove: StringValue = coerce(
+            interpreterCore.eval(value), StringType(valueToMoveLength, value.type().hasVariableSize())
+        ).asString()
+        var valueToApplyMove: StringValue = coerce(
+            interpreterCore.eval(target),
+            StringType(valueToApplyMoveLength, target.type().hasVariableSize())
+        ).asString()
+        if (valueToMove.length() <= valueToApplyMove.length()) {
+            var result: StringValue = valueToMove
+            if (operationExtender != null) {
+                // MOVEL(P): If factor 2 is shorter than the length of the result field,
+                // a P specified in the operation extender position causes the result
+                // clear valueToApplyMove
+                valueToApplyMove = valueToApplyMove.clearAsString(target.type())
+            }
+            // overwrite valueToMove from left to right to valueToApplyMove
+            result = StringValue(valueToMove.value + valueToApplyMove.value.substring(valueToMove.length()))
+            // cast result to real value
+            return interpreterCore.assign(target, coerce(result, target.type()))
         } else {
-            StringValue.blank(targetSize - valueSize)
+            // overwrite valueToMove to valueToApplyMove
+            val result = StringValue(valueToMove.value.substring(0, valueToApplyMove.length()))
+            // cast result to real value
+            return interpreterCore.assign(target, coerce(result, target.type()))
         }
-        newValue = newValue.concatenate(append)
-    }
-    return interpreterCore.assign(target, newValue)
-}
-
-private fun assignNumberToNumber(operationExtender: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
-    val newValue = interpreterCore.eval(valueExpression) as NumberValue
-    val targetType = target.type() as NumberType
-    val newDecimalValue = DecimalValue(BigDecimal(newValue.bigDecimal.unscaledValue(), targetType.decimalDigits))
-    return interpreterCore.assign(target, newDecimalValue)
-}
-
-fun size(valueExpression: Expression): Int {
-    if (valueExpression is ArrayAccessExpr) {
-        return valueExpression.array.type().elementSize()
-    }
-    return valueExpression.type().size
-}
-
-// for future use
-// map conversion 1 -> J, 2 -> K, ..., R -> 9
-private fun Char.numberToLetter(): CharSequence {
-    val offset = 'J'.toInt() - '1'.toInt()
-    return (this.toInt() + offset).toChar().toString()
-}
-
-private fun NumberValue.numberToString(): Value {
-    val value = this.bigDecimal.abs().toString().replaceFirst(".", "")
-    require(this.bigDecimal >= BigDecimal.ZERO) {
-        "negative factor 2 not allowed"
-    }
-    return StringValue(value)
-}
-
-fun movel(operationExtender: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
-    if (value is FigurativeConstantRef) {
+    } else {
         return interpreterCore.assign(target, interpreterCore.eval(value))
     }
-    val valueType = value.type()
-    if (isStringLike(target) && (valueType is StringType || valueType is NumberType || valueType is FigurativeType)) {
-        return assignStringToString(operationExtender, target, value, interpreterCore)
-    }
-    if (baseType(target.type()) is NumberType && (valueType is NumberType || valueType is FigurativeType)) {
-        return assignNumberToNumber(operationExtender, target, value, interpreterCore)
-    }
-    throw IllegalArgumentException("Cannot assign ${valueType::class.qualifiedName} to ${target.type()::class.qualifiedName}")
-}
-
-private fun isStringLike(target: AssignableExpression): Boolean {
-    val type = baseType(target.type())
-    return (type is StringType || type is CharacterType)
 }

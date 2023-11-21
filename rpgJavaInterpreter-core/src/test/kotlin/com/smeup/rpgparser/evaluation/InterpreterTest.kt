@@ -747,7 +747,7 @@ Test 6
     }
 
     @Test
-    fun executeMOVEFIXFIX() {
+    fun executeMOVE() {
         assertEquals(
             listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456", "ZYXYY", "DE"),
             outputOf("MOVE")
@@ -755,8 +755,24 @@ Test 6
     }
 
     @Test
-    fun executeMOVEPFIXFIX() {
+    fun executeMOVEP() {
         assertEquals(listOf("  ABC", "  123", "  456", "456", "  ABC", "BC"), outputOf("MOVEP"))
+    }
+
+    @Test
+    fun executeMOVEL() {
+        assertEquals(
+            listOf("AYXWV", "ABCDE", "ABCDE", "XXXX ".trim(), "123WV", "456WV", "12399", "45699", "YYXWV", "AB", "12345", "123.45", "1234.5"),
+            outputOf("MOVEL")
+        )
+    }
+
+    @Test
+    fun executeMOVELP() {
+        assertEquals(
+            listOf("ABC  ".trim(), "123  ".trim(), "456  ".trim(), "45600", "ABC  ".trim(), "AB"),
+            outputOf("MOVELP")
+        )
     }
 
     @Test
@@ -1489,34 +1505,6 @@ Test 6
                 " "
             ),
             outputOf("CLEARARRAY1"))
-    }
-
-    @Test
-    @Ignore
-    fun executeMOVELSTR() {
-        assertEquals(
-            listOf(
-                "AAAA",
-                "AAAAAAAA",
-                "AAAAAAAAAAAA",
-                "BBBBB",
-                "BBBBBBBBBB",
-                "BBBBBBBBBBBBBBBBBBBB",
-                "CCC",
-                "CCCCCCC",
-                "CCCCCCCCCCCCCCCCC",
-                "AAAA",
-                "AAAAACCC",
-                "AAAAAAAAAAAA",
-                "AAAAA",
-                "AAAABBBBBB",
-                "AAAAAAAABBBBBBBBBBBB",
-                "AAA",
-                "AAAAAAA",
-                "AAAAACCCCCCCCCCCC"
-            ),
-            outputOf("MOVELSTR")
-        )
     }
 
     @Test

@@ -140,7 +140,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 }
             } else {
                 if (!value.isBlank()) {
-                    if (type.rpgType == RpgType.ZONED.rpgType) {
+                    if (type.rpgType == RpgType.ZONED.rpgType || type.rpgType == RpgType.PACKED.rpgType || type.rpgType.toString().isEmpty()) {
                         val decimalValue = decodeFromZoned(value.value.trim(), type.entireDigits, type.decimalDigits)
                         DecimalValue(decimalValue)
                     } else {
@@ -205,6 +205,11 @@ fun coerce(value: Value, type: Type): Value {
                         return DecimalValue(value.value.setScale(type.decimalDigits, roundingMode))
                     }
                     return value
+                }
+                is StringType -> {
+                    val stringValue = value.asString().value.replace(".", "")
+                    val zeros = "0".repeat(type.size - stringValue.length)
+                    return StringValue(zeros + stringValue, type.varying)
                 }
                 else -> TODO("Converting DecimalValue to $type")
             }
