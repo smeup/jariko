@@ -900,6 +900,11 @@ Test 6
     }
 
     @Test
+    fun executeBIFEDITC() {
+        assertEquals(listOf("4"), outputOf("BIFEDITC"))
+    }
+
+    @Test
     fun executeBIFEDITC_1() {
         assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00X"), outputOf("BIFEDITC_1"))
     }
