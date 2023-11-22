@@ -2,69 +2,6 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
-private fun Type.length(): Int {
-    return if (this is NumberType) {
-        this.numberOfDigits
-    } else {
-        this.size
-    }
-}
-
-fun move(
-    operationExtenter: String?,
-    target: AssignableExpression,
-    value: Expression,
-    interpreterCore: InterpreterCore
-): Value {
-    when (target) {
-        is DataRefExpr -> {
-            if (value !is FigurativeConstantRef) {
-                // get real size of NumberType
-                val valueToMoveLength = value.type().length()
-                val valueToApplyMoveLength = target.type().length()
-                val valueToMove: StringValue = coerce(
-                    interpreterCore.eval(value), StringType(valueToMoveLength, value.type().hasVariableSize())
-                ).asString()
-                val valueToApplyMove: StringValue = coerce(
-                    interpreterCore.get(target.variable.referred!!),
-                    StringType(valueToApplyMoveLength, target.type().hasVariableSize())
-                ).asString()
-                if (valueToMove.length() <= valueToApplyMove.length()) {
-                    var result: StringValue = valueToMove
-                    if (operationExtenter != null) {
-                        // MOVE(P): If factor 2 is shorter than the length of the result field,
-                        // a P specified in the operation extender position causes the result
-                        result.asString().value =
-                            " ".repeat(valueToApplyMove.length() - valueToMove.length()) + result.asString().value
-                        result.asString().value = result.asString().value.padEnd(valueToApplyMove.length(), ' ')
-                    } else {
-                        // overwrite valueToApplyMove from right to left to valueToMove
-                        result = StringValue(
-                            valueToApplyMove.value.substring(
-                                0, valueToApplyMove.length() - valueToMove.length()
-                            ) + valueToMove.value
-                        )
-                    }
-                    // cast result to real value
-                    return interpreterCore.assign(target, coerce(result, target.type()))
-                } else {
-                    // overwrite valueToApplyMove with same number of characters of valueToMove
-                    val result = StringValue(
-                        valueToMove.value.substring(
-                            valueToMoveLength - valueToApplyMove.length(), valueToMove.length()
-                        )
-                    )
-                    // cast result to real value
-                    return interpreterCore.assign(target, coerce(result, target.type()))
-                }
-            } else {
-                return interpreterCore.assign(target, interpreterCore.eval(value))
-            }
-        }
-        else -> TODO()
-    }
-}
-
 fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
     return when (target) {
         is DataRefExpr -> {
