@@ -23,6 +23,7 @@
      DRES11            S              5    INZ('ZYXWV')
      DRES12            S              5P 2 INZ(999.99)
      DRES13            S              5P 1 INZ(0)
+     DRES14            S              2    DIM(2)
       *
       * String-String MOVEL('A', 'ZYXWV') => 'AYXWV'
      C                   MOVEL     STR1          RES1
@@ -75,5 +76,10 @@
       * Decimal-Decimal MOVEL(123.45, 0000.0) => '1234.5'
      C                   MOVEL     DEC52         RES13
      C     RES13         DSPLY
+      *
+      * String-Array(String) MOVEL('ABCDE', ARRAY('  ', '  ') => ARRAY('AB', 'AB')
+     C                   MOVEL     STR5              RES14
+     C     RES14(1)      DSPLY
+     C     RES14(2)      DSPLY
       *
      C                   SETON                                          LR

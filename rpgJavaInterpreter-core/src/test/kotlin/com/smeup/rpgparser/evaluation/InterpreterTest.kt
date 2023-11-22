@@ -762,7 +762,7 @@ Test 6
     @Test
     fun executeMOVEL() {
         assertEquals(
-            listOf("AYXWV", "ABCDE", "ABCDE", "XXXX ".trim(), "123WV", "456WV", "12399", "45699", "YYXWV", "AB", "12345", "123.45", "1234.5"),
+            listOf("AYXWV", "ABCDE", "ABCDE", "XXXX ".trim(), "123WV", "456WV", "12399", "45699", "YYXWV", "AB", "12345", "123.45", "1234.5", "AB", "AB"),
             outputOf("MOVEL")
         )
     }
