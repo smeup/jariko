@@ -139,7 +139,7 @@ private fun move(
 
 private fun valueToString(value: Value, type: Type): String {
     var s = value.asString().value
-    when (type) {
+    return when (type) {
         is StringType -> {
             return if (type.varying) {
                 s
@@ -148,30 +148,21 @@ private fun valueToString(value: Value, type: Type): String {
             }
         }
 
-        is CharacterType -> {
-            return s
-        }
+        is CharacterType -> return s
 
         is NumberType -> {
-            when (value) {
-                is IntValue -> {
-                    val zeros = "0".repeat(type.numberOfDigits - s.length)
-                    return zeros + s
-                }
-
-                is DecimalValue -> {
-                    s = s.replace(".", "")
-                    val zeros = "0".repeat(type.numberOfDigits - s.length)
-                    return zeros + s
-                }
+            if (value is IntValue) {
+                val zeros = "0".repeat(type.numberOfDigits - s.length)
+                zeros + s
+            } else {
+                s = s.replace(".", "")
+                val zeros = "0".repeat(type.numberOfDigits - s.length)
+                zeros + s
             }
         }
 
-        else -> {
-            throw UnsupportedOperationException("Unable to stringify the type: $type")
-        }
+        else -> throw UnsupportedOperationException("Unable to stringify the type: $type")
     }
-    return value.asString().toString()
 }
 
 private fun stringToValue(value: String, type: Type): Value {
@@ -184,9 +175,7 @@ private fun stringToValue(value: String, type: Type): Value {
             }
         }
 
-        is CharacterType -> {
-            return StringValue(value)
-        }
+        is CharacterType -> return StringValue(value)
 
         is NumberType -> {
             return if (type.integer) {
@@ -200,8 +189,6 @@ private fun stringToValue(value: String, type: Type): Value {
             }
         }
 
-        else -> {
-            throw UnsupportedOperationException("Unable to convert string to value the type: $type")
-        }
+        else -> throw UnsupportedOperationException("Unable to convert string to value the type: $type")
     }
 }
