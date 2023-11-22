@@ -419,6 +419,7 @@ open class InternalInterpreter(
 
     private fun Throwable.fireErrorEvent(position: Position?): Throwable {
         val errorEvent = ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
+        errorEvent.pushRuntimeErrorEvent()
         MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
         return this
     }
@@ -624,7 +625,7 @@ open class InternalInterpreter(
     }
 
     override fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String> {
-        val kListName = searchArgExpression.render().toUpperCase()
+        val kListName = searchArgExpression.render().uppercase(Locale.getDefault())
         return klists[kListName]!!.mapIndexed { index, name ->
             get(name).asString(fileMetadata.accessFieldsType[index])
         }

@@ -117,6 +117,8 @@ data class Options(
  * @param onEnterFunction It is invoked on function enter after symboltable initialization.
  * @param onExitFunction It is invoked on function exit, only if the function does not throw any error
  * @param onError It is invoked in case of errors. The default implementation writes error event in stderr
+ * @param onCallPgmError It is invoked in case of runtime errors accurred inside the program called only if the error indicator
+ * at column 73-74 is specified. The default implementation does nothing
  * @param logInfo If specified, it is invoked to log information messages, for all channel enabled
  * @param channelLoggingEnabled If specified, it allows to enable programmatically the channel logging.
  * For instance, you can enable all channels by using [consoleVerboseConfiguration] but you can decide, through
@@ -158,6 +160,7 @@ data class JarikoCallback(
             }
         } ?: System.err.println(errorEvent)
     },
+    var onCallPgmError: (errorEvent: ErrorEvent) -> Unit = { },
     var logInfo: ((channel: String, message: String) -> Unit)? = null,
     var channelLoggingEnabled: ((channel: String) -> Boolean)? = null
 )
@@ -180,7 +183,7 @@ data class CallProgramHandler(
 data class ErrorEvent(val error: Throwable, val errorEventSource: ErrorEventSource, val absoluteLine: Int?, val sourceReference: SourceReference?) {
 
     /**
-Re     * The source code line from which the error event has been fired.
+     * The source code line from which the error event has been fired.
      * Could be null
      * */
     val fragment = absoluteLine?.let { line ->
