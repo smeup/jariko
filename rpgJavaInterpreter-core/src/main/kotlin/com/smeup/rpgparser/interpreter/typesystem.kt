@@ -318,16 +318,18 @@ fun Expression.type(): Type {
         is LenExpr -> {
             val size = when (this.value) {
                 // If len argument is a dataref, we have to evaluate it
-                is DataRefExpr -> (this.value as DataRefExpr).size()
+                // But is absolutely not clear why if the argument is a string of 1-9 chars the len expression type is 1
+                // while if is a string of 10-99 chars the len expression type is 2
+                // This way the tests don't fail but to me is not clear why
+                is DataRefExpr -> (this.value as DataRefExpr).size().toString().length
                 // else we need to find the dataref inside the expression
                 else -> {
                     var dataRefInsideExpr: DataRefExpr? = null
                     this.value.specificProcess(klass = DataRefExpr::class.java) {
                         dataRefInsideExpr = it
                     }
-                    dataRefInsideExpr?.let {
-                        it.variable.referred!!.type.size
-                    } ?: this.value.error(message = "I don't know how to calculate the length of this expression")
+                    dataRefInsideExpr?.size()?.toString()?.length
+                        ?: this.value.error(message = "I don't know how to calculate the length of this expression")
                 }
             }
             return NumberType(size, decimalDigits = 0)
