@@ -240,7 +240,9 @@ open class InterpreterTest : AbstractTest() {
             "%LEN(B_03) is 0",
             "%LEN(B_03) is 1",
             "%LEN(B_03) is 5",
-            "%LEN(B_04) is 0"
+            "%LEN(B_04) is 0",
+            "%LEN(B_05) is 5",
+            "%LEN(B_06) is 6"
         ), outputOf("LEN"))
     }
 
