@@ -776,6 +776,14 @@ Test 6
     }
 
     @Test
+    fun executeMOVELP2() {
+        assertEquals(
+            listOf("AAAA      ".trim(), "AAAAAAAA            ".trim(), "AAAAA".trim(), "AAAAA            ".trim(), "AAA".trim(), "AAAAAAA".trim(), "AAA         ".trim(), "AAAA".trim(), "AAAAA   ".trim()),
+            outputOf("MOVELP2")
+        )
+    }
+
+    @Test
     fun executeDOWTEST() {
         assertEquals(outputOf("DOWTEST"), listOf("COUNTER IS NOW 21"))
     }
