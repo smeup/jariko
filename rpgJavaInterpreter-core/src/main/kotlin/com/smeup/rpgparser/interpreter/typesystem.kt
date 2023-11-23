@@ -19,7 +19,9 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.todo
+import com.strumenta.kolasu.model.specificProcess
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import kotlin.math.ceil
@@ -314,7 +316,20 @@ fun Expression.type(): Type {
             }
         }
         is LenExpr -> {
-            val size = (this.value as DataRefExpr).size().toString().length
+            val size = when (this.value) {
+                // If len argument is a dataref, we have to evaluate it
+                is DataRefExpr -> (this.value as DataRefExpr).size()
+                // else we need to find the dataref inside the expression
+                else -> {
+                    var dataRefInsideExpr: DataRefExpr? = null
+                    this.value.specificProcess(klass = DataRefExpr::class.java) {
+                        dataRefInsideExpr = it
+                    }
+                    dataRefInsideExpr?.let {
+                        it.variable.referred!!.type.size
+                    } ?: this.value.error(message = "I don't know how to calculate the length of this expression")
+                }
+            }
             return NumberType(size, decimalDigits = 0)
         }
         is FunctionCall -> {
@@ -324,7 +339,7 @@ fun Expression.type(): Type {
                 todo("Unable to establish FunctionCall '${this.function.name}' return type of which '${this.parent}'.")
             }
         }
-        else -> TODO("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
+        else -> todo("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
     }
 }
 
