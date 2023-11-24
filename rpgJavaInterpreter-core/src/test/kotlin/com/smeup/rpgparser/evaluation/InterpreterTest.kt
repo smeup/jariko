@@ -1082,7 +1082,7 @@ Test 6
 
     @Test
     fun executeSCANTEST() {
-        assertEquals(listOf("0", "4", "1"), outputOf("SCANTEST"))
+        assertEquals(listOf("0", "4", "1", "5", "0"), "SCANTEST".outputOf())
     }
 
     @Test

@@ -251,7 +251,10 @@ class ExpressionEvaluation(
             }
         }
         val value = expression.value.evalWith(this).asString().value
-        val source = expression.source.evalWith(this).asString().value
+        // if length is specified, I need to scan from start index to startIndex + length
+        val source = expression.length?.evalWith(this)?.asInt()?.value?.toInt()?.let { length ->
+            expression.source.evalWith(this).asString().value.substring(0, startIndex + length)
+        } ?: expression.source.evalWith(this).asString().value
         val result = source.indexOf(value, startIndex)
         return IntValue(if (result == -1) 0 else result.toLong() + 1)
     }
