@@ -44,6 +44,7 @@ data class ScanExpr(
     var value: Expression,
     val source: Expression,
     val start: Expression? = null,
+    val length: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
@@ -166,7 +167,7 @@ data class IntExpr(
     override val position: Position? = null
 ) :
     Expression(position) {
-    override fun render(): String = "${this.value.render()}"
+    override fun render(): String = this.value.render()
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 

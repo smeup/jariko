@@ -19,6 +19,7 @@ package com.smeup.rpgparser.parsing.parsetreetoast
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
+import java.util.*
 
 internal fun RpgParser.BifContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     val position = toPosition(conf.considerPosition)
@@ -111,7 +112,7 @@ internal fun RpgParser.Bif_editwContext.toAst(conf: ToAstConfiguration = ToAstCo
 internal fun RpgParser.Bif_charContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CharExpr {
     return CharExpr(
             this.expression().toAst(conf),
-            this.bif_charformat()?.text?.toUpperCase(),
+        this.bif_charformat()?.text?.uppercase(Locale.getDefault()),
             toPosition(conf.considerPosition))
 }
 
@@ -194,10 +195,12 @@ internal fun RpgParser.Bif_trimlContext.toAst(conf: ToAstConfiguration = ToAstCo
 
 internal fun RpgParser.Bif_scanContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ScanExpr {
     return ScanExpr(
-            this.searcharg.toAst(conf),
-            this.source.toAst(conf),
-            this.start?.toAst(conf),
-            toPosition(conf.considerPosition))
+        value = this.searcharg.toAst(conf),
+        source = this.source.toAst(conf),
+        start = this.start?.toAst(conf),
+        length = this.length?.toAst(conf),
+        toPosition(conf.considerPosition)
+    )
 }
 
 internal fun RpgParser.Bif_xlateContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): TranslateExpr {

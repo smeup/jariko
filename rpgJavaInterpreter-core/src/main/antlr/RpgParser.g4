@@ -2240,7 +2240,7 @@ bif_parmnum: BIF_PARMNUM OPEN_PAREN identifier CLOSE_PAREN;
 bif_realloc: BIF_REALLOC OPEN_PAREN ptr=identifier COLON num=expression CLOSE_PAREN;
 bif_rem: BIF_REM OPEN_PAREN numerator=expression COLON denominator=expression CLOSE_PAREN;
 bif_replace: BIF_REPLACE OPEN_PAREN replacement=expression COLON source=expression (COLON start=expression (COLON length=expression)? )? CLOSE_PAREN;
-bif_scan: BIF_SCAN OPEN_PAREN searcharg=expression COLON source=expression (COLON start=expression )? CLOSE_PAREN;
+bif_scan: BIF_SCAN OPEN_PAREN searcharg=expression COLON source=expression (COLON start=expression )? (COLON length=expression )? CLOSE_PAREN;
 bif_scanrpl: BIF_SCANRPL OPEN_PAREN scanstring=expression COLON replacement=expression COLON source=expression (COLON start=expression (COLON length=expression)? )? CLOSE_PAREN;
 bif_seconds: BIF_SECONDS OPEN_PAREN numberexpression=expression CLOSE_PAREN;
 bif_shtdn: BIF_SHTDN;
