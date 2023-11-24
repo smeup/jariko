@@ -91,6 +91,14 @@ abstract class AbstractTest {
         )
     }
 
+    /**
+     * Execute a program and return the output as a list of displayed messages
+     * */
+    @Deprecated(
+        message = "This function does not provide all the features of Jariko",
+        replaceWith = ReplaceWith(expression = "String.outputOf()", imports = ["com.smeup.rpgparser.AbstractTest.outputOf"]),
+        level = DeprecationLevel.WARNING
+    )
     fun outputOf(
         programName: String,
         initialValues: Map<String, Value> = mapOf(),
@@ -202,6 +210,23 @@ abstract class AbstractTest {
         } else {
             null
         }
+    }
+
+    /**
+     * Execute a program and return the output as a list of strings.
+     * This method guarantees that the program is executed just like Jariko.
+     * @receiver Name or relative path followed by name. Example performance/MUTE10_01 to execute a PGM
+     * in test/resources/performance/MUTE10_01.rpgle. If this parameter contains at least a line feed it is considered
+     * an inline program
+     * @return The output of the program as a list of displayed messages
+     * */
+    protected fun String.outputOf(): List<String> {
+        val messages = mutableListOf<String>()
+        val systemInterface = JavaSystemInterface().apply {
+            onDisplay = { message, _ -> messages.add(message) }
+        }
+        executePgm(programName = this, systemInterface = systemInterface)
+        return messages
     }
 
     private fun createSimpleReloadConfig(): SimpleReloadConfig? {

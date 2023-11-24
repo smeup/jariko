@@ -22,6 +22,7 @@ import com.smeup.rpgparser.utils.asBigDecimal
 import com.smeup.rpgparser.utils.asLong
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.moveEndingString
+import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
@@ -250,7 +251,10 @@ class ExpressionEvaluation(
             }
         }
         val value = expression.value.evalWith(this).asString().value
-        val source = expression.source.evalWith(this).asString().value
+        // if length is specified, I need to scan from start index to startIndex + length
+        val source = expression.length?.evalWith(this)?.asInt()?.value?.toInt()?.let { length ->
+            expression.source.evalWith(this).asString().value.substring(0, startIndex + length)
+        } ?: expression.source.evalWith(this).asString().value
         val result = source.indexOf(value, startIndex)
         return IntValue(if (result == -1) 0 else result.toLong() + 1)
     }
@@ -300,6 +304,19 @@ class ExpressionEvaluation(
                     else -> {
                         TODO("Invalid LEN parameter $value")
                     }
+                }
+            }
+            is IntValue -> {
+                // see https://www.ibm.com/docs/en/i/7.5?topic=length-len-used-its-value
+                var totalSize = 0L
+                // the len is the sum of variable size
+                expression.specificProcess(DataRefExpr::class.java) {
+                    totalSize += it.variable.referred!!.type.size.toLong()
+                }
+                if (totalSize == 0L) {
+                    TODO("Invalid LEN parameter $value")
+                } else {
+                    totalSize.asValue()
                 }
             }
             else -> {

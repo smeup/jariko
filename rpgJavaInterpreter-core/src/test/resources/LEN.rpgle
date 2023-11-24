@@ -10,6 +10,8 @@
      D B_02            S             20
      D B_03            S             30    VARYING
      D B_04            S             40    VARYING
+     D B_05            S              5  0
+     D B_06            S              6  2
       *
       * Must be 'Hello World! 23'
      C                   Eval      Msg  = 'Hello World! ' + %CHAR(%LEN(X))
@@ -42,6 +44,14 @@
       *
       * Must be length 0
      C                   Eval      Msg = '%LEN(B_04) is ' + %CHAR(%LEN(B_04))
+     C                   dsply                   Msg
+      *
+      * Must be length 5
+     C                   Eval      Msg = '%LEN(B_05) is ' + %CHAR(%LEN(B_05))
+     C                   dsply                   Msg
+      *
+      * Must be length 6
+     C                   Eval      Msg = '%LEN(B_06) is ' + %CHAR(%LEN(B_06))
      C                   dsply                   Msg
       *
      C                   SETON                                          LR

@@ -240,7 +240,9 @@ open class InterpreterTest : AbstractTest() {
             "%LEN(B_03) is 0",
             "%LEN(B_03) is 1",
             "%LEN(B_03) is 5",
-            "%LEN(B_04) is 0"
+            "%LEN(B_04) is 0",
+            "%LEN(B_05) is 5",
+            "%LEN(B_06) is 6"
         ), outputOf("LEN"))
     }
 
@@ -908,6 +910,13 @@ Test 6
     }
 
     @Test
+    fun executeBIFEDITC() {
+        // I don't know exactly what expected result should be
+        // Now the important thing is that it doesn't throw an exception
+        "BIFEDITC".outputOf()
+    }
+
+    @Test
     fun executeBIFEDITC_1() {
         assertEquals(listOf("x   123,456   123,456  1,234.56  1,234.56       .00X"), outputOf("BIFEDITC_1"))
     }
@@ -1073,7 +1082,7 @@ Test 6
 
     @Test
     fun executeSCANTEST() {
-        assertEquals(listOf("0", "4", "1"), outputOf("SCANTEST"))
+        assertEquals(listOf("0", "4", "1", "5", "0"), "SCANTEST".outputOf())
     }
 
     @Test
