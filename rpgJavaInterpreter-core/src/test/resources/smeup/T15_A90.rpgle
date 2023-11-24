@@ -28,4 +28,6 @@
      D* %SCAN con posizione iniziale e lunghezza
      C                   EVAL      £DBG_Pas='P03'
      C                   EVAL      £DBG_Str=%EDITC(%SCAN('D':A90_A15:2:4):'X')
+     C     £DBG_Str      DSPLY
+      * Expected value ?
      C                   Seton                                        LR
