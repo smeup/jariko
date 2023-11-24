@@ -93,8 +93,11 @@ abstract class AbstractTest {
 
     /**
      * Execute a program and return the output as a list of displayed messages
-     * @deprecated use [String.outputOf] instead
      * */
+    @Deprecated(
+        message = "This function does not provide all the features of Jariko",
+        replaceWith = ReplaceWith(expression = "String.outputOf()", imports = ["com.smeup.rpgparser.AbstractTest.outputOf"])
+    )
     fun outputOf(
         programName: String,
         initialValues: Map<String, Value> = mapOf(),
