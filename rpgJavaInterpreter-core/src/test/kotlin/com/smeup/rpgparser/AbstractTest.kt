@@ -97,7 +97,7 @@ abstract class AbstractTest {
     @Deprecated(
         message = "This function does not provide all the features of Jariko",
         replaceWith = ReplaceWith(expression = "String.outputOf()", imports = ["com.smeup.rpgparser.AbstractTest.outputOf"]),
-        level = DeprecationLevel.HIDDEN
+        level = DeprecationLevel.WARNING
     )
     fun outputOf(
         programName: String,
