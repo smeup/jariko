@@ -16,4 +16,9 @@ open class SmeupInterpreterTest : AbstractTest() {
         // TODO When we will have more clear idea about the expected result, we will add the assert
         println("executeT15_A90: " + "smeup/T15_A90".outputOf())
     }
+
+    @Test
+    fun executeT02_A30() {
+        println("executeT02_A30: " + "smeup/T02_A30".outputOf())
+    }
 }
