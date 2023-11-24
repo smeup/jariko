@@ -26,6 +26,6 @@
 
     OA* A£.BIFN(SCAN  )
      D* %SCAN con posizione iniziale e lunghezza
-     C*                   EVAL      £DBG_Pas='P03'
-     C*                   EVAL      £DBG_Str=%EDITC(%SCAN('D':A90_A15:2:4):'X')
+     C                   EVAL      £DBG_Pas='P03'
+     C                   EVAL      £DBG_Str=%EDITC(%SCAN('D':A90_A15:2:4):'X')
      C                   Seton                                        LR
