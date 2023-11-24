@@ -3,11 +3,19 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.parsing.ast.*
 import java.math.BigDecimal
 
-private fun clear(type: Type): String {
-    return if (type is NumberType) {
-        "0".repeat(type.numberOfDigits)
-    } else {
-        " ".repeat(type.size)
+private fun clear(value: String, type: Type): String {
+    return when (type) {
+        is NumberType -> "0".repeat(type.numberOfDigits)
+        is StringType -> {
+            if (type.varying) {
+                // return the actual length of the string
+                " ".repeat(value.length)
+            } else {
+                " ".repeat(type.size)
+            }
+        }
+
+        else -> " ".repeat(type.size)
     }
 }
 
@@ -108,7 +116,7 @@ private fun movel(
     return if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
         if (withClear) {
-            result = clear(valueToApplyMoveType)
+            result = clear(result, valueToApplyMoveType)
         }
         // overwrite valueToMove from left to right to valueToApplyMove
         valueToMove + result.substring(valueToMove.length)
@@ -127,7 +135,7 @@ private fun move(
     return if (valueToMove.length <= valueToApplyMove.length) {
         var result: String = valueToApplyMove
         if (withClear) {
-            result = clear(valueToApplyMoveType)
+            result = clear(result, valueToApplyMoveType)
         }
         // overwrite valueToMove from left to right to valueToApplyMove
         result.substring(0, result.length - valueToMove.length) + valueToMove
@@ -171,7 +179,12 @@ private fun stringToValue(value: String, type: Type): Value {
             return if (type.varying) {
                 StringValue(value, true)
             } else {
-                StringValue(value, false)
+                var newValue = value
+                if (value.length < type.length) {
+                    // fill with blank space
+                    newValue += " ".repeat(type.length - value.length)
+                }
+                StringValue(newValue, false)
             }
         }
 
