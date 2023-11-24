@@ -315,6 +315,7 @@ fun Expression.type(): Type {
                 TODO("We do not know the type of a subtraction of types $leftType and $rightType")
             }
         }
+        // insert is for LenExpr and FunctionCall
         is LenExpr -> {
             val size = when (this.value) {
                 // If len argument is a dataref, we have to evaluate it
@@ -341,7 +342,15 @@ fun Expression.type(): Type {
                 todo("Unable to establish FunctionCall '${this.function.name}' return type of which '${this.parent}'.")
             }
         }
-        else -> todo("We do not know how to calculate the type of $this (${this.javaClass.canonicalName})")
+        // in all cases the type is computed by analyzing the variables inside the expression
+        else -> {
+            var size = 0L
+            this.specificProcess(klass = DataRefExpr::class.java) {
+                size += it.size().toString().length
+            }
+            if (size == 0L) error("Unable to establish type of expression '$this'.")
+            return NumberType(size.toInt(), decimalDigits = 0)
+        }
     }
 }
 
