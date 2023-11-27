@@ -2,6 +2,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
 import org.junit.Test
+import kotlin.test.assertEquals
 
 open class SmeupInterpreterTest : AbstractTest() {
 
@@ -19,6 +20,21 @@ open class SmeupInterpreterTest : AbstractTest() {
 
     @Test
     fun executeT02_A30() {
-        println("executeT02_A30: " + "smeup/T02_A30".outputOf())
+        val len = 100
+        val expected = listOf(
+            buildString {
+                append("AAAAA".padEnd(len, ' '))
+                append("BBBBB".padEnd(len, ' '))
+                append("CCCCC".padEnd(len, ' '))
+                append("DDDDD".padEnd(len, ' '))
+                append("EEEEE".padEnd(len, ' '))
+                append("FFFFF".padEnd(len, ' '))
+                append("GGGGG".padEnd(len, ' '))
+                append("HHHHH".padEnd(len, ' '))
+                // Here I don't padEnd because the display messages are trimmed
+                append("IIIII")
+            }
+        )
+        assertEquals(expected, "smeup/T02_A30".outputOf())
     }
 }
