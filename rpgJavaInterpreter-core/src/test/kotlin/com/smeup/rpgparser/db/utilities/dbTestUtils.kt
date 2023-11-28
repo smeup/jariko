@@ -86,6 +86,17 @@ fun execute(sqlStatements: List<String>) {
     }
 }
 
+/**
+ * Executes a DB program and returns the output.
+ *
+ * @param programName The name of the program to be executed.
+ * @param metadata The metadata of the files used in the program.
+ * @param initialSQL The initial SQL statements to be executed before the program.
+ * @param inputParms The input parameters for the program.
+ * @param configuration The configuration for the execution of the program.
+ *
+ * @return A list of strings representing the output of the program. The strings are trimmed.
+ */
 fun outputOfDBPgm(
     programName: String,
     metadata: List<FileMetadata>,
@@ -119,5 +130,5 @@ fun outputOfDBPgm(
         }
     )
     commandLineProgram.singleCall(parms, configuration)
-    return si.displayed
+    return si.displayed.map { it.trim() }
 }
