@@ -218,7 +218,7 @@ abstract class AbstractTest {
      * @receiver Name or relative path followed by name. Example performance/MUTE10_01 to execute a PGM
      * in test/resources/performance/MUTE10_01.rpgle. If this parameter contains at least a line feed it is considered
      * an inline program
-     * @return The output of the program as a list of displayed messages
+     * @return The output of the program as a list of **trimmed** displayed messages
      * */
     protected fun String.outputOf(): List<String> {
         val messages = mutableListOf<String>()
@@ -226,7 +226,7 @@ abstract class AbstractTest {
             onDisplay = { message, _ -> messages.add(message) }
         }
         executePgm(programName = this, systemInterface = systemInterface)
-        return messages
+        return messages.map { it.trim() }
     }
 
     private fun createSimpleReloadConfig(): SimpleReloadConfig? {
