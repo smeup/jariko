@@ -133,19 +133,33 @@ abstract class AbstractTest {
         )
     }
 
+    /**
+     * Executes a DB program and returns the output.
+     *
+     * @param programName The name of the program to be executed.
+     * @param metadata The metadata of the files used in the program.
+     * @param initialSQL The initial SQL statements to be executed before the program.
+     * @param inputParms The input parameters for the program.
+     * @param configuration The configuration for the execution of the program.
+     * @param trimOutput A boolean value indicating whether the output should be trimmed or not. Default value is true.
+     *
+     * @return A list of strings representing the output of the program. If trimOutput is true, the strings are trimmed.
+     */
     fun outputOfDBPgm(
         programName: String,
         metadata: List<FileMetadata> = emptyList(),
         initialSQL: List<String> = emptyList(),
         inputParms: Map<String, Value> = mapOf(),
-        configuration: Configuration = Configuration(options = Options(muteSupport = true))
+        configuration: Configuration = Configuration(options = Options(muteSupport = true)),
+        trimOutput: Boolean = true
     ): List<String> {
         return com.smeup.rpgparser.db.utilities.outputOfDBPgm(
             programName = programName,
             metadata = metadata,
             initialSQL = initialSQL,
             inputParms = inputParms,
-            configuration = configuration.adaptForTestCase(this)
+            configuration = configuration.adaptForTestCase(this),
+            trimOutput = trimOutput
         )
     }
 
@@ -213,20 +227,19 @@ abstract class AbstractTest {
     }
 
     /**
-     * Execute a program and return the output as a list of strings.
-     * This method guarantees that the program is executed just like Jariko.
-     * @receiver Name or relative path followed by name. Example performance/MUTE10_01 to execute a PGM
-     * in test/resources/performance/MUTE10_01.rpgle. If this parameter contains at least a line feed it is considered
-     * an inline program
-     * @return The output of the program as a list of **trimmed** displayed messages
-     * */
-    protected fun String.outputOf(): List<String> {
+     * Executes a program and returns the output as a list of displayed messages.
+     *
+     * @param trimOutput A boolean value indicating whether the output should be trimmed or not. Default value is true.
+     *
+     * @return A list of strings representing the output of the program. If trimOutput is true, the strings are trimmed.
+     */
+    protected fun String.outputOf(trimOutput: Boolean = true): List<String> {
         val messages = mutableListOf<String>()
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ -> messages.add(message) }
         }
         executePgm(programName = this, systemInterface = systemInterface)
-        return messages.map { it.trim() }
+        return if (trimOutput) messages.map { it.trim() } else messages
     }
 
     private fun createSimpleReloadConfig(): SimpleReloadConfig? {
