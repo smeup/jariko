@@ -26,6 +26,7 @@ import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.hsqldb.Server
+import java.io.DataOutput
 import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
@@ -94,15 +95,17 @@ fun execute(sqlStatements: List<String>) {
  * @param initialSQL The initial SQL statements to be executed before the program.
  * @param inputParms The input parameters for the program.
  * @param configuration The configuration for the execution of the program.
+ * @param trimOutput A boolean value indicating whether the output should be trimmed or not. Default value is true.
  *
- * @return A list of strings representing the output of the program. The strings are trimmed.
+ * @return A list of strings representing the output of the program. If trimOutput is true, the strings are trimmed.
  */
 fun outputOfDBPgm(
     programName: String,
     metadata: List<FileMetadata>,
     initialSQL: List<String>,
     inputParms: Map<String, Value> = mapOf(),
-    configuration: Configuration
+    configuration: Configuration,
+    trimOutput: Boolean = true
 ): List<String> {
 
     val si = CollectorSystemInterface()
@@ -130,5 +133,5 @@ fun outputOfDBPgm(
         }
     )
     commandLineProgram.singleCall(parms, configuration)
-    return si.displayed.map { it.trim() }
+    return if (trimOutput) si.displayed.map { it.trim() } else si.displayed
 }
