@@ -752,14 +752,14 @@ Test 6
     @Test
     fun executeMOVE() {
         assertEquals(
-            listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456", "ZYXYY", "DE"),
+            listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456", "ZYXYY", "DE", "DE", "DE"),
             outputOf("MOVE")
         )
     }
 
     @Test
     fun executeMOVEP() {
-        assertEquals(listOf("  ABC", "  123", "  456", "456", "  ABC", "BC"), outputOf("MOVEP"))
+        assertEquals(listOf("  ABC", "  123", "  456", "456", "  ABC", "BC", "  ABC", "  ABC"), outputOf("MOVEP"))
     }
 
     @Test
