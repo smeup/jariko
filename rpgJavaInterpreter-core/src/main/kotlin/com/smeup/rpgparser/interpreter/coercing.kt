@@ -80,7 +80,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 else -> if (value.value.isEmpty()) {
                     StringValue(" ".repeat(type.length), false)
                 } else {
-                    StringValue(value.value, false)
+                    StringValue(value.value.padEnd(type.size, ' '), false)
                 }
             }
 

@@ -88,7 +88,8 @@ open class InterpreterTest : AbstractTest() {
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         val assignments = logHandler.getAssignments()
-        assertEquals(assignments[0].value, StringValue("10"))
+        // The ppdat variable is not varying length 8
+        assertEquals(StringValue("10".padEnd(8, ' ')), assignments[0].value)
         assertIsIntValue(interpreter["NBR"], 10)
         assertEquals(listOf("10"), si.displayed)
     }
