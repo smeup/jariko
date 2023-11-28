@@ -159,17 +159,24 @@ private fun valueToString(value: Value, type: Type): String {
         is CharacterType -> return s
 
         is NumberType -> {
-            if (value is IntValue) {
-                val zeros = "0".repeat(type.numberOfDigits - s.length)
-                zeros + s
+            if (value is NumberValue) {
+                if (value.isNegative()) {
+                    throw UnsupportedOperationException("MOVEL/MOVE for negative numbers not supported")
+                }
+                if (value is IntValue) {
+                    val zeros = "0".repeat(type.numberOfDigits - s.length)
+                    zeros + s
+                } else {
+                    s = s.replace(".", "")
+                    val zeros = "0".repeat(type.numberOfDigits - s.length)
+                    zeros + s
+                }
             } else {
-                s = s.replace(".", "")
-                val zeros = "0".repeat(type.numberOfDigits - s.length)
-                zeros + s
+                throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
             }
         }
 
-        else -> throw UnsupportedOperationException("Unable to stringify the type: $type")
+        else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
 }
 
@@ -202,6 +209,6 @@ private fun stringToValue(value: String, type: Type): Value {
             }
         }
 
-        else -> throw UnsupportedOperationException("Unable to convert string to value the type: $type")
+        else -> throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
     }
 }
