@@ -6,6 +6,7 @@
      D DS1             DS            70
       * StringType
      D Msg1                          50    inz('Msg1')
+     D Msg2                          20    inz('Msg2')
       * UnlimitedStringType
      D Unlimit                         0
       * Initialized UnlimitedStringType
@@ -63,10 +64,10 @@
      C                   EndIf
       *****************************************************************************************
 
-      * IF DS1.Unlimit ************************************************************************
-     C                   Eval      DS1.Unlimit = 'DS1.Unlimit'
-     C                   If        DS1.Unlimit = 'DS1.Unlimit'
-     C                   Eval      Msg = 'DS1.Unlimit = DS1.Unlimit'
+      * Compare unlimited with literal ********************************************************
+     C                   Eval      DS1.Unlimit = 'Compare unlimited with literal'
+     C                   If        DS1.Unlimit = 'Compare unlimited with literal'
+     C                   Eval      Msg = 'Compare unlimited with literal'
      C                   Dsply                   Msg
      C                   EndIf
       *****************************************************************************************

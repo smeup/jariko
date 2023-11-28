@@ -69,6 +69,10 @@ abstract class NumberValue : Value {
 
 interface AbstractStringValue : Value {
     fun getWrappedString(): String
+
+    fun isBlank(): Boolean {
+        return getWrappedString().isBlank()
+    }
 }
 
 @Serializable
@@ -162,10 +166,6 @@ data class StringValue(var value: String, val varying: Boolean = false) : Abstra
     }
 
     override fun asString() = this
-
-    fun isBlank(): Boolean {
-        return this.value.isBlank()
-    }
 
     override fun render(): String {
         return value
@@ -1066,11 +1066,11 @@ fun areEquals(value1: Value, value2: Value): Boolean {
             value1.asInt() == value2.asInt()
         }
 
-        value1 is StringValue && value2 is BooleanValue -> {
+        value1 is AbstractStringValue && value2 is BooleanValue -> {
             value1.asBoolean().value == value2.value
         }
 
-        value1 is BooleanValue && value2 is StringValue -> {
+        value1 is BooleanValue && value2 is AbstractStringValue -> {
             value2.asBoolean().value == value1.value
         }
 
@@ -1079,29 +1079,29 @@ fun areEquals(value1: Value, value2: Value): Boolean {
             value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
         }
 
-        value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
-        value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
+        value1 is BlanksValue && value2 is AbstractStringValue -> value2.isBlank()
+        value2 is BlanksValue && value1 is AbstractStringValue -> value1.isBlank()
 
-        value1 is StringValue && value2 is StringValue -> {
-            val v1 = value1.value.trimEnd()
-            val v2 = value2.value.trimEnd()
+        value1 is AbstractStringValue && value2 is AbstractStringValue -> {
+            val v1 = value1.getWrappedString().trimEnd()
+            val v2 = value2.getWrappedString().trimEnd()
             v1 == v2
         }
 
-        value1 is DataStructValue && value2 is StringValue -> {
+        value1 is DataStructValue && value2 is AbstractStringValue -> {
             val v1 = value1.asStringValue().trimEnd()
 
-            val v2 = value2.value.trimEnd()
+            val v2 = value2.getWrappedString().trimEnd()
             v1 == v2
         }
-        value1 is StringValue && value2 is DataStructValue -> {
-            val v1 = value1.value.trimEnd()
+        value1 is AbstractStringValue && value2 is DataStructValue -> {
+            val v1 = value1.getWrappedString().trimEnd()
             val v2 = value2.asStringValue().trimEnd()
 
             v1 == v2
         }
         // To be review
-        value1 is ProjectedArrayValue && value2 is StringValue -> {
+        value1 is ProjectedArrayValue && value2 is AbstractStringValue -> {
             value1.asArray().getElement(1) == value2
         }
         else -> value1 == value2
