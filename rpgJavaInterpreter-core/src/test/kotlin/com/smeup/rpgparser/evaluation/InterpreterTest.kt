@@ -868,9 +868,10 @@ Test 6
             "DS1 <> DS2",
             "DS1.Msg1 content = DS2.Msg content",
             "DS1.Unlimit content = DS2.Unlimit content",
-            "DS1 = DS2"
+            "DS1 = DS2",
+            "DS1.Unlimit = DS1.Unlimit"
         )
-        assertEquals(expected, outputOf("UNLIMIT_DS"))
+        assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
 
     @Test
