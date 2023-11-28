@@ -233,13 +233,17 @@ data class UnlimitedStringValue(var value: String) : AbstractStringValue {
  * Cp0280   EBCDIC ITALIAN
  * See: https://www.ibm.com/support/knowledgecenter/SSLTBW_2.1.0/com.ibm.zos.v2r1.idad400/ccsids.htm
  */
-fun sortA(value: Value, charset: Charset) {
+fun sortA(value: Value, type: Type, charset: Charset) {
+    val ascend: Boolean = ((type as ArrayType).ascend == null || (type as ArrayType).ascend == true)
 
     when (value) {
         is ConcreteArrayValue -> {
             // TODO pass the correct charset to the default sorting algorithm
-            // TODO ascending/descending
-            value.elements.sort()
+            if (ascend) {
+                value.elements.sort()
+            } else {
+                value.elements.sortByDescending { it }
+            }
         }
         is ProjectedArrayValue -> {
             require(value.field.type is ArrayType)
