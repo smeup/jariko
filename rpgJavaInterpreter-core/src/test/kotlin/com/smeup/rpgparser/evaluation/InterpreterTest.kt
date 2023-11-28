@@ -868,9 +868,13 @@ Test 6
             "DS1 <> DS2",
             "DS1.Msg1 content = DS2.Msg content",
             "DS1.Unlimit content = DS2.Unlimit content",
-            "DS1 = DS2"
+            "DS1 = DS2",
+            "Compare unlimited with literal",
+            "Compare unlimited with limited",
+            "Compare uninitialized unlimited with *BLANKS",
+            "Reset an unlimited and compare with *BLANKS"
         )
-        assertEquals(expected, outputOf("UNLIMIT_DS"))
+        assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
 
     @Test
