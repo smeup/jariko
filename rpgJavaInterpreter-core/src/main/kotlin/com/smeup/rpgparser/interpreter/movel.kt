@@ -81,7 +81,7 @@ fun move(
             arrayValue.elements.forEachIndexed { index, el ->
                 arrayValue.setElement(
                     index + 1, stringToValue(
-                        movel(
+                        move(
                             valueToMove,
                             valueToString(el, valueToApplyMoveElementType),
                             valueToApplyMoveElementType,

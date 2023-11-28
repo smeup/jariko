@@ -10,6 +10,7 @@
      DRES4             S              5P 0 INZ(99999)
      DRES5             S              5    INZ('ZYXWV')
      DRES6             S              5    INZ('YY') VARYING
+     DRES7             S              5    DIM(2)
       *
       * String-String - MOVE(P)('ABC', 'ZYXWV') => '  ABC'
      C                   MOVE(P)   STR3          RES1
@@ -34,5 +35,10 @@
       * String-String(Varying) MOVE(P)('ABC', 'YY') => 'BC')
      C                   MOVE(P)    STR3          RES6
      C     RES6          DSPLY
+      *
+      * String-Array(String) MOVE('ABC', ARRAY('    ', '    ') => ARRAY('  ABC', '  ABC')
+     C                   MOVE      STR3              RES7
+     C     RES7(1)       DSPLY
+     C     RES7(2)       DSPLY
       *
      C                   SETON                                          LR
