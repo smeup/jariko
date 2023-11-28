@@ -26,7 +26,6 @@ import com.smeup.rpgparser.interpreter.FileMetadata
 import com.smeup.rpgparser.interpreter.Value
 import com.smeup.rpgparser.rpginterop.DirRpgProgramFinder
 import org.hsqldb.Server
-import java.io.DataOutput
 import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
