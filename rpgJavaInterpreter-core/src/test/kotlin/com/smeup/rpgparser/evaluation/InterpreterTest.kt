@@ -870,7 +870,8 @@ Test 6
             "DS1.Unlimit content = DS2.Unlimit content",
             "DS1 = DS2",
             "Compare unlimited with literal",
-            "Compare unlimited with limited"
+            "Compare unlimited with limited",
+            "Compare uninitialized unlimited with *BLANKS"
         )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }

@@ -11,6 +11,8 @@
      D Unlimit                         0
       * Initialized UnlimitedStringType
      D UnlInited                       0   inz('UnlInited')
+      * Unlimited to test blank
+     D UnlBlank                        0
       *****************************************************
 
       * DS2 definition like DS1 ***************************
@@ -77,6 +79,13 @@
      C                   Eval      DS1.Unlimit = 'Compare unlimited with limited'
      C                   If        DS1.Unlimit = DS1.Msg1
      C                   Eval      Msg = 'Compare unlimited with limited'
+     C                   Dsply                   Msg
+     C                   EndIf
+      *****************************************************************************************
+
+      * Compare uninitialized unlimited with *BLANKS  ********************************************************
+     C                   If        DS1.UnlBlank = *BLANKS
+     C                   Eval      Msg = 'Compare uninitialized unlimited with *BLANKS'
      C                   Dsply                   Msg
      C                   EndIf
       *****************************************************************************************
