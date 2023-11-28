@@ -159,25 +159,20 @@ private fun valueToString(value: Value, type: Type): String {
         is CharacterType -> return s
 
         is NumberType -> {
-            when (value) {
-                is IntValue -> {
-                    if (value.value < 0) {
-                        throw UnsupportedOperationException("MOVEL/MOVE for integer negative numbers not supported")
-                    }
+            if (value is NumberValue) {
+                if (value.isNegative()) {
+                    throw UnsupportedOperationException("MOVEL/MOVE for negative numbers not supported")
+                }
+                if (value is IntValue) {
                     val zeros = "0".repeat(type.numberOfDigits - s.length)
                     zeros + s
-                }
-
-                is DecimalValue -> {
-                    if (value.value < BigDecimal.ZERO) {
-                        throw UnsupportedOperationException("MOVEL/MOVE for decimal negative numbers not supported")
-                    }
+                } else {
                     s = s.replace(".", "")
                     val zeros = "0".repeat(type.numberOfDigits - s.length)
                     zeros + s
                 }
-
-                else -> throw UnsupportedOperationException("MOVE/MOVEL of NumberType $value not supported")
+            } else {
+                throw UnsupportedOperationException("MOVE/MOVEL not supported for the type: $type")
             }
         }
 
