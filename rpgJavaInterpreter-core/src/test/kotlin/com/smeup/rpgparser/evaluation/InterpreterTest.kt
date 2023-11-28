@@ -100,7 +100,7 @@ open class InterpreterTest : AbstractTest() {
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
-        assertEquals(listOf("FIBONACCI OF: ${input.padEnd(8)} IS: $output"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: ${input.padEnd(8)} IS: $output"), si.displayed.map { it.trim() })
         assertEquals(logHandler.getExecutedSubroutineNames()[0], "FIB")
     }
 
@@ -153,7 +153,7 @@ open class InterpreterTest : AbstractTest() {
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
         execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
-        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed.map { it.trim() })
         assertEquals(1, logHandler.getExecutedSubroutines().size)
     }
 
@@ -192,7 +192,7 @@ open class InterpreterTest : AbstractTest() {
         rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
         assertEquals(1, rpgProgram.params().size)
         assertEquals(ProgramParam("ppdat", StringType(8, false)), rpgProgram.params()[0])
-        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed.map { it.trim() })
     }
 
     @Test
@@ -741,7 +741,7 @@ Test 6
         }
         execute("CAL01", emptyMap(), si)
         assertTrue(javaPgmCalled, "Java pgm CAL02 was not called")
-        assertEquals(si.displayed, listOf("1"))
+        assertEquals(si.displayed.map { it.trim() }, listOf("1"))
     }
 
     @Test
@@ -793,12 +793,12 @@ Test 6
 
     @Test
     fun executeDOVAR01_ModifyingEndVarAffectsDO() {
-        assertEquals(outputOf("DOVAR01"), listOf("N =101", "I =96"))
+        assertEquals("DOVAR01".outputOf(), listOf("N = 101", "I = 96"))
     }
 
     @Test
     fun executeDOVAR02_ModifyingStartVarDoesntAffectDO() {
-        assertEquals(outputOf("DOVAR02"), listOf("N =11", "I =6"))
+        assertEquals("DOVAR02".outputOf(), listOf("N = 11", "I = 6"))
     }
 
     @Test
@@ -2101,7 +2101,7 @@ Test 6
         val systemInterface = JavaSystemInterface().apply {
             this.onDisplay = { message, _ ->
                 println(message)
-                console.add(message)
+                console.add(message.trim())
             }
         }
         executePgm(
