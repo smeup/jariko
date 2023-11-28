@@ -72,5 +72,14 @@
      C                   EndIf
       *****************************************************************************************
 
+      * Compare unlimited with limited ********************************************************
+     C                   Eval      DS1.Msg1 = 'Compare unlimited with limited'
+     C                   Eval      DS1.Unlimit = 'Compare unlimited with limited'
+     C                   If        DS1.Unlimit = DS1.Msg1
+     C                   Eval      Msg = 'Compare unlimited with limited'
+     C                   Dsply                   Msg
+     C                   EndIf
+      *****************************************************************************************
+
 
 
