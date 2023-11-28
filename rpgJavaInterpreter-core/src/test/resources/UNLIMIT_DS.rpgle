@@ -83,12 +83,20 @@
      C                   EndIf
       *****************************************************************************************
 
-      * Compare uninitialized unlimited with *BLANKS  ********************************************************
+      * Compare uninitialized unlimited with *BLANKS  *****************************************
      C                   If        DS1.UnlBlank = *BLANKS
      C                   Eval      Msg = 'Compare uninitialized unlimited with *BLANKS'
      C                   Dsply                   Msg
      C                   EndIf
       *****************************************************************************************
 
+
+      * Reset an unlimited and compare with *BLANKS  ******************************************
+     C                   Eval      DS1.Unlimit = *BLANKS
+     C                   If        DS1.Unlimit = *BLANKS
+     C                   Eval      Msg = 'Reset an unlimited and compare with *BLANKS'
+     C                   Dsply                   Msg
+     C                   EndIf
+      *****************************************************************************************
 
 

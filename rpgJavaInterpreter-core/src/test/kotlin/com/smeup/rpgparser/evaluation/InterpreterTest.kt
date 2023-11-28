@@ -871,7 +871,8 @@ Test 6
             "DS1 = DS2",
             "Compare unlimited with literal",
             "Compare unlimited with limited",
-            "Compare uninitialized unlimited with *BLANKS"
+            "Compare uninitialized unlimited with *BLANKS",
+            "Reset an unlimited and compare with *BLANKS"
         )
         assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
