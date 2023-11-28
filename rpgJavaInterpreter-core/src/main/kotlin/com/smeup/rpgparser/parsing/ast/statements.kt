@@ -1459,7 +1459,7 @@ data class ForStmt(
 @Serializable
 data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        sortA(interpreter.eval(target), target.type(), interpreter.getLocalizationContext().charset)
+        sortA(interpreter.eval(target), target.type() as ArrayType, interpreter.getLocalizationContext().charset)
     }
 }
 
