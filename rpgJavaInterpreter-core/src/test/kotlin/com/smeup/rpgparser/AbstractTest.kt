@@ -91,9 +91,19 @@ abstract class AbstractTest {
         )
     }
 
+
     /**
-     * Execute a program and return the output as a list of displayed messages
-     * */
+     * Executes a program and returns the output as a list of displayed messages.
+     *
+     * @param programName The name of the program to be executed.
+     * @param initialValues The initial values for the program.
+     * @param printTree A boolean value indicating whether the parse tree should be printed or not. Default value is false.
+     * @param si The system interface to be used for the execution. Default is an instance of ExtendedCollectorSystemInterface.
+     * @param configuration The configuration for the execution of the program.
+     * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
+     *
+     * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
+     */
     @Deprecated(
         message = "This function does not provide all the features of Jariko",
         replaceWith = ReplaceWith(expression = "String.outputOf()", imports = ["com.smeup.rpgparser.AbstractTest.outputOf"]),
@@ -104,7 +114,8 @@ abstract class AbstractTest {
         initialValues: Map<String, Value> = mapOf(),
         printTree: Boolean = false,
         si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
-        configuration: Configuration = Configuration()
+        configuration: Configuration = Configuration(),
+        trimEnd: Boolean = true
     ): List<String> {
         return outputOf(
             programName = programName,
@@ -112,7 +123,8 @@ abstract class AbstractTest {
             printTree = printTree,
             si = si,
             compiledProgramsDir = getTestCompileDir(),
-            configuration = configuration
+            configuration = configuration,
+            trimEnd = trimEnd
         )
     }
 
@@ -141,9 +153,9 @@ abstract class AbstractTest {
      * @param initialSQL The initial SQL statements to be executed before the program.
      * @param inputParms The input parameters for the program.
      * @param configuration The configuration for the execution of the program.
-     * @param trimOutput A boolean value indicating whether the output should be trimmed or not. Default value is true.
+     * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
      *
-     * @return A list of strings representing the output of the program. If trimOutput is true, the strings are trimmed.
+     * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
      */
     fun outputOfDBPgm(
         programName: String,
@@ -151,7 +163,7 @@ abstract class AbstractTest {
         initialSQL: List<String> = emptyList(),
         inputParms: Map<String, Value> = mapOf(),
         configuration: Configuration = Configuration(options = Options(muteSupport = true)),
-        trimOutput: Boolean = true
+        trimEnd: Boolean = true
     ): List<String> {
         return com.smeup.rpgparser.db.utilities.outputOfDBPgm(
             programName = programName,
@@ -159,7 +171,7 @@ abstract class AbstractTest {
             initialSQL = initialSQL,
             inputParms = inputParms,
             configuration = configuration.adaptForTestCase(this),
-            trimOutput = trimOutput
+            trimEnd = trimEnd
         )
     }
 
@@ -229,17 +241,17 @@ abstract class AbstractTest {
     /**
      * Executes a program and returns the output as a list of displayed messages.
      *
-     * @param trimOutput A boolean value indicating whether the output should be trimmed or not. Default value is true.
+     * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
      *
-     * @return A list of strings representing the output of the program. If trimOutput is true, the strings are trimmed.
+     * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
      */
-    protected fun String.outputOf(trimOutput: Boolean = true): List<String> {
+    protected fun String.outputOf(trimEnd: Boolean = true): List<String> {
         val messages = mutableListOf<String>()
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ -> messages.add(message) }
         }
         executePgm(programName = this, systemInterface = systemInterface)
-        return if (trimOutput) messages.map { it.trim() } else messages
+        return if (trimEnd) messages.map { it.trimEnd() } else messages
     }
 
     private fun createSimpleReloadConfig(): SimpleReloadConfig? {

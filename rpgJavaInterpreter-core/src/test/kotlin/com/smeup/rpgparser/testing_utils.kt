@@ -510,17 +510,31 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
+/**
+ * Executes a program and returns the output as a list of displayed messages.
+ *
+ * @param programName The name of the program to be executed.
+ * @param initialValues The initial values for the program.
+ * @param printTree A boolean value indicating whether the parse tree should be printed or not. Default value is false.
+ * @param si The system interface to be used for the execution. Default is an instance of ExtendedCollectorSystemInterface.
+ * @param compiledProgramsDir The directory where the compiled programs are located.
+ * @param configuration The configuration for the execution of the program.
+ * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
+ *
+ * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
+ */
 fun outputOf(
     programName: String,
     initialValues: Map<String, Value> = mapOf(),
     printTree: Boolean = false,
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
     compiledProgramsDir: File?,
-    configuration: Configuration = Configuration()
+    configuration: Configuration = Configuration(),
+    trimEnd: Boolean = true
 ): List<String> {
     execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si,
         compiledProgramsDir = compiledProgramsDir, configuration = configuration)
-    return si.displayed.map(String::trimEnd)
+    return if (trimEnd) si.displayed.map(String::trimEnd) else si.displayed
 }
 
 const val TRACE = false
