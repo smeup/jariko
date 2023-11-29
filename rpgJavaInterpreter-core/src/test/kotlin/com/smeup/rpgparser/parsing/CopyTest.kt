@@ -465,7 +465,7 @@ class CopyTest {
             nameOrSource = pgm,
             programFinders = listOf(DirRpgProgramFinder(Paths.get("src", "test", "resources").toFile())),
             systemInterface = JavaSystemInterface().apply {
-                onDisplay = { mess, _ -> message = mess }
+                onDisplay = { mess, _ -> message = mess.trim() }
             }
         ).singleCall(listOf(), configuration = Configuration().apply {
             jarikoCallback = JarikoCallback().apply {
