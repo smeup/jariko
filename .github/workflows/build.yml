@@ -1,6 +1,8 @@
 name: CIBuild
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   build:

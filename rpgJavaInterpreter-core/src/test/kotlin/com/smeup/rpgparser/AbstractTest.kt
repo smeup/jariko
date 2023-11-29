@@ -91,7 +91,6 @@ abstract class AbstractTest {
         )
     }
 
-
     /**
      * Executes a program and returns the output as a list of displayed messages.
      *

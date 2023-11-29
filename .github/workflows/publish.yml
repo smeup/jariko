@@ -2,6 +2,8 @@ name: Deploy to maven central
 on:
   push:
     branches: [master, develop]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
