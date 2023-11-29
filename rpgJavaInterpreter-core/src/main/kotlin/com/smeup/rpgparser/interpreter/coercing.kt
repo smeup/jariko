@@ -205,6 +205,8 @@ fun coerce(value: Value, type: Type): Value {
                     if (type.decimalDigits < value.value.scale()) {
                         val roundingMode = if (value.isPositive()) RoundingMode.FLOOR else RoundingMode.CEILING
                         return DecimalValue(value.value.setScale(type.decimalDigits, roundingMode))
+                    } else {
+                        return DecimalValue(value.value.setScale(type.decimalDigits))
                     }
                     return value
                 }
