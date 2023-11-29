@@ -883,7 +883,7 @@ Test 6
             "%INT",
             "1234",
             "%DEC",
-            "1.5"
+            "1.50"
         )
         assertEquals(expected, outputOf("UNLIMIT_BIF"))
     }
