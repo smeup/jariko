@@ -1003,13 +1003,15 @@ internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): PlistParam {
     val paramName = this.cspec_fixed_standard_parts().result.text
+    val initializationValue = this.cspec_fixed_standard_parts().factor2Expression(conf)
     val position = toPosition(conf.considerPosition)
     return PlistParam(
         ReferenceByName(paramName), this.cspec_fixed_standard_parts().toDataDefinition(
             paramName,
             position,
             conf
-        ), position
+        ), position,
+        initializationValue
     )
 }
 

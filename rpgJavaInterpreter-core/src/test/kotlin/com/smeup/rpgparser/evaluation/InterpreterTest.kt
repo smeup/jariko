@@ -724,6 +724,11 @@ Test 6
     }
 
     @Test
+    fun executeCALLER2_callProgramPassingStringValueDirectlyOnParm() {
+        assertEquals(listOf("ABCDEFGHIJ"), outputOf("CALLER2"))
+    }
+
+    @Test
     fun executeCAL01_callingJavaPgm() {
         val si = CollectorSystemInterface()
         var javaPgmCalled = false

@@ -610,6 +610,7 @@ data class CallStmt(
 
         val params = this.params.mapIndexed { index, it ->
             if (it.dataDefinition != null) {
+                // handle declaration of new variable
                 if (it.dataDefinition.initializationValue != null) {
                     if (!interpreter.exists(it.param.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
@@ -623,6 +624,14 @@ data class CallStmt(
                     if (!interpreter.exists(it.param.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
                     }
+                }
+            } else {
+                // handle initialization value without declaration of new variables
+                // change the value of parameter with initialization value
+                if (it.initializationValue != null) {
+                    interpreter.assign(
+                        interpreter.dataDefinitionByName(it.param.name)!!,
+                        interpreter.eval(it.initializationValue))
                 }
             }
             require(program.params().size > index) {
@@ -877,7 +886,8 @@ data class PlistParam(
     val param: ReferenceByName<AbstractDataDefinition>,
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
-    override val position: Position? = null
+    override val position: Position? = null,
+    val initializationValue: Expression? = null
 ) : Node(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
