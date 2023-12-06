@@ -1,8 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
-import com.smeup.rpgparser.utils.EBCDICComparator
 import java.nio.charset.Charset
-import java.util.*
 
 /**
  * The charset should be sort of system setting
@@ -22,75 +20,40 @@ fun sortA(value: Value, arrayType: ArrayType, charset: Charset) {
                 value.elements.sortByDescending { it }
             }
         }
+
         is ProjectedArrayValue -> {
             require(value.field.type is ArrayType)
-            val strings = value.field.type.element is StringType
-            val n = value.arrayLength
-            val multiplier = if (value.field.descend) 1 else -1
-            // the good old Bubble Sort
-            /*for (i in 1..(value.arrayLength - 1)) {
-                for (j in 1..(n - i)) {
-                    val compared =
-                        if (strings) {
-                            value.getElement(j).asString().compare(value.getElement(j + 1).asString(), charset, value.field.descend)
-                        } else {
-                            value.getElement(j).compareTo(value.getElement(j + 1)) * multiplier
-                        }
-                    if (compared > 0) {
-                        // TODO support data structure swap
-                        // For an array data structure, the keyed-ds-array operand is a qualified name
-                        // consisting of the array to be sorted followed by the subfield to be used as
-                        // a key for the sort.
-                        // Swap
-                        val tmp = value.getElement(j + 1)
-                        value.setElement(j + 1, value.getElement(j))
-                        value.setElement(j, tmp)
-                    }
-                }
-            }*/
 
             val numOfElements = value.arrayLength
             val totalLengthOfAllElements = value.container.len
             val elementSize = totalLengthOfAllElements / numOfElements
 
-            // Extract from each array element, its 'key' value (the subfield) to order by, then
-            // store the key into 'keysToBeOrderedBy'
-            val keysToBeOrderedBy = Array(numOfElements) { _ -> "" }
-            var startElement = 0
-            var endElement = elementSize
-            (0 until numOfElements).forEach { i ->
-                value.container.value.substring(startElement, endElement).apply { keysToBeOrderedBy[i] = this }
-                startElement += elementSize
-                endElement += elementSize
-            }
-
-            // Create a TreeMap with order direction (ascend/descend) needed to
-            // store ordered elements.
-            val comparator = EBCDICComparator(value.field.descend)
-            val orderedElements: MutableMap<String, MutableList<String>> = TreeMap(comparator)
-
-            // Array to ordered Treemap
-            keysToBeOrderedBy.indices.forEachIndexed { _, i ->
-                with(
-                    orderedElements,
-                    fun MutableMap<String, MutableList<String>>.() {
-                        var add = computeIfAbsent(
-                            keysToBeOrderedBy[i].substring(
-                                value.field.calculatedStartOffset!!.toInt(),
-                                value.field.calculatedEndOffset!!.toInt()
-                            )
-                        ) { ArrayList() }.add(keysToBeOrderedBy[i])
-                    }
+            val elements: List<String> = value.container.value.chunked(elementSize)
+            val elementsToCalculateSort: List<String> = elements.map {
+                it.substring(
+                    value.field.calculatedStartOffset!!,
+                    value.field.calculatedEndOffset!!
                 )
             }
-
-            // Set container value with reordered elements
-            var containerValue = ""
-            orderedElements.forEach { (_: String?, v: List<String>) ->
-                v.forEach { s ->
-                    containerValue += s
-                }
+            // crete a map <Index, ValueToSort>
+            val indexesMap: Map<Int, String> = elementsToCalculateSort.mapIndexed { i, v -> i + 1 to v }.toMap()
+            // sort the map
+            val descend: Boolean = if (value.field.overlayingOn == null) {
+                value.field.descend
+            } else {
+                (value.field.overlayingOn as FieldDefinition).descend
             }
+            val sortedMap = if (descend) {
+                indexesMap.toList().sortedByDescending { it.second }.toMap()
+            } else {
+                indexesMap.toList().sortedBy { it.second }.toMap()
+            }
+            var containerValue = ""
+            sortedMap.keys.forEach { key ->
+                containerValue += elements[key - 1]
+            }
+
+            // return value
             value.container.value = containerValue
         }
     }
