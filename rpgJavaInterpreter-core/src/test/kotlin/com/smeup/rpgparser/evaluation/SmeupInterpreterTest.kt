@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -36,6 +37,13 @@ open class SmeupInterpreterTest : AbstractTest() {
             }
         )
         assertEquals(expected, "smeup/T02_A30".outputOf())
+    }
+
+    @Test
+    @Ignore
+    fun executeT02_A40() {
+        val expected = listOf("DS4_FL1(NNNNNFFFFFMMMMMGGGGGAAAAAZZZZZ)", "DS4_FL2(AAAAAZZZZZMMMMMGGGGGNNNNNFFFFF)")
+        assertEquals(expected, "smeup/T02_A40".outputOf())
     }
 
     @Test
