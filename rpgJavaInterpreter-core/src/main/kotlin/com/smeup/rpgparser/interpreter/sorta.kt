@@ -1,5 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.utils.EBCDICComparator
 import java.nio.charset.Charset
 
 /**
@@ -43,16 +44,17 @@ fun sortA(value: Value, arrayType: ArrayType, charset: Charset) {
             } else {
                 (value.field.overlayingOn as FieldDefinition).descend
             }
-            val sortedMap = if (descend) {
-                indexesMap.toList().sortedByDescending { it.second }.toMap()
-            } else {
-                indexesMap.toList().sortedBy { it.second }.toMap()
-            }
+            // sort using EBCDICComparator
+            val comparator = EBCDICComparator(descend)
+            val sortedValues = indexesMap.values.sortedWith(comparator)
+            val sortedMap = indexesMap.entries
+                .sortedBy { sortedValues.indexOf(it.value) }
+                .associate { it.toPair() }
+
             var containerValue = ""
             sortedMap.keys.forEach { key ->
                 containerValue += elements[key - 1]
             }
-
             // return value
             value.container.value = containerValue
         }
