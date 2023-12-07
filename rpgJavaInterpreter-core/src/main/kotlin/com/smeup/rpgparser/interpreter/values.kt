@@ -360,8 +360,8 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     override fun render(): String {
         // zeros followed by decimal point has not be rendered
         return value.toPlainString().let {
-            if (it.startsWith("0") && it.indexOf('.') != -1) {
-                it.replace(Regex("^0+"), "")
+            if ((it.startsWith("0") || it.startsWith("-0")) && it.indexOf('.') != -1) {
+                it.replace(Regex("^(-)?0+"), "$1")
             } else {
                 it
             }
@@ -954,7 +954,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     fun asStringValue(): String {
         val builder = StringBuilder()
         value.forEach {
-            if (it.toInt() < 32 || it.toInt() > 128 || it in '0'..'9')
+            if (it.code < 32 || it.code > 128 || it in '0'..'9')
                 builder.append(' ')
             else
                 builder.append(it)
