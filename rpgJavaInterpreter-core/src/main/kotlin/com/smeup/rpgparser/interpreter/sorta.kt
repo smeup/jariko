@@ -1,7 +1,6 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.utils.EBCDICComparator
-import java.nio.charset.Charset
 
 /**
  * The charset should be sort of system setting
@@ -9,7 +8,7 @@ import java.nio.charset.Charset
  * Cp0280   EBCDIC ITALIAN
  * See: https://www.ibm.com/support/knowledgecenter/SSLTBW_2.1.0/com.ibm.zos.v2r1.idad400/ccsids.htm
  */
-fun sortA(value: Value, arrayType: ArrayType, charset: Charset) {
+fun sortA(value: Value, arrayType: ArrayType) {
     val ascend: Boolean = arrayType.ascend == null || arrayType.ascend == true
 
     when (value) {
@@ -51,12 +50,12 @@ fun sortA(value: Value, arrayType: ArrayType, charset: Charset) {
                 .sortedBy { sortedValues.indexOf(it.value) }
                 .associate { it.toPair() }
 
-            var containerValue = ""
+            var containerValue = StringBuilder()
             sortedMap.keys.forEach { key ->
-                containerValue += elements[key - 1]
+                containerValue.append(elements[key - 1])
             }
             // return value
-            value.container.value = containerValue
+            value.container.value = containerValue.toString()
         }
     }
 }
