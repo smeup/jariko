@@ -23,12 +23,8 @@ import java.util.Comparator;
 
 public class EBCDICComparator implements Comparator<String> {
 
-    private final String EBCDIC_CODE = "CP037";
     private final Charset STANDARD_CHARSET = StandardCharsets.ISO_8859_1;
     private int order = 1;
-
-    public EBCDICComparator() {
-    }
 
     public EBCDICComparator(boolean descend) {
         if (descend)
@@ -44,6 +40,7 @@ public class EBCDICComparator implements Comparator<String> {
         byte[] b1;
         byte[] b2;
         try {
+            String EBCDIC_CODE = "CP037";
             b1 = s1.getBytes(EBCDIC_CODE);
             b2 = s2.getBytes(EBCDIC_CODE);
         } catch (UnsupportedEncodingException e) {
