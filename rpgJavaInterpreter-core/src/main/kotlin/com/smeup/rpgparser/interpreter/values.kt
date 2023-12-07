@@ -360,8 +360,8 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     override fun render(): String {
         // zeros followed by decimal point has not be rendered
         return value.toPlainString().let {
-            if (it.startsWith("0") && it.indexOf('.') != -1) {
-                it.replace(Regex("^0+"), "")
+            if ((it.startsWith("0") || it.startsWith("-0")) && it.indexOf('.') != -1) {
+                it.replace(Regex("^(-)?0+"), "$1")
             } else {
                 it
             }
