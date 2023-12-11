@@ -840,6 +840,8 @@ data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpres
 @Serializable
 data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
+        // set the RT indicator always on
+        interpreter.getIndicators()[IndicatorType.RT.name.toIndicatorKey()] = BooleanValue.TRUE
         val returnValue = expression?.let { interpreter.eval(expression) }
         throw ReturnException(returnValue)
     }
