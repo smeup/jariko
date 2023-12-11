@@ -1471,8 +1471,7 @@ data class SortAStmt(val target: Expression, override val position: Position? = 
     override fun execute(interpreter: InterpreterCore) {
         sortA(
             value = interpreter.eval(target),
-            arrayType = target.type() as ArrayType,
-            charset = interpreter.getLocalizationContext().charset
+            arrayType = target.type() as ArrayType
         )
     }
 }
