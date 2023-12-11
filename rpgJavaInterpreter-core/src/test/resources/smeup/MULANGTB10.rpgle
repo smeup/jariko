@@ -16,5 +16,4 @@
       *
      C                   EVAL      B10_P3 = B10_A50
       *
-     C*                   RETURN
-     C                   SETON                                        RT
+     C                   RETURN
