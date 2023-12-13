@@ -2131,4 +2131,10 @@ Test 6
         val expected = listOf("(ABCDEF)", "(CDEFGH)", "(CDEF  )", "(AB CDE)", "(AB    )", "(99 XYZ)")
         assertEquals(expected, "CAT".outputOf())
     }
+
+    @Test
+    fun executeCATP() {
+        val expected = listOf("(ABCDEF)", "(CDEFGH)", "(CDEF  )", "(AB CDE)", "(AB    )", "(99 XYZ)")
+        assertEquals(expected, "CATP".outputOf())
+    }
 }

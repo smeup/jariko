@@ -1515,9 +1515,9 @@ data class CatStmt(
         } else {
             result
         } else if (blanks != null) {
-            (factor1 + blanks + factor2)
+            (factor1.trim() + blanks + factor2)
         } else {
-            (factor1 + factor2)
+            (factor1.trim() + factor2)
         }
 
         interpreter.assign(target, StringValue(result))
