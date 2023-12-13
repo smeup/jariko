@@ -32,11 +32,8 @@ private fun coerceBlanks(type: Type): Value {
             }
         }
         is NumberType -> {
-            if (type.integer) {
-                IntValue.ZERO
-            } else {
-                DecimalValue.ZERO
-            }
+            // I use this method in order to create a BigDecimal with the correct number of digits
+            coerce(DecimalValue.ZERO, type)
         }
         is DataStructureType -> {
             type.blank()
@@ -53,6 +50,9 @@ private fun coerceBlanks(type: Type): Value {
         }
         is UnlimitedStringType -> {
             UnlimitedStringValue("")
+        }
+        is RecordFormatType -> {
+            type.blank()
         }
         else -> TODO("Converting BlanksValue to $type")
     }
