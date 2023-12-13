@@ -48,6 +48,7 @@ class ExpressionEvaluation(
     override fun eval(expression: NumberOfElementsExpr): Value {
         return when (val value = expression.value.evalWith(this)) {
             is ArrayValue -> value.arrayLength().asValue()
+            is OccurableDataStructValue -> value.occurs.asValue()
             else -> throw IllegalStateException("Cannot ask number of elements of $value")
         }
     }

@@ -1457,11 +1457,6 @@ Test 6
         assertEquals(listOf("Hello world!", "Hello worl", "Hello world"), outputOf("TRIMR"))
     }
 
-    @Test @Ignore
-    fun executeELEM() {
-        assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
-    }
-
     @Test
     fun executeSUMDIVMULT() {
         assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
