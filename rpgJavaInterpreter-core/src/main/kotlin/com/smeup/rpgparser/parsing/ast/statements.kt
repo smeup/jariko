@@ -1490,7 +1490,7 @@ data class CatStmt(
 
     override fun execute(interpreter: InterpreterCore) {
         val factor1: String? = if (left != null) {
-            interpreter.eval(left).asString().value;
+            interpreter.eval(left).asString().value
         } else {
             null
         }
@@ -1509,7 +1509,6 @@ data class CatStmt(
         }
         var result: String = interpreter.eval(target).asString().value
 
-        // handle factor 1 null
         result = if (factor1 == null) if (blanks != null) {
             (result.trim() + blanks + factor2)
         } else {
@@ -1521,45 +1520,7 @@ data class CatStmt(
         }
 
         interpreter.assign(target, StringValue(result))
-
-
-        /*val blanks = StringValue.blank(blanksInBetween)
-        val factor2 = interpreter.eval(right)
-        var result = interpreter.eval(target)
-        val resultLen = result.asString().length()
-        val concatenatedFactors: Value
-
-        if (null != left) {
-            val factor1 = interpreter.eval(left)
-            val f1Trimmed = (factor1 as StringValue).value.trim()
-            val factor1Trimmed = StringValue(f1Trimmed)
-            concatenatedFactors = if (blanksInBetween > 0) {
-                factor1Trimmed.concatenate(blanks).concatenate(factor2)
-            } else {
-                factor1.concatenate(factor2)
-            }
-        } else {
-            concatenatedFactors = if (!result.asString().isBlank()) {
-                result
-            } else if (blanksInBetween > 0) {
-                if (blanksInBetween >= resultLen) {
-                    result
-                } else {
-                    blanks.concatenate(factor2)
-                }
-            } else {
-                result
-            }
-        }
-        val concatenatedFactorsLen = concatenatedFactors.asString().length()
-        result = if (concatenatedFactorsLen >= resultLen) {
-            concatenatedFactors.asString().getSubstring(0, resultLen)
-        } else {
-            concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
-        }
-
-        interpreter.assign(target, result)
-        interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }*/
+        interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
