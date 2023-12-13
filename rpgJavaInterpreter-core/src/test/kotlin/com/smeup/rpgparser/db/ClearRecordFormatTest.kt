@@ -25,7 +25,11 @@ class ClearRecordFormatTest : AbstractTest() {
 
     @Test
     fun clearRecordFormatTest() {
-        val expected = listOf("A§ARTI(               ) A§PESO(.00000) A§DT01(0)")
+        val expected = listOf(
+            "A§ARTI(               ) A§PESO(.00000) A§DT01(0)",
+            "A§ARTI(123456789012345) A§PESO(123.45600) A§DT01(12345678)",
+            "A§ARTI(               ) A§PESO(.00000) A§DT01(0)"
+        )
         assertEquals(
             expected, outputOfDBPgm(
                 "db/CLEARRECF",
