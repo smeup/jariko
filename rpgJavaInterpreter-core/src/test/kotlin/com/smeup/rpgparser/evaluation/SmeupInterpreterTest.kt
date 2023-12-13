@@ -63,6 +63,12 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT10_A70() {
+        val expected = listOf("CAT_1(MR. SMITH) CAT_2(RPG/400) CAT_3(RPG/4)", "CAT_1(ABC  XYZ ) CAT_2(Mr. Smith)", "CAT_1(RPG/400   )", "CAT_1(RPGIV     )")
+        assertEquals(expected, "smeup/T10_A70".outputOf())
+    }
+
+    @Test
     fun executeT16_A70() {
         val expected = listOf("A70_AR1(10) A70_AR2(20) A70_DS1(30) A70_AR3(10)")
         assertEquals(expected, "smeup/T16_A70".outputOf())

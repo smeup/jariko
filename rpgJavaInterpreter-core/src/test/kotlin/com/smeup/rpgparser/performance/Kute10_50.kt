@@ -78,7 +78,7 @@ class Kute10_50 : Kute() {
         globalSymbolTable[resultRef] = StringValue("XXXXXXXXXXXXXXXXXXXX")
 
         // Statement creation (similar to 'toAst' does)
-        val statement = catStmt(factor1DataRefExpr, factor2DataRefExpr, resultDataRefExpr, 0, null)
+        val statement = catStmt(factor1DataRefExpr, factor2DataRefExpr, resultDataRefExpr, IntLiteral(0), null)
 
         // Perform a pure kotlin loop
         var actualElapsedTimeInMillisec: Long = measureTimeMillis {
@@ -133,7 +133,7 @@ class Kute10_50 : Kute() {
     }
 
     private fun exec_CAT(statement: CatStmt) {
-        val blanksInBetween = statement.blanksInBetween
+        val blanksInBetween = eval(statement.blanksInBetween!!).asInt().value.toInt()
         val blanks = StringValue.blank(blanksInBetween)
         val factor2 = eval(statement.right)
         var result = eval(statement.target)
@@ -171,7 +171,7 @@ class Kute10_50 : Kute() {
         assign(statement.target, result)
     }
 
-    private fun catStmt(left: Expression?, right: Expression, target: AssignableExpression, blanksInBetween: Int, position: Position? = null): CatStmt {
+    private fun catStmt(left: Expression?, right: Expression, target: AssignableExpression, blanksInBetween: Expression?, position: Position? = null): CatStmt {
         return CatStmt(
                 left = left,
                 right = right,

@@ -1483,14 +1483,47 @@ data class CatStmt(
     val left: Expression?,
     val right: Expression,
     val target: AssignableExpression,
-    val blanksInBetween: Int,
+    val blanksInBetween: Expression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
-        val blanksInBetween = blanksInBetween
-        val blanks = StringValue.blank(blanksInBetween)
+        val factor1: String? = if (left != null) {
+            interpreter.eval(left).asString().value;
+        } else {
+            null
+        }
+        val factor2: String = if (right.type() is StringType) {
+            interpreter.eval(right).asString().value
+        } else {
+            throw UnsupportedOperationException("Factor 2 of CAT Statement must be a StringValue")
+        }
+        val blanks: String? = if (blanksInBetween != null) {
+            " ".repeat(interpreter.eval(blanksInBetween).asInt().value.toInt())
+        } else {
+            null
+        }
+        require(target.type() is StringType) {
+            "Result expression of CAT Statement must be a StringValue"
+        }
+        var result: String = interpreter.eval(target).asString().value
+
+        // handle factor 1 null
+        result = if (factor1 == null) if (blanks != null) {
+            (result.trim() + blanks + factor2)
+        } else {
+            result
+        } else if (blanks != null) {
+            (factor1 + blanks + factor2)
+        } else {
+            (factor1 + factor2)
+        }
+
+        interpreter.assign(target, StringValue(result))
+
+
+        /*val blanks = StringValue.blank(blanksInBetween)
         val factor2 = interpreter.eval(right)
         var result = interpreter.eval(target)
         val resultLen = result.asString().length()
@@ -1526,7 +1559,7 @@ data class CatStmt(
         }
 
         interpreter.assign(target, result)
-        interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }
+        interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }*/
     }
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
