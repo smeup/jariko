@@ -74,6 +74,18 @@ object FigurativeType : Type() {
 }
 
 @Serializable
+object RecordFormatType : Type() {
+    override val size: Int
+        get() = 0
+
+    override fun canBeAssigned(value: Value) = value is BlanksValue
+
+    override fun toString(): String {
+        return "RecordFormatType"
+    }
+}
+
+@Serializable
 object KListType : Type() {
     override val size: Int
         get() = 0

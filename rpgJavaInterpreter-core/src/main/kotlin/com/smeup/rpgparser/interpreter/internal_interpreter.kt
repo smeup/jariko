@@ -711,9 +711,23 @@ open class InternalInterpreter(
     }
 
     override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
-        val coercedValue = coerce(value, dataDefinition.type)
-        set(dataDefinition, coercedValue)
-        return coercedValue
+        // if I am working with a record format
+        if (dataDefinition.type is RecordFormatType) {
+            // currently the only assignable value for a record format type is blank
+            if (value is BlanksValue) {
+                // I iterate over all the fields of the record format and assign them the blank value
+                (dataDefinition as DataDefinition).fields.forEach { field ->
+                    assign(globalSymbolTable.dataDefinitionByName(field.name)!!, value)
+                }
+                return value
+            } else {
+                error("Cannot assign $value to $dataDefinition")
+            }
+        } else {
+            val coercedValue = coerce(value, dataDefinition.type)
+            set(dataDefinition, coercedValue)
+            return coercedValue
+        }
     }
 
     override fun assignEachElement(target: AssignableExpression, value: Value): Value {

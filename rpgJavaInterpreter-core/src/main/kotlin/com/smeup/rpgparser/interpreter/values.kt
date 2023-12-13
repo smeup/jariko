@@ -813,6 +813,7 @@ fun Type.blank(): Value {
         is FigurativeType -> BlanksValue
         is LowValType, is HiValType -> TODO()
         is UnlimitedStringType -> UnlimitedStringValue("")
+        is RecordFormatType -> BlanksValue
     }
 }
 

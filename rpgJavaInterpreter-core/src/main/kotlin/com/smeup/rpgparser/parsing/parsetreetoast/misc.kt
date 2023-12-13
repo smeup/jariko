@@ -169,6 +169,19 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
             }
         }
     )
+    // These are the fields related the record format, these fields will
+    // be used in assignment operation to lookup for the DataDefinitions related these fields
+    val fieldsDefinition = dataDefinitions.map {
+        // explicitStartOffset and explicitEndOffsets set to zero are wanted
+        FieldDefinition(name = it.name, type = it.type, explicitStartOffset = 0, explicitEndOffset = 0, position = it.position)
+    }
+    val recordFormatDefinition = DataDefinition(
+        name = metadata.recordFormat,
+        type = RecordFormatType,
+        position = position,
+        fields = fieldsDefinition
+    )
+    dataDefinitions.add(recordFormatDefinition)
     return dataDefinitions
 }
 
