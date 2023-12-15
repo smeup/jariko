@@ -29,7 +29,7 @@
      C     £DBG_Str      DSPLY
       *
      D* CAT blank number
-     C                   CLEAR                   A70_A09
+     C*                   CLEAR                   A70_A09
      C                   MOVEL(P)  'ABC'         A70_A09
      C                   MOVE      'XYZ'         A70_A03
      C                   CAT       A70_A03:2     A70_A09
@@ -40,7 +40,7 @@
      C     A70_A06       CAT       A70_A07:1     A70_A09
      C                   EVAL      £DBG_Str=%TRIMR(£DBG_Str)
      C                                     +' CAT_2('+A70_A09+')'
-      * Expect 'CAT_1(ABC  XYZ )CAT_2(Mr. Smith)'
+      * Expect 'CAT_1(ABC  XYZ ) CAT_2(Mr. Smith)'
      C     £DBG_Str      DSPLY
       *
       * CAT(P)

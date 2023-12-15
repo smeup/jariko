@@ -1485,14 +1485,16 @@ data class CatStmt(
     val target: AssignableExpression,
     val blanksInBetween: Expression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
-    override val position: Position? = null
+    override val position: Position? = null,
+    val operationExtender: String? = null
 ) : Statement(position), StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
-        val factor1: String? = if (left != null) {
+        val factor1: String = if (left != null) {
             interpreter.eval(left).asString().value
         } else {
-            null
+            // set result as factor 1
+            interpreter.eval(target).asString().value
         }
         val factor2: String = if (right.type() is StringType) {
             interpreter.eval(right).asString().value
@@ -1509,14 +1511,23 @@ data class CatStmt(
         }
         var result: String = interpreter.eval(target).asString().value
 
-        result = if (factor1 == null) if (blanks != null) {
-            (result.trim() + blanks + factor2)
+        val concatenatedString: String = if (blanks == null) {
+            // concatenate factor 1 with factor 2
+            (factor1 + factor2)
         } else {
-            result
-        } else if (blanks != null) {
+            // if blanks aren't null trim factor 1
             (factor1.trim() + blanks + factor2)
+        }
+
+        result = if (result.length > concatenatedString.length) {
+            // handle CAT(P)
+            if (operationExtender != null) {
+                concatenatedString + " ".repeat(result.length - concatenatedString.length)
+            } else {
+                (concatenatedString + result.substring(concatenatedString.length))
+            }
         } else {
-            (factor1.trim() + factor2)
+            (concatenatedString.substring(0, result.length))
         }
 
         interpreter.assign(target, StringValue(result))

@@ -1604,6 +1604,7 @@ internal fun ResultIndicatorContext.asIndex(): Int? {
 }
 
 internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CatStmt {
+    val operationExtender = this.operationExtender?.text
     val position = toPosition(conf.considerPosition)
     val left = leftExpr(conf)
     val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("COMP operation requires factor 2: ${this.text} - ${position.atLine()}")
@@ -1624,7 +1625,8 @@ internal fun CsCATContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         target = target,
         blanksInBetween = blanksInBetweenExpression,
         position = position,
-        dataDefinition = dataDefinition
+        dataDefinition = dataDefinition,
+        operationExtender = operationExtender
     )
 }
 
