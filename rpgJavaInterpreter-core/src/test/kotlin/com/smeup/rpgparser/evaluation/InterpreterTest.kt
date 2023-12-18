@@ -2125,4 +2125,16 @@ Test 6
     fun executeCONST02() {
         assertEquals(listOf("100"), outputOf("CONST02"))
     }
+
+    @Test
+    fun executeCAT() {
+        val expected = listOf("(ABCDEF)", "(CDEFGH)", "(CDEF  )", "(AB CDE)", "(AB    )", "(99 XYZ)")
+        assertEquals(expected, "CAT".outputOf())
+    }
+
+    @Test
+    fun executeCATP() {
+        val expected = listOf("(ABCDEF)", "(CDEFGH)", "(CDEF  )", "(AB CDE)", "(AB    )", "(99 XYZ)")
+        assertEquals(expected, "CATP".outputOf())
+    }
 }

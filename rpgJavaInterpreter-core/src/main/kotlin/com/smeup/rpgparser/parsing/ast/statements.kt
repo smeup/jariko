@@ -1483,49 +1483,54 @@ data class CatStmt(
     val left: Expression?,
     val right: Expression,
     val target: AssignableExpression,
-    val blanksInBetween: Int,
+    val blanksInBetween: Expression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
-    override val position: Position? = null
+    override val position: Position? = null,
+    val operationExtender: String? = null
 ) : Statement(position), StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
-        val blanksInBetween = blanksInBetween
-        val blanks = StringValue.blank(blanksInBetween)
-        val factor2 = interpreter.eval(right)
-        var result = interpreter.eval(target)
-        val resultLen = result.asString().length()
-        val concatenatedFactors: Value
-
-        if (null != left) {
-            val factor1 = interpreter.eval(left)
-            val f1Trimmed = (factor1 as StringValue).value.trim()
-            val factor1Trimmed = StringValue(f1Trimmed)
-            concatenatedFactors = if (blanksInBetween > 0) {
-                factor1Trimmed.concatenate(blanks).concatenate(factor2)
-            } else {
-                factor1.concatenate(factor2)
-            }
+        val factor1: String = if (left != null) {
+            interpreter.eval(left).asString().value
         } else {
-            concatenatedFactors = if (!result.asString().isBlank()) {
-                result
-            } else if (blanksInBetween > 0) {
-                if (blanksInBetween >= resultLen) {
-                    result
-                } else {
-                    blanks.concatenate(factor2)
-                }
-            } else {
-                result
-            }
+            // set result as factor 1
+            interpreter.eval(target).asString().value
         }
-        val concatenatedFactorsLen = concatenatedFactors.asString().length()
-        result = if (concatenatedFactorsLen >= resultLen) {
-            concatenatedFactors.asString().getSubstring(0, resultLen)
+        val factor2: String = if (right.type() is StringType) {
+            interpreter.eval(right).asString().value
         } else {
-            concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
+            throw UnsupportedOperationException("Factor 2 of CAT Statement must be a StringValue")
+        }
+        val blanks: String? = if (blanksInBetween != null) {
+            " ".repeat(interpreter.eval(blanksInBetween).asInt().value.toInt())
+        } else {
+            null
+        }
+        require(target.type() is StringType) {
+            "Result expression of CAT Statement must be a StringValue"
+        }
+        var result: String = interpreter.eval(target).asString().value
+
+        val concatenatedString: String = if (blanks == null) {
+            // concatenate factor 1 with factor 2
+            (factor1 + factor2)
+        } else {
+            // if blanks aren't null trim factor 1
+            (factor1.trim() + blanks + factor2)
         }
 
-        interpreter.assign(target, result)
+        result = if (result.length > concatenatedString.length) {
+            // handle CAT(P)
+            if (operationExtender != null) {
+                concatenatedString + " ".repeat(result.length - concatenatedString.length)
+            } else {
+                (concatenatedString + result.substring(concatenatedString.length))
+            }
+        } else {
+            (concatenatedString.substring(0, result.length))
+        }
+
+        interpreter.assign(target, StringValue(result))
         interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }
     }
 
