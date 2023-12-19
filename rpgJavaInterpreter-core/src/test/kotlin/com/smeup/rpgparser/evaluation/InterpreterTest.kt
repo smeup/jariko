@@ -2143,4 +2143,9 @@ Test 6
         val expected = listOf("AR3(1)(13) AR3(2)(3) AR3(3)(0)", "AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)")
         assertEquals(expected, "SUBARR".outputOf())
     }
+    
+    fun executeMVR() {
+        val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
+        assertEquals(expected, "MVR".outputOf())
+    }
 }

@@ -703,6 +703,16 @@ open class InternalInterpreter(
         val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
         val type = statement.target.variable.referred!!.type
         require(type is NumberType)
+        // calculation of rest
+        // NB. rest based on type of quotient
+        if (statement.mvrTarget != null) {
+            val restType = statement.mvrTarget.type()
+            require(restType is NumberType)
+            val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
+            // rest = divident - (truncatedQuotient * divisor)
+            val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
+            assign(statement.mvrTarget, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
+        }
         return if (statement.halfAdjust) {
             DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
         } else {
