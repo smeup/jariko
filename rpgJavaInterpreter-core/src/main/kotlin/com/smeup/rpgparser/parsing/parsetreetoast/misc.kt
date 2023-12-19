@@ -1370,11 +1370,15 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    val mvrTarget: AssignableExpression? = this.csMVR()?.cspec_fixed_standard_parts()?.result?.text?.let {
+        DataRefExpr(ReferenceByName(it), position)
+    }
     return DivStmt(
         target = DataRefExpr(ReferenceByName(result), position),
         halfAdjust = 'H' in extenders,
         factor1 = factor1,
         factor2 = factor2,
+        mvrTarget = mvrTarget,
         dataDefinition = dataDefinition,
         position = position
     )

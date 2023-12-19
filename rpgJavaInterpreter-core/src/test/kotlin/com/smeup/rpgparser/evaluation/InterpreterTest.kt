@@ -2137,4 +2137,10 @@ Test 6
         val expected = listOf("(ABCDEF)", "(CDEFGH)", "(CDEF  )", "(AB CDE)", "(AB    )", "(99 XYZ)")
         assertEquals(expected, "CATP".outputOf())
     }
+
+    @Test
+    fun executeMVR() {
+        val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
+        assertEquals(expected, "MVR".outputOf())
+    }
 }
