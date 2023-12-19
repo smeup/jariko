@@ -706,14 +706,11 @@ open class InternalInterpreter(
         // calculation of rest
         // NB. rest based on type of quotient
         if (statement.mvrTarget != null) {
-            val restType: NumberType = if (statement.mvrTarget.type() is NumberType) {
-                statement.mvrTarget.type() as NumberType
-            } else {
-                throw UnsupportedOperationException("Result field type in MVR opcode must be a NumberType")
-            }
-            val tronchedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
-            // rest = divident - (tronchedQuotient * divisor)
-            val rest: BigDecimal = dividend.subtract(tronchedQuotient.multiply(divisor))
+            val restType = statement.mvrTarget.type()
+            require(restType is NumberType)
+            val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
+            // rest = divident - (truncatedQuotient * divisor)
+            val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
             assign(statement.mvrTarget, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
         }
         return if (statement.halfAdjust) {
