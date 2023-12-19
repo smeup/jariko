@@ -271,6 +271,10 @@ class ExpressionEvaluation(
         }
     }
 
+    override fun eval(expression: SubarrExpr): Value {
+        TODO("Not yet implemented")
+    }
+
     override fun eval(expression: LenExpr): Value {
         return when (val value = expression.value.evalWith(this)) {
             is StringValue -> {

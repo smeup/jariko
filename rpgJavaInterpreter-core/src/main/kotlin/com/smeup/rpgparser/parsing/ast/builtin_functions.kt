@@ -126,6 +126,25 @@ data class SubstExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %SUBARR
+@Serializable
+data class SubarrExpr(
+    var array: Expression,
+    var start: Expression,
+    val numberOfElements: Expression? = null,
+    override val position: Position? = null
+) :
+    AssignableExpression(position) {
+    override fun render(): String {
+        val len = if (numberOfElements != null) ": ${numberOfElements.render()}" else ""
+        return "%SUBARR(${this.array.render()} : ${start.render()} $len)"
+    }
+    override fun size(): Int {
+        TODO("size")
+    }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %LEN
 @Serializable
 data class LenExpr(var value: Expression, override val position: Position? = null) :
