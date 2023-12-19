@@ -2137,4 +2137,10 @@ Test 6
         val expected = listOf("(ABCDEF)", "(CDEFGH)", "(CDEF  )", "(AB CDE)", "(AB    )", "(99 XYZ)")
         assertEquals(expected, "CATP".outputOf())
     }
+
+    @Test
+    fun executeSUBARR() {
+        val expected = listOf("AR3(1)(13) AR3(2)(3) AR3(3)(0)", "AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)")
+        assertEquals(expected, "SUBARR".outputOf())
+    }
 }
