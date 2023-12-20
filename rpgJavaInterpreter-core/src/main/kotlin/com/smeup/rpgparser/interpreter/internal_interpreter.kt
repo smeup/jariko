@@ -790,6 +790,25 @@ open class InternalInterpreter(
 
                 return assign(target.string as AssignableExpression, newValue)
             }
+            is SubarrExpr -> {
+                require(value is ArrayValue)
+                // replace portion of array with another array
+                val start: Int = eval(target.start).asInt().value.toInt()
+                val numberOfElement: Int? = if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
+                val array: ArrayValue = eval(target.array).asArray().copy()
+                val to: Int = if (numberOfElement == null) {
+                    array.arrayLength()
+                } else {
+                    (start) + numberOfElement
+                } - 1
+                // replace elements
+                var j = 1
+                for (i in start..to) {
+                    array.setElement(i, coerce(value.getElement(j), target.type().asArray().element))
+                    j++
+                }
+                return assign(target.array as AssignableExpression, array)
+            }
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
                     is DataStructValue -> {
