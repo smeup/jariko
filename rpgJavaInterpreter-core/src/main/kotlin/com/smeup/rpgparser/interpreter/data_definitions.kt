@@ -756,7 +756,14 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     }
     number = sign + number
     return try {
-        value.toBigDecimal()
+        val builder = StringBuilder()
+        val valueWithoutSeparator = value.replace(".", "").replace(",", "")
+        val decimalSlice = valueWithoutSeparator.substring(valueWithoutSeparator.length - scale)
+        builder
+            .append(valueWithoutSeparator.substring(0, valueWithoutSeparator.length - decimalSlice.length))
+            .append(".")
+            .append(decimalSlice)
+        builder.toString().toBigDecimal()
     } catch (e: Exception) {
         number.toBigDecimal()
     }

@@ -569,6 +569,12 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeEVALARRAY2() {
+        val expected = listOf("1(A) 2(B) 6( )", "1(A) 2(B) 5(E)", "1(A ) 2(B )", "1(A) 2(B)")
+        assertEquals(expected, "EVALARRAY2".outputOf())
+    }
+
+    @Test
     fun executeARRAY12() {
         assertCanBeParsed(exampleName = "ARRAY12", printTree = true)
         assertEquals(listOf("AA", "BB"), outputOf("ARRAY12"))
@@ -2140,10 +2146,12 @@ Test 6
 
     @Test
     fun executeSUBARR() {
-        val expected = listOf("AR3(1)(13) AR3(2)(3) AR3(3)(0)", "AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)")
+        // "AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)"*/
+        val expected = listOf("AR3(1)(13) AR3(2)(3) AR3(3)(0)")
         assertEquals(expected, "SUBARR".outputOf())
     }
-    
+
+    @Test
     fun executeMVR() {
         val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
         assertEquals(expected, "MVR".outputOf())

@@ -214,7 +214,7 @@ data class EvalStmt(
     override fun execute(interpreter: InterpreterCore) {
             // Should I assign it one by one?
             val result = if (target.type().isArray() &&
-                    target.type().asArray().element.canBeAssigned(expression.type())) {
+                    target.type().asArray().element.canBeAssigned(expression.type()) && expression.type() !is ArrayType) {
                 interpreter.assignEachElement(target, expression, operator)
             } else {
                 interpreter.assign(target, expression, operator)
