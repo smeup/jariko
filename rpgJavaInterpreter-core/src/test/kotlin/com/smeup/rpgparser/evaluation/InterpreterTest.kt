@@ -31,10 +31,7 @@ import org.junit.experimental.categories.Category
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 open class InterpreterTest : AbstractTest() {
 
@@ -2142,5 +2139,13 @@ Test 6
     fun executeMVR() {
         val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
         assertEquals(expected, "MVR".outputOf())
+    }
+
+    @Test
+    fun executeTIMEST_CLR() {
+        val values = "TIMEST_CLR".outputOf()
+        assertEquals("0001-01-01-00.00.00.000000", values[0])
+        assertNotEquals("0001-01-01-00.00.00.000000", values[1])
+        assertEquals("0001-01-01-00.00.00.000000", values[2])
     }
 }
