@@ -69,6 +69,12 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT16_A20() {
+        val expected = listOf("(Ontario, Canada)", "(Ontario, California     )", "(Ontario, Ontario, California     )", "(Somewhere else: Ontario, Ontario, California     )")
+        assertEquals(expected, "smeup/T16_A20".outputOf())
+    }
+
+    @Test
     fun executeT16_A70() {
         val expected = listOf("A70_AR1(10) A70_AR2(20) A70_DS1(30) A70_AR3(10)")
         assertEquals(expected, "smeup/T16_A70".outputOf())

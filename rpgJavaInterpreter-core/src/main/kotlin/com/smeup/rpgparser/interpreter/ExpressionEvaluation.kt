@@ -546,22 +546,36 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: ReplaceExpr): Value {
-        val replString = evalAsString(expression.replacement)
+        val replacement = evalAsString(expression.replacement)
         val sourceString = evalAsString(expression.source)
-        val replStringLength: Int = replString.length
-        // case of %REPLACE(stringToReplaceWith:stringSource)
-        if (expression.start == null) {
-            return StringValue(sourceString.replaceRange(0..replStringLength - 1, replString))
-        }
-        // case of %REPLACE(stringToReplaceWith:stringSource:startIndex)
-        if (expression.length == null) {
-            val startNr = evalAsInt(expression.start)
-            return StringValue(sourceString.replaceRange((startNr - 1)..(startNr + replStringLength - 2), replString))
+        val replacementLength: Int = replacement.length
+        val result: String = if (expression.start == null) {
+            // case of %REPLACE(stringToReplaceWith:stringSource)
+            // replace text at beginning of variable
+            sourceString.replaceRange(0 until replacementLength, replacement)
         } else {
-            // case of %REPLACE(stringToReplaceWith:stringSource:startIndex:nrOfCharsToReplace)
-            val startNr = evalAsInt(expression.start) - 1
-            val nrOfCharsToReplace = evalAsInt(expression.length)
-            return StringValue(sourceString.replaceRange(startNr, (startNr + nrOfCharsToReplace), replString))
+            val start = evalAsInt(expression.start) - 1
+            if (expression.length == null) {
+                // case of %REPLACE(stringToReplaceWith:stringSource:startIndex)
+                // replace text at specified position
+                val truncatedSource = sourceString.substring(0, start)
+                if (truncatedSource.length + replacement.length < sourceString.length) {
+                    (truncatedSource + replacement + sourceString.substring(truncatedSource.length + replacementLength))
+                } else {
+                    truncatedSource + replacement
+                }
+            } else {
+                // case of %REPLACE(stringToReplaceWith:stringSource:startIndex:nrOfCharsToReplace)
+                // replace to insert or delete text
+                val characterToReplace = evalAsInt(expression.length)
+                sourceString.replaceRange(start, (start + characterToReplace), replacement)
+            }
+        }
+        // truncated if length is greater than type.elementSize
+        return if (result.length > expression.source.type().elementSize()) {
+            StringValue(result.substring(0, expression.source.type().elementSize()), expression.source.type().hasVariableSize())
+        } else {
+            StringValue(result, expression.source.type().hasVariableSize())
         }
     }
 
