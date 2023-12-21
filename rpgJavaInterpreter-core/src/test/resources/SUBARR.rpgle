@@ -31,4 +31,19 @@
       * Expected 'AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)'
      C     £DBG_Str      DSPLY
       *
+     C                   CLEAR                   A80_AR1
+     C                   EVAL      A80_AR1(1)=9
+     C                   EVAL      A80_AR1(2)=13
+     C                   EVAL      A80_AR1(3)=16
+     C                   EVAL      A80_AR1(4)=5
+     C                   EVAL      A80_AR1(5)=3
+     C                   SORTA     %SUBARR(A80_AR1:2:3)
+     C                   EVAL      £DBG_Str='AR1(1)('+%CHAR(A80_AR1(1))+')'
+     C                                    +' AR1(2)('+%CHAR(A80_AR1(2))+')'
+     C                                    +' AR1(3)('+%CHAR(A80_AR1(3))+')'
+     C                                    +' AR1(4)('+%CHAR(A80_AR1(4))+')'
+     C                                    +' AR1(5)('+%CHAR(A80_AR1(5))+')'
+      * Expected 'AR2(1)(9) AR2(2)(5) AR2(3)(13) AR2(4)(16) AR2(5)(3)'
+     C     £DBG_Str      DSPLY
+      *
      C                   SETON                                        LR
