@@ -1156,7 +1156,7 @@ data class TimeStmt(
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
-                interpreter.assign(value, TimeStampValue(Date()))
+                interpreter.assign(value, TimeStampValue.now())
             }
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }

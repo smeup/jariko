@@ -176,6 +176,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is UnlimitedStringType -> {
             return UnlimitedStringValue(value.value)
         }
+        is TimeStampType -> TimeStampValue.of(value.value)
         else -> TODO("Converting String to $type")
     }
 }
