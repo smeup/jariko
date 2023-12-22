@@ -305,11 +305,7 @@ open class InternalInterpreter(
                 .map {
                     // force rpgle to zoned if is number type
                     val elementType = if (arrayType.element is NumberType) {
-                        NumberType(
-                            entireDigits = arrayType.element.entireDigits,
-                            decimalDigits = arrayType.element.decimalDigits,
-                            rpgType = RpgType.ZONED
-                        )
+                        arrayType.element.copy(rpgType = RpgType.ZONED.rpgType)
                     } else {
                         arrayType.element
                     }
