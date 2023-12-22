@@ -451,7 +451,16 @@ data class TimeStampValue(@Contextual val value: Date) : Value {
     override fun asTimeStamp() = this
 
     companion object {
-        val LOVAL = TimeStampValue(GregorianCalendar(0, Calendar.JANUARY, 0).time)
+        val LOVAL: TimeStampValue by lazy {
+            val calendar = GregorianCalendar().apply {
+                clear()
+                set(Calendar.YEAR, 1)
+                set(Calendar.MONTH, Calendar.JANUARY)
+                set(Calendar.DAY_OF_MONTH, 1)
+                set(Calendar.ERA, GregorianCalendar.BC)
+            }
+            TimeStampValue(calendar.time)
+        }
     }
 
     override fun copy(): TimeStampValue = this

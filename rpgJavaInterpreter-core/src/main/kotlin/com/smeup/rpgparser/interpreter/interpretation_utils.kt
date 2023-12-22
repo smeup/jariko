@@ -41,7 +41,7 @@ private fun TimeStampValue.timestampFormatting(format: String?): String =
     if ("*ISO0" == format) {
         SimpleDateFormat("yyyyMMddHHmmssSSS000").format(value)
     } else {
-        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(value)
+        SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(value)
     }
 
 fun CompilationUnit.activationGroupType(): ActivationGroupType? {

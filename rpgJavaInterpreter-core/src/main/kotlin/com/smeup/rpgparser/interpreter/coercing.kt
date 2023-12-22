@@ -54,6 +54,9 @@ private fun coerceBlanks(type: Type): Value {
         is RecordFormatType -> {
             type.blank()
         }
+        is TimeStampType -> {
+            TimeStampValue.LOVAL
+        }
         else -> TODO("Converting BlanksValue to $type")
     }
 }
