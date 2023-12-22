@@ -27,6 +27,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
@@ -298,11 +299,21 @@ open class InternalInterpreter(
         // probably it is an error during the ast processing.
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
-        val lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
+        val lines = arrayType.compileTimeRecordsPerLine ?: compileTimeArray.lines.size
         val l: MutableList<Value> =
             compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
                 .map {
-                    coerce(StringValue(it), arrayType.element)
+                    // force rpgle to zoned if is number type
+                    val elementType = if (arrayType.element is NumberType) {
+                        NumberType(
+                            entireDigits = arrayType.element.entireDigits,
+                            decimalDigits = arrayType.element.decimalDigits,
+                            rpgType = RpgType.ZONED
+                        )
+                    } else {
+                        arrayType.element
+                    }
+                    coerce(StringValue(it), elementType)
                 }
                 .resizeTo(arrayType.nElements, arrayType.element.blank())
                 .toMutableList()
