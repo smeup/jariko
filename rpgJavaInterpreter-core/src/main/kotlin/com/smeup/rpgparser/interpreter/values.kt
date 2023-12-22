@@ -588,6 +588,10 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
         }
     }
 
+    override fun take(from: Int, to: Int): Value {
+        return ConcreteArrayValue(elements.subList(from, to), this.elementType)
+    }
+
     fun takeAll(): Value {
         var result = elements[0]
         for (i in 1 until elements.size) {

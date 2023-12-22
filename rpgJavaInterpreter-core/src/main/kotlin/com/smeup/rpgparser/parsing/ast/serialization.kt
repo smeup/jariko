@@ -143,6 +143,7 @@ private val modules = SerializersModule {
         subclass(SqrtExpr::class)
         subclass(StringLiteral::class)
         subclass(SubstExpr::class)
+        subclass(SubarrExpr::class)
         subclass(TimeStampExpr::class)
         subclass(TranslateExpr::class)
         subclass(TrimExpr::class)
@@ -159,6 +160,7 @@ private val modules = SerializersModule {
         subclass(IndicatorExpr::class)
         subclass(QualifiedAccessExpr::class)
         subclass(SubstExpr::class)
+        subclass(SubarrExpr::class)
     }
     polymorphic(Directive::class) {
         subclass(ActivationGroupDirective::class)

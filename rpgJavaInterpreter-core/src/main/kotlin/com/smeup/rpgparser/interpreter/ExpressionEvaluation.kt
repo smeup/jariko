@@ -271,6 +271,18 @@ class ExpressionEvaluation(
         }
     }
 
+    override fun eval(expression: SubarrExpr): Value {
+        val start = expression.start.evalWith(this).asInt().value.toInt() - 1
+        val numberOfElement: Int? = if (expression.numberOfElements != null) expression.numberOfElements.evalWith(this).asInt().value.toInt() else null
+        val originalArray: ArrayValue = expression.array.evalWith(this).asArray()
+        val to: Int = if (numberOfElement == null) {
+            originalArray.arrayLength()
+        } else {
+            (start) + numberOfElement
+        }
+        return originalArray.take(start, to)
+    }
+
     override fun eval(expression: LenExpr): Value {
         return when (val value = expression.value.evalWith(this)) {
             is StringValue -> {

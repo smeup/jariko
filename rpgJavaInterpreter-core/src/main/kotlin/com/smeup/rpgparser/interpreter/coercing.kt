@@ -28,7 +28,7 @@ private fun coerceBlanks(type: Type): Value {
         }
         is ArrayType -> {
             createArrayValue(type.element, type.nElements) {
-                type.element.blank()
+                coerceBlanks(type.element)
             }
         }
         is NumberType -> {
@@ -195,7 +195,29 @@ fun coerce(value: Value, type: Type): Value {
                     value.asString()
                 }
                 is ArrayType -> {
-                    value
+                    if (value.elements().size > type.nElements) {
+                        // coerce elements and truncate array
+                        val values: MutableList<Value> = mutableListOf()
+                        for (i in 1..type.numberOfElements()) {
+                            values.add(coerce(value.getElement(i), type.element))
+                        }
+                        ConcreteArrayValue(values, type.element)
+                    } else {
+                        if (value.elements().size == type.nElements) {
+                            // coerce elements and set new type creating new instance
+                            val values: MutableList<Value> = value.elements().map {
+                                coerce(it, type.element)
+                            }.toMutableList()
+                            ConcreteArrayValue(values, type.element)
+                        } else {
+                            // create an array blank and set element
+                            val array = coerceBlanks(type) as ConcreteArrayValue
+                            value.elements().forEachIndexed { i, v ->
+                                array.setElement(i + 1, coerce(v, type.element))
+                            }
+                            array
+                        }
+                    }
                 }
                 else -> TODO("Converting ArrayValue to $type")
             }

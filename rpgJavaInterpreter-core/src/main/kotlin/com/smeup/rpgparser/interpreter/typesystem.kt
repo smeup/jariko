@@ -302,6 +302,9 @@ fun Expression.type(): Type {
         is SubstExpr -> {
             return this.string.type()
         }
+        is SubarrExpr -> {
+            return this.array.type()
+        }
         is QualifiedAccessExpr -> {
             return this.field.referred!!.type
         }

@@ -2642,6 +2642,7 @@ target:
     | container=idOrKeyword FREE_DOT field=idOrKeyword #qualifiedTarget
     | base=target OPEN_PAREN index=expression CLOSE_PAREN #indexedTarget
     | bif_subst #substTarget
+    | bif_subarr #subarrTarget
     | container=idOrKeyword DOT fieldName=idOrKeyword #qualifiedTarget
     | indic=SPLAT_INDICATOR #indicatorTarget
     | SPLAT_IN #globalIndicatorTarget

@@ -27,6 +27,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
@@ -298,11 +299,17 @@ open class InternalInterpreter(
         // probably it is an error during the ast processing.
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
-        val lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
+        val lines = arrayType.compileTimeRecordsPerLine ?: compileTimeArray.lines.size
         val l: MutableList<Value> =
             compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
                 .map {
-                    coerce(StringValue(it), arrayType.element)
+                    // force rpgle to zoned if is number type
+                    val elementType = if (arrayType.element is NumberType) {
+                        arrayType.element.copy(rpgType = RpgType.ZONED.rpgType)
+                    } else {
+                        arrayType.element
+                    }
+                    coerce(StringValue(it), elementType)
                 }
                 .resizeTo(arrayType.nElements, arrayType.element.blank())
                 .toMutableList()
@@ -789,6 +796,25 @@ open class InternalInterpreter(
                 }
 
                 return assign(target.string as AssignableExpression, newValue)
+            }
+            is SubarrExpr -> {
+                require(value is ArrayValue)
+                // replace portion of array with another array
+                val start: Int = eval(target.start).asInt().value.toInt()
+                val numberOfElement: Int? = if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
+                val array: ArrayValue = eval(target.array).asArray().copy()
+                val to: Int = if (numberOfElement == null) {
+                    array.arrayLength()
+                } else {
+                    (start) + numberOfElement
+                } - 1
+                // replace elements
+                var j = 1
+                for (i in start..to) {
+                    array.setElement(i, coerce(value.getElement(j), target.type().asArray().element))
+                    j++
+                }
+                return assign(target.array as AssignableExpression, array)
             }
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
