@@ -2,6 +2,8 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
 import org.junit.Test
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -62,6 +64,18 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT04_A40() {
         val expected = listOf("A40_P1(122469.88)A40_P2(987.22)A40_P3(123456.10)A40_P4(121028170.03)")
         assertEquals(expected, "smeup/T04_A40".outputOf())
+    }
+
+    @Test
+    fun executeT04_A80() {
+        val actual = "smeup/T04_A80".outputOf()
+        val t = LocalDateTime.now()
+        val expected = listOf(
+            DateTimeFormatter.ofPattern("HHmmss").format(t),
+            DateTimeFormatter.ofPattern("HHmmssddMMyy").format(t),
+            DateTimeFormatter.ofPattern("HHmmssddMMyyyy").format(t)
+        )
+        assertEquals(expected, actual)
     }
 
     @Test

@@ -33,6 +33,7 @@ import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -1156,7 +1157,20 @@ data class TimeStmt(
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
-                interpreter.assign(value, TimeStampValue.now())
+                val t = TimeStampValue.now()
+                when (val valueType = value.type()) {
+                    is TimeStampType -> interpreter.assign(value, t)
+                    is NumberType -> {
+                        val timestampFormatted: String = when (valueType.elementSize()) {
+                            6 -> DateTimeFormatter.ofPattern("HHmmss").format(t.value)
+                            12 -> DateTimeFormatter.ofPattern("HHmmssddMMyy").format(t.value)
+                            14 -> DateTimeFormatter.ofPattern("HHmmssddMMyyyy").format(t.value)
+                            else -> throw UnsupportedOperationException("TIME Statement only supports 6, 12, and 14 as the length of the Integer data type")
+                        }
+                        interpreter.assign(value, IntValue(timestampFormatted.toLong()))
+                    }
+                    else -> throw UnsupportedOperationException("TIME Statement only supports Timestamp or Integer data type")
+                }
             }
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }
