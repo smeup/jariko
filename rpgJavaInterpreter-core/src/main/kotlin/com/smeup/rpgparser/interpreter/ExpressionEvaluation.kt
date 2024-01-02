@@ -27,7 +27,7 @@ import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.time.ZoneId
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -358,11 +358,11 @@ class ExpressionEvaluation(
 
     override fun eval(expression: TimeStampExpr): Value {
         if (expression.value == null) {
-            return TimeStampValue(Date())
+            return TimeStampValue.now()
         } else {
             val evaluated = expression.value.evalWith(this)
             if (evaluated is StringValue) {
-                return TimeStampValue(evaluated.value.asIsoDate())
+                return TimeStampValue.of(evaluated.value)
             }
             TODO("TimeStamp parsing: " + evaluated)
         }
@@ -381,27 +381,27 @@ class ExpressionEvaluation(
         return when (expression.durationCode) {
             is DurationInMSecs -> IntValue(
                 ChronoUnit.MICROS.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInDays -> IntValue(
                 ChronoUnit.DAYS.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInSecs -> IntValue(
                 ChronoUnit.SECONDS.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInMinutes -> IntValue(
                 ChronoUnit.MINUTES.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInHours -> IntValue(
                 ChronoUnit.HOURS.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInMonths -> IntValue(

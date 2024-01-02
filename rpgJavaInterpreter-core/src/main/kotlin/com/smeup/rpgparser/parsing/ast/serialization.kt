@@ -21,6 +21,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
+import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.decodeFromString
@@ -31,6 +32,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 private val modules = SerializersModule {
     polymorphic(AbstractDataDefinition::class) {
@@ -176,6 +178,7 @@ private val modules = SerializersModule {
         subclass(MuteTypeAnnotation::class)
     }
     contextual(BigDecimal::class, BigDecimalSerializer)
+    contextual(LocalDateTime::class, LocalDateTimeSerializer)
 }
 
 val json = Json {

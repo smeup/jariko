@@ -23,9 +23,9 @@ import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 const val PAD_CHAR = ' '
@@ -136,7 +136,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Abstra
         return BooleanValue.FALSE
     }
 
-    override fun asTimeStamp(): TimeStampValue = TimeStampValue(value.asIsoDate())
+    override fun asTimeStamp(): TimeStampValue = TimeStampValue.of(value)
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
@@ -438,10 +438,10 @@ data class CharacterValue(val value: Array<Char>) : Value {
 }
 
 @Serializable
-data class TimeStampValue(@Contextual val value: Date) : Value {
+data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
 
     val localDate: LocalDate by lazy {
-        Instant.ofEpochMilli(value.time).atZone(ZoneId.systemDefault()).toLocalDate()
+        value.toLocalDate()
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
@@ -451,22 +451,27 @@ data class TimeStampValue(@Contextual val value: Date) : Value {
     override fun asTimeStamp() = this
 
     companion object {
+        val DEFAULT_FORMAT = "yyyy-MM-dd-HH.mm.ss.SSSSSS"
         val LOVAL: TimeStampValue by lazy {
-            val calendar = GregorianCalendar().apply {
-                clear()
-                set(Calendar.YEAR, 1)
-                set(Calendar.MONTH, Calendar.JANUARY)
-                set(Calendar.DAY_OF_MONTH, 1)
-                set(Calendar.ERA, GregorianCalendar.BC)
+            TimeStampValue(LocalDateTime.parse("0001-01-01-00.00.00.000000", DateTimeFormatter.ofPattern(DEFAULT_FORMAT)))
+        }
+        fun of(value: String): TimeStampValue {
+            // parse only Date
+            return if (value.trim().length < 11) {
+                TimeStampValue(LocalDate.parse(value.trim(), DateTimeFormatter.ofPattern(DEFAULT_FORMAT.substring(0, value.trim().length))).atStartOfDay())
+            } else {
+                TimeStampValue(LocalDateTime.parse(value.trim(), DateTimeFormatter.ofPattern(DEFAULT_FORMAT.substring(0, value.trim().length))))
             }
-            TimeStampValue(calendar.time)
+        }
+        fun now(): TimeStampValue {
+            return TimeStampValue(LocalDateTime.now())
         }
     }
 
     override fun copy(): TimeStampValue = this
 
     override fun asString(): StringValue {
-        return StringValue(value.toString())
+        return StringValue(DateTimeFormatter.ofPattern(DEFAULT_FORMAT).format(value))
     }
 }
 
