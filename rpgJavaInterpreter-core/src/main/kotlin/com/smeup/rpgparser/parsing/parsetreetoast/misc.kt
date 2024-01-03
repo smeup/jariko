@@ -1290,7 +1290,7 @@ private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: In
 
 private fun String.toDoubleExpression(position: Position?, index: Int): Pair<Expression, Int?> {
     val baseStringTokens = this.split(":")
-    val startPosition = 0;
+    val startPosition = 0
     val reference = baseStringTokens[index]
     return DataRefExpr(ReferenceByName(reference), position) to startPosition
 }
