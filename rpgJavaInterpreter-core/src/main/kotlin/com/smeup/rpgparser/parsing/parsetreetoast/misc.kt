@@ -1286,13 +1286,22 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
 }
 
 private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Pair<Expression, Int?> =
-    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index) else this.content.toAst(conf) to null
+    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index, conf) else this.content.toAst(conf) to null
 
-private fun String.toDoubleExpression(position: Position?, index: Int): Pair<Expression, Int?> {
+private fun String.toDoubleExpression(position: Position?, index: Int, conf: ToAstConfiguration): Pair<Expression, Int?> {
     val baseStringTokens = this.split(":")
     val startPosition = 0
-    val reference = baseStringTokens[index]
-    return DataRefExpr(ReferenceByName(reference), position) to startPosition
+    var reference = baseStringTokens[index]
+    var ret: Pair<Expression, Int?>
+
+    val regexp = Regex("'(.*?)'")
+    if (reference.matches(regexp)) {
+        reference = reference.replace("'", "")
+        ret = StringLiteral(reference, position) to startPosition
+    } else {
+        ret = DataRefExpr(ReferenceByName(reference), position) to startPosition
+    }
+    return ret
 }
 
 private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Expression, Int?> =

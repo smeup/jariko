@@ -51,4 +51,19 @@
      C     UP:LO         XLATE     RESULT3:6     RESULT3
      C     RESULT3       DSPLY
       *
+      * In the following examples, the space ' ' in the variable A90_N1 is replaced
+      * by '-'. As a result, A90_A1='999-9999'.
+     C                   MOVE      '999 9999'    A90_N1            8
+     C     ' ':'-'       XLATE     A90_N1        A90_A1            8
+     C     A90_A1        DSPLY
+      *
+     C                   MOVE      '999 9999'    A90_N1
+     C     V1:'-'        XLATE     A90_N1        A90_A1
+     C     A90_A1        DSPLY
+      *
+      *
+     C                   MOVE      '999 9999'    A90_N1
+     C     ' ':V2        XLATE     A90_N1        A90_A1
+     C     A90_A1        DSPLY
+      *
      C                   SETON                                        LR

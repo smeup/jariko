@@ -910,7 +910,7 @@ Test 6
 
     @Test
     fun executeXLATEBIF() {
-        assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
+        assertEquals(listOf("RPG DEPT", "RPG Dept", "999-9999"), outputOf("XLATEBIF"))
     }
 
     @Test
@@ -2146,6 +2146,6 @@ Test 6
 
     @Test
     fun executeXLATEOP() {
-        assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept"), outputOf("XLATEOP"))
+        assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept", "999-9999", "999-9999", "999-9999"), outputOf("XLATEOP"))
     }
 }

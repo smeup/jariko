@@ -10,11 +10,11 @@
      D A90_LO          C                   'abcdefghijklmnopqrs-
      D                                     tuvwxyz'
       *
-     C*                   EVAL      £DBG_Pas='P01'
-     C*                   MOVE      '999 9999'    A90_N1            8
-     C*      ' ':'-'      XLATE     A90_N1        A90_A1            8
-     C*                   EVAL      £DBG_Str=A90_A1
-     C*     £DBG_Str      DSPLY
+     C                   EVAL      £DBG_Pas='P01'
+     C                   MOVE      '999 9999'    A90_N1            8
+     C      ' ':'-'      XLATE     A90_N1        A90_A1            8
+     C                   EVAL      £DBG_Str=A90_A1
+     C     £DBG_Str      DSPLY
       *
      C                   EVAL      £DBG_Pas='P02'
      C                   MOVE      'RPG DEPT'    A90_A2
