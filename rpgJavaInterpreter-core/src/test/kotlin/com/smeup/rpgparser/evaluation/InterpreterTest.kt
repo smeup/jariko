@@ -2143,4 +2143,9 @@ Test 6
         val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
         assertEquals(expected, "MVR".outputOf())
     }
+
+    @Test
+    fun executeXLATEOP() {
+        assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept"), outputOf("XLATEOP"))
+    }
 }

@@ -89,6 +89,7 @@ private val modules = SerializersModule {
         subclass(TimeStmt::class)
         subclass(UpdateStmt::class)
         subclass(XFootStmt::class)
+        subclass(XlateStmt::class)
         subclass(WriteStmt::class)
         subclass(ZAddStmt::class)
         subclass(ZSubStmt::class)

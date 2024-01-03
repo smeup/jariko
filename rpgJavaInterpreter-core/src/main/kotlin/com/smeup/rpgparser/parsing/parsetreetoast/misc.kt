@@ -889,6 +889,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csOCCUR() != null -> this.csOCCUR()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csXLATE() != null -> this.csXLATE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -1280,6 +1283,16 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
         this.cspec_fixed_standard_parts()?.result?.toAst(conf),
         position
     )
+}
+
+private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Pair<Expression, Int?> =
+    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index) else this.content.toAst(conf) to null
+
+private fun String.toDoubleExpression(position: Position?, index: Int): Pair<Expression, Int?> {
+    val baseStringTokens = this.split(":")
+    val startPosition = 0;
+    val reference = baseStringTokens[index]
+    return DataRefExpr(ReferenceByName(reference), position) to startPosition
 }
 
 private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Expression, Int?> =
@@ -1774,6 +1787,26 @@ internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         position = position,
         dataDefinition = dataDefinition,
         errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
+    )
+}
+
+internal fun CsXLATEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): XlateStmt {
+    val position = toPosition(conf.considerPosition)
+    val (from, compareLength2) = this.factor1Context().toDoubleExpression(conf, 0)
+    val (to, compareLength) = this.factor1Context().toDoubleExpression(conf, 1)
+    val (string, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+    val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return XlateStmt(
+        from = from,
+        to = to,
+        string = string,
+        startPos = startPosition ?: 1,
+        target = this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
+        rightIndicators = rightIndicators,
+        dataDefinition = dataDefinition,
+        position = position
     )
 }
 
