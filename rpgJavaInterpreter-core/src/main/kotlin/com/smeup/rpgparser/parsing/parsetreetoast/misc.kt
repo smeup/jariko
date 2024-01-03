@@ -1285,21 +1285,21 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     )
 }
 
-private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Pair<Expression, Int?> =
-    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index, conf) else this.content.toAst(conf) to null
+private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Expression =
+    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index, conf) else this.content.toAst(conf)
 
-private fun String.toDoubleExpression(position: Position?, index: Int, conf: ToAstConfiguration): Pair<Expression, Int?> {
+private fun String.toDoubleExpression(position: Position?, index: Int, conf: ToAstConfiguration): Expression {
     val baseStringTokens = this.split(":")
     val startPosition = 0
     var reference = baseStringTokens[index]
-    var ret: Pair<Expression, Int?>
+    var ret: Expression
 
     val regexp = Regex("'(.*?)'")
     if (reference.matches(regexp)) {
         reference = reference.replace("'", "")
-        ret = StringLiteral(reference, position) to startPosition
+        ret = StringLiteral(reference, position)
     } else {
-        ret = DataRefExpr(ReferenceByName(reference), position) to startPosition
+        ret = DataRefExpr(ReferenceByName(reference), position)
     }
     return ret
 }
@@ -1801,8 +1801,8 @@ internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsXLATEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): XlateStmt {
     val position = toPosition(conf.considerPosition)
-    val (from, compareLength2) = this.factor1Context().toDoubleExpression(conf, 0)
-    val (to, compareLength) = this.factor1Context().toDoubleExpression(conf, 1)
+    val from = this.factor1Context().toDoubleExpression(conf, 0)
+    val to = this.factor1Context().toDoubleExpression(conf, 1)
     val (string, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
     val result = this.cspec_fixed_standard_parts().result.text
