@@ -2157,7 +2157,8 @@ Test 6
     fun executeXLATEOP() {
         assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept", "999-9999", "999-9999", "999-9999"), outputOf("XLATEOP"))
     }
-    
+
+    @Test
     fun executeTIMEST_CLR() {
         val values = "TIMEST_CLR".outputOf()
         assertEquals("0001-01-01-00.00.00.000000", values[0])
