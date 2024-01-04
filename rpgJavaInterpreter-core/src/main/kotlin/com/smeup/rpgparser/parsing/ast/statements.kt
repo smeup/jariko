@@ -1730,3 +1730,39 @@ fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, 
         if (errorIndicator == null) throw e else interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
     }
 }
+
+@Serializable
+data class OpenStmt(
+    @Transient open val name: String = "", // Factor 2
+    @Transient override val position: Position? = null,
+    val operationExtender: String?,
+    val errorIndicator: IndicatorKey?
+) : Statement(position) {
+    init {
+        require(operationExtender == null) {
+            "Operation extender not supported"
+        }
+    }
+    override fun execute(interpreter: InterpreterCore) {
+        val dbFile = interpreter.dbFile(name, this)
+        dbFile.open = true
+    }
+}
+
+data class CloseStmt(
+    @Transient open val name: String = "", // Factor 2
+    @Transient override val position: Position? = null,
+    val operationExtender: String?,
+    val errorIndicator: IndicatorKey?
+) : Statement(position) {
+
+    init {
+        require(operationExtender == null) {
+            "Operation extender not supported"
+        }
+    }
+    override fun execute(interpreter: InterpreterCore) {
+        val dbFile = interpreter.dbFile(name, this)
+        dbFile.open = false
+    }
+}

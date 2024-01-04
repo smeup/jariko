@@ -61,7 +61,8 @@ class InterpreterStatus(
     val indicators: HashMap<IndicatorKey, BooleanValue>,
     var returnValue: Value? = null,
     var params: Int = 0,
-    var inzsrExecuted: Boolean = false
+    var inzsrExecuted: Boolean = false,
+    var dbFileMap: DBFileMap
 ) {
     var lastFound = false
     var lastDBFile: DBFile? = null
@@ -110,12 +111,12 @@ open class InternalInterpreter(
 
     fun logsEnabled() = logHandlers.isNotEmpty()
 
-    private val status = InterpreterStatus(globalSymbolTable, indicators)
+    private val dbFileMap = DBFileMap()
+
+    private val status = InterpreterStatus(globalSymbolTable, indicators, dbFileMap= dbFileMap)
     override fun getStatus(): InterpreterStatus {
         return status
     }
-
-    private val dbFileMap = DBFileMap()
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 

@@ -64,6 +64,8 @@ class DBFileMap {
  * */
 data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition: FileDefinition, val jarikoMetadata: FileMetadata) : DBFile {
 
+    var open = false
+
     override var fileMetadata = dbFile.fileMetadata
 
     override var name = dbFile.name
