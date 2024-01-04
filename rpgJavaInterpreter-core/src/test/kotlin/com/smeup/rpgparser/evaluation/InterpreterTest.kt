@@ -31,10 +31,7 @@ import org.junit.experimental.categories.Category
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 open class InterpreterTest : AbstractTest() {
 
@@ -566,6 +563,12 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeEVALARRAY1() {
         assertEquals(listOf("ABCDEFGHIL", "ABCDEFGHIL", "ABCDEFGHIL", "  XXXXXXXXXXXXXXXXXX"), outputOf("EVALARRAY1"))
+    }
+
+    @Test
+    fun executeEVALARRAY2() {
+        val expected = listOf("1(A) 2(B) 6( )", "1(A) 2(B) 5(E)", "1(A ) 2(B )", "1(A) 2(B)")
+        assertEquals(expected, "EVALARRAY2".outputOf())
     }
 
     @Test
@@ -2139,6 +2142,12 @@ Test 6
     }
 
     @Test
+    fun executeSUBARR() {
+        val expected = listOf("AR3(1)(13) AR3(2)(3) AR3(3)(0)", "AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)", "AR1(1)(9) AR1(2)(5) AR1(3)(13) AR1(4)(16) AR1(5)(3)")
+        assertEquals(expected, "SUBARR".outputOf())
+    }
+
+    @Test
     fun executeMVR() {
         val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
         assertEquals(expected, "MVR".outputOf())
@@ -2147,5 +2156,12 @@ Test 6
     @Test
     fun executeXLATEOP() {
         assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept", "999-9999", "999-9999", "999-9999"), outputOf("XLATEOP"))
+    }
+    
+    fun executeTIMEST_CLR() {
+        val values = "TIMEST_CLR".outputOf()
+        assertEquals("0001-01-01-00.00.00.000000", values[0])
+        assertNotEquals("0001-01-01-00.00.00.000000", values[1])
+        assertEquals("0001-01-01-00.00.00.000000", values[2])
     }
 }
