@@ -51,8 +51,8 @@ data class ComparisonResult(val isVerified: Boolean, val comparison: Comparison)
 fun ComparisonOperator?.verify(factor1: Expression, factor2: Expression, interpreter: InterpreterCore, charset: Charset): ComparisonResult =
     when (val comparison = interpreter.compareExpressions(factor1, factor2, charset)) {
         EQUAL -> ComparisonResult(this == null || this == ComparisonOperator.EQ || this == ComparisonOperator.GE || this == ComparisonOperator.LE, comparison)
-        SMALLER -> ComparisonResult(this == null || this == ComparisonOperator.LE || this == ComparisonOperator.LT, comparison)
-        else -> ComparisonResult(this == null || this == ComparisonOperator.GE || this == ComparisonOperator.GT, comparison)
+        SMALLER -> ComparisonResult(this == null || this == ComparisonOperator.LE || this == ComparisonOperator.LT || this == ComparisonOperator.NE, comparison)
+        else -> ComparisonResult(this == null || this == ComparisonOperator.GE || this == ComparisonOperator.GT || this == ComparisonOperator.NE, comparison)
     }
 
 fun InterpreterCore.compareExpressions(left: Expression, right: Expression, charset: Charset): Comparison =
