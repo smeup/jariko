@@ -572,6 +572,15 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    /**
+     * Test the '+' operator with arrays
+     */
+    fun executeEVALARRAY3() {
+        val expected = listOf("1(A ) 2(B ) 3( C) 4(  )", "1(1) 2(4) 3(3) 4(0)")
+        assertEquals(expected, "EVALARRAY3".outputOf())
+    }
+
+    @Test
     fun executeARRAY12() {
         assertCanBeParsed(exampleName = "ARRAY12", printTree = true)
         assertEquals(listOf("AA", "BB"), outputOf("ARRAY12"))
