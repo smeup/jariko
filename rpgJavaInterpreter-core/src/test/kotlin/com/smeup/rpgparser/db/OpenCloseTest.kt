@@ -17,28 +17,19 @@
 package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.execution.CommandLineParms
-import com.smeup.rpgparser.execution.Configuration
-import com.smeup.rpgparser.execution.Options
-import com.smeup.rpgparser.jvminterop.JavaSystemInterface
-import com.smeup.rpgparser.logging.PERFORMANCE_LOGGER
-import com.smeup.rpgparser.logging.consoleLoggingConfiguration
 import org.junit.Test
+import kotlin.test.assertEquals
+
 open class OpenCloseTest : AbstractTest() {
 
-    private val consoleLoggers = arrayOf(PERFORMANCE_LOGGER)
     @Test
-    fun testT53_A01_P01() {
-        testIfReloadConfig { reloadConfig ->
-            val si = JavaSystemInterface().apply {
-                loggingConfiguration = consoleLoggingConfiguration(*consoleLoggers)
-            }
-            executePgm(
-                programName = "db/T53_A01_P01",
-                params = CommandLineParms(emptyMap()),
-                configuration = Configuration(reloadConfig = reloadConfig, options = Options(muteSupport = true)),
-                systemInterface = si
-            )
-        }
+    fun testT53_A01() {
+        val outputLines = outputOfDBPgm(
+            "db/T53_A01",
+            listOf(createEmployeeMetadata()),
+            emptyList(),
+            emptyMap()
+        )
+        assertEquals(emptyList(), outputLines)
     }
 }

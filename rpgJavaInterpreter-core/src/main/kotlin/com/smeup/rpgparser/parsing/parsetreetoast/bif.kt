@@ -239,6 +239,6 @@ internal fun RpgParser.Bif_parmsContext.toAst(conf: ToAstConfiguration = ToAstCo
 
 internal fun RpgParser.Bif_openContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): OpenExpr {
     return OpenExpr(
-        this.text,
+        this.identifier().text,
         toPosition(conf.considerPosition))
 }
