@@ -26,6 +26,7 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
+import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
@@ -1748,7 +1749,7 @@ data class OpenStmt(
         dbFile.open = true
     }
 }
-
+@Serializable
 data class CloseStmt(
     @Transient open val name: String = "", // Factor 2
     @Transient override val position: Position? = null,
@@ -1765,4 +1766,49 @@ data class CloseStmt(
         val dbFile = interpreter.dbFile(name, this)
         dbFile.open = false
     }
+}
+
+/**
+ *  XLATE operation Code: all characters in the source string (factor 2) are translated according
+ *  to the From and To strings (both in factor 1) and put into a receiver
+ *  field (result field). Source characters with a match in the From string
+ *  are translated to corresponding characters in the To string.
+ *
+ *  @property from characters to replace
+ *  @property to replacement characters.
+ *  @property string source string.
+ *  @property startPos starting position in the source string.
+ *  @property target result string.
+ */
+@Serializable
+data class XlateStmt(
+    val from: Expression,
+    val to: Expression,
+    val string: Expression,
+    val startPos: Int,
+    val target: AssignableExpression,
+    val rightIndicators: WithRightIndicators,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
+    override fun execute(interpreter: InterpreterCore) {
+        val originalChars = interpreter.eval(from).asString().value
+        val newChars = interpreter.eval(to).asString().value
+        val start = startPos
+        val s = interpreter.eval(string).asString().value
+        val pair = s.divideAtIndex(start - 1)
+        var right = pair.second
+        val substitutionMap = mutableMapOf<Char, Char>()
+        originalChars.forEachIndexed { i, c ->
+            if (newChars.length > i) {
+                substitutionMap[c] = newChars[i]
+            }
+        }
+        substitutionMap.forEach {
+            right = right.replace(it.key, it.value)
+        }
+        interpreter.assign(target, StringValue(pair.first + right))
+    }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }

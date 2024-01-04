@@ -1294,6 +1294,25 @@ internal fun CsCHECKContext.toAst(conf: ToAstConfiguration): Statement {
     )
 }
 
+private fun FactorContext.toDoubleExpression(conf: ToAstConfiguration, index: Int): Expression =
+    if (this.text.contains(":")) this.text.toDoubleExpression(toPosition(conf.considerPosition), index, conf) else this.content.toAst(conf)
+
+private fun String.toDoubleExpression(position: Position?, index: Int, conf: ToAstConfiguration): Expression {
+    val baseStringTokens = this.split(":")
+    val startPosition = 0
+    var reference = baseStringTokens[index]
+    var ret: Expression
+
+    val regexp = Regex("'(.*?)'")
+    if (reference.matches(regexp)) {
+        reference = reference.replace("'", "")
+        ret = StringLiteral(reference, position)
+    } else {
+        ret = DataRefExpr(ReferenceByName(reference), position)
+    }
+    return ret
+}
+
 private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Expression, Int?> =
     if (this.text.contains(":")) this.text.toIndexedExpression(toPosition(conf.considerPosition)) else this.content.toAst(conf) to null
 
@@ -1790,6 +1809,48 @@ internal fun CsOCCURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         operationExtender = this.operationExtender?.text,
         position = position,
         dataDefinition = dataDefinition,
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
+    )
+}
+
+internal fun CsXLATEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): XlateStmt {
+    val position = toPosition(conf.considerPosition)
+    val from = this.factor1Context().toDoubleExpression(conf, 0)
+    val to = this.factor1Context().toDoubleExpression(conf, 1)
+    val (string, startPosition) = this.cspec_fixed_standard_parts().factor2.toIndexedExpression(conf)
+    val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
+    val result = this.cspec_fixed_standard_parts().result.text
+    val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    return XlateStmt(
+        from = from,
+        to = to,
+        string = string,
+        startPos = startPosition ?: 1,
+        target = this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
+        rightIndicators = rightIndicators,
+        dataDefinition = dataDefinition,
+        position = position
+    )
+}
+
+internal fun CsOPENContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return OpenStmt(
+        name = factor2,
+        position = position,
+        operationExtender = this.operationExtender?.text,
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
+    )
+}
+
+internal fun CsCLOSEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return CloseStmt(
+        name = factor2,
+        position = position,
+        operationExtender = this.operationExtender?.text,
         errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
     )
 }

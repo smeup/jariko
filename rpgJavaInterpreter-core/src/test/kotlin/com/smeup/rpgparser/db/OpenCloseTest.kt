@@ -17,21 +17,13 @@
 package com.smeup.rpgparser.db
 
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.db.utilities.execute
 import com.smeup.rpgparser.execution.CommandLineParms
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.Options
-import com.smeup.rpgparser.interpreter.StringValue
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.logging.PERFORMANCE_LOGGER
 import com.smeup.rpgparser.logging.consoleLoggingConfiguration
-import org.hsqldb.Server
-import org.junit.AfterClass
-import org.junit.BeforeClass
 import org.junit.Test
-import kotlin.test.Ignore
-import kotlin.test.assertEquals
-
 open class OpenCloseTest : AbstractTest() {
 
     private val consoleLoggers = arrayOf(PERFORMANCE_LOGGER)

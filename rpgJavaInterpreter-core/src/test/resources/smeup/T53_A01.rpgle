@@ -18,10 +18,11 @@
      C                   EVAL      £DBG_Str=%TRIM(£DBG_Str)+'FILE_OPEN::'
      C                   ENDIF
       *
-     C                   CLOSE     MULANGTL
-     C                   IF        NOT %OPEN(MULANGTL)
+     C                   CLOSE     BRARTI0L
+     C                   IF        NOT %OPEN(BRARTI0L)
      C                   EVAL      £DBG_Str=%TRIM(£DBG_Str)+'FILE_CLOSE::'
      C                   ENDIF
       *
      C                   EXSR      £DBG
-     C                   ENDSR
+      *
+     C                   SETON                                        LR
