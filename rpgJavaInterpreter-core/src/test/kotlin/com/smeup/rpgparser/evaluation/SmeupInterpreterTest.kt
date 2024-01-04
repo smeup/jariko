@@ -71,9 +71,9 @@ open class SmeupInterpreterTest : AbstractTest() {
         val actual = "smeup/T04_A80".outputOf()
         val t = LocalDateTime.now()
         val expected = listOf(
-            DateTimeFormatter.ofPattern("HHmmss").format(t),
-            DateTimeFormatter.ofPattern("HHmmssddMMyy").format(t),
-            DateTimeFormatter.ofPattern("HHmmssddMMyyyy").format(t)
+            DateTimeFormatter.ofPattern("Hmmss").format(t),
+            DateTimeFormatter.ofPattern("HmmssddMMyy").format(t),
+            DateTimeFormatter.ofPattern("HmmssddMMyyyy").format(t)
         )
         assertEquals(expected, actual)
     }
