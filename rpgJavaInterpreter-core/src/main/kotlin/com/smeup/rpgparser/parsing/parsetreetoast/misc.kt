@@ -871,6 +871,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csCABEQ() != null -> this.csCABEQ()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csCABNE() != null -> this.csCABNE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csCABGE() != null -> this.csCABGE()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -1449,6 +1452,10 @@ internal fun CsCABLTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsCABEQContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
     return cabStatement(ComparisonOperator.EQ, this.cspec_fixed_standard_parts(), conf)
+}
+
+internal fun CsCABNEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {
+    return cabStatement(ComparisonOperator.NE, this.cspec_fixed_standard_parts(), conf)
 }
 
 internal fun CsCABGTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CabStmt {

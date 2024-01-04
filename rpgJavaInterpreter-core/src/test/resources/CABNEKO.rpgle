@@ -1,0 +1,15 @@
+     D Msg             S             10
+     D AAA             S              3    INZ('XXX')
+     D ZZZ             S              3    INZ('XXX')
+     **********************************************************************
+     C                   EVAL      Msg = 'Test OK'
+     C     ZZZ           CABNE     AAA           SHOW
+     C                   EVAL      Msg = 'Test KO'
+     **********************************************************************
+     C     Msg           DSPLY
+     C                   GOTO      fine
+     **********************************************************************
+     C     SHOW          TAG
+     C     Msg           DSPLY
+     C     Fine          Tag
+     C                   SETON                                          LR
