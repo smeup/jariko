@@ -913,7 +913,7 @@ Test 6
 
     @Test
     fun executeXLATEBIF() {
-        assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
+        assertEquals(listOf("RPG DEPT", "RPG Dept", "999-9999"), outputOf("XLATEBIF"))
     }
 
     @Test
@@ -2151,6 +2151,11 @@ Test 6
     fun executeMVR() {
         val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
         assertEquals(expected, "MVR".outputOf())
+    }
+
+    @Test
+    fun executeXLATEOP() {
+        assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept", "999-9999", "999-9999", "999-9999"), outputOf("XLATEOP"))
     }
 
     @Test
