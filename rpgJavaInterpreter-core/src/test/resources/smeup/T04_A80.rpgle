@@ -5,17 +5,17 @@
       *
      C                   TIME                    A80_N1
      C                   EVAL      £DBG_Str=%CHAR(A80_N1)
-      * Expected number in HHmmSS format
+      * Expected number in HmmSS format
      C     £DBG_Str      DSPLY
       *
      C                   TIME                    A80_N2
      C                   EVAL      £DBG_Str=%CHAR(A80_N2)
-      * Expected numer in HHmmSSDDMMYY
+      * Expected numer in HmmSSDDMMYY
      C     £DBG_Str      DSPLY
       *
      C                   TIME                    A80_N3
      C                   EVAL      £DBG_Str=%CHAR(A80_N3)
-      * Expected numer in HHmmSSDDMMYYYY
+      * Expected numer in HmmSSDDMMYYYY
      C     £DBG_Str      DSPLY
       *
      C                   SETON                                        LR

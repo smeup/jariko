@@ -125,9 +125,43 @@ class ExpressionEvaluation(
             left is AbstractStringValue && right is AbstractStringValue -> {
                 UnlimitedStringValue(left.getWrappedString() + right.getWrappedString())
             }
-            left is IntValue && right is IntValue -> (left + right)
-            left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.plus(right.bigDecimal))
-            else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
+            left is IntValue && right is IntValue -> {
+                (left + right)
+            }
+            left is NumberValue && right is NumberValue -> {
+                DecimalValue(left.bigDecimal.plus(right.bigDecimal))
+            }
+            left is ArrayValue && right is ArrayValue -> {
+                val listValue = when {
+                    left.elementType is StringType && right.elementType is StringType ->
+                        left.elements().mapIndexed { i: Int, v: Value ->
+                            val valueToAdd: String = if (v.asString().varying) {
+                                (v.asString().value + right.getElement(i + 1).asString().value)
+                            } else {
+                                (v.asString().value + " ".repeat(left.elementType.elementSize() - v.asString().value.length) + right.getElement(i + 1).asString().value)
+                            }
+                            StringValue(valueToAdd, left.elementType.hasVariableSize())
+                        }
+                    left.elementType is NumberType && right.elementType is NumberType ->
+                        left.elements().mapIndexed { i: Int, v: Value ->
+                            val rightElement = right.getElement(i + 1)
+                            when {
+                                v is IntValue && rightElement is IntValue -> {
+                                    (v + rightElement)
+                                }
+                                v is NumberValue && rightElement is NumberValue -> {
+                                    DecimalValue(v.bigDecimal.plus(rightElement.bigDecimal))
+                                }
+                                else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at ${expression.position}")
+                            }
+                        }
+                    else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at ${expression.position}")
+                } as MutableList<Value>
+                ConcreteArrayValue(listValue, left.elementType)
+            }
+            else -> {
+                throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
+            }
         }
     }
 

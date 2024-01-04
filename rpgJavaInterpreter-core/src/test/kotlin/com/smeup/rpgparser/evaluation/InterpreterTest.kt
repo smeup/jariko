@@ -572,6 +572,15 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    /**
+     * Test the '+' operator with arrays
+     */
+    fun executeEVALARRAY3() {
+        val expected = listOf("1(A ) 2(B ) 3( C) 4(  )", "1(1) 2(4) 3(3) 4(0)")
+        assertEquals(expected, "EVALARRAY3".outputOf())
+    }
+
+    @Test
     fun executeARRAY12() {
         assertCanBeParsed(exampleName = "ARRAY12", printTree = true)
         assertEquals(listOf("AA", "BB"), outputOf("ARRAY12"))
@@ -913,7 +922,7 @@ Test 6
 
     @Test
     fun executeXLATEBIF() {
-        assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
+        assertEquals(listOf("RPG DEPT", "RPG Dept", "999-9999"), outputOf("XLATEBIF"))
     }
 
     @Test
@@ -2151,6 +2160,11 @@ Test 6
     fun executeMVR() {
         val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
         assertEquals(expected, "MVR".outputOf())
+    }
+
+    @Test
+    fun executeXLATEOP() {
+        assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept", "999-9999", "999-9999", "999-9999"), outputOf("XLATEOP"))
     }
 
     @Test
