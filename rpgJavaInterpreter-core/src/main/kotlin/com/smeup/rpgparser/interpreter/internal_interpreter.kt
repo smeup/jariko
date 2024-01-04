@@ -113,7 +113,7 @@ open class InternalInterpreter(
 
     private val dbFileMap = DBFileMap()
 
-    private val status = InterpreterStatus(globalSymbolTable, indicators, dbFileMap= dbFileMap)
+    private val status = InterpreterStatus(globalSymbolTable, indicators, dbFileMap = dbFileMap)
     override fun getStatus(): InterpreterStatus {
         return status
     }

@@ -608,7 +608,7 @@ class ExpressionEvaluation(
 
     override fun eval(expression: OpenExpr): Value {
         val name = expression.name
-        require (name != null) {
+        require(name != null) {
             "Line ${expression.position?.line()} - %OPEN require a table name"
         }
         val enrichedDBFile = interpreterStatus.dbFileMap.get(name)
