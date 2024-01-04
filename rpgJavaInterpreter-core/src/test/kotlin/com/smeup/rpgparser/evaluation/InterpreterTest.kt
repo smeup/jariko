@@ -1336,6 +1336,16 @@ Test 6
     }
 
     @Test
+    fun executeCABNEOK() {
+        assertEquals(listOf("Test OK"), outputOf("CABNEOK"))
+    }
+
+    @Test
+    fun executeCABNEKO() {
+        assertEquals(listOf("Test KO"), outputOf("CABNEKO"))
+    }
+
+    @Test
     fun executeFCONSTRES() {
         assertEquals(listOf("FLAG=ON", "FLAG=OFF", "IN34=OFF", "IN34=ON", "STR=BLANK", "STR=NOBLANK", "IN35=OFF"), outputOf(programName = "FCONSTRES"))
     }
