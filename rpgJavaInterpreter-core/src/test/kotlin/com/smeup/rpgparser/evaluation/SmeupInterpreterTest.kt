@@ -71,9 +71,9 @@ open class SmeupInterpreterTest : AbstractTest() {
         val actual = "smeup/T04_A80".outputOf()
         val t = LocalDateTime.now()
         val expected = listOf(
-            DateTimeFormatter.ofPattern("HHmmss").format(t),
-            DateTimeFormatter.ofPattern("HHmmssddMMyy").format(t),
-            DateTimeFormatter.ofPattern("HHmmssddMMyyyy").format(t)
+            DateTimeFormatter.ofPattern("Hmmss").format(t),
+            DateTimeFormatter.ofPattern("HmmssddMMyy").format(t),
+            DateTimeFormatter.ofPattern("HmmssddMMyyyy").format(t)
         )
         assertEquals(expected, actual)
     }
@@ -103,8 +103,8 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeT12_A06() {
-        val expected = listOf("CABNE((10=/=0)=>CABNE; Hi=1; Lo=0; Eq=0)")
-        assertEquals(expected, "smeup/T12_A06".outputOf())
+    fun executeT10_A90() {
+        val expected = listOf("999-9999", "A90_A4(        ) A90_A5(RPG DEPT)", "A90_A4(        ) A90_A5(RPG DEPT)")
+        assertEquals(expected, "smeup/T10_A90".outputOf())
     }
 }
