@@ -206,7 +206,13 @@ class ExpressionEvaluation(
 
     override fun eval(expression: CharExpr): Value {
         val value = expression.value.evalWith(this)
-        return StringValue(value.stringRepresentation(expression.format).trim())
+        return if (expression.value is DivExpr) {
+            // are always return 10 decimal digits
+            // fill with 0 if necessary
+            StringValue(value.stringRepresentation(expression.format) + "0".repeat(10 - value.asDecimal().value.scale()))
+        } else {
+            StringValue(value.stringRepresentation(expression.format).trim())
+        }
     }
 
     override fun eval(expression: LookupExpr): Value {
