@@ -79,4 +79,10 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf("A70_AR1(10) A70_AR2(20) A70_DS1(30) A70_AR3(10)")
         assertEquals(expected, "smeup/T16_A70".outputOf())
     }
+
+    @Test
+    fun executeT16_A80() {
+        val expected = listOf("A80_AR3(1)(10)A80_AR3(2)(32)A80_AR3(3)(26)")
+        assertEquals(expected, "smeup/T16_A80".outputOf())
+    }
 }

@@ -135,24 +135,36 @@ class ExpressionEvaluation(
                 val listValue = when {
                     left.elementType is StringType && right.elementType is StringType ->
                         left.elements().mapIndexed { i: Int, v: Value ->
-                            val valueToAdd: String = if (v.asString().varying) {
-                                (v.asString().value + right.getElement(i + 1).asString().value)
+                            if (right.elements().size > i) {
+                                val rightElement = right.getElement(i + 1)
+
+                                val valueToAdd: String = if (v.asString().varying) {
+                                    (v.asString().value + rightElement.asString().value)
+                                } else {
+                                    (v.asString().value + " ".repeat(left.elementType.elementSize() - v.asString().value.length) + rightElement.asString().value)
+                                }
+                                StringValue(valueToAdd, left.elementType.hasVariableSize())
                             } else {
-                                (v.asString().value + " ".repeat(left.elementType.elementSize() - v.asString().value.length) + right.getElement(i + 1).asString().value)
+                                v
                             }
-                            StringValue(valueToAdd, left.elementType.hasVariableSize())
                         }
                     left.elementType is NumberType && right.elementType is NumberType ->
                         left.elements().mapIndexed { i: Int, v: Value ->
-                            val rightElement = right.getElement(i + 1)
-                            when {
-                                v is IntValue && rightElement is IntValue -> {
-                                    (v + rightElement)
+                            if (right.elements().size > i) {
+                                val rightElement = right.getElement(i + 1)
+                                when {
+                                    v is IntValue && rightElement is IntValue -> {
+                                        (v + rightElement)
+                                    }
+
+                                    v is NumberValue && rightElement is NumberValue -> {
+                                        DecimalValue(v.bigDecimal.plus(rightElement.bigDecimal))
+                                    }
+
+                                    else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at ${expression.position}")
                                 }
-                                v is NumberValue && rightElement is NumberValue -> {
-                                    DecimalValue(v.bigDecimal.plus(rightElement.bigDecimal))
-                                }
-                                else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at ${expression.position}")
+                            } else {
+                                v
                             }
                         }
                     else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at ${expression.position}")
