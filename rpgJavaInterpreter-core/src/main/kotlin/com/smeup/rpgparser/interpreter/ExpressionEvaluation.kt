@@ -22,6 +22,7 @@ import com.smeup.rpgparser.utils.asBigDecimal
 import com.smeup.rpgparser.utils.asLong
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.moveEndingString
+import com.strumenta.kolasu.model.Position
 import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
 import java.math.MathContext
@@ -132,37 +133,53 @@ class ExpressionEvaluation(
                 DecimalValue(left.bigDecimal.plus(right.bigDecimal))
             }
             left is ArrayValue && right is ArrayValue -> {
-                val listValue = when {
-                    left.elementType is StringType && right.elementType is StringType ->
-                        left.elements().mapIndexed { i: Int, v: Value ->
-                            val valueToAdd: String = if (v.asString().varying) {
-                                (v.asString().value + right.getElement(i + 1).asString().value)
-                            } else {
-                                (v.asString().value + " ".repeat(left.elementType.elementSize() - v.asString().value.length) + right.getElement(i + 1).asString().value)
-                            }
-                            StringValue(valueToAdd, left.elementType.hasVariableSize())
-                        }
-                    left.elementType is NumberType && right.elementType is NumberType ->
-                        left.elements().mapIndexed { i: Int, v: Value ->
-                            val rightElement = right.getElement(i + 1)
-                            when {
-                                v is IntValue && rightElement is IntValue -> {
-                                    (v + rightElement)
-                                }
-                                v is NumberValue && rightElement is NumberValue -> {
-                                    DecimalValue(v.bigDecimal.plus(rightElement.bigDecimal))
-                                }
-                                else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at ${expression.position}")
-                            }
-                        }
-                    else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at ${expression.position}")
-                } as MutableList<Value>
-                ConcreteArrayValue(listValue, left.elementType)
+                sum(left, right, expression.position)
             }
             else -> {
                 throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
             }
         }
+    }
+
+    private fun sum(left: ArrayValue, right: ArrayValue, position: Position?): ArrayValue {
+        val listValue = when {
+            left.elementType is StringType && right.elementType is StringType ->
+                left.elements().mapIndexed { i: Int, v: Value ->
+                    if (right.elements().size > i) {
+                        val rightElement = right.getElement(i + 1)
+
+                        val valueToAdd: String = if (v.asString().varying) {
+                            (v.asString().value + rightElement.asString().value)
+                        } else {
+                            (v.asString().value + " ".repeat(left.elementType.elementSize() - v.asString().value.length) + rightElement.asString().value)
+                        }
+                        StringValue(valueToAdd, left.elementType.hasVariableSize())
+                    } else {
+                        v
+                    }
+                }
+            left.elementType is NumberType && right.elementType is NumberType ->
+                left.elements().mapIndexed { i: Int, v: Value ->
+                    if (right.elements().size > i) {
+                        val rightElement = right.getElement(i + 1)
+                        when {
+                            v is IntValue && rightElement is IntValue -> {
+                                (v + rightElement)
+                            }
+
+                            v is NumberValue && rightElement is NumberValue -> {
+                                DecimalValue(v.bigDecimal.plus(rightElement.bigDecimal))
+                            }
+
+                            else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at $position")
+                        }
+                    } else {
+                        v
+                    }
+                }
+            else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at $position")
+        } as MutableList<Value>
+        return ConcreteArrayValue(listValue, left.elementType)
     }
 
     override fun eval(expression: MinusExpr): Value {
