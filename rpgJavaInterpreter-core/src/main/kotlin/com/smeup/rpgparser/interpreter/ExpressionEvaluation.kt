@@ -192,7 +192,11 @@ class ExpressionEvaluation(
         return if (expression.value is DivExpr) {
             // are always return 10 decimal digits
             // fill with 0 if necessary
-            StringValue(value.stringRepresentation(expression.format) + "0".repeat(10 - value.asDecimal().value.scale()))
+            if (value.asDecimal().value.scale() != 0) {
+                StringValue(value.stringRepresentation(expression.format) + "0".repeat(10 - value.asDecimal().value.scale()))
+            } else {
+                StringValue(value.stringRepresentation(expression.format) + ".0000000000")
+            }
         } else {
             StringValue(value.stringRepresentation(expression.format).trim())
         }

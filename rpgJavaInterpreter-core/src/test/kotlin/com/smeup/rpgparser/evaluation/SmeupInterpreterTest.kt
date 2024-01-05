@@ -80,7 +80,7 @@ open class SmeupInterpreterTest : AbstractTest() {
 
     @Test
     fun executeT04_A90() {
-        val expected = listOf("123.4560000000", "1234.5600000000", "123")
+        val expected = listOf("123.4560000000", "1234.5600000000", "123456.0000000000", "123")
         assertEquals(expected, "smeup/T04_A90".outputOf())
     }
 
