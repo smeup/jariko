@@ -27,12 +27,14 @@ import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
+import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -1156,7 +1158,20 @@ data class TimeStmt(
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
-                interpreter.assign(value, TimeStampValue(Date()))
+                val t = TimeStampValue.now()
+                when (val valueType = value.type()) {
+                    is TimeStampType -> interpreter.assign(value, t)
+                    is NumberType -> {
+                        val timestampFormatted: String = when (valueType.elementSize()) {
+                            6 -> DateTimeFormatter.ofPattern("HHmmss").format(t.value)
+                            12 -> DateTimeFormatter.ofPattern("HHmmssddMMyy").format(t.value)
+                            14 -> DateTimeFormatter.ofPattern("HHmmssddMMyyyy").format(t.value)
+                            else -> throw UnsupportedOperationException("TIME Statement only supports 6, 12, and 14 as the length of the Integer data type")
+                        }
+                        interpreter.assign(value, IntValue(timestampFormatted.toLong()))
+                    }
+                    else -> throw UnsupportedOperationException("TIME Statement only supports Timestamp or Integer data type")
+                }
             }
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }
@@ -1715,4 +1730,49 @@ fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, 
     } catch (e: ArrayIndexOutOfBoundsException) {
         if (errorIndicator == null) throw e else interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
     }
+}
+
+/**
+ *  XLATE operation Code: all characters in the source string (factor 2) are translated according
+ *  to the From and To strings (both in factor 1) and put into a receiver
+ *  field (result field). Source characters with a match in the From string
+ *  are translated to corresponding characters in the To string.
+ *
+ *  @property from characters to replace
+ *  @property to replacement characters.
+ *  @property string source string.
+ *  @property startPos starting position in the source string.
+ *  @property target result string.
+ */
+@Serializable
+data class XlateStmt(
+    val from: Expression,
+    val to: Expression,
+    val string: Expression,
+    val startPos: Int,
+    val target: AssignableExpression,
+    val rightIndicators: WithRightIndicators,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
+    override fun execute(interpreter: InterpreterCore) {
+        val originalChars = interpreter.eval(from).asString().value
+        val newChars = interpreter.eval(to).asString().value
+        val start = startPos
+        val s = interpreter.eval(string).asString().value
+        val pair = s.divideAtIndex(start - 1)
+        var right = pair.second
+        val substitutionMap = mutableMapOf<Char, Char>()
+        originalChars.forEachIndexed { i, c ->
+            if (newChars.length > i) {
+                substitutionMap[c] = newChars[i]
+            }
+        }
+        substitutionMap.forEach {
+            right = right.replace(it.key, it.value)
+        }
+        interpreter.assign(target, StringValue(pair.first + right))
+    }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
 }

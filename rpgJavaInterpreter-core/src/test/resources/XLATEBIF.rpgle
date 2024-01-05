@@ -5,4 +5,6 @@
      C     Msg           dsply
      C                   Eval      Msg  = %XLATE(up:lo:'RPG DEPT':6)
      C     Msg           dsply
+     C                   Eval      Msg  = %XLATE(' ':'-':'999 9999')
+     C     Msg           dsply
      C                   SETON                                          LR

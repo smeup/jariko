@@ -2,7 +2,10 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.rpgparser.AbstractTest
 import org.junit.Test
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 open class SmeupInterpreterTest : AbstractTest() {
 
@@ -16,6 +19,13 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT15_A90() {
         // TODO When we will have more clear idea about the expected result, we will add the assert
         println("executeT15_A90: " + "smeup/T15_A90".outputOf())
+    }
+
+    @Test
+    fun executeT02_A20() {
+        val values = "smeup/T02_A20".outputOf()
+        assertTrue(values[0].matches(Regex("A20_Z1\\(\\d{4}-\\d{2}-\\d{2}-\\d{2}\\.\\d{2}\\.\\d{2}\\.\\d{6}\\)")))
+        assertEquals("A20_Z2(2003-06-27-09.25.59.123456)", values[1])
     }
 
     @Test
@@ -57,6 +67,18 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT04_A80() {
+        val actual = "smeup/T04_A80".outputOf()
+        val t = LocalDateTime.now()
+        val expected = listOf(
+            DateTimeFormatter.ofPattern("Hmmss").format(t),
+            DateTimeFormatter.ofPattern("HmmssddMMyy").format(t),
+            DateTimeFormatter.ofPattern("HmmssddMMyyyy").format(t)
+        )
+        assertEquals(expected, actual)
+    }
+
+    @Test
     fun executeT10_A20() {
         val expected = listOf("172.670-22146.863-.987000000")
         assertEquals(expected, "smeup/T10_A20".outputOf())
@@ -84,5 +106,11 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT16_A80() {
         val expected = listOf("A80_AR3(1)(10)A80_AR3(2)(32)A80_AR3(3)(26)")
         assertEquals(expected, "smeup/T16_A80".outputOf())
+    }
+
+    @Test
+    fun executeT10_A90() {
+        val expected = listOf("999-9999", "A90_A4(        ) A90_A5(RPG DEPT)", "A90_A4(        ) A90_A5(RPG DEPT)")
+        assertEquals(expected, "smeup/T10_A90".outputOf())
     }
 }

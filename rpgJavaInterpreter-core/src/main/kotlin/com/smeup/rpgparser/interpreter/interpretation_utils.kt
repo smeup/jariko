@@ -17,7 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
-import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 fun Value.stringRepresentation(format: String? = null): String {
@@ -39,9 +39,9 @@ fun Value.stringRepresentation(format: String? = null): String {
 private fun TimeStampValue.timestampFormatting(format: String?): String =
     // TODO this is a simple stub for what the full implementation will be
     if ("*ISO0" == format) {
-        SimpleDateFormat("yyyyMMddHHmmssSSS000").format(value)
+        DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS000").format(value)
     } else {
-        SimpleDateFormat("yyyy-MM-dd-HH.mm.ss.SSSSSS").format(value)
+        DateTimeFormatter.ofPattern(TimeStampValue.DEFAULT_FORMAT).format(value)
     }
 
 fun CompilationUnit.activationGroupType(): ActivationGroupType? {
