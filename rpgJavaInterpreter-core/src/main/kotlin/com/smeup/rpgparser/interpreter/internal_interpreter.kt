@@ -60,12 +60,12 @@ class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
     var returnValue: Value? = null,
-    var params: Int = 0,
-    var inzsrExecuted: Boolean = false,
-    var dbFileMap: DBFileMap
+    var params: Int = 0
 ) {
+    var inzsrExecuted = false
     var lastFound = false
     var lastDBFile: DBFile? = null
+    val dbFileMap = DBFileMap()
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable[abstractDataDefinition]
 }
@@ -109,11 +109,9 @@ open class InternalInterpreter(
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    fun logsEnabled() = logHandlers.isNotEmpty()
+    private fun logsEnabled() = logHandlers.isNotEmpty()
 
-    private val dbFileMap = DBFileMap()
-
-    private val status = InterpreterStatus(globalSymbolTable, indicators, dbFileMap = dbFileMap)
+    private val status = InterpreterStatus(globalSymbolTable, indicators)
     override fun getStatus(): InterpreterStatus {
         return status
     }
@@ -124,7 +122,7 @@ open class InternalInterpreter(
         if (logsEnabled()) doLog(logEntry())
     }
 
-    fun doLog(entry: LogEntry) {
+    private fun doLog(entry: LogEntry) {
         logHandlers.log(entry)
     }
 
@@ -209,7 +207,7 @@ open class InternalInterpreter(
         MainExecutionContext.log(SymbolTableIniLogStart(programName = interpretationContext.currentProgramName))
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.forEach {
-            dbFileMap.add(it)
+            status.dbFileMap.add(it)
         }
 
         var index = 0
@@ -541,14 +539,14 @@ open class InternalInterpreter(
         reversed.forEach { solvedIndicator ->
             if (loops == 0) {
                 mapOfORs.add(ArrayList<Boolean>())
-                mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                mapOfORs[idxOfMapOfANDs].add(solvedIndicator.value)
             } else {
                 if (previousOperator == "AND") {
-                    mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                    mapOfORs[idxOfMapOfANDs].add(solvedIndicator.value)
                 } else {
                     mapOfORs.add(ArrayList<Boolean>())
                     idxOfMapOfANDs++
-                    mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                    mapOfORs[idxOfMapOfANDs].add(solvedIndicator.value)
                 }
             }
             previousOperator = solvedIndicator.operator
@@ -623,7 +621,7 @@ open class InternalInterpreter(
     override fun dbFile(name: String, statement: Statement): EnrichedDBFile {
 
         // Nem could be file name or format name
-        val dbFile = dbFileMap[name]
+        val dbFile = status.dbFileMap[name]
 
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
@@ -932,7 +930,7 @@ open class InternalInterpreter(
         }
     }
 
-    fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
+    private fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return when (dataDefinition.type) {
             is DataStructureType -> createBlankFor(dataDefinition)

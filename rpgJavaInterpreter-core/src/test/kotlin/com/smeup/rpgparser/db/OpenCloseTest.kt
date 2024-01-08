@@ -25,7 +25,7 @@ open class OpenCloseTest : AbstractTest() {
     @Test
     fun testT53_A01() {
         val outputLines = outputOfDBPgm(
-            "db/T53_A01",
+            "db/OPEN_CLOSE",
             listOf(createEmployeeMetadata()),
             emptyList(),
             emptyMap()
