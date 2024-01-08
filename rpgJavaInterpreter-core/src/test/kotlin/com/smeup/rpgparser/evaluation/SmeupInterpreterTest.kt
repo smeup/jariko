@@ -1,13 +1,30 @@
 package com.smeup.rpgparser.evaluation
 
+import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.execution.Configuration
+import com.smeup.rpgparser.execution.ReloadConfig
+import com.smeup.rpgparser.execution.SimpleReloadConfig
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 open class SmeupInterpreterTest : AbstractTest() {
+
+    lateinit var smeupConfig: Configuration
+
+    @BeforeTest
+    fun setUp() {
+        smeupConfig = Configuration()
+        val path = javaClass.getResource("/smeup/metadata")!!.path
+        val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = listOf())
+        smeupConfig.reloadConfig = ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+            metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
+    }
 
     @Test
     fun executeT15_A80() {
@@ -118,5 +135,15 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT10_A90() {
         val expected = listOf("999-9999", "A90_A4(        ) A90_A5(RPG DEPT)", "A90_A4(        ) A90_A5(RPG DEPT)")
         assertEquals(expected, "smeup/T10_A90".outputOf())
+    }
+
+    @Test
+    fun executeT40_A10() {
+        smeupConfig.jarikoCallback.afterAstCreation = { ast ->
+            // here you can test is variables exist
+            // this method throws an exception if the variable does not exist
+            // ast.getDataDefinition("VARNAME")
+        }
+        "smeup/T40_A10".outputOf(configuration = smeupConfig)
     }
 }
