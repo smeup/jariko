@@ -241,15 +241,15 @@ abstract class AbstractTest {
      * Executes a program and returns the output as a list of displayed messages.
      *
      * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
-     *
+     * @param configuration The configuration for the execution of the program.
      * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
      */
-    protected fun String.outputOf(trimEnd: Boolean = true): List<String> {
+    protected fun String.outputOf(trimEnd: Boolean = true, configuration: Configuration = Configuration()): List<String> {
         val messages = mutableListOf<String>()
         val systemInterface = JavaSystemInterface().apply {
             onDisplay = { message, _ -> messages.add(message) }
         }
-        executePgm(programName = this, systemInterface = systemInterface)
+        executePgm(programName = this, systemInterface = systemInterface, configuration = configuration)
         return if (trimEnd) messages.map { it.trimEnd() } else messages
     }
 
