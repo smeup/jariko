@@ -23,7 +23,7 @@ import kotlin.test.assertEquals
 open class OpenCloseTest : AbstractTest() {
 
     @Test
-    fun testT53_A01() {
+    fun testOpenClose() {
         val outputLines = outputOfDBPgm(
             "db/OPEN_CLOSE",
             listOf(createEmployeeMetadata()),
