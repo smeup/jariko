@@ -187,13 +187,14 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
     val fileDefinitions = this.statement()
+            // tony
         .mapNotNull { statement ->
             when {
                 statement.fspec_fixed() != null -> statement.fspec_fixed().runParserRuleContext(conf) { context ->
                     kotlin.runCatching { context.toAst(conf).let { dataDefinition -> dataDefinition to dataDefinition.toDataDefinitions() } }.getOrNull()
                 }
-                statement.dcl_ds()?.useExtName() ?: false -> statement.dcl_ds().getKeywordExtName().runParserRuleContext(conf) { context ->
-                    kotlin.runCatching { context.toAst(conf).let { extNameDefinition -> extNameDefinition to extNameDefinition.toDataDefinitions() } }.getOrNull()
+                statement.dcl_ds()?.useExtName() ?: false -> statement.dcl_ds().runParserRuleContext(conf) { context ->
+                    kotlin.runCatching { context.toAstWithParameters(conf).let { extNameDefinition -> extNameDefinition to extNameDefinition.toDataDefinitions() } }.getOrNull()
                 }
                 else -> null
             }
