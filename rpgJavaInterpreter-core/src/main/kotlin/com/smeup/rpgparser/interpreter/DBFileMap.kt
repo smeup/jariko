@@ -73,45 +73,52 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
 
     override var logger = dbFile.logger
 
-    override fun chain(key: String) = dbFile.chain(key).validate()
+    override fun chain(key: String) = checkOpened().chain(key).validate()
 
-    override fun chain(keys: List<String>) = dbFile.chain(keys).validate()
+    override fun chain(keys: List<String>) = checkOpened().chain(keys).validate()
 
-    override fun delete(record: Record) = dbFile.delete(record).validate()
+    override fun delete(record: Record) = checkOpened().delete(record).validate()
 
-    override fun eof() = dbFile.eof()
+    override fun eof() = checkOpened().eof()
 
-    override fun equal() = dbFile.equal()
+    override fun equal() = checkOpened().equal()
 
-    override fun read() = dbFile.read().validate()
+    override fun read() = checkOpened().read().validate()
 
-    override fun readEqual() = dbFile.readEqual().validate()
+    override fun readEqual() = checkOpened().readEqual().validate()
 
-    override fun readEqual(key: String) = dbFile.readEqual(key).validate()
+    override fun readEqual(key: String) = checkOpened().readEqual(key).validate()
 
-    override fun readEqual(keys: List<String>) = dbFile.readEqual(keys).validate()
+    override fun readEqual(keys: List<String>) = checkOpened().readEqual(keys).validate()
 
-    override fun readPrevious() = dbFile.readPrevious().validate()
+    override fun readPrevious() = checkOpened().readPrevious().validate()
 
-    override fun readPreviousEqual() = dbFile.readPreviousEqual().validate()
+    override fun readPreviousEqual() = checkOpened().readPreviousEqual().validate()
 
-    override fun readPreviousEqual(key: String) = dbFile.readPreviousEqual(key).validate()
+    override fun readPreviousEqual(key: String) = checkOpened().readPreviousEqual(key).validate()
 
-    override fun readPreviousEqual(keys: List<String>) = dbFile.readPreviousEqual(keys).validate()
+    override fun readPreviousEqual(keys: List<String>) = checkOpened().readPreviousEqual(keys).validate()
 
-    override fun setgt(key: String) = dbFile.setgt(key)
+    override fun setgt(key: String) = checkOpened().setgt(key)
 
-    override fun setgt(keys: List<String>) = dbFile.setgt(keys)
+    override fun setgt(keys: List<String>) = checkOpened().setgt(keys)
 
-    override fun setll(key: String) = dbFile.setll(key)
+    override fun setll(key: String) = checkOpened().setll(key)
 
-    override fun setll(keys: List<String>) = dbFile.setll(keys)
+    override fun setll(keys: List<String>) = checkOpened().setll(keys)
 
-    override fun update(record: Record) = dbFile.update(record).validate()
+    override fun update(record: Record) = checkOpened().update(record).validate()
 
-    override fun write(record: Record) = dbFile.write(record).validate()
+    override fun write(record: Record) = checkOpened().write(record).validate()
 
     fun getDataDefinitionName(dbFieldName: String) = fileDefinition.getDataDefinitionName(dbFieldName)
+
+    private fun checkOpened(): DBFile {
+        require(open) {
+            "Cannot access to closed file $name"
+        }
+        return dbFile
+    }
 }
 
 /**
