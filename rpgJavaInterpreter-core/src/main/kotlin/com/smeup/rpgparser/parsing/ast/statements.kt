@@ -26,8 +26,8 @@ import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.divideAtIndex
+import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
@@ -1729,6 +1729,42 @@ fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, 
         this.pos(occurrence)
     } catch (e: ArrayIndexOutOfBoundsException) {
         if (errorIndicator == null) throw e else interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+    }
+}
+
+@Serializable
+data class OpenStmt(
+    @Transient open val name: String = "", // Factor 2
+    @Transient override val position: Position? = null,
+    val operationExtender: String?,
+    val errorIndicator: IndicatorKey?
+) : Statement(position) {
+    init {
+        require(operationExtender == null) {
+            "Operation extender not supported"
+        }
+    }
+    override fun execute(interpreter: InterpreterCore) {
+        val dbFile = interpreter.dbFile(name, this)
+        dbFile.open = true
+    }
+}
+@Serializable
+data class CloseStmt(
+    @Transient open val name: String = "", // Factor 2
+    @Transient override val position: Position? = null,
+    val operationExtender: String?,
+    val errorIndicator: IndicatorKey?
+) : Statement(position) {
+
+    init {
+        require(operationExtender == null) {
+            "Operation extender not supported"
+        }
+    }
+    override fun execute(interpreter: InterpreterCore) {
+        val dbFile = interpreter.dbFile(name, this)
+        dbFile.open = false
     }
 }
 

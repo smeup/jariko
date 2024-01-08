@@ -667,6 +667,16 @@ class ExpressionEvaluation(
         return IntValue(interpreterStatus.params.toLong())
     }
 
+    override fun eval(expression: OpenExpr): Value {
+        val name = expression.name
+        require(name != null) {
+            "Line ${expression.position?.line()} - %OPEN require a table name"
+        }
+        val enrichedDBFile = interpreterStatus.dbFileMap.get(name)
+            ?: throw RuntimeException("Table $name cannot be found (${expression.position.line()})")
+        return BooleanValue(enrichedDBFile.open)
+    }
+
     private fun cleanNumericString(s: String): String {
         val result = s.moveEndingString("-")
         return when {

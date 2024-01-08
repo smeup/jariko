@@ -309,6 +309,16 @@ data class ReplaceExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %OPEN
+@Serializable
+data class OpenExpr(
+    var name: String? = null,
+    override val position: Position? = null
+) :
+    Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 @Serializable
 sealed class DurationCode
 @Serializable

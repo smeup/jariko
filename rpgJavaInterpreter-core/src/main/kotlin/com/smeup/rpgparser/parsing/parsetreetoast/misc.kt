@@ -892,6 +892,12 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csOCCUR() != null -> this.csOCCUR()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csOPEN() != null -> this.csOPEN()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
+        this.csCLOSE() != null -> this.csCLOSE()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         this.csXLATE() != null -> this.csXLATE()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
@@ -1824,6 +1830,28 @@ internal fun CsXLATEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         rightIndicators = rightIndicators,
         dataDefinition = dataDefinition,
         position = position
+    )
+}
+
+internal fun CsOPENContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return OpenStmt(
+        name = factor2,
+        position = position,
+        operationExtender = this.operationExtender?.text,
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
+    )
+}
+
+internal fun CsCLOSEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    val factor2 = this.cspec_fixed_standard_parts().factor2.text ?: throw UnsupportedOperationException("READ operation requires factor 2: ${this.text} - ${position.atLine()}")
+    return CloseStmt(
+        name = factor2,
+        position = position,
+        operationExtender = this.operationExtender?.text,
+        errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
     )
 }
 
