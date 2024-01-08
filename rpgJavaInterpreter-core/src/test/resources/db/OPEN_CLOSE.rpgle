@@ -3,7 +3,6 @@
      D STR             S             10
       **************************************************************************
      D* All files are open by default even if the UsrOpn parm is not defined
-     C                   EVAL      £DBG_Pas='P01'
      C                   IF        %OPEN(EMPLOYEE)
      C                   EVAL      STR='OPENED'
      C                   ELSE
