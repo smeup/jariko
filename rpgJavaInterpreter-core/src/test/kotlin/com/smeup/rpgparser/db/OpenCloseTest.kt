@@ -30,6 +30,6 @@ open class OpenCloseTest : AbstractTest() {
             emptyList(),
             emptyMap()
         )
-        assertEquals(emptyList(), outputLines)
+        assertEquals(listOf("OPENED", "CLOSED", "OPENED"), outputLines)
     }
 }

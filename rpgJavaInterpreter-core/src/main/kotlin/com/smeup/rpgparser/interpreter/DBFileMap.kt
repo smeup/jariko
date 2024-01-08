@@ -64,7 +64,8 @@ class DBFileMap {
  * */
 data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition: FileDefinition, val jarikoMetadata: FileMetadata) : DBFile {
 
-    var open = false
+    // All files are opened by default when defined in F specs.
+    var open = true
 
     override var fileMetadata = dbFile.fileMetadata
 

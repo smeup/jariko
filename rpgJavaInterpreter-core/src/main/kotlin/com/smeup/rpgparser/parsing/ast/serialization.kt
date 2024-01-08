@@ -137,6 +137,7 @@ private val modules = SerializersModule {
         subclass(NumberOfElementsExpr::class)
         subclass(OnRefExpr::class)
         subclass(OffRefExpr::class)
+        subclass(OpenExpr::class)
         subclass(PlusExpr::class)
         subclass(GlobalIndicatorExpr::class)
         subclass(IndicatorExpr::class)
