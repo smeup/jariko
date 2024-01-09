@@ -118,6 +118,28 @@ internal fun RpgParser.Keyword_extnameContext.toAst(conf: ToAstConfiguration = T
     )
 }
 
+// tony
+
+internal fun RpgParser.Dcl_dsContext.toAstWithParameters(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
+    val prefixContexts = this.keyword().mapNotNull { it.keyword_prefix() }
+    val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
+        Prefix(
+            prefix = prefixContexts[0].prefix.text,
+            numCharsReplaced = prefixContexts[0].nbr_of_char_replaced?.text?.toInt()
+        )
+    } else {
+        null
+    }
+    val extNameContexts = this.keyword().mapNotNull { it.keyword_extname() }.firstOrNull()
+    val fileDefinition = FileDefinition(
+        name = extNameContexts?.getExtName() ?: "",
+        position = toPosition(conf.considerPosition),
+        justExtName = true,
+        prefix = prefix
+    )
+    return fileDefinition
+}
+
 private val RpgParser.Parm_fixedContext.decimalPositions
     get() = with(this.DECIMAL_POSITIONS().text.trim()) { if (this.isEmpty()) 0 else this.toInt() }
 
