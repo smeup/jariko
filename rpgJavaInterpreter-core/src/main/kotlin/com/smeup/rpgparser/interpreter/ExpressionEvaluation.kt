@@ -291,7 +291,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: LogicalCondition): Value {
-        if (expression.ands.any { !evalAsBoolean(it) }) {
+        if (expression.ands.any { !evalAsBoolean(it) } && !expression.ors.any { evalAsBoolean(it) }) {
             return BooleanValue.FALSE
         }
 
