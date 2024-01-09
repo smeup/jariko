@@ -131,10 +131,6 @@ data class StringType(val length: Int, val varying: Boolean = false) : Type() {
     override fun hasVariableSize(): Boolean {
         return varying
     }
-
-    override fun canBeAssigned(type: Type): Boolean {
-        return type is StringType
-    }
 }
 
 @Serializable
@@ -324,11 +320,7 @@ fun Expression.type(): Type {
                     NumberType(max(leftType.entireDigits, rightType.entireDigits), max(leftType.decimalDigits, rightType.decimalDigits))
                 }
                 leftType is ArrayType && rightType is ArrayType -> {
-                    if (leftType.element.canBeAssigned(rightType.element)) {
-                        leftType
-                    } else {
-                        throw UnsupportedOperationException("Unable to sum different type of arrays in EVAL statement")
-                    }
+                    leftType
                 }
                 else -> TODO("We do not know the type of a sum of types $leftType and $rightType")
             }
