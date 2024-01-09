@@ -121,8 +121,8 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeA02_P12() {
+    fun executeT12_A02() {
         val expected = listOf("True")
-        assertEquals(expected, "smeup/A02_P12".outputOf())
+        assertEquals(expected, "smeup/T12_A02".outputOf())
     }
 }
