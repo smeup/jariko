@@ -2184,4 +2184,9 @@ Test 6
         assertNotEquals("0001-01-01-00.00.00.000000", values[1])
         assertEquals("0001-01-01-00.00.00.000000", values[2])
     }
+
+    @Test
+    fun executeBIFCHAR() {
+        assertEquals(listOf("Parma       ", "Parma       ", " Parma      ", "(ABC       )", "(ABC       )", "(1)         ", "(1.30)      "), outputOf("BIFCHAR"))
+    }
 }
