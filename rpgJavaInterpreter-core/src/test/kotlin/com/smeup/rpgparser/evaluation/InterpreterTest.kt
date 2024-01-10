@@ -2190,4 +2190,10 @@ Test 6
         assertEquals(listOf("Parma       ", "Parma       ", " Parma      ", "(ABC       )", "(ABC       )", "(1)         ", "(1.30)      ", "(ABC       |ABC       )       ", "(1|1.30)                      ", "(ABC|ABC       )              "), outputOf("BIFCHAR", trimEnd = false))
         assertEquals(listOf("Parma", "Parma", " Parma", "(ABC       )", "(ABC       )", "(1)", "(1.30)", "(ABC       |ABC       )", "(1|1.30)", "(ABC|ABC       )"), outputOf("BIFCHAR", trimEnd = true))
     }
+
+    @Test
+    fun executeMIXED_CONDITIONS() {
+        val expected = listOf("IF1 = True", "IF2 = True", "IF3 = True", "IF4 = True", "IF5 = False", "IF6 = False", "IF7 = False", "IF8 = True")
+        assertEquals(expected, "MIXED_CONDITIONS".outputOf())
+    }
 }
