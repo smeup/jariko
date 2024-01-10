@@ -2187,7 +2187,7 @@ Test 6
 
     @Test
     fun executeBIFCHAR() {
-        assertEquals(listOf("Parma       ", "Parma       ", " Parma      ", "(ABC       )", "(ABC       )", "(1)         ", "(1.30)      "), outputOf("BIFCHAR", trimEnd = false))
-        assertEquals(listOf("Parma", "Parma", " Parma", "(ABC       )", "(ABC       )", "(1)", "(1.30)"), outputOf("BIFCHAR", trimEnd = true))
+        assertEquals(listOf("Parma       ", "Parma       ", " Parma      ", "(ABC       )", "(ABC       )", "(1)         ", "(1.30)      ", "(ABC       |ABC       )       ", "(1|1.30)                      ", "(ABC|ABC       )              "), outputOf("BIFCHAR", trimEnd = false))
+        assertEquals(listOf("Parma", "Parma", " Parma", "(ABC       )", "(ABC       )", "(1)", "(1.30)", "(ABC       |ABC       )", "(1|1.30)", "(ABC|ABC       )"), outputOf("BIFCHAR", trimEnd = true))
     }
 }
