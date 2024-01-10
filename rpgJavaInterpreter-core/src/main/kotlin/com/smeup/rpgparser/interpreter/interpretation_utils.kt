@@ -22,7 +22,7 @@ import java.util.*
 
 fun Value.stringRepresentation(format: String? = null): String {
     return when (this) {
-        is StringValue -> if (this.varying) value.trimEnd() else value
+        is StringValue -> value
         is BooleanValue -> asString().value // TODO check if it's the best solution
         is NumberValue -> render()
         is ArrayValue -> "[${elements().map { it.render() }.joinToString(", ")}]"

@@ -215,7 +215,7 @@ class ExpressionEvaluation(
                 StringValue(value.stringRepresentation(expression.format) + ".0000000000")
             }
         } else {
-            StringValue(value.stringRepresentation(expression.format).trim())
+            StringValue(value.stringRepresentation(expression.format))
         }
     }
 
