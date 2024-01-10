@@ -220,7 +220,7 @@ class ExpressionEvaluation(
                 StringValue(value.stringRepresentation(expression.format) + ".0000000000")
             }
         } else {
-            StringValue(value.stringRepresentation(expression.format).trim())
+            StringValue(value.stringRepresentation(expression.format))
         }
     }
 
@@ -296,7 +296,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: LogicalCondition): Value {
-        if (expression.ands.any { !evalAsBoolean(it) }) {
+        if (expression.ands.any { !evalAsBoolean(it) } && !expression.ors.any { evalAsBoolean(it) }) {
             return BooleanValue.FALSE
         }
 

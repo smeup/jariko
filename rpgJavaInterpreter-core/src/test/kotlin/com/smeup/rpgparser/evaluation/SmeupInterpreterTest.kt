@@ -4,10 +4,23 @@ import com.smeup.rpgparser.AbstractTest
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 open class SmeupInterpreterTest : AbstractTest() {
+
+    lateinit var smeupConfig: Configuration
+
+    @BeforeTest
+    fun setUp() {
+        smeupConfig = Configuration()
+        val path = javaClass.getResource("/smeup/metadata")!!.path
+        val reloadConfig = SimpleReloadConfig(metadataPath = path, connectionConfigs = listOf())
+        smeupConfig.reloadConfig = ReloadConfig(
+            nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+            metadataProducer = { dbFile: String -> reloadConfig.getMetadata(dbFile = dbFile) })
+    }
 
     @Test
     fun executeT15_A80() {
@@ -118,6 +131,18 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT10_A90() {
         val expected = listOf("999-9999", "A90_A4(        ) A90_A5(RPG DEPT)", "A90_A4(        ) A90_A5(RPG DEPT)")
         assertEquals(expected, "smeup/T10_A90".outputOf())
+    }
+
+    @Test
+    fun executeT12_A02() {
+        val expected = listOf("True")
+        assertEquals(expected, "smeup/T12_A02".outputOf())
+    }
+
+    @Test
+    fun executeT40_A10() {
+        val expected = listOf("A10_DS_P01(BBB                 -          -          -          -          -          -          -                                                                                                                                                                                                                                                                -          -          -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                -0-0-                                                                                                   -0-          -0-0-          -0) A10_DS_P04(AAA                 -          -          -          -          -          -          -                                                                                                                                                                                                                                                                -          -          -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                -0-0-")
+        assertEquals(expected, "smeup/T40_A10".outputOf(configuration = smeupConfig))
     }
 
     /*

@@ -2184,4 +2184,16 @@ Test 6
         assertNotEquals("0001-01-01-00.00.00.000000", values[1])
         assertEquals("0001-01-01-00.00.00.000000", values[2])
     }
+
+    @Test
+    fun executeBIFCHAR() {
+        assertEquals(listOf("Parma       ", "Parma       ", " Parma      ", "(ABC       )", "(ABC       )", "(1)         ", "(1.30)      ", "(ABC       |ABC       )       ", "(1|1.30)                      ", "(ABC|ABC       )              "), outputOf("BIFCHAR", trimEnd = false))
+        assertEquals(listOf("Parma", "Parma", " Parma", "(ABC       )", "(ABC       )", "(1)", "(1.30)", "(ABC       |ABC       )", "(1|1.30)", "(ABC|ABC       )"), outputOf("BIFCHAR", trimEnd = true))
+    }
+
+    @Test
+    fun executeMIXED_CONDITIONS() {
+        val expected = listOf("IF1 = True", "IF2 = True", "IF3 = True", "IF4 = True", "IF5 = False", "IF6 = False", "IF7 = False", "IF8 = True")
+        assertEquals(expected, "MIXED_CONDITIONS".outputOf())
+    }
 }
