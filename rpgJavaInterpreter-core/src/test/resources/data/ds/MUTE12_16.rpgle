@@ -38,7 +38,7 @@
      D £JaxWE5                        5  3
       *
      D £JaxDSCoda6     DS
-     D £JaxWE6                        9  8 INZ(-0.12345678)
+     D £JaxWE6                        9  8 INZ(-1.12345678)
       *
      D £JaxDSCoda7     DS
      D £JaxWE7                        5  2 INZ
@@ -52,6 +52,7 @@
      C                   EVAL      £JaxWT5=12.345
      C                   EVAL      £JaxWT7=123.456789
      C                   EVAL      £JaxWT8='1234567890'
+     C                   EVAL      £JaxWT6=-0.12345678
       *
     MU* VAL1(£JaxWE) VAL2(0.0) COMP(EQ)
      C                   SETON                                        50
@@ -86,7 +87,7 @@
     MU* VAL1(£JaxWT5) VAL2(12.345) COMP(EQ)
      C                   SETON                                        50
       *
-    MU* VAL1(£JaxWT6) VAL2(-0.12345678) COMP(NE)
+    MU* VAL1(£JaxWT6) VAL2(-0.12345678) COMP(EQ)
      C                   SETON                                        50
       *
     MU* VAL1(£JaxWT7) VAL2(123.45) COMP(EQ)
