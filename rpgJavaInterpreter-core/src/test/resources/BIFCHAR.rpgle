@@ -2,6 +2,10 @@
      D STR             S             10     INZ('ABC       ')
      D VAR2            S             10     VARYING INZ('ABC')
      D STR2            S             10     INZ('ABC')
+     D N1              S              5  0
+     D N2              S              5  2
+     D P1              S              5P 0
+     D P2              S              5P 2
      D RESULT          S             12
      D CONCAT          S             30
      *********************************************************************
@@ -57,4 +61,30 @@
       *  CONCAT = '(ABC|ABC       )              '
      C     CONCAT        dsply
       **********************************************************************
+     C                   Z-ADD     0             ZER               5 2
+     C                   Eval       RESULT = '('+%CHAR(ZER)+')'
+      * Expected:
+      *  RESULT = '(.00)       '
+     C     RESULT        dsply
+      *********************************************************************
+      * Expected:
+     C                   Eval       RESULT = 'N1('+%CHAR(N1)+')'
+      *  RESULT = 'N1(0)       '
+     C     RESULT        dsply
+      *********************************************************************
+      * Expected:
+     C                   Eval       RESULT = 'N2('+%CHAR(N2)+')'
+      *  RESULT = 'N2(.00)     '
+     C     RESULT        dsply
+      *********************************************************************
+      * Expected:
+     C                   Eval       RESULT = 'P1('+%CHAR(P1)+')'
+      *  RESULT = 'P1(0)       '
+     C     RESULT        dsply
+      *********************************************************************
+      * Expected:
+     C                   Eval       RESULT = 'P2('+%CHAR(P2)+')'
+      *  RESULT = 'P2(.00)      '
+     C     RESULT        dsply
+      *********************************************************************
      C                   Seton                                        LR
