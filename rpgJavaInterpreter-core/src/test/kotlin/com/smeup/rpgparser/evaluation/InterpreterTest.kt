@@ -2196,4 +2196,10 @@ Test 6
         val expected = listOf("IF1 = True", "IF2 = True", "IF3 = True", "IF4 = True", "IF5 = False", "IF6 = False", "IF7 = False", "IF8 = True")
         assertEquals(expected, "MIXED_CONDITIONS".outputOf())
     }
+
+    @Test
+    fun executeRESET01() {
+        val expected = listOf("A1:", "A2:", "N1:1", "N2:1.1", "DSA1:", "DSA2:", "DSN1:1", "DSN2:1.1", "9")
+        assertEquals(expected, "RESET01".outputOf())
+    }
 }
