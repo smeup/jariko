@@ -917,12 +917,23 @@ data class ClearStmt(
     override fun execute(interpreter: InterpreterCore) {
         return when (value) {
             is DataRefExpr -> {
-                val value = interpreter.assign(value, BlanksRefExpr())
+                val newValue: Value
+                /*
+                 If DataRef is referred to an OccurableDataStructureType read the
+                 last cursor position and assisgn it to new blanck object
+                 */
+                if (this.value.variable.referred?.type is OccurableDataStructureType) {
+                    val origValue = interpreter.eval(value) as OccurableDataStructValue
+                    newValue = interpreter.assign(value, BlanksRefExpr()) as OccurableDataStructValue
+                    newValue.pos(origValue.occurrence)
+                } else {
+                    newValue = interpreter.assign(value, BlanksRefExpr())
+                }
                 interpreter.log {
                     ClearStatemenExecutionLog(
                             interpreter.getInterpretationContext().currentProgramName,
                             this,
-                            value
+                            newValue
                     )
                 }
             }
