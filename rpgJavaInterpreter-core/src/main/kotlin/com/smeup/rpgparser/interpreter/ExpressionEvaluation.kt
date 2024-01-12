@@ -210,7 +210,12 @@ class ExpressionEvaluation(
             // are always return 10 decimal digits
             // fill with 0 if necessary
             if (value.asDecimal().value.scale() != 0) {
-                StringValue(value.stringRepresentation(expression.format) + "0".repeat(10 - value.asDecimal().value.scale()))
+                val numeDecimals = value.asDecimal().value.scale()
+                if (numeDecimals < 10) {
+                    StringValue(value.stringRepresentation(expression.format) + "0".repeat(10 - numeDecimals))
+                } else {
+                    StringValue(value.stringRepresentation(expression.format).trim())
+                }
             } else {
                 StringValue(value.stringRepresentation(expression.format) + ".0000000000")
             }
@@ -485,10 +490,8 @@ class ExpressionEvaluation(
 
         // Detects what kind of eval must be evaluated
         val res = if (expression.parent is EvalStmt) {
-
             val parent = (expression.parent as EvalStmt)
             val decimalDigits = (parent.target.type() as NumberType).decimalDigits
-
             when {
                 // EVAL(H)
                 parent.flags.halfAdjust -> {
