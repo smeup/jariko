@@ -2199,7 +2199,7 @@ Test 6
 
     @Test
     fun executeRESET01() {
-        val expected = listOf("A1:", "A2:", "N1:1", "N2:1.1", "DSA1:", "DSA2:", "DSN1:1", "DSN2:1.1", "9")
+        val expected = listOf("A1_OK", "A2_OK", "A3_OK", "N1_OK", "N2_OK", "N3_OK", "DS_OK", "DSA1_OK", "DSA2_OK")
         assertEquals(expected, "RESET01".outputOf())
     }
 }
