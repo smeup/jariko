@@ -393,6 +393,19 @@ class ExpressionEvaluation(
                     totalSize.asValue()
                 }
             }
+            is DecimalValue -> {
+                // see https://www.ibm.com/docs/en/i/7.5?topic=length-len-used-its-value
+                var totalSize = 0L
+                // the len is the sum of variable size
+                expression.specificProcess(DataRefExpr::class.java) {
+                    totalSize += it.variable.referred!!.type.size.toLong()
+                }
+                if (totalSize == 0L) {
+                    TODO("Invalid LEN parameter $value")
+                } else {
+                    totalSize.asValue()
+                }
+            }
             else -> {
                 TODO("Invalid LEN parameter $value")
             }

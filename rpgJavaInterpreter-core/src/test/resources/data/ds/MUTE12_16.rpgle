@@ -86,7 +86,7 @@
     MU* VAL1(£JaxWT5) VAL2(12.345) COMP(EQ)
      C                   SETON                                        50
       *
-    MU* VAL1(£JaxWT6) VAL2(-0.12345678) COMP(EQ)
+    MU* VAL1(£JaxWT6) VAL2(-0.12345678) COMP(NE)
      C                   SETON                                        50
       *
     MU* VAL1(£JaxWT7) VAL2(123.45) COMP(EQ)

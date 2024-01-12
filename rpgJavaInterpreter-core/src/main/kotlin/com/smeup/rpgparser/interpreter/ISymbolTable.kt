@@ -16,6 +16,8 @@
 
 package com.smeup.rpgparser.interpreter
 
+import java.math.BigDecimal
+
 interface ISymbolTable {
 
     var parentSymbolTable: ISymbolTable?
@@ -93,5 +95,15 @@ fun Value.forType(type: Type): Value {
             if (this.value.length < type.length) this.pad(type.length)
         }
     }
+
+    if (type is NumberType && this is IntValue) {
+        return if (type.decimalDigits == 0) {
+            this
+        } else {
+            val dec = BigDecimal(this.value)
+            DecimalValue(dec.setScale(type.decimalDigits))
+        }
+    }
+
     return this
 }
