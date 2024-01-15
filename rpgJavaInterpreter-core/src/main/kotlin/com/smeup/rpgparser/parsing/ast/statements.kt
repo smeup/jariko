@@ -23,7 +23,10 @@ import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.parsetreetoast.*
+import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
+import com.smeup.rpgparser.parsing.parsetreetoast.error
+import com.smeup.rpgparser.parsing.parsetreetoast.isInt
+import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
@@ -1743,8 +1746,8 @@ fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, 
 
 @Serializable
 data class OpenStmt(
-    @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
+    val name: String = "", // Factor 2
+    override val position: Position? = null,
     val operationExtender: String?,
     val errorIndicator: IndicatorKey?
 ) : Statement(position) {
@@ -1760,8 +1763,8 @@ data class OpenStmt(
 }
 @Serializable
 data class CloseStmt(
-    @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
+    val name: String = "", // Factor 2
+    override val position: Position? = null,
     val operationExtender: String?,
     val errorIndicator: IndicatorKey?
 ) : Statement(position) {
