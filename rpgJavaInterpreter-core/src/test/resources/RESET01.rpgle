@@ -38,11 +38,11 @@
      C                   EVAL      DSA1='DSA1'
      C                   EVAL      DSA2='DSA2'
 
-     C                   RESET     A1
-     C                   RESET     A2
-     C                   RESET     N1
-     C                   RESET     N2
-     C                   RESET     DS
+     C                   RESET                   A1
+     C                   RESET                   A2
+     C                   RESET                   N1
+     C                   RESET                   N2
+     C                   RESET                   DS
 
      C                   EVAL      MSGOK='A1_OK'
      C                   EVAL      MSGKO='A1_KO'
