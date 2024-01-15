@@ -72,6 +72,13 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT02_A40_P5() {
+        val expected = listOf("333,zz")
+        //assertASTCanBeProduced("smeup/T02_A40_P5", printTree = true)
+        assertEquals(expected, "smeup/T02_A40_P5".outputOf())
+    }
+
+    @Test
     fun executeT04_A20() {
         val expected = listOf("CALL_1(MULANGT04 , 1, MULANGTB10: MULANGT04 chiamata 1                  ) CALL_2(MULANGT04 , 3, MULANGTB10: MULANGT04 chiamata 1                  )")
         assertEquals(expected, "smeup/T04_A20".outputOf())
