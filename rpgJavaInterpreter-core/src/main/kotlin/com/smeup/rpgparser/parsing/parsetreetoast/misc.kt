@@ -902,6 +902,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csXLATE() != null -> this.csXLATE()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csRESET() != null -> this.csRESET()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -1853,6 +1856,15 @@ internal fun CsCLOSEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
         position = position,
         operationExtender = this.operationExtender?.text,
         errorIndicator = this.cspec_fixed_standard_parts().lo.asIndex()
+    )
+}
+
+internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
+    val name = this.cspec_fixed_standard_parts().factor2.text ?: this.error(message = "RESET operation requires factor", conf = conf)
+    return ResetStmt(
+        name = name,
+        position = position
     )
 }
 
