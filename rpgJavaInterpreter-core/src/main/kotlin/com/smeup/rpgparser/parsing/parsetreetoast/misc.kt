@@ -1861,9 +1861,18 @@ internal fun CsCLOSEContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsRESETContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    val name = this.cspec_fixed_standard_parts().factor2.text ?: this.error(message = "RESET operation requires factor", conf = conf)
+    require(this.cspec_fixed_standard_parts().factor().text.isEmptyTrim()) {
+        "RESET operation does not support factor1"
+    }
+    require(this.cspec_fixed_standard_parts().factor2.text.isEmptyTrim()) {
+        "RESET operation does not support factor2"
+    }
+    val result = this.cspec_fixed_standard_parts().result.text
+    require(!result.isEmptyTrim()) {
+        "RESET operation requires result"
+    }
     return ResetStmt(
-        name = name,
+        name = result,
         position = position
     )
 }
