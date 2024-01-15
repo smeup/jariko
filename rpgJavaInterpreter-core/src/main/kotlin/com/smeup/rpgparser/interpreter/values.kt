@@ -675,9 +675,7 @@ object LowValValue : Value {
 
 object ZeroValue : Value {
 
-    override fun copy(): Value {
-        TODO("not implemented")
-    }
+    override fun copy() = this
 
     override fun toString(): String {
         return "ZeroValue"
