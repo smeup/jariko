@@ -175,7 +175,8 @@ data class DataDefinition(
     override val position: Position? = null,
     override var const: Boolean = false,
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
-    var paramOptions: List<ParamOption> = mutableListOf()
+    var paramOptions: List<ParamOption> = mutableListOf(),
+    var defaultValue: Value? = null,
 ) :
     AbstractDataDefinition(
         name = name.apply { require(this.trim().isNotEmpty()) { "name cannot be empty" } },
