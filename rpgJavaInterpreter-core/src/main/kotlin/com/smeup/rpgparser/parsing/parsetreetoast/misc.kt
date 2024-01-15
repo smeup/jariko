@@ -528,8 +528,8 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.subprocedurestatement()
         .mapNotNull {
-            it.statement()?.let { statementContext -> statementContext.toDataDefinitionProvider(conf = conf,
-                knownDataDefinitions = knownDataDefinitions) }
+            it.statement()?.toDataDefinitionProvider(conf = conf,
+                knownDataDefinitions = knownDataDefinitions)
         })
 
     // Second pass, everything, I mean everything
@@ -584,7 +584,7 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
 }
 
 internal fun FunctionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
-    return when (this.functionName().text.toUpperCase()) {
+    return when (this.functionName().text.uppercase(Locale.getDefault())) {
         "NOT" -> {
             if (this.args().expression().size != 1) {
                 throw IllegalStateException("Not should have just one parameter")
@@ -928,15 +928,15 @@ private fun annidatedReferenceExpression(
 ): AssignableExpression {
     // FIXME: This is very, very, very ugly. It should be fixed by parsing this properly
     //        in the grammar
-    if (text.toUpperCase() == "*IN") {
+    if (text.uppercase(Locale.getDefault()) == "*IN") {
         return GlobalIndicatorExpr(position)
     }
-    if (text.toUpperCase().startsWith("*IN(") && text.endsWith(")")) {
-        val index = text.toUpperCase().removePrefix("*IN(").removeSuffix(")").toInt()
+    if (text.uppercase(Locale.getDefault()).startsWith("*IN(") && text.endsWith(")")) {
+        val index = text.uppercase(Locale.getDefault()).removePrefix("*IN(").removeSuffix(")").toInt()
         return IndicatorExpr(index, position)
     }
-    if (text.toUpperCase().startsWith("*IN")) {
-        val index = text.toUpperCase().removePrefix("*IN").toInt()
+    if (text.uppercase(Locale.getDefault()).startsWith("*IN")) {
+        val index = text.uppercase(Locale.getDefault()).removePrefix("*IN").toInt()
         return IndicatorExpr(index, position)
     }
     var expr: Expression = text.indexOf("(").let {
@@ -1129,7 +1129,7 @@ internal fun indicators(cspecs: Cspec_fixed_standard_partsContext, considerPosit
             .asSequence()
             .map { it.text }
             .filter { !it.isNullOrBlank() }
-            .map(String::toUpperCase)
+            .map(String::uppercase)
             .map {
                 IndicatorExpr(it.toIndicatorKey(), cspecs.toPosition(considerPosition))
             }
@@ -1152,7 +1152,7 @@ internal fun CsRETURNContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 }
 
 internal fun CsEVALContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): EvalStmt {
-    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
     val flags = EvalFlags(
         halfAdjust = 'H' in extenders,
         maximumNumberOfDigitsRule = 'M' in extenders,
@@ -1178,7 +1178,7 @@ internal fun CsSUBDURContext.toAst(conf: ToAstConfiguration = ToAstConfiguration
 }
 
 private fun String.toDuration(): DurationCode =
-    when (toUpperCase()) {
+    when (uppercase(Locale.getDefault())) {
         "*D", "*DAYS" -> DurationInDays
         "*MS", "*MSECONDS" -> DurationInMSecs
         "*S", "*SECONDS" -> DurationInSecs
@@ -1305,7 +1305,7 @@ private fun String.toDoubleExpression(position: Position?, index: Int, conf: ToA
     val baseStringTokens = this.split(":")
     val startPosition = 0
     var reference = baseStringTokens[index]
-    var ret: Expression
+    val ret: Expression
 
     val regexp = Regex("'(.*?)'")
     if (reference.matches(regexp)) {
@@ -1385,7 +1385,7 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val factor1 = leftExpr(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return MultStmt(
         target = DataRefExpr(ReferenceByName(result), position),
@@ -1403,7 +1403,7 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val factor1 = leftExpr(conf)
     val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    val extenders = this.operationExtender?.extender?.text?.toUpperCase()?.toCharArray() ?: CharArray(0)
+    val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val mvrTarget: AssignableExpression? = this.csMVR()?.cspec_fixed_standard_parts()?.result?.text?.let {
         DataRefExpr(ReferenceByName(it), position)
