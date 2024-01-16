@@ -45,7 +45,7 @@ abstract class AbstractTest {
     @BeforeTest
     fun beforeTest() {
         // I don't like but until I won't be able to refactor the test units through
-        // the unification of the SytemInterfaces I need to use this workaround
+        // the unification of the SystemInterfaces I need to use this workaround
         SingletonRpgSystem.reset()
         // It is necessary to fix a problem where  some older tests not running in MainExecutionContext could propagate
         // the errors to the following tests
@@ -64,7 +64,7 @@ abstract class AbstractTest {
 
     /**
      * Create ast for exampleName. Let's assume that: testResourceDir is rpgJavaInterpreter-core/src/test/resources
-     * @param exampleName Relative path respect testResourceDir where is located source file-
+     * @param exampleName Relative path respect testResourceDir where is located source file
      * For example if we have to assert AST of testResourceDir/MYPGM.rpgle, you are going to specify MYPGM,
      * elsewhere if you need to test testResourceDir/QILEGEN/MYPGM.rpgle you are going to specify QILEGEN/MYPGM
      * @param considerPosition If true parsing or ast creation error include also line number, default false
@@ -93,6 +93,7 @@ abstract class AbstractTest {
 
     /**
      * Executes a program and returns the output as a list of displayed messages.
+     * **This function non provides all features of jariko, I suggest to use String.outputOf**
      *
      * @param programName The name of the program to be executed.
      * @param initialValues The initial values for the program.
@@ -102,12 +103,9 @@ abstract class AbstractTest {
      * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
      *
      * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
+     * @see String.outputOf
+     *
      */
-    @Deprecated(
-        message = "This function does not provide all the features of Jariko",
-        replaceWith = ReplaceWith(expression = "String.outputOf()", imports = ["com.smeup.rpgparser.AbstractTest.outputOf"]),
-        level = DeprecationLevel.WARNING
-    )
     fun outputOf(
         programName: String,
         initialValues: Map<String, Value> = mapOf(),

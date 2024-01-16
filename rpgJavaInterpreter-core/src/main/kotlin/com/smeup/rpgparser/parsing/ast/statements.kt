@@ -24,10 +24,11 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
+import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
-import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.ComparisonOperator
+import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
@@ -1745,8 +1746,8 @@ fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, 
 
 @Serializable
 data class OpenStmt(
-    @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
+    val name: String = "", // Factor 2
+    override val position: Position? = null,
     val operationExtender: String?,
     val errorIndicator: IndicatorKey?
 ) : Statement(position) {
@@ -1762,8 +1763,8 @@ data class OpenStmt(
 }
 @Serializable
 data class CloseStmt(
-    @Transient open val name: String = "", // Factor 2
-    @Transient override val position: Position? = null,
+    val name: String = "", // Factor 2
+    override val position: Position? = null,
     val operationExtender: String?,
     val errorIndicator: IndicatorKey?
 ) : Statement(position) {
@@ -1822,4 +1823,25 @@ data class XlateStmt(
     }
 
     override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class ResetStmt(
+    val name: String,
+    override val position: Position? = null
+) : Statement(position) {
+
+    override fun execute(interpreter: InterpreterCore) {
+        val dataDefinition = interpreter.dataDefinitionByName(name)
+        require(dataDefinition != null) {
+            this.error("Data definition $name not found")
+        }
+        require(dataDefinition is DataDefinition) {
+            this.error("Data definition $name is not an instance of DataDefinition")
+        }
+        require(dataDefinition.defaultValue != null) {
+            this.error("Data definition $name has no default value")
+        }
+        interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
+    }
 }
