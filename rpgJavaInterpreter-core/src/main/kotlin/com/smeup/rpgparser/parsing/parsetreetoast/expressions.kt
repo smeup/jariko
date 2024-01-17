@@ -71,7 +71,11 @@ internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConf
        children[n] = "'"
      */
     val stringContent = if (this.children.size > 3) {
-        this.children.asSequence().filter { it.text != "'" }.joinToString(separator = "")
+        if (children[0].text == "'" && children[this.children.size - 1].text == "'") {
+            this.children.subList(1, this.children.size - 1).joinToString(separator = "")
+        } else {
+            this.content?.text ?: ""
+        }
     } else {
         this.content?.text ?: ""
     }
