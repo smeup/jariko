@@ -272,6 +272,9 @@ open class InternalInterpreter(
 
                 if (value != null) {
                     set(it, coerce(value, it.type))
+                    if (it is DataDefinition) {
+                        it.defaultValue = globalSymbolTable[it].copy()
+                    }
                     executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
                 }
             }
