@@ -29,7 +29,6 @@ import java.math.MathContext
 import java.math.RoundingMode
 import java.time.temporal.ChronoUnit
 import java.time.ZoneId
-import java.util.HashMap
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -689,7 +688,7 @@ class ExpressionEvaluation(
                     1 } else {
                         0
                     }
-            }.joinToString { it.toString() })
+            }.joinToString(separator = "") { it.toString() })
     }
 
     override fun eval(expression: ParmsExpr): Value {
