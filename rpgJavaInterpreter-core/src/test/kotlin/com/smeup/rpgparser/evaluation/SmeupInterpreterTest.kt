@@ -121,7 +121,7 @@ open class SmeupInterpreterTest : AbstractTest() {
 
     @Test
     fun executeT16_A70() {
-        val expected = listOf("A70_AR1(10) A70_AR2(20) A70_DS1(30) A70_AR3(10)")
+        val expected = listOf("A70_AR1(10) A70_AR2(20) A70_DS1(30) A70_AR3(10) A70_AR4(40)")
         assertEquals(expected, "smeup/T16_A70".outputOf())
     }
 
