@@ -2202,4 +2202,11 @@ Test 6
         val expected = listOf("A1_OK", "A2_OK", "A3_OK", "N1_OK", "N2_OK", "N3_OK", "DS_OK", "DSA1_OK", "DSA2_OK")
         assertEquals(expected, "RESET01".outputOf())
     }
+
+    @Test
+    fun executeMOVEAIN() {
+        val expected = listOf("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000")
+        assertASTCanBeProduced("MOVEAIN", printTree = true)
+        assertEquals(expected, "MOVEAIN".outputOf())
+    }
 }

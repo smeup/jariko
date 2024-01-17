@@ -22,9 +22,7 @@ data class IndicatorExpr(val index: IndicatorKey, override val position: Positio
 @Serializable
 data class GlobalIndicatorExpr(override val position: Position? = null) :
         AssignableExpression(position) {
-    override fun size(): Int {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
-    }
+    override fun size(): Int = 99
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 

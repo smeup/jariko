@@ -29,6 +29,7 @@ import java.math.MathContext
 import java.math.RoundingMode
 import java.time.temporal.ChronoUnit
 import java.time.ZoneId
+import java.util.HashMap
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -676,8 +677,20 @@ class ExpressionEvaluation(
     override fun eval(expression: AssignmentExpr) =
         throw RuntimeException("AssignmentExpr should be handled by the interpreter: $expression")
 
-    override fun eval(expression: GlobalIndicatorExpr) =
-        throw RuntimeException("PredefinedGlobalIndicatorExpr should be handled by the interpreter: $expression")
+    override fun eval(expression: GlobalIndicatorExpr): Value {
+
+        for (i in 1..99)
+            if (interpreterStatus.indicators[i] == null)
+                interpreterStatus.indicators[i] = BooleanValue(false)
+        val ret = interpreterStatus.indicators.map { it.value }
+        return StringValue(
+            ret.map {
+                if (it.value) {
+                    1 } else {
+                        0
+                    }
+            }.joinToString { it.toString() })
+    }
 
     override fun eval(expression: ParmsExpr): Value {
         return IntValue(interpreterStatus.params.toLong())
