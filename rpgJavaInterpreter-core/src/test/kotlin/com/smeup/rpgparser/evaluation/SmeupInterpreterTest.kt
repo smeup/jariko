@@ -185,4 +185,12 @@ open class SmeupInterpreterTest : AbstractTest() {
         )
         assertEquals(expected, "smeup/T02_S10_P01".outputOf())
     }
+
+    @Test
+    fun executeT40_A10_P03D() {
+        val expected = listOf(
+            "Contenuto Post-RESET: A    -44"
+        )
+        assertEquals(expected, "smeup/T40_A10_P03D".outputOf())
+    }
 }
