@@ -676,7 +676,9 @@ data class CallStmt(
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
-            interpreter.assign(this.params[index].param.referred!!, value)
+            if (this.params.size > index) {
+                interpreter.assign(this.params[index].param.referred!!, value)
+            }
         }
     }
 }
