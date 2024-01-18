@@ -1038,17 +1038,18 @@ fun areEquals(value1: Value, value2: Value): Boolean {
 
 @Serializable
 object VoidValue : Value {
-
-    override fun asString(): StringValue {
-        TODO("Not yet implemented")
+    override fun toString(): String {
+        return "VoidValue"
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 
-    override fun copy(): Value {
-        TODO("Not yet implemented")
+    override fun copy(): VoidValue = this
+
+    override fun asString(): StringValue {
+        return StringValue(this.toString())
     }
 }
 

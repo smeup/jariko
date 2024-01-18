@@ -79,7 +79,7 @@ class SymbolTable : ISymbolTable {
     }
 
     override fun dataDefinitionByName(dataName: String): AbstractDataDefinition? {
-        return names[dataName.toUpperCase()] ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.toUpperCase()] }
+        return names[dataName.uppercase()] ?: parentSymbolTable?.let { (parentSymbolTable as SymbolTable).names[dataName.uppercase()] }
     }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
@@ -100,7 +100,7 @@ class SymbolTable : ISymbolTable {
         require(data.type.canBeAssigned(value)) {
             "Value $value cannot be assigned to data: $data"
         }
-        names[data.name.toUpperCase()] = data
+        names[data.name.uppercase()] = data
         return values.put(data, value.forType(data.type))
     }
 
