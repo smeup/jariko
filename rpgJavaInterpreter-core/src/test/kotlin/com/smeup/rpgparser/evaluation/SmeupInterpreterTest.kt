@@ -179,6 +179,15 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT20_A10_P05() {
+        val expected = listOf(
+            "1",
+            "0"
+        )
+        assertEquals(expected, "smeup/T20_A10_P05".outputOf())
+    }
+
+    @Test
     fun executeT02_S10_P01() {
         val expected = listOf(
             "abcdefghijklmnopqrstuvwxyzèéàòùABCDEFGHIJKLMNOPQRS        TUVWXYZEEAOUABCDEFGHIJKLMNOPQRSTUVWXYZEEAOUABCDEFGHIJKLMNOPQRSTUVWXYZEEAOUABCDEFGHIJKLMNOPQRSTUVWXYZEEAOUABCDEFGH'''*%"
