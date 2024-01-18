@@ -401,7 +401,8 @@ internal fun RpgParser.DspecContext.toAst(
                 it.ascend = ascend
             }
         } else {
-            baseType
+            val el = compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt()
+            (baseType as ArrayType).copy(nElements = el)
         }
     } else {
         baseType
