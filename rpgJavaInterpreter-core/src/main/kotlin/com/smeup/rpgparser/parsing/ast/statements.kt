@@ -606,7 +606,20 @@ data class CallStmt(
         val callStatement = this
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
-        val program = interpreter.getSystemInterface().findProgram(programToCall)
+        val program: Program?
+        try {
+            program = interpreter.getSystemInterface().findProgram(programToCall)
+            if (errorIndicator != null) {
+                interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+            }
+        } catch (e: Exception) {
+            if (errorIndicator == null) {
+                throw e
+            }
+            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+            return
+        }
+
         require(program != null) {
             "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
         }
@@ -658,6 +671,9 @@ data class CallStmt(
                             callStatement,
                             System.currentTimeMillis() - startTime
                         )
+                    }
+                    if (errorIndicator != null) {
+                        interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
                     }
                 }
             } catch (e: Exception) { // TODO Catch a more specific exception?
