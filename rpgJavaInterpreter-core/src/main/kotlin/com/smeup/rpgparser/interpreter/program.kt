@@ -85,14 +85,15 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
             require(params.keys.toSet() == params().asSequence().map { it.name }.toSet()) {
                 "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
             }
-        } else if (expectedKeys.size > params.size) {
+        } else {
             require(params().asSequence().map { it.name }.toSet().all { it in expectedKeys }) {
                 "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
             }
 
-            params().forEach() {
-                if (it.name in params.keys == false) {
-                    params.put(it.name, VoidValue)
+            // Set not passed params to VoidValue
+            params().forEach {
+                if (it.name !in params.keys) {
+                    params[it.name] = VoidValue
                 }
             }
         }
