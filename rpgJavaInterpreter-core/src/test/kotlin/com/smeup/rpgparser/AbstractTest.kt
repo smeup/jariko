@@ -45,7 +45,7 @@ abstract class AbstractTest {
     @BeforeTest
     fun beforeTest() {
         // I don't like but until I won't be able to refactor the test units through
-        // the unification of the SytemInterfaces I need to use this workaround
+        // the unification of the SystemInterfaces I need to use this workaround
         SingletonRpgSystem.reset()
         // It is necessary to fix a problem where  some older tests not running in MainExecutionContext could propagate
         // the errors to the following tests
@@ -64,7 +64,7 @@ abstract class AbstractTest {
 
     /**
      * Create ast for exampleName. Let's assume that: testResourceDir is rpgJavaInterpreter-core/src/test/resources
-     * @param exampleName Relative path respect testResourceDir where is located source file-
+     * @param exampleName Relative path respect testResourceDir where is located source file
      * For example if we have to assert AST of testResourceDir/MYPGM.rpgle, you are going to specify MYPGM,
      * elsewhere if you need to test testResourceDir/QILEGEN/MYPGM.rpgle you are going to specify QILEGEN/MYPGM
      * @param considerPosition If true parsing or ast creation error include also line number, default false
@@ -91,12 +91,28 @@ abstract class AbstractTest {
         )
     }
 
+    /**
+     * Executes a program and returns the output as a list of displayed messages.
+     * **This function non provides all features of jariko, I suggest to use String.outputOf**
+     *
+     * @param programName The name of the program to be executed.
+     * @param initialValues The initial values for the program.
+     * @param printTree A boolean value indicating whether the parse tree should be printed or not. Default value is false.
+     * @param si The system interface to be used for the execution. Default is an instance of ExtendedCollectorSystemInterface.
+     * @param configuration The configuration for the execution of the program.
+     * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
+     *
+     * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
+     * @see String.outputOf
+     *
+     */
     fun outputOf(
         programName: String,
         initialValues: Map<String, Value> = mapOf(),
         printTree: Boolean = false,
         si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
-        configuration: Configuration = Configuration()
+        configuration: Configuration = Configuration(),
+        trimEnd: Boolean = true
     ): List<String> {
         return outputOf(
             programName = programName,
@@ -104,7 +120,8 @@ abstract class AbstractTest {
             printTree = printTree,
             si = si,
             compiledProgramsDir = getTestCompileDir(),
-            configuration = configuration
+            configuration = configuration,
+            trimEnd = trimEnd
         )
     }
 
@@ -125,19 +142,33 @@ abstract class AbstractTest {
         )
     }
 
+    /**
+     * Executes a DB program and returns the output.
+     *
+     * @param programName The name of the program to be executed.
+     * @param metadata The metadata of the files used in the program.
+     * @param initialSQL The initial SQL statements to be executed before the program.
+     * @param inputParms The input parameters for the program.
+     * @param configuration The configuration for the execution of the program.
+     * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
+     *
+     * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
+     */
     fun outputOfDBPgm(
         programName: String,
         metadata: List<FileMetadata> = emptyList(),
         initialSQL: List<String> = emptyList(),
         inputParms: Map<String, Value> = mapOf(),
-        configuration: Configuration = Configuration(options = Options(muteSupport = true))
+        configuration: Configuration = Configuration(options = Options(muteSupport = true)),
+        trimEnd: Boolean = true
     ): List<String> {
         return com.smeup.rpgparser.db.utilities.outputOfDBPgm(
             programName = programName,
             metadata = metadata,
             initialSQL = initialSQL,
             inputParms = inputParms,
-            configuration = configuration.adaptForTestCase(this)
+            configuration = configuration.adaptForTestCase(this),
+            trimEnd = trimEnd
         )
     }
 
@@ -202,6 +233,22 @@ abstract class AbstractTest {
         } else {
             null
         }
+    }
+
+    /**
+     * Executes a program and returns the output as a list of displayed messages.
+     *
+     * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
+     * @param configuration The configuration for the execution of the program.
+     * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
+     */
+    protected fun String.outputOf(trimEnd: Boolean = true, configuration: Configuration = Configuration()): List<String> {
+        val messages = mutableListOf<String>()
+        val systemInterface = JavaSystemInterface().apply {
+            onDisplay = { message, _ -> messages.add(message) }
+        }
+        executePgm(programName = this, systemInterface = systemInterface, configuration = configuration)
+        return if (trimEnd) messages.map { it.trimEnd() } else messages
     }
 
     private fun createSimpleReloadConfig(): SimpleReloadConfig? {

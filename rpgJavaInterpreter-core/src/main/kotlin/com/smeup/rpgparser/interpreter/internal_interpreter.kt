@@ -27,6 +27,7 @@ import com.smeup.rpgparser.parsing.facade.SourceReference
 import com.smeup.rpgparser.parsing.facade.dumpSource
 import com.smeup.rpgparser.parsing.facade.relative
 import com.smeup.rpgparser.parsing.parsetreetoast.MuteAnnotationExecutionLogEntry
+import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import com.smeup.rpgparser.utils.ComparisonOperator.*
 import com.smeup.rpgparser.utils.chunkAs
@@ -59,11 +60,12 @@ class InterpreterStatus(
     val symbolTable: ISymbolTable,
     val indicators: HashMap<IndicatorKey, BooleanValue>,
     var returnValue: Value? = null,
-    var params: Int = 0,
-    var inzsrExecuted: Boolean = false
+    var params: Int = 0
 ) {
+    var inzsrExecuted = false
     var lastFound = false
     var lastDBFile: DBFile? = null
+    val dbFileMap = DBFileMap()
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable[abstractDataDefinition]
 }
@@ -107,14 +109,12 @@ open class InternalInterpreter(
 
     private var logHandlers: List<InterpreterLogHandler> = emptyList()
 
-    fun logsEnabled() = logHandlers.isNotEmpty()
+    private fun logsEnabled() = logHandlers.isNotEmpty()
 
     private val status = InterpreterStatus(globalSymbolTable, indicators)
     override fun getStatus(): InterpreterStatus {
         return status
     }
-
-    private val dbFileMap = DBFileMap()
 
     private val expressionEvaluation = ExpressionEvaluation(systemInterface, localizationContext, status)
 
@@ -122,7 +122,7 @@ open class InternalInterpreter(
         if (logsEnabled()) doLog(logEntry())
     }
 
-    fun doLog(entry: LogEntry) {
+    private fun doLog(entry: LogEntry) {
         logHandlers.log(entry)
     }
 
@@ -207,7 +207,7 @@ open class InternalInterpreter(
         MainExecutionContext.log(SymbolTableIniLogStart(programName = interpretationContext.currentProgramName))
         // TODO verify if these values should be reinitialised or not
         compilationUnit.fileDefinitions.forEach {
-            dbFileMap.add(it)
+            status.dbFileMap.add(it)
         }
 
         var index = 0
@@ -272,6 +272,9 @@ open class InternalInterpreter(
 
                 if (value != null) {
                     set(it, coerce(value, it.type))
+                    if (it is DataDefinition) {
+                        it.defaultValue = globalSymbolTable[it].copy()
+                    }
                     executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
                 }
             }
@@ -298,11 +301,17 @@ open class InternalInterpreter(
         // probably it is an error during the ast processing.
         // as workaround, if null assumes the number of lines in the compile compileTimeArray
         // as value for compileTimeRecordsPerLine
-        val lines = if (arrayType.compileTimeRecordsPerLine == null) compileTimeArray.lines.size else arrayType.compileTimeRecordsPerLine
+        val lines = arrayType.compileTimeRecordsPerLine ?: compileTimeArray.lines.size
         val l: MutableList<Value> =
             compileTimeArray.lines.chunkAs(lines, arrayType.element.size)
                 .map {
-                    coerce(StringValue(it), arrayType.element)
+                    // force rpgle to zoned if is number type
+                    val elementType = if (arrayType.element is NumberType) {
+                        arrayType.element.copy(rpgType = RpgType.ZONED.rpgType)
+                    } else {
+                        arrayType.element
+                    }
+                    coerce(StringValue(it), elementType)
                 }
                 .resizeTo(arrayType.nElements, arrayType.element.blank())
                 .toMutableList()
@@ -419,6 +428,7 @@ open class InternalInterpreter(
 
     private fun Throwable.fireErrorEvent(position: Position?): Throwable {
         val errorEvent = ErrorEvent(this, ErrorEventSource.Interpreter, position?.start?.line, position?.relative()?.second)
+        errorEvent.pushRuntimeErrorEvent()
         MainExecutionContext.getConfiguration().jarikoCallback.onError.invoke(errorEvent)
         return this
     }
@@ -532,14 +542,14 @@ open class InternalInterpreter(
         reversed.forEach { solvedIndicator ->
             if (loops == 0) {
                 mapOfORs.add(ArrayList<Boolean>())
-                mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                mapOfORs[idxOfMapOfANDs].add(solvedIndicator.value)
             } else {
                 if (previousOperator == "AND") {
-                    mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                    mapOfORs[idxOfMapOfANDs].add(solvedIndicator.value)
                 } else {
                     mapOfORs.add(ArrayList<Boolean>())
                     idxOfMapOfANDs++
-                    mapOfORs.get(idxOfMapOfANDs).add(solvedIndicator.value)
+                    mapOfORs[idxOfMapOfANDs].add(solvedIndicator.value)
                 }
             }
             previousOperator = solvedIndicator.operator
@@ -614,7 +624,7 @@ open class InternalInterpreter(
     override fun dbFile(name: String, statement: Statement): EnrichedDBFile {
 
         // Nem could be file name or format name
-        val dbFile = dbFileMap[name]
+        val dbFile = status.dbFileMap[name]
 
         require(dbFile != null) {
             "Line: ${statement.position.line()} - File definition $name not found"
@@ -624,7 +634,7 @@ open class InternalInterpreter(
     }
 
     override fun toSearchValues(searchArgExpression: Expression, fileMetadata: FileMetadata): List<String> {
-        val kListName = searchArgExpression.render().toUpperCase()
+        val kListName = searchArgExpression.render().uppercase(Locale.getDefault())
         return klists[kListName]!!.mapIndexed { index, name ->
             get(name).asString(fileMetadata.accessFieldsType[index])
         }
@@ -702,6 +712,16 @@ open class InternalInterpreter(
         val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
         val type = statement.target.variable.referred!!.type
         require(type is NumberType)
+        // calculation of rest
+        // NB. rest based on type of quotient
+        if (statement.mvrTarget != null) {
+            val restType = statement.mvrTarget.type()
+            require(restType is NumberType)
+            val truncatedQuotient: BigDecimal = quotient.setScale(type.decimalDigits, RoundingMode.DOWN)
+            // rest = divident - (truncatedQuotient * divisor)
+            val rest: BigDecimal = dividend.subtract(truncatedQuotient.multiply(divisor))
+            assign(statement.mvrTarget, DecimalValue(rest.setScale(restType.decimalDigits, RoundingMode.DOWN)))
+        }
         return if (statement.halfAdjust) {
             DecimalValue(quotient.setScale(type.decimalDigits, RoundingMode.HALF_UP))
         } else {
@@ -710,9 +730,23 @@ open class InternalInterpreter(
     }
 
     override fun assign(dataDefinition: AbstractDataDefinition, value: Value): Value {
-        val coercedValue = coerce(value, dataDefinition.type)
-        set(dataDefinition, coercedValue)
-        return coercedValue
+        // if I am working with a record format
+        if (dataDefinition.type is RecordFormatType) {
+            // currently the only assignable value for a record format type is blank
+            if (value is BlanksValue) {
+                // I iterate over all the fields of the record format and assign them the blank value
+                (dataDefinition as DataDefinition).fields.forEach { field ->
+                    assign(globalSymbolTable.dataDefinitionByName(field.name)!!, value)
+                }
+                return value
+            } else {
+                error("Cannot assign $value to $dataDefinition")
+            }
+        } else {
+            val coercedValue = coerce(value, dataDefinition.type)
+            set(dataDefinition, coercedValue)
+            return coercedValue
+        }
     }
 
     override fun assignEachElement(target: AssignableExpression, value: Value): Value {
@@ -764,6 +798,25 @@ open class InternalInterpreter(
                 }
 
                 return assign(target.string as AssignableExpression, newValue)
+            }
+            is SubarrExpr -> {
+                require(value is ArrayValue)
+                // replace portion of array with another array
+                val start: Int = eval(target.start).asInt().value.toInt()
+                val numberOfElement: Int? = if (target.numberOfElements != null) eval(target.numberOfElements).asInt().value.toInt() else null
+                val array: ArrayValue = eval(target.array).asArray().copy()
+                val to: Int = if (numberOfElement == null) {
+                    array.arrayLength()
+                } else {
+                    (start) + numberOfElement
+                } - 1
+                // replace elements
+                var j = 1
+                for (i in start..to) {
+                    array.setElement(i, coerce(value.getElement(j), target.type().asArray().element))
+                    j++
+                }
+                return assign(target.array as AssignableExpression, array)
             }
             is QualifiedAccessExpr -> {
                 when (val container = eval(target.container)) {
@@ -880,7 +933,7 @@ open class InternalInterpreter(
         }
     }
 
-    fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
+    private fun blankValue(dataDefinition: DataDefinition, forceElement: Boolean = false): Value {
         if (forceElement) TODO()
         return when (dataDefinition.type) {
             is DataStructureType -> createBlankFor(dataDefinition)

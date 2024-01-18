@@ -50,6 +50,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
+import java.nio.file.Path
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
 import kotlin.test.assertEquals
@@ -510,17 +511,31 @@ fun assertStartsWith(lines: List<String>, value: String) {
     assertTrue(lines.get(0).startsWith(value), Assert.format("Output not matching", value, lines))
 }
 
+/**
+ * Executes a program and returns the output as a list of displayed messages.
+ *
+ * @param programName The name of the program to be executed.
+ * @param initialValues The initial values for the program.
+ * @param printTree A boolean value indicating whether the parse tree should be printed or not. Default value is false.
+ * @param si The system interface to be used for the execution. Default is an instance of ExtendedCollectorSystemInterface.
+ * @param compiledProgramsDir The directory where the compiled programs are located.
+ * @param configuration The configuration for the execution of the program.
+ * @param trimEnd A boolean value indicating whether the output should be trimmed or not. Default value is true.
+ *
+ * @return A list of strings representing the output of the program. If trimEnd is true, the strings are trimmed.
+ */
 fun outputOf(
     programName: String,
     initialValues: Map<String, Value> = mapOf(),
     printTree: Boolean = false,
     si: CollectorSystemInterface = ExtendedCollectorSystemInterface(),
     compiledProgramsDir: File?,
-    configuration: Configuration = Configuration()
+    configuration: Configuration = Configuration(),
+    trimEnd: Boolean = true
 ): List<String> {
     execute(programName, initialValues, logHandlers = SimpleLogHandler.fromFlag(TRACE), printTree = printTree, si = si,
         compiledProgramsDir = compiledProgramsDir, configuration = configuration)
-    return si.displayed.map(String::trimEnd)
+    return if (trimEnd) si.displayed.map(String::trimEnd) else si.displayed
 }
 
 const val TRACE = false
@@ -627,7 +642,7 @@ open class ExtendedCollectorSystemInterface(val jvmMockPrograms: List<JvmMockPro
     }
 }
 
-fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN) {
+fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN, metadataPaths: List<String> = emptyList()) {
     println("Deleting $testCompiledDir")
     testCompiledDir.deleteRecursively()
     testCompiledDir.mkdirs()
@@ -635,6 +650,20 @@ fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN) {
         val muteSupport = it != "performance-ast"
         val srcDir = File(rpgTestSrcDir, it)
         println("Compiling dir ${srcDir.absolutePath} with muteSupport: $muteSupport")
+
+        val configuration = Configuration().apply {
+            reloadConfig = ReloadConfig(
+                nativeAccessConfig = DBNativeAccessConfig(emptyList()),
+                metadataProducer = { dbFile ->
+                    metadataPaths.asSequence()
+                        .map { Path.of(rpgTestSrcDir, it) }
+                        .map { it.resolve("$dbFile.json").toFile() }
+                        .firstOrNull { it.exists() }
+                        ?.let { FileMetadata.createInstance(it.inputStream()) }
+                        ?: error("resource $dbFile.json not found in $metadataPaths")
+                }
+            )
+        }
 
         val compiled = compile(
             src = srcDir,
@@ -647,7 +676,8 @@ fun compileAllMutes(dirs: List<String>, format: Format = Format.BIN) {
                 }
             },
             // £MU1CSPEC.rpgle is no longer compilable because it was an error that it was before
-            allowFile = { file -> !file.name.equals("£MU1CSPEC.rpgle") }
+            allowFile = { file -> !file.name.equals("£MU1CSPEC.rpgle") },
+            configuration = configuration
         )
         // now error are displayed during the compilation
         if (compiled.any { it.error != null }) {
@@ -663,11 +693,11 @@ private class CompileAllMutes : CliktCommand(
 ) {
     private val dirs: String by option(
         "-dirs",
-        help = "list of relative directories relative to path: $rpgTestSrcDir"
+        help = "list of relative directories containing programs relative to path: $rpgTestSrcDir"
     ).default(
         listOf(
             ".", "data/ds", "data/interop", "primitives", "db", "logging", "mute",
-            "overlay", "performance", "performance-ast", "struct"
+            "overlay", "performance", "performance-ast", "struct", "smeup"
         ).joinToString()
     )
     private val format: String by option(
@@ -675,8 +705,22 @@ private class CompileAllMutes : CliktCommand(
         help = "Compiled file format: [BIN|JSON]"
     ).default("BIN")
 
+    private val metadataPaths: String by option(
+        "-metadataPaths",
+        help = "list of relative directories containing metadata relative to path: $rpgTestSrcDir"
+    ).default(
+        listOf(
+            "db/metadata",
+            "smeup/metadata"
+        ).joinToString()
+    )
+
     override fun run() {
-        compileAllMutes(dirs = dirs.split(",").map { it.trim() }, format = Format.valueOf(format))
+        compileAllMutes(
+            dirs = dirs.split(",").map { it.trim() },
+            format = Format.valueOf(format),
+            metadataPaths = metadataPaths.split(",").map { it.trim() }
+        )
     }
 }
 

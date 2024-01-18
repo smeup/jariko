@@ -17,4 +17,19 @@
      C                   Eval      Msg  = %CHAR($BRACK)
      C                   dsply                   Msg
      *********************************************************************
+      * Test with start and length arguments
+     C                   EVAL      $$SVAR='Dr. Doolittle'
+     C                   EVAL      $BRACK=%SCAN('D':$$SVAR:2:4)
+     C                   Eval      Msg  = %CHAR($BRACK)
+      * Expected 5
+     C                   dsply                   Msg
+     *********************************************************************
+      * Test with start and length arguments
+     C                   EVAL      $$SVAR='Dr. Doolittle'
+     C                   EVAL      $BRACK=%SCAN('D':$$SVAR:2:3)
+     C                   Eval      Msg  = %CHAR($BRACK)
+      * Expected 0 because the search starts from 2nd character
+      * for three characters:  'r. '
+     C                   dsply                   Msg
+     *********************************************************************
      C                   SETON                                          LR

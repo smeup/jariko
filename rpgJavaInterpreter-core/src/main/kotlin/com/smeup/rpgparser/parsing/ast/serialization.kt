@@ -21,6 +21,7 @@ import com.smeup.rpgparser.interpreter.DataDefinition
 import com.smeup.rpgparser.interpreter.FieldDefinition
 import com.smeup.rpgparser.parsing.parsetreetoast.LogicalCondition
 import com.smeup.rpgparser.serialization.BigDecimalSerializer
+import com.smeup.rpgparser.serialization.LocalDateTimeSerializer
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.decodeFromString
@@ -31,6 +32,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 private val modules = SerializersModule {
     polymorphic(AbstractDataDefinition::class) {
@@ -46,6 +48,7 @@ private val modules = SerializersModule {
         subclass(ChainStmt::class)
         subclass(CheckStmt::class)
         subclass(ClearStmt::class)
+        subclass(CloseStmt::class)
         subclass(CompStmt::class)
         subclass(DefineStmt::class)
         subclass(DeleteStmt::class)
@@ -70,11 +73,13 @@ private val modules = SerializersModule {
         subclass(MultStmt::class)
         subclass(OtherStmt::class)
         subclass(OccurStmt::class)
+        subclass(OpenStmt::class)
         subclass(PlistStmt::class)
         subclass(ReadEqualStmt::class)
         subclass(ReadPreviousStmt::class)
         subclass(ReadPreviousEqualStmt::class)
         subclass(ReadStmt::class)
+        subclass(ResetStmt::class)
         subclass(ReturnStmt::class)
         subclass(ScanStmt::class)
         subclass(SelectStmt::class)
@@ -89,6 +94,7 @@ private val modules = SerializersModule {
         subclass(TimeStmt::class)
         subclass(UpdateStmt::class)
         subclass(XFootStmt::class)
+        subclass(XlateStmt::class)
         subclass(WriteStmt::class)
         subclass(ZAddStmt::class)
         subclass(ZSubStmt::class)
@@ -132,6 +138,7 @@ private val modules = SerializersModule {
         subclass(NumberOfElementsExpr::class)
         subclass(OnRefExpr::class)
         subclass(OffRefExpr::class)
+        subclass(OpenExpr::class)
         subclass(PlusExpr::class)
         subclass(GlobalIndicatorExpr::class)
         subclass(IndicatorExpr::class)
@@ -143,6 +150,7 @@ private val modules = SerializersModule {
         subclass(SqrtExpr::class)
         subclass(StringLiteral::class)
         subclass(SubstExpr::class)
+        subclass(SubarrExpr::class)
         subclass(TimeStampExpr::class)
         subclass(TranslateExpr::class)
         subclass(TrimExpr::class)
@@ -159,6 +167,7 @@ private val modules = SerializersModule {
         subclass(IndicatorExpr::class)
         subclass(QualifiedAccessExpr::class)
         subclass(SubstExpr::class)
+        subclass(SubarrExpr::class)
     }
     polymorphic(Directive::class) {
         subclass(ActivationGroupDirective::class)
@@ -174,6 +183,7 @@ private val modules = SerializersModule {
         subclass(MuteTypeAnnotation::class)
     }
     contextual(BigDecimal::class, BigDecimalSerializer)
+    contextual(LocalDateTime::class, LocalDateTimeSerializer)
 }
 
 val json = Json {

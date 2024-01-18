@@ -18,15 +18,14 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
-import com.smeup.rpgparser.utils.EBCDICComparator
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 const val PAD_CHAR = ' '
@@ -69,6 +68,10 @@ abstract class NumberValue : Value {
 
 interface AbstractStringValue : Value {
     fun getWrappedString(): String
+
+    fun isBlank(): Boolean {
+        return getWrappedString().isBlank()
+    }
 }
 
 @Serializable
@@ -133,7 +136,7 @@ data class StringValue(var value: String, val varying: Boolean = false) : Abstra
         return BooleanValue.FALSE
     }
 
-    override fun asTimeStamp(): TimeStampValue = TimeStampValue(value.asIsoDate())
+    override fun asTimeStamp(): TimeStampValue = TimeStampValue.of(value)
 
     fun setSubstring(startOffset: Int, endOffset: Int, substringValue: StringValue) {
         require(startOffset >= 0)
@@ -162,10 +165,6 @@ data class StringValue(var value: String, val varying: Boolean = false) : Abstra
     }
 
     override fun asString() = this
-
-    fun isBlank(): Boolean {
-        return this.value.isBlank()
-    }
 
     override fun render(): String {
         return value
@@ -225,94 +224,6 @@ data class UnlimitedStringValue(var value: String) : AbstractStringValue {
     override fun copy() = UnlimitedStringValue(value)
 
     override fun getWrappedString() = value
-}
-
-/**
- * The charset should be sort of system setting
- * Cp037    EBCDIC US
- * Cp0280   EBCDIC ITALIAN
- * See: https://www.ibm.com/support/knowledgecenter/SSLTBW_2.1.0/com.ibm.zos.v2r1.idad400/ccsids.htm
- */
-fun sortA(value: Value, charset: Charset) {
-
-    when (value) {
-        is ConcreteArrayValue -> {
-            // TODO pass the correct charset to the default sorting algorithm
-            // TODO ascending/descending
-            value.elements.sort()
-        }
-        is ProjectedArrayValue -> {
-            require(value.field.type is ArrayType)
-            val strings = value.field.type.element is StringType
-            val n = value.arrayLength
-            val multiplier = if (value.field.descend) 1 else -1
-            // the good old Bubble Sort
-            /*for (i in 1..(value.arrayLength - 1)) {
-                for (j in 1..(n - i)) {
-                    val compared =
-                        if (strings) {
-                            value.getElement(j).asString().compare(value.getElement(j + 1).asString(), charset, value.field.descend)
-                        } else {
-                            value.getElement(j).compareTo(value.getElement(j + 1)) * multiplier
-                        }
-                    if (compared > 0) {
-                        // TODO support data structure swap
-                        // For an array data structure, the keyed-ds-array operand is a qualified name
-                        // consisting of the array to be sorted followed by the subfield to be used as
-                        // a key for the sort.
-                        // Swap
-                        val tmp = value.getElement(j + 1)
-                        value.setElement(j + 1, value.getElement(j))
-                        value.setElement(j, tmp)
-                    }
-                }
-            }*/
-
-            val numOfElements = value.arrayLength
-            val totalLengthOfAllElements = value.container.len
-            val elementSize = totalLengthOfAllElements / numOfElements
-
-            // Extract from each array element, its 'key' value (the subfield) to order by, then
-            // store the key into 'keysToBeOrderedBy'
-            val keysToBeOrderedBy = Array(numOfElements) { _ -> "" }
-            var startElement = 0
-            var endElement = elementSize
-            (0 until numOfElements).forEach { i ->
-                value.container.value.substring(startElement, endElement).apply { keysToBeOrderedBy[i] = this }
-                startElement += elementSize
-                endElement += elementSize
-            }
-
-            // Create a TreeMap with order direction (ascend/descend) needed to
-            // store ordered elements.
-            val comparator = EBCDICComparator(value.field.descend)
-            val orderedElements: MutableMap<String, MutableList<String>> = TreeMap(comparator)
-
-            // Array to ordered Treemap
-            keysToBeOrderedBy.indices.forEachIndexed { _, i ->
-                with(
-                    orderedElements,
-                    fun MutableMap<String, MutableList<String>>.() {
-                        var add = computeIfAbsent(
-                            keysToBeOrderedBy[i].substring(
-                                value.field.calculatedStartOffset!!.toInt(),
-                                value.field.calculatedEndOffset!!.toInt()
-                            )
-                        ) { ArrayList() }.add(keysToBeOrderedBy[i])
-                    }
-                )
-            }
-
-            // Set container value with reordered elements
-            var containerValue = ""
-            orderedElements.forEach { (_: String?, v: List<String>) ->
-                v.forEach { s ->
-                    containerValue += s
-                }
-            }
-            value.container.value = containerValue
-        }
-    }
 }
 
 @Serializable
@@ -449,8 +360,8 @@ data class DecimalValue(@Contextual val value: BigDecimal) : NumberValue() {
     override fun render(): String {
         // zeros followed by decimal point has not be rendered
         return value.toPlainString().let {
-            if (it.startsWith("0") && it.indexOf('.') != -1) {
-                it.replace(Regex("^0+"), "")
+            if ((it.startsWith("0") || it.startsWith("-0")) && it.indexOf('.') != -1) {
+                it.replace(Regex("^(-)?0+"), "$1")
             } else {
                 it
             }
@@ -527,10 +438,10 @@ data class CharacterValue(val value: Array<Char>) : Value {
 }
 
 @Serializable
-data class TimeStampValue(@Contextual val value: Date) : Value {
+data class TimeStampValue(@Contextual val value: LocalDateTime) : Value {
 
     val localDate: LocalDate by lazy {
-        Instant.ofEpochMilli(value.time).atZone(ZoneId.systemDefault()).toLocalDate()
+        value.toLocalDate()
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
@@ -540,13 +451,27 @@ data class TimeStampValue(@Contextual val value: Date) : Value {
     override fun asTimeStamp() = this
 
     companion object {
-        val LOVAL = TimeStampValue(GregorianCalendar(0, Calendar.JANUARY, 0).time)
+        val DEFAULT_FORMAT = "yyyy-MM-dd-HH.mm.ss.SSSSSS"
+        val LOVAL: TimeStampValue by lazy {
+            TimeStampValue(LocalDateTime.parse("0001-01-01-00.00.00.000000", DateTimeFormatter.ofPattern(DEFAULT_FORMAT)))
+        }
+        fun of(value: String): TimeStampValue {
+            // parse only Date
+            return if (value.trim().length < 11) {
+                TimeStampValue(LocalDate.parse(value.trim(), DateTimeFormatter.ofPattern(DEFAULT_FORMAT.substring(0, value.trim().length))).atStartOfDay())
+            } else {
+                TimeStampValue(LocalDateTime.parse(value.trim(), DateTimeFormatter.ofPattern(DEFAULT_FORMAT.substring(0, value.trim().length))))
+            }
+        }
+        fun now(): TimeStampValue {
+            return TimeStampValue(LocalDateTime.now())
+        }
     }
 
     override fun copy(): TimeStampValue = this
 
     override fun asString(): StringValue {
-        return StringValue(value.toString())
+        return StringValue(DateTimeFormatter.ofPattern(DEFAULT_FORMAT).format(value))
     }
 }
 
@@ -668,6 +593,10 @@ data class ConcreteArrayValue(val elements: MutableList<Value>, override val ele
         }
     }
 
+    override fun take(from: Int, to: Int): Value {
+        return ConcreteArrayValue(elements.subList(from, to), this.elementType)
+    }
+
     fun takeAll(): Value {
         var result = elements[0]
         for (i in 1 until elements.size) {
@@ -746,9 +675,7 @@ object LowValValue : Value {
 
 object ZeroValue : Value {
 
-    override fun copy(): Value {
-        TODO("not implemented")
-    }
+    override fun copy() = this
 
     override fun toString(): String {
         return "ZeroValue"
@@ -902,6 +829,7 @@ fun Type.blank(): Value {
         is FigurativeType -> BlanksValue
         is LowValType, is HiValType -> TODO()
         is UnlimitedStringType -> UnlimitedStringValue("")
+        is RecordFormatType -> BlanksValue
     }
 }
 
@@ -1043,7 +971,7 @@ data class DataStructValue(var value: String, private val optionalExternalLen: I
     fun asStringValue(): String {
         val builder = StringBuilder()
         value.forEach {
-            if (it.toInt() < 32 || it.toInt() > 128 || it in '0'..'9')
+            if (it.code < 32 || it.code > 128 || it in '0'..'9')
                 builder.append(' ')
             else
                 builder.append(it)
@@ -1066,11 +994,11 @@ fun areEquals(value1: Value, value2: Value): Boolean {
             value1.asInt() == value2.asInt()
         }
 
-        value1 is StringValue && value2 is BooleanValue -> {
+        value1 is AbstractStringValue && value2 is BooleanValue -> {
             value1.asBoolean().value == value2.value
         }
 
-        value1 is BooleanValue && value2 is StringValue -> {
+        value1 is BooleanValue && value2 is AbstractStringValue -> {
             value2.asBoolean().value == value1.value
         }
 
@@ -1079,29 +1007,29 @@ fun areEquals(value1: Value, value2: Value): Boolean {
             value1.asDecimal().value.compareTo(value2.asDecimal().value) == 0
         }
 
-        value1 is BlanksValue && value2 is StringValue -> value2.isBlank()
-        value2 is BlanksValue && value1 is StringValue -> value1.isBlank()
+        value1 is BlanksValue && value2 is AbstractStringValue -> value2.isBlank()
+        value2 is BlanksValue && value1 is AbstractStringValue -> value1.isBlank()
 
-        value1 is StringValue && value2 is StringValue -> {
-            val v1 = value1.value.trimEnd()
-            val v2 = value2.value.trimEnd()
+        value1 is AbstractStringValue && value2 is AbstractStringValue -> {
+            val v1 = value1.getWrappedString().trimEnd()
+            val v2 = value2.getWrappedString().trimEnd()
             v1 == v2
         }
 
-        value1 is DataStructValue && value2 is StringValue -> {
+        value1 is DataStructValue && value2 is AbstractStringValue -> {
             val v1 = value1.asStringValue().trimEnd()
 
-            val v2 = value2.value.trimEnd()
+            val v2 = value2.getWrappedString().trimEnd()
             v1 == v2
         }
-        value1 is StringValue && value2 is DataStructValue -> {
-            val v1 = value1.value.trimEnd()
+        value1 is AbstractStringValue && value2 is DataStructValue -> {
+            val v1 = value1.getWrappedString().trimEnd()
             val v2 = value2.asStringValue().trimEnd()
 
             v1 == v2
         }
         // To be review
-        value1 is ProjectedArrayValue && value2 is StringValue -> {
+        value1 is ProjectedArrayValue && value2 is AbstractStringValue -> {
             value1.asArray().getElement(1) == value2
         }
         else -> value1 == value2

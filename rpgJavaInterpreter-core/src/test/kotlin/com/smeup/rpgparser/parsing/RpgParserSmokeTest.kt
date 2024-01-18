@@ -208,11 +208,6 @@ class RpgParserSmokeTest : AbstractTest() {
     }
 
     @Test
-    fun parseMOVELSTR() {
-        assertCanBeParsed("MOVELSTR")
-    }
-
-    @Test
     fun parseACTGRP_FIX() {
         assertCanBeParsed("ACTGRP_FIX")
     }

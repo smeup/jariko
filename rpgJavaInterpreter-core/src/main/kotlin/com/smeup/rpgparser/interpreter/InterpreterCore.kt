@@ -17,7 +17,10 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.dbnative.file.Record
+import com.smeup.rpgparser.execution.ErrorEvent
+import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
+import java.util.*
 
 /**
  * Expose interpreter core method that could be useful in statements logic implementation
@@ -65,3 +68,11 @@ interface InterpreterCore {
     fun enterCondition(index: Value, end: Value, downward: Boolean): Boolean
     fun increment(dataDefinition: AbstractDataDefinition, amount: Long): Value
 }
+
+internal fun ErrorEvent.pushRuntimeErrorEvent() {
+    getErrorEventStack().push(this)
+}
+
+internal fun popRuntimeErrorEvent() = getErrorEventStack().pop()
+
+private fun getErrorEventStack() = MainExecutionContext.getAttributes().computeIfAbsent("errorEventStack") { Stack<ErrorEvent>() } as Stack<ErrorEvent>

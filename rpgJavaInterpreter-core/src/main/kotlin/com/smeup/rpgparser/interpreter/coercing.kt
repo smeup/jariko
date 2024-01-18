@@ -28,15 +28,12 @@ private fun coerceBlanks(type: Type): Value {
         }
         is ArrayType -> {
             createArrayValue(type.element, type.nElements) {
-                type.element.blank()
+                coerceBlanks(type.element)
             }
         }
         is NumberType -> {
-            if (type.integer) {
-                IntValue.ZERO
-            } else {
-                DecimalValue.ZERO
-            }
+            // I use this method in order to create a BigDecimal with the correct number of digits
+            coerce(DecimalValue.ZERO, type)
         }
         is DataStructureType -> {
             type.blank()
@@ -53,6 +50,12 @@ private fun coerceBlanks(type: Type): Value {
         }
         is UnlimitedStringType -> {
             UnlimitedStringValue("")
+        }
+        is RecordFormatType -> {
+            type.blank()
+        }
+        is TimeStampType -> {
+            TimeStampValue.LOVAL
         }
         else -> TODO("Converting BlanksValue to $type")
     }
@@ -80,7 +83,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
                 else -> if (value.value.isEmpty()) {
                     StringValue(" ".repeat(type.length), false)
                 } else {
-                    StringValue(value.value, false)
+                    StringValue(value.value.padEnd(type.size, ' '), false)
                 }
             }
 
@@ -173,6 +176,7 @@ private fun coerceString(value: StringValue, type: Type): Value {
         is UnlimitedStringType -> {
             return UnlimitedStringValue(value.value)
         }
+        is TimeStampType -> TimeStampValue.of(value.value)
         else -> TODO("Converting String to $type")
     }
 }
@@ -192,7 +196,29 @@ fun coerce(value: Value, type: Type): Value {
                     value.asString()
                 }
                 is ArrayType -> {
-                    value
+                    if (value.elements().size > type.nElements) {
+                        // coerce elements and truncate array
+                        val values: MutableList<Value> = mutableListOf()
+                        for (i in 1..type.numberOfElements()) {
+                            values.add(coerce(value.getElement(i), type.element))
+                        }
+                        ConcreteArrayValue(values, type.element)
+                    } else {
+                        if (value.elements().size == type.nElements) {
+                            // coerce elements and set new type creating new instance
+                            val values: MutableList<Value> = value.elements().map {
+                                coerce(it, type.element)
+                            }.toMutableList()
+                            ConcreteArrayValue(values, type.element)
+                        } else {
+                            // create an array blank and set element
+                            val array = coerceBlanks(type) as ConcreteArrayValue
+                            value.elements().forEachIndexed { i, v ->
+                                array.setElement(i + 1, coerce(v, type.element))
+                            }
+                            array
+                        }
+                    }
                 }
                 else -> TODO("Converting ArrayValue to $type")
             }
@@ -205,6 +231,8 @@ fun coerce(value: Value, type: Type): Value {
                     if (type.decimalDigits < value.value.scale()) {
                         val roundingMode = if (value.isPositive()) RoundingMode.FLOOR else RoundingMode.CEILING
                         return DecimalValue(value.value.setScale(type.decimalDigits, roundingMode))
+                    } else {
+                        return DecimalValue(value.value.setScale(type.decimalDigits))
                     }
                     return value
                 }

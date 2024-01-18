@@ -31,10 +31,7 @@ import org.junit.experimental.categories.Category
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 open class InterpreterTest : AbstractTest() {
 
@@ -88,7 +85,8 @@ open class InterpreterTest : AbstractTest() {
         val logHandler = ListLogHandler()
         val interpreter = execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
         val assignments = logHandler.getAssignments()
-        assertEquals(assignments[0].value, StringValue("10"))
+        // The ppdat variable is not varying length 8
+        assertEquals(StringValue("10".padEnd(8, ' ')), assignments[0].value)
         assertIsIntValue(interpreter["NBR"], 10)
         assertEquals(listOf("10"), si.displayed)
     }
@@ -99,7 +97,7 @@ open class InterpreterTest : AbstractTest() {
         val si = CollectorSystemInterface()
         val logHandler = ListLogHandler()
         execute(cu, mapOf("ppdat" to StringValue(input)), si, listOf(logHandler))
-        assertEquals(listOf("FIBONACCI OF: ${input.padEnd(8)} IS: $output"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: ${input.padEnd(8)} IS: $output"), si.displayed.map { it.trim() })
         assertEquals(logHandler.getExecutedSubroutineNames()[0], "FIB")
     }
 
@@ -152,7 +150,7 @@ open class InterpreterTest : AbstractTest() {
         val logHandler = ListLogHandler()
         si.programs["CALCFIB"] = rpgProgram("CALCFIB")
         execute(cu, mapOf("ppdat" to StringValue("10")), si, listOf(logHandler))
-        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed.map { it.trim() })
         assertEquals(1, logHandler.getExecutedSubroutines().size)
     }
 
@@ -191,7 +189,7 @@ open class InterpreterTest : AbstractTest() {
         rpgProgram.execute(si, linkedMapOf("ppdat" to StringValue("10")))
         assertEquals(1, rpgProgram.params().size)
         assertEquals(ProgramParam("ppdat", StringType(8, false)), rpgProgram.params()[0])
-        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed)
+        assertEquals(listOf("FIBONACCI OF: 10       IS: 55"), si.displayed.map { it.trim() })
     }
 
     @Test
@@ -240,7 +238,9 @@ open class InterpreterTest : AbstractTest() {
             "%LEN(B_03) is 0",
             "%LEN(B_03) is 1",
             "%LEN(B_03) is 5",
-            "%LEN(B_04) is 0"
+            "%LEN(B_04) is 0",
+            "%LEN(B_05) is 5",
+            "%LEN(B_06) is 6"
         ), outputOf("LEN"))
     }
 
@@ -257,19 +257,19 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeSETONSETOF() {
         assertEquals(listOf("Before",
-                "56=off57=off",
-                "After set",
-                "56=on",
-                "After off",
-                "56=off57=off"), outputOf("SETONOF01"))
+            "56=off57=off",
+            "After set",
+            "56=on",
+            "After off",
+            "56=off57=off"), outputOf("SETONOF01"))
     }
 
     @Test @Ignore
     fun executeSETOFLF() {
         assertEquals(listOf("Before",
-                            "LR Of",
-                            "After set",
-                            "LR Off"), outputOf("SETOFLR"))
+            "LR Of",
+            "After set",
+            "LR Off"), outputOf("SETOFLR"))
     }
 
     @Test
@@ -428,15 +428,15 @@ open class InterpreterTest : AbstractTest() {
     @Test
     fun executeMOVEAMUT13() {
         assertEquals(listOf("ABCDEFGHIL         1",
-                            "BBBBBBBBBBBBBBBBBBBB",
-                            "AAAAAAAAAAAAAAAAAAAA",
-                            "  ABCDEFGHILMNOPQRST",
-                            "  ABCDEFGHILMNOPQRST",
-                            "XXXXXXXXXXXXXXXXXXXX",
-                            "XXXXXXXXXXXXXXXXXXXX",
-                            "XXXXXXXXXXXXXXXXXXXX",
-                            "XXXXXXXXXXXXXXXXXXXX",
-                            "XXXXXXXXXXXXXXXXXXXX"),
+            "BBBBBBBBBBBBBBBBBBBB",
+            "AAAAAAAAAAAAAAAAAAAA",
+            "  ABCDEFGHILMNOPQRST",
+            "  ABCDEFGHILMNOPQRST",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXXXXXX"),
             outputOf("MOVEAMUT13"))
     }
 
@@ -566,6 +566,21 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeEVALARRAY2() {
+        val expected = listOf("1(A) 2(B) 6( )", "1(A) 2(B) 5(E)", "1(A ) 2(B )", "1(A) 2(B)")
+        assertEquals(expected, "EVALARRAY2".outputOf())
+    }
+
+    @Test
+    /**
+     * Test the '+' operator with arrays
+     */
+    fun executeEVALARRAY3() {
+        val expected = listOf("1(A ) 2(B ) 3( C) 4(  )", "1(1) 2(4) 3(3) 4(0)")
+        assertEquals(expected, "EVALARRAY3".outputOf())
+    }
+
+    @Test
     fun executeARRAY12() {
         assertCanBeParsed(exampleName = "ARRAY12", printTree = true)
         assertEquals(listOf("AA", "BB"), outputOf("ARRAY12"))
@@ -582,8 +597,8 @@ open class InterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeSORTANUM() {
-        assertEquals(listOf("0", "1", "4", "5", "6", "8", "9"), outputOf("SORTANUM"))
+    fun executeSORTA() {
+        assertEquals(listOf("A", "B", "C", "D", "A", "B", "C", "D", "D", "C", "B", "A", "4", "3", "2", "1"), outputOf("SORTA"))
     }
 
     @Test @Ignore
@@ -716,8 +731,13 @@ Test 6
             "Executing CALLED",
             "x initialized at: 3",
             "x is now: 1"
-            ),
+        ),
             outputOf("CALLER"))
+    }
+
+    @Test
+    fun executeCALLER2_callProgramPassingStringValueDirectlyOnParm() {
+        assertEquals(listOf("ABCDEFGHIJ"), outputOf("CALLER2"))
     }
 
     @Test
@@ -725,7 +745,7 @@ Test 6
         val si = CollectorSystemInterface()
         var javaPgmCalled = false
         si.programs["CAL02"] = object : JvmProgramRaw("CAL02", listOf(
-                ProgramParam("NBR", NumberType(8, 0)))) {
+            ProgramParam("NBR", NumberType(8, 0)))) {
             override fun execute(systemInterface: SystemInterface, params: LinkedHashMap<String, Value>): List<Value> {
                 javaPgmCalled = true
                 val nbr = params["NBR"]
@@ -738,7 +758,7 @@ Test 6
         }
         execute("CAL01", emptyMap(), si)
         assertTrue(javaPgmCalled, "Java pgm CAL02 was not called")
-        assertEquals(si.displayed, listOf("1"))
+        assertEquals(si.displayed.map { it.trim() }, listOf("1"))
     }
 
     @Test
@@ -747,13 +767,40 @@ Test 6
     }
 
     @Test
-    fun executeMOVEFIXFIX() {
-        assertEquals(outputOf("MOVEFIXFIX"), listOf("ABCDE", "56789", "", "MNOPX"))
+    fun executeMOVE() {
+        assertEquals(
+            listOf("ZYXWA", "ABCDE", "FGHIJ", "     ".trim(), "ZY123", "ZY456", "99123", "99456", "ZYXYY", "DE", "DE", "DE"),
+            outputOf("MOVE")
+        )
     }
 
     @Test
-    fun executeMOVENBRNBR() {
-        assertEquals(outputOf("MOVENBRNBR"), listOf("12345", "45678", "123", "99991"))
+    fun executeMOVEP() {
+        assertEquals(listOf("  ABC", "  123", "  456", "456", "  ABC", "BC", "  ABC", "  ABC"), outputOf("MOVEP"))
+    }
+
+    @Test
+    fun executeMOVEL() {
+        assertEquals(
+            listOf("AYXWV", "ABCDE", "ABCDE", "XXXX ".trim(), "123WV", "456WV", "12399", "45699", "YYXWV", "AB", "12345", "123.45", "1234.5", "AB", "AB"),
+            outputOf("MOVEL")
+        )
+    }
+
+    @Test
+    fun executeMOVELP() {
+        assertEquals(
+            listOf("ABC  ".trim(), "123  ".trim(), "456  ".trim(), "45600", "ABC  ".trim(), "AB"),
+            outputOf("MOVELP")
+        )
+    }
+
+    @Test
+    fun executeMOVELP2() {
+        assertEquals(
+            listOf("AAAA      ".trim(), "AAAAAAAA            ".trim(), "AAAAA".trim(), "AAAAA            ".trim(), "AAA".trim(), "AAAAAAA".trim(), "AAA         ".trim(), "AAAA".trim(), "AAAAA   ".trim()),
+            outputOf("MOVELP2")
+        )
     }
 
     @Test
@@ -763,12 +810,12 @@ Test 6
 
     @Test
     fun executeDOVAR01_ModifyingEndVarAffectsDO() {
-        assertEquals(outputOf("DOVAR01"), listOf("N =101", "I =96"))
+        assertEquals("DOVAR01".outputOf(), listOf("N = 101", "I = 96"))
     }
 
     @Test
     fun executeDOVAR02_ModifyingStartVarDoesntAffectDO() {
-        assertEquals(outputOf("DOVAR02"), listOf("N =11", "I =6"))
+        assertEquals("DOVAR02".outputOf(), listOf("N = 11", "I = 6"))
     }
 
     @Test
@@ -838,9 +885,13 @@ Test 6
             "DS1 <> DS2",
             "DS1.Msg1 content = DS2.Msg content",
             "DS1.Unlimit content = DS2.Unlimit content",
-            "DS1 = DS2"
+            "DS1 = DS2",
+            "Compare unlimited with literal",
+            "Compare unlimited with limited",
+            "Compare uninitialized unlimited with *BLANKS",
+            "Reset an unlimited and compare with *BLANKS"
         )
-        assertEquals(expected, outputOf("UNLIMIT_DS"))
+        assertEquals(expected, "UNLIMIT_DS".outputOf())
     }
 
     @Test
@@ -849,7 +900,7 @@ Test 6
             "%INT",
             "1234",
             "%DEC",
-            "1.5"
+            "1.50"
         )
         assertEquals(expected, outputOf("UNLIMIT_BIF"))
     }
@@ -871,13 +922,20 @@ Test 6
 
     @Test
     fun executeXLATEBIF() {
-        assertEquals(listOf("RPG DEPT", "RPG Dept"), outputOf("XLATEBIF"))
+        assertEquals(listOf("RPG DEPT", "RPG Dept", "999-9999"), outputOf("XLATEBIF"))
     }
 
     @Test
     fun executeREPLACEBIF() {
         assertEquals(listOf("Pippo world!", "Hello Pippo!", "Hello Pippoorld!", "Hello Pippold!", "Hello Pippoworld!", "%20 ef", "abc%20ef"),
             outputOf("REPLACEBIF"))
+    }
+
+    @Test
+    fun executeBIFEDITC() {
+        // I don't know exactly what expected result should be
+        // Now the important thing is that it doesn't throw an exception
+        "BIFEDITC".outputOf()
     }
 
     @Test
@@ -893,31 +951,31 @@ Test 6
     @Test
     fun executeBIFEDITC_2() {
         assertEquals(listOf("x   123,456   123,456  1,234.56X",
-                            "x  1,234.56          X",
-                            "x  1,234.50X"),
+            "x  1,234.56          X",
+            "x  1,234.50X"),
             outputOf("BIFEDITC_2"))
     }
 
     @Test
     fun executeBIFEDITC_3() {
         assertEquals(listOf("x  123456  123456  1234.56X",
-                            "x  1234.56      .00X",
-                            "x  1234.50X"),
+            "x  1234.56      .00X",
+            "x  1234.50X"),
             outputOf("BIFEDITC_3"))
     }
     @Test
     fun executeBIFEDITC_4() {
         assertEquals(listOf("x  123456  123456  1234.56X",
-                            "x  1234.56         X",
-                            "x  1234.50X"),
+            "x  1234.56         X",
+            "x  1234.50X"),
             outputOf("BIFEDITC_4"))
     }
 
     @Test
     fun executeBIFEDITC_J() {
         assertEquals(listOf("x   123,456   123,456-  1,234.56X",
-                            "x  1,234.56-       .00X",
-                            "x  1,234.50X"),
+            "x  1,234.56-       .00X",
+            "x  1,234.50X"),
             outputOf("BIFEDITC_J"))
     }
 
@@ -925,9 +983,9 @@ Test 6
     @Ignore // we are working on DECEDIT
     fun executeBIFEDITC_Y() {
         assertEquals(listOf("x  12/34/56  12/34/56  12/34/56X",
-                            "x  12/34/56   0/00/00X",
-                            "x  12/34/50 12/34/5678  0/00/12X",
-                            "x   1/23/45X"),
+            "x  12/34/56   0/00/00X",
+            "x  12/34/50 12/34/5678  0/00/12X",
+            "x   1/23/45X"),
             outputOf("BIFEDITC_Y"))
     }
 
@@ -954,88 +1012,88 @@ Test 6
     @Test
     fun executeCTDATA() {
         assertEquals(expected =
-                    ("001\n" +
-                    "d01\n" +
-                    "A01\n" +
-                    "c01\n" +
-                    "B01\n" +
-                    "b01\n" +
-                    "C01\n" +
-                    "901\n" +
-                    "101\n" +
-                    "D01\n" +
-                    "H01\n" +
-                    "E01\n" +
-                    "201\n" +
-                    "e01\n" +
-                    "a01\n" +
-                    "x01\n" +
-                    "X01").lines(),
-                    actual = outputOf("CTDATA").map(String::trim))
+        ("001\n" +
+                "d01\n" +
+                "A01\n" +
+                "c01\n" +
+                "B01\n" +
+                "b01\n" +
+                "C01\n" +
+                "901\n" +
+                "101\n" +
+                "D01\n" +
+                "H01\n" +
+                "E01\n" +
+                "201\n" +
+                "e01\n" +
+                "a01\n" +
+                "x01\n" +
+                "X01").lines(),
+            actual = outputOf("CTDATA").map(String::trim))
     }
 
     @Test
     fun executeARRAY02_arrayWithComments() {
         assertEquals(expected =
-            ("abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "xxx").lines(),
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
             actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
     fun executeARRAY03_arrayWithCommentsPERRCD_1() {
         assertEquals(expected =
-            ("abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "xxx").lines(),
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
             actual = outputOf("ARRAY02").map(String::trim))
     }
 
     @Test
     fun executeARRAY04_arrayWithCommentsAndDataReference() {
         assertEquals(expected =
-            ("abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "123\n" +
-            "abc\n" +
-            "xxx").lines(),
+        ("abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "123\n" +
+                "abc\n" +
+                "xxx").lines(),
             actual = outputOf("ARRAY04").map(String::trim))
     }
 
     @Test
     fun executeARRAY05NAM_namedCompileTimeArrays() {
         assertEquals(expected =
-            ("100\n" +
-            "100\n" +
-            "100\n" +
-            "100\n" +
-            "100").lines(),
+        ("100\n" +
+                "100\n" +
+                "100\n" +
+                "100\n" +
+                "100").lines(),
             actual = outputOf("ARRAY05NAM").map(String::trim))
     }
 
@@ -1046,7 +1104,7 @@ Test 6
 
     @Test
     fun executeSCANTEST() {
-        assertEquals(listOf("0", "4", "1"), outputOf("SCANTEST"))
+        assertEquals(listOf("0", "4", "1", "5", "0"), "SCANTEST".outputOf())
     }
 
     @Test
@@ -1203,7 +1261,7 @@ Test 6
             "OMONIM" to BooleanValue(false),
             "SINTAX" to BooleanValue(false),
             "CHKDIG" to BooleanValue(false)
-            )
+        )
         assertEquals(outputOf("JCODFISD", parms), emptyList())
     }
 
@@ -1275,6 +1333,16 @@ Test 6
     @Test
     fun executeCABEQKO() {
         assertEquals(listOf("Test KO"), outputOf("CABEQKO"))
+    }
+
+    @Test
+    fun executeCABNEOK() {
+        assertEquals(listOf("Test OK"), outputOf("CABNEOK"))
+    }
+
+    @Test
+    fun executeCABNEKO() {
+        assertEquals(listOf("Test KO"), outputOf("CABNEKO"))
     }
 
     @Test
@@ -1411,11 +1479,6 @@ Test 6
         assertEquals(listOf("Hello world!", "Hello worl", "Hello world"), outputOf("TRIMR"))
     }
 
-    @Test @Ignore
-    fun executeELEM() {
-        assertEquals(listOf("10", "20", "30"), outputOf("ELEM"))
-    }
-
     @Test
     fun executeSUMDIVMULT() {
         assertEquals(listOf("20.1", "19.9", "2.0", "200.0"), outputOf("SUMDIVMULT"))
@@ -1486,45 +1549,6 @@ Test 6
                 " "
             ),
             outputOf("CLEARARRAY1"))
-    }
-
-    @Test
-    fun executeMOVEPFIXFIX() {
-        assertEquals(
-            listOf(
-                "     BB",
-                "     AAAAA"
-            ),
-            outputOf("MOVEPFIXFIX")
-        )
-    }
-
-    @Test
-    @Ignore
-    fun executeMOVELSTR() {
-        assertEquals(
-            listOf(
-                "AAAA",
-                "AAAAAAAA",
-                "AAAAAAAAAAAA",
-                "BBBBB",
-                "BBBBBBBBBB",
-                "BBBBBBBBBBBBBBBBBBBB",
-                "CCC",
-                "CCCCCCC",
-                "CCCCCCCCCCCCCCCCC",
-                "AAAA",
-                "AAAAACCC",
-                "AAAAAAAAAAAA",
-                "AAAAA",
-                "AAAABBBBBB",
-                "AAAAAAAABBBBBBBBBBBB",
-                "AAA",
-                "AAAAAAA",
-                "AAAAACCCCCCCCCCCC"
-            ),
-            outputOf("MOVELSTR")
-        )
     }
 
     @Test
@@ -2099,7 +2123,7 @@ Test 6
         val systemInterface = JavaSystemInterface().apply {
             this.onDisplay = { message, _ ->
                 println(message)
-                console.add(message)
+                console.add(message.trim())
             }
         }
         executePgm(
@@ -2122,5 +2146,60 @@ Test 6
     @Test
     fun executeCONST02() {
         assertEquals(listOf("100"), outputOf("CONST02"))
+    }
+
+    @Test
+    fun executeCAT() {
+        val expected = listOf("(ABCDEF)", "(CDEFGH)", "(CDEF  )", "(AB CDE)", "(AB    )", "(99 XYZ)")
+        assertEquals(expected, "CAT".outputOf())
+    }
+
+    @Test
+    fun executeCATP() {
+        val expected = listOf("(ABCDEF)", "(CDEFGH)", "(CDEF  )", "(AB CDE)", "(AB    )", "(99 XYZ)")
+        assertEquals(expected, "CATP".outputOf())
+    }
+
+    @Test
+    fun executeSUBARR() {
+        val expected = listOf("AR3(1)(13) AR3(2)(3) AR3(3)(0)", "AR2(1)(0) AR2(2)(0) AR2(3)(5) AR2(4)(16) AR2(5)(13)", "AR1(1)(9) AR1(2)(5) AR1(3)(13) AR1(4)(16) AR1(5)(3)")
+        assertEquals(expected, "SUBARR".outputOf())
+    }
+
+    @Test
+    fun executeMVR() {
+        val expected = listOf("3", "3.0", "0", ".8", "2", "2.5", "0", ".2")
+        assertEquals(expected, "MVR".outputOf())
+    }
+
+    @Test
+    fun executeXLATEOP() {
+        assertEquals(listOf("999-999-999", "http://xxx.smaup.comuuuuuu", "RPG DEPT", "RPG Dept", "999-9999", "999-9999", "999-9999"), outputOf("XLATEOP"))
+    }
+
+    @Test
+    fun executeTIMEST_CLR() {
+        val values = "TIMEST_CLR".outputOf()
+        assertEquals("0001-01-01-00.00.00.000000", values[0])
+        assertNotEquals("0001-01-01-00.00.00.000000", values[1])
+        assertEquals("0001-01-01-00.00.00.000000", values[2])
+    }
+
+    @Test
+    fun executeBIFCHAR() {
+        assertEquals(listOf("Parma       ", "Parma       ", " Parma      ", "(ABC       )", "(ABC       )", "(1)         ", "(1.30)      ", "(ABC       |ABC       )       ", "(1|1.30)                      ", "(ABC|ABC       )              ", "(.00)       ", "N1(0)       ", "N2(.00)     ", "P1(0)       ", "P2(.00)     "), outputOf("BIFCHAR", trimEnd = false))
+        assertEquals(listOf("Parma", "Parma", " Parma", "(ABC       )", "(ABC       )", "(1)", "(1.30)", "(ABC       |ABC       )", "(1|1.30)", "(ABC|ABC       )", "(.00)", "N1(0)", "N2(.00)", "P1(0)", "P2(.00)"), outputOf("BIFCHAR", trimEnd = true))
+    }
+
+    @Test
+    fun executeMIXED_CONDITIONS() {
+        val expected = listOf("IF1 = True", "IF2 = True", "IF3 = True", "IF4 = True", "IF5 = False", "IF6 = False", "IF7 = False", "IF8 = True")
+        assertEquals(expected, "MIXED_CONDITIONS".outputOf())
+    }
+
+    @Test
+    fun executeRESET01() {
+        val expected = listOf("A1_OK", "A2_OK", "A3_OK", "N1_OK", "N2_OK", "N3_OK", "DS_OK", "DSA1_OK", "DSA2_OK")
+        assertEquals(expected, "RESET01".outputOf())
     }
 }

@@ -24,6 +24,7 @@ import com.smeup.rpgparser.test.longs
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import java.math.BigDecimal
+import java.time.ZoneId
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -55,7 +56,7 @@ class SerializationTest {
     @Test
     fun `TimeStampValue can be serialized to Json`() {
         val aDate = GregorianCalendar(2020, Calendar.JANUARY, 15).time
-        checkValueSerialization(TimeStampValue(aDate), true)
+        checkValueSerialization(TimeStampValue(aDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()), true)
     }
 
     @Test
@@ -100,7 +101,7 @@ class SerializationTest {
         val intValue = IntValue(aLongNumber)
         val stringValue = StringValue(aLongNumber.toString())
         val booleanValue = BooleanValue.TRUE
-        val timeStampValue = TimeStampValue(Date())
+        val timeStampValue = TimeStampValue.now()
         val characterValue = CharacterValue("Hello world".toCharArray().toTypedArray())
         val arrayValue =
             ConcreteArrayValue(

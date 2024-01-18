@@ -44,6 +44,7 @@ data class ScanExpr(
     var value: Expression,
     val source: Expression,
     val start: Expression? = null,
+    val length: Expression? = null,
     override val position: Position? = null
 ) : Expression(position) {
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
@@ -125,6 +126,25 @@ data class SubstExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %SUBARR
+@Serializable
+data class SubarrExpr(
+    var array: Expression,
+    var start: Expression,
+    val numberOfElements: Expression? = null,
+    override val position: Position? = null
+) :
+    AssignableExpression(position) {
+    override fun render(): String {
+        val len = if (numberOfElements != null) ": ${numberOfElements.render()}" else ""
+        return "%SUBARR(${this.array.render()} : ${start.render()} $len)"
+    }
+    override fun size(): Int {
+        TODO("size")
+    }
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %LEN
 @Serializable
 data class LenExpr(var value: Expression, override val position: Position? = null) :
@@ -166,7 +186,7 @@ data class IntExpr(
     override val position: Position? = null
 ) :
     Expression(position) {
-    override fun render(): String = "${this.value.render()}"
+    override fun render(): String = this.value.render()
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
@@ -283,6 +303,16 @@ data class ReplaceExpr(
     val source: Expression,
     val start: Expression? = null,
     val length: Expression? = null,
+    override val position: Position? = null
+) :
+    Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+// %OPEN
+@Serializable
+data class OpenExpr(
+    var name: String? = null,
     override val position: Position? = null
 ) :
     Expression(position) {

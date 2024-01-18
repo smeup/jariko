@@ -22,11 +22,13 @@ import com.smeup.rpgparser.utils.asBigDecimal
 import com.smeup.rpgparser.utils.asLong
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.moveEndingString
+import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.time.ZoneId
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -47,6 +49,7 @@ class ExpressionEvaluation(
     override fun eval(expression: NumberOfElementsExpr): Value {
         return when (val value = expression.value.evalWith(this)) {
             is ArrayValue -> value.arrayLength().asValue()
+            is OccurableDataStructValue -> value.occurs.asValue()
             else -> throw IllegalStateException("Cannot ask number of elements of $value")
         }
     }
@@ -123,10 +126,60 @@ class ExpressionEvaluation(
             left is AbstractStringValue && right is AbstractStringValue -> {
                 UnlimitedStringValue(left.getWrappedString() + right.getWrappedString())
             }
-            left is IntValue && right is IntValue -> (left + right)
-            left is NumberValue && right is NumberValue -> DecimalValue(left.bigDecimal.plus(right.bigDecimal))
-            else -> throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
+            left is IntValue && right is IntValue -> {
+                (left + right)
+            }
+            left is NumberValue && right is NumberValue -> {
+                DecimalValue(left.bigDecimal.plus(right.bigDecimal))
+            }
+            left is ArrayValue && right is ArrayValue -> {
+                sum(left, right, expression.position)
+            }
+            else -> {
+                throw UnsupportedOperationException("I do not know how to sum $left and $right at ${expression.position}")
+            }
         }
+    }
+
+    private fun sum(left: ArrayValue, right: ArrayValue, position: Position?): ArrayValue {
+        val listValue = when {
+            left.elementType is StringType && right.elementType is StringType ->
+                left.elements().mapIndexed { i: Int, v: Value ->
+                    if (right.elements().size > i) {
+                        val rightElement = right.getElement(i + 1)
+
+                        val valueToAdd: String = if (v.asString().varying) {
+                            (v.asString().value + rightElement.asString().value)
+                        } else {
+                            (v.asString().value + " ".repeat(left.elementType.elementSize() - v.asString().value.length) + rightElement.asString().value)
+                        }
+                        StringValue(valueToAdd, left.elementType.hasVariableSize())
+                    } else {
+                        v
+                    }
+                }
+            left.elementType is NumberType && right.elementType is NumberType ->
+                left.elements().mapIndexed { i: Int, v: Value ->
+                    if (right.elements().size > i) {
+                        val rightElement = right.getElement(i + 1)
+                        when {
+                            v is IntValue && rightElement is IntValue -> {
+                                (v + rightElement)
+                            }
+
+                            v is NumberValue && rightElement is NumberValue -> {
+                                DecimalValue(v.bigDecimal.plus(rightElement.bigDecimal))
+                            }
+
+                            else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at $position")
+                        }
+                    } else {
+                        v
+                    }
+                }
+            else -> throw UnsupportedOperationException("Unable to sum ${left.elementType} and ${right.elementType} as Array elements at $position")
+        } as MutableList<Value>
+        return ConcreteArrayValue(listValue, left.elementType)
     }
 
     override fun eval(expression: MinusExpr): Value {
@@ -153,7 +206,22 @@ class ExpressionEvaluation(
 
     override fun eval(expression: CharExpr): Value {
         val value = expression.value.evalWith(this)
-        return StringValue(value.stringRepresentation(expression.format).trim())
+        return if (expression.value is DivExpr) {
+            // are always return 10 decimal digits
+            // fill with 0 if necessary
+            if (value.asDecimal().value.scale() != 0) {
+                val numeDecimals = value.asDecimal().value.scale()
+                if (numeDecimals < 10) {
+                    StringValue(value.stringRepresentation(expression.format) + "0".repeat(10 - numeDecimals))
+                } else {
+                    StringValue(value.stringRepresentation(expression.format).trim())
+                }
+            } else {
+                StringValue(value.stringRepresentation(expression.format) + ".0000000000")
+            }
+        } else {
+            StringValue(value.stringRepresentation(expression.format))
+        }
     }
 
     override fun eval(expression: LookupExpr): Value {
@@ -228,7 +296,7 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: LogicalCondition): Value {
-        if (expression.ands.any { !evalAsBoolean(it) }) {
+        if (expression.ands.any { !evalAsBoolean(it) } && !expression.ors.any { evalAsBoolean(it) }) {
             return BooleanValue.FALSE
         }
 
@@ -250,7 +318,10 @@ class ExpressionEvaluation(
             }
         }
         val value = expression.value.evalWith(this).asString().value
-        val source = expression.source.evalWith(this).asString().value
+        // if length is specified, I need to scan from start index to startIndex + length
+        val source = expression.length?.evalWith(this)?.asInt()?.value?.toInt()?.let { length ->
+            expression.source.evalWith(this).asString().value.substring(0, startIndex + length)
+        } ?: expression.source.evalWith(this).asString().value
         val result = source.indexOf(value, startIndex)
         return IntValue(if (result == -1) 0 else result.toLong() + 1)
     }
@@ -264,6 +335,18 @@ class ExpressionEvaluation(
         } else {
             StringValue(originalString.padEnd(start + length + 1).substring(start, start + length))
         }
+    }
+
+    override fun eval(expression: SubarrExpr): Value {
+        val start = expression.start.evalWith(this).asInt().value.toInt() - 1
+        val numberOfElement: Int? = if (expression.numberOfElements != null) expression.numberOfElements.evalWith(this).asInt().value.toInt() else null
+        val originalArray: ArrayValue = expression.array.evalWith(this).asArray()
+        val to: Int = if (numberOfElement == null) {
+            originalArray.arrayLength()
+        } else {
+            (start) + numberOfElement
+        }
+        return originalArray.take(start, to)
     }
 
     override fun eval(expression: LenExpr): Value {
@@ -302,6 +385,32 @@ class ExpressionEvaluation(
                     }
                 }
             }
+            is IntValue -> {
+                // see https://www.ibm.com/docs/en/i/7.5?topic=length-len-used-its-value
+                var totalSize = 0L
+                // the len is the sum of variable size
+                expression.specificProcess(DataRefExpr::class.java) {
+                    totalSize += it.variable.referred!!.type.size.toLong()
+                }
+                if (totalSize == 0L) {
+                    TODO("Invalid LEN parameter $value")
+                } else {
+                    totalSize.asValue()
+                }
+            }
+            is DecimalValue -> {
+                // see https://www.ibm.com/docs/en/i/7.5?topic=length-len-used-its-value
+                var totalSize = 0L
+                // the len is the sum of variable size
+                expression.specificProcess(DataRefExpr::class.java) {
+                    totalSize += it.variable.referred!!.type.size.toLong()
+                }
+                if (totalSize == 0L) {
+                    TODO("Invalid LEN parameter $value")
+                } else {
+                    totalSize.asValue()
+                }
+            }
             else -> {
                 TODO("Invalid LEN parameter $value")
             }
@@ -328,11 +437,11 @@ class ExpressionEvaluation(
 
     override fun eval(expression: TimeStampExpr): Value {
         if (expression.value == null) {
-            return TimeStampValue(Date())
+            return TimeStampValue.now()
         } else {
             val evaluated = expression.value.evalWith(this)
             if (evaluated is StringValue) {
-                return TimeStampValue(evaluated.value.asIsoDate())
+                return TimeStampValue.of(evaluated.value)
             }
             TODO("TimeStamp parsing: " + evaluated)
         }
@@ -351,27 +460,27 @@ class ExpressionEvaluation(
         return when (expression.durationCode) {
             is DurationInMSecs -> IntValue(
                 ChronoUnit.MICROS.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInDays -> IntValue(
                 ChronoUnit.DAYS.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInSecs -> IntValue(
                 ChronoUnit.SECONDS.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInMinutes -> IntValue(
                 ChronoUnit.MINUTES.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInHours -> IntValue(
                 ChronoUnit.HOURS.between(
-                    v2.asTimeStamp().value.toInstant(), v1.asTimeStamp().value.toInstant()
+                    v2.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant(), v1.asTimeStamp().value.atZone(ZoneId.systemDefault()).toInstant()
                 )
             )
             is DurationInMonths -> IntValue(
@@ -394,10 +503,8 @@ class ExpressionEvaluation(
 
         // Detects what kind of eval must be evaluated
         val res = if (expression.parent is EvalStmt) {
-
             val parent = (expression.parent as EvalStmt)
             val decimalDigits = (parent.target.type() as NumberType).decimalDigits
-
             when {
                 // EVAL(H)
                 parent.flags.halfAdjust -> {
@@ -528,22 +635,36 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: ReplaceExpr): Value {
-        val replString = evalAsString(expression.replacement)
+        val replacement = evalAsString(expression.replacement)
         val sourceString = evalAsString(expression.source)
-        val replStringLength: Int = replString.length
-        // case of %REPLACE(stringToReplaceWith:stringSource)
-        if (expression.start == null) {
-            return StringValue(sourceString.replaceRange(0..replStringLength - 1, replString))
-        }
-        // case of %REPLACE(stringToReplaceWith:stringSource:startIndex)
-        if (expression.length == null) {
-            val startNr = evalAsInt(expression.start)
-            return StringValue(sourceString.replaceRange((startNr - 1)..(startNr + replStringLength - 2), replString))
+        val replacementLength: Int = replacement.length
+        val result: String = if (expression.start == null) {
+            // case of %REPLACE(stringToReplaceWith:stringSource)
+            // replace text at beginning of variable
+            sourceString.replaceRange(0 until replacementLength, replacement)
         } else {
-            // case of %REPLACE(stringToReplaceWith:stringSource:startIndex:nrOfCharsToReplace)
-            val startNr = evalAsInt(expression.start) - 1
-            val nrOfCharsToReplace = evalAsInt(expression.length)
-            return StringValue(sourceString.replaceRange(startNr, (startNr + nrOfCharsToReplace), replString))
+            val start = evalAsInt(expression.start) - 1
+            if (expression.length == null) {
+                // case of %REPLACE(stringToReplaceWith:stringSource:startIndex)
+                // replace text at specified position
+                val truncatedSource = sourceString.substring(0, start)
+                if (truncatedSource.length + replacement.length < sourceString.length) {
+                    (truncatedSource + replacement + sourceString.substring(truncatedSource.length + replacementLength))
+                } else {
+                    truncatedSource + replacement
+                }
+            } else {
+                // case of %REPLACE(stringToReplaceWith:stringSource:startIndex:nrOfCharsToReplace)
+                // replace to insert or delete text
+                val characterToReplace = evalAsInt(expression.length)
+                sourceString.replaceRange(start, (start + characterToReplace), replacement)
+            }
+        }
+        // truncated if length is greater than type.elementSize
+        return if (result.length > expression.source.type().elementSize()) {
+            StringValue(result.substring(0, expression.source.type().elementSize()), expression.source.type().hasVariableSize())
+        } else {
+            StringValue(result, expression.source.type().hasVariableSize())
         }
     }
 
@@ -560,6 +681,16 @@ class ExpressionEvaluation(
 
     override fun eval(expression: ParmsExpr): Value {
         return IntValue(interpreterStatus.params.toLong())
+    }
+
+    override fun eval(expression: OpenExpr): Value {
+        val name = expression.name
+        require(name != null) {
+            "Line ${expression.position?.line()} - %OPEN require a table name"
+        }
+        val enrichedDBFile = interpreterStatus.dbFileMap.get(name)
+            ?: throw RuntimeException("Table $name cannot be found (${expression.position.line()})")
+        return BooleanValue(enrichedDBFile.open)
     }
 
     private fun cleanNumericString(s: String): String {

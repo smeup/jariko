@@ -24,15 +24,18 @@ import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
 import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
+import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
+import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
 import com.smeup.rpgparser.utils.substringOfLength
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -214,7 +217,7 @@ data class EvalStmt(
     override fun execute(interpreter: InterpreterCore) {
             // Should I assign it one by one?
             val result = if (target.type().isArray() &&
-                    target.type().asArray().element.canBeAssigned(expression.type())) {
+                    target.type().asArray().element.canBeAssigned(expression.type()) && expression.type() !is ArrayType) {
                 interpreter.assignEachElement(target, expression, operator)
             } else {
                 interpreter.assign(target, expression, operator)
@@ -603,13 +606,27 @@ data class CallStmt(
         val callStatement = this
         val programToCall = interpreter.eval(expression).asString().value.trim()
         MainExecutionContext.setExecutionProgramName(programToCall)
-        val program = interpreter.getSystemInterface().findProgram(programToCall)
+        val program: Program?
+        try {
+            program = interpreter.getSystemInterface().findProgram(programToCall)
+            if (errorIndicator != null) {
+                interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+            }
+        } catch (e: Exception) {
+            if (errorIndicator == null) {
+                throw e
+            }
+            interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+            return
+        }
+
         require(program != null) {
             "Line: ${this.position.line()} - Program '$programToCall' cannot be found"
         }
 
         val params = this.params.mapIndexed { index, it ->
             if (it.dataDefinition != null) {
+                // handle declaration of new variable
                 if (it.dataDefinition.initializationValue != null) {
                     if (!interpreter.exists(it.param.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(it.dataDefinition.initializationValue))
@@ -623,6 +640,14 @@ data class CallStmt(
                     if (!interpreter.exists(it.param.name)) {
                         interpreter.assign(it.dataDefinition, interpreter.eval(BlanksRefExpr()))
                     }
+                }
+            } else {
+                // handle initialization value without declaration of new variables
+                // change the value of parameter with initialization value
+                if (it.initializationValue != null) {
+                    interpreter.assign(
+                        interpreter.dataDefinitionByName(it.param.name)!!,
+                        interpreter.eval(it.initializationValue))
                 }
             }
             require(program.params().size > index) {
@@ -647,6 +672,9 @@ data class CallStmt(
                             System.currentTimeMillis() - startTime
                         )
                     }
+                    if (errorIndicator != null) {
+                        interpreter.getIndicators()[errorIndicator] = BooleanValue.FALSE
+                    }
                 }
             } catch (e: Exception) { // TODO Catch a more specific exception?
                 interpreter.log {
@@ -660,6 +688,7 @@ data class CallStmt(
                     throw e
                 }
                 interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+                MainExecutionContext.getConfiguration().jarikoCallback.onCallPgmError.invoke(popRuntimeErrorEvent())
                 null
             }
         paramValuesAtTheEnd?.forEachIndexed { index, value ->
@@ -830,6 +859,8 @@ data class SetStmt(val valueSet: ValueSet, val indicators: List<AssignableExpres
 @Serializable
 data class ReturnStmt(val expression: Expression?, override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
+        // set the RT indicator always on
+        interpreter.getIndicators()[IndicatorType.RT.name.toIndicatorKey()] = BooleanValue.TRUE
         val returnValue = expression?.let { interpreter.eval(expression) }
         throw ReturnException(returnValue)
     }
@@ -876,7 +907,8 @@ data class PlistParam(
     val param: ReferenceByName<AbstractDataDefinition>,
     // TODO @Derived????
     @Derived val dataDefinition: InStatementDataDefinition? = null,
-    override val position: Position? = null
+    override val position: Position? = null,
+    val initializationValue: Expression? = null
 ) : Node(position), StatementThatCanDefineData {
     override fun dataDefinition(): List<InStatementDataDefinition> {
         if (dataDefinition != null) {
@@ -902,12 +934,23 @@ data class ClearStmt(
     override fun execute(interpreter: InterpreterCore) {
         return when (value) {
             is DataRefExpr -> {
-                val value = interpreter.assign(value, BlanksRefExpr())
+                val newValue: Value
+                /*
+                 If DataRef is referred to an OccurableDataStructureType read the
+                 last cursor position and assisgn it to new blanck object
+                 */
+                if (this.value.variable.referred?.type is OccurableDataStructureType) {
+                    val origValue = interpreter.eval(value) as OccurableDataStructValue
+                    newValue = interpreter.assign(value, BlanksRefExpr()) as OccurableDataStructValue
+                    newValue.pos(origValue.occurrence)
+                } else {
+                    newValue = interpreter.assign(value, BlanksRefExpr())
+                }
                 interpreter.log {
                     ClearStatemenExecutionLog(
                             interpreter.getInterpretationContext().currentProgramName,
                             this,
-                            value
+                            newValue
                     )
                 }
             }
@@ -1052,6 +1095,7 @@ data class DivStmt(
     val halfAdjust: Boolean = false,
     val factor1: Expression?,
     val factor2: Expression,
+    val mvrTarget: AssignableExpression? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
@@ -1142,7 +1186,20 @@ data class TimeStmt(
     override fun execute(interpreter: InterpreterCore) {
         when (value) {
             is DataRefExpr -> {
-                interpreter.assign(value, TimeStampValue(Date()))
+                val t = TimeStampValue.now()
+                when (val valueType = value.type()) {
+                    is TimeStampType -> interpreter.assign(value, t)
+                    is NumberType -> {
+                        val timestampFormatted: String = when (valueType.elementSize()) {
+                            6 -> DateTimeFormatter.ofPattern("HHmmss").format(t.value)
+                            12 -> DateTimeFormatter.ofPattern("HHmmssddMMyy").format(t.value)
+                            14 -> DateTimeFormatter.ofPattern("HHmmssddMMyyyy").format(t.value)
+                            else -> throw UnsupportedOperationException("TIME Statement only supports 6, 12, and 14 as the length of the Integer data type")
+                        }
+                        interpreter.assign(value, IntValue(timestampFormatted.toLong()))
+                    }
+                    else -> throw UnsupportedOperationException("TIME Statement only supports Timestamp or Integer data type")
+                }
             }
             else -> throw UnsupportedOperationException("I do not know how to set TIME to ${this.value}")
         }
@@ -1458,7 +1515,10 @@ data class ForStmt(
 @Serializable
 data class SortAStmt(val target: Expression, override val position: Position? = null) : Statement(position) {
     override fun execute(interpreter: InterpreterCore) {
-        sortA(interpreter.eval(target), interpreter.getLocalizationContext().charset)
+        sortA(
+            value = interpreter.eval(target),
+            arrayType = target.type() as ArrayType
+        )
     }
 }
 
@@ -1467,49 +1527,54 @@ data class CatStmt(
     val left: Expression?,
     val right: Expression,
     val target: AssignableExpression,
-    val blanksInBetween: Int,
+    val blanksInBetween: Expression?,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
-    override val position: Position? = null
+    override val position: Position? = null,
+    val operationExtender: String? = null
 ) : Statement(position), StatementThatCanDefineData {
 
     override fun execute(interpreter: InterpreterCore) {
-        val blanksInBetween = blanksInBetween
-        val blanks = StringValue.blank(blanksInBetween)
-        val factor2 = interpreter.eval(right)
-        var result = interpreter.eval(target)
-        val resultLen = result.asString().length()
-        val concatenatedFactors: Value
-
-        if (null != left) {
-            val factor1 = interpreter.eval(left)
-            val f1Trimmed = (factor1 as StringValue).value.trim()
-            val factor1Trimmed = StringValue(f1Trimmed)
-            concatenatedFactors = if (blanksInBetween > 0) {
-                factor1Trimmed.concatenate(blanks).concatenate(factor2)
-            } else {
-                factor1.concatenate(factor2)
-            }
+        val factor1: String = if (left != null) {
+            interpreter.eval(left).asString().value
         } else {
-            concatenatedFactors = if (!result.asString().isBlank()) {
-                result
-            } else if (blanksInBetween > 0) {
-                if (blanksInBetween >= resultLen) {
-                    result
-                } else {
-                    blanks.concatenate(factor2)
-                }
-            } else {
-                result
-            }
+            // set result as factor 1
+            interpreter.eval(target).asString().value
         }
-        val concatenatedFactorsLen = concatenatedFactors.asString().length()
-        result = if (concatenatedFactorsLen >= resultLen) {
-            concatenatedFactors.asString().getSubstring(0, resultLen)
+        val factor2: String = if (right.type() is StringType) {
+            interpreter.eval(right).asString().value
         } else {
-            concatenatedFactors.concatenate(result.asString().getSubstring(concatenatedFactorsLen, resultLen))
+            throw UnsupportedOperationException("Factor 2 of CAT Statement must be a StringValue")
+        }
+        val blanks: String? = if (blanksInBetween != null) {
+            " ".repeat(interpreter.eval(blanksInBetween).asInt().value.toInt())
+        } else {
+            null
+        }
+        require(target.type() is StringType) {
+            "Result expression of CAT Statement must be a StringValue"
+        }
+        var result: String = interpreter.eval(target).asString().value
+
+        val concatenatedString: String = if (blanks == null) {
+            // concatenate factor 1 with factor 2
+            (factor1 + factor2)
+        } else {
+            // if blanks aren't null trim factor 1
+            (factor1.trim() + blanks + factor2)
         }
 
-        interpreter.assign(target, result)
+        result = if (result.length > concatenatedString.length) {
+            // handle CAT(P)
+            if (operationExtender != null) {
+                concatenatedString + " ".repeat(result.length - concatenatedString.length)
+            } else {
+                (concatenatedString + result.substring(concatenatedString.length))
+            }
+        } else {
+            (concatenatedString.substring(0, result.length))
+        }
+
+        interpreter.assign(target, StringValue(result))
         interpreter.log { CatStatementExecutionLog(interpreter.getInterpretationContext().currentProgramName, this, interpreter.eval(target)) }
     }
 
@@ -1692,5 +1757,107 @@ fun OccurableDataStructValue.pos(occurrence: Int, interpreter: InterpreterCore, 
         this.pos(occurrence)
     } catch (e: ArrayIndexOutOfBoundsException) {
         if (errorIndicator == null) throw e else interpreter.getIndicators()[errorIndicator] = BooleanValue.TRUE
+    }
+}
+
+@Serializable
+data class OpenStmt(
+    val name: String = "", // Factor 2
+    override val position: Position? = null,
+    val operationExtender: String?,
+    val errorIndicator: IndicatorKey?
+) : Statement(position) {
+    init {
+        require(operationExtender == null) {
+            "Operation extender not supported"
+        }
+    }
+    override fun execute(interpreter: InterpreterCore) {
+        val dbFile = interpreter.dbFile(name, this)
+        dbFile.open = true
+    }
+}
+@Serializable
+data class CloseStmt(
+    val name: String = "", // Factor 2
+    override val position: Position? = null,
+    val operationExtender: String?,
+    val errorIndicator: IndicatorKey?
+) : Statement(position) {
+
+    init {
+        require(operationExtender == null) {
+            "Operation extender not supported"
+        }
+    }
+    override fun execute(interpreter: InterpreterCore) {
+        val dbFile = interpreter.dbFile(name, this)
+        dbFile.open = false
+    }
+}
+
+/**
+ *  XLATE operation Code: all characters in the source string (factor 2) are translated according
+ *  to the From and To strings (both in factor 1) and put into a receiver
+ *  field (result field). Source characters with a match in the From string
+ *  are translated to corresponding characters in the To string.
+ *
+ *  @property from characters to replace
+ *  @property to replacement characters.
+ *  @property string source string.
+ *  @property startPos starting position in the source string.
+ *  @property target result string.
+ */
+@Serializable
+data class XlateStmt(
+    val from: Expression,
+    val to: Expression,
+    val string: Expression,
+    val startPos: Int,
+    val target: AssignableExpression,
+    val rightIndicators: WithRightIndicators,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), WithRightIndicators by rightIndicators, StatementThatCanDefineData {
+    override fun execute(interpreter: InterpreterCore) {
+        val originalChars = interpreter.eval(from).asString().value
+        val newChars = interpreter.eval(to).asString().value
+        val start = startPos
+        val s = interpreter.eval(string).asString().value
+        val pair = s.divideAtIndex(start - 1)
+        var right = pair.second
+        val substitutionMap = mutableMapOf<Char, Char>()
+        originalChars.forEachIndexed { i, c ->
+            if (newChars.length > i) {
+                substitutionMap[c] = newChars[i]
+            }
+        }
+        substitutionMap.forEach {
+            right = right.replace(it.key, it.value)
+        }
+        interpreter.assign(target, StringValue(pair.first + right))
+    }
+
+    override fun dataDefinition() = dataDefinition?.let { listOf(it) } ?: emptyList()
+}
+
+@Serializable
+data class ResetStmt(
+    val name: String,
+    override val position: Position? = null
+) : Statement(position) {
+
+    override fun execute(interpreter: InterpreterCore) {
+        val dataDefinition = interpreter.dataDefinitionByName(name)
+        require(dataDefinition != null) {
+            this.error("Data definition $name not found")
+        }
+        require(dataDefinition is DataDefinition) {
+            this.error("Data definition $name is not an instance of DataDefinition")
+        }
+        require(dataDefinition.defaultValue != null) {
+            this.error("Data definition $name has no default value")
+        }
+        interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
     }
 }

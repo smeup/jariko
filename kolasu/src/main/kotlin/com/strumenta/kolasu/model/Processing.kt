@@ -60,6 +60,9 @@ fun Node.find(predicate: (Node) -> Boolean): Node? {
     return null
 }
 
+/**
+ * Navigate the abstract syntax tree and execute the operation on all the nodes of the given type.
+ * */
 fun <T : Node> Node.specificProcess(klass: Class<T>, operation: (T) -> Unit) {
     process { if (klass.isInstance(it)) {
         operation(it as T) }

@@ -2,31 +2,6 @@ package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.parsing.ast.*
 
-fun move(operationExtenter: String?, target: AssignableExpression, value: Expression, interpreterCore: InterpreterCore): Value {
-    when (target) {
-        is DataRefExpr -> {
-            var newValue = interpreterCore.eval(value)
-            if (value !is FigurativeConstantRef) {
-                newValue = newValue.takeLast(target.size())
-                if (value.type().size < target.size()) {
-                    if (operationExtenter == null) {
-                        newValue =
-                            interpreterCore.get(target.variable.referred!!)
-                                .takeFirst((target.size() - value.type().size))
-                                .concatenate(newValue)
-                    } else {
-                        val blank = " ".repeat(target.size() - value.type().size)
-                        newValue.asString().value = blank + newValue.asString().value
-                        newValue.asString().value = newValue.asString().value.padEnd(target.size(), ' ')
-                    }
-                }
-            }
-            return interpreterCore.assign(target, newValue)
-        }
-        else -> TODO()
-    }
-}
-
 fun movea(operationExtenter: String?, target: AssignableExpression, valueExpression: Expression, interpreterCore: InterpreterCore): Value {
     return when (target) {
         is DataRefExpr -> {
@@ -80,7 +55,7 @@ private fun moveaNumber(
     interpreterCore: InterpreterCore,
     value: Expression
 ): ConcreteArrayValue {
-    var newValue = interpreterCore.toArray(value)
+    val newValue = interpreterCore.toArray(value)
     val targetArray = interpreterCore.get(target.variable.referred!!).asArray()
     val arrayValue = createArrayValue(baseType(target.type()), target.type().numberOfElements()) {
         if (it < (startIndex - 1)) {
