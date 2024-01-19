@@ -67,17 +67,24 @@ data class EnrichedDBFile(private val dbFile: DBFile, private val fileDefinition
     // All files are opened by default when defined in F specs.
     var open = true
 
+    private val cacheKey = mutableMapOf<String, Result>()
+    private val cacheKeys = mutableMapOf<List<String>, Result>()
+
     override var fileMetadata = dbFile.fileMetadata
 
     override var name = dbFile.name
 
     override var logger = dbFile.logger
 
-    override fun chain(key: String) = checkOpened().chain(key).validate()
+    override fun chain(key: String) = cacheKey.computeIfAbsent(key) { checkOpened().chain(key).validate() }
 
-    override fun chain(keys: List<String>) = checkOpened().chain(keys).validate()
+    override fun chain(keys: List<String>) = cacheKeys.computeIfAbsent(keys) { checkOpened().chain(keys).validate() }
 
-    override fun delete(record: Record) = checkOpened().delete(record).validate()
+    override fun delete(record: Record): Result {
+        cacheKey.clear()
+        cacheKeys.clear()
+        return checkOpened().delete(record).validate()
+    }
 
     override fun eof() = checkOpened().eof()
 
