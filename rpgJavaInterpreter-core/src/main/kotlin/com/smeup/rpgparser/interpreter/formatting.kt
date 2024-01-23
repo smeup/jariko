@@ -10,29 +10,272 @@ import java.util.*
 import com.smeup.rpgparser.interpreter.DecEdit.*
 
 internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit, padChar: Char = ' '): StringValue {
-    fun signumChar(empty: Boolean) = (if (this.value < ZERO) "-" else if (empty) "" else " ")
-    fun commas(t: NumberType) = if (t.entireDigits <= 3) 0 else t.entireDigits / 3
-    fun points(t: NumberType) = if (t.decimalDigits > 0) 1 else 0
-    fun nrOfPunctuationsIn(t: NumberType): Int = commas(t) + points(t)
+    // https://www.ibm.com/docs/en/i/7.3?topic=80-edtcde-edit-code-keyword-display-files
+
+    var cfgCommasDisplayed = false
+    var cfgDecimalPointDisplayed = false
+    var cfgSign = ""
+    var cfgBlankValueOfQDECFMT = ""
+    var cfgIValueOfQDECFMT = ""
+    var cfgJValueOfQDECFMT = ""
+    var cfgLeadingZeroSuppress = false
+    var cfgPadChar = padChar
+    var cfgPositiveSignAtBeginning = false
+
+    var padStartLength = 0
+    var padEndLength = 0
+    var retValue = ""
+
+    val t = (type as NumberType)
+
+    fun decEditToString(): String {
+        return when(decedit) {
+            DOT -> "."
+            COMMA -> ","
+            else -> ""
+        }
+    }
+
+    fun thousandSeparators(): Int {
+        //val valueString = this.value.toString()
+        //val integers = valueString.split(decEditToString())[0].length
+        //return if (integers <= 3) 0 else integers / 3
+        return if (t.entireDigits <= 3) 0 else (t.entireDigits / 3) - 1
+    }
+
+    fun decimalSeparators() = if (t.decimalDigits > 0) 1 else 0
+
+    fun getPadStartLength(): Int {
+        var tot = 0
+        if (cfgCommasDisplayed) {
+            tot += thousandSeparators()
+        }
+        if (cfgDecimalPointDisplayed) {
+            tot += decimalSeparators()
+        }
+        if(cfgSign.isNotEmpty() && cfgPositiveSignAtBeginning) {
+            if (this.value >= ZERO) {
+                tot += cfgSign.length
+            }
+        }
+        tot += t.decimalDigits + t.entireDigits
+        return tot
+    }
+
+    fun getPadEndLength(): Int {
+        var tot = 0
+        if(cfgSign.isNotEmpty()) {
+            tot += cfgSign.length
+        }
+        return tot
+    }
+
+    fun setCfg() {
+        when (format) {
+            "1" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = ""
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "2" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = ""
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "3" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = ""
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "4" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = ""
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "A" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = "CR"
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "B" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = "CR"
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "C" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = "CR"
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "D" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = "CR"
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "J" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "N" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = true
+            }
+            "K" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "O" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = true
+            }
+            "L"-> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "P" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = true
+            }
+            "M" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            "Q" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = true
+            }
+
+            "W", "Y", "Z" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = false
+                cfgSign = ""
+                cfgBlankValueOfQDECFMT = ""
+                cfgIValueOfQDECFMT = ""
+                cfgJValueOfQDECFMT = ""
+                cfgLeadingZeroSuppress = true
+                cfgPositiveSignAtBeginning = false
+            }
+            else -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = false
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = "0"
+                cfgIValueOfQDECFMT = "0"
+                cfgJValueOfQDECFMT = "0"
+                cfgLeadingZeroSuppress = false
+                cfgPadChar = '0'
+                cfgPositiveSignAtBeginning = true
+            }
+
+        }
+    }
 
     fun standardDecimalFormat(type: NumberType, locale: Locale) =
         DecimalFormat(decimalPattern(type), DecimalFormatSymbolsRepository.getSymbols(locale)).format(this.value.abs())
 
-    // The functions below correspond to the EDITC parameter, one function per value
-    fun f1(decedit: DecEdit): String {
+
+    fun getStandardFormat(): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
             COMMA -> {
-                standardDecimalFormat(type, Locale.ITALY).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                standardDecimalFormat(type, Locale.ITALY)
             }
             ZERO_COMMA -> {
                 if (this.value.abs() < BigDecimal.ONE) {
                     buildString {
                         append("0")
                         append(standardDecimalFormat(type, Locale.ITALY))
-                    }.padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    }
                 } else {
-                    standardDecimalFormat(type, Locale.ITALY).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    standardDecimalFormat(type, Locale.ITALY)
                 }
             }
             ZERO_DOT -> {
@@ -40,22 +283,14 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                     buildString {
                         append("0")
                         append(standardDecimalFormat(type, Locale.US))
-                    }.padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    }
                 } else {
-                    standardDecimalFormat(type, Locale.US).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                    standardDecimalFormat(type, Locale.US)
                 }
             }
             DOT -> {
-                standardDecimalFormat(type, Locale.US).padStart(type.size + nrOfPunctuationsIn(type), padChar)
+                standardDecimalFormat(type, Locale.US)
             }
-        }
-    }
-
-    fun f2(decedit: DecEdit): String {
-        if (this.value.isZero()) {
-            return "".padStart(type.size + nrOfPunctuationsIn(type as NumberType))
-        } else {
-            return f1(decedit)
         }
     }
 
@@ -65,12 +300,11 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
     fun usDecimalformatWithNoThounsandsSeparator(type: NumberType) =
         DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.usSymbols).format(this.value.abs())
 
-    fun f3(decedit: DecEdit): String {
+    fun getItalianFormat(): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
             COMMA -> {
                 italianDecimalformatWithNoThounsandsSeparator(type)
-                    .padStart(type.size + points(type), padChar)
             }
             ZERO_COMMA -> {
                 if (this.value.abs() < BigDecimal.ONE) {
@@ -78,10 +312,8 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                         append("0")
                         append(standardDecimalFormat(type, Locale.ITALY))
                     }
-                    .padStart(type.size + points(type), padChar)
                 } else {
                     italianDecimalformatWithNoThounsandsSeparator(type)
-                        .padStart(type.size + points(type), padChar)
                 }
             }
             ZERO_DOT -> {
@@ -90,10 +322,8 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                         append("0")
                         append(standardDecimalFormat(type, Locale.US))
                     }
-                    .padStart(type.size + points(type), padChar)
                 } else {
                     usDecimalformatWithNoThounsandsSeparator(type)
-                        .padStart(type.size + points(type), padChar)
                 }
             }
             DOT -> {
@@ -102,59 +332,11 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                     append(decimalsFormatString(type))
                 }, DecimalFormatSymbolsRepository.usSymbols)
                     .format(this.value.abs())
-                    .padStart(type.size + points(type), padChar)
             }
         }
     }
 
-    fun f4(decedit: DecEdit): String {
-        if (this.value.isZero()) {
-            return "".padStart(type.size + points(type as NumberType))
-        } else
-            return f3(decedit)
-    }
-
-    fun fA(decedit: DecEdit): String {
-        return if (this.value < ZERO) {
-            f1(decedit) + "CR"
-        } else {
-            f1(decedit)
-        }
-    }
-
-    fun fB(decedit: DecEdit): String = fA(decedit)
-
-    fun fC(decedit: DecEdit): String {
-        return if (this.value < ZERO) {
-            f3(decedit) + "CR"
-        } else {
-            f3(decedit)
-        }
-    }
-
-    fun fD(decedit: DecEdit): String {
-        return if (this.value < ZERO) {
-            f3(decedit) + "CR"
-        } else {
-            f3(decedit)
-        }
-    }
-
-    fun fJ(decedit: DecEdit): String = f1(decedit) + signumChar(true)
-
-    fun fK(decedit: DecEdit): String = f2(decedit) + signumChar(true)
-
-    fun fL(decedit: DecEdit): String = f3(decedit) + signumChar(true)
-
-    fun fM(decedit: DecEdit): String = f4(decedit) + signumChar(true)
-
-    fun fN(decedit: DecEdit): String = signumChar(false) + f1(decedit)
-
-    fun fO(decedit: DecEdit): String = signumChar(false) + f2(decedit)
-
-    fun fP(decedit: DecEdit): String = signumChar(false) + f3(decedit)
-
-    fun fQ(decedit: DecEdit): String = signumChar(false) + f4(decedit)
+    // The functions below correspond to the EDITC parameter, one function per value
 
     fun toBlnk(c: Char) = if (c == '0') ' ' else c
 
@@ -169,39 +351,59 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         }
     }
 
-    fun handleInitialZero(decedit: DecEdit): String {
+    fun removeLeadingZeros(num: String): String {
+        for (i in 0 until num.length) {
+            if (num[i] != '0') {
+                return num.substring(i)
+            }
+        }
+        return "0"
+    }
+
+    fun handleInitialZero(): String {
         return if (this.value.isZero()) {
             ""
         } else {
-            f1(decedit).replace(".", "").replace(",", "").trim()
+            retValue.replace(".", "").replace(",", "").trim()
         }
     }
 
-//    fun fX(decedit: DecEdit) = value.unscaledValue().abs().toString().padStart(type.size, '0')
-    fun fX(decedit: DecEdit) = handleInitialZero(decedit).padStart(type.size, '0')
+    fun fX(): String {
+        return handleInitialZero()
+    }
 
-    fun fZ(decedit: DecEdit) = handleInitialZero(decedit).padStart(type.size)
+    fun fZ(): String {
+        val a = handleInitialZero()
+        val b = removeLeadingZeros(a)
+        val c = b.padStart(padStartLength, cfgPadChar)
+        return c
+    }
+
+    setCfg()
+    if (cfgCommasDisplayed) {
+        retValue = getStandardFormat()
+    } else {
+        retValue = getItalianFormat()
+    }
+
+    if (cfgSign != "No sign" && this.value < ZERO) {
+        retValue += cfgSign
+    }
+
+    padStartLength = getPadStartLength()
+    retValue = retValue.padStart(padStartLength, cfgPadChar)
+
+    if (!cfgPositiveSignAtBeginning) {
+        padEndLength = getPadEndLength()
+        retValue = retValue.padEnd(padEndLength + padStartLength, cfgPadChar)
+    }
 
     return when (format) {
-        "1" -> StringValue(f1(decedit))
-        "2" -> StringValue(f2(decedit))
-        "3" -> StringValue(f3(decedit))
-        "4" -> StringValue(f4(decedit))
-        "A" -> StringValue(fA(decedit))
-        "B" -> StringValue(fB(decedit))
-        "C" -> StringValue(fC(decedit))
-        "D" -> StringValue(fD(decedit))
-        "X" -> StringValue(fX(decedit))
-        "J" -> StringValue(fJ(decedit))
-        "K" -> StringValue(fK(decedit))
-        "L" -> StringValue(fL(decedit))
-        "M" -> StringValue(fM(decedit))
-        "N" -> StringValue(fN(decedit))
-        "O" -> StringValue(fO(decedit))
-        "P" -> StringValue(fP(decedit))
-        "Q" -> StringValue(fQ(decedit))
+        "1", "2", "3", "4", "A", "B", "C", "D",
+        "J", "K", "L", "M", "N", "O", "P", "Q" -> StringValue(retValue)
+        "X" -> StringValue(fX())
         "Y" -> StringValue(fY())
-        "Z" -> StringValue(fZ(decedit))
+        "Z" -> StringValue(fZ())
         else -> throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
     }
 }
