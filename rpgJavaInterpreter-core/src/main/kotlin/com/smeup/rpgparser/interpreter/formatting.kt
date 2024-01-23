@@ -48,47 +48,31 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
     var cfgJValueOfQDECFMT = ""
     var cfgLeadingZeroSuppress = false
     var cfgPadChar = padChar
-
-    var padStartLength = 0
-    var padEndLength = 0
-    var retValue = ""
+    var cfgSignPosition = true // true = begin, false = end
 
     val t = (type as NumberType)
 
-    fun decEditToString(): String {
-        return when(decedit) {
-            DOT -> "."
-            COMMA -> ","
-            else -> ""
-        }
-    }
+    var wrkTotalLength = 0
+
+    var retValue = ""
 
     fun thousandSeparators(): Int {
-        //val valueString = this.value.toString()
-        //val integers = valueString.split(decEditToString())[0].length
-        //return if (integers <= 3) 0 else integers / 3
-        return if (t.entireDigits <= 3) 0 else (t.entireDigits / 3) - 1
+        val ts = (t.entireDigits / 3) - 1
+        return if (ts < 0) 0 else ts
     }
 
     fun decimalSeparators() = if (t.decimalDigits > 0) 1 else 0
 
-    fun getPadStartLength(): Int {
-        var tot = 1  // char for the edit code
+    fun getWrkTotalLength(): Int {
+        var tot = 0
         if (cfgCommasDisplayed) {
             tot += thousandSeparators()
         }
         if (cfgDecimalPointDisplayed) {
             tot += decimalSeparators()
         }
+        tot += cfgSign.length
         tot += t.decimalDigits + t.entireDigits
-        return tot
-    }
-
-    fun getPadEndLength(): Int {
-        var tot = 0
-        if(cfgSign.isNotEmpty()) {
-            tot += cfgSign.length
-        }
         return tot
     }
 
@@ -102,6 +86,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = ",00|0"
                 cfgJValueOfQDECFMT = ",00|0"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "2" -> {
                 cfgCommasDisplayed = true
@@ -111,6 +96,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = "Blanks"
                 cfgJValueOfQDECFMT = "Blanks"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "3" -> {
                 cfgCommasDisplayed = false
@@ -120,6 +106,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = ",00|0"
                 cfgJValueOfQDECFMT = ",00|0"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "4" -> {
                 cfgCommasDisplayed = false
@@ -129,6 +116,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = "Blanks"
                 cfgJValueOfQDECFMT = "Blanks"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "A" -> {
                 cfgCommasDisplayed = true
@@ -138,6 +126,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = ",00|0"
                 cfgJValueOfQDECFMT = ",00|0"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "B" -> {
                 cfgCommasDisplayed = true
@@ -147,6 +136,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = "Blanks"
                 cfgJValueOfQDECFMT = "Blanks"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "C" -> {
                 cfgCommasDisplayed = false
@@ -156,6 +146,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = ",00|0"
                 cfgJValueOfQDECFMT = ",00|0"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "D" -> {
                 cfgCommasDisplayed = false
@@ -165,6 +156,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = "Blanks"
                 cfgJValueOfQDECFMT = "Blanks"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "J" -> {
                 cfgCommasDisplayed = true
@@ -174,15 +166,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = ",00|0"
                 cfgJValueOfQDECFMT = ",00|0"
                 cfgLeadingZeroSuppress = true
-            }
-            "N" -> {
-                cfgCommasDisplayed = true
-                cfgDecimalPointDisplayed = true
-                cfgSign = "-"
-                cfgBlankValueOfQDECFMT = ".00|0"
-                cfgIValueOfQDECFMT = ",00|0"
-                cfgJValueOfQDECFMT = ",00|0"
-                cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "K" -> {
                 cfgCommasDisplayed = true
@@ -192,15 +176,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = "Blanks"
                 cfgJValueOfQDECFMT = "Blanks"
                 cfgLeadingZeroSuppress = true
-            }
-            "O" -> {
-                cfgCommasDisplayed = true
-                cfgDecimalPointDisplayed = true
-                cfgSign = "-"
-                cfgBlankValueOfQDECFMT = "Blanks"
-                cfgIValueOfQDECFMT = "Blanks"
-                cfgJValueOfQDECFMT = "Blanks"
-                cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "L"-> {
                 cfgCommasDisplayed = false
@@ -210,15 +186,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = ",00|0"
                 cfgJValueOfQDECFMT = ",00|0"
                 cfgLeadingZeroSuppress = true
-            }
-            "P" -> {
-                cfgCommasDisplayed = false
-                cfgDecimalPointDisplayed = true
-                cfgSign = "-"
-                cfgBlankValueOfQDECFMT = ".00|0"
-                cfgIValueOfQDECFMT = ",00|0"
-                cfgJValueOfQDECFMT = ",00|0"
-                cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             "M" -> {
                 cfgCommasDisplayed = false
@@ -228,6 +196,38 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = "Blanks"
                 cfgJValueOfQDECFMT = "Blanks"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
+            }
+            "N" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgSignPosition = true
+            }
+
+            "O" -> {
+                cfgCommasDisplayed = true
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = "Blanks"
+                cfgIValueOfQDECFMT = "Blanks"
+                cfgJValueOfQDECFMT = "Blanks"
+                cfgLeadingZeroSuppress = true
+                cfgSignPosition = true
+            }
+            "P" -> {
+                cfgCommasDisplayed = false
+                cfgDecimalPointDisplayed = true
+                cfgSign = "-"
+                cfgBlankValueOfQDECFMT = ".00|0"
+                cfgIValueOfQDECFMT = ",00|0"
+                cfgJValueOfQDECFMT = ",00|0"
+                cfgLeadingZeroSuppress = true
+                cfgSignPosition = true
             }
             "Q" -> {
                 cfgCommasDisplayed = false
@@ -237,8 +237,8 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = "Blanks"
                 cfgJValueOfQDECFMT = "Blanks"
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = true
             }
-
             "W", "Y", "Z" -> {
                 cfgCommasDisplayed = false
                 cfgDecimalPointDisplayed = false
@@ -247,6 +247,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgIValueOfQDECFMT = ""
                 cfgJValueOfQDECFMT = ""
                 cfgLeadingZeroSuppress = true
+                cfgSignPosition = false
             }
             else -> {
                 cfgCommasDisplayed = false
@@ -257,9 +258,48 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgJValueOfQDECFMT = "0"
                 cfgLeadingZeroSuppress = false
                 cfgPadChar = '0'
+                cfgSignPosition = false
             }
 
         }
+    }
+
+    fun decEditToString(): String {
+        return when(decedit) {
+            DOT -> "."
+            COMMA -> ","
+            else -> ""
+        }
+    }
+
+    fun trunkAmount() {
+        var workValue = retValue
+        var workIntPart = ""
+        var workDecPart = ""
+
+        val splitChar = decEditToString()
+        val parts = workValue.split(splitChar)
+
+        workIntPart = parts[0]
+
+        if (parts.size > 1)
+            workDecPart = parts[1]
+
+        // trunk int part
+        if (workIntPart.length > t.entireDigits && t.entireDigits > 0) {
+            val startIndexToRemove = workIntPart.length - t.entireDigits
+            workIntPart = workIntPart.substring(startIndexToRemove)
+        }
+
+        // trunk dec part
+        if (workDecPart.length > t.decimalDigits) {
+            val lastIndexToRemove = workDecPart.length - t.decimalDigits
+            workDecPart = workDecPart.substring(0, lastIndexToRemove)
+        }
+
+        workValue = workIntPart + splitChar + workDecPart
+
+        retValue = workValue
     }
 
     fun standardDecimalFormat(type: NumberType, locale: Locale) =
@@ -298,17 +338,17 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         }
     }
 
-    fun italianDecimalformatWithNoThounsandsSeparator(type: NumberType) =
+    fun italianDecimalFormatWithNoThousandsSeparator(type: NumberType) =
         DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.italianSymbols).format(this.value.abs())
 
-    fun usDecimalformatWithNoThounsandsSeparator(type: NumberType) =
+    fun usDecimalFormatWithNoThousandsSeparator(type: NumberType) =
         DecimalFormat(buildString { append("#"); append(decimalsFormatString(type)) }, DecimalFormatSymbolsRepository.usSymbols).format(this.value.abs())
 
     fun getItalianFormat(): String {
         if (type !is NumberType) throw UnsupportedOperationException("Unsupported type for %EDITC: $type")
         return when (decedit) {
             COMMA -> {
-                italianDecimalformatWithNoThounsandsSeparator(type)
+                italianDecimalFormatWithNoThousandsSeparator(type)
             }
             ZERO_COMMA -> {
                 if (this.value.abs() < BigDecimal.ONE) {
@@ -317,7 +357,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                         append(standardDecimalFormat(type, Locale.ITALY))
                     }
                 } else {
-                    italianDecimalformatWithNoThounsandsSeparator(type)
+                    italianDecimalFormatWithNoThousandsSeparator(type)
                 }
             }
             ZERO_DOT -> {
@@ -327,7 +367,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                         append(standardDecimalFormat(type, Locale.US))
                     }
                 } else {
-                    usDecimalformatWithNoThounsandsSeparator(type)
+                    usDecimalFormatWithNoThousandsSeparator(type)
                 }
             }
             DOT -> {
@@ -342,16 +382,16 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
 
     // The functions below correspond to the EDITC parameter, one function per value
 
-    fun toBlnk(c: Char) = if (c == '0') ' ' else c
+    fun toBlank(c: Char) = if (c == '0') ' ' else c
 
     fun fY(): String {
         var stringN = this.value.abs().unscaledValue().toString().trim()
         return if (type.elementSize() <= 6) {
             stringN = stringN.padStart(6, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size + 2)
+            "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(type.size + 2)
         } else {
             stringN = stringN.padStart(8, '0')
-            "${toBlnk(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size + 2)
+            "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(type.size + 2)
         }
     }
 
@@ -379,27 +419,47 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
     fun fZ(): String {
         val a = handleInitialZero()
         val b = removeLeadingZeros(a)
-        val c = b.padStart(padStartLength, cfgPadChar)
+        val c = b.padStart(wrkTotalLength, cfgPadChar)
         return c
     }
 
+    // set edit code configuration
     setCfg()
+
+    // parse to local format
     if (cfgCommasDisplayed) {
         retValue = getStandardFormat()
     } else {
         retValue = getItalianFormat()
     }
 
-    if (cfgSign != "No sign" && this.value < ZERO) {
-        retValue += cfgSign
+    // get total length
+    wrkTotalLength = getWrkTotalLength()
+
+    // trunk overflow digits
+    trunkAmount()
+
+    // append sign
+    if (cfgSign.isNotEmpty()) {
+        if (this.value < ZERO) {
+            if (cfgSignPosition) {
+                retValue = cfgSign + retValue
+            } else {
+                retValue += cfgSign
+            }
+        } else {
+            if (cfgSignPosition) {
+                retValue = cfgPadChar.toString().repeat(cfgSign.length) + retValue
+            } else {
+                retValue += cfgPadChar.toString().repeat(cfgSign.length)
+            }
+        }
     }
 
-    padStartLength = getPadStartLength()
-    retValue = retValue.padStart(padStartLength, cfgPadChar)
+    // padding start
+    retValue = retValue.padStart(wrkTotalLength, cfgPadChar)
 
-
-    padEndLength = getPadEndLength()
-    retValue = retValue.padEnd(padEndLength + padStartLength, cfgPadChar)
+    // check final size
 
 
     return when (format) {
