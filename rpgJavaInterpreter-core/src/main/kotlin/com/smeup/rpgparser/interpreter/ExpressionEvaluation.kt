@@ -676,8 +676,13 @@ class ExpressionEvaluation(
     override fun eval(expression: AssignmentExpr) =
         throw RuntimeException("AssignmentExpr should be handled by the interpreter: $expression")
 
-    override fun eval(expression: GlobalIndicatorExpr) =
-        throw RuntimeException("PredefinedGlobalIndicatorExpr should be handled by the interpreter: $expression")
+    override fun eval(expression: GlobalIndicatorExpr): Value {
+        val value = StringBuilder()
+        for (i in IndicatorType.Predefined.range) {
+            value.append(if (interpreterStatus.indicators[i] == null) "0" else if (interpreterStatus.indicators[i]!!.value) "1" else "0")
+        }
+        return StringValue(value.toString())
+    }
 
     override fun eval(expression: ParmsExpr): Value {
         return IntValue(interpreterStatus.params.toLong())
