@@ -22,7 +22,7 @@ data class IndicatorExpr(val index: IndicatorKey, override val position: Positio
 @Serializable
 data class GlobalIndicatorExpr(override val position: Position? = null) :
         AssignableExpression(position) {
-    override fun size(): Int = 99
+    override fun size(): Int = IndicatorType.Predefined.range.last
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
