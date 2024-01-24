@@ -85,21 +85,7 @@ internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConf
 internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): NumberLiteral {
     val position = this.toPosition(conf.considerPosition)
     require(this.NumberPart().isEmpty()) { "Number not empty $position" }
-    val text = (this.MINUS()?.text ?: "") + this.NUMBER().text
-
-    // When assigning a value to a numeric field we could either use
-    // a comma or a dot as decimal separators
-
-    // TODO Rifattorizzare con literalToNumber(text, position)
-    return when {
-        text.contains('.') -> {
-            text.toRealLiteral(position, Locale.US)
-        }
-        text.contains(',') -> {
-            text.toRealLiteral(position, Locale.ITALIAN)
-        }
-        else -> text.toIntLiteral(position)
-    }
+    return literalToNumber(this.text, position)
 }
 
 fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
