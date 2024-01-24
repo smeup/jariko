@@ -630,7 +630,7 @@ internal fun FactorContentContext.toAst(conf: ToAstConfiguration): Expression {
 fun literalToNumber(
     text: String,
     position: Position?
-): Expression {
+): NumberLiteral {
     // fix minus at right
     val value = if (text.endsWith('-')) {
         "-" + text.replaceFirst("-", "")
