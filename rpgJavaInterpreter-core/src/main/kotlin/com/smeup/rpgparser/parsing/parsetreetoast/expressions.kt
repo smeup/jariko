@@ -98,7 +98,7 @@ internal fun RpgParser.NumberContext.toAst(conf: ToAstConfiguration = ToAstConfi
         text.contains(',') -> {
             text.toRealLiteral(position, Locale.ITALIAN)
         }
-        else -> IntLiteral(text.toLong(), position)
+        else -> text.toIntLiteral(position)
     }
 }
 
@@ -106,9 +106,24 @@ fun String.toRealLiteral(position: Position?, locale: Locale): RealLiteral {
     val nf = NumberFormat.getNumberInstance(locale)
     val formatter = nf as DecimalFormat
     formatter.isParseBigDecimal = true
+    val bd = (formatter.parse(this) as BigDecimal)
+    // in case of zero precision returned by big decimal il always 1
+    val precision = if (bd.toDouble() == 0.0) {
+        this.replace(Regex("[^0-9]"), "").length
+    } else {
+        bd.precision()
+    }
+    return RealLiteral(value = bd, position = position, precision = precision)
+}
 
-    val bd = formatter.parse(this) as BigDecimal
-    return RealLiteral(bd, position)
+fun String.toIntLiteral(position: Position?): IntLiteral {
+    val value = this.toLong()
+    val precision = if (value == 0L) {
+        this.replace(Regex("[^0-9]"), "").length
+    } else {
+        BigDecimal(value).precision()
+    }
+    return IntLiteral(value = value, position = position, precision = precision)
 }
 
 internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {

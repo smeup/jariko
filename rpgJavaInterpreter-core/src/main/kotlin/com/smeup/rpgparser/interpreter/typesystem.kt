@@ -281,7 +281,7 @@ fun Expression.type(): Type {
             NumberType(BigDecimal.valueOf(this.value).precision(), decimalDigits = 0)
         }
         is RealLiteral -> {
-            NumberType(this.value.precision() - this.value.scale(), this.value.scale())
+            NumberType(this.precision - this.value.scale(), this.value.scale())
         }
         is ArrayAccessExpr -> {
             val type = this.array.type().asArray()

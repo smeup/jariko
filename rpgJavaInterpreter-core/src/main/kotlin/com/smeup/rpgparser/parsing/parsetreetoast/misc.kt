@@ -647,7 +647,7 @@ fun literalToNumber(
             value.toRealLiteral(position, Locale.ITALIAN)
         }
         else -> {
-            IntLiteral(value.toLong(), position)
+            value.toIntLiteral(position)
         }
     }
 }
