@@ -627,6 +627,22 @@ object BlanksValue : Value {
     }
 }
 
+object NullValue : Value {
+    override fun toString(): String {
+        return "NullValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return true
+    }
+
+    override fun copy(): NullValue = this
+
+    override fun asString(): StringValue {
+        return StringValue(this.toString())
+    }
+}
+
 object HiValValue : Value {
     private val MAX_INT = IntValue(Long.MAX_VALUE)
 
@@ -1038,18 +1054,17 @@ fun areEquals(value1: Value, value2: Value): Boolean {
 
 @Serializable
 object VoidValue : Value {
-    override fun toString(): String {
-        return "VoidValue"
+
+    override fun asString(): StringValue {
+        TODO("Not yet implemented")
     }
 
     override fun assignableTo(expectedType: Type): Boolean {
-        return true
+        TODO("Not yet implemented")
     }
 
-    override fun copy(): VoidValue = this
-
-    override fun asString(): StringValue {
-        return StringValue(this.toString())
+    override fun copy(): Value {
+        TODO("Not yet implemented")
     }
 }
 

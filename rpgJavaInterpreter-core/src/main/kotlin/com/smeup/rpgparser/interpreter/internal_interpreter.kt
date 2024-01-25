@@ -69,7 +69,7 @@ class InterpreterStatus(
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
     fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
         val tmpValue = symbolTable[abstractDataDefinition]
-        if (tmpValue is VoidValue) {
+        if (tmpValue is NullValue) {
             throw IllegalArgumentException("Void value for ${abstractDataDefinition.name}")
         }
         return tmpValue
@@ -279,7 +279,7 @@ open class InternalInterpreter(
                     if (it is DataDefinition) {
                         try {
                             val tmpValue = globalSymbolTable[it]
-                            if (tmpValue !is VoidValue) {
+                            if (tmpValue !is NullValue) {
                                 it.defaultValue = tmpValue.copy()
                             }
                         } catch (exc: IllegalArgumentException) {

@@ -90,10 +90,10 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
                 "Expected params: ${params().asSequence().map { it.name }.joinToString(", ")}"
             }
 
-            // Set not passed params to VoidValue
+            // Set not passed params to NullValue
             params().forEach {
                 if (it.name !in params.keys) {
-                    params[it.name] = VoidValue
+                    params[it.name] = NullValue
                 }
             }
         }
