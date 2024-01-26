@@ -627,6 +627,22 @@ object BlanksValue : Value {
     }
 }
 
+object NullValue : Value {
+    override fun toString(): String {
+        return "NullValue"
+    }
+
+    override fun assignableTo(expectedType: Type): Boolean {
+        return true
+    }
+
+    override fun copy(): NullValue = this
+
+    override fun asString(): StringValue {
+        return StringValue(this.toString())
+    }
+}
+
 object HiValValue : Value {
     private val MAX_INT = IntValue(Long.MAX_VALUE)
 
