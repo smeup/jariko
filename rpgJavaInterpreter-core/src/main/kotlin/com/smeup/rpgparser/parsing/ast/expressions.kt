@@ -39,12 +39,21 @@ abstract class Expression(@Transient override val position: Position? = null) : 
 abstract class NumberLiteral(@Transient override val position: Position? = null) : Expression(position)
 
 @Serializable
-data class IntLiteral(val value: Long, override val position: Position? = null) : NumberLiteral(position) {
+data class IntLiteral(
+    val value: Long,
+    override val position: Position? = null,
+    val precision: Int = BigDecimal(value).precision()
+) : NumberLiteral(position) {
     override fun render() = value.toString()
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 @Serializable
-data class RealLiteral(@Contextual val value: BigDecimal, override val position: Position? = null) : NumberLiteral(position) {
+data class RealLiteral(
+    @Contextual val value: BigDecimal,
+    override val position: Position? = null,
+    val precision: Int = value.precision()
+) : NumberLiteral(position) {
+
     override fun render() = value.toString()
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }

@@ -67,7 +67,13 @@ class InterpreterStatus(
     var lastDBFile: DBFile? = null
     val dbFileMap = DBFileMap()
     fun indicator(key: IndicatorKey) = indicators[key] ?: BooleanValue.FALSE
-    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value = symbolTable[abstractDataDefinition]
+    fun getVar(abstractDataDefinition: AbstractDataDefinition): Value {
+        val tmpValue = symbolTable[abstractDataDefinition]
+        if (tmpValue is NullValue) {
+            throw IllegalArgumentException("Void value for ${abstractDataDefinition.name}")
+        }
+        return tmpValue
+    }
 }
 
 open class InternalInterpreter(
@@ -130,9 +136,7 @@ open class InternalInterpreter(
 
     override fun dataDefinitionByName(name: String) = globalSymbolTable.dataDefinitionByName(name)
 
-    override operator fun get(data: AbstractDataDefinition): Value {
-        return globalSymbolTable[data]
-    }
+    override operator fun get(data: AbstractDataDefinition) = globalSymbolTable[data]
 
     override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
@@ -273,7 +277,14 @@ open class InternalInterpreter(
                 if (value != null) {
                     set(it, coerce(value, it.type))
                     if (it is DataDefinition) {
-                        it.defaultValue = globalSymbolTable[it].copy()
+                        try {
+                            val tmpValue = globalSymbolTable[it]
+                            if (tmpValue !is NullValue) {
+                                it.defaultValue = tmpValue.copy()
+                            }
+                        } catch (exc: IllegalArgumentException) {
+                            it.defaultValue = null
+                        }
                     }
                     executeMutes(it.muteAnnotations, compilationUnit, "(data definition)")
                 }
