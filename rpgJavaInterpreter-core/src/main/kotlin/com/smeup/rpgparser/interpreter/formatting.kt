@@ -39,7 +39,6 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
     //
     // As we can see, the same field defined as numeric 7 might have different resulting string
 
-
     var cfgCommasDisplayed = false
     var cfgDecimalPointDisplayed = false
     var cfgSign = ""
@@ -72,7 +71,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         if (cfgDecimalPointDisplayed) {
             tot += decimalSeparators()
         }
-        tot += if(cfgSign.isNotEmpty()) cfgSign.length else 0
+        tot += if (cfgSign.isNotEmpty()) cfgSign.length else 0
         tot += t.decimalDigits + t.entireDigits
         return tot
     }
@@ -159,7 +158,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
                 cfgLeadingZeroSuppress = true
                 cfgSignPosition = false
             }
-            "L"-> {
+            "L" -> {
                 cfgCommasDisplayed = false
                 cfgDecimalPointDisplayed = true
                 cfgSign = "-"
@@ -237,46 +236,15 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
     }
 
     fun decEditToString(): String {
-        return when(decedit) {
+        return when (decedit) {
             DOT -> "."
             COMMA -> ","
             else -> ""
         }
     }
 
-    fun trunkAmount() {
-        var workValue = retValue
-        var workIntPart = ""
-        var workDecPart = ""
-
-        val decimalSeparator = decEditToString()
-        val parts = workValue.split(decimalSeparator)
-
-        workIntPart = parts[0]
-
-        if (parts.size > 1)
-            workDecPart = parts[1]
-
-        // trunk int part
-        if (workIntPart.length > t.entireDigits && t.entireDigits > 0) {
-            val startIndexToRemove = workIntPart.length - t.entireDigits
-            workIntPart = workIntPart.substring(startIndexToRemove)
-        }
-
-        // trunk dec part
-        if (workDecPart.length > t.decimalDigits) {
-            val lastIndexToRemove = workDecPart.length - t.decimalDigits
-            workDecPart = workDecPart.substring(0, lastIndexToRemove)
-        }
-
-        workValue = workIntPart + if (workDecPart.isEmpty()) "" else decimalSeparator + workDecPart
-
-        retValue = workValue
-    }
-
     fun standardDecimalFormat(type: NumberType, locale: Locale) =
         DecimalFormat(decimalPattern(type), DecimalFormatSymbolsRepository.getSymbols(locale)).format(decValue.abs())
-
 
     fun getStandardFormat(): String {
         return when (decedit) {
@@ -449,7 +417,6 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         return retValue
     }
 
-
     // **************
     // starts here !!
     // **************
@@ -466,9 +433,6 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
 
     // get total length
     wrkTotalLength = getWrkTotalLength()
-
-    // trunk overflow digits
-    trunkAmount()
 
     // append sign
     if (cfgSign.isNotEmpty()) {
