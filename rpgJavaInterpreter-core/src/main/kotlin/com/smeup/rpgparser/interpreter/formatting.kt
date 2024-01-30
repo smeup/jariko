@@ -403,14 +403,49 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
 
     fun fY(): String {
         var stringN = decValue.abs().unscaledValue().toString().trim()
-        val yLen = stringN.length
-        return if (yLen <= 6) {
-            stringN = stringN.padStart(6, '0')
-            "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(wrkTotalLength + 2)
+
+        val testLen =
+        if(decValue.isZero()) {
+            wrkTotalLength
         } else {
-            stringN = stringN.padStart(8, '0')
-            "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(wrkTotalLength + 2)
+            stringN.length
         }
+
+        if (testLen <= 2) {
+            throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
+        } else if (testLen == 3) {
+            // "nn⁄n"
+            stringN = stringN.padStart(3, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 4) {
+            // "nn⁄nn"
+            stringN = stringN.padStart(4, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 5) {
+            // "nn⁄nn⁄n"
+            stringN = stringN.padStart(5, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 6) {
+            // "nn⁄nn⁄nn"
+            stringN = stringN.padStart(6, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}".padStart(wrkTotalLength + 2)
+        } else if (testLen == 7) {
+            // "nnn⁄nn⁄nn"
+            stringN = stringN.padStart(7, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}${stringN[2]}/${stringN[3]}${stringN[4]}/${stringN[5]}${stringN[6]}".padStart(wrkTotalLength + 2)
+        }  else if (testLen == 8) {
+            // "nnn⁄nn⁄nn"
+            stringN = stringN.padStart(8, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(wrkTotalLength + 2)
+        }  else if (testLen == 9) {
+            // "nnn⁄nn⁄nnnn"
+            stringN = stringN.padStart(9, '0')
+            stringN = "${toBlank(stringN[0])}${stringN[1]}${stringN[2]}/${stringN[3]}${stringN[4]}/${stringN[5]}${stringN[6]}${stringN[7]}${stringN[8]}".padStart(wrkTotalLength + 2)
+        } else {
+            throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
+        }
+
+        return stringN
     }
 
     fun fZ(): String {
