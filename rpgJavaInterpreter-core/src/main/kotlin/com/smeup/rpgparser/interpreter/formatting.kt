@@ -237,8 +237,8 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
 
     fun decEditToString(): String {
         return when (decedit) {
-            DOT -> "."
-            COMMA -> ","
+            DOT, ZERO_DOT -> "."
+            COMMA, ZERO_COMMA -> ","
             else -> ""
         }
     }
