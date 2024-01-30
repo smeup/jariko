@@ -182,9 +182,8 @@
      C                   EVAL      £DBG_Str=
      C                              'X('+%EDITC(0000.00:'X')
      C                                  +%EDITC(A50_N70:'X')
-     C                                  +%EDITC(A50_N60:'X')
      C                                  +%EDITC(A50_N72:'X')
-     C                                  +%EDITC(A50_N62:'X')+') '
+     C                                   +') '
      C                             +'Y('+%EDITC(0000.00:'Y')
      C                                  +%EDITC(A50_N70:'Y')
      C                                  +%EDITC(A50_N60:'Y')

@@ -139,11 +139,6 @@
       *       segno: a sinistra
     MU* VAL1(S1) VAL2('-9010.548970        ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V1:'Q')
-      * 'X' : Separatore migliaia: no
-      *       separatore decimale: no
-      *       segno: no
-    MU* VAL1(S1) VAL2('9010548970          ') COMP(EQ)
-     C                   EVAL      S1=%EDITC(V1:'X')
       * 'Z' : Separatore migliaia: no
       *       separatore decimale: no
       *       segno: no
@@ -384,8 +379,6 @@
      C                   EVAL      S1=%EDITC(V2:'P')
     MU* VAL1(S1) VAL2('-1234               ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V2:'Q')
-    MU* VAL1(S1) VAL2('1234                ') COMP(EQ)
-     C                   EVAL      S1=%EDITC(V2:'X')
     MU* VAL1(S1) VAL2('1234                ') COMP(EQ)
      C                   EVAL      S1=%EDITC(V2:'Z')
       **

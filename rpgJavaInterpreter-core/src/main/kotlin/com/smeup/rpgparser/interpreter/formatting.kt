@@ -235,7 +235,7 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         }
     }
 
-    fun decEditToString(): String {
+    fun getDecimalSeparator(): String {
         return when (decedit) {
             DOT, ZERO_DOT -> "."
             COMMA, ZERO_COMMA -> ","
@@ -318,101 +318,174 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         }
     }
 
-    fun removeLeadingZeros(num: String): String {
-        for (i in 0 until num.length) {
-            if (num[i] != '0') {
-                return num.substring(i)
+    fun removeLeadingZeros() {
+        if (decedit == DOT || decedit == COMMA) {
+            val workValue = retValue
+            if (cfgLeadingZeroSuppress) {
+                var exec = false
+                for (i in 0 until workValue.length) {
+                    if (workValue[i] != '0') {
+                        retValue = workValue.substring(i)
+                        exec = true
+                        break
+                    }
+                }
+                if (!exec) {
+                    retValue = "0"
+                }
             }
         }
-        return "0"
     }
 
     // The functions below correspond to the EDITC parameter, one function per value
     fun toBlank(c: Char) = if (c == '0') ' ' else c
 
+    fun appendSign() {
+        if (cfgSign.isNotEmpty()) {
+            if (decValue < ZERO) {
+                if (cfgSignPosition) {
+                    retValue = cfgSign + retValue
+                } else {
+                    retValue += cfgSign
+                }
+            } else {
+                if (cfgSignPosition) {
+                    retValue = cfgPadChar.toString().repeat(cfgSign.length) + retValue
+                } else {
+                    retValue += cfgPadChar.toString().repeat(cfgSign.length)
+                }
+            }
+        }
+    }
+
+    fun removeDecimalSeparator() {
+        if (!cfgDecimalPointDisplayed) {
+            val decimalSeparator = getDecimalSeparator()
+            retValue = retValue.replace(decimalSeparator, "")
+        }
+    }
+
+    fun addPadding() {
+        retValue = retValue.padStart(wrkTotalLength, cfgPadChar)
+    }
+
+    fun replaceZeroWithBlank() {
+        if (cfgBlankValueOfZero && decValue.isZero())
+            retValue = " ".repeat(wrkTotalLength)
+    }
+
     fun f1(): String {
+        // parse to local format
+        if (cfgCommasDisplayed) {
+            retValue = getStandardFormat()
+        } else {
+            retValue = getItalianFormat()
+        }
+
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+
+        // append sign
+        appendSign()
+
+        // remove the decimal separator
+        removeDecimalSeparator()
+
+        // suppress leading zeros
+        removeLeadingZeros()
+
+        // padding start
+        addPadding()
+
+        // replace 0 with blank
+        replaceZeroWithBlank()
+
         return retValue
     }
 
     fun f2(): String {
-        return retValue
+        return f1()
     }
 
     fun f3(): String {
-        return retValue
+        return f1()
     }
 
     fun f4(): String {
-        return retValue
+        return f1()
     }
 
     fun fA(): String {
-        return retValue
+        return f1()
     }
 
     fun fB(): String {
-        return retValue
+        return f1()
     }
 
     fun fC(): String {
-        return retValue
+        return f1()
     }
 
     fun fD(): String {
-        return retValue
+        return f1()
     }
 
     fun fJ(): String {
-        return retValue
+        return f1()
     }
 
     fun fK(): String {
-        return retValue
+        return f1()
     }
 
     fun fL(): String {
-        return retValue
+        return f1()
     }
 
     fun fM(): String {
-        return retValue
+        return f1()
     }
 
     fun fN(): String {
-        return retValue
+        return f1()
     }
 
     fun fO(): String {
-        return retValue
+        return f1()
     }
 
     fun fP(): String {
-        return retValue
+        return f1()
     }
 
     fun fQ(): String {
-        return retValue
+        return f1()
     }
 
     fun fX(): String {
+        retValue = f1()
         if (decValue < ZERO) {
-            retValue = retValue.substring(0, retValue.length - 1) + 'O'
+            throw UnsupportedOperationException("Unsupported format for %EDITC: $format with negative values")
         }
         return retValue
     }
 
     fun fY(): String {
+        // get total length
+        wrkTotalLength = getWrkTotalLength()
+
         var stringN = decValue.abs().unscaledValue().toString().trim()
 
         val testLen =
-        if(decValue.isZero()) {
+        if (decValue.isZero()) {
             wrkTotalLength
         } else {
             stringN.length
         }
 
         if (testLen <= 2) {
-            throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
+            throw UnsupportedOperationException("Unsupported format for %EDITC: $format with value length < 3")
         } else if (testLen == 3) {
             // "nn⁄n"
             stringN = stringN.padStart(3, '0')
@@ -433,23 +506,22 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
             // "nnn⁄nn⁄nn"
             stringN = stringN.padStart(7, '0')
             stringN = "${toBlank(stringN[0])}${stringN[1]}${stringN[2]}/${stringN[3]}${stringN[4]}/${stringN[5]}${stringN[6]}".padStart(wrkTotalLength + 2)
-        }  else if (testLen == 8) {
+        } else if (testLen == 8) {
             // "nnn⁄nn⁄nn"
             stringN = stringN.padStart(8, '0')
             stringN = "${toBlank(stringN[0])}${stringN[1]}/${stringN[2]}${stringN[3]}/${stringN[4]}${stringN[5]}${stringN[6]}${stringN[7]}".padStart(wrkTotalLength + 2)
-        }  else if (testLen == 9) {
+        } else if (testLen == 9) {
             // "nnn⁄nn⁄nnnn"
             stringN = stringN.padStart(9, '0')
             stringN = "${toBlank(stringN[0])}${stringN[1]}${stringN[2]}/${stringN[3]}${stringN[4]}/${stringN[5]}${stringN[6]}${stringN[7]}${stringN[8]}".padStart(wrkTotalLength + 2)
         } else {
-            throw UnsupportedOperationException("Unsupported format for %EDITC: $format")
+            throw UnsupportedOperationException("Unsupported format for %EDITC: $format with value length > 9")
         }
-
         return stringN
     }
 
     fun fZ(): String {
-        return retValue
+        return f1()
     }
 
     // **************
@@ -458,51 +530,6 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
 
     // set edit code configuration
     setCfg()
-
-    // parse to local format
-    if (cfgCommasDisplayed) {
-        retValue = getStandardFormat()
-    } else {
-        retValue = getItalianFormat()
-    }
-
-    // get total length
-    wrkTotalLength = getWrkTotalLength()
-
-    // append sign
-    if (cfgSign.isNotEmpty()) {
-        if (decValue < ZERO) {
-            if (cfgSignPosition) {
-                retValue = cfgSign + retValue
-            } else {
-                retValue += cfgSign
-            }
-        } else {
-            if (cfgSignPosition) {
-                retValue = cfgPadChar.toString().repeat(cfgSign.length) + retValue
-            } else {
-                retValue += cfgPadChar.toString().repeat(cfgSign.length)
-            }
-        }
-    }
-
-    // remove the decimal separator
-    if (!cfgDecimalPointDisplayed) {
-        val decimalSeparator = decEditToString()
-        retValue = retValue.replace(decimalSeparator, "")
-    }
-
-    // suppress leading zeros
-    if (cfgLeadingZeroSuppress) {
-        retValue = removeLeadingZeros(retValue)
-    }
-
-    // padding start
-    retValue = retValue.padStart(wrkTotalLength, cfgPadChar)
-
-    // replace blanks in 0
-    if (cfgBlankValueOfZero && decValue.isZero())
-        retValue = " ".repeat(wrkTotalLength)
 
     return when (format) {
         "1" -> StringValue(f1())
