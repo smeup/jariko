@@ -243,10 +243,10 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getStandardFormat()
 
         // get total length
+        val cfgSign = "CR"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += thousandSeparators()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "CR"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -266,10 +266,10 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getStandardFormat()
 
         // get total length
+        val cfgSign = "CR"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += thousandSeparators()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "CR"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -292,9 +292,9 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getItalianFormat()
 
         // get total length
+        val cfgSign = "CR"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "CR"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -314,9 +314,9 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getItalianFormat()
 
         // get total length
+        val cfgSign = "CR"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "CR"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -339,10 +339,10 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getStandardFormat()
 
         // get total length
+        val cfgSign = "-"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += thousandSeparators()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "-"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -362,10 +362,10 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getStandardFormat()
 
         // get total length
+        val cfgSign = "-"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += thousandSeparators()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "-"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -388,9 +388,9 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getItalianFormat()
 
         // get total length
+        val cfgSign = "-"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "-"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -410,9 +410,9 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getItalianFormat()
 
         // get total length
+        val cfgSign = "-"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "-"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -435,10 +435,10 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getStandardFormat()
 
         // get total length
+        val cfgSign = "-"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += thousandSeparators()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "-"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -458,10 +458,10 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getStandardFormat()
 
         // get total length
+        val cfgSign = "-"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += thousandSeparators()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "-"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -484,9 +484,9 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getItalianFormat()
 
         // get total length
+        val cfgSign = "-"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "-"
         wrkTotalLength += cfgSign.length
 
         // append sign
@@ -506,9 +506,9 @@ internal fun DecimalValue.formatAs(format: String, type: Type, decedit: DecEdit,
         retValue = getItalianFormat()
 
         // get total length
+        val cfgSign = "-"
         wrkTotalLength = getWrkTotalLength()
         wrkTotalLength += decimalSeparators()
-        val cfgSign = "-"
         wrkTotalLength += cfgSign.length
 
         // append sign
