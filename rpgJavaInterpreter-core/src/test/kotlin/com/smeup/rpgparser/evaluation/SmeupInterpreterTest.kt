@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 open class SmeupInterpreterTest : AbstractTest() {
@@ -219,5 +220,15 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeTestTony() {
         val expected = listOf("")
         assertEquals(expected, "smeup/test_tony".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT10_A60_P04() {
+        val expected = listOf<String>("C10_P1: MULANGT102")
+        assertEquals(expected, "smeup/T10_A60_P04".outputOf())
+
+        assertFailsWith<Exception> {
+            "smeup/T10_A60_P04F".outputOf()
+        }
     }
 }

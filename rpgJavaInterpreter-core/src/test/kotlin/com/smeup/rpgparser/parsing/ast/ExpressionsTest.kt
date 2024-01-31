@@ -1,9 +1,11 @@
 package com.smeup.rpgparser.parsing.ast
 
-import com.smeup.rpgparser.*
+import com.smeup.rpgparser.assertExpressionCanBeParsed
+import com.smeup.rpgparser.dataRef
 import com.smeup.rpgparser.parsing.parsetreetoast.ToAstConfiguration
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.ReferenceByName
+import java.math.BigDecimal
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
 import org.junit.Test as test
@@ -143,5 +145,21 @@ class ExpressionsTest {
 
     @test fun parseIndicatorsInParenthesis() {
         assertExpressionCanBeParsed("X=*IN(01)")
+    }
+
+    @test fun intLiteralParsingNumberWithPrecision() {
+        assertEquals(IntLiteral(value = 100, precision = 3), expression("100"))
+    }
+
+    @test fun intLiteralParsingZeroWithPrecision() {
+        assertEquals(IntLiteral(value = 0, precision = 3), expression("000"))
+    }
+
+    @test fun realLiteralParsingNumberWithPrecision() {
+        assertEquals(RealLiteral(value = BigDecimal("100.00"), precision = 5), expression("100.00"))
+    }
+
+    @test fun realLiteralParsingZeroWithPrecision() {
+        assertEquals(RealLiteral(value = BigDecimal("0.00"), precision = 3), expression("0.00"))
     }
 }
