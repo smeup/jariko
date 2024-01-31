@@ -54,7 +54,7 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
         this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
-        else -> TODO(this.text.toString() + " " + toPosition(conf.considerPosition))
+        else -> todo(message = "Missing composite statement implementation for this block: ${this.text}", conf = conf)
     }
 }
 
