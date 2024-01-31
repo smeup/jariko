@@ -966,6 +966,26 @@ private fun annidatedReferenceExpression(
     return expr as AssignableExpression
 }
 
+private fun makeArrayAccessExpression(text: String, position: Position?): AssignableExpression {
+    var expr: Expression = text.indexOf("(").let {
+        val varName = if (it == -1) text else text.substring(0, it)
+        DataRefExpr(ReferenceByName(varName), position)
+    }
+
+    val indexText = text.substring(text.indexOf("(") + 1, text.lastIndexOf(")"))
+    val indexValue = indexText.toLongOrNull()
+
+    val indexExpression =
+        if (indexValue == null) {
+            DataRefExpr(ReferenceByName(indexText), computeNewPosition(position, text))
+        } else {
+            IntLiteral(indexValue, computeNewPosition(position, text))
+        }
+    expr = ArrayAccessExpr(expr, indexExpression)
+
+    return expr
+}
+
 private fun computeNewPosition(position: Position?, text: String) =
     if (position == null) {
         null
@@ -1380,7 +1400,16 @@ internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val position = toPosition(conf.considerPosition)
     val name = this.cspec_fixed_standard_parts().result.text
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-ADD operation requires factor 2: ${this.text} - ${position.atLine()}")
-    val resultExpression = annidatedReferenceExpression(name, position)
+
+    // Result Field could be an array, array element, field, subfield, or table name. (https://www.ibm.com/docs/en/i/7.5?topic=codes-z-add-zero-add)
+    // The REGEX to check if it is an array element is: ^[a-zA-z£_]+[a-zA-Z0-9£_]*(\(0\)|(\([1-9]+[0-9]*\)))$. You can test and improve it with https://www.regex101.com.
+    val resultExpression = when {
+        // TODO Add cases for array, subfield, table name.
+        // ARRAY ELEMENT
+        name.matches(Regex("^[a-zA-z£_]+[a-zA-Z0-9£_]*(\\(0\\)|(\\([1-9]+[0-9]*\\)))\$")) -> makeArrayAccessExpression(name, position)
+        // FIELD
+        else -> DataRefExpr(ReferenceByName(name), position)
+    }
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZAddStmt(resultExpression, dataDefinition, expression, position)
 }
