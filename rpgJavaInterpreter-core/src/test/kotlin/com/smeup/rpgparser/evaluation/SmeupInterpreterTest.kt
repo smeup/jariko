@@ -224,5 +224,8 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT10_A20_P19() {
         val expected = listOf("1020")
         assertEquals(expected, "smeup/T10_A20_P19".outputOf())
+        assertFailsWith<Exception> {
+            "smeup/T10_A20_P19F".outputOf()
+        }
     }
 }
