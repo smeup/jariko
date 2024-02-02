@@ -1378,10 +1378,10 @@ internal fun CsMOVELContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 
 internal fun CsZ_ADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZAddStmt {
     val position = toPosition(conf.considerPosition)
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-ADD operation requires factor 2: ${this.text} - ${position.atLine()}")
     val name = this.cspec_fixed_standard_parts().result.text
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "Z-ADD operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
-    return ZAddStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
+    return ZAddStmt(this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, expression, position)
 }
 
 internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MultStmt {

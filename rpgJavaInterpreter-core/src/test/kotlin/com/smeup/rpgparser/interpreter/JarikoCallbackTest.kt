@@ -397,6 +397,16 @@ class JarikoCallbackTest : AbstractTest() {
         executeSourceLineTest("ERROR10")
     }
 
+    @Test
+    fun executeERROR11CallBackTest() {
+        executePgmCallBackTest("ERROR11", SourceReferenceType.Program, "ERROR11", listOf(5))
+    }
+
+    @Test
+    fun executeERROR11SourceLineTest() {
+        executeSourceLineTest("ERROR11")
+    }
+
     /**
      * This test simulates what a precompiler might do throws the use of the beforeParsing callback
      * In ERROR01.rpgle I will comment C specification to avoid a division by zero errors
@@ -489,6 +499,10 @@ class JarikoCallbackTest : AbstractTest() {
         }
     }
 
+    /**
+     * Verify that the sourceLine is correctly set in case of error.
+     * ErrorEvent must contain a reference of an absolute line of the source code
+     * */
     private fun executeSourceLineTest(pgm: String) {
         lateinit var lines: List<String>
         val errorEvents = mutableListOf<ErrorEvent>()
