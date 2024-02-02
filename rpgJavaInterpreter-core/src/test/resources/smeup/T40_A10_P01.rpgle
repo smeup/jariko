@@ -3,7 +3,7 @@
      D A10_DS_P04    E DS                  EXTNAME(MULANGTF) INZ
      D                                     PREFIX(P4:2)
       *
-     D £DBG_Str        S           2580
+     D £DBG_Str        S           2595
       *
      C                   EVAL      £DBG_Str='Lunghezza: '
      C                             +%CHAR(%LEN(A10_DS_P01))

@@ -103,7 +103,7 @@
             "fieldName": "MLNNAT",
             "type": {
                 "type": "com.smeup.rpgparser.interpreter.NumberType",
-                "entireDigits": 30,
+                "entireDigits": 21,
                 "decimalDigits": 9,
                 "rpgType": "P"
             }
@@ -112,7 +112,7 @@
             "fieldName": "MLNNVA",
             "type": {
                 "type": "com.smeup.rpgparser.interpreter.NumberType",
-                "entireDigits": 30,
+                "entireDigits": 21,
                 "decimalDigits": 9,
                 "rpgType": "P"
             }
