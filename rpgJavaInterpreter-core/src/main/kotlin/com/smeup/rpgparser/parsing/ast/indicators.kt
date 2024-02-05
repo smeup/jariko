@@ -8,11 +8,20 @@ import kotlinx.serialization.Serializable
 
 // *IN01..*IN99 and *INLR *INRT
 @Serializable
-data class IndicatorExpr(val index: IndicatorKey, override val position: Position? = null) :
-    AssignableExpression(position) {
+data class IndicatorExpr(
+    val index: IndicatorKey,
+    override val position: Position? = null,
+    val indexExpression: Expression? = null
+) : AssignableExpression(position) {
 
     constructor(dataWrapUpChoice: DataWrapUpChoice, position: Position? = null) :
             this(index = dataWrapUpChoice.name.toIndicatorKey(), position = position)
+
+    /**
+     * Constructor for *IN where the index is an expression
+     * */
+    constructor(index: Expression, position: Position?) :
+            this(index = 0, position = position, indexExpression = index)
 
     override fun size(): Int = 1
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)

@@ -44,17 +44,19 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
-        this.indicator() != null -> (this.children[0] as RpgParser.IndicatorContext).toAst(conf)
-        // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
-        this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
-                && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
+        this.indicator() != null -> this.indicator().toAst(conf)
         else -> todo(conf = conf)
     }
 }
 
 internal fun RpgParser.IndicatorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IndicatorExpr {
-    //    TODO:
-    return IndicatorExpr(1)
+    // manage *IN(
+    if (this.children[0].text == "*IN" && this.children[1].text == "(") {
+        val index: Expression = (this.children[2].getChild(0) as RpgParser.ExpressionContext).toAst(conf = conf)
+        return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
+    } else {
+        todo(conf = conf)
+    }
 }
 
 internal fun RpgParser.LiteralContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): StringLiteral {
