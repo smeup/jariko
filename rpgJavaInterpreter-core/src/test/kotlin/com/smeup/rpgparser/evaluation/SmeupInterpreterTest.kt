@@ -284,4 +284,14 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf("1020")
         assertEquals(expected, "smeup/T10_A20_P19".outputOf())
     }
+
+    @Test
+    fun executeT15_A20_P04_06() {
+        val expected = listOf(
+            "RicercaDaPos01(1)_Trovato(1); RicercaDaPos02(5)_Trovato(1); RicercaDaPos05(5)_Trovato(1); RicercaDaPos07(0)_Trovato(0);",
+            "RicercaDaPos01(5)_Trovato(1); RicercaDaPos01(1)_Trovato(1); RicercaDaPos01(5)_Trovato(1);",
+            "RicercaDaPos01(2)_Trovato(1);"
+        )
+        assertEquals(expected, "smeup/T15_A20_P04-06".outputOf())
+    }
 }

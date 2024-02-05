@@ -1326,6 +1326,8 @@ private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Ex
     if (this.text.contains(":")) this.text.toIndexedExpression(toPosition(conf.considerPosition)) else this.content.toAst(conf) to null
 
 private fun String.toIndexedExpression(position: Position?): Pair<Expression, Int?> {
+    fun String.isLiteral(): Boolean { return (startsWith('\'') && endsWith('\'')) }
+
     val baseStringTokens = this.split(":")
     val startPosition =
         when (baseStringTokens.size) {
@@ -1334,7 +1336,10 @@ private fun String.toIndexedExpression(position: Position?): Pair<Expression, In
             else -> null
         }
     val reference = baseStringTokens[0]
-    return DataRefExpr(ReferenceByName(reference), position) to startPosition
+    return when {
+        reference.isLiteral() -> StringLiteral(reference.trim('\''), position)
+        else -> DataRefExpr(ReferenceByName(reference), position)
+    } to startPosition
 }
 
 internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveAStmt {
