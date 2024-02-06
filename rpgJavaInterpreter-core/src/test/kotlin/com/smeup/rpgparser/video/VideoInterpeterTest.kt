@@ -5,9 +5,10 @@ import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
+import com.smeup.rpgparser.interpreter.InterpreterCore
 import kotlin.test.BeforeTest
-import kotlin.test.DefaultAsserter.assertTrue
 import kotlin.test.Test
+import kotlin.test.assertNotNull
 
 class VideoInterpeterTest : AbstractTest() {
 
@@ -25,11 +26,11 @@ class VideoInterpeterTest : AbstractTest() {
 
     @Test
     fun executeFILEDEF() {
-        // I want to check the compilation unit
-        configuration.jarikoCallback.afterAstCreation = { ast ->
-            assertTrue(message = "file video B£DIR40V should be defined", ast.hasFileDefinition("B£DIR40V"))
-            assertTrue(message = "field £RASDI should be defined", ast.hasAnyDataDefinition("£RASDI"))
+        lateinit var interpreter: InterpreterCore
+        configuration.jarikoCallback.onInterpreterCreation = { it ->
+            interpreter = it
         }
         "video/FILEDEF".outputOf(configuration = configuration)
+        assertNotNull(message = "field £RASDI should be defined", actual = interpreter["£RASDI"])
     }
 }

@@ -22,6 +22,7 @@ import com.smeup.rpgparser.parsing.ast.MuteAnnotation
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.require
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
@@ -179,13 +180,17 @@ data class DataDefinition(
     @Transient var defaultValue: Value? = null
 ) :
     AbstractDataDefinition(
-        name = name.apply { require(this.trim().isNotEmpty()) { "name cannot be empty" } },
+        name = name,
         type = type,
         position = position,
         const = const) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
+
+    init {
+        this.require(name.trim().isNotEmpty(), { "name cannot be empty" })
+    }
 
     @Deprecated("The start offset should be calculated before defining the FieldDefinition")
     fun startOffset(fieldDefinition: FieldDefinition): Int {
