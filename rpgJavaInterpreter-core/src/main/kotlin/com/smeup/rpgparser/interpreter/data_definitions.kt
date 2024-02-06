@@ -135,16 +135,29 @@ data class Prefix(internal val prefix: String, private val numCharsReplaced: Int
     }
 }
 
+enum class FileType(val keyword: String?) {
+    DB(null), VIDEO("C");
+
+    companion object {
+        fun getByKeyword(keyword: String): FileType {
+            return FileType.values().firstOrNull() {
+                it.keyword == keyword
+            } ?: DB
+        }
+    }
+}
+
 @Serializable
 data class FileDefinition private constructor(
     override val name: String,
     override val position: Position?,
     val prefix: Prefix?,
-    val justExtName: Boolean
+    val justExtName: Boolean,
+    val fileType: FileType
 ) : Node(position), Named {
     companion object {
-        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null, justExtName: Boolean = false): FileDefinition {
-            return FileDefinition(name.toUpperCase(), position, prefix, justExtName)
+        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null, justExtName: Boolean = false, fileType: FileType = FileType.DB): FileDefinition {
+            return FileDefinition(name.uppercase(), position, prefix, justExtName, fileType)
         }
     }
 
