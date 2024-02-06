@@ -23,8 +23,6 @@ import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import java.math.BigDecimal
-import java.util.*
-import kotlin.collections.HashMap
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
@@ -88,6 +86,7 @@ fun RpgParser.Dcl_dsContext.elementSizeOf(fieldsList: FieldsList = this.calculat
 
 internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
     val prefixContexts = this.fs_keyword().mapNotNull { it.keyword_prefix() }
+
     val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
         Prefix(
             prefix = prefixContexts[0].prefix.text,
@@ -99,7 +98,8 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     val fileDefinition = FileDefinition(
         name = this.FS_RecordName().text.trim(),
         position = this.toPosition(conf.considerPosition),
-        prefix = prefix
+        prefix = prefix,
+        fileType = FileType.getByKeyword(this.FS_Type().text.trim())
     )
     val rename = this.fs_keyword().mapNotNull { it.keyword_rename() }
     if (rename.isNotEmpty()) {
