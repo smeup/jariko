@@ -91,7 +91,7 @@ private fun String.includesCopy(
 }
 
 @JvmField
-val PATTERN: Pattern = Pattern.compile(".{6}/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|,)+)|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
+val PATTERN: Pattern = Pattern.compile(".{6}/(?:COPY|INCLUDE)\\s+((?:\\w|£|\\$|§|,)+)|(.{6}\\*.+)", Pattern.CASE_INSENSITIVE)
 
 fun String.copyId(): CopyId {
     return when {

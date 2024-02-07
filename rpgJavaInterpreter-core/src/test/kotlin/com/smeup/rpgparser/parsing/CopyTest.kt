@@ -438,6 +438,11 @@ class CopyTest {
     }
 
     @Test
+    fun `includeCP§01`() {
+        testCpyInclusion("TSTCPY08", "Hi I am QILEGEN,CP§01")
+    }
+
+    @Test
     fun includeNotFoundCopy() {
         var catchedErrorEvent: ErrorEvent? = null
         val callback = JarikoCallback().apply {
