@@ -973,9 +973,9 @@ Test 6
 
     @Test
     fun executeBIFEDITC_J() {
-        assertEquals(listOf("x   123,456   123,456-  1,234.56X",
-            "x  1,234.56-       .00X",
-            "x  1,234.50X"),
+        assertEquals(listOf("x   123,456    123,456-  1,234.56 X",
+            "x  1,234.56-       .00 X",
+            "x  1,234.50 X"),
             outputOf("BIFEDITC_J"))
     }
 
@@ -1104,7 +1104,7 @@ Test 6
 
     @Test
     fun executeSCANTEST() {
-        assertEquals(listOf("0", "4", "1", "5", "0"), "SCANTEST".outputOf())
+        assertEquals(listOf("0", "4", "1", "5", "0", "0"), "SCANTEST".outputOf())
     }
 
     @Test

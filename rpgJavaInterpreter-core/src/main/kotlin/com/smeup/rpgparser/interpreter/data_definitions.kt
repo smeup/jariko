@@ -120,7 +120,7 @@ enum class ParamOption(val keyword: String) {
  * PREFIX node
  * */
 @Serializable
-data class Prefix(private val prefix: String, private val numCharsReplaced: Int?) {
+data class Prefix(internal val prefix: String, private val numCharsReplaced: Int?) {
 
     /**
      * Apply replacement rules and returns value converted
