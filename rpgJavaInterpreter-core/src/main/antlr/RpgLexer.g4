@@ -319,7 +319,8 @@ SPLAT_INIT: '*'[iI][nN][iI][tT];
 SPLAT_ALL_INDICATORS: '*' [iI] [nN] [ ] [ ];
 SPLAT_INDICATOR : 	( '*' [iI] [nN] [0-9] [0-9]
 					| '*' [iI] [nN] [a-zA-Z] [a-zA-Z]
-					| '*' [iI] [nN] '(' [0-9] [0-9] ')' );
+					| '*' [iI] [nN] '(' [0-9] [0-9] ')'
+					| '*' [iI] [nN] '(' [§£#@$a-zA-Z]+ ')' );
 SPLAT_INZSR: '*'[iI][nN][zZ][sS][rR];
 SPLAT_IN: '*'[iI][nN];
 SPLAT_INPUT: '*'[iI][nN][pP][uU][tT];

@@ -1587,10 +1587,17 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
             ReferenceByName(this.getFieldName()),
             toPosition(conf.considerPosition)
         )
-        is IndicatorTargetContext -> IndicatorExpr(
-            this.indic.text.indicatorIndex()!!,
-            toPosition(conf.considerPosition)
-        )
+        is IndicatorTargetContext -> {
+            if (this.indic.text.matches(Regex("\\*IN\\([§£#@\$a-zA-Z]+\\)"))) {
+                val index: Expression = DataRefExpr(ReferenceByName(this.indic.text.removePrefix("*IN(").removeSuffix(")")), toPosition(conf.considerPosition))
+                return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
+            }
+
+            return IndicatorExpr(
+                this.indic.text.indicatorIndex()!!,
+                toPosition(conf.considerPosition)
+            )
+        }
         is GlobalIndicatorTargetContext -> GlobalIndicatorExpr(
             toPosition(conf.considerPosition)
         )

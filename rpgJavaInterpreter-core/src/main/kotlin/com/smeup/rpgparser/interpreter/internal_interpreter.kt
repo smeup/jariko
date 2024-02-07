@@ -843,8 +843,9 @@ open class InternalInterpreter(
                 return value
             }
             is IndicatorExpr -> {
+                val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
-                indicators[target.index] = coercedValue.asBoolean()
+                indicators[index] = coercedValue.asBoolean()
                 return coercedValue
             }
             is GlobalIndicatorExpr -> {
