@@ -27,8 +27,8 @@ import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
-import java.time.temporal.ChronoUnit
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -418,7 +418,11 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
-    override fun eval(expression: IndicatorExpr) = interpreterStatus.indicator(expression.index)
+    override fun eval(expression: IndicatorExpr): BooleanValue {
+        // if index is passed through expression, it means that it is a dynamic indicator
+        val runtimeIndex = expression.indexExpression?.evalWith(this)?.asInt()?.value?.toInt() ?: expression.index
+        return interpreterStatus.indicator(runtimeIndex)
+    }
     override fun eval(expression: FunctionCall): Value {
         val functionToCall = expression.function.name
         val function = systemInterface.findFunction(interpreterStatus.symbolTable, functionToCall)

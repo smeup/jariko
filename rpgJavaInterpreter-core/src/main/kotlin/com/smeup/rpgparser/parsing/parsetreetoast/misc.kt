@@ -1596,6 +1596,10 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
             this.indic.text.indicatorIndex()!!,
             toPosition(conf.considerPosition)
         )
+        is IndexedIndicatorTargetContext -> {
+            val index: Expression = this.index.toAst(conf = conf)
+            return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
+        }
         is GlobalIndicatorTargetContext -> GlobalIndicatorExpr(
             toPosition(conf.considerPosition)
         )

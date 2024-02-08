@@ -2210,4 +2210,16 @@ Test 6
             "001000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000")
         assertEquals(expected, "MOVEAIN".outputOf())
     }
+
+    @Test
+    fun executeINDIC01() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "INDIC01".outputOf())
+    }
+
+    @Test
+    fun executeINDIC02() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "INDIC02".outputOf())
+    }
 }

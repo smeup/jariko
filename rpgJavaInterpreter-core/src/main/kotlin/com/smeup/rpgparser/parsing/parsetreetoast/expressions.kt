@@ -44,10 +44,22 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         this.MULT() != null || this.MULT_NOSPACE() != null -> MultExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
+        this.indicator() != null -> this.indicator().toAst(conf)
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
         this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
                 && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
         else -> todo(conf = conf)
+    }
+}
+
+internal fun RpgParser.IndicatorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IndicatorExpr {
+    // manage *IN(
+    if (this.children[0].text.uppercase() == "*IN" && this.children[1].text == "(") {
+        val index: Expression = (this.children[2].getChild(0) as RpgParser.ExpressionContext).toAst(conf = conf)
+        return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
+    } else {
+        val index = text.uppercase(Locale.getDefault()).removePrefix("*IN").toInt()
+        return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
     }
 }
 
@@ -181,8 +193,6 @@ internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConf
 internal fun String.indicatorIndex(): Int? {
     val uCaseIndicatorString = this.toUpperCase()
     return when {
-        uCaseIndicatorString.startsWith("*IN(") && this.endsWith(")") ->
-            uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")").toIndicatorKey()
         uCaseIndicatorString.startsWith("*IN") ->
             this.substring("*IN".length).toIndicatorKey()
         else -> null
