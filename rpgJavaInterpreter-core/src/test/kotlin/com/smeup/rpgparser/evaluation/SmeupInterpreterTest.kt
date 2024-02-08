@@ -276,12 +276,12 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeT10_A60_P04() {
+    fun executeT10_A60_P02() {
         val expected = listOf<String>("C10_P1: MULANGT102")
-        assertEquals(expected, "smeup/T10_A60_P04".outputOf())
+        assertEquals(expected, "smeup/T10_A60_P02".outputOf())
 
         assertFailsWith<Exception> {
-            "smeup/T10_A60_P04F".outputOf()
+            "smeup/T10_A60_P02F".outputOf()
         }
     }
 
@@ -299,5 +299,15 @@ open class SmeupInterpreterTest : AbstractTest() {
             "RicercaDaPos01(2)_Trovato(1);"
         )
         assertEquals(expected, "smeup/T15_A20_P04-06".outputOf())
+    }
+
+    @Test
+    fun executeT10_A60_P04_P07() {
+        val expected = listOf<String>(
+            "CALL(MULANGTC30, 4         , 0)",
+            "CALL(MULANGTC30, 5         , 0)",
+            "CALL(MULANGTC30, 6         , 0)",
+            "CALL(MULANGTC30, 7         , 0)")
+        assertEquals(expected, "smeup/T10_A60_P04-P07".outputOf())
     }
 }
