@@ -54,7 +54,7 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
 
 internal fun RpgParser.IndicatorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IndicatorExpr {
     // manage *IN(
-    if (this.children[0].text == "*IN" && this.children[1].text == "(") {
+    if (this.children[0].text.uppercase() == "*IN" && this.children[1].text == "(") {
         val index: Expression = (this.children[2].getChild(0) as RpgParser.ExpressionContext).toAst(conf = conf)
         return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
     } else {
@@ -141,7 +141,6 @@ internal fun RpgParser.IdentifierContext.toAst(conf: ToAstConfiguration = ToAstC
 
 private fun RpgParser.IdentifierContext.variableExpression(conf: ToAstConfiguration): Expression {
     return when {
-        this.text.dynamicIndicatorIndex(toPosition(conf.considerPosition)) != null -> IndicatorExpr(this.text.dynamicIndicatorIndex(toPosition(conf.considerPosition))!!, toPosition(conf.considerPosition))
         this.text.indicatorIndex() != null -> IndicatorExpr(this.text.indicatorIndex()!!, toPosition(conf.considerPosition))
         this.multipart_identifier() != null -> this.multipart_identifier().toAst(conf)
         else -> DataRefExpr(variable = ReferenceByName(this.text), position = toPosition(conf.considerPosition))
@@ -191,20 +190,9 @@ internal fun RpgParser.Multipart_identifier_elementContext.toAst(conf: ToAstConf
     }
 }
 
-internal fun String.dynamicIndicatorIndex(position: Position?): Expression? {
-    val uCaseIndicatorString = this.toUpperCase()
-    return when {
-        uCaseIndicatorString.matches(Regex("\\*IN\\([§£#@\$a-zA-Z]+\\)")) ->
-            DataRefExpr(ReferenceByName(uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")")), position)
-        else -> null
-    }
-}
-
 internal fun String.indicatorIndex(): Int? {
     val uCaseIndicatorString = this.toUpperCase()
     return when {
-        uCaseIndicatorString.startsWith("*IN(") && this.endsWith(")") ->
-            uCaseIndicatorString.removePrefix("*IN(").removeSuffix(")").toIndicatorKey()
         uCaseIndicatorString.startsWith("*IN") ->
             this.substring("*IN".length).toIndicatorKey()
         else -> null
