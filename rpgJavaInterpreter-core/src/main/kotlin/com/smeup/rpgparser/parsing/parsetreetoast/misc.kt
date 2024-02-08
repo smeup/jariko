@@ -505,7 +505,7 @@ private fun StatementContext.toDataDefinitionProvider(
             kotlin.runCatching {
                 try {
                     this.dcl_ds()
-                        .toAst(conf)
+                        .toAst(conf = conf, knownDataDefinitions = knownDataDefinitions.values)
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     // these errors can be caught because they don't introduce sneaky errors
                 } catch (e: CannotRetrieveDataStructureElementSizeException) {
@@ -1959,7 +1959,7 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
             dataDefinitionMap[it.name] = it
             true
         } else {
-            require(dataDefinition.type == it.type) {
+            it.require(dataDefinition.type == it.type) {
                 "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
             }
             false
