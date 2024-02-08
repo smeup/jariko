@@ -8,6 +8,7 @@ import com.smeup.rpgparser.execution.SimpleReloadConfig
 import kotlin.test.BeforeTest
 import kotlin.test.DefaultAsserter
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class VideoInterpeterTest : AbstractTest() {
 
@@ -28,6 +29,7 @@ class VideoInterpeterTest : AbstractTest() {
         configuration.jarikoCallback.onExitPgm = { _, symbolTable, _ ->
             DefaultAsserter.assertNotNull(message = "field £RASDI should be defined", actual = symbolTable["£RASDI"])
         }
-        "video/FILEDEF".outputOf(configuration = configuration)
+        val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
+        assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
     }
 }
