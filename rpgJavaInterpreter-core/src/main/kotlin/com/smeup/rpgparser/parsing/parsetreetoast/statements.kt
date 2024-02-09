@@ -62,10 +62,20 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
 internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: ToAstConfiguration = ToAstConfiguration()): DOWxxStmt {
     val comparison = when {
         this.csDOWEQ() != null -> ComparisonOperator.EQ
+        this.csDOWNE() != null -> ComparisonOperator.NE
+        this.csDOWGT() != null -> ComparisonOperator.GT
+        this.csDOWGE() != null -> ComparisonOperator.GE
+        this.csDOWLT() != null -> ComparisonOperator.LT
+        this.csDOWLE() != null -> ComparisonOperator.LE
         else -> todo(conf = conf)
     }
     val factor2 = when {
         this.csDOWEQ() != null -> this.csDOWEQ().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
+        this.csDOWNE() != null -> this.csDOWNE().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
+        this.csDOWGT() != null -> this.csDOWGT().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
+        this.csDOWGE() != null -> this.csDOWGE().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
+        this.csDOWLT() != null -> this.csDOWLT().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
+        this.csDOWLE() != null -> this.csDOWLE().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
         else -> todo(conf = conf)
     }
 

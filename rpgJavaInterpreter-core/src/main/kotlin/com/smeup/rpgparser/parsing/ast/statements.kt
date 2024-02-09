@@ -1228,7 +1228,11 @@ data class DOWxxStmt(
     fun InterpreterCore.compare(comparison: ComparisonOperator, factor1: Expression, factor2: Expression): Boolean {
         return when(comparison) {
             ComparisonOperator.EQ -> this.eval(factor1) == this.eval(factor2)
-            else -> todo()
+            ComparisonOperator.NE -> this.eval(factor1) != this.eval(factor2)
+            ComparisonOperator.GT -> this.eval(factor1) > this.eval(factor2)
+            ComparisonOperator.GE -> this.eval(factor1) >= this.eval(factor2)
+            ComparisonOperator.LT -> this.eval(factor1) < this.eval(factor2)
+            ComparisonOperator.LE -> this.eval(factor1) <= this.eval(factor2)
         }
     }
 
