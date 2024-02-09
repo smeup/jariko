@@ -175,13 +175,16 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
         // explicitStartOffset and explicitEndOffsets set to zero are wanted
         FieldDefinition(name = it.name, type = it.type, explicitStartOffset = 0, explicitEndOffset = 0, position = it.position)
     }
-    val recordFormatDefinition = DataDefinition(
-        name = metadata.recordFormat,
-        type = RecordFormatType,
-        position = position,
-        fields = fieldsDefinition
-    )
-    dataDefinitions.add(recordFormatDefinition)
+    // record format possibly for file video is unuseful
+    if (fileType == FileType.DB) {
+        val recordFormatDefinition = DataDefinition(
+            name = metadata.recordFormat,
+            type = RecordFormatType,
+            position = position,
+            fields = fieldsDefinition
+        )
+        dataDefinitions.add(recordFormatDefinition)
+    }
     return dataDefinitions
 }
 
@@ -502,7 +505,7 @@ private fun StatementContext.toDataDefinitionProvider(
             kotlin.runCatching {
                 try {
                     this.dcl_ds()
-                        .toAst(conf)
+                        .toAst(conf = conf, knownDataDefinitions = knownDataDefinitions.values)
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     // these errors can be caught because they don't introduce sneaky errors
                 } catch (e: CannotRetrieveDataStructureElementSizeException) {
@@ -1956,7 +1959,7 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
             dataDefinitionMap[it.name] = it
             true
         } else {
-            require(dataDefinition.type == it.type) {
+            it.require(dataDefinition.type == it.type) {
                 "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
             }
             false

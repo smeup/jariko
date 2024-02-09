@@ -17,9 +17,8 @@
 @file:JvmName("StandardFeaturesFactory")
 package com.smeup.rpgparser.interpreter
 
-import java.lang.IllegalArgumentException
-import kotlin.reflect.full.createInstance
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import kotlin.reflect.full.createInstance
 
 /**
  * Allows to enable features
@@ -54,6 +53,33 @@ object FeaturesFactory {
     private val versionFileContent: String? by lazy {
         IFeaturesFactory::class.java.getResource("/META-INF/com.smeup.jariko/version.txt")
             ?.let { it.readText() }
+    }
+
+    /**
+     * Retrieves the version information of Jariko.
+     *
+     * This function reads the version file content and parses it into a JarikoVersion object.
+     * The version file content is expected to be in the format of "Version: version, Branch: branch, Revision: revision, Buildtime: buildtime".
+     * If the version file content is null a default JarikoVersion object is returned with all properties set to "UNKNOWN".
+     *
+     * @return A JarikoVersion object representing the version information of Jariko.
+     */
+    fun getJarikoVersionVersion(): JarikoVersion {
+        return versionFileContent?.let { content ->
+            val props = mutableMapOf<String, String>()
+            content.split("\n").forEach {
+                if (it.startsWith("Version") || it.startsWith("Branch") || it.startsWith("Revision") || it.startsWith("Buildtime")) {
+                    val (key, value) = it.split(": ")
+                    props[key] = value.trim()
+                }
+            }
+            JarikoVersion(
+                version = props["Version"] ?: "",
+                branch = props["Branch"] ?: "",
+                revision = props["Revision"] ?: "",
+                buildtime = props["Buildtime"] ?: ""
+            )
+        } ?: JarikoVersion()
     }
 
     private val factory: IFeaturesFactory by lazy {
@@ -112,3 +138,18 @@ enum class FeatureFlag {
         return property.lowercase().matches(Regex("1|on|true"))
     }
 }
+
+/**
+ * Data class representing the version information of Jariko.
+ *
+ * @property version The version of Jariko. Defaults to "UNKNOWN" if not specified.
+ * @property branch The branch of the source code. Defaults to "UNKNOWN" if not specified.
+ * @property revision The revision of the source code. Defaults to "UNKNOWN" if not specified.
+ * @property buildtime The build time of the source code. Defaults to "UNKNOWN" if not specified.
+ */
+data class JarikoVersion(
+    val version: String = "UNKNOWN",
+    val branch: String = "UNKNOWN",
+    val revision: String = "UNKNOWN",
+    val buildtime: String = "UNKNOWN"
+)

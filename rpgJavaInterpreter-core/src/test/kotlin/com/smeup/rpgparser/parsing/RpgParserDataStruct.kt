@@ -344,7 +344,7 @@ open class RpgParserDataStruct : AbstractTest() {
         val r = assertCanBeParsed("struct/STRUCT_08", withMuteSupport = true)
         for (stat in r.statement()) {
             stat.dcl_ds()?.apply {
-                val fieldsList = calculateFieldInfos()
+                val fieldsList = calculateFieldInfos(emptyList())
                 actualDSTypes[stat.dcl_ds().name] = this.type(this.declaredSize(), fieldsList)
             }
         }
