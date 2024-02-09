@@ -106,6 +106,7 @@ private val modules = SerializersModule {
         subclass(AssignmentExpr::class)
         subclass(BlanksRefExpr::class)
         subclass(CharExpr::class)
+        subclass(CheckExpr::class)
         subclass(DataRefExpr::class)
         subclass(DecExpr::class)
         subclass(DiffExpr::class)
