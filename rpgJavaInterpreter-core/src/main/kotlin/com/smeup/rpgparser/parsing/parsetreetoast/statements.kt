@@ -52,10 +52,30 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
                 )
             }
         this.begindow() != null -> this.begindow().toAst(blockContext = this, conf = conf)
+        this.csDOWxx() != null -> this.csDOWxx().toAst(blockContext = this, conf = conf)
         this.forstatement() != null -> this.forstatement().toAst(conf)
         this.begindou() != null -> this.begindou().toAst(blockContext = this, conf = conf)
         else -> todo(message = "Missing composite statement implementation for this block: ${this.text}", conf = conf)
     }
+}
+
+internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: ToAstConfiguration = ToAstConfiguration()): DOWxxStmt {
+    val comparison = when {
+        this.csDOWEQ() != null -> ComparisonOperator.EQ
+        else -> todo(conf = conf)
+    }
+    val factor2 = when {
+        this.csDOWEQ() != null -> this.csDOWEQ().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
+        else -> todo(conf = conf)
+    }
+
+    return DOWxxStmt(
+        comparison = comparison,
+        factor1 = this.factor1.content.toAst(conf = conf),
+        factor2 = factor2,
+        position = toPosition(conf.considerPosition),
+        body = blockContext.statement().map { it.toAst(conf) },
+    )
 }
 
 internal fun RpgParser.ForstatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ForStmt {
