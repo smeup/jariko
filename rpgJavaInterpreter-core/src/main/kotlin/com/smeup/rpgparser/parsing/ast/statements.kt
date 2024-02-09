@@ -23,10 +23,9 @@ import com.smeup.dbnative.file.Result
 import com.smeup.rpgparser.MuteParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.interpreter.*
-import com.smeup.rpgparser.parsing.parsetreetoast.acceptBody
+import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.isInt
-import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.smeup.rpgparser.utils.ComparisonOperator
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.resizeTo
@@ -1216,6 +1215,41 @@ data class DisplayStmt(val factor1: Expression?, val response: Expression?, over
         response?.let { values.add(interpreter.eval(it)) }
         // TODO: receive input from systemInterface and assign value to response
         interpreter.getSystemInterface().display(interpreter.rawRender(values))
+    }
+}
+
+data class DOWxxStmt(
+    val comparison: ComparisonOperator,
+    val factor1: Expression,
+    val factor2: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+): Statement(position), CompositeStatement {
+    fun InterpreterCore.compare(comparison: ComparisonOperator, factor1: Expression, factor2: Expression): Boolean {
+        return when(comparison) {
+            ComparisonOperator.EQ -> this.eval(factor1) == this.eval(factor2)
+            else -> todo()
+        }
+    }
+
+    override fun execute(interpreter: InterpreterCore) {
+        val startTime = System.currentTimeMillis()
+        try {
+            interpreter.log { DOWxxStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
+            while (interpreter.compare(comparison, factor1, factor2)) {
+                interpreter.execute(body)
+            }
+        } catch (e: LeaveException) {
+            // nothing to do here
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                DOWxxStatementExecutionLogEnd(
+                    interpreter.getInterpretationContext().currentProgramName,
+                    this,
+                    elapsed,
+                )
+            }
+        }
     }
 }
 
