@@ -319,4 +319,18 @@ open class SmeupInterpreterTest : AbstractTest() {
             "CALL(MULANGTC30, 7         , 0)")
         assertEquals(expected, "smeup/T10_A60_P04-P07".outputOf())
     }
+
+    @Test
+    fun executeT12_A04_P07_12() {
+        val expected = listOf<String>(
+            "CNT(100001)",
+            "CNT(100000)",
+            "CNT(100001)",
+            "CNT(100000)",
+            "CNT(100001)",
+            "CNT(100000)",
+
+        )
+        assertEquals(expected, "smeup/T12_A04_P07_12".outputOf())
+    }
 }
