@@ -338,7 +338,8 @@ open class SmeupInterpreterTest : AbstractTest() {
             "P02_01(10)",
             "P02_02(6)",
             "P03_01(0)",
-            "P03_02(1)"
+            "P03_02(1)",
+            "P03_03(ok)"
         )
         assertEquals(expected, "smeup/T04_A15".outputOf())
     }

@@ -107,4 +107,11 @@
      C                   EVAL      £DBG_Str='P03_02('+%char(pos)+')'
      C     £DBG_Str      DSPLY
       *
+     C                   IF        %CHECK(alphabet: 'Antonio Cosentino')= 0
+     C                   EVAL      £DBG_Str='P03_03(ok)'
+     C                   ELSE
+     C                   EVAL      £DBG_Str='P03_03(ko)'
+     C                   ENDIF
+     C     £DBG_Str      DSPLY
+      *
      C                   ENDSR
