@@ -9,7 +9,7 @@
      D LEFT            S              1  0
      D RIGHT           S              1  0
 
-      * When LEFT and RIGHT are equal with LEFT as variable
+      * When LEFT and RIGHT are equal, with LEFT as variable
      C                   EVAL      RES=0
      C                   EVAL      LEFT=1
      C     LEFT          DOWGE     1
@@ -19,7 +19,7 @@
       * Excepted 1
      C     RES           DSPLY
 
-      * When LEFT and RIGHT aren't equal with LEFT as variable
+      * When RIGHT is greater than LEFT, with LEFT as variable
      C                   EVAL      RES=0
      C                   EVAL      LEFT=1
      C     LEFT          DOWGE     2
@@ -29,7 +29,7 @@
       * Excepted 0
      C     RES           DSPLY
 
-      * When LEFT and RIGHT are equal with RIGHT as variable
+      * When LEFT and RIGHT are equal, with RIGHT as variable
      C                   EVAL      RES=0
      C                   EVAL      RIGHT=1
      C     1             DOWGE     RIGHT
@@ -39,7 +39,7 @@
       * Excepted 1
      C     RES           DSPLY
 
-      * When LEFT and RIGHT aren't equal with RIGHT as variable
+      * When RIGHT is greater than LEFT, with RIGHT as variable
      C                   EVAL      RES=0
      C                   EVAL      RIGHT=3
      C     2             DOWGE     RIGHT
@@ -49,7 +49,7 @@
       * Excepted 0
      C     RES           DSPLY
 
-      * When LEFT and RIGHT are equal and both as variable
+      * When LEFT and RIGHT are equal, both as variable
      C                   EVAL      RES=0
      C                   EVAL      LEFT=1
      C                   EVAL      RIGHT=1
@@ -60,7 +60,7 @@
       * Excepted 1
      C     RES           DSPLY
 
-      * When LEFT and RIGHT aren't equal and both as variable
+      * When RIGHT is greater than LEFT, both as variable
      C                   EVAL      RES=0
      C                   EVAL      LEFT=2
      C                   EVAL      RIGHT=3
@@ -81,7 +81,7 @@
      D RIGHT_STR       S             110          VARYING
 
 
-      * When LEFT and RIGHT are equal and both as variable
+      * When LEFT and RIGHT are equal, both as variable
      C                   EVAL      RES=0
      C                   EVAL      LEFT_STR='1'
      C                   EVAL      RIGHT_STR='1'
@@ -91,7 +91,8 @@
      C                   ENDDO
       * Excepted 1
      C     RES           DSPLY
-      * When LEFT and RIGHT aren't equal and both as variable
+
+      * When RIGHT is greater than LEFT, both as variable
      C                   EVAL      RES=0
      C                   EVAL      LEFT_STR='1'
      C                   EVAL      RIGHT_STR='2'
