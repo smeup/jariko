@@ -1258,7 +1258,15 @@ data class DOWxxStmt(
                 }
                 return evaluationFactor1 > evaluationFactor2
             }
-            ComparisonOperator.GE -> evaluationFactor1 >= evaluationFactor2
+            ComparisonOperator.GE -> {
+                if (
+                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
+                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
+                ) {
+                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset).run { this == GREATER || this == EQUAL }
+                }
+                return evaluationFactor1 >= evaluationFactor2
+            }
             ComparisonOperator.LT -> evaluationFactor1 < evaluationFactor2
             ComparisonOperator.LE -> evaluationFactor1 <= evaluationFactor2
         }
