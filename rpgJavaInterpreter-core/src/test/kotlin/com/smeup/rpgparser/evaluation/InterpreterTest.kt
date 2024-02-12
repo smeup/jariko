@@ -2240,4 +2240,9 @@ Test 6
         val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
         assertEquals(expected, "DOWGT".outputOf())
     }
+    @Test
+    fun executeDOWGE() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWGE".outputOf())
+    }
 }
