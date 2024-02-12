@@ -268,7 +268,7 @@ class DOWxxStatementExecutionLogStart(programName: String, val statement: DOWxxS
     }
 
     override fun renderStatement(channel: String, filename: String, sep: String): String {
-        val data = "DOW${statement.comparison.symbol} LOOP START${sep}${statement.comparison.toString()}${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}"
+        val data = "DOW${statement.comparison.symbol} LOOP START${sep}${statement.comparison}${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}"
 
         return renderHeader(channel, filename, statement.startLine(), sep) + data
     }
@@ -290,7 +290,7 @@ class DOWxxStatementExecutionLogEnd(programName: String, val statement: DOWxxStm
     }
 
     override fun renderPerformance(channel: String, filename: String, sep: String): String {
-        val data = "DOW${statement.comparison.symbol} LOOP END${sep}${statement.comparison.toString()}${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}${sep}${elapsed}${sep}ms"
+        val data = "DOW${statement.comparison.symbol} LOOP END${sep}${statement.comparison}${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}${sep}${elapsed}${sep}ms"
 
         return renderHeader(channel, filename, statement.endLine(), sep) + data
     }

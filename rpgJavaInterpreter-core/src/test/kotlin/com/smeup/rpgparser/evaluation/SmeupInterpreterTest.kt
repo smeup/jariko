@@ -328,8 +328,7 @@ open class SmeupInterpreterTest : AbstractTest() {
             "CNT(100001)",
             "CNT(100000)",
             "CNT(100001)",
-            "CNT(100000)",
-
+            "CNT(100000)"
         )
         assertEquals(expected, "smeup/T12_A04_P07_12".outputOf())
     }

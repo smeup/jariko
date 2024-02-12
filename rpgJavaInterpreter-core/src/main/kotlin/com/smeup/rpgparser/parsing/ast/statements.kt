@@ -1224,12 +1224,12 @@ data class DOWxxStmt(
     val factor2: Expression,
     override val body: List<Statement>,
     override val position: Position? = null
-): Statement(position), CompositeStatement {
+) : Statement(position), CompositeStatement {
     fun InterpreterCore.compare(comparison: ComparisonOperator, factor1: Expression, factor2: Expression, interpreter: InterpreterCore): Boolean {
         val evaluationFactor1 = this.eval(factor1)
         val evaluationFactor2 = this.eval(factor2)
 
-        return when(comparison) {
+        return when (comparison) {
             ComparisonOperator.EQ -> {
                 if (
                     (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
@@ -1277,7 +1277,7 @@ data class DOWxxStmt(
                 DOWxxStatementExecutionLogEnd(
                     interpreter.getInterpretationContext().currentProgramName,
                     this,
-                    elapsed,
+                    elapsed
                 )
             }
         }

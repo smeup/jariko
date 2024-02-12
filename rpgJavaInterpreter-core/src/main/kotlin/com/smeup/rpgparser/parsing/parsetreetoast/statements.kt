@@ -84,7 +84,7 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: To
         factor1 = this.factor1.content.toAst(conf = conf),
         factor2 = factor2,
         position = toPosition(conf.considerPosition),
-        body = blockContext.statement().map { it.toAst(conf) },
+        body = blockContext.statement().map { it.toAst(conf) }
     )
 }
 
