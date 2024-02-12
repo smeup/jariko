@@ -1218,6 +1218,7 @@ data class DisplayStmt(val factor1: Expression?, val response: Expression?, over
     }
 }
 
+@Serializable
 data class DOWxxStmt(
     val comparison: ComparisonOperator,
     val factor1: Expression,
