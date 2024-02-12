@@ -2228,4 +2228,10 @@ Test 6
         val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
         assertEquals(expected, "DOWEQ".outputOf())
     }
+
+    @Test
+    fun executeDOWNE() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "DOWNE".outputOf())
+    }
 }
