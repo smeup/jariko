@@ -319,4 +319,10 @@ open class SmeupInterpreterTest : AbstractTest() {
             "CALL(MULANGTC30, 7         , 0)")
         assertEquals(expected, "smeup/T10_A60_P04-P07".outputOf())
     }
+
+    @Test
+    fun executeT02_A60_P03() {
+        val expected = listOf<String>("Res(-A)=-10 Res( -A)= -10")
+        assertEquals(expected, "smeup/T02_A60_P03".outputOf())
+    }
 }
