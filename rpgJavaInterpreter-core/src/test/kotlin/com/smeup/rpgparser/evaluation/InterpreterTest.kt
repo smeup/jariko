@@ -2222,4 +2222,10 @@ Test 6
         val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1")
         assertEquals(expected, "INDIC02".outputOf())
     }
+
+    @Test
+    fun executeNEGATION() {
+        val expected = listOf("-10", "10", "-10", "10")
+        assertEquals(expected, "NEGATION".outputOf())
+    }
 }
