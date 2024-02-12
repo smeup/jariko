@@ -1255,7 +1255,7 @@ data class DOWxxStmt(
                 ) {
                     return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset) == GREATER
                 }
-                return  evaluationFactor1 > evaluationFactor2
+                return evaluationFactor1 > evaluationFactor2
             }
             ComparisonOperator.GE -> evaluationFactor1 >= evaluationFactor2
             ComparisonOperator.LT -> evaluationFactor1 < evaluationFactor2
