@@ -1225,14 +1225,41 @@ data class DOWxxStmt(
     override val body: List<Statement>,
     override val position: Position? = null
 ): Statement(position), CompositeStatement {
-    fun InterpreterCore.compare(comparison: ComparisonOperator, factor1: Expression, factor2: Expression): Boolean {
+    fun InterpreterCore.compare(comparison: ComparisonOperator, factor1: Expression, factor2: Expression, interpreter: InterpreterCore): Boolean {
+        val evaluationFactor1 = this.eval(factor1)
+        val evaluationFactor2 = this.eval(factor2)
+
         return when(comparison) {
-            ComparisonOperator.EQ -> this.eval(factor1) == this.eval(factor2)
-            ComparisonOperator.NE -> this.eval(factor1) != this.eval(factor2)
-            ComparisonOperator.GT -> this.eval(factor1) > this.eval(factor2)
-            ComparisonOperator.GE -> this.eval(factor1) >= this.eval(factor2)
-            ComparisonOperator.LT -> this.eval(factor1) < this.eval(factor2)
-            ComparisonOperator.LE -> this.eval(factor1) <= this.eval(factor2)
+            ComparisonOperator.EQ -> {
+                if (
+                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
+                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
+                ) {
+                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset) == EQUAL
+                }
+                return evaluationFactor1 == evaluationFactor2
+            }
+            ComparisonOperator.NE -> {
+                if (
+                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
+                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
+                ) {
+                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset) != EQUAL
+                }
+                return evaluationFactor1 != evaluationFactor2
+            }
+            ComparisonOperator.GT -> {
+                if (
+                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
+                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
+                ) {
+                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset) == GREATER
+                }
+                return  evaluationFactor1 > evaluationFactor2
+            }
+            ComparisonOperator.GE -> evaluationFactor1 >= evaluationFactor2
+            ComparisonOperator.LT -> evaluationFactor1 < evaluationFactor2
+            ComparisonOperator.LE -> evaluationFactor1 <= evaluationFactor2
         }
     }
 
@@ -1240,7 +1267,7 @@ data class DOWxxStmt(
         val startTime = System.currentTimeMillis()
         try {
             interpreter.log { DOWxxStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
-            while (interpreter.compare(comparison, factor1, factor2)) {
+            while (interpreter.compare(comparison, factor1, factor2, interpreter)) {
                 interpreter.execute(body)
             }
         } catch (e: LeaveException) {
