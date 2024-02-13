@@ -721,6 +721,7 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: C
     }
     fieldsList.considerFieldSequence()
     fieldsList.considerOverlays(this.name)
+    fieldsList.considerNotInOverlayFields()
     fieldsList.fields.filter { it.startOffset == null }.let {
         require(it.isEmpty()) { "Start offset not calculated for fields ${it.joinToString(separator = ", ") { it.name }}" }
     }
@@ -927,6 +928,28 @@ class FieldsList(val fields: List<FieldInfo>) {
                 if (field.overlayInfo == null) {
                     if (field.startOffset != null && field.elementSize != null) {
                         field.endOffset = (field.startOffset!! + field.elementSize!!)
+                    }
+                }
+            }
+        }
+    }
+
+    fun considerNotInOverlayFields() {
+        val declareDimElement = fields.filter { it.arraySizeDeclared != null }.firstOrNull()
+        if (declareDimElement != null) {
+            val totalArraySize = declareDimElement.arraySizeDeclared!! * declareDimElement.endOffset!!
+            var startOffsetIndex = totalArraySize
+            fields.forEachIndexed { index, field ->
+
+                if (field.startOffset == null) {
+                    if (field.overlayInfo == null) {
+                        field.startOffset = startOffsetIndex
+                    }
+                }
+                if (field.endOffset == null) {
+                    if (field.overlayInfo == null) {
+                        field.endOffset = (field.startOffset!! + field.elementSize!!)
+                        startOffsetIndex = field.endOffset!!
                     }
                 }
             }
