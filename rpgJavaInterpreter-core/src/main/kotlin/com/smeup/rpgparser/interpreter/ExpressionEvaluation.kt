@@ -325,6 +325,28 @@ class ExpressionEvaluation(
         val result = source.indexOf(value, startIndex)
         return IntValue(if (result == -1) 0 else result.toLong() + 1)
     }
+    override fun eval(expression: CheckExpr): Value {
+        var startpos = 0
+        if (expression.start != null) {
+            startpos = expression.start.evalWith(this).asInt().value.toInt()
+            if (startpos > 0) {
+                startpos -= 1
+            }
+        }
+        val comparator = expression.value.evalWith(this).asString().value
+        val base = expression.source.evalWith(this).asString().value.toCharArray()
+
+        var result = 0
+        for (i in startpos until base.size) {
+            val currChar = base[i]
+            if (!comparator.contains(currChar)) {
+                result = i + 1
+                break
+            }
+        }
+
+        return IntValue(result.toLong())
+    }
 
     override fun eval(expression: SubstExpr): Value {
         val length = if (expression.length != null) expression.length.evalWith(this).asInt().value.toInt() else 0
