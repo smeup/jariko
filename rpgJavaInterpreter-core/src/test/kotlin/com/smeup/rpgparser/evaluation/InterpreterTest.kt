@@ -2222,4 +2222,9 @@ Test 6
         val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1")
         assertEquals(expected, "INDIC02".outputOf())
     }
+
+    @Test
+    fun executeBIFCHECK() {
+        assertEquals(listOf("ok"), outputOf("BIFCHECK"))
+    }
 }
