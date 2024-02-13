@@ -360,7 +360,7 @@ open class SmeupInterpreterTest : AbstractTest() {
 
     @Test
     fun executeT02_A70_P01() {
-        val expected = listOf<String>("2")
+        val expected = listOf<String>("1", "3")
         assertEquals(expected, "smeup/T02_A70_P01".outputOf())
     }
 }

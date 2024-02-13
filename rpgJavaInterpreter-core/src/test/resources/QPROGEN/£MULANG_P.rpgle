@@ -4,7 +4,11 @@
       *
      D OSZ             S                   LIKE(XCF) STATIC
       *
+     C                   IF        OSZ=' '
      C                   EVAL      OSZ=XCA
+     C                   ELSE
+     C                   RETURN    3
+     C                   ENDIF
       *
      C                   IF        XCA='A'
      C                   RETURN    1
