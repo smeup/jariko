@@ -321,7 +321,7 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeT04_A15() {
+    fun executeT04_A15_P01() {
         val expected = listOf<String>(
             "P01_01(8)",
             "P01_02(13)",
@@ -334,13 +334,27 @@ open class SmeupInterpreterTest : AbstractTest() {
             "P01_09(2)",
             "P01_10(1)",
             "P01_11(2)",
-            "P01_12(0)",
+            "P01_12(0)"
+        )
+        assertEquals(expected, "smeup/T04_A15_P01".outputOf())
+    }
+
+    @Test
+    fun executeT04_A15_P02() {
+        val expected = listOf<String>(
             "P02_01(10)",
-            "P02_02(6)",
+            "P02_02(6)"
+        )
+        assertEquals(expected, "smeup/T04_A15_P02".outputOf())
+    }
+
+    @Test
+    fun executeT04_A15_P03() {
+        val expected = listOf<String>(
             "P03_01(0)",
             "P03_02(1)",
             "P03_03(ok)"
         )
-        assertEquals(expected, "smeup/T04_A15".outputOf())
+        assertEquals(expected, "smeup/T04_A15_P03".outputOf())
     }
 }
