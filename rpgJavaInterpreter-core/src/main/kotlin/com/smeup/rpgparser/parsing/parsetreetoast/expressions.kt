@@ -57,7 +57,7 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
 internal fun RpgParser.UnaryExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
     if (this.children.size > 0) {
         return when {
-            this.children[1] is ExpressionContext -> NegationExpr((this.children[1] as ExpressionContext).toAst(conf))
+            this.children[0].text.equals("-") && this.children[1] is ExpressionContext -> NegationExpr((this.children[1] as ExpressionContext).toAst(conf))
             else -> todo(conf = conf)
         }
     }
