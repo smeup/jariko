@@ -420,8 +420,8 @@ class ExpressionEvaluation(
     override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
 
     override fun eval(expression: NegationExpr): DecimalValue {
-        val value = BigDecimal(0).minus(expression.value1.evalWith(this).asDecimal().value)
-        return DecimalValue(value)
+        val value = expression.value1.evalWith(this).asDecimal().value
+        return DecimalValue(-value)
     }
 
     override fun eval(expression: IndicatorExpr): BooleanValue {
