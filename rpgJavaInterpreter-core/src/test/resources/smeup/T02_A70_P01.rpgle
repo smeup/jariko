@@ -8,4 +8,4 @@
      C                   EVAL      NIDX=£MUGTP('B')
      C                   EVAL      £DBG_Str=%CHAR(NIDX)
      C     £DBG_Str      DSPLY
-      /COPY QILEGEN,£MUGTP
+      /COPY QPROGEN,£MULANG_P
