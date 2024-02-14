@@ -54,21 +54,7 @@ interface Value : Comparable<Value> {
         }
         return ConcreteArrayValue(elements, elementType)
     }
-
-    override fun compareTo(other: Value): Int {
-        if (
-            (this is UnlimitedStringValue || this is StringValue) &&
-            (other is UnlimitedStringValue || other is StringValue)
-        ) {
-            return compare(this, other, DEFAULT_CHARSET)
-        } else {
-            return when {
-                this.asDecimal() == other.asDecimal() -> EQUAL
-                this.asDecimal() > other.asDecimal() -> GREATER
-                else -> SMALLER
-            }
-        }
-        }
+    override operator fun compareTo(other: Value): Int = TODO("Cannot compare $this to $other")
 }
 
 abstract class NumberValue : Value {
