@@ -2224,8 +2224,8 @@ Test 6
     }
 
     @Test
-    fun executeNEGATION() {
-        val expected = listOf("-10", "10", "-10", "10")
-        assertEquals(expected, "NEGATION".outputOf())
+    fun executeNEGATION_NUMBER() {
+        val expected = listOf("-10", "10", "-10", "-10", "10", "-10", "-1.50", "1.50", "-1.50", "-1.50", "1.50", "-1.50")
+        assertEquals(expected, "NEGATION_NUMBER".outputOf())
     }
 }
