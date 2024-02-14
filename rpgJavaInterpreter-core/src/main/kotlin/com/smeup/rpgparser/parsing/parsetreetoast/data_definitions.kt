@@ -307,6 +307,7 @@ internal fun RpgParser.DspecContext.toAst(
     var elementsPerLineExpression: Expression? = null
     var compileTimeArray = false
     var varying = false
+    var static = false
     var ascend: Boolean? = null
 
     this.keyword().forEach {
@@ -333,6 +334,9 @@ internal fun RpgParser.DspecContext.toAst(
         }
         it.keyword_varying()?.let {
             varying = true
+        }
+        it.keyword_static()?.let {
+            static = true
         }
     }
 
@@ -412,7 +416,9 @@ internal fun RpgParser.DspecContext.toAst(
             this.ds_name().text,
             type,
             initializationValue = initializationValue,
-            position = this.toPosition(true))
+            position = this.toPosition(true),
+            static = static,
+        )
 }
 
 internal fun RpgParser.DspecConstantContext.toAst(

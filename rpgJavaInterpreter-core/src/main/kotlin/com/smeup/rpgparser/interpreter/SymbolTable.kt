@@ -24,12 +24,14 @@ class SymbolTable : ISymbolTable {
     override operator fun contains(data: AbstractDataDefinition): Boolean = data in values
 
     override var parentSymbolTable: ISymbolTable? = null
+    override var staticSymbolTable: ISymbolTable? = null
 
     override operator fun get(data: AbstractDataDefinition): Value {
         return when (data.scope) {
             Scope.Program -> (programSymbolTable as SymbolTable).getLocal(data)
             Scope.Local -> getLocal(data)
-            Scope.Static -> TODO()
+            // tony
+            Scope.Static -> (staticSymbolTable as SymbolTable).getLocal(data)
         }
     }
 
@@ -86,7 +88,8 @@ class SymbolTable : ISymbolTable {
         return when (data.scope) {
             Scope.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
             Scope.Local -> setLocal(data, value)
-            Scope.Static -> TODO()
+            // tony
+            Scope.Static -> (staticSymbolTable as SymbolTable).setLocal(data, value)
         }
     }
 

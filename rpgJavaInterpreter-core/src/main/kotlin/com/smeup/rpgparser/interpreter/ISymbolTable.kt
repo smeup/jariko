@@ -21,6 +21,7 @@ import java.math.BigDecimal
 interface ISymbolTable {
 
     var parentSymbolTable: ISymbolTable?
+    var staticSymbolTable: ISymbolTable?
 
     /**
      * Get the program symbol table, which is the one without parentSymbolTable
