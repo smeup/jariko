@@ -2227,4 +2227,40 @@ Test 6
     fun executeBIFCHECK() {
         assertEquals(listOf("ok"), outputOf("BIFCHECK"))
     }
+
+    @Test
+    fun executeDOWEQ() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWEQ".outputOf())
+    }
+
+    @Test
+    fun executeDOWNE() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "DOWNE".outputOf())
+    }
+
+    @Test
+    fun executeDOWGT() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWGT".outputOf())
+    }
+
+    @Test
+    fun executeDOWGE() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWGE".outputOf())
+    }
+
+    @Test
+    fun executeDOWLT() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "DOWLT".outputOf())
+    }
+
+    @Test
+    fun executeDOWLE() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWLE".outputOf())
+    }
 }
