@@ -1,5 +1,5 @@
       *
-      * WORKING WITH INDICATOR 15 AND EXPRESSIONS
+      * NEGATION OF NUMBER
       *
 
      D NUM             S              3  0
