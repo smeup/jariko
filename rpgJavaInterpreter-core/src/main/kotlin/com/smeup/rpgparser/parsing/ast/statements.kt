@@ -1220,79 +1220,17 @@ data class DisplayStmt(val factor1: Expression?, val response: Expression?, over
 
 @Serializable
 data class DOWxxStmt(
-    val comparison: ComparisonOperator,
+    val comparisonOperator: ComparisonOperator,
     val factor1: Expression,
     val factor2: Expression,
     override val body: List<Statement>,
     override val position: Position? = null
 ) : Statement(position), CompositeStatement {
-    fun InterpreterCore.compare(comparison: ComparisonOperator, factor1: Expression, factor2: Expression, interpreter: InterpreterCore): Boolean {
-        val evaluationFactor1 = this.eval(factor1)
-        val evaluationFactor2 = this.eval(factor2)
-
-        return when (comparison) {
-            ComparisonOperator.EQ -> {
-                if (
-                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
-                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
-                ) {
-                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset) == EQUAL
-                }
-                return evaluationFactor1 == evaluationFactor2
-            }
-            ComparisonOperator.NE -> {
-                if (
-                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
-                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
-                ) {
-                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset) != EQUAL
-                }
-                return evaluationFactor1 != evaluationFactor2
-            }
-            ComparisonOperator.GT -> {
-                if (
-                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
-                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
-                ) {
-                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset) == GREATER
-                }
-                return evaluationFactor1 > evaluationFactor2
-            }
-            ComparisonOperator.GE -> {
-                if (
-                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
-                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
-                ) {
-                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset).run { this == GREATER || this == EQUAL }
-                }
-                return evaluationFactor1 >= evaluationFactor2
-            }
-            ComparisonOperator.LT -> {
-                if (
-                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
-                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
-                ) {
-                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset) == SMALLER
-                }
-                return evaluationFactor1 < evaluationFactor2
-            }
-            ComparisonOperator.LE -> {
-                if (
-                    (evaluationFactor1 is UnlimitedStringValue || evaluationFactor1 is StringValue) &&
-                    (evaluationFactor2 is UnlimitedStringValue || evaluationFactor2 is StringValue)
-                ) {
-                    return compare(evaluationFactor1, evaluationFactor2, interpreter.getLocalizationContext().charset).run { this == SMALLER || this == EQUAL }
-                }
-                return evaluationFactor1 <= evaluationFactor2
-            }
-        }
-    }
-
     override fun execute(interpreter: InterpreterCore) {
         val startTime = System.currentTimeMillis()
         try {
             interpreter.log { DOWxxStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
-            while (interpreter.compare(comparison, factor1, factor2, interpreter)) {
+            while (comparisonOperator.verify(factor1, factor2, interpreter, interpreter.getLocalizationContext().charset).isVerified) {
                 interpreter.execute(body)
             }
         } catch (e: LeaveException) {
