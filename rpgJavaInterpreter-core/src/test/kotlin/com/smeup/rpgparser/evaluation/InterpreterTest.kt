@@ -2224,6 +2224,11 @@ Test 6
     }
 
     @Test
+    fun executeBIFCHECK() {
+        assertEquals(listOf("ok"), outputOf("BIFCHECK"))
+    }
+
+    @Test
     fun executeDOWEQ() {
         val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
         assertEquals(expected, "DOWEQ".outputOf())

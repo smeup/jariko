@@ -120,7 +120,7 @@ open class BaseCompileTimeInterpreter(
                         it.dcl_ds() != null -> {
                             val name = it.dcl_ds().name
                             if (name == declName) {
-                                val fieldsList = it.dcl_ds().calculateFieldInfos()
+                                val fieldsList = it.dcl_ds().calculateFieldInfos(knownDataDefinitions)
                                 return it.dcl_ds().type(
                                         it.dcl_ds().declaredSize(),
                                         fieldsList).numberOfElements()
@@ -163,7 +163,7 @@ open class BaseCompileTimeInterpreter(
                         it.dcl_ds() != null -> {
                             val name = it.dcl_ds().name
                             if (name == declName) {
-                                return it.dcl_ds().elementSizeOf()
+                                return it.dcl_ds().elementSizeOf(knownDataDefinitions)
                             }
                         }
                     }

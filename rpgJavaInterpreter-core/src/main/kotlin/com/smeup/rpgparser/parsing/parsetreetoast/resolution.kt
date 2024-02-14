@@ -194,6 +194,8 @@ private fun CompilationUnit.resolve() {
             pp.param.tryToResolveRecursively(position = pp.position, cu = this)
         }
     }
+
+    this.allDataDefinitions
 }
 
 // try to resolve a Data reference through recursive search in parent compilation unit

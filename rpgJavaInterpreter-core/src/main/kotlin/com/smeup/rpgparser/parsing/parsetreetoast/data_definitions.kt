@@ -23,8 +23,6 @@ import com.smeup.rpgparser.utils.asInt
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
 import java.math.BigDecimal
-import java.util.*
-import kotlin.collections.HashMap
 import kotlin.math.max
 
 enum class RpgType(val rpgType: String) {
@@ -72,7 +70,8 @@ private fun inferDsSizeFromFieldLines(fieldsList: FieldsList): Int {
     return maxEnd
 }
 
-fun RpgParser.Dcl_dsContext.elementSizeOf(fieldsList: FieldsList = this.calculateFieldInfos()): Int {
+internal fun RpgParser.Dcl_dsContext.elementSizeOf(knownDataDefinitions: Collection<DataDefinition>): Int {
+    val fieldsList = this.calculateFieldInfos(knownDataDefinitions)
     val toPosition = if (this.nameIsInFirstLine) {
         this.TO_POSITION().text
     } else {
@@ -88,6 +87,7 @@ fun RpgParser.Dcl_dsContext.elementSizeOf(fieldsList: FieldsList = this.calculat
 
 internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
     val prefixContexts = this.fs_keyword().mapNotNull { it.keyword_prefix() }
+
     val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
         Prefix(
             prefix = prefixContexts[0].prefix.text,
@@ -99,7 +99,8 @@ internal fun RpgParser.Fspec_fixedContext.toAst(conf: ToAstConfiguration = ToAst
     val fileDefinition = FileDefinition(
         name = this.FS_RecordName().text.trim(),
         position = this.toPosition(conf.considerPosition),
-        prefix = prefix
+        prefix = prefix,
+        fileType = FileType.getByKeyword(this.FS_Type().text.trim())
     )
     val rename = this.fs_keyword().mapNotNull { it.keyword_rename() }
     if (rename.isNotEmpty()) {
@@ -700,11 +701,11 @@ internal fun RpgParser.Parm_fixedContext.calculateExplicitElementType(arraySizeD
     }
 }
 
-fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
+internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: Collection<DataDefinition>): FieldsList {
     val caughtErrors = mutableListOf<Throwable>()
     val fieldsList = FieldsList(this.parm_fixed().mapNotNull {
         kotlin.runCatching {
-            it.toFieldInfo()
+            it.toFieldInfo(knownDataDefinitions = knownDataDefinitions)
         }.onFailure {
             caughtErrors.add(it)
         }.getOrNull()
@@ -729,7 +730,7 @@ fun RpgParser.Dcl_dsContext.calculateFieldInfos(): FieldsList {
     return fieldsList
 }
 
-private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration()): FieldInfo {
+private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration(), knownDataDefinitions: Collection<DataDefinition>): FieldInfo {
     var overlayInfo: FieldInfo.OverlayInfo? = null
     val overlay = this.keyword().find { it.keyword_overlay() != null }
     // Set the SORTA order
@@ -769,7 +770,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
             explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-            explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf),
+            explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf) ?: knownDataDefinitions.firstOrNull { it.name.equals(this.name, ignoreCase = true) }?.type,
             arraySizeDeclared = this.arraySizeDeclared(conf),
             arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
             initializationValue = initializationValue,
@@ -935,14 +936,17 @@ class FieldsList(val fields: List<FieldInfo>) {
     fun isNotEmpty() = fields.isNotEmpty()
 }
 
-internal fun RpgParser.Dcl_dsContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): DataDefinition {
+internal fun RpgParser.Dcl_dsContext.toAst(
+    conf: ToAstConfiguration = ToAstConfiguration(),
+    knownDataDefinitions: Collection<DataDefinition>
+): DataDefinition {
     val initializationValue: Expression? = null
     val size = this.declaredSize()
 
     // Calculating information about the DS and its fields is full of interdependecies
     // therefore we do that in steps
 
-    val fieldsList = calculateFieldInfos()
+    val fieldsList = calculateFieldInfos(knownDataDefinitions)
     val type: Type = this.type(size, fieldsList, conf)
     val inz = this.keyword().asSequence().firstOrNull { it.keyword_inz() != null }
 
