@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.CompilationUnit
 import com.smeup.rpgparser.parsing.parsetreetoast.error
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
@@ -77,6 +78,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
             systemInterface = systemInterface,
             procedureName = compilationUnit.procedureName).apply {
             getGlobalSymbolTable().parentSymbolTable = symbolTable
+            getGlobalSymbolTable().staticTable = InternalInterpreter.StaticSymbolTable.getValue(systemInterface as SystemInterface)
         }
 
         // values passed to function in format argumentName to argumentValue

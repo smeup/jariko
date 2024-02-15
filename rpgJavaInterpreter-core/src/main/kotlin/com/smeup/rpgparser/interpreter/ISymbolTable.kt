@@ -21,8 +21,8 @@ import java.math.BigDecimal
 interface ISymbolTable {
 
     var parentSymbolTable: ISymbolTable?
-    var staticSymbolTable: ISymbolTable?
-
+    var staticTable: ISymbolTable?
+    var initialized: Boolean
     /**
      * Get the program symbol table, which is the one without parentSymbolTable
      * */
@@ -39,6 +39,12 @@ interface ISymbolTable {
                 }
                 rootSymbolTable
             }
+        }
+
+    val staticSymbolTable: ISymbolTable?
+
+        get() {
+            return staticTable
         }
 
     /**

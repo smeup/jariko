@@ -116,7 +116,7 @@ private fun RContext.getDataDefinitions(
                 when {
                     it.dspec() != null -> {
                         it.dspec()
-                            .toAst(conf, knownDataDefinitions.values.toList())
+                            .toAst(conf, knownDataDefinitions.values.toList(), null)
                             .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     }
                     it.dcl_c() != null -> {
@@ -190,7 +190,6 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
     val fileDefinitions = this.statement()
-            // tony
         .mapNotNull { statement ->
             when {
                 statement.fspec_fixed() != null -> statement.fspec_fixed().runParserRuleContext(conf) { context ->
@@ -527,7 +526,9 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
     val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
-    dataDefinitionProviders.addAll(parentDataDefinitions.map{ it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions) })
+    // dataDefinitionProviders.addAll(parentDataDefinitions.map{ it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions) })
+    // parentDataDefinitions.forEach { knownDataDefinitions.addIfNotPresent(it)}
+
 
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.subprocedurestatement()
@@ -544,7 +545,7 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                     when {
                         it.statement().dspec() != null -> {
                             it.statement().dspec()
-                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .toAst(conf, knownDataDefinitions.values.toList(), parentDataDefinitions)
                                 .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                         }
                         it.statement().dcl_c() != null -> {

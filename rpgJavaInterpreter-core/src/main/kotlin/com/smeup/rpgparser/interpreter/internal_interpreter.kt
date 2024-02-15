@@ -21,6 +21,7 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
+import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -87,6 +88,20 @@ open class InternalInterpreter(
 
     override fun getLocalizationContext(): LocalizationContext {
         return localizationContext
+    }
+
+    class StaticSymbolTable() {
+        companion object {
+            private var instance: ISymbolTable? = null
+            fun  getValue(systemInterface: SystemInterface): ISymbolTable {
+                if (instance == null) {
+                    instance = systemInterface.getFeaturesFactory().createSymbolTable()
+                } else {
+                    instance!!.initialized = true
+                }
+                return instance as ISymbolTable
+            }
+        }
     }
 
     private val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
@@ -274,7 +289,7 @@ open class InternalInterpreter(
                     set(it, value)
                 }
 
-                if (value != null) {
+                if (value != null && ((!it.static) || (it.static && !this.globalSymbolTable.staticSymbolTable?.initialized!!))) {
                     set(it, coerce(value, it.type))
                     if (it is DataDefinition) {
                         try {

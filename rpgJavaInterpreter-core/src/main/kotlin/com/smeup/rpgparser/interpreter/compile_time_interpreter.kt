@@ -110,7 +110,7 @@ open class BaseCompileTimeInterpreter(
                         it.dspec() != null -> {
                             val name = it.dspec().ds_name().text
                             if (name == declName) {
-                                return it.dspec().toAst(conf = conf, knownDataDefinitions = listOf()).let { dataDefinition ->
+                                return it.dspec().toAst(conf = conf, knownDataDefinitions = listOf(), null).let { dataDefinition ->
                                     if (dataDefinition.type is ArrayType) {
                                         dataDefinition.numberOfElements()
                                     } else throw it.dspec().ds_name().error("D spec is not an array", conf = conf)
