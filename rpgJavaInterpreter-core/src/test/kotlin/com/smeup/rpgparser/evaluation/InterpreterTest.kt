@@ -2228,4 +2228,10 @@ Test 6
         val expected = listOf("-10", "10", "-10", "-10", "10", "-10", "-1.50", "1.50", "-1.50", "-1.50", "1.50", "-1.50")
         assertEquals(expected, "NEGATION".outputOf())
     }
+
+    @Test(expected = RuntimeException::class)
+    fun executeNEGATIONERR() {
+        val expected = listOf("")
+        assertEquals(expected, "NEGATIONERR".outputOf())
+    }
 }
