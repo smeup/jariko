@@ -1271,6 +1271,11 @@ Test 6
     }
 
     @Test
+    fun executeReturn02() {
+        assertEquals(listOf("Starting"), outputOf("RETURN02"))
+    }
+
+    @Test
     fun executeGoto01() {
         assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO01"))
     }
