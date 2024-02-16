@@ -218,7 +218,7 @@ open class BaseCompileTimeInterpreter(
         rContext.statement()
             .forEach {
                 when {
-                    it.cspec_fixed() != null -> {
+                    it.cspec_fixed() != null && it.cspec_fixed().cspec_fixed_standard().toAst(conf) is StatementThatCanDefineData -> {
                         val dataDefinition = (it.cspec_fixed().cspec_fixed_standard().toAst(conf) as StatementThatCanDefineData).dataDefinition()
                         dataDefinition.forEach {
                             if (it.name.asValue().value == declName) {

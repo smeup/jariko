@@ -281,9 +281,15 @@ internal fun RpgParser.DspecContext.toAst(
 ): DataDefinition {
 
     if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
-    val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
-    val compileTimeInterpreterParent = if (parentDataDefinitions != null) InjectableCompileTimeInterpreter(parentDataDefinitions, conf.compileTimeInterpreter) else null
-    val confParent = if (compileTimeInterpreterParent != null) conf.copy(compileTimeInterpreter = compileTimeInterpreterParent as CompileTimeInterpreter) else null
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+        knownDataDefinitions = knownDataDefinitions,
+        delegatedCompileTimeInterpreter = parentDataDefinitions?.let {
+            InjectableCompileTimeInterpreter(
+                it,
+                conf.compileTimeInterpreter
+            )
+        } ?: conf.compileTimeInterpreter
+    )
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
     //    C UCS-2 (Fixed or Variable-length format)
@@ -318,9 +324,6 @@ internal fun RpgParser.DspecContext.toAst(
         }
         it.keyword_like()?.let {
             like = it.simpleExpression().toAst(conf) as AssignableExpression
-            if (!(like as DataRefExpr).variable.resolved && confParent != null) {
-                like = it.simpleExpression().toAst(confParent) as AssignableExpression
-            }
         }
         it.keyword_inz()?.let {
             initializationValue = it.simpleExpression()?.toAst(conf)
@@ -341,11 +344,7 @@ internal fun RpgParser.DspecContext.toAst(
 
     val elementSize = when {
         like != null -> {
-            if (!checkIfLikePresent(like, knownDataDefinitions) && compileTimeInterpreterParent != null) {
-                compileTimeInterpreterParent.evaluateElementSizeOf(this.rContext(), like!!, conf)
-            } else {
-                compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
-            }
+            compileTimeInterpreter.evaluateElementSizeOf(this.rContext(), like!!, conf)
         }
         else -> this.TO_POSITION().text.trim().let { if (it.isBlank()) null else it.toInt() }
     }
@@ -358,11 +357,7 @@ internal fun RpgParser.DspecContext.toAst(
                 NumberType(elementSize!! - decimalPositions, decimalPositions)
             } else {
                 if (like != null) {
-                    if (!checkIfLikePresent(like, knownDataDefinitions) && compileTimeInterpreterParent != null) {
-                        compileTimeInterpreterParent.evaluateTypeOf(this.rContext(), like!!, conf)
-                    } else {
-                        compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
-                    }
+                    compileTimeInterpreter.evaluateTypeOf(this.rContext(), like!!, conf)
                 } else {
                     StringType.createInstance(elementSize!!, varying)
                 }
@@ -401,11 +396,7 @@ internal fun RpgParser.DspecContext.toAst(
         var compileTimeRecordsPerLine: Int? = null
         if (compileTimeArray) {
             if (elementsPerLineExpression != null) {
-                if (!checkIfLikePresent(like, knownDataDefinitions) && compileTimeInterpreterParent != null) {
-                    compileTimeRecordsPerLine = compileTimeInterpreterParent.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
-                } else {
-                    compileTimeRecordsPerLine = compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
-                }
+                compileTimeRecordsPerLine = compileTimeInterpreter.evaluate(this.rContext(), elementsPerLineExpression!!).asInt().value.toInt()
             } else {
                 compileTimeRecordsPerLine = 1
             }
@@ -413,23 +404,12 @@ internal fun RpgParser.DspecContext.toAst(
         }
 
         if (!baseType.isArray()) {
-            if (!checkIfLikePresent(like, knownDataDefinitions) && compileTimeInterpreterParent != null) {
-                ArrayType(baseType, compileTimeInterpreterParent.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
-                    it.ascend = ascend
-                }
-            } else {
-                ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
-                    it.ascend = ascend
-                }
+            ArrayType(baseType, compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(), compileTimeRecordsPerLine).also {
+                it.ascend = ascend
             }
         } else {
-            if (!checkIfLikePresent(like, knownDataDefinitions) && compileTimeInterpreterParent != null) {
-                val el = compileTimeInterpreterParent.evaluate(this.rContext(), dim!!).asInt().value.toInt()
-                (baseType as ArrayType).copy(nElements = el)
-            } else {
-                val el = compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt()
-                (baseType as ArrayType).copy(nElements = el)
-            }
+            val el = compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt()
+            (baseType as ArrayType).copy(nElements = el)
         }
     } else {
         baseType
@@ -440,12 +420,6 @@ internal fun RpgParser.DspecContext.toAst(
             initializationValue = initializationValue,
             position = this.toPosition(true)
         )
-}
-
-private fun checkIfLikePresent(like: AssignableExpression?, parentDataDefinitions: List<DataDefinition>): Boolean {
-    val name = if (like != null) (like as DataRefExpr).variable.name else ""
-    val present = if (name.isNotEmpty()) parentDataDefinitions.any { it.name == name } else false
-    return present
 }
 
 internal fun RpgParser.DspecConstantContext.toAst(

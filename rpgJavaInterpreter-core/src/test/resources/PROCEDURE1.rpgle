@@ -15,5 +15,10 @@
      Dp                               2  0
      Dq                               2  0
      Dr                               2  0
+     
+     D MSG             S             10
+
+     D MSG1            S                         LIKE(MSG)
+     
      C                   EVAL      r=p+q
      PCALL1            E
