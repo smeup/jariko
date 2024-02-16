@@ -360,13 +360,17 @@ open class InternalInterpreter(
                 }
             }
         }.onFailure {
-            if (!MainExecutionContext.getProgramStack().isEmpty()) {
-                MainExecutionContext.getProgramStack().peek().cu.source?.apply {
-                    System.err.println(it.message)
-                    System.err.println(this.dumpSource())
+            if (it is ReturnException) {
+                status.returnValue = it.returnValue
+            } else {
+                if (!MainExecutionContext.getProgramStack().isEmpty()) {
+                    MainExecutionContext.getProgramStack().peek().cu.source?.apply {
+                        System.err.println(it.message)
+                        System.err.println(this.dumpSource())
+                    }
                 }
+                throw it
             }
-            throw it
         }
     }
 
@@ -382,18 +386,14 @@ open class InternalInterpreter(
     }
 
     override fun execute(statements: List<Statement>) {
-        try {
-            var i = 0
-            while (i < statements.size) {
-                try {
-                    executeWithMute(statements[i++])
-                } catch (e: GotoException) {
-                    i = e.indexOfTaggedStatement(statements)
-                    if (i < 0 || i >= statements.size) throw e
-                }
+        var i = 0
+        while (i < statements.size) {
+            try {
+                executeWithMute(statements[i++])
+            } catch (e: GotoException) {
+                i = e.indexOfTaggedStatement(statements)
+                if (i < 0 || i >= statements.size) throw e
             }
-        } catch (e: ReturnException) {
-            status.returnValue = e.returnValue
         }
     }
 
