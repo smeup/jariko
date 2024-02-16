@@ -440,6 +440,12 @@ class ExpressionEvaluation(
     }
 
     override fun eval(expression: OffRefExpr) = BooleanValue.FALSE
+
+    override fun eval(expression: NegationExpr): DecimalValue {
+        val value = expression.value1.evalWith(this).asDecimal().value
+        return DecimalValue(-value)
+    }
+
     override fun eval(expression: IndicatorExpr): BooleanValue {
         // if index is passed through expression, it means that it is a dynamic indicator
         val runtimeIndex = expression.indexExpression?.evalWith(this)?.asInt()?.value?.toInt() ?: expression.index

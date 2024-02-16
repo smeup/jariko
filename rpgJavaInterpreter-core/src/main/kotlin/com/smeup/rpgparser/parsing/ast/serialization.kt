@@ -113,6 +113,7 @@ private val modules = SerializersModule {
         subclass(DiffExpr::class)
         subclass(DifferentThanExpr::class)
         subclass(DivExpr::class)
+        subclass(NegationExpr::class)
         subclass(EditcExpr::class)
         subclass(EditwExpr::class)
         subclass(EofExpr::class)
