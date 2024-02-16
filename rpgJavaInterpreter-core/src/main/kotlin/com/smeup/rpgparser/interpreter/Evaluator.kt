@@ -51,6 +51,7 @@ interface Evaluator {
     fun eval(expression: NotExpr): BooleanValue
     fun eval(expression: ScanExpr): Value
     fun eval(expression: SubstExpr): Value
+    fun eval(expression: CheckExpr): Value
     fun eval(expression: SubarrExpr): Value
     fun eval(expression: LenExpr): Value
     fun eval(expression: OffRefExpr): BooleanValue
