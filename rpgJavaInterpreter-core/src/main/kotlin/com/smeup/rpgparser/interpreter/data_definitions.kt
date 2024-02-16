@@ -48,8 +48,6 @@ abstract class AbstractDataDefinition(
      * */
     @Transient open val const: Boolean = false,
 
-    @Transient open val static: Boolean = false,
-
     /**
      * This scope. Default: got by current parsing entity
      * */
@@ -63,10 +61,7 @@ abstract class AbstractDataDefinition(
                 it.parsingFunctionNameStack.peek()
             } else null
         }
-        if (static)
-        {
-            Scope.Static
-        } else if (parsingFunction != null) {
+        if (parsingFunction != null) {
             Scope.Local
         } else Scope.Program
     }
@@ -196,15 +191,13 @@ data class DataDefinition(
     override var const: Boolean = false,
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
     var paramOptions: List<ParamOption> = mutableListOf(),
-    @Transient var defaultValue: Value? = null,
-    override val static: Boolean = false
+    @Transient var defaultValue: Value? = null
 ) :
     AbstractDataDefinition(
         name = name,
         type = type,
         position = position,
-        const = const,
-        static = static) {
+        const = const) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()

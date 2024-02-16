@@ -21,7 +21,6 @@ import com.smeup.dbnative.file.Record
 import com.smeup.rpgparser.execution.ErrorEvent
 import com.smeup.rpgparser.execution.ErrorEventSource
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.jvminterop.JavaSystemInterface
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.ast.AssignmentOperator.*
 import com.smeup.rpgparser.parsing.facade.SourceReference
@@ -88,20 +87,6 @@ open class InternalInterpreter(
 
     override fun getLocalizationContext(): LocalizationContext {
         return localizationContext
-    }
-
-    class StaticSymbolTable() {
-        companion object {
-            private var instance: ISymbolTable? = null
-            fun  getValue(systemInterface: SystemInterface): ISymbolTable {
-                if (instance == null) {
-                    instance = systemInterface.getFeaturesFactory().createSymbolTable()
-                } else {
-                    instance!!.initialized = true
-                }
-                return instance as ISymbolTable
-            }
-        }
     }
 
     private val globalSymbolTable = systemInterface.getFeaturesFactory().createSymbolTable()
@@ -176,7 +161,7 @@ open class InternalInterpreter(
                         // Added coerce
                         val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
                         dataStructValue.setSubstring(startOffset, startOffset + size,
-                                data.type.asArray().element.toDataStructureValue(valueToAssign))
+                            data.type.asArray().element.toDataStructureValue(valueToAssign))
                         startOffset += data.stepSize
                     }
                 } else {
@@ -240,7 +225,7 @@ open class InternalInterpreter(
                     value = when {
                         it.name in initialValues -> {
                             val initialValue = initialValues[it.name]
-                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                ?: throw RuntimeException("Initial values for ${it.name} not found")
                             if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
                                 require(initialValue.assignableTo(it.type)) {
                                     "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
@@ -284,12 +269,12 @@ open class InternalInterpreter(
                 val ctdata = compilationUnit.compileTimeArray(it.name)
                 if (ctdata.name == it.name) {
                     value = toArrayValue(
-                            compilationUnit.compileTimeArray(it.name),
-                            (it.type as ArrayType))
+                        compilationUnit.compileTimeArray(it.name),
+                        (it.type as ArrayType))
                     set(it, value)
                 }
 
-                if (value != null && ((!it.static) || (it.static && !this.globalSymbolTable.staticSymbolTable?.initialized!!))) {
+                if (value != null) {
                     set(it, coerce(value, it.type))
                     if (it is DataDefinition) {
                         try {

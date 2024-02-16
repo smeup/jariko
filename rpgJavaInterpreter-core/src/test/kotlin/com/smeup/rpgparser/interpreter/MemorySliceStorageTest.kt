@@ -33,8 +33,7 @@ val DEMO: Boolean = System.getenv("DEMO")?.toBoolean() ?: false
 private class SillySymbolTable : ISymbolTable {
 
     private val values = mutableMapOf<AbstractDataDefinition, Value>()
-    override var staticTable: ISymbolTable? = null
-    override var initialized: Boolean = false
+
     /**
      * @return true if SymbolTable contains a variable named dataName
      * */

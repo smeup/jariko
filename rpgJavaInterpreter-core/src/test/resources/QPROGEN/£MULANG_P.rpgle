@@ -2,7 +2,7 @@
      D £MUGTP          PI             5  0
      D XCA                           15    CONST
       *
-     D OSZ             S                   LIKE(XCF) STATIC
+     D OSZ             S                   LIKE(XCF)
       *
      C                   IF        OSZ=' '
      C                   EVAL      OSZ=XCA
