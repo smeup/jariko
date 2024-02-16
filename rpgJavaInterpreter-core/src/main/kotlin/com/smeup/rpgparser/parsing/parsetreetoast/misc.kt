@@ -526,8 +526,6 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
     // after them
     val dataDefinitionProviders: MutableList<DataDefinitionProvider> = LinkedList()
     val knownDataDefinitions = mutableMapOf<String, DataDefinition>()
-    // dataDefinitionProviders.addAll(parentDataDefinitions.map{ it.updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions) })
-    // parentDataDefinitions.forEach { knownDataDefinitions.addIfNotPresent(it)}
 
     // First pass ignore exception and all the know definitions
     dataDefinitionProviders.addAll(this.subprocedurestatement()

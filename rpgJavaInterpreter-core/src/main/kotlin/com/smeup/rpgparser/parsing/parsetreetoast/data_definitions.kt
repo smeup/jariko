@@ -283,6 +283,7 @@ internal fun RpgParser.DspecContext.toAst(
     if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
     val compileTimeInterpreter = InjectableCompileTimeInterpreter(
         knownDataDefinitions = knownDataDefinitions,
+        // If we have a parent data definition we can use it to resolve the variable through the delegate
         delegatedCompileTimeInterpreter = parentDataDefinitions?.let {
             InjectableCompileTimeInterpreter(
                 it,
