@@ -161,7 +161,7 @@ open class InternalInterpreter(
                         // Added coerce
                         val valueToAssign = coerce(value.asArray().getElement(i), data.type.asArray().element)
                         dataStructValue.setSubstring(startOffset, startOffset + size,
-                            data.type.asArray().element.toDataStructureValue(valueToAssign))
+                                data.type.asArray().element.toDataStructureValue(valueToAssign))
                         startOffset += data.stepSize
                     }
                 } else {
@@ -225,7 +225,7 @@ open class InternalInterpreter(
                     value = when {
                         it.name in initialValues -> {
                             val initialValue = initialValues[it.name]
-                                ?: throw RuntimeException("Initial values for ${it.name} not found")
+                                    ?: throw RuntimeException("Initial values for ${it.name} not found")
                             if (InterpreterConfiguration.enableRuntimeChecksOnAssignement) {
                                 require(initialValue.assignableTo(it.type)) {
                                     "Initial value for ${it.name} is not compatible. Passed $initialValue, type: ${it.type}"
@@ -269,8 +269,8 @@ open class InternalInterpreter(
                 val ctdata = compilationUnit.compileTimeArray(it.name)
                 if (ctdata.name == it.name) {
                     value = toArrayValue(
-                        compilationUnit.compileTimeArray(it.name),
-                        (it.type as ArrayType))
+                            compilationUnit.compileTimeArray(it.name),
+                            (it.type as ArrayType))
                     set(it, value)
                 }
 

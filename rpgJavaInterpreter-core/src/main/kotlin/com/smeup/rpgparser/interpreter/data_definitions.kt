@@ -47,7 +47,6 @@ abstract class AbstractDataDefinition(
      * true means this is a constant, default false
      * */
     @Transient open val const: Boolean = false,
-
     /**
      * This scope. Default: got by current parsing entity
      * */
