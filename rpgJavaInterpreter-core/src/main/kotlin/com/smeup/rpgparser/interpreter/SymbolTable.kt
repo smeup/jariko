@@ -100,8 +100,30 @@ class SymbolTable : ISymbolTable {
         require(data.type.canBeAssigned(value)) {
             "Value $value cannot be assigned to data: $data"
         }
-        names[data.name.uppercase()] = data
-        return values.put(data, value.forType(data.type))
+
+        if (data is FieldDefinition) {
+            val containerValue = get(data.container)
+            if (data.container.isArray()) {
+                throw IllegalStateException("We do not yet handle an array container")
+            } else if (data.declaredArrayInLine != null) {
+                ProjectedArrayValue.forData(containerValue as DataStructValue, data).container.set(data, value.forType(data.type))
+                return ProjectedArrayValue.forData(containerValue as DataStructValue, data)
+            } else {
+                // Should be always a DataStructValue
+                if (containerValue is DataStructValue) {
+                    containerValue.set(data, value.forType(data.type))
+                    return coerce(containerValue[data], data.type)
+                } else if (containerValue is OccurableDataStructValue) {
+                    containerValue.value().set(data, value.forType(data.type))
+                    return coerce(containerValue.value()[data], data.type)
+                } else {
+                    throw IllegalStateException("The container value is expected to be a DataStructValue, instead it is $containerValue")
+                }
+            }
+        } else {
+            names[data.name.uppercase()] = data
+            return values.put(data, value.forType(data.type))
+        }
     }
 
     override fun getValues(): Map<AbstractDataDefinition, Value> {

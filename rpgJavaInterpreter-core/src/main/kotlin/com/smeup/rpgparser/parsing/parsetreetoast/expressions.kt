@@ -1,6 +1,7 @@
 package com.smeup.rpgparser.parsing.parsetreetoast
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.RpgParser.ExpressionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.strumenta.kolasu.mapping.toPosition
 import com.strumenta.kolasu.model.Position
@@ -45,11 +46,23 @@ fun RpgParser.ExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfigurat
         this.DIV() != null -> DivExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.EXP() != null -> ExpExpr(this.expression(0).toAst(conf), this.expression(1).toAst(conf))
         this.indicator() != null -> this.indicator().toAst(conf)
+        this.unaryExpression() != null -> this.unaryExpression().toAst(conf)
         // FIXME it is rather ugly that we have to do this: we should get a different parse tree here
         this.children.size == 3 && this.children[0].text == "(" && this.children[2].text == ")"
                 && this.children[1] is RpgParser.ExpressionContext -> (this.children[1] as RpgParser.ExpressionContext).toAst(conf)
         else -> todo(conf = conf)
     }
+}
+
+internal fun RpgParser.UnaryExpressionContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Expression {
+    if (this.children.size > 0) {
+        return when {
+            this.children[0].text.equals("-") && this.children[1] is ExpressionContext -> NegationExpr((this.children[1] as ExpressionContext).toAst(conf))
+            else -> todo(conf = conf)
+        }
+    }
+
+    return todo(conf = conf)
 }
 
 internal fun RpgParser.IndicatorContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): IndicatorExpr {
