@@ -212,6 +212,16 @@ data class DivExpr(var left: Expression, var right: Expression, override val pos
 }
 
 @Serializable
+data class NegationExpr(
+    var value1: Expression,
+    override val position: Position? = null
+) :
+    Expression(position) {
+
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
+@Serializable
 data class ExpExpr(var left: Expression, var right: Expression, override val position: Position? = null) :
     Expression(position) {
     override fun render() = "${left.render()} ** ${right.render()}"

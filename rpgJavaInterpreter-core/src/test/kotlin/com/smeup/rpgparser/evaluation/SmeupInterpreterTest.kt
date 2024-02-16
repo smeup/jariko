@@ -321,6 +321,12 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT12_A03_P06() {
+        val expected = listOf<String>("LOOP:1,2,3,4")
+        assertEquals(expected, "smeup/T12_A03_P06".outputOf())
+    }
+
+    @Test
     fun executeT04_A15_P01() {
         val expected = listOf<String>(
             "P01_01(8)",
@@ -363,5 +369,24 @@ open class SmeupInterpreterTest : AbstractTest() {
         // assertASTCanBeProduced("smeup/T02_A70_P01",  printTree = true)
         val expected = listOf<String>("1", "2")
         assertEquals(expected, "smeup/T02_A70_P01".outputOf())
+    }
+
+    @Test
+    fun executeT12_A04_P07_12() {
+        val expected = listOf<String>(
+            "CNT(100001)",
+            "CNT(100000)",
+            "CNT(100001)",
+            "CNT(100000)",
+            "CNT(100001)",
+            "CNT(100000)"
+        )
+        assertEquals(expected, "smeup/T12_A04_P07_12".outputOf())
+    }
+
+    @Test
+    fun executeT02_A60_P03() {
+        val expected = listOf<String>("Res(-A)=-10 Res( -A)= -10")
+        assertEquals(expected, "smeup/T02_A60_P03".outputOf())
     }
 }

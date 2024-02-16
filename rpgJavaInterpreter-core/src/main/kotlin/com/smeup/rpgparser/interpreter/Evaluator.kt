@@ -61,6 +61,7 @@ interface Evaluator {
     fun eval(expression: EditcExpr): Value
     fun eval(expression: DiffExpr): Value
     fun eval(expression: DivExpr): Value
+    fun eval(expression: NegationExpr): Value
     fun eval(expression: ExpExpr): Value
     fun eval(expression: TrimrExpr): Value
     fun eval(expression: TrimlExpr): Value
