@@ -116,7 +116,7 @@ private fun RContext.getDataDefinitions(
                 when {
                     it.dspec() != null -> {
                         it.dspec()
-                            .toAst(conf, knownDataDefinitions.values.toList(), null)
+                            .toAst(conf, knownDataDefinitions.values.toList())
                             .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     }
                     it.dcl_c() != null -> {

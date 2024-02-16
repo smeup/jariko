@@ -277,7 +277,7 @@ internal fun RpgParser.Parm_fixedContext.toAst(
 internal fun RpgParser.DspecContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
     knownDataDefinitions: List<DataDefinition>,
-    parentDataDefinitions: List<DataDefinition>?
+    parentDataDefinitions: List<DataDefinition>? = null
 ): DataDefinition {
 
     if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
