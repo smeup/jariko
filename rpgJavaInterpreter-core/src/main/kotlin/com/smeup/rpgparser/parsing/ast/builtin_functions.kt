@@ -50,6 +50,17 @@ data class ScanExpr(
     override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
 }
 
+// %CHECK
+@Serializable
+data class CheckExpr(
+    var value: Expression,
+    val source: Expression,
+    val start: Expression? = null,
+    override val position: Position? = null
+) : Expression(position) {
+    override fun evalWith(evaluator: Evaluator): Value = evaluator.eval(this)
+}
+
 // %XLATE
 @Serializable
 data class TranslateExpr(

@@ -262,6 +262,45 @@ class DoStatemenExecutionLogEnd(programName: String, val statement: DoStmt, val 
     }
 }
 
+class DOWxxStatementExecutionLogStart(programName: String, val statement: DOWxxStmt) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing DOWxx LOOP"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "DOW${statement.comparisonOperator.symbol} LOOP START${sep}${statement.comparisonOperator}${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}"
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+
+    override fun renderLoop(channel: String, filename: String, sep: String): String {
+        val data = "DOW${statement.comparisonOperator.symbol} LOOP START${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}"
+
+        return renderHeader(channel, filename, statement.startLine(), sep) + data
+    }
+}
+
+class DOWxxStatementExecutionLogEnd(programName: String, val statement: DOWxxStmt, val elapsed: Long) : LogEntry(programName) {
+    override fun toString(): String {
+        return "ending DOWxx LOOP"
+    }
+
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, statement.endLine(), sep) + "DOWxx LOOP END"
+    }
+
+    override fun renderPerformance(channel: String, filename: String, sep: String): String {
+        val data = "DOW${statement.comparisonOperator.symbol} LOOP END${sep}${statement.comparisonOperator}${sep}LEFT: ${statement.factor1.render()}/RIGHT ${statement.factor2.render()}${sep}${elapsed}${sep}ms"
+
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+    override fun renderLoop(channel: String, filename: String, sep: String): String {
+        val data = "DOW${statement.comparisonOperator.symbol} LOOP END"
+
+        return renderHeader(channel, filename, statement.endLine(), sep) + data
+    }
+}
+
 class DouStatemenExecutionLogStart(programName: String, val statement: DouStmt) : LogEntry(programName) {
     override fun toString(): String {
         return "executing DOU LOOP"
