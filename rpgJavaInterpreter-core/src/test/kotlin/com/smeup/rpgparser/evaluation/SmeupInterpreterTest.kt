@@ -321,6 +321,12 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT12_A03_P06() {
+        val expected = listOf<String>("LOOP:1,2,3,4")
+        assertEquals(expected, "smeup/T12_A03_P06".outputOf())
+    }
+
+    @Test
     fun executeT04_A15_P01() {
         val expected = listOf<String>(
             "P01_01(8)",
