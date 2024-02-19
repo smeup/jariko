@@ -384,8 +384,8 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeT02_A50_P5() {
+    fun executeT02_A50_P05() {
         val expected = listOf<String>("£C5")
-        assertEquals(expected, "smeup/T02_A50_P5".outputOf(configuration = smeupConfig))
+        assertEquals(expected, "smeup/T02_A50_P05".outputOf(configuration = smeupConfig))
     }
 }

@@ -705,7 +705,11 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: C
     val caughtErrors = mutableListOf<Throwable>()
     val fieldsList = FieldsList(this.parm_fixed().mapNotNull {
         kotlin.runCatching {
-            it.toFieldInfo(knownDataDefinitions = knownDataDefinitions)
+            if (it.keyword().map { keyword -> keyword.keyword_like() }.firstOrNull() != null) {
+                it.toFieldInfoWithExtName(knownDataDefinitions = knownDataDefinitions)
+            } else {
+                it.toFieldInfo(knownDataDefinitions = knownDataDefinitions)
+            }
         }.onFailure {
             caughtErrors.add(it)
         }.getOrNull()
@@ -777,6 +781,41 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
             initializationValue = initializationValue,
             descend = descend,
             position = this.toPosition(conf.considerPosition))
+}
+
+private fun RpgParser.Parm_fixedContext.toFieldInfoWithExtName(conf: ToAstConfiguration = ToAstConfiguration(), knownDataDefinitions: Collection<DataDefinition>): FieldInfo {
+    val keywordLike = this.keyword().first { it.keyword_like() != null }.keyword_like()
+    val like = keywordLike.simpleExpression().toAst(conf) as DataRefExpr
+    val descend = this.keyword().find { it.keyword_descend() != null } != null
+
+    var initializationValue: Expression? = null
+    val hasInitValue = this.keyword().find { it.keyword_inz() != null }
+    if (hasInitValue != null) {
+        if (hasInitValue.keyword_inz().simpleExpression() != null) {
+            initializationValue = hasInitValue.keyword_inz().simpleExpression()?.toAst(conf) as Expression
+        } else {
+            initializationValue = if (null != this.toTypeInfo().decimalPositions) {
+                RealLiteral(BigDecimal.ZERO, position = toPosition())
+            } else {
+                StringLiteral("", position = toPosition())
+            }
+        }
+    } else {
+        this.toDSFieldInitKeyword(conf = conf)?.apply {
+            initializationValue = this.toAst()
+        }
+    }
+
+    val arraySizeDeclared = this.arraySizeDeclared(conf)
+    return FieldInfo(this.name,
+        explicitStartOffset = this.explicitStartOffset(),
+        explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
+        explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf) ?: knownDataDefinitions.firstOrNull { it.name.equals(like.variable.name, ignoreCase = true) }?.type,
+        arraySizeDeclared = this.arraySizeDeclared(conf),
+        arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
+        initializationValue = initializationValue,
+        descend = descend,
+        position = this.toPosition(conf.considerPosition))
 }
 
 fun RpgParser.Dcl_dsContext.declaredSize(): Int? {

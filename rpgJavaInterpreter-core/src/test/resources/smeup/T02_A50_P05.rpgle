@@ -5,6 +5,6 @@
      D K_N§TINC                            LIKE(N§TINC)
       *
      C                   EVAL      K_N§TINC='£C5'
-     C     £DBG_Str      DSPLY
+     C     K_N§TINC      DSPLY
       *
      C                   SETON                                          LR
