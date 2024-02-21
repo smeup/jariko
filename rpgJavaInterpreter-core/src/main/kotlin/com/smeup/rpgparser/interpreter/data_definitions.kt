@@ -61,7 +61,7 @@ abstract class AbstractDataDefinition(
             } else null
         }
         if (parsingFunction != null) {
-            Scope.Local
+            if (static) Scope.static(parsingFunction) else Scope.Local
         } else Scope.Program
     },
     @Transient open val static: Boolean = false
@@ -784,6 +784,34 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     }
 }
 
-enum class Scope {
+enum class Visibility {
     Program, Static, Local
+}
+
+@Serializable
+class Scope {
+
+    val visibility: Visibility
+    val reference: String?
+
+    private constructor(visibility: Visibility, reference: String? = null) {
+        this.visibility = visibility
+        this.reference = reference
+    }
+
+    companion object {
+        /**
+         * Create a new program scope
+         * */
+        val Program = Scope(visibility = Visibility.Program)
+        /**
+         * Create a new local scope
+         * */
+        val Local = Scope(visibility = Visibility.Local)
+        /**
+         * Create a new static scope
+         * @param procedureName The procedure name
+         */
+        fun static(procedureName: String) = Scope(visibility = Visibility.Static, reference = procedureName)
+    }
 }

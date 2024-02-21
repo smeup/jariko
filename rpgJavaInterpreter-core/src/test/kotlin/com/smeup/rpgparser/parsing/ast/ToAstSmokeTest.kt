@@ -19,6 +19,7 @@ package com.smeup.rpgparser.parsing.ast
 import com.smeup.rpgparser.AbstractTest
 import com.smeup.rpgparser.interpreter.DataStructureType
 import com.smeup.rpgparser.interpreter.Scope
+import com.smeup.rpgparser.interpreter.Visibility
 import com.smeup.rpgparser.parsing.parsetreetoast.DSFieldInitKeywordType
 import com.smeup.rpgparser.parsing.parsetreetoast.resolveAndValidate
 import org.junit.Ignore
@@ -267,7 +268,7 @@ open class ToAstSmokeTest : AbstractTest() {
         mainProgramCu.apply {
             // we must have none variable with scope: Scope.Local or Scope.Static
             val none = this.allDataDefinitions.filter {
-                it.scope == Scope.Local || it.scope == Scope.Static
+                it.scope == Scope.Local || it.scope.visibility == Visibility.Static
             }.none()
             assertTrue(none)
         }
