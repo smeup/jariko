@@ -1888,6 +1888,25 @@ Test 6
         )
     }
 
+    /**
+     * When I call a program that call procedure, the static variables not have to be reset
+     * */
+    @Test
+    fun executePROCEDURE_T_More_Times() {
+        // Initialize the configuration with a memory storage in order to keep the static variables
+        val configuration = Configuration(
+            memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        )
+        assertEquals(
+            expected = listOf("33", "34"),
+            actual = "PROCEDURE_T".outputOf(configuration = configuration)
+        )
+        assertEquals(
+            expected = listOf("35", "36"),
+            actual = "PROCEDURE_T".outputOf(configuration = configuration)
+        )
+    }
+
     @Test
     fun executeAPIPGM1() {
         assertEquals(
