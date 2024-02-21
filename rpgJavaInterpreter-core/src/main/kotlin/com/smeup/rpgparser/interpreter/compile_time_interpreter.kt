@@ -139,35 +139,41 @@ open class BaseCompileTimeInterpreter(
             val field = it.fields.find { it.name.equals(declName, ignoreCase = true) }
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
-        rContext.statement()
-                .forEach {
-                    when {
-                        it.dspec() != null -> {
-                            val name = it.dspec().ds_name().text
-                            if (name == declName) {
-                                // TODO verify...
-                                return it.dspec().TO_POSITION().text.asInt()
-                            }
-                        }
-                        it.cspec_fixed() != null -> {
-                            val statement = it.cspec_fixed().cspec_fixed_standard().toAst(conf)
-                            if (statement is StatementThatCanDefineData) {
-                                val dataDefinition = (statement as StatementThatCanDefineData).dataDefinition()
-                                dataDefinition.forEach {
-                                    if (it.name.asValue().value == declName) {
-                                        return it.type.size
-                                    }
-                                }
-                            }
-                        }
-                        it.dcl_ds() != null -> {
-                            val name = it.dcl_ds().name
-                            if (name == declName) {
-                                return it.dcl_ds().elementSizeOf(knownDataDefinitions)
+        return findSize(rContext.statement(), declName, conf)
+    }
+
+    private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration): Int {
+        statements.forEach {
+            when {
+                it.dspec() != null -> {
+                    val name = it.dspec().ds_name().text
+                    if (name == declName) {
+                        // TODO verify...
+                        return it.dspec().TO_POSITION().text.asInt()
+                    }
+                }
+                it.cspec_fixed() != null -> {
+                    val statement = it.cspec_fixed().cspec_fixed_standard().toAst(conf)
+                    if (statement is StatementThatCanDefineData) {
+                        val dataDefinition = (statement as StatementThatCanDefineData).dataDefinition()
+                        dataDefinition.forEach {
+                            if (it.name.asValue().value == declName) {
+                                return it.type.size
                             }
                         }
                     }
                 }
+                it.dcl_ds() != null -> {
+                    val name = it.dcl_ds().name
+                    if (name == declName) {
+                        return it.dcl_ds().elementSizeOf(knownDataDefinitions)
+                    }
+                }
+                it.block() != null -> {
+                    return findSize(it.block().ifstatement().statement(), declName, conf)
+                }
+            }
+        }
         throw NotFoundAtCompileTimeException(declName)
     }
 
@@ -215,7 +221,11 @@ open class BaseCompileTimeInterpreter(
                 return field.type
             }
         }
-        rContext.statement()
+        return findType(rContext.statement(), declName, conf)
+    }
+
+    private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration): Type {
+        statements
             .forEach {
                 when {
                     it.cspec_fixed() != null -> {
@@ -225,6 +235,9 @@ open class BaseCompileTimeInterpreter(
                                 return it.type
                             }
                         }
+                    }
+                    it.block() != null -> {
+                        return findType(it.block().ifstatement().statement(), declName, conf)
                     }
                 }
             }

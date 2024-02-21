@@ -7,7 +7,7 @@
      C                   MOVEL(P)  '3'           $G79FU
      C                   MOVEL(P)  '4'           $G79ME
       *
-     C                   MOVEL(P)  'T02_A50_P08' AAA010           10
+     C                   MOVEL(P)  'T02_A50_P07B'AAA010           10
      C                   IF        '1' = '1'
      C                   CALL      AAA010                               37
      C                   PARM                    £G79FU           10
