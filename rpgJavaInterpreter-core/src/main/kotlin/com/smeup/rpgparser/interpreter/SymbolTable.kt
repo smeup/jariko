@@ -29,7 +29,7 @@ class SymbolTable : ISymbolTable {
         return when (data.scope.visibility) {
             Visibility.Program -> (programSymbolTable as SymbolTable).getLocal(data)
             Visibility.Local -> getLocal(data)
-            Visibility.Static -> TODO()
+            Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).getLocal(data)
         }
     }
 
@@ -86,7 +86,7 @@ class SymbolTable : ISymbolTable {
         return when (data.scope.visibility) {
             Visibility.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
             Visibility.Local -> setLocal(data, value)
-            Visibility.Static -> TODO()
+            Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).setLocal(data, value)
         }
     }
 
