@@ -1935,7 +1935,6 @@ internal fun CsREADCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     return ExfmtStmt(position)
 }
 
-
 /**
  * Run a block. In case of error throws an error encapsulating useful information
  * like node position
