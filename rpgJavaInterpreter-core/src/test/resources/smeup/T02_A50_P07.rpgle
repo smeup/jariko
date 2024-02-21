@@ -1,25 +1,46 @@
      D £DBG_Str        S             10
-     D $G79FU          S                   LIKE(£G79FU)
-     D $G79ME          S                   LIKE(£G79ME)
+     D $VARIF          S                   LIKE(£VARIF)
+     D $VARDOW         S                   LIKE(£VARDOW)
+     D $VARSL          S                   LIKE(£VARSL)
+     D $VARFOR         S                   LIKE(£VARFOR)
+     D IND             S              1  0
       *
-     C                   MOVEL(P)  '1'           £G79FU
-     C                   MOVEL(P)  '2'           £G79ME
-     C                   MOVEL(P)  '3'           $G79FU
-     C                   MOVEL(P)  '4'           $G79ME
-      *
-     C                   MOVEL(P)  'T02_A50_P07B'AAA010           10
+     C                   MOVEL(P)  '1'           $VARIF
+     C                   MOVEL(P)  '2'           $VARDOW
+     C                   MOVEL(P)  '3'           $VARSL
+     C                   MOVEL(P)  '4'           $VARFOR
+      * test IF
      C                   IF        '1' = '1'
-     C                   CALL      AAA010                               37
-     C                   PARM                    £G79FU           10
-     C                   PARM                    £G79ME           10
-     C                   PARM                    $G79FU
-     C                   PARM                    $G79ME
+     C                   MOVEL(P)  '1'           £VARIF           10
      C                   ENDIF
+      * test DOW
+     C                   EVAL      IND=1
+     C     IND           DOWEQ     1
+     C                   MOVEL(P)  '2'           £VARDOW          10
+     C                   EVAL      IND=2
+     C                   ENDDO
+      * test SELECT
+     C                   SELECT
+     C                   WHEN      IND = 2
+     C                   MOVEL(P)  '3'           £VARSL           10
+     C                   OTHER
+     C                   MOVEL(P)  ' '           £VARSL           10
+     C                   ENDSL
+      * test FOR
+     C                   FOR       IND = 0 TO 1
+     C                   MOVEL(P)  '4'           £VARFOR          10
+     C                   ENDFOR
+      ******
+     C                   EVAL      £DBG_Str=%trim(£VARIF)+','+
+     C                                      %trim(£VARDOW)+','+
+     C                                      %trim(£VARSL)+','+
+     C                                      %trim(£VARFOR)
+     C     £DBG_Str      DSPLY
       *
-     C                   EVAL      £DBG_Str=%trim(£G79FU)+','+
-     C                                      %trim(£G79ME)+','+
-     C                                      %trim($G79FU)+','+
-     C                                      %trim($G79ME)
+     C                   EVAL      £DBG_Str=%trim($VARIF)+','+
+     C                                      %trim($VARDOW)+','+
+     C                                      %trim($VARSL)+','+
+     C                                      %trim($VARFOR)
      C     £DBG_Str      DSPLY
       *
      C                   SETON                                          LR

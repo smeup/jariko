@@ -139,10 +139,10 @@ open class BaseCompileTimeInterpreter(
             val field = it.fields.find { it.name.equals(declName, ignoreCase = true) }
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
-        return findSize(rContext.statement(), declName, conf)
+        return findSize(rContext.statement(), declName, conf, false)!!
     }
 
-    private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration): Int {
+    private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Int? {
         statements.forEach {
             when {
                 it.dspec() != null -> {
@@ -170,11 +170,33 @@ open class BaseCompileTimeInterpreter(
                     }
                 }
                 it.block() != null -> {
-                    return findSize(it.block().ifstatement().statement(), declName, conf)
+                    when {
+                        it.block().ifstatement() != null -> {
+                            val size = findSize(it.block().ifstatement().statement(), declName, conf)
+                            if (size != null) return size
+                        }
+                        it.block().forstatement() != null -> {
+                            val size = findSize(it.block().forstatement().statement(), declName, conf)
+                            if (size != null) return size
+                        }
+                        it.block().selectstatement() != null -> {
+                            it.block().selectstatement().whenstatement().forEach() { sl ->
+                                val size = findSize(sl.statement(), declName, conf)
+                                if (size != null) return size
+                            }
+                        }
+                        it.block().csDOWxx() != null || it.block().csDOUxx() != null -> {
+                            val size = findSize(it.block().statement(), declName, conf)
+                            if (size != null) return size
+                        }
+                    }
                 }
             }
         }
-        throw NotFoundAtCompileTimeException(declName)
+        if (innerBlock)
+            return null
+        else
+            throw NotFoundAtCompileTimeException(declName)
     }
 
     override fun evaluateElementSizeOf(rContext: RpgParser.RContext, expression: Expression, conf: ToAstConfiguration): Int {
@@ -221,26 +243,52 @@ open class BaseCompileTimeInterpreter(
                 return field.type
             }
         }
-        return findType(rContext.statement(), declName, conf)
+        return findType(rContext.statement(), declName, conf, false)!!
     }
 
-    private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration): Type {
+    private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {
         statements
             .forEach {
                 when {
                     it.cspec_fixed() != null -> {
-                        val dataDefinition = (it.cspec_fixed().cspec_fixed_standard().toAst(conf) as StatementThatCanDefineData).dataDefinition()
-                        dataDefinition.forEach {
-                            if (it.name.asValue().value == declName) {
-                                return it.type
+                        val ast = it.cspec_fixed().cspec_fixed_standard().toAst(conf)
+                        if (ast is StatementThatCanDefineData) {
+                            val dataDefinition = (ast as StatementThatCanDefineData).dataDefinition()
+                            dataDefinition.forEach {
+                                if (it.name.asValue().value == declName) {
+                                    return it.type
+                                }
                             }
                         }
                     }
                     it.block() != null -> {
-                        return findType(it.block().ifstatement().statement(), declName, conf)
+                        when {
+                            it.block().ifstatement() != null -> {
+                                val type = findType(it.block().ifstatement().statement(), declName, conf)
+                                if (type != null) return type
+                            }
+                            it.block().forstatement() != null -> {
+                                val type = findType(it.block().forstatement().statement(), declName, conf)
+                                if (type != null) return type
+                            }
+                            it.block().selectstatement() != null -> {
+                                it.block().selectstatement().whenstatement().forEach() { sl ->
+                                    val type = findType(sl.statement(), declName, conf)
+                                    if (type != null) return type
+                                }
+                            }
+                            it.block().csDOWxx() != null || it.block().csDOUxx() != null -> {
+                                val type = findType(it.block().statement(), declName, conf)
+                                if (type != null) return type
+                            }
+                        }
                     }
                 }
             }
-        throw NotFoundAtCompileTimeException(declName)
+        if (innerBlock) {
+            return null
+        } else {
+            throw NotFoundAtCompileTimeException(declName)
+        }
     }
 }
