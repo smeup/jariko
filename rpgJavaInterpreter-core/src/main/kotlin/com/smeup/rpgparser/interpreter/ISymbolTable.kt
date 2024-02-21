@@ -42,14 +42,17 @@ interface ISymbolTable {
         }
 
     /**
-     * Get the static symbol table. This symbol table is shared among all the procedures during the main execution.
-     * */
-    val staticSymbolTable: ISymbolTable
-        get() {
-            return MainExecutionContext.getAttributes().computeIfAbsent("staticSymbolTable") {
-                SymbolTable()
-            } as SymbolTable
-        }
+     * Get the static symbol table for a procedure
+     * @param procedureName the name of the procedure
+     * @return the static symbol table for a procedure
+     */
+    fun getStaticSymbolTable(procedureName: String): ISymbolTable {
+        return MainExecutionContext.getAttributes().computeIfAbsent(
+            "ISymbolTable.staticSymbolTable.${procedureName.uppercase()}"
+        ) {
+            SymbolTable()
+        } as SymbolTable
+    }
 
     /**
      * @return true if SymbolTable contains a variable named dataName
