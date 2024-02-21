@@ -16,6 +16,7 @@
 
 package com.smeup.rpgparser.interpreter
 
+import com.smeup.rpgparser.execution.MainExecutionContext
 import java.math.BigDecimal
 
 interface ISymbolTable {
@@ -38,6 +39,16 @@ interface ISymbolTable {
                 }
                 rootSymbolTable
             }
+        }
+
+    /**
+     * Get the static symbol table. This symbol table is shared among all the procedures during the main execution.
+     * */
+    val staticSymbolTable: ISymbolTable
+        get() {
+            return MainExecutionContext.getAttributes().computeIfAbsent("staticSymbolTable") {
+                SymbolTable()
+            } as SymbolTable
         }
 
     /**
