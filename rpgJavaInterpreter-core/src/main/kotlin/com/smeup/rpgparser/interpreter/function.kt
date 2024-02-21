@@ -202,6 +202,8 @@ private fun getProcedureUnit(functionName: String): CompilationUnit {
 
 private class FunctionInterpreter(systemInterface: SystemInterface, private val procedureName: String?) : InternalInterpreter(systemInterface = systemInterface) {
 
+    private var initializing = false
+
     override fun getMemorySliceId(): MemorySliceId? {
         val memorySliceId = super.getMemorySliceId()
         return memorySliceId?.copy(programName = "${memorySliceId.programName}.$procedureName")
@@ -212,5 +214,28 @@ private class FunctionInterpreter(systemInterface: SystemInterface, private val 
     @Deprecated("No longer used")
     override fun fireOnEnterPgmCallBackFunction() {
         // here I do nothing because I am not a program
+    }
+
+    override fun beforeInitialization() {
+        initializing = true
+        super.beforeInitialization()
+    }
+
+    override fun afterInitialization(initialValues: Map<String, Value>) {
+        super.afterInitialization(initialValues)
+        initializing = false
+    }
+
+    override fun set(data: AbstractDataDefinition, value: Value) {
+        // if jariko is initializing and data is static, I must check if data is already present in static symbol table
+        // if not, I can set it else not because static data must be initialized only once
+        if (initializing && data.static) {
+            val staticSymbolTable = getGlobalSymbolTable().getStaticSymbolTable(data.scope.reference!!)
+            if (!staticSymbolTable.contains(data.name)) {
+                super.set(data, value)
+            }
+        } else {
+            super.set(data, value)
+        }
     }
 }
