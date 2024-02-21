@@ -63,7 +63,8 @@ abstract class AbstractDataDefinition(
         if (parsingFunction != null) {
             Scope.Local
         } else Scope.Program
-    }
+    },
+    @Transient open val static: Boolean = false
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
@@ -190,13 +191,15 @@ data class DataDefinition(
     override var const: Boolean = false,
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
     var paramOptions: List<ParamOption> = mutableListOf(),
-    @Transient var defaultValue: Value? = null
+    @Transient var defaultValue: Value? = null,
+    override val static: Boolean = false
 ) :
     AbstractDataDefinition(
         name = name,
         type = type,
         position = position,
-        const = const) {
+        const = const,
+        static = static) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
