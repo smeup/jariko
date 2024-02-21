@@ -140,7 +140,7 @@ open class InternalInterpreter(
 
     override operator fun get(dataName: String) = globalSymbolTable[dataName]
 
-    operator fun set(data: AbstractDataDefinition, value: Value) {
+    open operator fun set(data: AbstractDataDefinition, value: Value) {
         require(data.canBeAssigned(value)) {
             "${data.name} of type ${data.type} defined at line ${data.position.line()} cannot be assigned the value $value"
         }
@@ -219,6 +219,7 @@ open class InternalInterpreter(
         // symboltable goes empty when program exits in LR mode so, it is always needed reinitialize, in these
         // circumstances is correct reinitialization
         if (reinitialization || globalSymbolTable.isEmpty()) {
+            beforeInitialization()
             compilationUnit.allDataDefinitions.forEach {
                 var value: Value? = null
                 if (it is DataDefinition) {
@@ -982,7 +983,15 @@ open class InternalInterpreter(
      * */
     open fun getMemorySliceMgr(): MemorySliceMgr? = MainExecutionContext.getMemorySliceMgr()
 
-    private fun afterInitialization(initialValues: Map<String, Value>) {
+    /**
+     * This function is called before the initialization of the interpreter.
+     * */
+    open fun beforeInitialization() {}
+
+    /**
+     * This function is called after the initialization of the interpreter.
+     * */
+    open fun afterInitialization(initialValues: Map<String, Value>) {
         getMemorySliceId()?.let { memorySliceId ->
             getMemorySliceMgr()?.let {
                 MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = it.associate(
