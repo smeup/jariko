@@ -1893,3 +1893,12 @@ data class ResetStmt(
         interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
     }
 }
+
+@Serializable
+data class ExfmtStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}

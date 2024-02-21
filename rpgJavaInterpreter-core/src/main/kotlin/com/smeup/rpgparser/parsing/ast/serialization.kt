@@ -81,6 +81,7 @@ private val modules = SerializersModule {
         subclass(ReadPreviousEqualStmt::class)
         subclass(ReadStmt::class)
         subclass(ResetStmt::class)
+        subclass(ExfmtStmt::class)
         subclass(ReturnStmt::class)
         subclass(ScanStmt::class)
         subclass(SelectStmt::class)
