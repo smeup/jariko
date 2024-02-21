@@ -1902,3 +1902,12 @@ data class ExfmtStmt(
         // TODO
     }
 }
+
+@Serializable
+data class ReadcStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
