@@ -38,4 +38,10 @@ class VideoInterpeterTest : AbstractTest() {
         val expected = listOf("")
         assertEquals(expected = expected, actual = "video/EXFMT_MOCK".outputOf(configuration = configuration))
     }
+
+    @Test
+    fun executeREADC_MOCK() {
+        val expected = listOf("")
+        assertEquals(expected = expected, actual = "video/READC_MOCK".outputOf(configuration = configuration))
+    }
 }
