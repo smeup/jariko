@@ -24,6 +24,6 @@
       *
      DVSTAT            S              2  0       STATIC
       *
-     C                   EVAL      VSTAT=VSTAT+1
      C                   EVAL      R=P+Q+VSTAT
+     C                   EVAL      VSTAT=VSTAT+1
      PPPRCST           E
