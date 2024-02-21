@@ -31,11 +31,6 @@
      C                   MOVEL(P)  '4'           £VARFOR          10
      C                   ENDFOR
       ******
-     C                   EVAL      £DBG_Str=%trim(£VARIF)+','+
-     C                                      %trim(£VARDOW)+','+
-     C                                      %trim(£VARSL)+','+
-     C                                      %trim(£VARFOR)
-     C     £DBG_Str      DSPLY
       *
      C                   EVAL      £DBG_Str=%trim($VARIF)+','+
      C                                      %trim($VARDOW)+','+

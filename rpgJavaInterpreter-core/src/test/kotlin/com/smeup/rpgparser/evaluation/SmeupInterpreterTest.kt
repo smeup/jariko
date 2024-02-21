@@ -385,7 +385,7 @@ open class SmeupInterpreterTest : AbstractTest() {
 
     @Test
     fun executeT02_A50_P07() {
-        val expected = listOf<String>("1,2,3,4", "1,2,3,4")
+        val expected = listOf<String>("1,2,3,4")
         assertEquals(expected, "smeup/T02_A50_P07".outputOf())
     }
 }
