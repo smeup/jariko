@@ -348,4 +348,17 @@ open class ToAstSmokeTest : AbstractTest() {
             resolveAndValidate()
         }
     }
+
+    @Test
+    fun buildAstForPROCEDURE_T() {
+        assertASTCanBeProduced(exampleName = "PROCEDURE_T", printTree = false).apply {
+            resolveAndValidate()
+            this.procedures!!.forEach { procedureAst ->
+                procedureAst.resolveAndValidate()
+                procedureAst.getDataDefinition("VSTAT").apply {
+                    assertEquals(expected = true, actual = this.static, message = "VSTAT must be static")
+                }
+            }
+        }
+    }
 }
