@@ -1882,9 +1882,9 @@ Test 6
 
     @Test
     fun executePROCEDURE_T() {
-        // TODO expected is to verify in AS4000
+        // TODO expected is to verify in AS400
         assertEquals(
-            expected = listOf("33, 34"),
+            expected = listOf("33", "34"),
             actual = "PROCEDURE_T".outputOf()
         )
     }
