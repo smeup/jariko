@@ -919,6 +919,9 @@ internal fun Cspec_fixed_standardContext.toAst(conf: ToAstConfiguration = ToAstC
         this.csREADC() != null -> this.csREADC()
             .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
 
+        this.csUNLOCK() != null -> this.csUNLOCK()
+            .let { it.cspec_fixed_standard_parts().validate(stmt = it.toAst(conf), conf = conf) }
+
         else -> todo(conf = conf)
     }
 }
@@ -1932,8 +1935,12 @@ internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 // TODO
 internal fun CsREADCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
-    return ExfmtStmt(position)
     return ReadcStmt(position)
+}
+
+// TODO
+internal fun CsUNLOCKContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
+    val position = toPosition(conf.considerPosition)
     return UnlockStmt(position)
 }
 

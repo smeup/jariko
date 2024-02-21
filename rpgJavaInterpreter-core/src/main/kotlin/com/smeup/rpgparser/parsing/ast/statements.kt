@@ -1911,3 +1911,12 @@ data class ReadcStmt(
         // TODO
     }
 }
+
+@Serializable
+data class UnlockStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
