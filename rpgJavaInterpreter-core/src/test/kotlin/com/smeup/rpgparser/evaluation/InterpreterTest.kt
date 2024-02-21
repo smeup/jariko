@@ -1881,6 +1881,15 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_T() {
+        // TODO expected is to verify in AS4000
+        assertEquals(
+            expected = listOf("33, 34"),
+            actual = "PROCEDURE_T".outputOf()
+        )
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
