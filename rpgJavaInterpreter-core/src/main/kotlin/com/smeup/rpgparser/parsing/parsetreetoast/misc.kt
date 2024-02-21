@@ -1933,6 +1933,8 @@ internal fun CsEXFMTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 internal fun CsREADCContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): Statement {
     val position = toPosition(conf.considerPosition)
     return ExfmtStmt(position)
+    return ReadcStmt(position)
+    return UnlockStmt(position)
 }
 
 /**
