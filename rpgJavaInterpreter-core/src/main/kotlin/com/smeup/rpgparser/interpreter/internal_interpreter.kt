@@ -974,9 +974,6 @@ open class InternalInterpreter(
         }
     }
 
-    // Memory slice context attribute name must to be also string representation of MemorySliceId
-    private fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
-
     /**
      * @return an instance of MemorySliceMgr, return null to disable serialization/deserialization
      * of symboltable
@@ -992,20 +989,7 @@ open class InternalInterpreter(
      * This function is called after the initialization of the interpreter.
      * */
     open fun afterInitialization(initialValues: Map<String, Value>) {
-        getMemorySliceId()?.let { memorySliceId ->
-            getMemorySliceMgr()?.let {
-                MainExecutionContext.getAttributes()[memorySliceId.getAttributeKey()] = it.associate(
-                    memorySliceId = memorySliceId,
-                    symbolTable = globalSymbolTable,
-                    initSymbolTableEntry = { dataDefinition, storedValue ->
-                        // initial values have not to be overwritten
-                        if (!initialValues.containsKey(dataDefinition.name)) {
-                            globalSymbolTable[dataDefinition] = storedValue
-                        }
-                    }
-                )
-            }
-        }
+        globalSymbolTable.restoreFromMemorySlice(getMemorySliceId(), getMemorySliceMgr(), initialValues)
     }
 
     private fun isExitingInRTMode(): Boolean {
@@ -1025,7 +1009,7 @@ open class InternalInterpreter(
     // I had to introduce this function, which will be called from external, because symbol table cleaning before exits
     // could make failing RpgProgram.execute.
     // The failure depends on whether that the initialvalues are searched in symboltable
-    fun doSomethingAfterExecution() {
+    open fun doSomethingAfterExecution() {
         val exitingRT = isExitingInRTMode()
         MainExecutionContext.getAttributes()[getMemorySliceId()?.getAttributeKey()]?.let {
             (it as MemorySlice).persist = exitingRT
@@ -1064,4 +1048,41 @@ internal fun Position.relative(): StatementReference {
     val programName = if (MainExecutionContext.getProgramStack().empty()) null else MainExecutionContext.getProgramStack().peek().name
     val copyBlocks = programName?.let { MainExecutionContext.getProgramStack().peek().cu.copyBlocks }
     return this.relative(programName, copyBlocks)
+}
+
+/**
+ * Memory slice context attribute name must to be also string representation of MemorySliceId
+ * */
+internal fun MemorySliceId.getAttributeKey() = "${MEMORY_SLICE_ATTRIBUTE}_$this"
+
+/**
+ * Restores the symbol table from a memory slice.
+ *
+ * This function is used to restore the state of the symbol table from a previously saved memory slice.
+ * This is useful in scenarios where the state of the symbol table needs to be preserved across different
+ * executions of the same program, for example in case of stateful programs.
+ *
+ * @param memorySliceId The ID of the memory slice to restore from. This ID is used to look up the memory slice in the memory slice manager.
+ * @param memorySliceMgr The memory slice manager that is used to manage memory slices. It provides functions to create, retrieve and delete memory slices.
+ * @param initialValues A map of initial values to be set in the symbol table. These values will not be overwritten by the values from the memory slice.
+ */
+internal fun ISymbolTable.restoreFromMemorySlice(
+    memorySliceId: MemorySliceId?,
+    memorySliceMgr: MemorySliceMgr?,
+    initialValues: Map<String, Value> = emptyMap()
+) {
+    memorySliceId?.let { myMemorySliceId ->
+        memorySliceMgr?.let {
+            MainExecutionContext.getAttributes()[myMemorySliceId.getAttributeKey()] = it.associate(
+                memorySliceId = memorySliceId,
+                symbolTable = this,
+                initSymbolTableEntry = { dataDefinition, storedValue ->
+                    // initial values have not to be overwritten
+                    if (!initialValues.containsKey(dataDefinition.name)) {
+                        this[dataDefinition] = storedValue
+                    }
+                }
+            )
+        }
+    }
 }
