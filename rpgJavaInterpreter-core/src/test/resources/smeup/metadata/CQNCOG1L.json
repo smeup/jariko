@@ -1,0 +1,257 @@
+{"name": "CQNCOG1L",
+  "tableName": "CQNCOG0F",
+  "recordFormat": "CQNCOGR",
+  "fields": [
+    { "fieldName": "N§DATI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§ORAI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DATM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§ORAM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§UTEN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§WKST",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§PROG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§FLR1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FLR2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FLR3",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§TINC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+  , { "fieldName": "N§NNOC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§DESC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":30, "varying":false}}
+  , { "fieldName": "N§LIVE",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§STAT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§OGG1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§OGG2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§OGG3",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§TISC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+  , { "fieldName": "N§CIMP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§DCOD",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§DCLS",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§DGRA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":1, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DCOC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§DPRO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§TIEM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§PAEM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§COEM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§TIER",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§PAER",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§COER",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§TIEA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§PAEA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§COEA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§EDVT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§COMM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§CESA",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":5, "varying":false}}
+  , { "fieldName": "N§SEGM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§RINT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§TIIM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§PAIM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§COIM",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§ESMO",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§TOR1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§POR1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§COR1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§TOR2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":2, "varying":false}}
+  , { "fieldName": "N§POR2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§COR2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§TMAT",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+  , { "fieldName": "N§MATP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§TPCI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+  , { "fieldName": "N§CFAL",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":6, "varying":false}}
+  , { "fieldName": "N§CFAC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":6, "varying":false}}
+  , { "fieldName": "N§RIFI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§PNOC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§TDOC",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":4, "varying":false}}
+  , { "fieldName": "N§ARAL",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§ACOR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§NPRG",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§CCGF",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":20, "varying":false}}
+  , { "fieldName": "N§TDOR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":3, "varying":false}}
+  , { "fieldName": "N§NDOR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "N§NRIR",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":4, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DIVI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":4, "varying":false}}
+  , { "fieldName": "N§CAMB",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":6, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§QT01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT07",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT08",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT09",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§QT10",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§VA01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA07",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA08",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA09",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§VA10",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":15, "decimalDigits":6, "rpgType":"P"}}
+  , { "fieldName": "N§DT01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT07",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT08",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT09",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§DT10",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":8, "decimalDigits":0, "rpgType":"P"}}
+  , { "fieldName": "N§COD1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§COD2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§COD3",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§COD4",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§COD5",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "N§NUM1",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§NUM2",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§NUM3",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§NUM4",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§NUM5",
+      "type":{"type":"com.smeup.rpgparser.interpreter.NumberType","entireDigits":10, "decimalDigits":5, "rpgType":"P"}}
+  , { "fieldName": "N§FL01",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL02",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL03",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL04",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL05",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL06",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL07",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL08",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL09",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL10",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL11",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL12",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL13",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL14",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL15",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL16",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL17",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL18",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL19",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "N§FL20",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  ], "accessFields": [ "N§TINC", "N§NNOC"]}
