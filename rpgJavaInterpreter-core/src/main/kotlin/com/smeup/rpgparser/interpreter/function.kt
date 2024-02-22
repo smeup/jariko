@@ -75,7 +75,7 @@ open class RpgFunction(private val compilationUnit: CompilationUnit) : Function 
 
         val interpreter = FunctionInterpreter(
             systemInterface = systemInterface,
-            procedureName = compilationUnit.procedureName).apply {
+            procedureName = compilationUnit.procedureName!!).apply {
             getGlobalSymbolTable().parentSymbolTable = symbolTable
         }
 
@@ -200,21 +200,25 @@ private fun getProcedureUnit(functionName: String): CompilationUnit {
     }
 }
 
-private class FunctionInterpreter(systemInterface: SystemInterface, private val procedureName: String?) : InternalInterpreter(systemInterface = systemInterface) {
+private class FunctionInterpreter(systemInterface: SystemInterface, private val procedureName: String) : InternalInterpreter(systemInterface = systemInterface) {
 
     private var initializing = false
+
+    private val staticSymbolTable = getGlobalSymbolTable().getStaticSymbolTable(procedureName)
+
+    private val staticMemorySliceId = MemorySliceId(
+        activationGroup = "*STATIC",
+        programName = "FunctionInterpreter.$procedureName.static")
 
     override fun getMemorySliceId(): MemorySliceId? {
         val memorySliceId = super.getMemorySliceId()
         return memorySliceId?.copy(programName = "${memorySliceId.programName}.$procedureName")
     }
 
+    /**
+     * This way I can avoid to persist the memory slice of the function
+     * */
     override fun getMemorySliceMgr(): MemorySliceMgr? = null
-
-    @Deprecated("No longer used")
-    override fun fireOnEnterPgmCallBackFunction() {
-        // here I do nothing because I am not a program
-    }
 
     override fun beforeInitialization() {
         initializing = true
@@ -223,6 +227,15 @@ private class FunctionInterpreter(systemInterface: SystemInterface, private val 
 
     override fun afterInitialization(initialValues: Map<String, Value>) {
         super.afterInitialization(initialValues)
+        // I restore static symbol table from memory slice only if it is the first execution.
+        // This is because the current state of memory slice will be persisted at the end of execution of
+        // the main program
+        if (isFirstExecution()) {
+            staticSymbolTable.restoreFromMemorySlice(
+                memorySliceMgr = MainExecutionContext.getMemorySliceMgr(),
+                memorySliceId = staticMemorySliceId
+            )
+        }
         initializing = false
     }
 
@@ -230,12 +243,22 @@ private class FunctionInterpreter(systemInterface: SystemInterface, private val 
         // if jariko is initializing and data is static, I must check if data is already present in static symbol table
         // if not, I can set it else not because static data must be initialized only once
         if (initializing && data.static) {
-            val staticSymbolTable = getGlobalSymbolTable().getStaticSymbolTable(data.scope.reference!!)
             if (!staticSymbolTable.contains(data.name)) {
                 super.set(data, value)
             }
         } else {
             super.set(data, value)
         }
+    }
+
+    override fun doSomethingAfterExecution() {
+        super.doSomethingAfterExecution()
+        MainExecutionContext.getAttributes()[staticMemorySliceId.getAttributeKey()]?.let {
+            (it as MemorySlice).persist = true
+        }
+    }
+
+    private fun isFirstExecution(): Boolean {
+        return MainExecutionContext.getAttributes()[staticMemorySliceId.getAttributeKey()] == null
     }
 }
