@@ -19,6 +19,7 @@ package com.smeup.rpgparser.interpreter
 import com.smeup.rpgparser.RpgParser
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
+import com.smeup.rpgparser.parsing.facade.findAllDescendants
 import com.smeup.rpgparser.parsing.parsetreetoast.*
 import com.smeup.rpgparser.utils.asInt
 
@@ -170,25 +171,9 @@ open class BaseCompileTimeInterpreter(
                     }
                 }
                 it.block() != null -> {
-                    when {
-                        it.block().ifstatement() != null -> {
-                            val size = findSize(it.block().ifstatement().statement(), declName, conf)
-                            if (size != null) return size
-                        }
-                        it.block().forstatement() != null -> {
-                            val size = findSize(it.block().forstatement().statement(), declName, conf)
-                            if (size != null) return size
-                        }
-                        it.block().selectstatement() != null -> {
-                            it.block().selectstatement().whenstatement().forEach() { sl ->
-                                val size = findSize(sl.statement(), declName, conf)
-                                if (size != null) return size
-                            }
-                        }
-                        it.block().csDOWxx() != null || it.block().csDOUxx() != null -> {
-                            val size = findSize(it.block().statement(), declName, conf)
-                            if (size != null) return size
-                        }
+                    it.block().findAllDescendants(type = RpgParser.StatementContext::class, includingMe = false).let { descendants ->
+                        val size = findSize(descendants, declName, conf)
+                        if (size != null) return size
                     }
                 }
             }
@@ -248,7 +233,7 @@ open class BaseCompileTimeInterpreter(
 
     private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {
         statements
-            .forEach {
+            .forEach { it ->
                 when {
                     it.cspec_fixed() != null -> {
                         val ast = it.cspec_fixed().cspec_fixed_standard().toAst(conf)
@@ -262,25 +247,9 @@ open class BaseCompileTimeInterpreter(
                         }
                     }
                     it.block() != null -> {
-                        when {
-                            it.block().ifstatement() != null -> {
-                                val type = findType(it.block().ifstatement().statement(), declName, conf)
-                                if (type != null) return type
-                            }
-                            it.block().forstatement() != null -> {
-                                val type = findType(it.block().forstatement().statement(), declName, conf)
-                                if (type != null) return type
-                            }
-                            it.block().selectstatement() != null -> {
-                                it.block().selectstatement().whenstatement().forEach() { sl ->
-                                    val type = findType(sl.statement(), declName, conf)
-                                    if (type != null) return type
-                                }
-                            }
-                            it.block().csDOWxx() != null || it.block().csDOUxx() != null -> {
-                                val type = findType(it.block().statement(), declName, conf)
-                                if (type != null) return type
-                            }
+                        it.block().findAllDescendants(type = RpgParser.StatementContext::class, includingMe = false).let { descendants ->
+                            val type = findType(descendants, declName, conf)
+                            if (type != null) return type
                         }
                     }
                 }
