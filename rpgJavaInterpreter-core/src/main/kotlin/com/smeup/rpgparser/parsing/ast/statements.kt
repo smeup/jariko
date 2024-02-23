@@ -1630,7 +1630,7 @@ data class ScanStmt(
     val leftLength: Int?,
     val right: Expression,
     val startPosition: Int,
-    val target: AssignableExpression,
+    val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
@@ -1647,14 +1647,18 @@ data class ScanStmt(
         } while (index >= 0)
         if (occurrences.isEmpty()) {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
-            interpreter.assign(target, IntValue(0))
+            if (target != null) {
+                interpreter.assign(target, IntValue(0))
+            }
         } else {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-            if (target.type().isArray()) {
-                val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
-                interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
-            } else {
-                interpreter.assign(target, occurrences[0])
+            if (target != null) {
+                if (target.type().isArray()) {
+                    val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
+                    interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
+                } else {
+                    interpreter.assign(target, occurrences[0])
+                }
             }
         }
     }

@@ -1304,12 +1304,16 @@ internal fun CsSCANContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val rightIndicators = cspec_fixed_standard_parts().rightIndicators()
     val result = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
+    val target = when {
+        result.isNotBlank() -> this.cspec_fixed_standard_parts()!!.result!!.toAst(conf)
+        else -> null
+    }
     return ScanStmt(
         left = compareExpression,
         leftLength = compareLength,
         right = baseExpression,
         startPosition = startPosition ?: 1,
-        target = this.cspec_fixed_standard_parts()!!.result!!.toAst(conf),
+        target = target,
         rightIndicators = rightIndicators,
         dataDefinition = dataDefinition,
         position = position
