@@ -17,6 +17,7 @@
 package com.smeup.rpgparser.interpreter
 
 import com.smeup.rpgparser.RpgParser
+import com.smeup.rpgparser.RpgParser.Cspec_fixedContext
 import com.smeup.rpgparser.execution.MainExecutionContext
 import com.smeup.rpgparser.parsing.ast.*
 import com.smeup.rpgparser.parsing.facade.findAllDescendants
@@ -154,15 +155,8 @@ open class BaseCompileTimeInterpreter(
                     }
                 }
                 it.cspec_fixed() != null -> {
-                    val statement = it.cspec_fixed().cspec_fixed_standard().toAst(conf)
-                    if (statement is StatementThatCanDefineData) {
-                        val dataDefinition = (statement as StatementThatCanDefineData).dataDefinition()
-                        dataDefinition.forEach {
-                            if (it.name.asValue().value == declName) {
-                                return it.type.size
-                            }
-                        }
-                    }
+                    val size = it.cspec_fixed().findType(declName, conf)?.size
+                    if (size != null) return size
                 }
                 it.dcl_ds() != null -> {
                     val name = it.dcl_ds().name
@@ -171,10 +165,8 @@ open class BaseCompileTimeInterpreter(
                     }
                 }
                 it.block() != null -> {
-                    it.block().findAllDescendants(type = RpgParser.StatementContext::class, includingMe = false).let { descendants ->
-                        val size = findSize(descendants, declName, conf)
-                        if (size != null) return size
-                    }
+                    val size = it.block().findType(declName, conf)?.size
+                    if (size != null) return size
                 }
             }
         }
@@ -236,21 +228,12 @@ open class BaseCompileTimeInterpreter(
             .forEach { it ->
                 when {
                     it.cspec_fixed() != null -> {
-                        val ast = it.cspec_fixed().cspec_fixed_standard().toAst(conf)
-                        if (ast is StatementThatCanDefineData) {
-                            val dataDefinition = (ast as StatementThatCanDefineData).dataDefinition()
-                            dataDefinition.forEach {
-                                if (it.name.asValue().value == declName) {
-                                    return it.type
-                                }
-                            }
-                        }
+                        val type = it.cspec_fixed().findType(declName, conf)
+                        if (type != null) return type
                     }
                     it.block() != null -> {
-                        it.block().findAllDescendants(type = RpgParser.StatementContext::class, includingMe = false).let { descendants ->
-                            val type = findType(descendants, declName, conf)
-                            if (type != null) return type
-                        }
+                        val type = it.block().findType(declName, conf)
+                        if (type != null) return type
                     }
                 }
             }
@@ -259,5 +242,24 @@ open class BaseCompileTimeInterpreter(
         } else {
             throw NotFoundAtCompileTimeException(declName)
         }
+    }
+
+    private fun RpgParser.BlockContext.findType(declName: String, conf: ToAstConfiguration): Type? {
+        return this.findAllDescendants(type = RpgParser.StatementContext::class, includingMe = false).let { descendants ->
+            findType(descendants, declName, conf)
+        }
+    }
+
+    private fun Cspec_fixedContext.findType(declName: String, conf: ToAstConfiguration): Type? {
+        val ast = this.toAst(conf)
+        if (ast is StatementThatCanDefineData) {
+            val dataDefinition = ast.dataDefinition()
+            dataDefinition.forEach {
+                if (it.name.asValue().value == declName) {
+                    return it.type
+                }
+            }
+        }
+        return null
     }
 }
