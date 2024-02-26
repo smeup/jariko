@@ -5,10 +5,10 @@
      D* A60_P9_4        S             10
       *
      C     *ENTRY        PLIST
-     C                   PARM                    A60_P9_1
-     C                   PARM                    A60_P9_2
-     C                   PARM                    A60_P9_3
-     C                   PARM                    A60_P9_4
+     C                   PARM                    A60_P9_1          10
+     C                   PARM                    A60_P9_2          10
+     C                   PARM                    A60_P9_3          10
+     C                   PARM                    A60_P9_4          10
       *
      C                   EVAL      £DBG_Str=%trim(A60_P9_1)+','+
      C                                      %trim(A60_P9_2)+','+
