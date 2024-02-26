@@ -2646,5 +2646,6 @@ target:
     | bif_subarr #subarrTarget
     | container=idOrKeyword DOT fieldName=idOrKeyword #qualifiedTarget
     | indic=SPLAT_INDICATOR #indicatorTarget
+    | base=SPLAT_IN OPEN_PAREN index=expression CLOSE_PAREN #indexedIndicatorTarget
     | SPLAT_IN #globalIndicatorTarget
     ;

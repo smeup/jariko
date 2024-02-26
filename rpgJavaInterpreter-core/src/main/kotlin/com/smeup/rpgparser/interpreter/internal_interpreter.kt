@@ -210,7 +210,7 @@ open class InternalInterpreter(
         val start = System.currentTimeMillis()
         MainExecutionContext.log(SymbolTableIniLogStart(programName = interpretationContext.currentProgramName))
         // TODO verify if these values should be reinitialised or not
-        compilationUnit.fileDefinitions.forEach {
+        compilationUnit.fileDefinitions.filter { it.fileType == FileType.DB }.forEach {
             status.dbFileMap.add(it)
         }
 
@@ -843,8 +843,9 @@ open class InternalInterpreter(
                 return value
             }
             is IndicatorExpr -> {
+                val index = target.indexExpression?.let { eval(it).asInt().value.toInt() } ?: target.index
                 val coercedValue = coerce(value, BooleanType)
-                indicators[target.index] = coercedValue.asBoolean()
+                indicators[index] = coercedValue.asBoolean()
                 return coercedValue
             }
             is GlobalIndicatorExpr -> {

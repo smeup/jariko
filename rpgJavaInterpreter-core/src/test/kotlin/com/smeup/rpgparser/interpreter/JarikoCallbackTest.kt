@@ -407,6 +407,11 @@ class JarikoCallbackTest : AbstractTest() {
         executeSourceLineTest("ERROR11")
     }
 
+    @Test
+    fun executeERROR12CallBackTest() {
+        executePgmCallBackTest("ERROR12", SourceReferenceType.Program, "ERROR12", listOf(7))
+    }
+
     /**
      * This test simulates what a precompiler might do throws the use of the beforeParsing callback
      * In ERROR01.rpgle I will comment C specification to avoid a division by zero errors
@@ -478,6 +483,15 @@ class JarikoCallbackTest : AbstractTest() {
         assertNotNull(catchedError)
     }
 
+    /**
+     * This function is used to test the execution of a program and validate the error handling mechanism.
+     * It expects the program to fail and checks if the error events are correctly captured.
+     *
+     * @param pgm The name of the program to be executed.
+     * @param sourceReferenceType The expected type of the source reference (Program or Copy) where the error is expected to occur.
+     * @param sourceId The expected identifier of the source where the error is expected to occur.
+     * @param lines The list of line numbers where the errors are expected.
+     */
     private fun executePgmCallBackTest(pgm: String, sourceReferenceType: SourceReferenceType, sourceId: String, lines: List<Int>) {
         val errorEvents = mutableListOf<ErrorEvent>()
         runCatching {
@@ -500,7 +514,7 @@ class JarikoCallbackTest : AbstractTest() {
     }
 
     /**
-     * Verify that the sourceLine is correctly set in case of error.
+     * Verify that the sourceLine is properly set in case of error.
      * ErrorEvent must contain a reference of an absolute line of the source code
      * */
     private fun executeSourceLineTest(pgm: String) {

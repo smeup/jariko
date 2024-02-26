@@ -175,13 +175,16 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
         // explicitStartOffset and explicitEndOffsets set to zero are wanted
         FieldDefinition(name = it.name, type = it.type, explicitStartOffset = 0, explicitEndOffset = 0, position = it.position)
     }
-    val recordFormatDefinition = DataDefinition(
-        name = metadata.recordFormat,
-        type = RecordFormatType,
-        position = position,
-        fields = fieldsDefinition
-    )
-    dataDefinitions.add(recordFormatDefinition)
+    // record format possibly for file video is unuseful
+    if (fileType == FileType.DB) {
+        val recordFormatDefinition = DataDefinition(
+            name = metadata.recordFormat,
+            type = RecordFormatType,
+            position = position,
+            fields = fieldsDefinition
+        )
+        dataDefinitions.add(recordFormatDefinition)
+    }
     return dataDefinitions
 }
 
@@ -502,7 +505,7 @@ private fun StatementContext.toDataDefinitionProvider(
             kotlin.runCatching {
                 try {
                     this.dcl_ds()
-                        .toAst(conf)
+                        .toAst(conf = conf, knownDataDefinitions = knownDataDefinitions.values)
                         .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                     // these errors can be caught because they don't introduce sneaky errors
                 } catch (e: CannotRetrieveDataStructureElementSizeException) {
@@ -944,10 +947,24 @@ private fun annidatedReferenceExpression(
         val index = text.uppercase(Locale.getDefault()).removePrefix("*IN").toInt()
         return IndicatorExpr(index, position)
     }
-    var expr: Expression = text.indexOf("(").let {
-        val varName = if (it == -1) text else text.substring(0, it)
-        DataRefExpr(ReferenceByName(varName), position)
+
+    var expr: Expression
+    if (text.contains(".")) {
+            val parts = text.split(".")
+            require(parts.isNotEmpty())
+            val varName = if (parts.size == 1) {
+                parts[0]
+            } else {
+                parts.last()
+            }
+            expr = DataRefExpr(ReferenceByName(varName), position)
+    } else {
+        expr = text.indexOf("(").let {
+            val varName = if (it == -1) text else text.substring(0, it)
+            DataRefExpr(ReferenceByName(varName), position)
+        }
     }
+
     if (text.contains("(")) {
         // TODO support annidated parenthesis, if necessary
         if (text.substring(text.indexOf("(") + 1).contains("(")) {
@@ -1036,7 +1053,16 @@ internal fun CsPLISTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
 }
 
 internal fun CsPARMContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): PlistParam {
-    val paramName = this.cspec_fixed_standard_parts().result.text
+    var paramName = this.cspec_fixed_standard_parts().result.text
+    if (paramName.contains(".")) {
+        val parts = paramName.split(".")
+        require(parts.isNotEmpty())
+        if (parts.size == 1) {
+            paramName = parts[0]
+        } else {
+            paramName = parts.last()
+        }
+    }
     // initialization value valid only if there isn't a variable declaration
     val initializationValue = if (this.cspec_fixed_standard_parts().len.asInt() == null) {
         this.cspec_fixed_standard_parts().factor2Expression(conf)
@@ -1326,6 +1352,8 @@ private fun FactorContext.toIndexedExpression(conf: ToAstConfiguration): Pair<Ex
     if (this.text.contains(":")) this.text.toIndexedExpression(toPosition(conf.considerPosition)) else this.content.toAst(conf) to null
 
 private fun String.toIndexedExpression(position: Position?): Pair<Expression, Int?> {
+    fun String.isLiteral(): Boolean { return (startsWith('\'') && endsWith('\'')) }
+
     val baseStringTokens = this.split(":")
     val startPosition =
         when (baseStringTokens.size) {
@@ -1334,7 +1362,10 @@ private fun String.toIndexedExpression(position: Position?): Pair<Expression, In
             else -> null
         }
     val reference = baseStringTokens[0]
-    return DataRefExpr(ReferenceByName(reference), position) to startPosition
+    return when {
+        reference.isLiteral() -> StringLiteral(reference.trim('\''), position)
+        else -> DataRefExpr(ReferenceByName(reference), position)
+    } to startPosition
 }
 
 internal fun CsMOVEAContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): MoveAStmt {
@@ -1591,6 +1622,10 @@ internal fun TargetContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
             this.indic.text.indicatorIndex()!!,
             toPosition(conf.considerPosition)
         )
+        is IndexedIndicatorTargetContext -> {
+            val index: Expression = this.index.toAst(conf = conf)
+            return IndicatorExpr(index = index, position = toPosition(conf.considerPosition))
+        }
         is GlobalIndicatorTargetContext -> GlobalIndicatorExpr(
             toPosition(conf.considerPosition)
         )
@@ -1924,7 +1959,7 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
             dataDefinitionMap[it.name] = it
             true
         } else {
-            require(dataDefinition.type == it.type) {
+            it.require(dataDefinition.type == it.type) {
                 "Incongruous definitions of ${it.name}: ${dataDefinition.type} vs ${it.type}"
             }
             false

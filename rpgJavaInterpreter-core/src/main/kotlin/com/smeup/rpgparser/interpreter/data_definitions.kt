@@ -22,6 +22,7 @@ import com.smeup.rpgparser.parsing.ast.MuteAnnotation
 import com.smeup.rpgparser.parsing.ast.MuteAnnotationResolved
 import com.smeup.rpgparser.parsing.facade.MutesMap
 import com.smeup.rpgparser.parsing.parsetreetoast.RpgType
+import com.smeup.rpgparser.parsing.parsetreetoast.require
 import com.smeup.rpgparser.parsing.parsetreetoast.toAst
 import com.strumenta.kolasu.model.*
 import kotlinx.serialization.SerialName
@@ -120,7 +121,7 @@ enum class ParamOption(val keyword: String) {
  * PREFIX node
  * */
 @Serializable
-data class Prefix(private val prefix: String, private val numCharsReplaced: Int?) {
+data class Prefix(internal val prefix: String, private val numCharsReplaced: Int?) {
 
     /**
      * Apply replacement rules and returns value converted
@@ -134,16 +135,29 @@ data class Prefix(private val prefix: String, private val numCharsReplaced: Int?
     }
 }
 
+enum class FileType(val keyword: String?) {
+    DB(null), VIDEO("C");
+
+    companion object {
+        fun getByKeyword(keyword: String): FileType {
+            return FileType.values().firstOrNull() {
+                it.keyword == keyword
+            } ?: DB
+        }
+    }
+}
+
 @Serializable
 data class FileDefinition private constructor(
     override val name: String,
     override val position: Position?,
     val prefix: Prefix?,
-    val justExtName: Boolean
+    val justExtName: Boolean,
+    val fileType: FileType
 ) : Node(position), Named {
     companion object {
-        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null, justExtName: Boolean = false): FileDefinition {
-            return FileDefinition(name.toUpperCase(), position, prefix, justExtName)
+        operator fun invoke(name: String, position: Position? = null, prefix: Prefix? = null, justExtName: Boolean = false, fileType: FileType = FileType.DB): FileDefinition {
+            return FileDefinition(name.uppercase(), position, prefix, justExtName, fileType)
         }
     }
 
@@ -179,13 +193,17 @@ data class DataDefinition(
     @Transient var defaultValue: Value? = null
 ) :
     AbstractDataDefinition(
-        name = name.apply { require(this.trim().isNotEmpty()) { "name cannot be empty" } },
+        name = name,
         type = type,
         position = position,
         const = const) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
+
+    init {
+        this.require(name.trim().isNotEmpty(), { "name cannot be empty" })
+    }
 
     @Deprecated("The start offset should be calculated before defining the FieldDefinition")
     fun startOffset(fieldDefinition: FieldDefinition): Int {

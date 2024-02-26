@@ -552,7 +552,7 @@ private fun List<Error>.fireErrorEvents() {
         MainExecutionContext.getParsingProgramStack().peek().name
     }
     val copyBlocks = programName?.let { MainExecutionContext.getParsingProgramStack().peek().copyBlocks }
-    groupByLine().forEach { errorEntry ->
+    this.filter { !it.message.matches(Regex("Recognition exception: null|Error nod found")) }.groupByLine().forEach { errorEntry ->
         ErrorEvent(
             error = IllegalStateException(errorEntry.value[0].message),
             errorEventSource = ErrorEventSource.Parser,

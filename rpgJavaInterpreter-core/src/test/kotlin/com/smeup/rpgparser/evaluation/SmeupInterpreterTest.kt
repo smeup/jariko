@@ -270,12 +270,18 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeT10_A60_P04() {
+    fun executeT40_A10_P01() {
+        val expected = listOf("Lunghezza: 32580 Contenuto:                     -          -          -          -          -          -          -                                                                                                                                                                                                                                                                -          -          -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                -.000000000-.000000000-                                                                                                   -0-          -0-0-          -0")
+        assertEquals(expected, "smeup/T40_A10_P01".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT10_A60_P02() {
         val expected = listOf<String>("C10_P1: MULANGT102")
-        assertEquals(expected, "smeup/T10_A60_P04".outputOf())
+        assertEquals(expected, "smeup/T10_A60_P02".outputOf())
 
         assertFailsWith<Exception> {
-            "smeup/T10_A60_P04F".outputOf()
+            "smeup/T10_A60_P02F".outputOf()
         }
     }
 
@@ -283,6 +289,110 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT10_A20_P19() {
         val expected = listOf("1020")
         assertEquals(expected, "smeup/T10_A20_P19".outputOf())
+    }
+
+    @Test
+    fun executeT03_A10_P09_10() {
+        val expected = listOf(
+            "I(15)=0 I(15)=1 I(15)=0",
+            "*IN(n)->000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        )
+        assertEquals(expected, "smeup/T03_A10_P09-10".outputOf())
+    }
+
+    @Test
+    fun executeT15_A20_P04_06() {
+        val expected = listOf(
+            "RicercaDaPos01(1)_Trovato(1); RicercaDaPos02(5)_Trovato(1); RicercaDaPos05(5)_Trovato(1); RicercaDaPos07(0)_Trovato(0);",
+            "RicercaDaPos01(5)_Trovato(1); RicercaDaPos01(1)_Trovato(1); RicercaDaPos01(5)_Trovato(1);",
+            "RicercaDaPos01(2)_Trovato(1);"
+        )
+        assertEquals(expected, "smeup/T15_A20_P04-06".outputOf())
+    }
+
+    @Test
+    fun executeT10_A60_P04_P07() {
+        val expected = listOf<String>(
+            "CALL(MULANGTC30, 4         , 0)",
+            "CALL(MULANGTC30, 5         , 0)",
+            "CALL(MULANGTC30, 6         , 0)",
+            "CALL(MULANGTC30, 7         , 0)")
+        assertEquals(expected, "smeup/T10_A60_P04-P07".outputOf())
+    }
+
+    @Test
+    fun executeT12_A03_P06() {
+        val expected = listOf<String>("LOOP:1,2,3,4")
+        assertEquals(expected, "smeup/T12_A03_P06".outputOf())
+    }
+
+    @Test
+    fun executeT04_A15_P01() {
+        val expected = listOf<String>(
+            "P01_01(8)",
+            "P01_02(13)",
+            "P01_03(16)",
+            "P01_04(2)",
+            "P01_05(1)",
+            "P01_06(1)",
+            "P01_07(0)",
+            "P01_08(2)",
+            "P01_09(2)",
+            "P01_10(1)",
+            "P01_11(2)",
+            "P01_12(0)"
+        )
+        assertEquals(expected, "smeup/T04_A15_P01".outputOf())
+    }
+
+    @Test
+    fun executeT04_A15_P02() {
+        val expected = listOf<String>(
+            "P02_01(10)",
+            "P02_02(6)"
+        )
+        assertEquals(expected, "smeup/T04_A15_P02".outputOf())
+    }
+
+    @Test
+    fun executeT04_A15_P03() {
+        val expected = listOf<String>(
+            "P03_01(0)",
+            "P03_02(1)",
+            "P03_03(ok)"
+        )
+        assertEquals(expected, "smeup/T04_A15_P03".outputOf())
+    }
+
+    @Test
+    fun executeT12_A04_P07_12() {
+        val expected = listOf<String>(
+            "CNT(100001)",
+            "CNT(100000)",
+            "CNT(100001)",
+            "CNT(100000)",
+            "CNT(100001)",
+            "CNT(100000)"
+        )
+        assertEquals(expected, "smeup/T12_A04_P07_12".outputOf())
+    }
+
+    @Test
+    fun executeT02_A60_P03() {
+        val expected = listOf<String>("Res(-A)=-10 Res( -A)= -10")
+        assertEquals(expected, "smeup/T02_A60_P03".outputOf())
+    }
+
+    @Test
+    fun executeT02_A50_P07() {
+        val expected = listOf<String>("1,2,3,4")
+        assertEquals(expected, "smeup/T02_A50_P07".outputOf())
+    }
+
+    @Test
+    fun executeT02_A50_P05() {
+        val expected = listOf<String>("£C5")
+        assertEquals(expected, "smeup/T02_A50_P05".outputOf(configuration = smeupConfig))
     }
 
     @Test

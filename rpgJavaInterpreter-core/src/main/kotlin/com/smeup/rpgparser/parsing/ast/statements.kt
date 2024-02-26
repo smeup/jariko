@@ -1220,6 +1220,35 @@ data class DisplayStmt(val factor1: Expression?, val response: Expression?, over
 }
 
 @Serializable
+data class DOWxxStmt(
+    val comparisonOperator: ComparisonOperator,
+    val factor1: Expression,
+    val factor2: Expression,
+    override val body: List<Statement>,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement {
+    override fun execute(interpreter: InterpreterCore) {
+        val startTime = System.currentTimeMillis()
+        try {
+            interpreter.log { DOWxxStatementExecutionLogStart(interpreter.getInterpretationContext().currentProgramName, this) }
+            while (comparisonOperator.verify(factor1, factor2, interpreter, interpreter.getLocalizationContext().charset).isVerified) {
+                interpreter.execute(body)
+            }
+        } catch (e: LeaveException) {
+            // nothing to do here
+            interpreter.log {
+                val elapsed = System.currentTimeMillis() - startTime
+                DOWxxStatementExecutionLogEnd(
+                    interpreter.getInterpretationContext().currentProgramName,
+                    this,
+                    elapsed
+                )
+            }
+        }
+    }
+}
+
+@Serializable
 data class DoStmt(
     val endLimit: Expression,
     val index: AssignableExpression?,
@@ -1618,6 +1647,7 @@ data class ScanStmt(
         } while (index >= 0)
         if (occurrences.isEmpty()) {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
+            interpreter.assign(target, IntValue(0))
         } else {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
             if (target.type().isArray()) {

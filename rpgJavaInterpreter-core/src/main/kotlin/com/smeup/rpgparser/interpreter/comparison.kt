@@ -33,6 +33,7 @@ fun isSmallerThan(value1: Value, value2: Value, charset: Charset): Boolean {
 fun compare(value1: Value, value2: Value, charset: Charset): Comparison =
     when {
         value1 is StringValue && value2 is StringValue -> stringComparison(value1, value2, charset)
+        value1 is UnlimitedStringValue && value2 is UnlimitedStringValue -> stringComparison(StringValue(value1.toString()), StringValue(value2.toString()), charset)
         else -> value1.compareTo(value2)
     }
 

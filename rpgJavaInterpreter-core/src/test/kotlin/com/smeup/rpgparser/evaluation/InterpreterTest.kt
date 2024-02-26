@@ -1104,7 +1104,7 @@ Test 6
 
     @Test
     fun executeSCANTEST() {
-        assertEquals(listOf("0", "4", "1", "5", "0"), "SCANTEST".outputOf())
+        assertEquals(listOf("0", "4", "1", "5", "0", "0"), "SCANTEST".outputOf())
     }
 
     @Test
@@ -2209,6 +2209,71 @@ Test 6
             "111000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000",
             "001000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000")
         assertEquals(expected, "MOVEAIN".outputOf())
+    }
+
+    @Test
+    fun executeINDIC01() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "INDIC01".outputOf())
+    }
+
+    @Test
+    fun executeINDIC02() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "INDIC02".outputOf())
+    }
+
+    @Test
+    fun executeBIFCHECK() {
+        assertEquals(listOf("ok"), outputOf("BIFCHECK"))
+    }
+
+    @Test
+    fun executeDOWEQ() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWEQ".outputOf())
+    }
+
+    @Test
+    fun executeDOWNE() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "DOWNE".outputOf())
+    }
+
+    @Test
+    fun executeDOWGT() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWGT".outputOf())
+    }
+
+    @Test
+    fun executeDOWGE() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWGE".outputOf())
+    }
+
+    @Test
+    fun executeDOWLT() {
+        val expected = listOf("0", "1", "0", "1", "0", "1", "0", "1")
+        assertEquals(expected, "DOWLT".outputOf())
+    }
+
+    @Test
+    fun executeDOWLE() {
+        val expected = listOf("1", "0", "1", "0", "1", "0", "1", "0")
+        assertEquals(expected, "DOWLE".outputOf())
+    }
+
+    @Test
+    fun executeNEGATION() {
+        val expected = listOf("-10", "10", "-10", "-10", "10", "-10", "-1.50", "1.50", "-1.50", "-1.50", "1.50", "-1.50")
+        assertEquals(expected, "NEGATION".outputOf())
+    }
+
+    @Test(expected = RuntimeException::class)
+    fun executeNEGATIONERR() {
+        val expected = listOf("")
+        assertEquals(expected, "NEGATIONERR".outputOf())
     }
 
     @Test

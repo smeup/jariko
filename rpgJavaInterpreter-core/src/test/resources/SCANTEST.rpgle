@@ -32,4 +32,11 @@
       * for three characters:  'r. '
      C                   dsply                   Msg
      *********************************************************************
+      * Test with start higher than length of word.
+     C                   EVAL      $$SVAR='Dr. Doolittle'
+     C                   EVAL      $BRACK=%SCAN('e':$$SVAR:14)
+     C                   Eval      Msg  = %CHAR($BRACK)
+      * Expected 0 the value of start higher than length of word.
+     C                   dsply                   Msg
+     *********************************************************************
      C                   SETON                                          LR
