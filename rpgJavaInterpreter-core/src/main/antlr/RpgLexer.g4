@@ -55,8 +55,15 @@ fragment DECIMAL_SEPARATOR : [.,];
 NUMBER : ([0-9]+(DECIMAL_SEPARATOR[0-9]*)?) | DECIMAL_SEPARATOR[0-9]+ ;
 SEMI : ';';
 COLON : ':';
-ID : ('*' {getCharPositionInLine()>7}? '*'? [a-zA-Z])?
-        [§£#@%$a-zA-Z]{getCharPositionInLine()>7}? [§£#@$a-zA-Z0-9_]* ;
+ID : ({
+            _input.LA(-1) == 32 ||
+            _input.LA(-1) == '(' ||
+            _input.LA(-1) == '*' ||
+            _input.LA(-1) == '+' ||
+            _input.LA(-1) == '/' ||
+            _input.LA(-1) == '='
+      }? '*' {getCharPositionInLine()>7}? '*' ? [a-zA-Z])?
+      [§£#@%$a-zA-Z]{getCharPositionInLine()>7}? [§£#@$a-zA-Z0-9_]*;
 NEWLINE : (('\r'? '\n')|'\r') -> skip;
 WS : [ \t] {getCharPositionInLine()>6}? [ \t]* -> skip ; // skip spaces, tabs
 
@@ -511,8 +518,8 @@ PLUS : '+' ;
 MINUS : '-' ;
 EXP : '**' ;
 ARRAY_REPEAT: {_input.LA(2) == ')' && _input.LA(-1) == '('}? '*' ;
-MULT_NOSPACE: {_input.LA(2) != 32}? '*';
-MULT: {_input.LA(2) == 32}? '*' ;
+MULT_NOSPACE: {_input.LA(2) != 32 || _input.LA(-1) != 32}? '*';
+MULT: {_input.LA(2) == 32 && _input.LA(-1) == 32}? '*' ;
 DIV : '/' ;
 
 // Assignment Operators
