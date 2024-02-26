@@ -940,8 +940,14 @@ private fun annidatedReferenceExpression(
         return GlobalIndicatorExpr(position)
     }
     if (text.uppercase(Locale.getDefault()).startsWith("*IN(") && text.endsWith(")")) {
-        val index = text.uppercase(Locale.getDefault()).removePrefix("*IN(").removeSuffix(")").toInt()
-        return IndicatorExpr(index, position)
+        val content = text.uppercase(Locale.getDefault()).removePrefix("*IN(").removeSuffix(")")
+        var index = 0
+        if (content.isInt()) {
+            index = content.toInt()
+            return IndicatorExpr(index, position)
+        } else {
+            return IndicatorExpr(DataRefExpr(ReferenceByName(content), position), position)
+        }
     }
     if (text.uppercase(Locale.getDefault()).startsWith("*IN")) {
         val index = text.uppercase(Locale.getDefault()).removePrefix("*IN").toInt()
