@@ -2210,4 +2210,17 @@ Test 6
             "001000000000000000000000000000000000000000010000000000000000000000000000000000000000000100000000000")
         assertEquals(expected, "MOVEAIN".outputOf())
     }
+
+    @Test
+    fun executeEVALVARSNUMS() {
+        val expected = listOf(
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246"
+        )
+        assertEquals(expected, "EVALVARSNUMS".outputOf())
+    }
 }
