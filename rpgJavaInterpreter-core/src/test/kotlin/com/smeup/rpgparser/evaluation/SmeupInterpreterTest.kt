@@ -287,7 +287,6 @@ open class SmeupInterpreterTest : AbstractTest() {
 
     @Test
     fun executeT02_A60_P02() {
-//        assertASTCanBeProduced("smeup/T02_A60_P02")
         val expected = listOf("Res(A*B+C)=246; Res(A * B + C)=246")
         assertEquals(expected, "smeup/T02_A60_P02".outputOf())
     }
