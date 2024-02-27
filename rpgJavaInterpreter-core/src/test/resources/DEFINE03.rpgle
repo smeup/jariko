@@ -5,20 +5,20 @@
      D $VARFOR         S                   LIKE(£VARFOR)
      D IND             S              1  0
       *
-     C                   EXSR      SEZ_A50
-     C*                    EXSR      SEZ_A49
+     C                   EXSR      SUB_001
+     C                   EXSR      SUB_002
      C                   SETON                                          LR
-      *
-     C*     SEZ_A49       BEGSR
-     C*                   MOVEL(P)  '1'           $VARMY           10
-     C*                   ENDSR
-      *
-     C     SEZ_A50       BEGSR
-      *
+      ****************************
+     C     SUB_000       BEGSR
+     C                   MOVEL(P)  ' '           $VARIF
+     C                   MOVEL(P)  ' '           $VARDOW
+     C                   MOVEL(P)  ' '           $VARSL
+     C                   MOVEL(P)  ' '           $VARFOR
+     C                   ENDSR
+      ****************************
+     C     SUB_001       BEGSR
      C                   MOVEL(P)  '1'           $VARIF
      C                   MOVEL(P)  '2'           $VARDOW
-     C                   MOVEL(P)  '3'           $VARSL
-     C                   MOVEL(P)  '4'           $VARFOR
       * test IF
      C                   IF        '1' = '1'
      C                   MOVEL(P)  '1'           £VARIF           10
@@ -29,12 +29,19 @@
      C                   MOVEL(P)  '2'           £VARDOW          10
      C                   EVAL      IND=2
      C                   ENDDO
+      *
+     C                   ENDSR
+      ****************************
+     C     SUB_002       BEGSR
+      *
+     C                   MOVEL(P)  '3'           $VARSL
+     C                   MOVEL(P)  '4'           $VARFOR
       * test SELECT
      C                   SELECT
      C                   WHEN      IND = 2
      C                   MOVEL(P)  '3'           £VARSL           10
      C                   OTHER
-     C                   MOVEL(P)  ' '           £VARSL           10
+     C                   MOVEL(P)  ' '           £VARSL
      C                   ENDSL
       * test FOR
      C                   FOR       IND = 0 TO 1

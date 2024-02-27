@@ -2279,7 +2279,6 @@ Test 6
     @Test
     fun executeDEFINE03() {
         val expected = listOf("1,2,3,4")
-        assertCanBeParsed(exampleName = "DEFINE03", printTree = true)
         assertEquals(expected, "DEFINE03".outputOf())
     }
 }
