@@ -1424,7 +1424,7 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return MultStmt(
-        target = DataRefExpr(ReferenceByName(result), position),
+        target = this.cspec_fixed_standard_parts().result.toAst(conf),
         halfAdjust = 'H' in extenders,
         factor1 = factor1,
         factor2 = factor2,

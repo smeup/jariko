@@ -1083,6 +1083,13 @@ data class MultStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    @Derived
+    val left: Expression
+        get() = factor1 ?: target
+
+    @Derived
+    val right: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.mult(this))

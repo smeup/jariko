@@ -694,15 +694,14 @@ open class InternalInterpreter(
 
     override fun mult(statement: MultStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        require(statement.target is DataRefExpr)
-        val rightValue: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(eval(statement.factor1).render())
-        } else {
-            BigDecimal(get(statement.target.variable.referred!!).render())
-        }
-        val leftValue = BigDecimal(eval(statement.factor2).render())
+        val rightValue = BigDecimal(eval(statement.left).render())
+        val leftValue = BigDecimal(eval(statement.right).render())
         val result = rightValue.multiply(leftValue)
-        val type = statement.target.variable.referred!!.type
+        val type = when {
+            statement.target is ArrayAccessExpr -> statement.target.type()
+            statement.target is DataRefExpr -> statement.target.variable.referred!!.type
+            else -> null
+        }
         require(type is NumberType)
         return if (statement.halfAdjust) {
             DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
