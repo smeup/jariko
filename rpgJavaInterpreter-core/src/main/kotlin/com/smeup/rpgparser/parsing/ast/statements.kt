@@ -1108,6 +1108,13 @@ data class DivStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    @Derived
+    val dividend: Expression
+        get() = factor1 ?: target
+
+    @Derived
+    val divisor: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.div(this))

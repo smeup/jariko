@@ -1445,7 +1445,7 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
         DataRefExpr(ReferenceByName(it), position)
     }
     return DivStmt(
-        target = DataRefExpr(ReferenceByName(result), position),
+        target = this.cspec_fixed_standard_parts().result.toAst(conf),
         halfAdjust = 'H' in extenders,
         factor1 = factor1,
         factor2 = factor2,
