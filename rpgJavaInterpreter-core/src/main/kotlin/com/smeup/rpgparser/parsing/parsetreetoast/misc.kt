@@ -1419,7 +1419,7 @@ internal fun CsMULTContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
@@ -1437,7 +1437,7 @@ internal fun CsDIVContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val factor1 = leftExpr(conf)
-    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val factor2 = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     val extenders = this.operationExtender?.extender?.text?.uppercase(Locale.getDefault())?.toCharArray() ?: CharArray(0)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
@@ -1541,14 +1541,14 @@ internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val left = leftExpr(conf)
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("ADD operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "ADD operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return AddStmt(left, this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, right, position)
 }
 
 internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZSubStmt {
     val position = toPosition(conf.considerPosition)
-    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "Z-SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     val name = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
     return ZSubStmt(this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, expression, position)
@@ -1558,7 +1558,7 @@ internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val position = toPosition(conf.considerPosition)
     val result = this.cspec_fixed_standard_parts().result.text
     val left = leftExpr(conf)
-    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
+    val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: this.todo(message = "SUB operation requires factor 2: ${this.text} - ${position.atLine()}", conf)
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
     return SubStmt(left, this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, right, position)
 }
