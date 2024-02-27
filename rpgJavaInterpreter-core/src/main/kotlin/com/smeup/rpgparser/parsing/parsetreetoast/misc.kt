@@ -1551,7 +1551,7 @@ internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(
     val expression = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("Z-SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     val name = this.cspec_fixed_standard_parts().result.text
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(name, position, conf)
-    return ZSubStmt(DataRefExpr(ReferenceByName(name), position), dataDefinition, expression, position)
+    return ZSubStmt(this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, expression, position)
 }
 
 internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): SubStmt {
