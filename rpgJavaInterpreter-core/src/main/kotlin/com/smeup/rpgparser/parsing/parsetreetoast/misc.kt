@@ -1560,7 +1560,7 @@ internal fun CsSUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val left = leftExpr(conf)
     val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("SUB operation requires factor 2: ${this.text} - ${position.atLine()}")
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    return SubStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
+    return SubStmt(left, this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, right, position)
 }
 
 internal fun ResultIndicatorContext?.asIntOrNull(): Int? = this?.text?.asIntOrNull()
