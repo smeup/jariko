@@ -2284,6 +2284,8 @@ Test 6
                 "246",
                 "246",
                 "246",
+                "246",
+                "246",
                 "246"
         )
         assertEquals(expected, "EVALVARSNUMS".outputOf())
