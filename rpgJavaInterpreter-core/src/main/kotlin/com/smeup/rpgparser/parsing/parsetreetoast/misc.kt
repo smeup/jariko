@@ -1543,7 +1543,7 @@ internal fun CsADDContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
     val left = leftExpr(conf)
     val right = this.cspec_fixed_standard_parts().factor2Expression(conf) ?: throw UnsupportedOperationException("ADD operation requires factor 2: ${this.text} - ${position.atLine()}")
     val dataDefinition = this.cspec_fixed_standard_parts().toDataDefinition(result, position, conf)
-    return AddStmt(left, DataRefExpr(ReferenceByName(result), position), dataDefinition, right, position)
+    return AddStmt(left, this.cspec_fixed_standard_parts().result.toAst(conf), dataDefinition, right, position)
 }
 
 internal fun CsZ_SUBContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): ZSubStmt {
