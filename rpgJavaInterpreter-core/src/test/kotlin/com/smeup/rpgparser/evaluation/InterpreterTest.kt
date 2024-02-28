@@ -2307,4 +2307,19 @@ Test 6
         val expected = listOf("")
         assertEquals(expected, "NEGATIONERR".outputOf())
     }
+
+    @Test
+    fun executeEVALVARSNUMS() {
+        val expected = listOf(
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246"
+        )
+        assertEquals(expected, "EVALVARSNUMS".outputOf())
+    }
 }
