@@ -406,4 +406,13 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf("Res(A*B+C)=246; Res(A * B + C)=246")
         assertEquals(expected, "smeup/T02_A60_P02".outputOf())
     }
+
+    @Test
+    fun executeT03_A30_P01_02() {
+        val expected = listOf(
+            "*IN15-1 OK *IN15-2 OK *IN15-3 OK *IN16-1 OK *IN16-2 OK *IN16-3 OK *IN25-1 OK *IN25-2 OK *IN25-3 OK *IN26-1 OK *IN26-2 OK *IN26-3 OK IndON OK IndON OK IndOF OK IndOF OK",
+            "*IN15-1 OK *IN15-2 OK *IN15-3 OK *IN16-1 OK *IN16-2 OK *IN16-3 OK *IN25-1 OK *IN25-2 OK *IN25-3 OK *IN26-1 OK *IN26-2 OK *IN26-3 OK IndON OK IndON OK IndOF OK IndOF OK"
+        )
+        assertEquals(expected, "smeup/T03_A30_P01-02".outputOf())
+    }
 }
