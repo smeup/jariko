@@ -61,9 +61,10 @@ abstract class AbstractDataDefinition(
             } else null
         }
         if (parsingFunction != null) {
-            Scope.Local
+            if (static) Scope.static(parsingFunction) else Scope.Local
         } else Scope.Program
-    }
+    },
+    @Transient open val static: Boolean = false
 ) : Node(position), Named {
     fun numberOfElements() = type.numberOfElements()
     open fun elementSize() = type.elementSize()
@@ -190,13 +191,15 @@ data class DataDefinition(
     override var const: Boolean = false,
     var paramPassedBy: ParamPassedBy = ParamPassedBy.Reference,
     var paramOptions: List<ParamOption> = mutableListOf(),
-    @Transient var defaultValue: Value? = null
+    @Transient var defaultValue: Value? = null,
+    override val static: Boolean = false
 ) :
     AbstractDataDefinition(
         name = name,
         type = type,
         position = position,
-        const = const) {
+        const = const,
+        static = static) {
 
     override fun isArray() = type is ArrayType
     fun isCompileTimeArray() = type is ArrayType && type.compileTimeArray()
@@ -781,6 +784,34 @@ fun decodeFromDS(value: String, digits: Int, scale: Int): BigDecimal {
     }
 }
 
-enum class Scope {
+enum class Visibility {
     Program, Static, Local
+}
+
+@Serializable
+class Scope {
+
+    val visibility: Visibility
+    val reference: String?
+
+    private constructor(visibility: Visibility, reference: String? = null) {
+        this.visibility = visibility
+        this.reference = reference
+    }
+
+    companion object {
+        /**
+         * Create a new program scope
+         * */
+        val Program = Scope(visibility = Visibility.Program)
+        /**
+         * Create a new local scope
+         * */
+        val Local = Scope(visibility = Visibility.Local)
+        /**
+         * Create a new static scope
+         * @param procedureName The procedure name
+         */
+        fun static(procedureName: String) = Scope(visibility = Visibility.Static, reference = procedureName)
+    }
 }

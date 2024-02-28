@@ -190,7 +190,6 @@ private fun FileDefinition.toDataDefinitions(): List<DataDefinition> {
 
 fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: String? = null, copyBlocks: CopyBlocks? = null): CompilationUnit {
     val fileDefinitions = this.statement()
-            // tony
         .mapNotNull { statement ->
             when {
                 statement.fspec_fixed() != null -> statement.fspec_fixed().runParserRuleContext(conf) { context ->
@@ -240,7 +239,7 @@ fun RContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), source: Stri
 
     // if we have no procedures, the property procedure must be null because we decided it must be optional
     var procedures = this.procedure().mapNotNull {
-        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf) }.getOrNull() }
+        it.runParserRuleContext(conf) { context -> kotlin.runCatching { context.toAst(conf, dataDefinitions) }.getOrNull() }
     }.let {
         if (it.isEmpty()) null
         else it
@@ -406,7 +405,7 @@ internal fun SubroutineContext.toAst(conf: ToAstConfiguration = ToAstConfigurati
     )
 }
 
-internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CompilationUnit {
+internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): CompilationUnit {
 
     val procedureName = this.beginProcedure().psBegin().ps_name().text
     MainExecutionContext.getParsingProgramStack().peek().parsingFunctionNameStack.push(procedureName)
@@ -414,7 +413,7 @@ internal fun ProcedureContext.toAst(conf: ToAstConfiguration = ToAstConfiguratio
     // TODO FileDefinitions
 
     // DataDefinitions
-    val dataDefinitions = getDataDefinitions(conf)
+    val dataDefinitions = getDataDefinitions(conf, parentDataDefinitions)
 
     // Procedure Parameters DataDefinitions
     val proceduresParamsDataDefinitions = getProceduresParamsDataDefinitions(dataDefinitions)
@@ -521,7 +520,7 @@ private fun StatementContext.toDataDefinitionProvider(
     }
 }
 
-private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration()): List<DataDefinition> {
+private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAstConfiguration(), parentDataDefinitions: List<DataDefinition>): List<DataDefinition> {
     // We need to calculate first all the data definitions which do not contain the LIKE DS directives
     // then we calculate the ones with the LIKE DS clause, as they could have references to DS declared
     // after them
@@ -543,7 +542,7 @@ private fun ProcedureContext.getDataDefinitions(conf: ToAstConfiguration = ToAst
                     when {
                         it.statement().dspec() != null -> {
                             it.statement().dspec()
-                                .toAst(conf, knownDataDefinitions.values.toList())
+                                .toAst(conf, knownDataDefinitions.values.toList(), parentDataDefinitions)
                                 .updateKnownDataDefinitionsAndGetHolder(knownDataDefinitions)
                         }
                         it.statement().dcl_c() != null -> {
