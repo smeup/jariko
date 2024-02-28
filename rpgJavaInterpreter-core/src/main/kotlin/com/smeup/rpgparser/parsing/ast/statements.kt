@@ -1647,17 +1647,15 @@ data class ScanStmt(
         } while (index >= 0)
         if (occurrences.isEmpty()) {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
-            if (target != null) {
-                interpreter.assign(target, IntValue(0))
-            }
+            target?.let { interpreter.assign(it, IntValue(0)) }
         } else {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-            if (target != null) {
-                if (target.type().isArray()) {
-                    val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
-                    interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
+            target?.let {
+                if (it.type().isArray()) {
+                    val fullOccurrences = occurrences.resizeTo(it.type().numberOfElements(), IntValue.ZERO).toMutableList()
+                    interpreter.assign(it, ConcreteArrayValue(fullOccurrences, it.type().asArray().element))
                 } else {
-                    interpreter.assign(target, occurrences[0])
+                    interpreter.assign(it, occurrences[0])
                 }
             }
         }
