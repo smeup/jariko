@@ -57,9 +57,14 @@ class RpgProgram(val cu: CompilationUnit, val name: String = "<UNNAMED RPG PROGR
         val plistParams = cu.entryPlist
         // TODO derive proper type from the data specification
         return plistParams?.params?.map {
-            val type = cu.getDataDefinition(it.param.name) {
-                "Cannot resolve PARAM: ${it.param.name} in *ENTRY PLIST of the program: $name"
-            }.type
+            var type: Type? = null
+            type = try {
+                cu.getDataDefinition(it.param.name).type
+            } catch (e: IllegalArgumentException) {
+                cu.inStatementsDataDefinitions.find { df -> df.name == it.param.name }!!.type
+            }
+            if (type == null)
+                throw IllegalArgumentException("Cannot resolve PARAM: ${it.param.name} in *ENTRY PLIST of the program: $name")
             ProgramParam(it.param.name, type)
         }
         ?: emptyList()
