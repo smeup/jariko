@@ -2,6 +2,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
@@ -410,8 +411,8 @@ open class SmeupInterpreterTest : AbstractTest() {
     @Test
     fun executeT03_A30_P01_02() {
         val expected = listOf(
-            "*IN15-1 OK *IN15-2 OK *IN15-3 OK *IN16-1 OK *IN16-2 OK *IN16-3 OK *IN25-1 OK *IN25-2 OK *IN25-3 OK *IN26-1 OK *IN26-2 OK *IN26-3 OK IndON OK IndON OK IndOF OK IndOF OK",
-            "*IN15-1 OK *IN15-2 OK *IN15-3 OK *IN16-1 OK *IN16-2 OK *IN16-3 OK *IN25-1 OK *IN25-2 OK *IN25-3 OK *IN26-1 OK *IN26-2 OK *IN26-3 OK IndON OK IndON OK IndOF OK IndOF OK"
+            "*IN33=0,*IN34=1",
+            "*IN33=0,*IN34=1"
         )
         assertEquals(expected, "smeup/T03_A30_P01-02".outputOf())
     }

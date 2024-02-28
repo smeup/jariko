@@ -4,7 +4,7 @@
      C                   EVAL      £DBG_Str=' '
      C                   SETON                                        33
      C                   SETOFF                                       34
-      *
+
      C                   Z-ADD     33            $2                5 0
      C                   MOVEL     *OFF          *IN($2)
      C                   Z-ADD     34            $2
@@ -17,7 +17,7 @@
      C                   EVAL      £DBG_Str=' '
      C                   SETON                                        33
      C                   SETOFF                                       34
-      *
+
      C                   Z-ADD     33            $2                5 0
      C                   MOVE      *OFF          *IN($2)
      C                   Z-ADD     34            $2
