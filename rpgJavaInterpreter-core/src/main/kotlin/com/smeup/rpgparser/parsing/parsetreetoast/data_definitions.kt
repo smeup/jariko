@@ -119,8 +119,6 @@ internal fun RpgParser.Keyword_extnameContext.toAst(conf: ToAstConfiguration = T
     )
 }
 
-// tony
-
 internal fun RpgParser.Dcl_dsContext.toAstWithParameters(conf: ToAstConfiguration = ToAstConfiguration()): FileDefinition {
     val prefixContexts = this.keyword().mapNotNull { it.keyword_prefix() }
     val prefix: Prefix? = if (prefixContexts.isNotEmpty()) {
@@ -278,12 +276,21 @@ internal fun RpgParser.Parm_fixedContext.toAst(
 
 internal fun RpgParser.DspecContext.toAst(
     conf: ToAstConfiguration = ToAstConfiguration(),
-    knownDataDefinitions: List<DataDefinition>
+    knownDataDefinitions: List<DataDefinition>,
+    parentDataDefinitions: List<DataDefinition>? = null
 ): DataDefinition {
 
     if (dspecConstant() != null) return dspecConstant().toAst(conf = conf)
-    val compileTimeInterpreter = InjectableCompileTimeInterpreter(knownDataDefinitions, conf.compileTimeInterpreter)
-
+    val compileTimeInterpreter = InjectableCompileTimeInterpreter(
+        knownDataDefinitions = knownDataDefinitions,
+        // If we have a parent data definition we can use it to resolve the variable through the delegate
+        delegatedCompileTimeInterpreter = parentDataDefinitions?.let {
+            InjectableCompileTimeInterpreter(
+                it,
+                conf.compileTimeInterpreter
+            )
+        } ?: conf.compileTimeInterpreter
+    )
     //    A Character (Fixed or Variable-length format)
     //    B Numeric (Binary format)
     //    C UCS-2 (Fixed or Variable-length format)
@@ -308,6 +315,7 @@ internal fun RpgParser.DspecContext.toAst(
     var compileTimeArray = false
     var varying = false
     var ascend: Boolean? = null
+    var static = false
 
     this.keyword().forEach {
         it.keyword_ascend()?.let {
@@ -333,6 +341,9 @@ internal fun RpgParser.DspecContext.toAst(
         }
         it.keyword_varying()?.let {
             varying = true
+        }
+        it.keyword_static()?.let {
+            static = true
         }
     }
 
@@ -409,10 +420,12 @@ internal fun RpgParser.DspecContext.toAst(
         baseType
     }
     return DataDefinition(
-            this.ds_name().text,
-            type,
-            initializationValue = initializationValue,
-            position = this.toPosition(true))
+        name = this.ds_name().text,
+        type = type,
+        initializationValue = initializationValue,
+        position = this.toPosition(true),
+        static = static
+    )
 }
 
 internal fun RpgParser.DspecConstantContext.toAst(
@@ -734,6 +747,11 @@ internal fun RpgParser.Dcl_dsContext.calculateFieldInfos(knownDataDefinitions: C
 private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = ToAstConfiguration(), knownDataDefinitions: Collection<DataDefinition>): FieldInfo {
     var overlayInfo: FieldInfo.OverlayInfo? = null
     val overlay = this.keyword().find { it.keyword_overlay() != null }
+
+    val isLike = this.keyword().map { keyword -> keyword.keyword_like() }.firstOrNull() != null
+    val keywordLike = if (isLike) this.keyword().first { it.keyword_like() != null }.keyword_like() else null
+    val like = if (isLike) keywordLike!!.simpleExpression().toAst(conf) as DataRefExpr else null
+
     // Set the SORTA order
     val descend = this.keyword().find { it.keyword_descend() != null } != null
 
@@ -768,10 +786,11 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
 
     // compileTimeInterpreter.evaluate(this.rContext(), dim!!).asInt().value.toInt(),
     val arraySizeDeclared = this.arraySizeDeclared(conf)
+    val varName = if (isLike) like!!.variable.name else this.name
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
             explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-            explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf) ?: knownDataDefinitions.firstOrNull { it.name.equals(this.name, ignoreCase = true) }?.type,
+            explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf) ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type,
             arraySizeDeclared = this.arraySizeDeclared(conf),
             arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
             initializationValue = initializationValue,
