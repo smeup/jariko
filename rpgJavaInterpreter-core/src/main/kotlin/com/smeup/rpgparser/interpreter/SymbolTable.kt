@@ -26,10 +26,10 @@ class SymbolTable : ISymbolTable {
     override var parentSymbolTable: ISymbolTable? = null
 
     override operator fun get(data: AbstractDataDefinition): Value {
-        return when (data.scope) {
-            Scope.Program -> (programSymbolTable as SymbolTable).getLocal(data)
-            Scope.Local -> getLocal(data)
-            Scope.Static -> TODO()
+        return when (data.scope.visibility) {
+            Visibility.Program -> (programSymbolTable as SymbolTable).getLocal(data)
+            Visibility.Local -> getLocal(data)
+            Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).getLocal(data)
         }
     }
 
@@ -83,10 +83,10 @@ class SymbolTable : ISymbolTable {
     }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
-        return when (data.scope) {
-            Scope.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
-            Scope.Local -> setLocal(data, value)
-            Scope.Static -> TODO()
+        return when (data.scope.visibility) {
+            Visibility.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
+            Visibility.Local -> setLocal(data, value)
+            Visibility.Static -> (getStaticSymbolTable(data.scope.reference!!) as SymbolTable).setLocal(data, value)
         }
     }
 
