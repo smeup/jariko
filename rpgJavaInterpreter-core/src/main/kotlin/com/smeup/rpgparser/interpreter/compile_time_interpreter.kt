@@ -142,26 +142,7 @@ open class BaseCompileTimeInterpreter(
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
 
-        return try {
-            // look for the variable in the main
-            findSize(rContext.statement(), declName, conf, false)!!
-        } catch (e: NotFoundAtCompileTimeException) {
-            // if it doesn't find the variable in the main, look for it in the sub-procedures
-            rContext.subroutine().findSize(rContext, declName, conf)!!
-        }
-    }
-
-    private fun List<RpgParser.SubroutineContext>.findSize(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Int? {
-        if (rContext.subroutine() != null && rContext.subroutine().isNotEmpty()) {
-            rContext.subroutine().forEach { pr ->
-                try {
-                    return findSize(pr.statement(), declName, conf, false)!!
-                } catch (e: NotFoundAtCompileTimeException) {
-                    // do nothing
-                }
-            }
-        }
-        throw NotFoundAtCompileTimeException(declName)
+        return findSize(rContext.statement() + rContext.subroutine().flatMap { it.statement() }, declName, conf, false)!!
     }
 
     private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Int? {
@@ -241,26 +222,7 @@ open class BaseCompileTimeInterpreter(
             }
         }
 
-        return try {
-            // look for the variable in the main
-            findType(rContext.statement(), declName, conf, false)!!
-        } catch (e: NotFoundAtCompileTimeException) {
-            // if it doesn't find the variable in the main, look for it in the sub-procedures
-            rContext.subroutine().findType(rContext, declName, conf)!!
-        }
-    }
-
-    private fun List<RpgParser.SubroutineContext>.findType(rContext: RpgParser.RContext, declName: String, conf: ToAstConfiguration): Type? {
-        if (rContext.subroutine() != null && rContext.subroutine().isNotEmpty()) {
-            rContext.subroutine().forEach { pr ->
-                try {
-                    return findType(pr.statement(), declName, conf, false)!!
-                } catch (e: NotFoundAtCompileTimeException) {
-                    // do nothing
-                }
-            }
-        }
-        throw NotFoundAtCompileTimeException(declName)
+        return findType(rContext.statement() + rContext.subroutine().flatMap { it.statement() }, declName, conf, false)!!
     }
 
     private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {
