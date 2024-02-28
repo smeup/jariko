@@ -1271,6 +1271,11 @@ Test 6
     }
 
     @Test
+    fun executeReturn02() {
+        assertEquals(listOf("Starting"), outputOf("RETURN02"))
+    }
+
+    @Test
     fun executeGoto01() {
         assertEquals(listOf("1", "2", "3", "4"), outputOf("GOTO01"))
     }
@@ -1876,6 +1881,33 @@ Test 6
     }
 
     @Test
+    fun executePROCEDURE_T() {
+        assertEquals(
+            expected = listOf("33", "34"),
+            actual = "PROCEDURE_T".outputOf()
+        )
+    }
+
+    /**
+     * When I call a program that call procedure, the static variables not have to be reset
+     * */
+    @Test
+    fun executePROCEDURE_T_More_Times() {
+        // Initialize the configuration with a memory storage in order to keep the static variables
+        val configuration = Configuration(
+            memorySliceStorage = IMemorySliceStorage.createMemoryStorage(mutableMapOf())
+        )
+        assertEquals(
+            expected = listOf("33", "34"),
+            actual = "PROCEDURE_T".outputOf(configuration = configuration)
+        )
+        assertEquals(
+            expected = listOf("35", "36"),
+            actual = "PROCEDURE_T".outputOf(configuration = configuration)
+        )
+    }
+
+    @Test
     fun executeAPIPGM1() {
         assertEquals(
             expected = "100".split(Regex(", ")),
@@ -2274,5 +2306,20 @@ Test 6
     fun executeNEGATIONERR() {
         val expected = listOf("")
         assertEquals(expected, "NEGATIONERR".outputOf())
+    }
+
+    @Test
+    fun executeEVALVARSNUMS() {
+        val expected = listOf(
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246",
+                "246"
+        )
+        assertEquals(expected, "EVALVARSNUMS".outputOf())
     }
 }

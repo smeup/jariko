@@ -24,6 +24,7 @@ import com.smeup.rpgparser.interpreter.*
  * Data are stored IntArrayMap, which is a more efficient map than standard ones
  * @see IntArrayMap
  * */
+@Deprecated("This class is experimental and will be removed in future versions. Use com.smeup.rpgparser.interpreter.SymbolTable instead.")
 class SymbolTable : ISymbolTable {
     private val values = IntArrayMap<Pair<AbstractDataDefinition, Value>>(0, 32000)
     private val names = mutableMapOf<String, AbstractDataDefinition>()
@@ -34,10 +35,10 @@ class SymbolTable : ISymbolTable {
     override var parentSymbolTable: ISymbolTable? = null
 
     override operator fun get(data: AbstractDataDefinition): Value {
-        return when (data.scope) {
-            Scope.Program -> (programSymbolTable as SymbolTable).getLocal(data)
-            Scope.Local -> getLocal(data)
-            Scope.Static -> TODO()
+        return when (data.scope.visibility) {
+            Visibility.Program -> (programSymbolTable as SymbolTable).getLocal(data)
+            Visibility.Local -> getLocal(data)
+            Visibility.Static -> TODO()
         }
     }
 
@@ -92,10 +93,10 @@ class SymbolTable : ISymbolTable {
     }
 
     override operator fun set(data: AbstractDataDefinition, value: Value): Value? {
-        return when (data.scope) {
-            Scope.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
-            Scope.Local -> setLocal(data, value)
-            Scope.Static -> TODO()
+        return when (data.scope.visibility) {
+            Visibility.Program -> (programSymbolTable as SymbolTable).setLocal(data, value)
+            Visibility.Local -> setLocal(data, value)
+            Visibility.Static -> TODO()
         }
     }
 
