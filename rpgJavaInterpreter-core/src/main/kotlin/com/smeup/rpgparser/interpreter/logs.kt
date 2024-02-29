@@ -382,12 +382,34 @@ class SelectCaseExecutionLogEntry(programName: String, val case: SelectCase, val
     }
 }
 
+// ?tony?
+class CaseCaseExecutionLogEntry(programName: String, val case: CaseClause, val result: Value) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing CASxx"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        val data = "CASxx${sep}${case.condition.render()}$sep(${result.asBoolean().value})"
+
+        return renderHeader(channel, filename, case.startLine(), sep) + data
+    }
+}
+
 class SelectOtherExecutionLogEntry(programName: String, val other: SelectOtherClause, val duration: Long = -1) : LogEntry(programName) {
     override fun toString(): String {
         return "executing SELECT OTHER"
     }
     override fun renderStatement(channel: String, filename: String, sep: String): String {
         return renderHeader(channel, filename, other.startLine(), sep) + "SELECT OTHER"
+    }
+}
+
+// ?tony?
+class CaseOtherExecutionLogEntry(programName: String, val other: CaseOtherClause, val duration: Long = -1) : LogEntry(programName) {
+    override fun toString(): String {
+        return "executing CAS"
+    }
+    override fun renderStatement(channel: String, filename: String, sep: String): String {
+        return renderHeader(channel, filename, other.startLine(), sep) + "CAS"
     }
 }
 

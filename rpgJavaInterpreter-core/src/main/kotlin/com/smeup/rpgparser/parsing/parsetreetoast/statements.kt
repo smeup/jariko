@@ -45,7 +45,7 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
                 )
             }
         // ?tony?
-        // this.casestatement() != null -> this.casestatement().toAst(conf)
+        this.casestatement() != null -> this.casestatement().toAst(conf)
         this.begindo() != null -> this.begindo()
             .let {
                 it.csDO().cspec_fixed_standard_parts().validate(
@@ -217,42 +217,30 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
 }
 
 // ?tony?
-/* internal fun RpgParser.CasestatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseStmt {
-
-    var statementsToConsider = this.csCASEQ().map { it.toAst(conf) }
-    val indexOfOther = statementsToConsider.indexOfFirst { it is OtherStmt }
-    if (indexOfOther != -1) {
-        statementsToConsider = statementsToConsider.subList(0, indexOfOther)
-    }
-    val position = toPosition(conf.considerPosition)
-    return if (this.`when`() != null) {
-        CaseStmt(
-            this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
-            statementsToConsider,
-            position
-        )
-    } else {
-
-        val (comparison, factor2) = this.csCASEQ().getCondition()
-        val csANDxx = this.csWHENxx().csANDxx()
-        val ands = csANDxx.map { it.toAst(conf) }
-        val csORxx = this.csWHENxx().csORxx()
-        val ors = csORxx.map { it.toAst(conf) }
-        val condition = LogicalCondition(comparison.asExpression(this.csWHENxx().factor1, factor2, conf))
-        condition.and(ands)
-        condition.or(ors)
-        CaseStmt(
-            condition,
-            statementsToConsider,
-            position
-        )
-    }
+internal fun RpgParser.CasestatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseStmt {
+    val casClauses = this.csCASxx().map { it.toAst(conf) }
+    val other: CaseOtherClause? = null
+    return CaseStmt(
+        cases = casClauses,
+        other = other,
+        position = toPosition(conf.considerPosition)
+    )
 }
 
-internal fun RpgParser.CsCASEQContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LogicalCondition {
+// ?tony?
+internal fun RpgParser.CsCASxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseClause {
     val (comparison, factor2) = this.getCondition()
-    return LogicalCondition(comparison.asExpression(this.factor1, factor2, conf))
-} */
+    val function = this.getFunction()
+    val condition = LogicalCondition(comparison.asExpression(this.factor1, factor2, conf))
+    val position = toPosition(conf.considerPosition)
+    return CaseClause(
+        condition,
+        emptyList(),
+        position,
+        function
+    )
+
+}
 
 @Serializable
 data class LogicalCondition(val expression: Expression) : Expression() {
@@ -324,6 +312,29 @@ internal fun RpgParser.CsWHENxxContext.getCondition() =
         this.csWHENGT() != null -> ComparisonOperator.GT to this.csWHENGT().cspec_fixed_standard_parts().factor2
         this.csWHENLE() != null -> ComparisonOperator.LE to this.csWHENLE().cspec_fixed_standard_parts().factor2
         this.csWHENLT() != null -> ComparisonOperator.LT to this.csWHENLT().cspec_fixed_standard_parts().factor2
+        else -> throw RuntimeException("No valid WhenXX condition")
+    }
+
+// ?tony?
+internal fun RpgParser.CsCASxxContext.getCondition() =
+    when {
+        this.csCASEQ() != null -> ComparisonOperator.EQ to this.csCASEQ().cspec_fixed_standard_parts().factor2
+        this.csCASNE() != null -> ComparisonOperator.NE to this.csCASNE().cspec_fixed_standard_parts().factor2
+        this.csCASGE() != null -> ComparisonOperator.GE to this.csCASGE().cspec_fixed_standard_parts().factor2
+        this.csCASGT() != null -> ComparisonOperator.GT to this.csCASGT().cspec_fixed_standard_parts().factor2
+        this.csCASLE() != null -> ComparisonOperator.LE to this.csCASLE().cspec_fixed_standard_parts().factor2
+        this.csCASLT() != null -> ComparisonOperator.LT to this.csCASLT().cspec_fixed_standard_parts().factor2
+        else -> throw RuntimeException("No valid WhenXX condition")
+    }
+
+internal fun RpgParser.CsCASxxContext.getFunction() =
+    when {
+        this.csCASEQ() != null -> this.csCASEQ().cspec_fixed_standard_parts().resultType().text
+        this.csCASNE() != null -> this.csCASNE().cspec_fixed_standard_parts().resultType().text
+        this.csCASGE() != null -> this.csCASGE().cspec_fixed_standard_parts().resultType().text
+        this.csCASGT() != null -> this.csCASGT().cspec_fixed_standard_parts().resultType().text
+        this.csCASLE() != null -> this.csCASLE().cspec_fixed_standard_parts().resultType().text
+        this.csCASLT() != null -> this.csCASLT().cspec_fixed_standard_parts().resultType().text
         else -> throw RuntimeException("No valid WhenXX condition")
     }
 
