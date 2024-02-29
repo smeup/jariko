@@ -48,7 +48,7 @@ import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.reflect.KClass
-import kotlin.reflect.full.cast
+import kotlin.reflect.cast
 import kotlin.system.measureTimeMillis
 
 typealias MutesMap = MutableMap<Int, MuteParser.MuteLineContext>

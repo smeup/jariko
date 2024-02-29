@@ -18,8 +18,6 @@ package com.smeup.rpgparser.parsing.facade
 
 import com.andreapivetta.kolor.yellow
 import com.smeup.rpgparser.execution.MainExecutionContext
-import com.smeup.rpgparser.interpreter.PreprocessingLogEnd
-import com.smeup.rpgparser.interpreter.PreprocessingLogStart
 import com.smeup.rpgparser.parsing.parsetreetoast.fireErrorEvent
 import com.smeup.rpgparser.rpginterop.CopyFileExtension
 import kotlinx.serialization.Serializable
@@ -28,7 +26,6 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.util.*
 import java.util.regex.Pattern
-import kotlin.system.measureTimeMillis
 
 typealias RelativeLine = Pair<Int, CopyBlock?>
 
@@ -43,7 +40,7 @@ class Copy(val source: String) {
     }
 }
 
-private fun String.includesCopy(
+fun String.includesCopy(
     findCopy: (copyId: CopyId) -> String? = {
         MainExecutionContext.getSystemInterface()!!.findCopy(it)!!.source
     },
@@ -108,35 +105,6 @@ fun String.copyId(): CopyId {
         else -> CopyId(null, null, this)
     }
 }
-
-internal fun InputStream.preprocess(
-    findCopy: (copyId: CopyId) -> String?,
-    onStartInclusion: (copyId: CopyId, start: Int) -> Unit = { _: CopyId, _: Int -> },
-    onEndInclusion: (end: Int) -> Unit = { _: Int -> },
-    beforeInclusion: (copyId: CopyId) -> Boolean = { true }
-): String {
-    val programName = getExecutionProgramNameWithNoExtension()
-    MainExecutionContext.log(PreprocessingLogStart(programName = programName))
-    val preprocessed: String
-    measureTimeMillis {
-        preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(
-            findCopy = findCopy,
-            onStartInclusion = onStartInclusion,
-            onEndInclusion = onEndInclusion,
-            beforeInclusion = beforeInclusion
-        )
-    }.apply {
-        MainExecutionContext.log(
-            PreprocessingLogEnd(
-                programName = programName,
-                elapsed = this,
-                programSouce = preprocessed
-            )
-        )
-    }
-    return preprocessed
-}
-
 @Serializable
 data class CopyId(val library: String? = null, val file: String? = null, val member: String) {
 
@@ -285,7 +253,7 @@ class CopyBlocks : Iterable<CopyBlock> {
                     absoluteLine - block.start
                 } else {
                     val childrenBefore = children.filter { child -> child.end <= absoluteLine }
-                    absoluteLine - block.start - childrenBefore.sumBy { childBefore -> childBefore.end - childBefore.start } + 1
+                    absoluteLine - block.start - childrenBefore.sumOf { childBefore -> childBefore.end - childBefore.start } + 1
                 }
             }
             // else if line inside program
