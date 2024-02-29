@@ -2309,6 +2309,12 @@ Test 6
     }
 
     @Test
+    fun executeDEFINE03() {
+        val expected = listOf("1,2,3,4")
+        assertEquals(expected, "DEFINE03".outputOf())
+    }
+
+    @Test
     fun executeEVALVARSNUMS() {
         val expected = listOf(
                 "246",
