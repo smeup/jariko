@@ -73,7 +73,7 @@ data class CompilationUnit(
         get() = main.stmts.plist()
                 ?: subroutines.mapNotNull { it.stmts.plist() }.firstOrNull()
 
-    internal val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
+    private val inStatementsDataDefinitions = mutableListOf<InStatementDataDefinition>()
 
     fun addInStatementDataDefinitions(dataDefinitions: List<InStatementDataDefinition>) {
         inStatementsDataDefinitions.addAll(dataDefinitions)
