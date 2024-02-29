@@ -711,11 +711,7 @@ open class InternalInterpreter(
         val dividend = BigDecimal(eval(statement.dividend).render())
         val divisor = BigDecimal(eval(statement.divisor).render())
         val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
-        val type = when {
-            statement.target is ArrayAccessExpr -> statement.target.type()
-            statement.target is DataRefExpr -> statement.target.variable.referred!!.type
-            else -> null
-        }
+        val type = statement.target.type()
         require(type is NumberType)
         // calculation of rest
         // NB. rest based on type of quotient
