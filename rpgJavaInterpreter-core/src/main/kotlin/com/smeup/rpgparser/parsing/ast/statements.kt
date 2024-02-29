@@ -192,6 +192,69 @@ data class SelectStmt(
         }
 }
 
+// ?tony?
+/* @Serializable
+data class CaseStmt(
+    var cases: List<SelectCase>,
+    var other: SelectOtherClause? = null,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), CompositeStatement, StatementThatCanDefineData {
+
+    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
+
+        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
+
+        cases.forEach {
+            muteAttached.addAll(
+                acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
+            )
+        }
+
+        if (other != null) {
+            muteAttached.addAll(
+                acceptBody(other!!.body, mutes, other!!.position!!.start.line, other!!.position!!.end.line)
+            )
+        }
+
+        return muteAttached
+    }
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    override fun execute(interpreter: InterpreterCore) {
+        for (case in this.cases) {
+            val result = interpreter.eval(case.condition)
+
+            interpreter.log { SelectCaseExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
+            if (result.asBoolean().value) {
+                interpreter.execute(case.body)
+                return
+            }
+        }
+        if (this.other != null) {
+            interpreter.log {
+                SelectOtherExecutionLogEntry(
+                    interpreter.getInterpretationContext().currentProgramName,
+                    this.other!!
+                )
+            }
+            interpreter.execute(this.other!!.body)
+        }
+    }
+
+    @Derived
+    override val body: List<Statement>
+        get() {
+            val result = mutableListOf<Statement>()
+            cases.forEach { case ->
+                result.addAll(case.body.explode())
+            }
+            if (other?.body != null) result.addAll(other!!.body.explode())
+            return result
+        }
+}*/
+
 @Serializable
 data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 

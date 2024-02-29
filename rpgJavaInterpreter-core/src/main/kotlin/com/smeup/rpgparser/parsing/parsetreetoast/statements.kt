@@ -44,6 +44,8 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
                     conf = conf
                 )
             }
+        // ?tony?
+        // this.casestatement() != null -> this.casestatement().toAst(conf)
         this.begindo() != null -> this.begindo()
             .let {
                 it.csDO().cspec_fixed_standard_parts().validate(
@@ -213,6 +215,44 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
         )
     }
 }
+
+// ?tony?
+/* internal fun RpgParser.CasestatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseStmt {
+
+    var statementsToConsider = this.csCASEQ().map { it.toAst(conf) }
+    val indexOfOther = statementsToConsider.indexOfFirst { it is OtherStmt }
+    if (indexOfOther != -1) {
+        statementsToConsider = statementsToConsider.subList(0, indexOfOther)
+    }
+    val position = toPosition(conf.considerPosition)
+    return if (this.`when`() != null) {
+        CaseStmt(
+            this.`when`().csWHEN().fixedexpression.expression().toAst(conf),
+            statementsToConsider,
+            position
+        )
+    } else {
+
+        val (comparison, factor2) = this.csCASEQ().getCondition()
+        val csANDxx = this.csWHENxx().csANDxx()
+        val ands = csANDxx.map { it.toAst(conf) }
+        val csORxx = this.csWHENxx().csORxx()
+        val ors = csORxx.map { it.toAst(conf) }
+        val condition = LogicalCondition(comparison.asExpression(this.csWHENxx().factor1, factor2, conf))
+        condition.and(ands)
+        condition.or(ors)
+        CaseStmt(
+            condition,
+            statementsToConsider,
+            position
+        )
+    }
+}
+
+internal fun RpgParser.CsCASEQContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): LogicalCondition {
+    val (comparison, factor2) = this.getCondition()
+    return LogicalCondition(comparison.asExpression(this.factor1, factor2, conf))
+} */
 
 @Serializable
 data class LogicalCondition(val expression: Expression) : Expression() {
