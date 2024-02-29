@@ -697,11 +697,7 @@ open class InternalInterpreter(
         val rightValue = BigDecimal(eval(statement.left).render())
         val leftValue = BigDecimal(eval(statement.right).render())
         val result = rightValue.multiply(leftValue)
-        val type = when {
-            statement.target is ArrayAccessExpr -> statement.target.type()
-            statement.target is DataRefExpr -> statement.target.variable.referred!!.type
-            else -> null
-        }
+        val type = statement.target.type()
         require(type is NumberType)
         return if (statement.halfAdjust) {
             DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
