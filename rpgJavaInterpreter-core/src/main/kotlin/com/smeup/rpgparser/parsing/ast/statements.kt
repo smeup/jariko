@@ -1083,6 +1083,15 @@ data class MultStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    @Transient
+    @Derived
+    val left: Expression
+        get() = factor1 ?: target
+
+    @Transient
+    @Derived
+    val right: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.mult(this))
@@ -1101,6 +1110,15 @@ data class DivStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    @Transient
+    @Derived
+    val dividend: Expression
+        get() = factor1 ?: target
+
+    @Transient
+    @Derived
+    val divisor: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.div(this))
