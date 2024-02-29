@@ -418,4 +418,16 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf<String>("Src1=1 Src2=0")
         assertEquals(expected, "smeup/T10_A35_P07".outputOf())
     }
+
+    @Test
+    fun executeT52_A07_P01() {
+        val expected = listOf<String>()
+        assertEquals(expected, "smeup/T52_A07_P01".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT60_A10_P01_02() {
+        val expected = listOf<String>()
+        assertEquals(expected, "smeup/T60_A10_P01-02".outputOf(configuration = smeupConfig))
+    }
 }

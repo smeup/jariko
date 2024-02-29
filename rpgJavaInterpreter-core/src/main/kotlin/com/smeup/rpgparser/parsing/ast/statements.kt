@@ -1895,3 +1895,30 @@ data class ResetStmt(
         interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
     }
 }
+
+@Serializable
+data class ExfmtStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
+
+@Serializable
+data class ReadcStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
+
+@Serializable
+data class UnlockStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}

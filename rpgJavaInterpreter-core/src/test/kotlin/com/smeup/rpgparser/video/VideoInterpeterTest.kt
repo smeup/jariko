@@ -32,4 +32,22 @@ class VideoInterpeterTest : AbstractTest() {
         val expected = listOf("W\$PERI:12", "£RASDI:HELLO_WORLD")
         assertEquals(expected = expected, actual = "video/FILEDEF".outputOf(configuration = configuration))
     }
+
+    @Test
+    fun executeEXFMT_MOCK() {
+        val expected = listOf("")
+        assertEquals(expected = expected, actual = "video/EXFMT_MOCK".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeREADC_MOCK() {
+        val expected = listOf("")
+        assertEquals(expected = expected, actual = "video/READC_MOCK".outputOf(configuration = configuration))
+    }
+
+    @Test
+    fun executeUNLOCK_MOCK() {
+        val expected = listOf("")
+        assertEquals(expected = expected, actual = "video/UNLOCK_MOCK".outputOf(configuration = configuration))
+    }
 }
