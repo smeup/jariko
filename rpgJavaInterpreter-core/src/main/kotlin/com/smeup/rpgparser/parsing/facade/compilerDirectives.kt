@@ -1,7 +1,5 @@
 package com.smeup.rpgparser.parsing.facade
 
-import java.util.regex.Pattern
-
 // If true, the last read line from the source will be used in the resulting source.
 var useRow: Boolean = true
 var definitions = mutableListOf<String>()
