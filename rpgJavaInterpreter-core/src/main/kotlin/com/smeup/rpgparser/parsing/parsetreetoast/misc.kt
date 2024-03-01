@@ -1986,7 +1986,7 @@ internal fun getProgramNameToCopyBlocks(): ProgramNameToCopyBlocks {
 
 internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition(): List<T> {
     val dataDefinitionMap = mutableMapOf<String, AbstractDataDefinition>()
-    return this.filter {
+    return removeUnnecessaryRecordFormat().filter {
         val dataDefinition = dataDefinitionMap[it.name]
         if (dataDefinition == null) {
             dataDefinitionMap[it.name] = it
@@ -1997,5 +1997,19 @@ internal fun <T : AbstractDataDefinition> List<T>.removeDuplicatedDataDefinition
             }
             false
         }
+    }
+}
+
+/**
+  * This function is used to remove unnecessary record formats from a list of data definitions.
+  * Data definitions of type RecordFormatType are necessary where in the AST we don't have a DS
+  * named like the record format, and we have operations such as CLEAR RECORD_FORMAT_NAME.
+  * In that case the record format in the data definitions list is necessary just to retrieve the fields that must be clean.
+  *
+  * @return A list of data definitions excluding the ones of type `RecordFormat`.
+ */
+private fun <T : AbstractDataDefinition> List<T>.removeUnnecessaryRecordFormat(): List<T> {
+    return this.filterNot { dataDef ->
+        dataDef.type is RecordFormatType && this.any { it.type is DataStructureType && it.name.uppercase() == dataDef.name.uppercase() }
     }
 }
