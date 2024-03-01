@@ -3,5 +3,5 @@
       *Fix error: Incongruous definitions of BRARTIR: RecordFormatType vs DataStructureType...
       *
      DBRARTIR        E DS                  EXTNAME(BRARTI0L) INZ
-     C                   CLEAR                   BRART
+     C                   CLEAR                   BRARTIR
      C     A§ARTI         DSPLY
