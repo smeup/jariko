@@ -2,6 +2,7 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
+import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
@@ -466,7 +467,7 @@ open class SmeupInterpreterTest : AbstractTest() {
     @Test
     fun executeT02_A40_P08() {
         val expected = listOf(
-            "CNCLI AAAAAA 333"
+            "CNCLIAAAAAA333"
         )
         assertEquals(expected, "smeup/T02_A40_P08".outputOf())
     }
