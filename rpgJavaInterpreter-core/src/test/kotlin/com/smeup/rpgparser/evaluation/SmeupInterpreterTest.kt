@@ -453,4 +453,13 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf<String>("Res(20, 22, 12, 26, 28, 30) Div(2, 2, 2, 2, 2, 2)")
         assertEquals(expected, "smeup/T10_A20_P41".outputOf())
     }
+
+    @Test
+    fun executeT03_A30_P01_02() {
+        val expected = listOf(
+            "*IN33=0,*IN34=1",
+            "*IN33=0,*IN34=1"
+        )
+        assertEquals(expected, "smeup/T03_A30_P01-02".outputOf())
+    }
 }
