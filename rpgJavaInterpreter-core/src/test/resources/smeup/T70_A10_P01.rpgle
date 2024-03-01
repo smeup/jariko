@@ -1,22 +1,43 @@
      D £DBG_Str        S            100
       *
-     C                   EVAL      £DBG_Str='OUT'
+      * Test DEFINE and IF NOT DEFINED
       *
-      * Definisci variabili e registra definizione come eseguita
-      *
-      /IF NOT DEFINED(DMSE_INCLUDED)
-      /DEFINE DMSE_INCLUDED
+      /IF NOT DEFINED(DEFINE_1)
+      /DEFINE DEFINE_1
+     C                   EVAL      £DBG_Str='PRINT'
      C     £DBG_Str      DSPLY
       /ENDIF
       *
-      * Definizioni da saltare perchè già presenti
+      * Test IF NOT DEFINED WITH ELSE
       *
-      /IF NOT DEFINED(DMSE_INCLUDED)
+      /IF NOT DEFINED(DEFINE_1)
+     C                   EVAL      £DBG_Str='NO_PRINT'
+     C     £DBG_Str      DSPLY
+      /ELSE
+     C                   EVAL      £DBG_Str='PRINT'
      C     £DBG_Str      DSPLY
       /ENDIF
       *
-      * Pulisci define
+      * Test IF DEFINED
       *
-      /UNDEFINE DMSE_INCLUDED
+      /IF DEFINED(DEFINE_2)
+     C                   EVAL      £DBG_Str='NO_PRINT'
+     C     £DBG_Str      DSPLY
+      /ELSE
+      /UNDEFINE DEFINE_1
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
+      /ENDIF
+      *
+      /IF NOT DEFINED(DEFINE_1)
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
+      /ELSE
+     C                   EVAL      £DBG_Str='NOT_PRINT'
+     C     £DBG_Str      DSPLY
+      /ENDIF
+     C                   EVAL      £DBG_Str='PRINT'
+     C     £DBG_Str      DSPLY
       *
      C                   SETON                                        LR
+
