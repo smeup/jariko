@@ -149,9 +149,8 @@ open class BaseCompileTimeInterpreter(
         statements.forEach {
             when {
                 it.dspec() != null -> {
-                    val name = it.dspec().ds_name().text
-                    if (name == declName) {
-                        // TODO verify...
+                    val name = it.dspec().ds_name()?.text ?: it.dspec().dspecConstant().ds_name()?.text
+                    if (declName.equals(name, ignoreCase = true)) {
                         return it.dspec().TO_POSITION().text.asInt()
                     }
                 }
