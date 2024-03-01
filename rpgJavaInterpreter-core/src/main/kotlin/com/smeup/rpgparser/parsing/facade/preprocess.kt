@@ -11,18 +11,22 @@ internal fun InputStream.preprocess(
     findCopy: (copyId: CopyId) -> String?,
     onStartInclusion: (copyId: CopyId, start: Int) -> Unit = { _: CopyId, _: Int -> },
     onEndInclusion: (end: Int) -> Unit = { _: Int -> },
-    beforeInclusion: (copyId: CopyId) -> Boolean = { true }
+    beforeInclusion: (copyId: CopyId) -> Boolean = { true },
+    resolveDirectives: Boolean = true
 ): String {
     val programName = getExecutionProgramNameWithNoExtension()
     MainExecutionContext.log(PreprocessingLogStart(programName = programName))
-    val preprocessed: String
+    var preprocessed: String
     measureTimeMillis {
         preprocessed = bufferedReader().use(BufferedReader::readText).includesCopy(
             findCopy = findCopy,
             onStartInclusion = onStartInclusion,
             onEndInclusion = onEndInclusion,
             beforeInclusion = beforeInclusion
-        ).resolveCompilerDirectives()
+        )
+        if (resolveDirectives) {
+            preprocessed = preprocessed.resolveCompilerDirectives()
+        }
     }.apply {
         MainExecutionContext.log(
             PreprocessingLogEnd(

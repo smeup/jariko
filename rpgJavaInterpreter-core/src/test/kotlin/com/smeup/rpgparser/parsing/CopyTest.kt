@@ -164,7 +164,8 @@ class CopyTest {
             findCopy = { copyId ->
                 File("$srcRoot/${copyId.key(CopyFileExtension.rpgle)}").readText(charset = Charsets.UTF_8)
                     .apply { copyDefinitions[copyId] = this }
-            }
+            },
+            resolveDirectives = false
         )
         absoluteLinesMatchingRelativeLine(pgm = pgm, copyDefinitions)
     }
@@ -174,7 +175,8 @@ class CopyTest {
         val preprocessed = pgm.byteInputStream().preprocess(
             findCopy = { copyId -> copyDefinitions[copyId] },
             onStartInclusion = { copyId, start -> copyBlocks.onStartCopyBlock(copyId, start) },
-            onEndInclusion = { end -> copyBlocks.onEndCopyBlock(end) }
+            onEndInclusion = { end -> copyBlocks.onEndCopyBlock(end) },
+            resolveDirectives = false
         )
         preprocessed.lines().forEachIndexed { index, expectedLineOfCode ->
             println("index: $index, expectedLineOfCode:$expectedLineOfCode")

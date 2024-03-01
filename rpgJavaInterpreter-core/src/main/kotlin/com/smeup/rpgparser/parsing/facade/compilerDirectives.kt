@@ -1,9 +1,6 @@
 package com.smeup.rpgparser.parsing.facade
 
-// If true, the last read line from the source will be used in the resulting source.
-var useRow: Boolean = true
-var definitions = mutableListOf<String>()
-var lastIfCode: String = ""
+val DIRECTIVES_KEYWORD = listOf("      /IF", "      /DEFINE", "      /UNDEFINE", "      /ELSE", "      /ENDIF")
 
 val IF_DEFINED_PATTERN = Regex(""".{6}/IF\sDEFINED\(([\w£$§,]+)\)$""", RegexOption.IGNORE_CASE)
 val IF_NOT_DEFINED_PATTERN = Regex(""".{6}/IF\sNOT\sDEFINED\(([\w£$§,]+)\)$""", RegexOption.IGNORE_CASE)
@@ -13,21 +10,61 @@ val ELSE_PATTERN = Regex(""".{6}/ELSE""", RegexOption.IGNORE_CASE)
 val ENDIF_PATTERN = Regex(""".{6}/ENDIF""", RegexOption.IGNORE_CASE)
 
 fun String.resolveCompilerDirectives(): String {
+
+    if (!containDirectives(this)) {
+        return this
+    }
+
+    var lastIfCode = ""
     var result = ""
+    val definitions = mutableListOf<String>()
+    var useRow = true
     // Split input text into rows
-    val rows = this.split("\n")
+    val rows = this.lines()
 
     // Check each row against regex patterns
     for (row in rows) {
         when {
-            IF_DEFINED_PATTERN.matches(row) -> manageIfDefined(row)
-            IF_NOT_DEFINED_PATTERN.matches(row) -> manageIfNotDefined(row)
-            DEFINE_PATTERN.matches(row) -> manageDefine(row)
-            UNDEFINE_PATTERN.matches(row) -> manageUndefine(row)
-            ELSE_PATTERN.matches(row) -> manageElse()
-            ENDIF_PATTERN.matches(row) -> manageEndIf()
+            IF_DEFINED_PATTERN.matches(row) -> {
+                val matchResult = IF_DEFINED_PATTERN.matchEntire(row)
+                val code = matchResult?.groups?.get(1)?.value
+                if (code != null) {
+                    lastIfCode = code.uppercase()
+                    useRow = isDefined(definitions, code)
+                }
+            }
+            IF_NOT_DEFINED_PATTERN.matches(row) -> {
+                val matchResult = IF_NOT_DEFINED_PATTERN.matchEntire(row)
+                val code = matchResult?.groups?.get(1)?.value
+                if (code != null) {
+                    lastIfCode = code.uppercase()
+                    useRow = !isDefined(definitions, code)
+                }
+            }
+            DEFINE_PATTERN.matches(row) -> {
+                val matchResult = DEFINE_PATTERN.matchEntire(row)
+                val code = matchResult?.groups?.get(1)?.value
+                if (code != null) {
+                    definitions.add(code.uppercase())
+                }
+            }
+            UNDEFINE_PATTERN.matches(row) -> {
+                val matchResult = UNDEFINE_PATTERN.matchEntire(row)
+                val code = matchResult?.groups?.get(1)?.value
+                if (code != null) {
+                    definitions.remove(code.uppercase())
+                }
+            }
+            ELSE_PATTERN.matches(row) -> {
+                useRow = !useRow
+            }
+            ENDIF_PATTERN.matches(row) -> {
+                if (isDefined(definitions, lastIfCode)) {
+                    lastIfCode = ""
+                }
+            }
             else -> {
-                if (useRow) {
+                if (useRow && row.length > 0) {
                     result += row.plus("\n")
                 }
             }
@@ -36,53 +73,12 @@ fun String.resolveCompilerDirectives(): String {
     return result
 }
 
-fun manageEndIf() {
-    if (isDefined(lastIfCode)) {
-        lastIfCode = ""
-    }
+private fun containDirectives(inputString: String): Boolean {
+    return DIRECTIVES_KEYWORD.any { keyword -> inputString.contains(keyword, ignoreCase = true) }
 }
 
-fun manageElse() {
-    useRow = !useRow
-}
-
-fun manageUndefine(row: String) {
-    val matchResult = UNDEFINE_PATTERN.matchEntire(row)
-    val code = matchResult?.groups?.get(1)?.value
-    if (code != null) {
-        definitions.remove(code.uppercase())
-    }
-}
-
-fun manageDefine(row: String) {
-    val matchResult = DEFINE_PATTERN.matchEntire(row)
-    val code = matchResult?.groups?.get(1)?.value
-    if (code != null) {
-        definitions.add(code.uppercase())
-    }
-}
-
-fun manageIfNotDefined(row: String) {
-    val matchResult = IF_NOT_DEFINED_PATTERN.matchEntire(row)
-    val code = matchResult?.groups?.get(1)?.value
-    if (code != null) {
-        lastIfCode = code.uppercase()
-        useRow = !isDefined(code)
-    }
-}
-
-private fun manageIfDefined(row: String) {
-    val matchResult = IF_DEFINED_PATTERN.matchEntire(row)
-    val code = matchResult?.groups?.get(1)?.value
-    if (code != null) {
-        lastIfCode = code.uppercase()
-        useRow = isDefined(code)
-    }
-}
-
-private fun isDefined(code: String): Boolean {
-    return definitions.any { it.equals(code.uppercase()) }
-}
+private fun isDefined(definitions: MutableList<String>, lastIfCode: String) =
+    definitions.any { it.equals(lastIfCode.uppercase()) }
 
 fun getContentInsideParentheses(input: String): String? {
     val regexPattern = Regex(""".{6}/DEFINE\s+([^\s]+)""", RegexOption.IGNORE_CASE)
