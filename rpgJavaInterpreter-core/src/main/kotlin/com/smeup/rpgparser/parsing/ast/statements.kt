@@ -206,7 +206,7 @@ data class CaseStmt(
         for (case in this.cases) {
             val result = interpreter.eval(case.condition)
 
-            interpreter.log { CaseCaseExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
+            interpreter.log { CasXXExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
             if (result.asBoolean().value) {
                 executeSubProcedure(interpreter, case.function)
                 return
@@ -214,7 +214,7 @@ data class CaseStmt(
         }
         if (this.other != null) {
             interpreter.log {
-                CaseOtherExecutionLogEntry(
+                CasOtherExecutionLogEntry(
                     interpreter.getInterpretationContext().currentProgramName,
                     this.other!!
                 )

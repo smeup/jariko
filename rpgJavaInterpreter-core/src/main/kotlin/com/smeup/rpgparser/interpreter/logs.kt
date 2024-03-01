@@ -382,7 +382,7 @@ class SelectCaseExecutionLogEntry(programName: String, val case: SelectCase, val
     }
 }
 
-class CaseCaseExecutionLogEntry(programName: String, val case: CaseClause, val result: Value) : LogEntry(programName) {
+class CasXXExecutionLogEntry(programName: String, val case: CaseClause, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "executing CASxx"
     }
@@ -402,7 +402,7 @@ class SelectOtherExecutionLogEntry(programName: String, val other: SelectOtherCl
     }
 }
 
-class CaseOtherExecutionLogEntry(programName: String, val other: CaseOtherClause, val duration: Long = -1) : LogEntry(programName) {
+class CasOtherExecutionLogEntry(programName: String, val other: CaseOtherClause, val duration: Long = -1) : LogEntry(programName) {
     override fun toString(): String {
         return "executing CAS"
     }
