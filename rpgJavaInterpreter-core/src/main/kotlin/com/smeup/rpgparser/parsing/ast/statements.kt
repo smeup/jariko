@@ -198,26 +198,7 @@ data class CaseStmt(
     var other: CaseOtherClause? = null,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
-) : Statement(position), CompositeStatement, StatementThatCanDefineData {
-
-    override fun accept(mutes: MutableMap<Int, MuteParser.MuteLineContext>, start: Int, end: Int): MutableList<MuteAnnotationResolved> {
-
-        val muteAttached: MutableList<MuteAnnotationResolved> = mutableListOf()
-
-        cases.forEach {
-            muteAttached.addAll(
-                acceptBody(it.body, mutes, it.position!!.start.line, it.position.end.line)
-            )
-        }
-
-        if (other != null) {
-            muteAttached.addAll(
-                acceptBody(other!!.body, mutes, other!!.position!!.start.line, other!!.position!!.end.line)
-            )
-        }
-
-        return muteAttached
-    }
+) : Statement(position), StatementThatCanDefineData {
 
     override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
 
@@ -239,7 +220,6 @@ data class CaseStmt(
                 )
             }
             executeSubProcedure(interpreter, other!!.function)
-            interpreter.execute(this.other!!.body)
         }
     }
 
@@ -252,30 +232,19 @@ data class CaseStmt(
             ExecuteSubroutine(subroutine = ReferenceByName(subProcedureName, subroutine), position = subroutine.position).execute(interpreter)
         }
     }
-
-    @Derived
-    override val body: List<Statement>
-        get() {
-            val result = mutableListOf<Statement>()
-            cases.forEach { case ->
-                result.addAll(case.body.explode())
-            }
-            if (other?.body != null) result.addAll(other!!.body.explode())
-            return result
-        }
 }
 
 @Serializable
 data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 @Serializable
-data class CaseOtherClause(override val body: List<Statement>, override val position: Position? = null, val function: String) : Node(position), CompositeStatement
+data class CaseOtherClause(override val position: Position? = null, val function: String) : Node(position)
 
 @Serializable
 data class SelectCase(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 @Serializable
-data class CaseClause(val condition: Expression, override val body: List<Statement>, override val position: Position? = null, val function: String) : Node(position), CompositeStatement
+data class CaseClause(val condition: Expression, override val position: Position? = null, val function: String) : Node(position)
 
 @Serializable
 data class EvalFlags(

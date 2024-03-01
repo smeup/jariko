@@ -232,22 +232,18 @@ internal fun RpgParser.CsCASxxContext.toAst(conf: ToAstConfiguration = ToAstConf
     val position = toPosition(conf.considerPosition)
     return CaseClause(
         condition,
-        emptyList(),
         position,
         function
     )
-
 }
 
 internal fun RpgParser.CsCASotherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseOtherClause {
     val function = this.csCAS().cspec_fixed_standard_parts().resultType().text
     val position = toPosition(conf.considerPosition)
     return CaseOtherClause(
-        emptyList(),
         position,
         function
     )
-
 }
 
 @Serializable
