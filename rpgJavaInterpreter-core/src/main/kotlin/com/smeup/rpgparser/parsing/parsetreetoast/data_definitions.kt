@@ -795,7 +795,7 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
                     it.name.equals(varName, ignoreCase = true) || it.fields.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) } != null
                 }
 
-                if (dataDefinition?.name.equals(varName, ignoreCase = true)) dataDefinition else dataDefinition?.fields?.firstOrNull { f -> f.name.equals(varName, ignoreCase = true)}
+                if (dataDefinition?.name.equals(varName, ignoreCase = true)) dataDefinition else dataDefinition?.fields?.firstOrNull { f -> f.name.equals(varName, ignoreCase = true) }
             }?.type,
             arraySizeDeclared = this.arraySizeDeclared(conf),
             arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
