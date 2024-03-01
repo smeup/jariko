@@ -382,7 +382,6 @@ class SelectCaseExecutionLogEntry(programName: String, val case: SelectCase, val
     }
 }
 
-// ?tony?
 class CaseCaseExecutionLogEntry(programName: String, val case: CaseClause, val result: Value) : LogEntry(programName) {
     override fun toString(): String {
         return "executing CASxx"
@@ -403,7 +402,6 @@ class SelectOtherExecutionLogEntry(programName: String, val other: SelectOtherCl
     }
 }
 
-// ?tony?
 class CaseOtherExecutionLogEntry(programName: String, val other: CaseOtherClause, val duration: Long = -1) : LogEntry(programName) {
     override fun toString(): String {
         return "executing CAS"

@@ -44,7 +44,6 @@ internal fun BlockContext.toAst(conf: ToAstConfiguration = ToAstConfiguration())
                     conf = conf
                 )
             }
-        // ?tony?
         this.casestatement() != null -> this.casestatement().toAst(conf)
         this.begindo() != null -> this.begindo()
             .let {
@@ -216,18 +215,16 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
     }
 }
 
-// ?tony?
 internal fun RpgParser.CasestatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseStmt {
     val casClauses = this.csCASxx().map { it.toAst(conf) }
-    val other: CaseOtherClause? = null
+    val otherClause = this.csCASother().toAst()
     return CaseStmt(
         cases = casClauses,
-        other = other,
+        other = otherClause,
         position = toPosition(conf.considerPosition)
     )
 }
 
-// ?tony?
 internal fun RpgParser.CsCASxxContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseClause {
     val (comparison, factor2) = this.getCondition()
     val function = this.getFunction()
@@ -235,6 +232,17 @@ internal fun RpgParser.CsCASxxContext.toAst(conf: ToAstConfiguration = ToAstConf
     val position = toPosition(conf.considerPosition)
     return CaseClause(
         condition,
+        emptyList(),
+        position,
+        function
+    )
+
+}
+
+internal fun RpgParser.CsCASotherContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseOtherClause {
+    val function = this.csCAS().cspec_fixed_standard_parts().resultType().text
+    val position = toPosition(conf.considerPosition)
+    return CaseOtherClause(
         emptyList(),
         position,
         function
@@ -315,7 +323,6 @@ internal fun RpgParser.CsWHENxxContext.getCondition() =
         else -> throw RuntimeException("No valid WhenXX condition")
     }
 
-// ?tony?
 internal fun RpgParser.CsCASxxContext.getCondition() =
     when {
         this.csCASEQ() != null -> ComparisonOperator.EQ to this.csCASEQ().cspec_fixed_standard_parts().factor2

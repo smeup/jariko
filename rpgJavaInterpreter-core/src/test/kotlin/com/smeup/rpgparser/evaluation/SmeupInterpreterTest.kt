@@ -409,7 +409,7 @@ open class SmeupInterpreterTest : AbstractTest() {
 
     @Test
     fun executeT12_A08_P01() {
-        val expected = listOf("1", "2")
+        val expected = listOf("1", "2", "3")
         assertASTCanBeProduced("smeup/T12_A08_P01", printTree = true)
         assertEquals(expected, "smeup/T12_A08_P01".outputOf())
     }
