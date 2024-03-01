@@ -193,10 +193,58 @@ data class SelectStmt(
 }
 
 @Serializable
+data class CaseStmt(
+    var cases: List<CaseClause>,
+    var other: CaseOtherClause? = null,
+    @Derived val dataDefinition: InStatementDataDefinition? = null,
+    override val position: Position? = null
+) : Statement(position), StatementThatCanDefineData {
+
+    override fun dataDefinition(): List<InStatementDataDefinition> = dataDefinition?.let { listOf(it) } ?: emptyList()
+
+    override fun execute(interpreter: InterpreterCore) {
+        for (case in this.cases) {
+            val result = interpreter.eval(case.condition)
+
+            interpreter.log { CasXXExecutionLogEntry(interpreter.getInterpretationContext().currentProgramName, case, result) }
+            if (result.asBoolean().value) {
+                executeSubProcedure(interpreter, case.function)
+                return
+            }
+        }
+        if (this.other != null) {
+            interpreter.log {
+                CasOtherExecutionLogEntry(
+                    interpreter.getInterpretationContext().currentProgramName,
+                    this.other!!
+                )
+            }
+            executeSubProcedure(interpreter, other!!.function)
+        }
+    }
+
+    private fun executeSubProcedure(interpreter: InterpreterCore, subProcedureName: String) {
+        val containingCU = this.ancestor(CompilationUnit::class.java)
+            ?: throw IllegalStateException("Not contained in a CU")
+        containingCU.subroutines.firstOrNull { subroutine ->
+            subroutine.name.equals(other = subProcedureName, ignoreCase = true)
+        }?.let { subroutine ->
+            ExecuteSubroutine(subroutine = ReferenceByName(subProcedureName, subroutine), position = subroutine.position).execute(interpreter)
+        }
+    }
+}
+
+@Serializable
 data class SelectOtherClause(override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
 
 @Serializable
+data class CaseOtherClause(override val position: Position? = null, val function: String) : Node(position)
+
+@Serializable
 data class SelectCase(val condition: Expression, override val body: List<Statement>, override val position: Position? = null) : Node(position), CompositeStatement
+
+@Serializable
+data class CaseClause(val condition: Expression, override val position: Position? = null, val function: String) : Node(position)
 
 @Serializable
 data class EvalFlags(

@@ -317,19 +317,34 @@ elseClause:
 ;
 
 casestatement:
-	((CS_FIXED
+	csCASxx*
+	csCASother?
+	casestatementend
+;
+
+csCASxx:
+    CS_FIXED
 	cspec_continuedIndicators*
-	cs_controlLevel 
-	indicatorsOff=onOffIndicatorsFlag indicators=cs_indicators factor1=factor)
-	(csCASEQ
+	cs_controlLevel
+	indicatorsOff=onOffIndicatorsFlag indicators=cs_indicators factor1=factor
+	 (csCASEQ
 	| csCASNE
 	| csCASLE
 	| csCASLT
 	| csCASGE
-	| csCASGT
-	| csCAS))+
-	casestatementend
+	| csCASGT)
 ;
+
+csCASother:
+	(CS_FIXED
+	cspec_continuedIndicators*
+	cs_controlLevel
+	indicatorsOff=onOffIndicatorsFlag indicators=cs_indicators factor1=factor
+	csCAS
+	)
+	| (op_other FREE_SEMI free_linecomments? )
+;
+
 casestatementend:
 	CS_FIXED
 	cspec_continuedIndicators*
