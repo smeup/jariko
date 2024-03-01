@@ -790,7 +790,13 @@ private fun RpgParser.Parm_fixedContext.toFieldInfo(conf: ToAstConfiguration = T
     return FieldInfo(this.name, overlayInfo = overlayInfo,
             explicitStartOffset = this.explicitStartOffset(),
             explicitEndOffset = if (explicitStartOffset() != null) this.explicitEndOffset() else null,
-            explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf) ?: knownDataDefinitions.firstOrNull { it.name.equals(varName, ignoreCase = true) }?.type,
+            explicitElementType = this.calculateExplicitElementType(arraySizeDeclared, conf) ?: let {
+                val dataDefinition = knownDataDefinitions.firstOrNull {
+                    it.name.equals(varName, ignoreCase = true) || it.fields.firstOrNull { fe -> fe.name.equals(varName, ignoreCase = true) } != null
+                }
+
+                if (dataDefinition?.name.equals(varName, ignoreCase = true)) dataDefinition else dataDefinition?.fields?.firstOrNull { f -> f.name.equals(varName, ignoreCase = true)}
+            }?.type,
             arraySizeDeclared = this.arraySizeDeclared(conf),
             arraySizeDeclaredOnThisField = this.arraySizeDeclared(conf),
             initializationValue = initializationValue,
