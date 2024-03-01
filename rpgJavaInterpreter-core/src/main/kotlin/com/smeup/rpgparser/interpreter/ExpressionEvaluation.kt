@@ -23,6 +23,7 @@ import com.smeup.rpgparser.utils.asLong
 import com.smeup.rpgparser.utils.divideAtIndex
 import com.smeup.rpgparser.utils.moveEndingString
 import com.strumenta.kolasu.model.Position
+import com.strumenta.kolasu.model.ReferenceByName
 import com.strumenta.kolasu.model.specificProcess
 import java.math.BigDecimal
 import java.math.MathContext
@@ -572,7 +573,17 @@ class ExpressionEvaluation(
 
     override fun eval(expression: TrimrExpr): Value {
         return if (expression.charactersToTrim == null) {
-            StringValue(evalAsString(expression.value).trimEnd())
+            when (expression.value) {
+                is DataRefExpr -> {
+                    if ((expression.value as DataRefExpr).variable.referred is DataDefinition) {
+                        val referred: DataDefinition = (expression.value as DataRefExpr).variable.referred as DataDefinition
+                        return StringValue(referred.fields.fold("") { acc, i -> acc.plus(evalAsString(DataRefExpr(ReferenceByName(referred.name, i))).trimEnd()) })
+                    }
+
+                    StringValue(evalAsString(expression.value).trimEnd())
+                }
+                else -> StringValue(evalAsString(expression.value).trimEnd())
+            }
         } else {
             val suffix = evalAsString(expression.charactersToTrim)
             var result = evalAsString(expression.value)
