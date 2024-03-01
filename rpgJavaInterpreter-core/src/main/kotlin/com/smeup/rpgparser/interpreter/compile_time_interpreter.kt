@@ -141,7 +141,8 @@ open class BaseCompileTimeInterpreter(
             val field = it.fields.find { it.name.equals(declName, ignoreCase = true) }
             if (field != null) return (field.elementSize() /*/ field.declaredArrayInLine!!*/)
         }
-        return findSize(rContext.statement(), declName, conf, false)!!
+
+        return findSize(rContext.statement() + rContext.subroutine().flatMap { it.statement() }, declName, conf, false)!!
     }
 
     private fun findSize(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Int? {
@@ -220,7 +221,8 @@ open class BaseCompileTimeInterpreter(
                 return field.type
             }
         }
-        return findType(rContext.statement(), declName, conf, false)!!
+
+        return findType(rContext.statement() + rContext.subroutine().flatMap { it.statement() }, declName, conf, false)!!
     }
 
     private fun findType(statements: List<RpgParser.StatementContext>, declName: String, conf: ToAstConfiguration, innerBlock: Boolean = true): Type? {

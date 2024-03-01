@@ -107,6 +107,9 @@ data class CompilationUnit(
 
     fun getAnyDataDefinition(name: String) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
 
+    fun getAnyDataDefinition(name: String, errorMessage: () -> String = { "Data definition $name was not found" }) = allDataDefinitions.first { it.name.equals(name, ignoreCase = true) }
+        ?: throw IllegalArgumentException(errorMessage.invoke())
+
     fun compileTimeArray(name: String): CompileTimeArray {
         fun firstCompileTimeArray() = if (compileTimeArrays.isNotEmpty()) {
             compileTimeArrays[0]
