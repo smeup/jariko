@@ -402,6 +402,12 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT10_A60_P09() {
+        val expected = listOf<String>("1,2,3,4", "4,3,2,1")
+        assertEquals(expected, "smeup/T10_A60_P09".outputOf())
+    }
+
+    @Test
     fun executeT02_A60_P02() {
         val expected = listOf("Res(A*B+C)=246; Res(A * B + C)=246")
         assertEquals(expected, "smeup/T02_A60_P02".outputOf())
@@ -412,5 +418,55 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf("1", "2", "3")
         assertASTCanBeProduced("smeup/T12_A08_P01", printTree = true)
         assertEquals(expected, "smeup/T12_A08_P01".outputOf())
+    }
+
+    @Test
+    fun executeT10_A35_P07() {
+        val expected = listOf<String>("Src1=1 Src2=0")
+        assertEquals(expected, "smeup/T10_A35_P07".outputOf())
+    }
+
+    @Test
+    fun executeT52_A07_P01() {
+        val expected = listOf<String>()
+        assertEquals(expected, "smeup/T52_A07_P01".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT60_A10_P01_02() {
+        val expected = listOf<String>()
+        assertEquals(expected, "smeup/T60_A10_P01-02".outputOf(configuration = smeupConfig))
+    }
+
+    @Test
+    fun executeT10_A20_P35_38() {
+        val expected = listOf<String>(
+            "Res(21, 0, 0, 0, 0, 0)",
+            "Res(0, -19, 0, 0, 0, 0)",
+            "Res(0, 0, 20, 0, 0, 0)",
+            "Res(0, 0, 0, 2, 0, 0)"
+        )
+        assertEquals(expected, "smeup/T10_A20_P35-38".outputOf())
+    }
+
+    @Test
+    fun executeT10_A20_P40() {
+        val expected = listOf<String>("Res(0, 0, 0, 0, 0, -20)")
+        assertEquals(expected, "smeup/T10_A20_P40".outputOf())
+    }
+
+    @Test
+    fun executeT10_A20_P41() {
+        val expected = listOf<String>("Res(20, 22, 12, 26, 28, 30) Div(2, 2, 2, 2, 2, 2)")
+        assertEquals(expected, "smeup/T10_A20_P41".outputOf())
+    }
+
+    @Test
+    fun executeT03_A30_P01_02() {
+        val expected = listOf(
+            "*IN33=0,*IN34=1",
+            "*IN33=0,*IN34=1"
+        )
+        assertEquals(expected, "smeup/T03_A30_P01-02".outputOf())
     }
 }

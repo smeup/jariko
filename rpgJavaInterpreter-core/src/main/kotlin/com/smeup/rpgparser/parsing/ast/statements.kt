@@ -1131,6 +1131,15 @@ data class MultStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    @Transient
+    @Derived
+    val left: Expression
+        get() = factor1 ?: target
+
+    @Transient
+    @Derived
+    val right: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.mult(this))
@@ -1149,6 +1158,15 @@ data class DivStmt(
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
 ) : Statement(position), StatementThatCanDefineData {
+    @Transient
+    @Derived
+    val dividend: Expression
+        get() = factor1 ?: target
+
+    @Transient
+    @Derived
+    val divisor: Expression
+        get() = factor2
 
     override fun execute(interpreter: InterpreterCore) {
         interpreter.assign(target, interpreter.div(this))
@@ -1678,7 +1696,7 @@ data class ScanStmt(
     val leftLength: Int?,
     val right: Expression,
     val startPosition: Int,
-    val target: AssignableExpression,
+    val target: AssignableExpression?,
     val rightIndicators: WithRightIndicators,
     @Derived val dataDefinition: InStatementDataDefinition? = null,
     override val position: Position? = null
@@ -1695,14 +1713,16 @@ data class ScanStmt(
         } while (index >= 0)
         if (occurrences.isEmpty()) {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.FALSE)
-            interpreter.assign(target, IntValue(0))
+            target?.let { interpreter.assign(it, IntValue(0)) }
         } else {
             interpreter.setIndicators(this, BooleanValue.FALSE, BooleanValue.FALSE, BooleanValue.TRUE)
-            if (target.type().isArray()) {
-                val fullOccurrences = occurrences.resizeTo(target.type().numberOfElements(), IntValue.ZERO).toMutableList()
-                interpreter.assign(target, ConcreteArrayValue(fullOccurrences, target.type().asArray().element))
-            } else {
-                interpreter.assign(target, occurrences[0])
+            target?.let {
+                if (it.type().isArray()) {
+                    val fullOccurrences = occurrences.resizeTo(it.type().numberOfElements(), IntValue.ZERO).toMutableList()
+                    interpreter.assign(it, ConcreteArrayValue(fullOccurrences, it.type().asArray().element))
+                } else {
+                    interpreter.assign(it, occurrences[0])
+                }
             }
         }
     }
@@ -1939,5 +1959,32 @@ data class ResetStmt(
             this.error("Data definition $name has no default value")
         }
         interpreter.assign(dataDefinition, dataDefinition.defaultValue!!)
+    }
+}
+
+@Serializable
+data class ExfmtStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
+
+@Serializable
+data class ReadcStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
+    }
+}
+
+@Serializable
+data class UnlockStmt(
+    override val position: Position? = null
+) : Statement(position) {
+    override fun execute(interpreter: InterpreterCore) {
+        // TODO
     }
 }

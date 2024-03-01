@@ -695,15 +695,10 @@ open class InternalInterpreter(
 
     override fun mult(statement: MultStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        require(statement.target is DataRefExpr)
-        val rightValue: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(eval(statement.factor1).render())
-        } else {
-            BigDecimal(get(statement.target.variable.referred!!).render())
-        }
-        val leftValue = BigDecimal(eval(statement.factor2).render())
+        val rightValue = BigDecimal(eval(statement.left).render())
+        val leftValue = BigDecimal(eval(statement.right).render())
         val result = rightValue.multiply(leftValue)
-        val type = statement.target.variable.referred!!.type
+        val type = statement.target.type()
         require(type is NumberType)
         return if (statement.halfAdjust) {
             DecimalValue(result.setScale(type.decimalDigits, RoundingMode.HALF_UP))
@@ -714,15 +709,10 @@ open class InternalInterpreter(
 
     override fun div(statement: DivStmt): Value {
         // TODO When will pass my PR for more robustness replace Value.render with NumericValue.bigDecimal
-        require(statement.target is DataRefExpr)
-        val dividend: BigDecimal = if (statement.factor1 != null) {
-            BigDecimal(eval(statement.factor1).render())
-        } else {
-            BigDecimal(get(statement.target.variable.referred!!).render())
-        }
-        val divisor = BigDecimal(eval(statement.factor2).render())
+        val dividend = BigDecimal(eval(statement.dividend).render())
+        val divisor = BigDecimal(eval(statement.divisor).render())
         val quotient = dividend.divide(divisor, MathContext.DECIMAL128)
-        val type = statement.target.variable.referred!!.type
+        val type = statement.target.type()
         require(type is NumberType)
         // calculation of rest
         // NB. rest based on type of quotient
