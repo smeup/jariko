@@ -466,7 +466,7 @@ open class SmeupInterpreterTest : AbstractTest() {
     @Test
     fun executeT02_A40_P08() {
         val expected = listOf(
-            "CNCLIAAAAAA333"
+            "CNCLI       AAAAAA         333"
         )
         assertEquals(expected, "smeup/T02_A40_P08".outputOf())
     }
