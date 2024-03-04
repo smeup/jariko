@@ -14,7 +14,7 @@
      D* DS con overlay e campi definiti singolarmente
      C                   EVAL      DS9_FL1 = 'CN'
      C                   EVAL      DS9_FL2 = 'CLI'
-     C                   EVAL      DS8_FL3 = 'AAAAAA'
+     C                   EVAL      DS9_FL3 = 'AAAAAA'
      C                   EVAL      DS9_FL4 = 333
      C                   EVAL      £DBG_Str=%TRIMR(A40_DS9)
      C     £DBG_Str      DSPLY
