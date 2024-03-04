@@ -415,13 +415,13 @@ open class SmeupInterpreterTest : AbstractTest() {
 
     @Test
     fun executeT12_A08_P01() {
-        val expected = listOf("1", "2", "3")
+        val expected = listOf("123")
         assertEquals(expected, "smeup/T12_A08_P01".outputOf())
     }
 
     @Test
     fun executeT12_A08_P02() {
-        val expected = listOf("1", "2", "2")
+        val expected = listOf("12")
         assertEquals(expected, "smeup/T12_A08_P02".outputOf())
     }
 

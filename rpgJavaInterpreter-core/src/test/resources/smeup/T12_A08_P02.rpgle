@@ -1,4 +1,4 @@
-     D £DBG_Str        S              1
+     D £DBG_Str        S              3
       *
      C                   MOVEL     '1'           CHOISE            1
      C                   EXSR      SEZ_T12_A08
@@ -9,6 +9,8 @@
      C                   MOVEL     ' '           CHOISE
      C                   EXSR      SEZ_T12_A08
       *
+     C     £DBG_Str      DSPLY
+      *
      C                   SETON                                          LR
       *---------------------------------------------------------------
      C     SEZ_T12_A08   BEGSR
@@ -18,16 +20,14 @@
      C     CHOISE        CASEQ     '2'           CHOISER2
      C                   ENDCS
       *
-     C     £DBG_Str      DSPLY
-      *
      C                   ENDSR
       *---------------------------------------------------------------
      C     CHOISER1      BEGSR
       *--------------------------------------------------------------*
-     c                   EVAL      £DBG_Str='1'
+     C                   EVAL      £DBG_Str=%TRIM(£DBG_Str)+'1'
      C                   ENDSR
       *---------------------------------------------------------------
      C     CHOISER2      BEGSR
       *--------------------------------------------------------------*
-     c                   EVAL      £DBG_Str='2'
+     C                   EVAL      £DBG_Str=%TRIM(£DBG_Str)+'2'
      C                   ENDSR
