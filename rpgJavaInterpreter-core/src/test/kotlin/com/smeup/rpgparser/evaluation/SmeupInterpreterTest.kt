@@ -414,12 +414,6 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
-    fun executeT12_A08_P01() {
-        val expected = listOf("1", "2", "3")
-        assertEquals(expected, "smeup/T12_A08_P01".outputOf())
-    }
-
-    @Test
     fun executeT10_A35_P07() {
         val expected = listOf<String>("Src1=1 Src2=0")
         assertEquals(expected, "smeup/T10_A35_P07".outputOf())
@@ -475,5 +469,13 @@ open class SmeupInterpreterTest : AbstractTest() {
             "AAAAABBBBBCCCCCDDDDDEEEEEFFFFFGGGGGHHHHHIIIIIAAAAADDDDDGGGGGBBBBBCCCCCEEEEEFFFFFHHHHHIIIIIZZZZZ12345"
         )
         assertEquals(expected, "smeup/T02_A40_P07".outputOf())
+    }
+
+    @Test
+    fun executeT02_A30_P03() {
+        val expected = listOf(
+            "AAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCCCCCCDDDDDDDDDDDDDDDDDDDDEEEEEEEEEEEEEEEEEEEEFFFFFFFFFFFFFFFFFFFF"
+        )
+        assertEquals(expected, "smeup/T02_A30_P03".outputOf())
     }
 }
