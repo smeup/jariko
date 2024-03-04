@@ -217,7 +217,7 @@ internal fun RpgParser.WhenstatementContext.toAst(conf: ToAstConfiguration = ToA
 
 internal fun RpgParser.CasestatementContext.toAst(conf: ToAstConfiguration = ToAstConfiguration()): CaseStmt {
     val casClauses = this.csCASxx().map { it.toAst(conf) }
-    val otherClause = this.csCASother().toAst()
+    val otherClause = if (this.csCASother() != null) this.csCASother().toAst() else null
     return CaseStmt(
         cases = casClauses,
         other = otherClause,
