@@ -464,6 +464,22 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT02_A40_P07() {
+        val expected = listOf(
+            "AAAAABBBBBCCCCCDDDDDEEEEEFFFFFGGGGGHHHHHIIIIIAAAAADDDDDGGGGGBBBBBCCCCCEEEEEFFFFFHHHHHIIIIIZZZZZ12345"
+        )
+        assertEquals(expected, "smeup/T02_A40_P07".outputOf())
+    }
+
+    @Test
+    fun executeT02_A30_P03() {
+        val expected = listOf(
+            "AAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCCCCCCDDDDDDDDDDDDDDDDDDDDEEEEEEEEEEEEEEEEEEEEFFFFFFFFFFFFFFFFFFFF"
+        )
+        assertEquals(expected, "smeup/T02_A30_P03".outputOf())
+    }
+
+    @Test
     fun executeT02_A40_P08() {
         val expected = listOf(
             "CNCLI       AAAAAA         333"
