@@ -11,7 +11,7 @@
      D  DS8_FL4                            LIKE(DS1_FL4)
      D £DBG_Str        S             50          VARYING
 
-     D* DS con overlay e campi definiti singolarmente
+     D* DS definita con tutti campi in LIKE
      C                   EVAL      DS8_FL1 = 'CN'
      C                   EVAL      DS8_FL2 = 'CLI'
      C                   EVAL      DS8_FL3 = 'AAAAAA'

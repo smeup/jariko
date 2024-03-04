@@ -11,7 +11,7 @@
      D  DS9_FL4                       3  0
      D £DBG_Str        S             50          VARYING
 
-     D* DS con overlay e campi definiti singolarmente
+     D* DS definita con campi in LIKE e campi normali
      C                   EVAL      DS9_FL1 = 'CN'
      C                   EVAL      DS9_FL2 = 'CLI'
      C                   EVAL      DS9_FL3 = 'AAAAAA'
