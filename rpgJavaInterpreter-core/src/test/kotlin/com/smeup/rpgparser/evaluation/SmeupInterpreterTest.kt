@@ -2,7 +2,6 @@ package com.smeup.rpgparser.evaluation
 
 import com.smeup.dbnative.DBNativeAccessConfig
 import com.smeup.rpgparser.AbstractTest
-import com.smeup.rpgparser.assertCanBeParsed
 import com.smeup.rpgparser.execution.Configuration
 import com.smeup.rpgparser.execution.ReloadConfig
 import com.smeup.rpgparser.execution.SimpleReloadConfig
