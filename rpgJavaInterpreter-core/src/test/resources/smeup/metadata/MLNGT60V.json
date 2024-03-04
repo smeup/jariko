@@ -1,0 +1,19 @@
+{"name": "MLNGT60V",
+  "tableName": "MULANGTF",
+  "recordFormat": "",
+  "fields": [
+    { "fieldName": "*IN62",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN96",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "*IN97",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":1, "varying":false}}
+  , { "fieldName": "£RASDI",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":15, "varying":false}}
+  , { "fieldName": "£PDSNP",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "£PDSJN",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  , { "fieldName": "£PDSNU",
+      "type":{"type":"com.smeup.rpgparser.interpreter.StringType","length":10, "varying":false}}
+  ], "accessFields": []}
