@@ -575,9 +575,9 @@ class ExpressionEvaluation(
         return if (expression.charactersToTrim == null) {
             when (expression.value) {
                 is DataRefExpr -> {
-                    if ((expression.value as DataRefExpr).variable.referred is DataDefinition) {
-                        val referred: DataDefinition = (expression.value as DataRefExpr).variable.referred as DataDefinition
-                        return StringValue(referred.fields.fold("") { acc, i -> acc.plus(evalAsString(DataRefExpr(ReferenceByName(referred.name, i))).trimEnd()) })
+                    val referred = (expression.value as DataRefExpr).variable.referred
+                    if (referred?.type is DataStructureType) {
+                        return StringValue((referred as DataDefinition).fields.fold("") { acc, i -> acc.plus(evalAsString(DataRefExpr(ReferenceByName(referred.name, i))).trimEnd()) })
                     }
 
                     StringValue(evalAsString(expression.value).trimEnd())
