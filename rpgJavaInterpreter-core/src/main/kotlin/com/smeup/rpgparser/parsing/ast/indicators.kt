@@ -41,6 +41,7 @@ typealias IndicatorKey = Int
  * Managed indicator types
  * */
 enum class IndicatorType(val range: IntRange) {
+    Predefined(1..99),
     KA(1..1),
     KB(2..2),
     KC(3..3),
@@ -65,7 +66,6 @@ enum class IndicatorType(val range: IntRange) {
     KW(22..22),
     KX(23..23),
     KY(24..24),
-    Predefined(25..99),
     LR(100..100),
     RT(101..101),
     OC(102..102),
