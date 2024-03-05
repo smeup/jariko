@@ -955,8 +955,8 @@ private fun annidatedReferenceExpression(
         }
     }
     if (text.uppercase(Locale.getDefault()).startsWith("*IN")) {
-        val index = text.uppercase(Locale.getDefault()).removePrefix("*IN").toInt()
-        return IndicatorExpr(index, position)
+        val index = text.uppercase(Locale.getDefault()).removePrefix("*IN")
+        return IndicatorExpr(index.toIndicatorKey(), position)
     }
 
     var expr: Expression
