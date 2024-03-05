@@ -2256,6 +2256,15 @@ Test 6
     }
 
     @Test
+    fun executeINDIC03() {
+        val expected = listOf(
+            "*INKA(0) *IN01(1)",
+            "*INKA(1) *IN01(0)"
+        )
+        assertEquals(expected, "INDIC03".outputOf())
+    }
+
+    @Test
     fun executeBIFCHECK() {
         assertEquals(listOf("ok"), outputOf("BIFCHECK"))
     }
