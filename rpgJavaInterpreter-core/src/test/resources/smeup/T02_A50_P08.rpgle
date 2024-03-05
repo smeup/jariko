@@ -6,7 +6,7 @@
      D A50_N81         S                   LIKE(£DBG_I_Num)
      D A50_V81         S                   LIKE(£DBG_O_Str)
 
-     D £DBG_Str        S             150         VARYING
+     D £DBG_Str        S            150         VARYING
 
      D* DS con overlay e campi definiti singolarmente
      C                   EVAL      A50_A81='Funzione'
