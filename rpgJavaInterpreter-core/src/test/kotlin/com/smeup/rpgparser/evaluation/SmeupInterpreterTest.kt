@@ -528,4 +528,20 @@ open class SmeupInterpreterTest : AbstractTest() {
         val expected = listOf<String>("KA(0)KB(0)KC(0)KD(0)KE(0)KF(0)KG(0)KH(0)KI(0)KJ(0)KK(0)KL(0)KM(0)KN(0)KP(0)KQ(0)KR(0)KS(0)KT(0)KU(0)KV(0)KW(0)KX(0)KY(0)")
         assertEquals(expected, "smeup/T60_A10_P01".outputOf(configuration = smeupConfig))
     }
+
+    @Test
+    fun executeT12_A04_P13() {
+        val expected = listOf(
+            "CNT()"
+        )
+        assertEquals(expected, "smeup/T12_A04_P13".outputOf())
+    }
+
+    @Test
+    fun executeT12_A04_P14() {
+        val expected = listOf(
+            "CNT()"
+        )
+        assertEquals(expected, "smeup/T12_A04_P14".outputOf())
+    }
 }
