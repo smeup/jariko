@@ -71,19 +71,21 @@ internal fun RpgParser.CsDOWxxContext.toAst(blockContext: BlockContext, conf: To
         else -> todo(conf = conf)
     }
     val factor2 = when {
-        this.csDOWEQ() != null -> this.csDOWEQ().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
-        this.csDOWNE() != null -> this.csDOWNE().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
-        this.csDOWGT() != null -> this.csDOWGT().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
-        this.csDOWGE() != null -> this.csDOWGE().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
-        this.csDOWLT() != null -> this.csDOWLT().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
-        this.csDOWLE() != null -> this.csDOWLE().cspec_fixed_standard_parts().factor2.content.toAst(conf = conf)
+        this.csDOWEQ() != null -> this.csDOWEQ().cspec_fixed_standard_parts().factor2
+        this.csDOWNE() != null -> this.csDOWNE().cspec_fixed_standard_parts().factor2
+        this.csDOWGT() != null -> this.csDOWGT().cspec_fixed_standard_parts().factor2
+        this.csDOWGE() != null -> this.csDOWGE().cspec_fixed_standard_parts().factor2
+        this.csDOWLT() != null -> this.csDOWLT().cspec_fixed_standard_parts().factor2
+        this.csDOWLE() != null -> this.csDOWLE().cspec_fixed_standard_parts().factor2
         else -> todo(conf = conf)
     }
+
+    val factor2Ast = factor2.toAstIfSymbolicConstant() ?: factor2.content.toAst(conf)
 
     return DOWxxStmt(
         comparisonOperator = comparison,
         factor1 = this.factor1.content.toAst(conf = conf),
-        factor2 = factor2,
+        factor2 = factor2Ast,
         position = toPosition(conf.considerPosition),
         body = blockContext.statement().map { it.toAst(conf) }
     )
