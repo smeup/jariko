@@ -421,6 +421,18 @@ open class SmeupInterpreterTest : AbstractTest() {
     }
 
     @Test
+    fun executeT12_A08_P01() {
+        val expected = listOf("123")
+        assertEquals(expected, "smeup/T12_A08_P01".outputOf())
+    }
+
+    @Test
+    fun executeT12_A08_P02() {
+        val expected = listOf("12")
+        assertEquals(expected, "smeup/T12_A08_P02".outputOf())
+    }
+
+    @Test
     fun executeT10_A35_P07() {
         val expected = listOf<String>("Src1=1 Src2=0")
         assertEquals(expected, "smeup/T10_A35_P07".outputOf())
@@ -459,5 +471,68 @@ open class SmeupInterpreterTest : AbstractTest() {
     fun executeT10_A20_P41() {
         val expected = listOf<String>("Res(20, 22, 12, 26, 28, 30) Div(2, 2, 2, 2, 2, 2)")
         assertEquals(expected, "smeup/T10_A20_P41".outputOf())
+    }
+
+    @Test
+    fun executeT03_A30_P01_02() {
+        val expected = listOf(
+            "*IN33=0,*IN34=1",
+            "*IN33=0,*IN34=1"
+        )
+        assertEquals(expected, "smeup/T03_A30_P01-02".outputOf())
+    }
+
+    @Test
+    fun executeT02_A40_P07() {
+        val expected = listOf(
+            "AAAAABBBBBCCCCCDDDDDEEEEEFFFFFGGGGGHHHHHIIIIIAAAAADDDDDGGGGGBBBBBCCCCCEEEEEFFFFFHHHHHIIIIIZZZZZ12345"
+        )
+        assertEquals(expected, "smeup/T02_A40_P07".outputOf())
+    }
+
+    @Test
+    fun executeT02_A30_P03() {
+        val expected = listOf(
+            "AAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCCCCCCDDDDDDDDDDDDDDDDDDDDEEEEEEEEEEEEEEEEEEEEFFFFFFFFFFFFFFFFFFFF"
+        )
+        assertEquals(expected, "smeup/T02_A30_P03".outputOf())
+    }
+
+    @Test
+    fun executeT02_A40_P08() {
+        val expected = listOf(
+            "CNCLI       AAAAAA         333"
+        )
+        assertEquals(expected, "smeup/T02_A40_P08".outputOf())
+    }
+
+    @Test
+    fun executeT02_A40_P09() {
+        val expected = listOf(
+            "CNCLI       AAAAAA         333"
+        )
+        assertEquals(expected, "smeup/T02_A40_P09".outputOf())
+    }
+
+    @Test
+    fun executeT02_A50_P08() {
+        val expected = listOf(
+            "A50_A81(Funzione  ) A50_N81(Funzione  )A50_V81(Funzione)"
+        )
+        assertEquals(expected, "smeup/T02_A50_P08".outputOf())
+    }
+
+    @Test
+    fun executeT02_A50_P09() {
+        val expected = listOf(
+            "A50_A91(Funzione  ) A50_N91(Funzione  )A50_V91(Funzione)"
+        )
+        assertEquals(expected, "smeup/T02_A50_P09".outputOf())
+    }
+
+    @Test
+    fun executeT60_A10_P01() {
+        val expected = listOf<String>("KA(0)KB(0)KC(0)KD(0)KE(0)KF(0)KG(0)KH(0)KI(0)KJ(0)KK(0)KL(0)KM(0)KN(0)KP(0)KQ(0)KR(0)KS(0)KT(0)KU(0)KV(0)KW(0)KX(0)KY(0)")
+        assertEquals(expected, "smeup/T60_A10_P01".outputOf(configuration = smeupConfig))
     }
 }

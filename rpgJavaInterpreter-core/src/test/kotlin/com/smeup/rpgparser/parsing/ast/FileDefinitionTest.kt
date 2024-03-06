@@ -62,6 +62,16 @@ class FileDefinitionTest : AbstractTest() {
     }
 
     @Test
+    fun resolveEXTNAME03() {
+        assertASTCanBeProduced(
+            exampleName = "db/EXTNAME03",
+            considerPosition = true,
+            afterAstCreation = { compilationUnit ->
+                assertEquals(listOf(), compilationUnit.resolveAndValidate())
+            })
+    }
+
+    @Test
     fun resolveLIKEDSPEC01() {
         assertASTCanBeProduced(
             exampleName = "db/LIKEDSPEC01",
