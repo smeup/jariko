@@ -67,7 +67,7 @@ fun String.includesCopy(
                     onEndInclusion = onEndInclusion,
                     beforeInclusion = beforeInclusion,
                     currentLine = copyStartLine
-                )?.surroundWithPreprocessingAnnotations(copyId)?.apply {
+                )?.resolveEOFDirective()?.surroundWithPreprocessingAnnotations(copyId)?.apply {
                 } ?: let {
                     println("Copy ${matcher.group()} not found".yellow())
                     matcher.group()

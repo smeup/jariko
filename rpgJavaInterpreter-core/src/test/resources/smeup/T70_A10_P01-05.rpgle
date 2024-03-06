@@ -1,5 +1,14 @@
      D £DBG_Str        S            100
       *
+      * TestImporting same COPY two times
+      *
+       /COPY QILEGEN,£PDS
+       /COPY QILEGEN,£PDS
+      *
+      * Test importing a /COPY with /EOF directive inside
+      *
+         /COPY QILEGEN,T70_A10_P0
+      *
       * Test DEFINE and IF NOT DEFINED
       *
       /IF NOT DEFINED(DEFINE_1)
@@ -40,4 +49,3 @@
      C     £DBG_Str      DSPLY
       *
      C                   SETON                                        LR
-
