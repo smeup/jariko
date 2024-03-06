@@ -198,9 +198,15 @@ data class StringValue(var value: String, val varying: Boolean = false) : Abstra
         return s1.compareTo(s2)
     }
 
+    fun compare(other: BlanksValue, charset: Charset?, descend: Boolean = false): Int {
+        require(charset != null)
+        return if (this.isBlank()) EQUAL else SMALLER
+    }
+
     override operator fun compareTo(other: Value): Int =
         when (other) {
             is StringValue -> compare(other, DEFAULT_CHARSET)
+            is BlanksValue -> compare(other, DEFAULT_CHARSET)
             else -> super.compareTo(other)
         }
 
