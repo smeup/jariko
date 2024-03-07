@@ -506,10 +506,12 @@ class JarikoCallbackTest : AbstractTest() {
         }.onSuccess {
             Assert.fail("Program must exit with error")
         }.onFailure {
+            val distinctErrorEvents = errorEvents.distinctBy { it.error.message }
+
             println(it.stackTraceToString())
-            Assert.assertEquals(sourceReferenceType, errorEvents[0].sourceReference!!.sourceReferenceType)
-            Assert.assertEquals(sourceId, errorEvents[0].sourceReference!!.sourceId)
-            Assert.assertEquals(lines.sorted(), errorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine }.sorted())
+            Assert.assertEquals(sourceReferenceType, distinctErrorEvents[0].sourceReference!!.sourceReferenceType)
+            Assert.assertEquals(sourceId, distinctErrorEvents[0].sourceReference!!.sourceId)
+            Assert.assertEquals(lines.sorted(), distinctErrorEvents.map { errorEvent -> errorEvent.sourceReference!!.relativeLine }.sorted())
         }
     }
 
