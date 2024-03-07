@@ -140,7 +140,7 @@ private fun RContext.getDataDefinitions(
             .getOrNull()
         }
     )
-    // Third pass, everything, I mean everything but with statements not resolved
+    // Third pass with statements not resolved
     dataDefinitionProviders.addAll(statementsNotResolved
         .mapNotNull {
             kotlin.runCatching {
